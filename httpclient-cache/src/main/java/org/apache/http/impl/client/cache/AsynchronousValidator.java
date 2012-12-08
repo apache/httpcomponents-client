@@ -37,17 +37,18 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpHost;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.protocol.HttpContext;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.routing.HttpRoute;
 
 /**
  * Class used for asynchronous revalidations to be used when the "stale-
  * while-revalidate" directive is present
  */
 class AsynchronousValidator {
-    private final CachingHttpClient cachingClient;
+    private final CachingExec cachingExec;
     private final ExecutorService executor;
     private final Set<String> queued;
     private final CacheKeyGenerator cacheKeyGenerator;
@@ -59,16 +60,16 @@ class AsynchronousValidator {
      * using the supplied {@link CachingHttpClient}, and
      * a {@link ThreadPoolExecutor} generated according to the thread
      * pool settings provided in the given {@link CacheConfig}.
-     * @param cachingClient used to execute asynchronous requests
+     * @param cachingExect used to execute asynchronous requests
      * @param config specifies thread pool settings. See
      * {@link CacheConfig#getAsynchronousWorkersMax()},
      * {@link CacheConfig#getAsynchronousWorkersCore()},
      * {@link CacheConfig#getAsynchronousWorkerIdleLifetimeSecs()},
      * and {@link CacheConfig#getRevalidationQueueSize()}.
      */
-    public AsynchronousValidator(CachingHttpClient cachingClient,
+    public AsynchronousValidator(CachingExec cachingExect,
             CacheConfig config) {
-        this(cachingClient,
+        this(cachingExect,
                 new ThreadPoolExecutor(config.getAsynchronousWorkersCore(),
                         config.getAsynchronousWorkersMax(),
                         config.getAsynchronousWorkerIdleLifetimeSecs(),
@@ -81,12 +82,11 @@ class AsynchronousValidator {
      * Create AsynchronousValidator which will make revalidation requests
      * using the supplied {@link CachingHttpClient} and
      * {@link ExecutorService}.
-     * @param cachingClient used to execute asynchronous requests
+     * @param cachingExect used to execute asynchronous requests
      * @param executor used to manage a thread pool of revalidation workers
      */
-    AsynchronousValidator(CachingHttpClient cachingClient,
-            ExecutorService executor) {
-        this.cachingClient = cachingClient;
+    AsynchronousValidator(CachingExec cachingExec, ExecutorService executor) {
+        this.cachingExec = cachingExec;
         this.executor = executor;
         this.queued = new HashSet<String>();
         this.cacheKeyGenerator = new CacheKeyGenerator();
@@ -94,21 +94,20 @@ class AsynchronousValidator {
 
     /**
      * Schedules an asynchronous revalidation
-     *
-     * @param target
-     * @param request
-     * @param context
-     * @param entry
      */
-    public synchronized void revalidateCacheEntry(HttpHost target,
-            HttpRequestWrapper request, HttpContext context, HttpCacheEntry entry) {
+    public synchronized void revalidateCacheEntry(
+            final HttpRoute route,
+            final HttpRequestWrapper request,
+            final HttpClientContext context,
+            final HttpExecutionAware execAware,
+            final HttpCacheEntry entry) {
         // getVariantURI will fall back on getURI if no variants exist
-        String uri = cacheKeyGenerator.getVariantURI(target, request, entry);
+        String uri = cacheKeyGenerator.getVariantURI(route.getTargetHost(), request, entry);
 
         if (!queued.contains(uri)) {
             AsynchronousValidationRequest revalidationRequest =
-                new AsynchronousValidationRequest(this, cachingClient, target,
-                        request, context, entry, uri);
+                new AsynchronousValidationRequest(
+                        this, cachingExec, route, request, context, execAware, entry, uri);
 
             try {
                 executor.execute(revalidationRequest);

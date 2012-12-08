@@ -32,21 +32,18 @@ import java.util.Date;
 import junit.framework.Assert;
 
 import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.ResourceFactory;
+import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClient;
-import org.apache.http.impl.client.cache.FileResourceFactory;
-import org.apache.http.impl.client.cache.ManagedHttpCacheStorage;
+import org.apache.http.client.methods.HttpRequestWrapper;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.client.execchain.ClientExecChain;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -92,10 +89,11 @@ public class TestHttpCacheJiraNumber1147 {
         ResourceFactory resourceFactory = new FileResourceFactory(cacheDir);
         HttpCacheStorage httpCacheStorage = new ManagedHttpCacheStorage(cacheConfig);
 
-        HttpClient client = EasyMock.createNiceMock(HttpClient.class);
-        HttpGet get = new HttpGet("http://somehost/");
-        HttpContext context = new BasicHttpContext();
+        ClientExecChain backend = EasyMock.createNiceMock(ClientExecChain.class);
+        HttpRequestWrapper get = HttpRequestWrapper.wrap(new HttpGet("http://somehost/"));
+        HttpClientContext context = HttpClientContext.create();
         HttpHost target = new HttpHost("somehost");
+        HttpRoute route = new HttpRoute(target);
 
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
@@ -107,34 +105,37 @@ public class TestHttpCacheJiraNumber1147 {
         response.setHeader("Cache-Control", "public, max-age=3600");
         response.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         
-        EasyMock.expect(client.execute(
-                EasyMock.eq(target),
-                EasyMock.isA(HttpRequest.class),
-                EasyMock.same(context))).andReturn(response);
-        EasyMock.replay(client);
+        EasyMock.expect(backend.execute(
+                EasyMock.eq(route),
+                EasyMock.isA(HttpRequestWrapper.class),
+                EasyMock.same(context),
+                EasyMock.<HttpExecutionAware>isNull())).andReturn(Proxies.enhanceResponse(response));
+        EasyMock.replay(backend);
         
-        CachingHttpClient t = new CachingHttpClient(client, resourceFactory, httpCacheStorage, cacheConfig);
+        BasicHttpCache cache = new BasicHttpCache(resourceFactory, httpCacheStorage, cacheConfig);
+        CachingExec t = new CachingExec(backend, cache, cacheConfig);
 
-        HttpResponse response1 = t.execute(get, context);
+        HttpResponse response1 = t.execute(route, get, context, null);
         Assert.assertEquals(200, response1.getStatusLine().getStatusCode());
         EntityUtils.consume(response1.getEntity());
         
-        EasyMock.verify(client);
+        EasyMock.verify(backend);
         
         removeCache();
 
-        EasyMock.reset(client);
-        EasyMock.expect(client.execute(
-                EasyMock.eq(target),
-                EasyMock.isA(HttpRequest.class),
-                EasyMock.same(context))).andReturn(response);
-        EasyMock.replay(client);
+        EasyMock.reset(backend);
+        EasyMock.expect(backend.execute(
+                EasyMock.eq(route),
+                EasyMock.isA(HttpRequestWrapper.class),
+                EasyMock.same(context),
+                EasyMock.<HttpExecutionAware>isNull())).andReturn(Proxies.enhanceResponse(response));
+        EasyMock.replay(backend);
         
-        HttpResponse response2 = t.execute(get, context);
+        HttpResponse response2 = t.execute(route, get, context, null);
         Assert.assertEquals(200, response2.getStatusLine().getStatusCode());
         EntityUtils.consume(response2.getEntity());
 
-        EasyMock.verify(client);
+        EasyMock.verify(backend);
     }
 
 }

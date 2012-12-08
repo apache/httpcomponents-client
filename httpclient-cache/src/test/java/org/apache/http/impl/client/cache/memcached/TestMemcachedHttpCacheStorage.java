@@ -109,7 +109,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         impl.putEntry(url, value);
         verifyMocks();
     }
-    
+
     @Test
     public void testCachePutFailsSilentlyWhenWeCannotHashAKey() throws IOException {
         final String url = "foo";
@@ -127,7 +127,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         impl.putEntry(url, value);
         verifyMocks();
     }
-    
+
     public void testThrowsIOExceptionWhenMemcachedPutTimesOut() {
         final String url = "foo";
         final String key = "key";
@@ -170,11 +170,11 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
             impl.putEntry(url, value);
             fail("should have thrown exception");
         } catch (IOException expected) {
-            
+
         }
         verifyMocks();
     }
-    
+
     @Test
     public void testSuccessfulCacheGet() throws UnsupportedEncodingException,
             IOException {
@@ -182,7 +182,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final String key = "key";
         byte[] serialized = HttpTestUtils.getRandomBytes(128);
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry();
-        
+
         EasyMock.expect(mockKeyHashingScheme.hash(url)).andReturn(key);
         EasyMock.expect(mockMemcachedClient.get(key)).andReturn(serialized);
         EasyMock.expect(mockMemcachedCacheEntryFactory.getUnsetCacheEntry())
@@ -190,57 +190,57 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         mockMemcachedCacheEntry.set(serialized);
         EasyMock.expect(mockMemcachedCacheEntry.getStorageKey()).andReturn(url);
         EasyMock.expect(mockMemcachedCacheEntry.getHttpCacheEntry()).andReturn(cacheEntry);
-        
+
         replayMocks();
         HttpCacheEntry resultingEntry = impl.getEntry(url);
         verifyMocks();
         assertSame(cacheEntry, resultingEntry);
     }
-    
+
     @Test
     public void testTreatsNoneByteArrayFromMemcachedAsCacheMiss() throws UnsupportedEncodingException,
             IOException {
         final String url = "foo";
         final String key = "key";
-        
+
         EasyMock.expect(mockKeyHashingScheme.hash(url)).andReturn(key);
         EasyMock.expect(mockMemcachedClient.get(key)).andReturn(new Object());
-        
+
         replayMocks();
         HttpCacheEntry resultingEntry = impl.getEntry(url);
         verifyMocks();
         assertNull(resultingEntry);
     }
-    
+
     @Test
     public void testTreatsNullFromMemcachedAsCacheMiss() throws UnsupportedEncodingException,
             IOException {
         final String url = "foo";
         final String key = "key";
-        
+
         EasyMock.expect(mockKeyHashingScheme.hash(url)).andReturn(key);
         EasyMock.expect(mockMemcachedClient.get(key)).andReturn(null);
-        
+
         replayMocks();
         HttpCacheEntry resultingEntry = impl.getEntry(url);
         verifyMocks();
         assertNull(resultingEntry);
     }
-    
+
     @Test
     public void testTreatsAsCacheMissIfCannotReconstituteEntry() throws UnsupportedEncodingException,
             IOException {
         final String url = "foo";
         final String key = "key";
         byte[] serialized = HttpTestUtils.getRandomBytes(128);
-        
+
         EasyMock.expect(mockKeyHashingScheme.hash(url)).andReturn(key);
         EasyMock.expect(mockMemcachedClient.get(key)).andReturn(serialized);
         EasyMock.expect(mockMemcachedCacheEntryFactory.getUnsetCacheEntry())
             .andReturn(mockMemcachedCacheEntry);
         mockMemcachedCacheEntry.set(serialized);
         EasyMock.expectLastCall().andThrow(new MemcachedSerializationException(new Exception()));
-        
+
         replayMocks();
         assertNull(impl.getEntry(url));
         verifyMocks();
@@ -250,9 +250,9 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     public void testTreatsAsCacheMissIfCantHashStorageKey() throws UnsupportedEncodingException,
             IOException {
         final String url = "foo";
-        
+
         EasyMock.expect(mockKeyHashingScheme.hash(url)).andThrow(new MemcachedKeyHashingException(new Exception()));
-        
+
         replayMocks();
         assertNull(impl.getEntry(url));
         verifyMocks();
@@ -265,7 +265,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         EasyMock.expect(mockKeyHashingScheme.hash(url)).andReturn(key);
         EasyMock.expect(mockMemcachedClient.get(key))
             .andThrow(new OperationTimeoutException(""));
-        
+
         replayMocks();
         try {
             impl.getEntry(url);
@@ -285,7 +285,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         impl.removeEntry(url);
         verifyMocks();
     }
-    
+
     @Test
     public void testCacheRemoveHandlesKeyHashingFailure() throws IOException {
         final String url = "foo";
@@ -302,7 +302,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         EasyMock.expect(mockKeyHashingScheme.hash(url)).andReturn(key);
         EasyMock.expect(mockMemcachedClient.delete(key))
             .andThrow(new OperationTimeoutException(""));
-        
+
         replayMocks();
         try {
             impl.removeEntry(url);
@@ -341,7 +341,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         impl.updateEntry(url, callback);
         verifyMocks();
     }
-    
+
     @Test
     public void testCacheUpdateOverwritesNonMatchingHashCollision() throws IOException,
             HttpCacheUpdateException {
@@ -366,7 +366,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
             .andReturn(mockMemcachedCacheEntry);
         mockMemcachedCacheEntry.set(oldBytes);
         EasyMock.expect(mockMemcachedCacheEntry.getStorageKey()).andReturn("not" + url).anyTimes();
-        
+
         EasyMock.expect(mockMemcachedCacheEntryFactory.getMemcachedCacheEntry(url, updatedValue))
             .andReturn(mockMemcachedCacheEntry2);
         EasyMock.expect(mockMemcachedCacheEntry2.toByteArray()).andReturn(newBytes);
@@ -389,7 +389,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final byte[] oldBytes = HttpTestUtils.getRandomBytes(128);
         CASValue<Object> casValue = new CASValue<Object>(1, oldBytes);
         final byte[] newBytes = HttpTestUtils.getRandomBytes(128);
-        
+
 
         HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
             public HttpCacheEntry update(HttpCacheEntry old) {
@@ -406,7 +406,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         mockMemcachedCacheEntry.set(oldBytes);
         EasyMock.expect(mockMemcachedCacheEntry.getStorageKey()).andReturn(url);
         EasyMock.expect(mockMemcachedCacheEntry.getHttpCacheEntry()).andReturn(existingValue);
-        
+
         EasyMock.expect(mockMemcachedCacheEntryFactory.getMemcachedCacheEntry(url, updatedValue))
             .andReturn(mockMemcachedCacheEntry2);
         EasyMock.expect(mockMemcachedCacheEntry2.toByteArray()).andReturn(newBytes);
@@ -419,7 +419,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         impl.updateEntry(url, callback);
         verifyMocks();
     }
-    
+
     @Test
     public void testCacheUpdateThrowsExceptionsIfCASFailsEnoughTimes() throws IOException {
         final String url = "foo";
@@ -429,7 +429,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final byte[] oldBytes = HttpTestUtils.getRandomBytes(128);
         CASValue<Object> casValue = new CASValue<Object>(1, oldBytes);
         final byte[] newBytes = HttpTestUtils.getRandomBytes(128);
-        
+
         CacheConfig config = CacheConfig.custom().setMaxUpdateRetries(0).build();
         impl = new MemcachedHttpCacheStorage(mockMemcachedClient, config,
                 mockMemcachedCacheEntryFactory, mockKeyHashingScheme);
@@ -449,7 +449,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         mockMemcachedCacheEntry.set(oldBytes);
         EasyMock.expect(mockMemcachedCacheEntry.getStorageKey()).andReturn(url);
         EasyMock.expect(mockMemcachedCacheEntry.getHttpCacheEntry()).andReturn(existingValue);
-        
+
         EasyMock.expect(mockMemcachedCacheEntryFactory.getMemcachedCacheEntry(url, updatedValue))
             .andReturn(mockMemcachedCacheEntry2);
         EasyMock.expect(mockMemcachedCacheEntry2.toByteArray()).andReturn(newBytes);
@@ -467,7 +467,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         verifyMocks();
     }
 
-    
+
     @Test
     public void testCacheUpdateCanUpdateExistingEntryWithRetry() throws IOException,
             HttpCacheUpdateException {
@@ -499,7 +499,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         mockMemcachedCacheEntry.set(oldBytes);
         EasyMock.expect(mockMemcachedCacheEntry.getStorageKey()).andReturn(url);
         EasyMock.expect(mockMemcachedCacheEntry.getHttpCacheEntry()).andReturn(existingValue);
-        
+
         EasyMock.expect(mockMemcachedCacheEntryFactory.getMemcachedCacheEntry(url, updatedValue))
             .andReturn(mockMemcachedCacheEntry2);
         EasyMock.expect(mockMemcachedCacheEntry2.toByteArray()).andReturn(newBytes);
@@ -515,7 +515,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         mockMemcachedCacheEntry3.set(oldBytes2);
         EasyMock.expect(mockMemcachedCacheEntry3.getStorageKey()).andReturn(url);
         EasyMock.expect(mockMemcachedCacheEntry3.getHttpCacheEntry()).andReturn(existingValue2);
-        
+
         EasyMock.expect(mockMemcachedCacheEntryFactory.getMemcachedCacheEntry(url, updatedValue2))
             .andReturn(mockMemcachedCacheEntry4);
         EasyMock.expect(mockMemcachedCacheEntry4.toByteArray()).andReturn(newBytes2);
@@ -523,7 +523,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         EasyMock.expect(
                 mockMemcachedClient.cas(EasyMock.eq(key), EasyMock.eq(casValue2.getCas()),
                         EasyMock.aryEq(newBytes2))).andReturn(CASResponse.OK);
-        
+
         replayMocks();
         impl.updateEntry(url, callback);
         verifyMocks();
@@ -557,7 +557,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         verifyMocks();
     }
 
-    
+
     @Test(expected=HttpCacheUpdateException.class)
     public void testThrowsExceptionOnUpdateIfCannotHashStorageKey() throws Exception {
         final String url = "foo";

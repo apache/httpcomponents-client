@@ -29,10 +29,18 @@ package org.apache.http.impl.client.cache;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
@@ -109,7 +117,10 @@ import org.apache.http.util.VersionInfo;
  * memcached} storage backends.</p>
  * </p>
  * @since 4.1
+ *
+ * @deprecated (4.3)
  */
+@Deprecated
 @ThreadSafe // So long as the responseCache implementation is threadsafe
 public class CachingHttpClient implements HttpClient {
 
@@ -958,6 +969,153 @@ public class CachingHttpClient implements HttpClient {
             // Empty on Purpose
         }
         return false;
+    }
+
+    static class AsynchronousValidator {
+        private final CachingHttpClient cachingClient;
+        private final ExecutorService executor;
+        private final Set<String> queued;
+        private final CacheKeyGenerator cacheKeyGenerator;
+
+        private final Log log = LogFactory.getLog(getClass());
+
+        /**
+         * Create AsynchronousValidator which will make revalidation requests
+         * using the supplied {@link CachingHttpClient}, and
+         * a {@link ThreadPoolExecutor} generated according to the thread
+         * pool settings provided in the given {@link CacheConfig}.
+         * @param cachingClient used to execute asynchronous requests
+         * @param config specifies thread pool settings. See
+         * {@link CacheConfig#getAsynchronousWorkersMax()},
+         * {@link CacheConfig#getAsynchronousWorkersCore()},
+         * {@link CacheConfig#getAsynchronousWorkerIdleLifetimeSecs()},
+         * and {@link CacheConfig#getRevalidationQueueSize()}.
+         */
+        public AsynchronousValidator(CachingHttpClient cachingClient,
+                CacheConfig config) {
+            this(cachingClient,
+                    new ThreadPoolExecutor(config.getAsynchronousWorkersCore(),
+                            config.getAsynchronousWorkersMax(),
+                            config.getAsynchronousWorkerIdleLifetimeSecs(),
+                            TimeUnit.SECONDS,
+                            new ArrayBlockingQueue<Runnable>(config.getRevalidationQueueSize()))
+                    );
+        }
+
+        /**
+         * Create AsynchronousValidator which will make revalidation requests
+         * using the supplied {@link CachingHttpClient} and
+         * {@link ExecutorService}.
+         * @param cachingClient used to execute asynchronous requests
+         * @param executor used to manage a thread pool of revalidation workers
+         */
+        AsynchronousValidator(CachingHttpClient cachingClient,
+                ExecutorService executor) {
+            this.cachingClient = cachingClient;
+            this.executor = executor;
+            this.queued = new HashSet<String>();
+            this.cacheKeyGenerator = new CacheKeyGenerator();
+        }
+
+        /**
+         * Schedules an asynchronous revalidation
+         *
+         * @param target
+         * @param request
+         * @param context
+         * @param entry
+         */
+        public synchronized void revalidateCacheEntry(HttpHost target,
+                HttpRequestWrapper request, HttpContext context, HttpCacheEntry entry) {
+            // getVariantURI will fall back on getURI if no variants exist
+            String uri = cacheKeyGenerator.getVariantURI(target, request, entry);
+
+            if (!queued.contains(uri)) {
+                AsynchronousValidationRequest revalidationRequest =
+                    new AsynchronousValidationRequest(this, cachingClient, target,
+                            request, context, entry, uri);
+
+                try {
+                    executor.execute(revalidationRequest);
+                    queued.add(uri);
+                } catch (RejectedExecutionException ree) {
+                    log.debug("Revalidation for [" + uri + "] not scheduled: " + ree);
+                }
+            }
+        }
+
+        /**
+         * Removes an identifier from the internal list of revalidation jobs in
+         * progress.  This is meant to be called by
+         * {@link AsynchronousValidationRequest#run()} once the revalidation is
+         * complete, using the identifier passed in during constructions.
+         * @param identifier
+         */
+        synchronized void markComplete(String identifier) {
+            queued.remove(identifier);
+        }
+
+        Set<String> getScheduledIdentifiers() {
+            return Collections.unmodifiableSet(queued);
+        }
+
+        ExecutorService getExecutor() {
+            return executor;
+        }
+    }
+
+    static class AsynchronousValidationRequest implements Runnable {
+        private final AsynchronousValidator parent;
+        private final CachingHttpClient cachingClient;
+        private final HttpHost target;
+        private final HttpRequestWrapper request;
+        private final HttpContext context;
+        private final HttpCacheEntry cacheEntry;
+        private final String identifier;
+
+        private final Log log = LogFactory.getLog(getClass());
+
+        /**
+         * Used internally by {@link AsynchronousValidator} to schedule a
+         * revalidation.
+         * @param cachingClient
+         * @param target
+         * @param request
+         * @param context
+         * @param cacheEntry
+         * @param bookKeeping
+         * @param identifier
+         */
+        AsynchronousValidationRequest(AsynchronousValidator parent,
+                CachingHttpClient cachingClient, HttpHost target,
+                HttpRequestWrapper request, HttpContext context,
+                HttpCacheEntry cacheEntry,
+                String identifier) {
+            this.parent = parent;
+            this.cachingClient = cachingClient;
+            this.target = target;
+            this.request = request;
+            this.context = context;
+            this.cacheEntry = cacheEntry;
+            this.identifier = identifier;
+        }
+
+        public void run() {
+            try {
+                cachingClient.revalidateCacheEntry(target, request, context, cacheEntry);
+            } catch (IOException ioe) {
+                log.debug("Asynchronous revalidation failed due to exception: " + ioe);
+            } catch (ProtocolException pe) {
+                log.error("ProtocolException thrown during asynchronous revalidation: " + pe);
+            } finally {
+                parent.markComplete(identifier);
+            }
+        }
+
+        String getIdentifier() {
+            return identifier;
+        }
+
     }
 
 }

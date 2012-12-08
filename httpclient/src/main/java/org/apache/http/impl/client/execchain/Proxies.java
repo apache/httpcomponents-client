@@ -16,7 +16,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
  * @since 4.3
  */
 @NotThreadSafe
-class ExecProxies {
+class Proxies {
 
     static void enhanceEntity(final HttpEntityEnclosingRequest request) {
         HttpEntity entity = request.getEntity();

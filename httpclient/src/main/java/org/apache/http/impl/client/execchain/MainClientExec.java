@@ -167,7 +167,7 @@ public class MainClientExec implements ClientExecChain {
         }
 
         if (request instanceof HttpEntityEnclosingRequest) {
-            ExecProxies.enhanceEntity((HttpEntityEnclosingRequest) request);
+            Proxies.enhanceEntity((HttpEntityEnclosingRequest) request);
         }
 
         Object userToken = context.getUserToken();
@@ -220,7 +220,7 @@ public class MainClientExec implements ClientExecChain {
             HttpResponse response = null;
             for (int execCount = 1;; execCount++) {
 
-                if (execCount > 1 && !ExecProxies.isRepeatable(request)) {
+                if (execCount > 1 && !Proxies.isRepeatable(request)) {
                     throw new NonRepeatableRequestException("Cannot retry request " +
                             "with a non-repeatable request entity.");
                 }
@@ -333,9 +333,9 @@ public class MainClientExec implements ClientExecChain {
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
                 releaseTrigger.releaseConnection();
-                return ExecProxies.enhanceResponse(response, null);
+                return Proxies.enhanceResponse(response, null);
             } else {
-                return ExecProxies.enhanceResponse(response, releaseTrigger);
+                return Proxies.enhanceResponse(response, releaseTrigger);
             }
         } catch (ConnectionShutdownException ex) {
             InterruptedIOException ioex = new InterruptedIOException(

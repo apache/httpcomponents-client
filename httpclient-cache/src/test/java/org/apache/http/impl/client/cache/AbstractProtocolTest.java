@@ -27,15 +27,19 @@
 package org.apache.http.impl.client.cache;
 
 import java.util.HashMap;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.client.execchain.ClientExecChain;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.protocol.HttpContext;
 import org.easymock.IExpectationSetters;
 import org.easymock.classextension.EasyMock;
 import org.junit.Before;
@@ -46,16 +50,17 @@ public abstract class AbstractProtocolTest {
     protected static final int MAX_ENTRIES = 100;
     protected int entityLength = 128;
     protected HttpHost host;
+    protected HttpRoute route;
     protected HttpEntity body;
-    protected HttpClient mockBackend;
+    protected ClientExecChain mockBackend;
     protected HttpCache mockCache;
     protected HttpRequestWrapper request;
-    protected HttpResponse originResponse;
+    protected CloseableHttpResponse originResponse;
     protected CacheConfig config;
-    protected CachingHttpClient impl;
+    protected CachingExec impl;
     protected HttpCache cache;
 
-    public static HttpRequest eqRequest(HttpRequest in) {
+    public static HttpRequestWrapper eqRequest(HttpRequestWrapper in) {
         EasyMock.reportMatcher(new RequestEquivalent(in));
         return null;
     }
@@ -64,20 +69,23 @@ public abstract class AbstractProtocolTest {
     public void setUp() {
         host = new HttpHost("foo.example.com");
 
+        route = new HttpRoute(host);
+
         body = HttpTestUtils.makeBody(entityLength);
 
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1));
 
-        originResponse = HttpTestUtils.make200Response();
+        originResponse = Proxies.enhanceResponse(HttpTestUtils.make200Response());
 
         config = CacheConfig.custom()
             .setMaxCacheEntries(MAX_ENTRIES)
             .setMaxObjectSize(MAX_BYTES)
             .build();
+
         cache = new BasicHttpCache(config);
-        mockBackend = EasyMock.createNiceMock(HttpClient.class);
+        mockBackend = EasyMock.createNiceMock(ClientExecChain.class);
         mockCache = EasyMock.createNiceMock(HttpCache.class);
-        impl = new CachingHttpClient(mockBackend, cache, config);
+        impl = new CachingExec(mockBackend, cache, config);
     }
 
     protected void replayMocks() {
@@ -90,17 +98,30 @@ public abstract class AbstractProtocolTest {
         EasyMock.verify(mockCache);
     }
 
-    protected IExpectationSetters<HttpResponse> backendExpectsAnyRequest() throws Exception {
-        HttpResponse resp = mockBackend.execute(EasyMock.isA(HttpHost.class), EasyMock
-                .isA(HttpRequest.class), (HttpContext) EasyMock.isNull());
+    protected IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequest() throws Exception {
+        CloseableHttpResponse resp = mockBackend.execute(
+                EasyMock.isA(HttpRoute.class),
+                EasyMock.isA(HttpRequestWrapper.class),
+                EasyMock.isA(HttpClientContext.class),
+                EasyMock.<HttpExecutionAware>isNull());
         return EasyMock.expect(resp);
     }
 
+    protected IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndReturn(
+            HttpResponse reponse) throws Exception {
+        CloseableHttpResponse resp = mockBackend.execute(
+                EasyMock.isA(HttpRoute.class),
+                EasyMock.isA(HttpRequestWrapper.class),
+                EasyMock.isA(HttpClientContext.class),
+                EasyMock.<HttpExecutionAware>isNull());
+        return EasyMock.expect(resp).andReturn(Proxies.enhanceResponse(reponse));
+    }
+
     protected void emptyMockCacheExpectsNoPuts() throws Exception {
-        mockBackend = EasyMock.createNiceMock(HttpClient.class);
+        mockBackend = EasyMock.createNiceMock(ClientExecChain.class);
         mockCache = EasyMock.createNiceMock(HttpCache.class);
 
-        impl = new CachingHttpClient(mockBackend, mockCache, config);
+        impl = new CachingExec(mockBackend, mockCache, config);
 
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.isA(HttpHost.class), EasyMock.isA(HttpRequest.class)))
             .andReturn(null).anyTimes();
@@ -126,7 +147,7 @@ public abstract class AbstractProtocolTest {
                 .setMaxObjectSize(MAX_BYTES)
                 .setSharedCache(false)
                 .build();
-        impl = new CachingHttpClient(mockBackend, cache, config);
+        impl = new CachingExec(mockBackend, cache, config);
     }
 
     public AbstractProtocolTest() {

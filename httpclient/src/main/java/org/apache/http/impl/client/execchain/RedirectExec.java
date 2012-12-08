@@ -119,7 +119,7 @@ public class RedirectExec implements ClientExecChain {
                     currentRequest = HttpRequestWrapper.wrap(redirect);
                     currentRequest.setHeaders(original.getAllHeaders());
                     if (original instanceof HttpEntityEnclosingRequest) {
-                        ExecProxies.enhanceEntity((HttpEntityEnclosingRequest) request);
+                        Proxies.enhanceEntity((HttpEntityEnclosingRequest) request);
                     }
 
                     URI uri = currentRequest.getURI();

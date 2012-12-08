@@ -43,7 +43,6 @@ import org.apache.http.client.cache.HttpCacheUpdateException;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClient;
 
 /**
  * <p>This class is a storage backend that uses an external <i>memcached</i>
@@ -62,13 +61,13 @@ import org.apache.http.impl.client.cache.CachingHttpClient;
  * fails (see the <a href="http://dustin.github.com/java-memcached-client/apidocs/net/spy/memcached/KetamaConnectionFactory.html">
  * KetamaConnectionFactory</a>).
  * </p>
- * 
+ *
  * <p>Because memcached places limits on the size of its keys, we need to
  * introduce a key hashing scheme to map the annotated URLs the higher-level
- * {@link CachingHttpClient} wants to use as keys onto ones that are suitable
+ * caching HTTP client wants to use as keys onto ones that are suitable
  * for use with memcached. Please see {@link KeyHashingScheme} if you would
  * like to use something other than the provided {@link SHA256KeyHashingScheme}.</p>
- * 
+ *
  * <p>Because this hashing scheme can potentially result in key collisions (though
  * highly unlikely), we need to store the higher-level logical storage key along
  * with the {@link HttpCacheEntry} so that we can re-check it on retrieval. There
@@ -87,7 +86,7 @@ import org.apache.http.impl.client.cache.CachingHttpClient;
 public class MemcachedHttpCacheStorage implements HttpCacheStorage {
 
     private static final Log log = LogFactory.getLog(MemcachedHttpCacheStorage.class);
-    
+
     private final MemcachedClientIF client;
     private final KeyHashingScheme keyHashingScheme;
     private final MemcachedCacheEntryFactory memcachedCacheEntryFactory;
@@ -158,7 +157,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         this.memcachedCacheEntryFactory = memcachedCacheEntryFactory;
         this.keyHashingScheme = keyHashingScheme;
     }
-    
+
     public void putEntry(String url, HttpCacheEntry entry) throws IOException  {
         byte[] bytes = serializeEntry(url, entry);
         String key = getCacheKey(url);
@@ -209,7 +208,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         }
         return mce;
     }
-    
+
     public HttpCacheEntry getEntry(String url) throws IOException {
         String key = getCacheKey(url);
         if (key == null) return null;

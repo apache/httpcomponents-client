@@ -31,12 +31,12 @@ import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.config.Configuration;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClient;
+import org.apache.http.impl.client.cache.CachingExec;
 import org.apache.http.impl.client.cache.HeapResourceFactory;
 import org.apache.http.impl.client.cache.TestProtocolRequirements;
+import org.apache.http.impl.client.execchain.ClientExecChain;
 import org.easymock.classextension.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -70,9 +70,9 @@ public class TestEhcacheProtocolRequirements extends TestProtocolRequirements{
         }
         CACHE_MANAGER.addCache(TEST_EHCACHE_NAME);
         HttpCacheStorage storage = new EhcacheHttpCacheStorage(CACHE_MANAGER.getCache(TEST_EHCACHE_NAME));
-        mockBackend = EasyMock.createNiceMock(HttpClient.class);
+        mockBackend = EasyMock.createNiceMock(ClientExecChain.class);
 
-        impl = new CachingHttpClient(mockBackend, new HeapResourceFactory(), storage, config);
+        impl = new CachingExec(mockBackend, new HeapResourceFactory(), storage, config);
     }
 
     @After

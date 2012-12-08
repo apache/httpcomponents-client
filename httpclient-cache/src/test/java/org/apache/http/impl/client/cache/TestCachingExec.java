@@ -27,12 +27,12 @@
 package org.apache.http.impl.client.cache;
 
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.isNull;
 import static org.easymock.EasyMock.same;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.classextension.EasyMock.createMockBuilder;
 import static org.easymock.classextension.EasyMock.createNiceMock;
 import static org.easymock.classextension.EasyMock.replay;
@@ -42,9 +42,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -52,38 +50,38 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
-import org.apache.http.ProtocolException;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.CacheResponseStatus;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.client.execchain.ClientExecChain;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
-import org.apache.http.protocol.HttpContext;
 import org.easymock.Capture;
+import org.easymock.IExpectationSetters;
+import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestCachingHttpClient {
+public class TestCachingExec {
 
     private static final String GET_CURRENT_DATE = "getCurrentDate";
 
@@ -93,78 +91,80 @@ public class TestCachingHttpClient {
 
     private static final String REVALIDATE_CACHE_ENTRY = "revalidateCacheEntry";
 
-    private CachingHttpClient impl;
+    private CachingExec impl;
     private boolean mockedImpl;
 
     private CacheValidityPolicy mockValidityPolicy;
     private CacheableRequestPolicy mockRequestPolicy;
-    private HttpClient mockBackend;
+    private ClientExecChain mockBackend;
     private HttpCache mockCache;
     private HttpCacheStorage mockStorage;
     private CachedResponseSuitabilityChecker mockSuitabilityChecker;
     private ResponseCachingPolicy mockResponsePolicy;
-    private HttpResponse mockBackendResponse;
+    private CloseableHttpResponse mockBackendResponse;
     private HttpCacheEntry mockCacheEntry;
     private CachedHttpResponseGenerator mockResponseGenerator;
-    private ClientConnectionManager mockConnectionManager;
     private ResponseHandler<Object> mockHandler;
     private HttpUriRequest mockUriRequest;
-    private HttpResponse mockCachedResponse;
+    private CloseableHttpResponse mockCachedResponse;
     private ConditionalRequestBuilder mockConditionalRequestBuilder;
     private HttpRequest mockConditionalRequest;
     private StatusLine mockStatusLine;
     private ResponseProtocolCompliance mockResponseProtocolCompliance;
     private RequestProtocolCompliance mockRequestProtocolCompliance;
+    private CacheConfig config;
 
     private Date requestDate;
     private Date responseDate;
+    private HttpRoute route;
     private HttpHost host;
     private HttpRequestWrapper request;
-    private HttpContext context;
+    private HttpClientContext context;
     private HttpCacheEntry entry;
-    private ConsumableInputStream cis;
 
     @SuppressWarnings("unchecked")
     @Before
     public void setUp() {
         mockRequestPolicy = createNiceMock(CacheableRequestPolicy.class);
         mockValidityPolicy = createNiceMock(CacheValidityPolicy.class);
-        mockBackend = createNiceMock(HttpClient.class);
+        mockBackend = createNiceMock(ClientExecChain.class);
         mockCache = createNiceMock(HttpCache.class);
         mockSuitabilityChecker = createNiceMock(CachedResponseSuitabilityChecker.class);
         mockResponsePolicy = createNiceMock(ResponseCachingPolicy.class);
-        mockConnectionManager = createNiceMock(ClientConnectionManager.class);
         mockHandler = createNiceMock(ResponseHandler.class);
-        mockBackendResponse = createNiceMock(HttpResponse.class);
+        mockBackendResponse = createNiceMock(CloseableHttpResponse.class);
         mockUriRequest = createNiceMock(HttpUriRequest.class);
         mockCacheEntry = createNiceMock(HttpCacheEntry.class);
         mockResponseGenerator = createNiceMock(CachedHttpResponseGenerator.class);
-        mockCachedResponse = createNiceMock(HttpResponse.class);
+        mockCachedResponse = createNiceMock(CloseableHttpResponse.class);
         mockConditionalRequestBuilder = createNiceMock(ConditionalRequestBuilder.class);
         mockConditionalRequest = createNiceMock(HttpRequest.class);
         mockStatusLine = createNiceMock(StatusLine.class);
         mockResponseProtocolCompliance = createNiceMock(ResponseProtocolCompliance.class);
         mockRequestProtocolCompliance = createNiceMock(RequestProtocolCompliance.class);
         mockStorage = createNiceMock(HttpCacheStorage.class);
+        config = CacheConfig.DEFAULT;
 
         requestDate = new Date(System.currentTimeMillis() - 1000);
         responseDate = new Date();
         host = new HttpHost("foo.example.com");
+        route = new HttpRoute(host);
         request = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/stuff", HttpVersion.HTTP_1_1));
-        context = new BasicHttpContext();
+        context = HttpClientContext.create();
         entry = HttpTestUtils.makeCacheEntry();
-        impl = new CachingHttpClient(
+        impl = new CachingExec(
                 mockBackend,
+                mockCache,
                 mockValidityPolicy,
                 mockResponsePolicy,
-                mockCache,
                 mockResponseGenerator,
                 mockRequestPolicy,
                 mockSuitabilityChecker,
                 mockConditionalRequestBuilder,
                 mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance);
+                mockRequestProtocolCompliance,
+                config);
     }
 
     private void replayMocks() {
@@ -176,7 +176,6 @@ public class TestCachingHttpClient {
         replay(mockResponseGenerator);
         replay(mockBackend);
         replay(mockCache);
-        replay(mockConnectionManager);
         replay(mockHandler);
         replay(mockBackendResponse);
         replay(mockUriRequest);
@@ -201,7 +200,6 @@ public class TestCachingHttpClient {
         verify(mockResponseGenerator);
         verify(mockBackend);
         verify(mockCache);
-        verify(mockConnectionManager);
         verify(mockHandler);
         verify(mockBackendResponse);
         verify(mockUriRequest);
@@ -219,54 +217,51 @@ public class TestCachingHttpClient {
 
     @Test
     public void testCacheableResponsesGoIntoCache() throws Exception {
-        impl = new CachingHttpClient(mockBackend);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
 
-        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
 
-        expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
-                (HttpContext)isNull())).andReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
 
         replayMocks();
-        impl.execute(host, req1);
-        impl.execute(host, req2);
+        impl.execute(route, req1);
+        impl.execute(route, req2);
         verifyMocks();
     }
 
     @Test
     public void testOlderCacheableResponsesDoNotGoIntoCache() throws Exception {
-        impl = new CachingHttpClient(mockBackend);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         Date now = new Date();
         Date fiveSecondsAgo = new Date(now.getTime() - 5 * 1000L);
 
-        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Etag", "\"new-etag\"");
 
-        expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
-                (HttpContext)isNull())).andReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         req2.setHeader("Cache-Control","no-cache");
         HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag", "\"old-etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(fiveSecondsAgo));
         resp2.setHeader("Cache-Control","max-age=3600");
 
-        expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
-                (HttpContext)isNull())).andReturn(resp2);
+        backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequest req3 = HttpTestUtils.makeDefaultRequest();
+        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
 
         replayMocks();
-        impl.execute(host, req1);
-        impl.execute(host, req2);
-        HttpResponse result = impl.execute(host, req3);
+        impl.execute(route, req1);
+        impl.execute(route, req2);
+        HttpResponse result = impl.execute(route, req3);
         verifyMocks();
 
         assertEquals("\"new-etag\"", result.getFirstHeader("ETag").getValue());
@@ -274,35 +269,33 @@ public class TestCachingHttpClient {
 
     @Test
     public void testNewerCacheableResponsesReplaceExistingCacheEntry() throws Exception {
-        impl = new CachingHttpClient(mockBackend);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         Date now = new Date();
         Date fiveSecondsAgo = new Date(now.getTime() - 5 * 1000L);
 
-        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(fiveSecondsAgo));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Etag", "\"old-etag\"");
 
-        expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
-                (HttpContext)isNull())).andReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequest req2 = HttpTestUtils.makeDefaultRequest();
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         req2.setHeader("Cache-Control","max-age=0");
         HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag", "\"new-etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp2.setHeader("Cache-Control","max-age=3600");
 
-        expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
-                (HttpContext)isNull())).andReturn(resp2);
+        backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequest req3 = HttpTestUtils.makeDefaultRequest();
+        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
 
         replayMocks();
-        impl.execute(host, req1);
-        impl.execute(host, req2);
-        HttpResponse result = impl.execute(host, req3);
+        impl.execute(route, req1);
+        impl.execute(route, req2);
+        HttpResponse result = impl.execute(route, req3);
         verifyMocks();
 
         assertEquals("\"new-etag\"", result.getFirstHeader("ETag").getValue());
@@ -315,11 +308,11 @@ public class TestCachingHttpClient {
         requestPolicyAllowsCaching(false);
         mockImplMethods(CALL_BACKEND);
 
-        callBackendReturnsResponse(mockBackendResponse);
+        implExpectsAnyRequestAndReturn(mockBackendResponse);
         requestIsFatallyNonCompliant(null);
 
         replayMocks();
-        HttpResponse result = impl.execute(host, request, context);
+        HttpResponse result = impl.execute(route, request, context);
         verifyMocks();
 
         Assert.assertSame(mockBackendResponse, result);
@@ -345,10 +338,10 @@ public class TestCachingHttpClient {
 
         requestIsFatallyNonCompliant(null);
 
-        callBackendReturnsResponse(mockBackendResponse);
+        implExpectsAnyRequestAndReturn(mockBackendResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(host, request, context);
+        HttpResponse result = impl.execute(route, request, context);
         verifyMocks();
 
         Assert.assertSame(mockBackendResponse, result);
@@ -367,10 +360,10 @@ public class TestCachingHttpClient {
         getCacheEntryReturns(mockCacheEntry);
         cacheEntrySuitable(false);
         cacheEntryValidatable(false);
-        callBackendReturnsResponse(mockBackendResponse);
+        implExpectsAnyRequestAndReturn(mockBackendResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(host, request, context);
+        HttpResponse result = impl.execute(route, request, context);
         verifyMocks();
 
         Assert.assertSame(mockBackendResponse, result);
@@ -392,10 +385,16 @@ public class TestCachingHttpClient {
         cacheEntryMustRevalidate(false);
         cacheEntryProxyRevalidate(false);
         mayReturnStaleWhileRevalidating(false);
-        revalidateCacheEntryReturns(mockBackendResponse);
+
+        expect(impl.revalidateCacheEntry(
+                isA(HttpRoute.class),
+                isA(HttpRequestWrapper.class),
+                isA(HttpClientContext.class),
+                (HttpExecutionAware) isNull(),
+                isA(HttpCacheEntry.class))).andReturn(mockBackendResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(host, request, context);
+        HttpResponse result = impl.execute(route, request, context);
         verifyMocks();
 
         Assert.assertSame(mockBackendResponse, result);
@@ -408,24 +407,29 @@ public class TestCachingHttpClient {
     public void testRevalidationCallsHandleBackEndResponseWhenNot200Or304() throws Exception {
         mockImplMethods(GET_CURRENT_DATE, HANDLE_BACKEND_RESPONSE);
 
-        HttpRequestWrapper validate =
-            HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse originResponse =
-            new BasicHttpResponse(HttpVersion.HTTP_1_1,
-                    HttpStatus.SC_NOT_FOUND, "Not Found");
-        HttpResponse finalResponse = HttpTestUtils.make200Response();
+        HttpRequestWrapper validate = HttpRequestWrapper.wrap(
+                new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
+        CloseableHttpResponse originResponse = Proxies.enhanceResponse(
+                new BasicHttpResponse(HttpVersion.HTTP_1_1,  HttpStatus.SC_NOT_FOUND, "Not Found"));
+        CloseableHttpResponse finalResponse = Proxies.enhanceResponse(
+                HttpTestUtils.make200Response());
 
         conditionalRequestBuilderReturns(validate);
         getCurrentDateReturns(requestDate);
-        backendCall(validate, originResponse);
+        backendExpectsRequestAndReturn(validate, originResponse);
         getCurrentDateReturns(responseDate);
-        expect(impl.handleBackendResponse(host, validate,
-                requestDate, responseDate, originResponse))
-            .andReturn(finalResponse);
+        expect(impl.handleBackendResponse(
+                eq(route),
+                same(validate),
+                same(context),
+                (HttpExecutionAware) isNull(),
+                eq(requestDate),
+                eq(responseDate),
+                same(originResponse))).andReturn(finalResponse);
 
         replayMocks();
         HttpResponse result =
-            impl.revalidateCacheEntry(host, request, context, entry);
+            impl.revalidateCacheEntry(route, request, context, null, entry);
         verifyMocks();
 
         Assert.assertSame(finalResponse, result);
@@ -437,25 +441,29 @@ public class TestCachingHttpClient {
 
         mockImplMethods(GET_CURRENT_DATE);
 
-        HttpRequestWrapper validate =
-            HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse originResponse =
-            new BasicHttpResponse(HttpVersion.HTTP_1_1,
-                    HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        HttpRequestWrapper validate = HttpRequestWrapper.wrap(
+                new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
+        HttpResponse originResponse = Proxies.enhanceResponse(
+            new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified"));
         HttpCacheEntry updatedEntry = HttpTestUtils.makeCacheEntry();
 
         conditionalRequestBuilderReturns(validate);
         getCurrentDateReturns(requestDate);
-        backendCall(validate, originResponse);
+        backendExpectsRequestAndReturn(validate, originResponse);
         getCurrentDateReturns(responseDate);
-        expect(mockCache.updateCacheEntry(host, request,
-                entry, originResponse, requestDate, responseDate))
+        expect(mockCache.updateCacheEntry(
+                eq(host),
+                same(request),
+                same(entry),
+                same(originResponse),
+                eq(requestDate),
+                eq(responseDate)))
             .andReturn(updatedEntry);
         expect(mockSuitabilityChecker.isConditional(request)).andReturn(false);
         responseIsGeneratedFromCache();
 
         replayMocks();
-        impl.revalidateCacheEntry(host, request, context, entry);
+        impl.revalidateCacheEntry(route, request, context, null, entry);
         verifyMocks();
     }
 
@@ -470,7 +478,7 @@ public class TestCachingHttpClient {
         entryHasStaleness(0L);
 
         replayMocks();
-        HttpResponse result = impl.execute(host, request, context);
+        HttpResponse result = impl.execute(route, request, context);
         verifyMocks();
 
         Assert.assertSame(mockCachedResponse, result);
@@ -481,13 +489,13 @@ public class TestCachingHttpClient {
         mockImplMethods(GET_CURRENT_DATE, HANDLE_BACKEND_RESPONSE);
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         getCurrentDateReturns(requestDate);
-        backendCallWasMade(request, resp);
+        backendExpectsRequestAndReturn(request, resp);
         getCurrentDateReturns(responseDate);
         handleBackendResponseReturnsResponse(request, resp);
 
         replayMocks();
 
-        impl.callBackend(host, request, context);
+        impl.callBackend(route, request, context, null);
 
         verifyMocks();
     }
@@ -495,351 +503,24 @@ public class TestCachingHttpClient {
     @Test
     public void testNonCacheableResponseIsNotCachedAndIsReturnedAsIs() throws Exception {
         CacheConfig config = CacheConfig.DEFAULT;
-        impl = new CachingHttpClient(mockBackend,
+        impl = new CachingExec(mockBackend,
                 new BasicHttpCache(new HeapResourceFactory(), mockStorage, config),
                 config);
 
-        HttpRequest req1 = HttpTestUtils.makeDefaultRequest();
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","no-cache");
 
         expect(mockStorage.getEntry(isA(String.class))).andReturn(null).anyTimes();
         mockStorage.removeEntry(isA(String.class));
         expectLastCall().anyTimes();
-        expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class),
-                (HttpContext)isNull())).andReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp1);
 
         replayMocks();
-        HttpResponse result = impl.execute(host, req1);
+        HttpResponse result = impl.execute(route, req1);
         verifyMocks();
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
-    }
-
-
-    @Test
-    public void testCallsSelfForExecuteOnHostRequestWithNullContext() throws Exception {
-        final Counter c = new Counter();
-        final HttpHost theHost = host;
-        final HttpRequest theRequest = request;
-        final HttpResponse theResponse = mockBackendResponse;
-        impl = new CachingHttpClient(
-                mockBackend,
-                mockValidityPolicy,
-                mockResponsePolicy,
-                mockCache,
-                mockResponseGenerator,
-                mockRequestPolicy,
-                mockSuitabilityChecker,
-                mockConditionalRequestBuilder,
-                mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
-            @Override
-            public HttpResponse execute(HttpHost target, HttpRequest request, HttpContext context) {
-                Assert.assertSame(theHost, target);
-                Assert.assertSame(theRequest, request);
-                Assert.assertNull(context);
-                c.incr();
-                return theResponse;
-            }
-        };
-
-        replayMocks();
-        HttpResponse result = impl.execute(host, request);
-        verifyMocks();
-        Assert.assertSame(mockBackendResponse, result);
-        Assert.assertEquals(1, c.getCount());
-    }
-
-    @Test
-    public void testCallsSelfWithDefaultContextForExecuteOnHostRequestWithHandler()
-            throws Exception {
-
-        final Counter c = new Counter();
-        final HttpHost theHost = host;
-        final HttpRequest theRequest = request;
-        final HttpResponse theResponse = mockBackendResponse;
-        final ResponseHandler<Object> theHandler = mockHandler;
-        final Object value = new Object();
-        impl = new CachingHttpClient(
-                mockBackend,
-                mockValidityPolicy,
-                mockResponsePolicy,
-                mockCache,
-                mockResponseGenerator,
-                mockRequestPolicy,
-                mockSuitabilityChecker,
-                mockConditionalRequestBuilder,
-                mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
-            @Override
-            public <T> T execute(HttpHost target, HttpRequest request,
-                                 ResponseHandler<? extends T> rh, HttpContext context) {
-                Assert.assertSame(theHost, target);
-                Assert.assertSame(theRequest, request);
-                Assert.assertSame(theHandler, rh);
-                Assert.assertNull(context);
-                c.incr();
-                try {
-                    return rh.handleResponse(theResponse);
-                } catch (Exception wrong) {
-                    throw new RuntimeException("unexpected exn", wrong);
-                }
-            }
-        };
-
-        expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
-                value);
-
-        replayMocks();
-        Object result = impl.execute(host, request, mockHandler);
-        verifyMocks();
-
-        Assert.assertSame(value, result);
-        Assert.assertEquals(1, c.getCount());
-    }
-
-    @Test
-    public void testCallsSelfOnExecuteHostRequestWithHandlerAndContext() throws Exception {
-
-        final Counter c = new Counter();
-        final HttpHost theHost = host;
-        final HttpRequest theRequest = request;
-        final HttpResponse theResponse = mockBackendResponse;
-        final HttpContext theContext = context;
-        impl = new CachingHttpClient(
-                mockBackend,
-                mockValidityPolicy,
-                mockResponsePolicy,
-                mockCache,
-                mockResponseGenerator,
-                mockRequestPolicy,
-                mockSuitabilityChecker,
-                mockConditionalRequestBuilder,
-                mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
-            @Override
-            public HttpResponse execute(HttpHost target, HttpRequest request, HttpContext context) {
-                Assert.assertSame(theHost, target);
-                Assert.assertSame(theRequest, request);
-                Assert.assertSame(theContext, context);
-                c.incr();
-                return theResponse;
-            }
-        };
-
-        final Object theObject = new Object();
-
-        expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
-                theObject);
-        HttpEntity streamingEntity = makeStreamingEntity();
-        expect(theResponse.getEntity()).andReturn(streamingEntity);
-        replayMocks();
-        Object result = impl.execute(host, request, mockHandler, context);
-        verifyMocks();
-        Assert.assertEquals(1, c.getCount());
-        Assert.assertSame(theObject, result);
-        Assert.assertTrue(cis.wasClosed());
-    }
-
-    @Test
-    public void testConsumesEntityOnExecuteWithException() throws Exception {
-
-        final Counter c = new Counter();
-        final HttpHost theHost = host;
-        final HttpRequest theRequest = request;
-        final HttpResponse theResponse = mockBackendResponse;
-        final HttpContext theContext = context;
-        impl = new CachingHttpClient(
-                mockBackend,
-                mockValidityPolicy,
-                mockResponsePolicy,
-                mockCache,
-                mockResponseGenerator,
-                mockRequestPolicy,
-                mockSuitabilityChecker,
-                mockConditionalRequestBuilder,
-                mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
-            @Override
-            public HttpResponse execute(HttpHost target, HttpRequest request, HttpContext context) {
-                Assert.assertSame(theHost, target);
-                Assert.assertSame(theRequest, request);
-                Assert.assertSame(theContext, context);
-                c.incr();
-                return theResponse;
-            }
-        };
-        IOException ioException = new IOException("test exception");
-
-        expect(mockHandler.handleResponse(mockBackendResponse)).andThrow(ioException);
-        HttpEntity streamingEntity = makeStreamingEntity();
-        expect(theResponse.getEntity()).andReturn(streamingEntity).anyTimes();
-
-        replayMocks();
-        Object result = null;
-        try {
-            result = impl.execute(host, request, mockHandler, context);
-        } catch (Exception e) {
-            assertEquals(ioException, e);
-        }
-        verifyMocks();
-        Assert.assertEquals(1, c.getCount());
-        Assert.assertNull(result);
-        assertTrue(cis.wasClosed());
-    }
-
-    @Test
-    public void testCallsSelfWithNullContextOnExecuteUriRequest() throws Exception {
-        final Counter c = new Counter();
-        final HttpUriRequest theRequest = mockUriRequest;
-        final HttpResponse theResponse = mockBackendResponse;
-        impl = new CachingHttpClient(
-                mockBackend,
-                mockValidityPolicy,
-                mockResponsePolicy,
-                mockCache,
-                mockResponseGenerator,
-                mockRequestPolicy,
-                mockSuitabilityChecker,
-                mockConditionalRequestBuilder,
-                mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
-            @Override
-            public HttpResponse execute(HttpUriRequest request, HttpContext context) {
-                Assert.assertSame(theRequest, request);
-                Assert.assertNull(context);
-                c.incr();
-                return theResponse;
-            }
-        };
-
-        replayMocks();
-        HttpResponse result = impl.execute(mockUriRequest);
-        verifyMocks();
-
-        Assert.assertEquals(1, c.getCount());
-        Assert.assertSame(theResponse, result);
-    }
-
-    @Test
-    public void testCallsSelfWithExtractedHostOnExecuteUriRequestWithContext() throws Exception {
-
-        final URI uri = new URI("sch://host:8888");
-        final Counter c = new Counter();
-        final HttpRequest theRequest = mockUriRequest;
-        final HttpContext theContext = context;
-        final HttpResponse theResponse = mockBackendResponse;
-        impl = new CachingHttpClient(
-                mockBackend,
-                mockValidityPolicy,
-                mockResponsePolicy,
-                mockCache,
-                mockResponseGenerator,
-                mockRequestPolicy,
-                mockSuitabilityChecker,
-                mockConditionalRequestBuilder,
-                mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
-            @Override
-            public HttpResponse execute(HttpHost hh, HttpRequest req, HttpContext ctx) {
-                Assert.assertEquals("sch", hh.getSchemeName());
-                Assert.assertEquals("host", hh.getHostName());
-                Assert.assertEquals(8888, hh.getPort());
-                Assert.assertSame(theRequest, req);
-                Assert.assertSame(theContext, ctx);
-                c.incr();
-                return theResponse;
-            }
-        };
-
-        expect(mockUriRequest.getURI()).andReturn(uri);
-
-        replayMocks();
-        HttpResponse result = impl.execute(mockUriRequest, context);
-        verifyMocks();
-
-        Assert.assertEquals(1, c.getCount());
-        Assert.assertSame(mockBackendResponse, result);
-    }
-
-    @Test
-    public void testCallsSelfWithNullContextOnExecuteUriRequestWithHandler() throws Exception {
-        final Counter c = new Counter();
-        final HttpUriRequest theRequest = mockUriRequest;
-        final HttpResponse theResponse = mockBackendResponse;
-        final Object theValue = new Object();
-        impl = new CachingHttpClient(
-                mockBackend,
-                mockValidityPolicy,
-                mockResponsePolicy,
-                mockCache,
-                mockResponseGenerator,
-                mockRequestPolicy,
-                mockSuitabilityChecker,
-                mockConditionalRequestBuilder,
-                mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
-            @Override
-            public <T> T execute(HttpUriRequest request, ResponseHandler<? extends T> handler,
-                                 HttpContext context) throws IOException {
-                Assert.assertSame(theRequest, request);
-                Assert.assertNull(context);
-                c.incr();
-                return handler.handleResponse(theResponse);
-            }
-        };
-
-        expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
-                theValue);
-
-        replayMocks();
-        Object result = impl.execute(mockUriRequest, mockHandler);
-        verifyMocks();
-
-        Assert.assertEquals(1, c.getCount());
-        Assert.assertSame(theValue, result);
-    }
-
-    @Test
-    public void testCallsSelfAndRunsHandlerOnExecuteUriRequestWithHandlerAndContext()
-            throws Exception {
-
-        final Counter c = new Counter();
-        final HttpUriRequest theRequest = mockUriRequest;
-        final HttpContext theContext = context;
-        final HttpResponse theResponse = mockBackendResponse;
-        final Object theValue = new Object();
-        impl = new CachingHttpClient(
-                mockBackend,
-                mockValidityPolicy,
-                mockResponsePolicy,
-                mockCache,
-                mockResponseGenerator,
-                mockRequestPolicy,
-                mockSuitabilityChecker,
-                mockConditionalRequestBuilder,
-                mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance) {
-            @Override
-            public HttpResponse execute(HttpUriRequest request, HttpContext context)
-                    throws IOException {
-                Assert.assertSame(theRequest, request);
-                Assert.assertSame(theContext, context);
-                c.incr();
-                return theResponse;
-            }
-        };
-        expect(mockHandler.handleResponse(mockBackendResponse)).andReturn(
-                theValue);
-        HttpEntity streamingEntity = makeStreamingEntity();
-        expect(theResponse.getEntity()).andReturn(streamingEntity);
-        replayMocks();
-        Object result = impl.execute(mockUriRequest, mockHandler, context);
-        verifyMocks();
-        Assert.assertEquals(1, c.getCount());
-        Assert.assertSame(theValue, result);
-        Assert.assertTrue(cis.wasClosed());
     }
 
     @Test
@@ -854,7 +535,7 @@ public class TestCachingHttpClient {
         entryHasStaleness(0L);
 
         replayMocks();
-        impl.execute(host, request, context);
+        impl.execute(route, request, context);
         verifyMocks();
     }
 
@@ -870,7 +551,7 @@ public class TestCachingHttpClient {
         boolean gotException = false;
         replayMocks();
         try {
-            impl.execute(host, request, context);
+            impl.execute(route, request, context);
         } catch (ClientProtocolException ex) {
             Assert.assertSame(expected, ex);
             gotException = true;
@@ -882,11 +563,11 @@ public class TestCachingHttpClient {
     @Test
     public void testSetsModuleGeneratedResponseContextForCacheOptionsResponse()
         throws Exception {
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req = new BasicHttpRequest("OPTIONS","*",HttpVersion.HTTP_1_1);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req = HttpRequestWrapper.wrap(new BasicHttpRequest("OPTIONS","*",HttpVersion.HTTP_1_1));
         req.setHeader("Max-Forwards","0");
 
-        impl.execute(host, req, context);
+        impl.execute(route, req, context);
         Assert.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE,
                 context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
     }
@@ -894,12 +575,12 @@ public class TestCachingHttpClient {
     @Test
     public void testSetsModuleGeneratedResponseContextForFatallyNoncompliantRequest()
         throws Exception {
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
         req.setHeader("Range","bytes=0-50");
         req.setHeader("If-Range","W/\"weak-etag\"");
 
-        impl.execute(host, req, context);
+        impl.execute(route, req, context);
         Assert.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE,
                 context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
     }
@@ -907,18 +588,17 @@ public class TestCachingHttpClient {
     @Test
     public void testRecordsClientProtocolInViaHeaderIfRequestNotServableFromCache()
         throws Exception {
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_0);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req = HttpRequestWrapper.wrap(
+                new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_0));
         req.setHeader("Cache-Control","no-cache");
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
-        Capture<HttpRequest> cap = new Capture<HttpRequest>();
+        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
 
-        expect(mockBackend.execute(isA(HttpHost.class),
-                capture(cap), isA(HttpContext.class)))
-            .andReturn(resp);
+        backendCaptureRequestAndReturn(cap, resp);
 
         replayMocks();
-        impl.execute(host, req, context);
+        impl.execute(route, req, context);
         verifyMocks();
 
         HttpRequest captured = cap.getValue();
@@ -931,17 +611,15 @@ public class TestCachingHttpClient {
     @Test
     public void testSetsCacheMissContextIfRequestNotServableFromCache()
         throws Exception {
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
         req.setHeader("Cache-Control","no-cache");
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
 
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andReturn(resp);
+        backendExpectsAnyRequestAndReturn(resp);
 
         replayMocks();
-        impl.execute(host, req, context);
+        impl.execute(route, req, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.CACHE_MISS,
                 context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
@@ -950,17 +628,15 @@ public class TestCachingHttpClient {
     @Test
     public void testSetsViaHeaderOnResponseIfRequestNotServableFromCache()
             throws Exception {
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
         req.setHeader("Cache-Control","no-cache");
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
 
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), (HttpContext)isNull()))
-                .andReturn(resp);
+        backendExpectsAnyRequestAndReturn(resp);
 
         replayMocks();
-        HttpResponse result = impl.execute(host, req);
+        HttpResponse result = impl.execute(route, req);
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Via"));
     }
@@ -968,8 +644,8 @@ public class TestCachingHttpClient {
     @Test
     public void testSetsViaHeaderOnResponseForCacheMiss()
         throws Exception {
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length","128");
@@ -977,12 +653,10 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(new Date()));
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp1);
 
         replayMocks();
-        HttpResponse result = impl.execute(host, req1, new BasicHttpContext());
+        HttpResponse result = impl.execute(route, req1);
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Via"));
     }
@@ -990,9 +664,9 @@ public class TestCachingHttpClient {
     @Test
     public void testSetsCacheHitContextIfRequestServedFromCache()
         throws Exception {
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length","128");
@@ -1000,13 +674,11 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(new Date()));
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp1);
 
         replayMocks();
-        impl.execute(host, req1, new BasicHttpContext());
-        impl.execute(host, req2, context);
+        impl.execute(route, req1);
+        impl.execute(route, req2, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.CACHE_HIT,
                 context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
@@ -1015,9 +687,9 @@ public class TestCachingHttpClient {
     @Test
     public void testSetsViaHeaderOnResponseIfRequestServedFromCache()
         throws Exception {
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
         resp1.setHeader("Content-Length","128");
@@ -1025,13 +697,11 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(new Date()));
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), (HttpContext)isNull()))
-            .andReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp1);
 
         replayMocks();
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2);
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Via"));
     }
@@ -1041,9 +711,9 @@ public class TestCachingHttpClient {
             throws Exception {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
         req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
@@ -1054,14 +724,11 @@ public class TestCachingHttpClient {
         resp1.setHeader("Cache-Control", "public, max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp1);
 
         replayMocks();
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2);
         verifyMocks();
         Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
 
@@ -1071,9 +738,9 @@ public class TestCachingHttpClient {
     public void testReturns200ForIfModifiedSinceDateIsLess() throws Exception {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
@@ -1090,19 +757,12 @@ public class TestCachingHttpClient {
 
         HttpResponse resp2 = HttpTestUtils.make200Response();
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class),
-                        (HttpContext) isNull()))
-                        .andReturn(resp2);
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2);
         verifyMocks();
         Assert.assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
 
@@ -1113,9 +773,9 @@ public class TestCachingHttpClient {
             throws Exception {
         Date now = new Date();
         Date tenSecondsAfter = new Date(now.getTime() + 10 * 1000L);
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
@@ -1130,14 +790,11 @@ public class TestCachingHttpClient {
         req2.addHeader("If-Modified-Since", DateUtils
                 .formatDate(tenSecondsAfter));
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1).times(2);
+        backendExpectsAnyRequestAndReturn(resp1).times(2);
 
         replayMocks();
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2);
         verifyMocks();
         Assert.assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
 
@@ -1146,9 +803,9 @@ public class TestCachingHttpClient {
     @Test
     public void testReturns304ForIfNoneMatchHeaderIfRequestServedFromCache()
             throws Exception {
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
         req2.addHeader("If-None-Match", "*");
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
@@ -1158,14 +815,11 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(new Date()));
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp1);
 
         replayMocks();
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2);
         verifyMocks();
         Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
 
@@ -1173,9 +827,9 @@ public class TestCachingHttpClient {
 
     @Test
     public void testReturns200ForIfNoneMatchHeaderFails() throws Exception {
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
@@ -1189,18 +843,12 @@ public class TestCachingHttpClient {
 
         HttpResponse resp2 = HttpTestUtils.make200Response();
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp2);
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2);
         verifyMocks();
         Assert.assertEquals(200, result.getStatusLine().getStatusCode());
 
@@ -1209,11 +857,11 @@ public class TestCachingHttpClient {
     @Test
     public void testReturns304ForIfNoneMatchHeaderAndIfModifiedSinceIfRequestServedFromCache()
             throws Exception {
-        impl = new CachingHttpClient(mockBackend);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
@@ -1227,14 +875,11 @@ public class TestCachingHttpClient {
         req2.addHeader("If-None-Match", "*");
         req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp1);
 
         replayMocks();
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2);
         verifyMocks();
         Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
 
@@ -1243,11 +888,11 @@ public class TestCachingHttpClient {
     @Test
     public void testReturns200ForIfNoneMatchHeaderFailsIfModifiedSinceIgnored()
             throws Exception {
-        impl = new CachingHttpClient(mockBackend);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
         req2.addHeader("If-None-Match", "\"abc\"");
         req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
@@ -1259,18 +904,12 @@ public class TestCachingHttpClient {
         resp1.setHeader("Cache-Control", "public, max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp1);
 
         replayMocks();
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2);
         verifyMocks();
         Assert.assertEquals(200, result.getStatusLine().getStatusCode());
 
@@ -1282,9 +921,9 @@ public class TestCachingHttpClient {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
@@ -1300,16 +939,12 @@ public class TestCachingHttpClient {
         resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control","public, max-age=5");
 
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andReturn(resp1);
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andReturn(resp2);
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(host, req1, new BasicHttpContext());
-        impl.execute(host, req2, context);
+        impl.execute(route, req1);
+        impl.execute(route, req2, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.VALIDATED,
                 context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
@@ -1321,9 +956,9 @@ public class TestCachingHttpClient {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
@@ -1339,16 +974,12 @@ public class TestCachingHttpClient {
         resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control","public, max-age=5");
 
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andReturn(resp1);
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andReturn(resp2);
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(host, req1, new BasicHttpContext());
-        HttpResponse result = impl.execute(host, req2, context);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2, context);
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Via"));
     }
@@ -1360,9 +991,9 @@ public class TestCachingHttpClient {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
@@ -1371,16 +1002,12 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","public, max-age=5, must-revalidate");
 
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andReturn(resp1);
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andThrow(new IOException());
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndThrows(new IOException());
 
         replayMocks();
-        impl.execute(host, req1, new BasicHttpContext());
-        impl.execute(host, req2, context);
+        impl.execute(route, req1);
+        impl.execute(route, req2, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE,
                 context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
@@ -1392,9 +1019,9 @@ public class TestCachingHttpClient {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
@@ -1403,16 +1030,12 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","public, max-age=5");
 
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andReturn(resp1);
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andThrow(new IOException());
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndThrows(new IOException());
 
         replayMocks();
-        impl.execute(host, req1, new BasicHttpContext());
-        impl.execute(host, req2, context);
+        impl.execute(route, req1);
+        impl.execute(route, req2, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.CACHE_HIT,
                 context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
@@ -1424,9 +1047,9 @@ public class TestCachingHttpClient {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
@@ -1435,16 +1058,12 @@ public class TestCachingHttpClient {
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","public, max-age=5");
 
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andReturn(resp1);
-        expect(mockBackend.execute(isA(HttpHost.class),
-                isA(HttpRequest.class), isA(HttpContext.class)))
-            .andThrow(new IOException());
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndThrows(new IOException());
 
         replayMocks();
-        impl.execute(host, req1, new BasicHttpContext());
-        HttpResponse result = impl.execute(host, req2, context);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2, context);
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Via"));
     }
@@ -1456,9 +1075,9 @@ public class TestCachingHttpClient {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
@@ -1474,18 +1093,12 @@ public class TestCachingHttpClient {
         resp2.setHeader("ETag", "\"etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp2.setHeader("Cache-Control", "public, max-age=5");
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp2);
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
         replayMocks();
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
@@ -1498,9 +1111,9 @@ public class TestCachingHttpClient {
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        impl = new CachingHttpClient(mockBackend);
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
@@ -1518,18 +1131,13 @@ public class TestCachingHttpClient {
         resp2.setHeader("ETag", "\"newetag\"");
         resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control", "public, max-age=5");
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp2);
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
+
         replayMocks();
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
@@ -1538,13 +1146,13 @@ public class TestCachingHttpClient {
     @Test
     public void testReturns304ForIfModifiedSincePassesIfRequestServedFromOrigin()
             throws Exception {
-        impl = new CachingHttpClient(mockBackend);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
 
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
@@ -1562,18 +1170,13 @@ public class TestCachingHttpClient {
         resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         resp2.setHeader("Cache-Control", "public, max-age=5");
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp2);
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
+
         replayMocks();
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
@@ -1582,12 +1185,12 @@ public class TestCachingHttpClient {
     @Test
     public void testReturns200ForIfModifiedSinceFailsIfRequestServedFromOrigin()
             throws Exception {
-        impl = new CachingHttpClient(mockBackend);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        HttpRequest req1 = new HttpGet("http://foo.example.com/");
-        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
@@ -1607,18 +1210,13 @@ public class TestCachingHttpClient {
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Last-Modified", DateUtils.formatDate(now));
         resp2.setHeader("Cache-Control", "public, max-age=5");
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp2);
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
+
         replayMocks();
-        impl.execute(host, req1);
-        HttpResponse result = impl.execute(host, req2);
+        impl.execute(route, req1);
+        HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
@@ -1626,10 +1224,10 @@ public class TestCachingHttpClient {
 
     @Test
     public void testVariantMissServerIfReturns304CacheReturns200() throws Exception {
-        impl = new CachingHttpClient(mockBackend);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         Date now = new Date();
 
-        HttpRequest req1 = new HttpGet("http://foo.example.com");
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com"));
         req1.addHeader("Accept-Encoding", "gzip");
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
@@ -1640,10 +1238,10 @@ public class TestCachingHttpClient {
         resp1.setHeader("Vary", "Accept-Encoding");
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
-        HttpRequest req2 = new HttpGet("http://foo.example.com");
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com"));
         req2.addHeader("Accept-Encoding", "deflate");
 
-        HttpRequest req2Server = new HttpGet("http://foo.example.com");
+        HttpRequestWrapper req2Server = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com"));
         req2Server.addHeader("Accept-Encoding", "deflate");
         req2Server.addHeader("If-None-Match", "\"gzip_etag\"");
 
@@ -1655,10 +1253,10 @@ public class TestCachingHttpClient {
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setHeader("Cache-Control", "public, max-age=3600");
 
-        HttpRequest req3 = new HttpGet("http://foo.example.com");
+        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com"));
         req3.addHeader("Accept-Encoding", "gzip,deflate");
 
-        HttpRequest req3Server = new HttpGet("http://foo.example.com");
+        HttpRequestWrapper req3Server = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com"));
         req3Server.addHeader("Accept-Encoding", "gzip,deflate");
         req3Server.addHeader("If-None-Match", "\"gzip_etag\",\"deflate_etag\"");
 
@@ -1670,28 +1268,16 @@ public class TestCachingHttpClient {
         resp3.setHeader("Vary", "Accept-Encoding");
         resp3.setHeader("Cache-Control", "public, max-age=3600");
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
-
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp2);
-
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp3);
-
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
+        backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        HttpResponse result1 = impl.execute(host, req1);
+        HttpResponse result1 = impl.execute(route, req1);
 
-        HttpResponse result2 = impl.execute(host, req2);
+        HttpResponse result2 = impl.execute(route, req2);
 
-        HttpResponse result3 = impl.execute(host, req3);
+        HttpResponse result3 = impl.execute(route, req3);
 
         verifyMocks();
         Assert.assertEquals(HttpStatus.SC_OK, result1.getStatusLine().getStatusCode());
@@ -1701,10 +1287,10 @@ public class TestCachingHttpClient {
 
     @Test
     public void testVariantsMissServerReturns304CacheReturns304() throws Exception {
-        impl = new CachingHttpClient(mockBackend);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         Date now = new Date();
 
-        HttpRequest req1 = new HttpGet("http://foo.example.com");
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com"));
         req1.addHeader("Accept-Encoding", "gzip");
 
         HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
@@ -1715,10 +1301,10 @@ public class TestCachingHttpClient {
         resp1.setHeader("Vary", "Accept-Encoding");
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
-        HttpRequest req2 = new HttpGet("http://foo.example.com");
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com"));
         req2.addHeader("Accept-Encoding", "deflate");
 
-        HttpRequest req2Server = new HttpGet("http://foo.example.com");
+        HttpRequestWrapper req2Server = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com"));
         req2Server.addHeader("Accept-Encoding", "deflate");
         req2Server.addHeader("If-None-Match", "\"gzip_etag\"");
 
@@ -1730,11 +1316,11 @@ public class TestCachingHttpClient {
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setHeader("Cache-Control", "public, max-age=3600");
 
-        HttpRequest req4 = new HttpGet("http://foo.example.com");
+        HttpRequestWrapper req4 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com"));
         req4.addHeader("Accept-Encoding", "gzip,identity");
         req4.addHeader("If-None-Match", "\"gzip_etag\"");
 
-        HttpRequest req4Server = new HttpGet("http://foo.example.com");
+        HttpRequestWrapper req4Server = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com"));
         req4Server.addHeader("Accept-Encoding", "gzip,identity");
         req4Server.addHeader("If-None-Match", "\"gzip_etag\"");
 
@@ -1744,27 +1330,16 @@ public class TestCachingHttpClient {
         resp4.setHeader("Vary", "Accept-Encoding");
         resp4.setHeader("Cache-Control", "public, max-age=3600");
 
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp1);
-
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp2);
-
-        expect(
-                mockBackend.execute(isA(HttpHost.class),
-                        isA(HttpRequest.class), (HttpContext)
-                        isNull())).andReturn(resp4);
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
+        backendExpectsAnyRequestAndReturn(resp4);
 
         replayMocks();
-        HttpResponse result1 = impl.execute(host, req1);
+        HttpResponse result1 = impl.execute(route, req1);
 
-        HttpResponse result2 = impl.execute(host, req2);
+        HttpResponse result2 = impl.execute(route, req2);
 
-        HttpResponse result4 = impl.execute(host, req4);
+        HttpResponse result4 = impl.execute(route, req4);
         verifyMocks();
         Assert.assertEquals(HttpStatus.SC_OK, result1.getStatusLine().getStatusCode());
         Assert.assertEquals(HttpStatus.SC_OK, result2.getStatusLine().getStatusCode());
@@ -1774,15 +1349,15 @@ public class TestCachingHttpClient {
 
     @Test
     public void testIsSharedCache() {
-        Assert.assertTrue(impl.isSharedCache());
+        Assert.assertTrue(config.isSharedCache());
     }
 
     @Test
     public void testTreatsCacheIOExceptionsAsCacheMiss()
         throws Exception {
 
-        impl = new CachingHttpClient(mockBackend, mockCache, CacheConfig.DEFAULT);
-        HttpResponse resp = HttpTestUtils.make200Response();
+        impl = new CachingExec(mockBackend, mockCache, CacheConfig.DEFAULT);
+        CloseableHttpResponse resp = Proxies.enhanceResponse(HttpTestUtils.make200Response());
 
         mockCache.flushInvalidatedCacheEntriesFor(host, request);
         expectLastCall().andThrow(new IOException()).anyTimes();
@@ -1798,23 +1373,25 @@ public class TestCachingHttpClient {
                 isA(HttpRequest.class), isA(HttpResponse.class),
                 isA(Date.class), isA(Date.class)))
             .andThrow(new IOException()).anyTimes();
-        expect(mockBackend.execute(same(host),
-                isA(HttpRequest.class), (HttpContext)isNull()))
-            .andReturn(resp);
+        expect(mockBackend.execute(
+                same(route),
+                isA(HttpRequestWrapper.class),
+                isA(HttpClientContext.class),
+                (HttpExecutionAware) isNull())).andReturn(resp);
 
         replayMocks();
-        HttpResponse result = impl.execute(host, request);
+        HttpResponse result = impl.execute(route, request);
         verifyMocks();
         Assert.assertSame(resp, result);
     }
 
     @Test
-    public void testIfOnlyIfCachedAndNoCacheEntryBackendNotCalled() throws IOException {
-        impl = new CachingHttpClient(mockBackend);
+    public void testIfOnlyIfCachedAndNoCacheEntryBackendNotCalled() throws Exception {
+        impl = new CachingExec(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
 
         request.addHeader("Cache-Control", "only-if-cached");
 
-        HttpResponse resp = impl.execute(host, request);
+        HttpResponse resp = impl.execute(route, request);
 
         Assert.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, resp.getStatusLine().getStatusCode());
     }
@@ -1833,7 +1410,7 @@ public class TestCachingHttpClient {
         cacheEntrySuitable(false);
 
         replayMocks();
-        HttpResponse resp = impl.execute(host, request);
+        HttpResponse resp = impl.execute(route, request);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, resp.getStatusLine().getStatusCode());
@@ -1853,155 +1430,163 @@ public class TestCachingHttpClient {
         entryHasStaleness(0);
 
         replayMocks();
-        HttpResponse resp = impl.execute(host, request);
+        HttpResponse resp = impl.execute(route, request);
         verifyMocks();
 
         Assert.assertSame(mockCachedResponse, resp);
     }
-    
-    private DummyHttpClient getContextSettingBackend(final Object value, final HttpResponse response) {
-    	return new DummyHttpClient() {
-    		@Override
-    		public HttpResponse execute(HttpHost target, HttpRequest request,
-    	            HttpContext context) throws IOException, ClientProtocolException {
-    			if (context != null) {
-    				context.setAttribute(ExecutionContext.HTTP_CONNECTION, value);
-    				context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, value);
-    				context.setAttribute(ExecutionContext.HTTP_REQ_SENT, value);
-    				context.setAttribute(ExecutionContext.HTTP_REQUEST, value);
-    				context.setAttribute(ExecutionContext.HTTP_RESPONSE, value);
-    				context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, value);
-    			}
-    			return response;
-    	    }
-    	};
+
+    @Test
+    public void testDoesNotSetConnectionInContextOnCacheHit() throws Exception {
+        DummyBackend backend = new DummyBackend();
+        HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("Cache-Control", "max-age=3600");
+        backend.setResponse(response);
+        impl = new CachingExec(backend);
+        HttpClientContext ctx = HttpClientContext.create();
+        impl.execute(route, request);
+        impl.execute(route, request, ctx);
+        assertNull(ctx.getAttribute(ExecutionContext.HTTP_CONNECTION));
     }
-    
-	private void assertAllContextVariablesAreEqualTo(HttpContext ctx,
-			final Object value) {
-		assertSame(value, ctx.getAttribute(ExecutionContext.HTTP_CONNECTION));
-    	assertSame(value, ctx.getAttribute(ExecutionContext.HTTP_PROXY_HOST));
-    	assertSame(value, ctx.getAttribute(ExecutionContext.HTTP_REQ_SENT));
-    	assertSame(value, ctx.getAttribute(ExecutionContext.HTTP_REQUEST));
-    	assertSame(value, ctx.getAttribute(ExecutionContext.HTTP_RESPONSE));
-    	assertSame(value, ctx.getAttribute(ExecutionContext.HTTP_TARGET_HOST));
-	}
 
-	@Test
-	public void testAllowsBackendToSetHttpContextVariablesOnCacheMiss() throws Exception {
-		final Object value = new Object(); 
-		impl = new CachingHttpClient(getContextSettingBackend(value, HttpTestUtils.make200Response()));
-		HttpContext ctx = new BasicHttpContext();
-		impl.execute(host, request, ctx);
-		assertAllContextVariablesAreEqualTo(ctx, value);
-	}
-	
-	@Test
-	public void testDoesNotSetConnectionInContextOnCacheHit() throws Exception {
-		DummyHttpClient backend = new DummyHttpClient();
-		HttpResponse response = HttpTestUtils.make200Response();
-		response.setHeader("Cache-Control", "max-age=3600");
-		backend.setResponse(response);
-		impl = new CachingHttpClient(backend);
-		HttpContext ctx = new BasicHttpContext();
-		impl.execute(host, request);
-		impl.execute(host, request, ctx);
-		assertNull(ctx.getAttribute(ExecutionContext.HTTP_CONNECTION));
-	}
-	
-	@Test
-	public void testDoesNotSetProxyHostInContextOnCacheHit() throws Exception {
-		DummyHttpClient backend = new DummyHttpClient();
-		HttpResponse response = HttpTestUtils.make200Response();
-		response.setHeader("Cache-Control", "max-age=3600");
-		backend.setResponse(response);
-		impl = new CachingHttpClient(backend);
-		HttpContext ctx = new BasicHttpContext();
-		impl.execute(host, request);
-		impl.execute(host, request, ctx);
-		assertNull(ctx.getAttribute(ExecutionContext.HTTP_PROXY_HOST));
-	}
-	
-	@Test
-	public void testSetsTargetHostInContextOnCacheHit() throws Exception {
-		DummyHttpClient backend = new DummyHttpClient();
-		HttpResponse response = HttpTestUtils.make200Response();
-		response.setHeader("Cache-Control", "max-age=3600");
-		backend.setResponse(response);
-		impl = new CachingHttpClient(backend);
-		HttpContext ctx = new BasicHttpContext();
-		impl.execute(host, request);
-		impl.execute(host, request, ctx);
-		assertSame(host, ctx.getAttribute(ExecutionContext.HTTP_TARGET_HOST));
-	}
+    @Test
+    public void testDoesNotSetProxyHostInContextOnCacheHit() throws Exception {
+        DummyBackend backend = new DummyBackend();
+        HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("Cache-Control", "max-age=3600");
+        backend.setResponse(response);
+        impl = new CachingExec(backend);
+        HttpClientContext ctx = HttpClientContext.create();
+        impl.execute(route, request);
+        impl.execute(route, request, ctx);
+        assertNull(ctx.getAttribute(ExecutionContext.HTTP_PROXY_HOST));
+    }
 
-	@Test
-	public void testSetsRequestInContextOnCacheHit() throws Exception {
-		DummyHttpClient backend = new DummyHttpClient();
-		HttpResponse response = HttpTestUtils.make200Response();
-		response.setHeader("Cache-Control", "max-age=3600");
-		backend.setResponse(response);
-		impl = new CachingHttpClient(backend);
-		HttpContext ctx = new BasicHttpContext();
-		impl.execute(host, request);
-		impl.execute(host, request, ctx);
-		assertSame(request, ctx.getAttribute(ExecutionContext.HTTP_REQUEST));
-	}
+    @Test
+    public void testSetsTargetHostInContextOnCacheHit() throws Exception {
+        DummyBackend backend = new DummyBackend();
+        HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("Cache-Control", "max-age=3600");
+        backend.setResponse(response);
+        impl = new CachingExec(backend);
+        HttpClientContext ctx = HttpClientContext.create();
+        impl.execute(route, request);
+        impl.execute(route, request, ctx);
+        assertSame(host, ctx.getAttribute(ExecutionContext.HTTP_TARGET_HOST));
+    }
 
-	@Test
-	public void testSetsResponseInContextOnCacheHit() throws Exception {
-		DummyHttpClient backend = new DummyHttpClient();
-		HttpResponse response = HttpTestUtils.make200Response();
-		response.setHeader("Cache-Control", "max-age=3600");
-		backend.setResponse(response);
-		impl = new CachingHttpClient(backend);
-		HttpContext ctx = new BasicHttpContext();
-		impl.execute(host, request);
-		HttpResponse result = impl.execute(host, request, ctx);
-		assertSame(result, ctx.getAttribute(ExecutionContext.HTTP_RESPONSE));
-	}
-	
-	@Test
-	public void testSetsRequestSentInContextOnCacheHit() throws Exception {
-		DummyHttpClient backend = new DummyHttpClient();
-		HttpResponse response = HttpTestUtils.make200Response();
-		response.setHeader("Cache-Control", "max-age=3600");
-		backend.setResponse(response);
-		impl = new CachingHttpClient(backend);
-		HttpContext ctx = new BasicHttpContext();
-		impl.execute(host, request);
-		impl.execute(host, request, ctx);
-		assertEquals(Boolean.TRUE, ctx.getAttribute(ExecutionContext.HTTP_REQ_SENT));
-	}
-	
-	@Test
-	public void testAllowsBackendToSetContextVariablesOnRevalidation() throws Exception {
-		final Object value = new Object(); 
-		HttpResponse response = HttpTestUtils.make200Response();
-		response.setHeader("Cache-Control","public");
-		response.setHeader("Etag", "\"v1\"");
-		DummyHttpClient backend = getContextSettingBackend(value, response);
-		backend.setResponse(response);
-		impl = new CachingHttpClient(backend);
-		HttpContext ctx = new BasicHttpContext();
-		impl.execute(host, request);
-		impl.execute(host, request, ctx);
-		assertAllContextVariablesAreEqualTo(ctx, value);
-	}
-	
-	@Test
-	public void testCanCacheAResponseWithoutABody() throws Exception {
-		HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
-		response.setHeader("Date", DateUtils.formatDate(new Date()));
-		response.setHeader("Cache-Control","max-age=300");
-		DummyHttpClient backend = new DummyHttpClient();
-		backend.setResponse(response);
-		impl = new CachingHttpClient(backend);
-		impl.execute(host, request);
-		impl.execute(host, request);
-		assertEquals(1, backend.getExecutions());
-	}
-	
+    @Test
+    public void testSetsRequestInContextOnCacheHit() throws Exception {
+        DummyBackend backend = new DummyBackend();
+        HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("Cache-Control", "max-age=3600");
+        backend.setResponse(response);
+        impl = new CachingExec(backend);
+        HttpClientContext ctx = HttpClientContext.create();
+        impl.execute(route, request);
+        impl.execute(route, request, ctx);
+        assertSame(request, ctx.getAttribute(ExecutionContext.HTTP_REQUEST));
+    }
+
+    @Test
+    public void testSetsResponseInContextOnCacheHit() throws Exception {
+        DummyBackend backend = new DummyBackend();
+        HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("Cache-Control", "max-age=3600");
+        backend.setResponse(response);
+        impl = new CachingExec(backend);
+        HttpClientContext ctx = HttpClientContext.create();
+        impl.execute(route, request);
+        HttpResponse result = impl.execute(route, request, ctx);
+        assertSame(result, ctx.getAttribute(ExecutionContext.HTTP_RESPONSE));
+    }
+
+    @Test
+    public void testSetsRequestSentInContextOnCacheHit() throws Exception {
+        DummyBackend backend = new DummyBackend();
+        HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("Cache-Control", "max-age=3600");
+        backend.setResponse(response);
+        impl = new CachingExec(backend);
+        HttpClientContext ctx = HttpClientContext.create();
+        impl.execute(route, request);
+        impl.execute(route, request, ctx);
+        assertEquals(Boolean.TRUE, ctx.getAttribute(ExecutionContext.HTTP_REQ_SENT));
+    }
+
+    @Test
+    public void testCanCacheAResponseWithoutABody() throws Exception {
+        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+        response.setHeader("Date", DateUtils.formatDate(new Date()));
+        response.setHeader("Cache-Control","max-age=300");
+        DummyBackend backend = new DummyBackend();
+        backend.setResponse(response);
+        impl = new CachingExec(backend);
+        impl.execute(route, request);
+        impl.execute(route, request);
+        assertEquals(1, backend.getExecutions());
+    }
+
+    private IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndReturn(
+            HttpResponse response) throws Exception {
+        CloseableHttpResponse resp = mockBackend.execute(
+                EasyMock.isA(HttpRoute.class),
+                EasyMock.isA(HttpRequestWrapper.class),
+                EasyMock.isA(HttpClientContext.class),
+                EasyMock.<HttpExecutionAware>isNull());
+        return EasyMock.expect(resp).andReturn(Proxies.enhanceResponse(response));
+    }
+
+    private IExpectationSetters<CloseableHttpResponse> implExpectsAnyRequestAndReturn(
+            CloseableHttpResponse response) throws Exception {
+        CloseableHttpResponse resp = impl.callBackend(
+                EasyMock.isA(HttpRoute.class),
+                EasyMock.isA(HttpRequestWrapper.class),
+                EasyMock.isA(HttpClientContext.class),
+                EasyMock.<HttpExecutionAware>isNull());
+        return EasyMock.expect(resp).andReturn(response);
+    }
+
+    private IExpectationSetters<CloseableHttpResponse> backendExpectsRequestAndReturn(
+            HttpRequestWrapper request, HttpResponse response) throws Exception {
+        CloseableHttpResponse resp = mockBackend.execute(
+                EasyMock.isA(HttpRoute.class),
+                EasyMock.eq(request),
+                EasyMock.isA(HttpClientContext.class),
+                EasyMock.<HttpExecutionAware>isNull());
+        return EasyMock.expect(resp).andReturn(Proxies.enhanceResponse(response));
+    }
+
+    private IExpectationSetters<CloseableHttpResponse> backendExpectsRequestAndReturn(
+            HttpRequestWrapper request, CloseableHttpResponse response) throws Exception {
+        CloseableHttpResponse resp = mockBackend.execute(
+                EasyMock.isA(HttpRoute.class),
+                EasyMock.eq(request),
+                EasyMock.isA(HttpClientContext.class),
+                EasyMock.<HttpExecutionAware>isNull());
+        return EasyMock.expect(resp).andReturn(response);
+    }
+
+    private IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndThrows(
+            Throwable throwable) throws Exception {
+        CloseableHttpResponse resp = mockBackend.execute(
+                EasyMock.isA(HttpRoute.class),
+                EasyMock.isA(HttpRequestWrapper.class),
+                EasyMock.isA(HttpClientContext.class),
+                EasyMock.<HttpExecutionAware>isNull());
+        return EasyMock.expect(resp).andThrow(throwable);
+    }
+
+    private IExpectationSetters<CloseableHttpResponse> backendCaptureRequestAndReturn(
+            Capture<HttpRequestWrapper> cap, HttpResponse response) throws Exception {
+        CloseableHttpResponse resp = mockBackend.execute(
+                EasyMock.isA(HttpRoute.class),
+                EasyMock.capture(cap),
+                EasyMock.isA(HttpClientContext.class),
+                EasyMock.<HttpExecutionAware>isNull());
+        return EasyMock.expect(resp).andReturn(Proxies.enhanceResponse(response));
+    }
+
     private void getCacheEntryReturns(HttpCacheEntry result) throws IOException {
         expect(mockCache.getCacheEntry(host, request)).andReturn(result);
     }
@@ -2014,23 +1599,6 @@ public class TestCachingHttpClient {
         mockCache.flushInvalidatedCacheEntriesFor(
                 (HttpHost)anyObject(),
                 (HttpRequest)anyObject());
-    }
-
-    private void callBackendReturnsResponse(HttpResponse response) throws IOException {
-        expect(impl.callBackend(
-                (HttpHost)anyObject(),
-                (HttpRequestWrapper)anyObject(),
-                (HttpContext)anyObject())).andReturn(response);
-    }
-
-    private void revalidateCacheEntryReturns(HttpResponse response) throws IOException,
-            ProtocolException {
-        expect(
-                impl.revalidateCacheEntry(
-                        (HttpHost)anyObject(),
-                        (HttpRequestWrapper)anyObject(),
-                        (HttpContext)anyObject(),
-                        (HttpCacheEntry)anyObject())).andReturn(response);
     }
 
     private void cacheEntryValidatable(boolean b) {
@@ -2055,9 +1623,8 @@ public class TestCachingHttpClient {
 
     private void conditionalRequestBuilderReturns(HttpRequestWrapper validate)
             throws Exception {
-        expect(mockConditionalRequestBuilder
-        .buildConditionalRequest(request, entry))
-    .andReturn(validate);
+        expect(mockConditionalRequestBuilder.buildConditionalRequest(
+                request, entry)).andReturn(validate);
 }
 
     private void getCurrentDateReturns(Date date) {
@@ -2067,19 +1634,6 @@ public class TestCachingHttpClient {
     private void requestPolicyAllowsCaching(boolean allow) {
         expect(mockRequestPolicy.isServableFromCache(
                 (HttpRequest)anyObject())).andReturn(allow);
-    }
-
-    private void backendCall(HttpRequest req, HttpResponse resp)
-            throws Exception {
-        expect(mockBackend.execute(host, req, context))
-            .andReturn(resp);
-    }
-
-    private void backendCallWasMade(HttpRequest request, HttpResponse response) throws IOException {
-        expect(mockBackend.execute(
-                (HttpHost)anyObject(),
-                same(request),
-                (HttpContext)anyObject())).andReturn(response);
     }
 
     private void cacheEntrySuitable(boolean suitable) {
@@ -2107,33 +1661,30 @@ public class TestCachingHttpClient {
             throws IOException {
         expect(
                 impl.handleBackendResponse(
-                        (HttpHost)anyObject(),
+                        isA(HttpRoute.class),
                         same(request),
-                        (Date)anyObject(),
-                        (Date)anyObject(),
-                        (HttpResponse)anyObject())).andReturn(response);
-    }
-
-    private HttpEntity makeStreamingEntity() {
-        byte[] body = HttpTestUtils.getRandomBytes(101);
-        ByteArrayInputStream buf = new ByteArrayInputStream(body);
-        cis = new ConsumableInputStream(buf);
-        return new InputStreamEntity(cis, 101);
+                        isA(HttpClientContext.class),
+                        (HttpExecutionAware) isNull(),
+                        isA(Date.class),
+                        isA(Date.class),
+                        isA(CloseableHttpResponse.class))).andReturn(
+                                Proxies.enhanceResponse(response));
     }
 
     private void mockImplMethods(String... methods) {
         mockedImpl = true;
-        impl = createMockBuilder(CachingHttpClient.class).withConstructor(
+        impl = createMockBuilder(CachingExec.class).withConstructor(
                 mockBackend,
+                mockCache,
                 mockValidityPolicy,
                 mockResponsePolicy,
-                mockCache,
                 mockResponseGenerator,
                 mockRequestPolicy,
                 mockSuitabilityChecker,
                 mockConditionalRequestBuilder,
                 mockResponseProtocolCompliance,
-                mockRequestProtocolCompliance).addMockedMethods(methods).createNiceMock();
+                mockRequestProtocolCompliance,
+                config).addMockedMethods(methods).createNiceMock();
     }
 
 }

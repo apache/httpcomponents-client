@@ -29,11 +29,12 @@ package org.apache.http.impl.client.cache;
 import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpHost;
-import org.apache.http.ProtocolException;
+import org.apache.http.HttpException;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.protocol.HttpContext;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.routing.HttpRoute;
 
 /**
  * Class used to represent an asynchronous revalidation event, such as with
@@ -41,10 +42,11 @@ import org.apache.http.protocol.HttpContext;
  */
 class AsynchronousValidationRequest implements Runnable {
     private final AsynchronousValidator parent;
-    private final CachingHttpClient cachingClient;
-    private final HttpHost target;
+    private final CachingExec cachingExec;
+    private final HttpRoute route;
     private final HttpRequestWrapper request;
-    private final HttpContext context;
+    private final HttpClientContext context;
+    private final HttpExecutionAware execAware;
     private final HttpCacheEntry cacheEntry;
     private final String identifier;
 
@@ -61,27 +63,32 @@ class AsynchronousValidationRequest implements Runnable {
      * @param bookKeeping
      * @param identifier
      */
-    AsynchronousValidationRequest(AsynchronousValidator parent,
-            CachingHttpClient cachingClient, HttpHost target,
-            HttpRequestWrapper request, HttpContext context,
-            HttpCacheEntry cacheEntry,
-            String identifier) {
+    AsynchronousValidationRequest(
+            final AsynchronousValidator parent,
+            final CachingExec cachingExec,
+            final HttpRoute route,
+            final HttpRequestWrapper request,
+            final HttpClientContext context,
+            final HttpExecutionAware execAware,
+            final HttpCacheEntry cacheEntry,
+            final String identifier) {
         this.parent = parent;
-        this.cachingClient = cachingClient;
-        this.target = target;
+        this.cachingExec = cachingExec;
+        this.route = route;
         this.request = request;
         this.context = context;
+        this.execAware = execAware;
         this.cacheEntry = cacheEntry;
         this.identifier = identifier;
     }
 
     public void run() {
         try {
-            cachingClient.revalidateCacheEntry(target, request, context, cacheEntry);
+            cachingExec.revalidateCacheEntry(route, request, context, execAware, cacheEntry);
         } catch (IOException ioe) {
-            log.debug("Asynchronous revalidation failed due to exception: " + ioe);
-        } catch (ProtocolException pe) {
-            log.error("ProtocolException thrown during asynchronous revalidation: " + pe);
+            log.debug("Asynchronous revalidation failed due to I/O error", ioe);
+        } catch (HttpException pe) {
+            log.error("HTTP protocol exception during asynchronous revalidation", pe);
         } finally {
             parent.markComplete(identifier);
         }
