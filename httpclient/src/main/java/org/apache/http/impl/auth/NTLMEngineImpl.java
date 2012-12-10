@@ -473,8 +473,8 @@ final class NTLMEngineImpl implements NTLMEngine {
                 byte[] lmResponse = getLMResponse();
                 try {
                     byte[] keyBytes = new byte[14];
-                    System.arraycopy(lmHash, 0, keyBytes, 0, lmHash.length);
-                    Arrays.fill(keyBytes, lmHash.length, keyBytes.length, (byte)0xbd);
+                    System.arraycopy(lmHash, 0, keyBytes, 0, 8);
+                    Arrays.fill(keyBytes, 8, keyBytes.length, (byte)0xbd);
                     Key lowKey = createDESKey(keyBytes, 0);
                     Key highKey = createDESKey(keyBytes, 7);
                     byte[] truncatedResponse = new byte[8];
@@ -1223,7 +1223,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 sessionKeyLen = 0;
 
             // Calculate the layout within the packet
-            int lmRespOffset = 64 + 8;  // allocate space for the version
+            int lmRespOffset = 76;  // allocate space for the version
             int ntRespOffset = lmRespOffset + lmRespLen;
             int domainOffset = ntRespOffset + ntRespLen;
             int userOffset = domainOffset + domainLen;
@@ -1233,7 +1233,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
             // Start the response. Length includes signature and type
             prepareResponse(finalLength, 3);
-
+            
             // LM Resp Length (twice)
             addUShort(lmRespLen);
             addUShort(lmRespLen);
@@ -1274,7 +1274,10 @@ final class NTLMEngineImpl implements NTLMEngine {
             addUShort(sessionKeyLen);
 
             // Session key offset
-            addULong(sessionKeyOffset);
+            if (sessionKeyLen != 0)
+                addULong(sessionKeyOffset);
+            else
+                addULong(0);
 
             // Message length
             addULong(finalLength);
