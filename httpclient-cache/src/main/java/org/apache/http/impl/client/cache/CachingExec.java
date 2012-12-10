@@ -49,6 +49,7 @@ import org.apache.http.RequestLine;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.CacheResponseStatus;
 import org.apache.http.client.cache.HeaderConstants;
+import org.apache.http.client.cache.HttpCacheContext;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.ResourceFactory;
@@ -88,14 +89,6 @@ import org.apache.http.util.VersionInfo;
  */
 @ThreadSafe // So long as the responseCache implementation is threadsafe
 public class CachingExec implements ClientExecChain {
-
-    /**
-     * This is the name under which the {@link
-     * org.apache.http.client.cache.CacheResponseStatus} of a request
-     * (for example, whether it resulted in a cache hit) will be recorded if an
-     * {@link HttpContext} is provided during execution.
-     */
-    public static final String CACHE_RESPONSE_STATUS = "http.cache.response.status";
 
     private final static boolean SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS = false;
 
@@ -532,7 +525,7 @@ public class CachingExec implements ClientExecChain {
 
     private void setResponseStatus(final HttpContext context, final CacheResponseStatus value) {
         if (context != null) {
-            context.setAttribute(CACHE_RESPONSE_STATUS, value);
+            context.setAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS, value);
         }
     }
 

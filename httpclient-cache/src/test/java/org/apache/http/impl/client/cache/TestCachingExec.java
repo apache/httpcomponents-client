@@ -59,6 +59,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.CacheResponseStatus;
+import org.apache.http.client.cache.HttpCacheContext;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -73,7 +74,6 @@ import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.protocol.ExecutionContext;
 import org.easymock.Capture;
 import org.easymock.IExpectationSetters;
 import org.easymock.classextension.EasyMock;
@@ -119,7 +119,7 @@ public class TestCachingExec {
     private HttpRoute route;
     private HttpHost host;
     private HttpRequestWrapper request;
-    private HttpClientContext context;
+    private HttpCacheContext context;
     private HttpCacheEntry entry;
 
     @SuppressWarnings("unchecked")
@@ -151,7 +151,7 @@ public class TestCachingExec {
         route = new HttpRoute(host);
         request = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/stuff", HttpVersion.HTTP_1_1));
-        context = HttpClientContext.create();
+        context = HttpCacheContext.create();
         entry = HttpTestUtils.makeCacheEntry();
         impl = new CachingExec(
                 mockBackend,
@@ -569,7 +569,7 @@ public class TestCachingExec {
 
         impl.execute(route, req, context);
         Assert.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE,
-                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
+                context.getCacheResponseStatus());
     }
 
     @Test
@@ -582,7 +582,7 @@ public class TestCachingExec {
 
         impl.execute(route, req, context);
         Assert.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE,
-                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
+                context.getCacheResponseStatus());
     }
 
     @Test
@@ -622,7 +622,7 @@ public class TestCachingExec {
         impl.execute(route, req, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.CACHE_MISS,
-                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
+                context.getCacheResponseStatus());
     }
 
     @Test
@@ -681,7 +681,7 @@ public class TestCachingExec {
         impl.execute(route, req2, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.CACHE_HIT,
-                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
+                context.getCacheResponseStatus());
     }
 
     @Test
@@ -947,7 +947,7 @@ public class TestCachingExec {
         impl.execute(route, req2, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.VALIDATED,
-                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
+                context.getCacheResponseStatus());
     }
 
     @Test
@@ -1010,7 +1010,7 @@ public class TestCachingExec {
         impl.execute(route, req2, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.CACHE_MODULE_RESPONSE,
-                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
+                context.getCacheResponseStatus());
     }
 
     @Test
@@ -1038,7 +1038,7 @@ public class TestCachingExec {
         impl.execute(route, req2, context);
         verifyMocks();
         Assert.assertEquals(CacheResponseStatus.CACHE_HIT,
-                context.getAttribute(CachingHttpClient.CACHE_RESPONSE_STATUS));
+                context.getCacheResponseStatus());
     }
 
     @Test
@@ -1446,20 +1446,7 @@ public class TestCachingExec {
         HttpClientContext ctx = HttpClientContext.create();
         impl.execute(route, request);
         impl.execute(route, request, ctx);
-        assertNull(ctx.getAttribute(ExecutionContext.HTTP_CONNECTION));
-    }
-
-    @Test
-    public void testDoesNotSetProxyHostInContextOnCacheHit() throws Exception {
-        DummyBackend backend = new DummyBackend();
-        HttpResponse response = HttpTestUtils.make200Response();
-        response.setHeader("Cache-Control", "max-age=3600");
-        backend.setResponse(response);
-        impl = new CachingExec(backend);
-        HttpClientContext ctx = HttpClientContext.create();
-        impl.execute(route, request);
-        impl.execute(route, request, ctx);
-        assertNull(ctx.getAttribute(ExecutionContext.HTTP_PROXY_HOST));
+        assertNull(ctx.getConnection());
     }
 
     @Test
@@ -1472,7 +1459,20 @@ public class TestCachingExec {
         HttpClientContext ctx = HttpClientContext.create();
         impl.execute(route, request);
         impl.execute(route, request, ctx);
-        assertSame(host, ctx.getAttribute(ExecutionContext.HTTP_TARGET_HOST));
+        assertSame(host, ctx.getTargetHost());
+    }
+
+    @Test
+    public void testSetsRouteInContextOnCacheHit() throws Exception {
+        DummyBackend backend = new DummyBackend();
+        HttpResponse response = HttpTestUtils.make200Response();
+        response.setHeader("Cache-Control", "max-age=3600");
+        backend.setResponse(response);
+        impl = new CachingExec(backend);
+        HttpClientContext ctx = HttpClientContext.create();
+        impl.execute(route, request);
+        impl.execute(route, request, ctx);
+        assertSame(route, ctx.getHttpRoute());
     }
 
     @Test
@@ -1485,7 +1485,7 @@ public class TestCachingExec {
         HttpClientContext ctx = HttpClientContext.create();
         impl.execute(route, request);
         impl.execute(route, request, ctx);
-        assertSame(request, ctx.getAttribute(ExecutionContext.HTTP_REQUEST));
+        assertSame(request, ctx.getRequest());
     }
 
     @Test
@@ -1498,7 +1498,7 @@ public class TestCachingExec {
         HttpClientContext ctx = HttpClientContext.create();
         impl.execute(route, request);
         HttpResponse result = impl.execute(route, request, ctx);
-        assertSame(result, ctx.getAttribute(ExecutionContext.HTTP_RESPONSE));
+        assertSame(result, ctx.getResponse());
     }
 
     @Test
@@ -1511,7 +1511,7 @@ public class TestCachingExec {
         HttpClientContext ctx = HttpClientContext.create();
         impl.execute(route, request);
         impl.execute(route, request, ctx);
-        assertEquals(Boolean.TRUE, ctx.getAttribute(ExecutionContext.HTTP_REQ_SENT));
+        assertTrue(ctx.isRequestSent());
     }
 
     @Test
