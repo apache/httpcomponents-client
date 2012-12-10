@@ -1,6 +1,9 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-1080] NTLM dead code commented out.
+  Contributed by Karl Wright <DaddyWri at gmail.com>  
+
 * [HTTPCLIENT-1268] NTLM engine refactor fix, to correct a buffer overrun.
   Contributed by Karl Wright <DaddyWri at gmail.com>  
 

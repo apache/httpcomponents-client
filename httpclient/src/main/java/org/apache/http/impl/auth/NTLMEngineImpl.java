@@ -1395,7 +1395,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 int transferAmt = input.length - inputIndex;
                 System.arraycopy(input, inputIndex, dataBuffer, curBufferPos, transferAmt);
                 count += transferAmt;
-                curBufferPos += transferAmt;
+                //curBufferPos += transferAmt;
             }
         }
 
