@@ -28,7 +28,6 @@
 package org.apache.http.impl.client;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.http.impl.client.builder.HttpClientBuilder;
 
 /**
  * @since 4.3

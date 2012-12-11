@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.builder;
+package org.apache.http.impl.client;
 
 import java.net.ProxySelector;
 import java.util.Collection;
@@ -78,16 +78,6 @@ import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.auth.KerberosSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
-import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.impl.client.DefaultUserTokenHandler;
-import org.apache.http.impl.client.NoopUserTokenHandler;
-import org.apache.http.impl.client.ProxyAuthenticationStrategy;
-import org.apache.http.impl.client.TargetAuthenticationStrategy;
 import org.apache.http.impl.client.execchain.BackoffStrategyExec;
 import org.apache.http.impl.client.execchain.ClientExecChain;
 import org.apache.http.impl.client.execchain.MainClientExec;

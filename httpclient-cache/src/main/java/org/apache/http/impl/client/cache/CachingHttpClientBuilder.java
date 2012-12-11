@@ -30,7 +30,7 @@ import java.io.File;
 
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.ResourceFactory;
-import org.apache.http.impl.client.builder.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.execchain.ClientExecChain;
 
 /**

@@ -31,7 +31,7 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.impl.client.builder.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 /**
  * @since 4.1

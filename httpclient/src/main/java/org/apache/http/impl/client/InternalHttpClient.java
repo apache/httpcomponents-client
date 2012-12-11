@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.builder;
+package org.apache.http.impl.client;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +57,6 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.execchain.ClientExecChain;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
