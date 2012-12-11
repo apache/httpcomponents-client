@@ -118,7 +118,7 @@ import org.apache.http.util.VersionInfo;
  * </p>
  * @since 4.1
  *
- * @deprecated (4.3)
+ * @deprecated (4.3) use {@link CachingHttpClientBuilder} or {@link CachingHttpClients}.
  */
 @Deprecated
 @ThreadSafe // So long as the responseCache implementation is threadsafe

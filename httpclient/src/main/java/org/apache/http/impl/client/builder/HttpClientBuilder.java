@@ -191,7 +191,7 @@ public class HttpClientBuilder {
         return new HttpClientBuilder();
     }
 
-    HttpClientBuilder() {
+    protected HttpClientBuilder() {
         super();
     }
 

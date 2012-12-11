@@ -25,31 +25,33 @@
  *
  */
 
-package org.apache.http.impl.client;
+package org.apache.http.impl.client.cache;
+
+import java.io.File;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.http.impl.client.builder.HttpClientBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
 
 /**
  * @since 4.3
  */
 @Immutable
-public class HttpClients {
+public class CachingHttpClients {
 
-    private HttpClients() {
+    private CachingHttpClients() {
         super();
     }
 
-    public static HttpClientBuilder custom() {
-        return HttpClientBuilder.create();
+    public static CachingHttpClientBuilder custom() {
+        return CachingHttpClientBuilder.create();
     }
 
-    public static CloseableHttpClient createDefault() {
-        return HttpClientBuilder.create().build();
+    public static CloseableHttpClient createMemoryBound() {
+        return CachingHttpClientBuilder.create().build();
     }
 
-    public static CloseableHttpClient createSystem() {
-        return HttpClientBuilder.create().useSystemProperties().build();
+    public static CloseableHttpClient createFileBound(final File cacheDir) {
+        return CachingHttpClientBuilder.create().setCacheDir(cacheDir).build();
     }
 
 }
