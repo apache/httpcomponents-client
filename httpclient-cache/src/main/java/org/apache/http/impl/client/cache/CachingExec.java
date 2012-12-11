@@ -262,9 +262,9 @@ public class CachingExec implements ClientExecChain {
         if (entry == null) {
             log.debug("Cache miss");
             return handleCacheMiss(route, request, context, execAware);
+        } else {
+            return handleCacheHit(route, request, context, execAware, entry);
         }
-
-        return handleCacheHit(route, request, context, execAware, entry);
     }
 
     private CloseableHttpResponse handleCacheHit(
@@ -290,13 +290,11 @@ public class CachingExec implements ClientExecChain {
             log.debug("Cache entry not usable; calling backend");
             return callBackend(route, request, context, execAware);
         }
-        if (context != null) {
-            context.setAttribute(ClientContext.ROUTE, route);
-            context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
-            context.setAttribute(ExecutionContext.HTTP_REQUEST, request);
-            context.setAttribute(ExecutionContext.HTTP_RESPONSE, out);
-            context.setAttribute(ExecutionContext.HTTP_REQ_SENT, Boolean.TRUE);
-        }
+        context.setAttribute(ClientContext.ROUTE, route);
+        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+        context.setAttribute(ExecutionContext.HTTP_REQUEST, request);
+        context.setAttribute(ExecutionContext.HTTP_RESPONSE, out);
+        context.setAttribute(ExecutionContext.HTTP_REQ_SENT, Boolean.TRUE);
         return out;
     }
 
@@ -568,9 +566,17 @@ public class CachingExec implements ClientExecChain {
 
         log.trace("Calling the backend");
         CloseableHttpResponse backendResponse = backend.execute(route, request, context, execAware);
-        backendResponse.addHeader("Via", generateViaHeader(backendResponse));
-        return handleBackendResponse(route, request, context, execAware,
-                requestDate, getCurrentDate(), backendResponse);
+        try {
+            backendResponse.addHeader("Via", generateViaHeader(backendResponse));
+            return handleBackendResponse(route, request, context, execAware,
+                    requestDate, getCurrentDate(), backendResponse);
+        } catch (IOException ex) {
+            backendResponse.close();
+            throw ex;
+        } catch (RuntimeException ex) {
+            backendResponse.close();
+            throw ex;
+        }
     }
 
     private boolean revalidationResponseIsTooOld(HttpResponse backendResponse,
@@ -604,53 +610,66 @@ public class CachingExec implements ClientExecChain {
         Date requestDate = getCurrentDate();
         CloseableHttpResponse backendResponse = backend.execute(
                 route, conditionalRequest, context, execAware);
-        Date responseDate = getCurrentDate();
+        try {
+            Date responseDate = getCurrentDate();
 
-        backendResponse.addHeader("Via", generateViaHeader(backendResponse));
+            backendResponse.addHeader("Via", generateViaHeader(backendResponse));
 
-        if (backendResponse.getStatusLine().getStatusCode() != HttpStatus.SC_NOT_MODIFIED) {
-            return handleBackendResponse(
-                    route, request, context, execAware,
-                    requestDate, responseDate, backendResponse);
+            if (backendResponse.getStatusLine().getStatusCode() != HttpStatus.SC_NOT_MODIFIED) {
+                return handleBackendResponse(
+                        route, request, context, execAware,
+                        requestDate, responseDate, backendResponse);
+            }
+
+            Header resultEtagHeader = backendResponse.getFirstHeader(HeaderConstants.ETAG);
+            if (resultEtagHeader == null) {
+                log.warn("304 response did not contain ETag");
+                EntityUtils.consume(backendResponse.getEntity());
+                backendResponse.close();
+                return callBackend(route, request, context, execAware);
+            }
+
+            String resultEtag = resultEtagHeader.getValue();
+            Variant matchingVariant = variants.get(resultEtag);
+            if (matchingVariant == null) {
+                log.debug("304 response did not contain ETag matching one sent in If-None-Match");
+                EntityUtils.consume(backendResponse.getEntity());
+                backendResponse.close();
+                return callBackend(route, request, context, execAware);
+            }
+
+            HttpCacheEntry matchedEntry = matchingVariant.getEntry();
+
+            if (revalidationResponseIsTooOld(backendResponse, matchedEntry)) {
+                EntityUtils.consume(backendResponse.getEntity());
+                backendResponse.close();
+                return retryRequestUnconditionally(route, request, context, execAware, matchedEntry);
+            }
+
+            recordCacheUpdate(context);
+
+            HttpCacheEntry responseEntry = getUpdatedVariantEntry(
+                    route.getTargetHost(), conditionalRequest, requestDate, responseDate,
+                    backendResponse, matchingVariant, matchedEntry);
+            backendResponse.close();
+
+            HttpResponse resp = responseGenerator.generateResponse(responseEntry);
+            tryToUpdateVariantMap(route.getTargetHost(), request, matchingVariant);
+
+            if (shouldSendNotModifiedResponse(request, responseEntry)) {
+                return responseGenerator.generateNotModifiedResponse(responseEntry);
+            }
+            return resp;
+        } catch (IOException ex) {
+            backendResponse.close();
+            throw ex;
+        } catch (RuntimeException ex) {
+            backendResponse.close();
+            throw ex;
         }
-
-        Header resultEtagHeader = backendResponse.getFirstHeader(HeaderConstants.ETAG);
-        if (resultEtagHeader == null) {
-            log.warn("304 response did not contain ETag");
-            return callBackend(route, request, context, execAware);
-        }
-
-        String resultEtag = resultEtagHeader.getValue();
-        Variant matchingVariant = variants.get(resultEtag);
-        if (matchingVariant == null) {
-            log.debug("304 response did not contain ETag matching one sent in If-None-Match");
-            return callBackend(route, request, context, execAware);
-        }
-
-        HttpCacheEntry matchedEntry = matchingVariant.getEntry();
-
-        if (revalidationResponseIsTooOld(backendResponse, matchedEntry)) {
-            EntityUtils.consume(backendResponse.getEntity());
-            return retryRequestUnconditionally(route, request, context, execAware, matchedEntry);
-        }
-
-        recordCacheUpdate(context);
-
-        HttpCacheEntry responseEntry = getUpdatedVariantEntry(
-                route.getTargetHost(), conditionalRequest, requestDate, responseDate,
-                backendResponse, matchingVariant, matchedEntry);
-
-        HttpResponse resp = responseGenerator.generateResponse(responseEntry);
-        tryToUpdateVariantMap(route.getTargetHost(), request, matchingVariant);
-
-        if (shouldSendNotModifiedResponse(request, responseEntry)) {
-            return responseGenerator.generateNotModifiedResponse(responseEntry);
-        }
-
-        return resp;
     }
 
-    private HttpResponse retryRequestUnconditionally(
+    private CloseableHttpResponse retryRequestUnconditionally(
             final HttpRoute route,
             final HttpRequestWrapper request,
             final HttpClientContext context,
@@ -666,15 +685,17 @@ public class CachingExec implements ClientExecChain {
             final HttpRequestWrapper conditionalRequest,
             final Date requestDate,
             final Date responseDate,
-            final HttpResponse backendResponse,
+            final CloseableHttpResponse backendResponse,
             final Variant matchingVariant,
-            final HttpCacheEntry matchedEntry) {
+            final HttpCacheEntry matchedEntry) throws IOException {
         HttpCacheEntry responseEntry = matchedEntry;
         try {
             responseEntry = responseCache.updateVariantCacheEntry(target, conditionalRequest,
                     matchedEntry, backendResponse, requestDate, responseDate, matchingVariant.getCacheKey());
         } catch (IOException ioe) {
             log.warn("Could not update cache entry", ioe);
+        } finally {
+            backendResponse.close();
         }
         return responseEntry;
     }
