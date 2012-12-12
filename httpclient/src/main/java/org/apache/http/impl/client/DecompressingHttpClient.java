@@ -135,13 +135,24 @@ public class DecompressingHttpClient implements HttpClient {
             }
             acceptEncodingInterceptor.process(wrapped, context);
             HttpResponse response = backend.execute(target, wrapped, context);
-            contentEncodingInterceptor.process(response, context);
-            if (Boolean.TRUE.equals(context.getAttribute(ResponseContentEncoding.UNCOMPRESSED))) {
-                response.removeHeaders("Content-Length");
-                response.removeHeaders("Content-Encoding");
-                response.removeHeaders("Content-MD5");
+            try {
+                contentEncodingInterceptor.process(response, context);
+                if (Boolean.TRUE.equals(context.getAttribute(ResponseContentEncoding.UNCOMPRESSED))) {
+                    response.removeHeaders("Content-Length");
+                    response.removeHeaders("Content-Encoding");
+                    response.removeHeaders("Content-MD5");
+                }
+                return response;
+            } catch (HttpException ex) {
+                EntityUtils.consume(response.getEntity());
+                throw ex;
+            } catch (IOException ex) {
+                EntityUtils.consume(response.getEntity());
+                throw ex;
+            } catch (RuntimeException ex) {
+                EntityUtils.consume(response.getEntity());
+                throw ex;
             }
-            return response;
         } catch (HttpException e) {
             throw new ClientProtocolException(e);
         }

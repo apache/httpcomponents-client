@@ -1,6 +1,11 @@
 Changes since 4.2.2
 -------------------
 
+* [HTTPCLIENT-1273] DecompressingHttpClient does not automatically consume response 
+  content in case of an i/o, HTTP or runtime exception thrown by the decompressing 
+  protocol interceptor leading to a potential connection leak. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1268] NTLM engine refactor fix, to correct a buffer overrun.
   Contributed by Karl Wright <DaddyWri at gmail.com>  
 
