@@ -2015,6 +2015,81 @@ public class TestCachingHttpClient {
 		impl.execute(host, request);
 		assertEquals(1, backend.getExecutions());
 	}
+
+    @Test
+    public void testNoEntityForIfNoneMatchRequestNotYetInCache() throws Exception {
+
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+
+        impl = new CachingHttpClient(mockBackend);
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        req1.addHeader("If-None-Match", "\"etag\"");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_NOT_MODIFIED, "Not modified");
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "public, max-age=5");
+
+        expect(
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
+                        isNull())).andReturn(resp1);
+        
+        replayMocks();
+        HttpResponse result = impl.execute(host, req1);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine()
+                .getStatusCode());
+        assertNull("The 304 response messages MUST NOT contain a message-body",
+                result.getEntity());
+    }
+
+    @Test
+    public void testNotModifiedResponseUpdatesCacheEntryWhenNoEntity() throws Exception {
+
+        Date now = new Date();
+
+        impl = new CachingHttpClient(mockBackend);
+
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        req1.addHeader("If-None-Match", "etag");
+
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+        req2.addHeader("If-None-Match", "etag");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Cache-Control","max-age=0");
+        resp1.setHeader("Etag", "etag");
+
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Cache-Control","max-age=0");
+        resp1.setHeader("Etag", "etag");
+
+        expect(
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
+                        isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
+                        isNull())).andReturn(resp2);
+
+        replayMocks();
+        HttpResponse result1 = impl.execute(host, req1);
+        HttpResponse result2 = impl.execute(host, req2);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getStatusLine().getStatusCode());
+        assertEquals("etag", result1.getFirstHeader("Etag").getValue());
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result2.getStatusLine().getStatusCode());
+        assertEquals("etag", result2.getFirstHeader("Etag").getValue());
+    }
 	
     private void getCacheEntryReturns(HttpCacheEntry result) throws IOException {
         expect(mockCache.getCacheEntry(host, request)).andReturn(result);

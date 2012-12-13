@@ -73,11 +73,13 @@ class CachedHttpResponseGenerator {
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, entry
                 .getStatusCode(), entry.getReasonPhrase());
 
-        HttpEntity entity = new CacheEntity(entry);
         response.setHeaders(entry.getAllHeaders());
-        addMissingContentLengthHeader(response, entity);
-        response.setEntity(entity);
 
+        if (entry.getResource() != null) {
+            HttpEntity entity = new CacheEntity(entry);
+            addMissingContentLengthHeader(response, entity);
+            response.setEntity(entity);
+        }
 
         long age = this.validityStrategy.getCurrentAgeSecs(entry, now);
         if (age > 0) {
