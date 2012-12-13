@@ -1,6 +1,9 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-1276] Cache update on a 304 response causes NPE. 
+  Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
+
 * [HTTPCLIENT-1273] DecompressingHttpClient does not automatically consume response 
   content in case of an i/o, HTTP or runtime exception thrown by the decompressing 
   protocol interceptor leading to a potential connection leak. 
