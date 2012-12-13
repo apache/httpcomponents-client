@@ -27,22 +27,40 @@
 package org.apache.http.impl.conn;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpClientConnection;
+import org.apache.http.HttpHost;
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.Lookup;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.DnsResolver;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.HttpConnectionFactory;
 import org.apache.http.conn.SchemePortResolver;
+import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.pool.ConnFactory;
 import org.apache.http.pool.ConnPoolControl;
 import org.apache.http.pool.PoolStats;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * <tt>ClientConnectionPoolManager</tt> maintains a pool of
@@ -63,11 +81,13 @@ import org.apache.http.pool.PoolStats;
  * @since 4.3
  */
 @ThreadSafe
-public class PoolingHttpClientConnectionManager extends HttpClientConnectionManagerBase {
+public class PoolingHttpClientConnectionManager implements HttpClientConnectionManager {
 
     private final Log log = LogFactory.getLog(getClass());
 
+    private final ConfigData configData;
     private final CPool pool;
+    private final HttpClientConnectionOperator connectionOperator;
 
     private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
         return RegistryBuilder.<ConnectionSocketFactory>create()
@@ -81,42 +101,51 @@ public class PoolingHttpClientConnectionManager extends HttpClientConnectionMana
     }
 
     public PoolingHttpClientConnectionManager(final long timeToLive, final TimeUnit tunit) {
-        this(getDefaultRegistry(), timeToLive, tunit);
+        this(getDefaultRegistry(), null, timeToLive, tunit);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry) {
-        this(socketFactoryRegistry, -1, TimeUnit.MILLISECONDS);
+        this(socketFactoryRegistry, null, -1, TimeUnit.MILLISECONDS);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
             final DnsResolver dnsResolver) {
-        this(socketFactoryRegistry, null, dnsResolver, -1, TimeUnit.MILLISECONDS);
+        this(socketFactoryRegistry, null, null, dnsResolver, -1, TimeUnit.MILLISECONDS);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final HttpConnectionFactory<SocketClientConnection> connFactory,
             final long timeToLive, final TimeUnit tunit) {
-        this(new CPool(2, 20, timeToLive, tunit), socketFactoryRegistry, null, null);
+        this(socketFactoryRegistry, connFactory, null, null, timeToLive, tunit);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final HttpConnectionFactory<SocketClientConnection> connFactory,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
             final long timeToLive, final TimeUnit tunit) {
-        this(new CPool(2, 20, timeToLive, tunit),
+        super();
+        this.configData = new ConfigData();
+        this.pool = new CPool(
+                new InternalConnectionFactory(this.configData, connFactory), 2, 20, timeToLive, tunit);
+        this.connectionOperator = new HttpClientConnectionOperator(
                 socketFactoryRegistry, schemePortResolver, dnsResolver);
     }
 
     PoolingHttpClientConnectionManager(
             final CPool pool,
-            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
-        super(pool, socketFactoryRegistry, schemePortResolver, dnsResolver);
+        super();
+        this.configData = new ConfigData();
         this.pool = pool;
+        this.connectionOperator = new HttpClientConnectionOperator(
+                socketFactoryRegistry, schemePortResolver, dnsResolver);
     }
 
     @Override
@@ -160,39 +189,137 @@ public class PoolingHttpClientConnectionManager extends HttpClientConnectionMana
         return buf.toString();
     }
 
-    @Override
-    protected void onConnectionLeaseRequest(final HttpRoute route, final Object state) {
+    public ConnectionRequest requestConnection(
+            final HttpRoute route,
+            final Object state) {
+        if (route == null) {
+            throw new IllegalArgumentException("HTTP route may not be null");
+        }
         if (this.log.isDebugEnabled()) {
             this.log.debug("Connection request: " + format(route, state) + formatStats(route));
         }
-    }
+        final Future<CPoolEntry> future = this.pool.lease(route, state, null);
+        return new ConnectionRequest() {
 
-    @Override
-    protected void onConnectionLease(final CPoolEntry entry) {
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Connection leased: " + format(entry) + formatStats(entry.getRoute()));
-        }
-    }
-
-    @Override
-    protected void onConnectionKeepAlive(final CPoolEntry entry) {
-        if (this.log.isDebugEnabled()) {
-            long keepalive = entry.getExpiry();
-            String s;
-            if (keepalive > 0) {
-                s = "for " + (double) keepalive / 1000 + " seconds";
-            } else {
-                s = "indefinitely";
+            public boolean cancel() {
+                return future.cancel(true);
             }
-            this.log.debug("Connection " + format(entry) + " can be kept alive " + s);
+
+            public HttpClientConnection get(
+                    final long timeout,
+                    final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
+                return leaseConnection(future, timeout, tunit);
+            }
+
+        };
+
+    }
+
+    protected HttpClientConnection leaseConnection(
+            final Future<CPoolEntry> future,
+            final long timeout,
+            final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
+        CPoolEntry entry;
+        try {
+            entry = future.get(timeout, tunit);
+            if (entry == null || future.isCancelled()) {
+                throw new InterruptedException();
+            }
+            if (entry.getConnection() == null) {
+                throw new IllegalStateException("Pool entry with no connection");
+            }
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Connection leased: " + format(entry) + formatStats(entry.getRoute()));
+            }
+            return CPoolProxy.newProxy(entry);
+        } catch (ExecutionException ex) {
+            Throwable cause = ex.getCause();
+            if (cause == null) {
+                cause = ex;
+            }
+            InterruptedException intex = new InterruptedException();
+            intex.initCause(cause);
+            throw intex;
+        } catch (TimeoutException ex) {
+            throw new ConnectionPoolTimeoutException("Timeout waiting for connection from pool");
         }
     }
 
-    @Override
-    protected void onConnectionRelease(final CPoolEntry entry) {
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Connection released: " + format(entry) + formatStats(entry.getRoute()));
+    public void releaseConnection(
+            final HttpClientConnection managedConn,
+            final Object state,
+            final long keepalive, final TimeUnit tunit) {
+        if (managedConn == null) {
+            throw new IllegalArgumentException("Managed connection may not be null");
         }
+        synchronized (managedConn) {
+            CPoolEntry entry = CPoolProxy.detach(managedConn);
+            if (entry == null) {
+                return;
+            }
+            SocketClientConnection conn = entry.getConnection();
+            try {
+                if (conn.isOpen()) {
+                    entry.setState(state);
+                    entry.updateExpiry(keepalive, tunit != null ? tunit : TimeUnit.MILLISECONDS);
+                    if (this.log.isDebugEnabled()) {
+                        String s;
+                        if (keepalive > 0) {
+                            s = "for " + (double) keepalive / 1000 + " seconds";
+                        } else {
+                            s = "indefinitely";
+                        }
+                        this.log.debug("Connection " + format(entry) + " can be kept alive " + s);
+                    }
+                }
+            } finally {
+                this.pool.release(entry, conn.isOpen());
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug("Connection released: " + format(entry) + formatStats(entry.getRoute()));
+                }
+            }
+        }
+    }
+
+    public void connect(
+            final HttpClientConnection managedConn,
+            final HttpHost host,
+            final InetAddress local,
+            final int connectTimeout,
+            final HttpContext context) throws IOException {
+        if (managedConn == null) {
+            throw new IllegalArgumentException("Connection may not be null");
+        }
+        SocketClientConnection conn;
+        synchronized (managedConn) {
+            CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
+            conn = entry.getConnection();
+        }
+        SocketConfig socketConfig = this.configData.getSocketConfig(host);
+        if (socketConfig == null) {
+            socketConfig = this.configData.getDefaultSocketConfig();
+        }
+        if (socketConfig == null) {
+            socketConfig = SocketConfig.DEFAULT;
+        }
+        InetSocketAddress localAddress = local != null ? new InetSocketAddress(local, 0) : null;
+        this.connectionOperator.connect(
+                conn, host, localAddress, connectTimeout, socketConfig, context);
+    }
+
+    public void upgrade(
+            final HttpClientConnection managedConn,
+            final HttpHost host,
+            final HttpContext context) throws IOException {
+        if (managedConn == null) {
+            throw new IllegalArgumentException("Connection may not be null");
+        }
+        SocketClientConnection conn;
+        synchronized (managedConn) {
+            CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
+            conn = entry.getConnection();
+        }
+        this.connectionOperator.upgrade(conn, host, context);
     }
 
     public void shutdown() {
@@ -247,6 +374,118 @@ public class PoolingHttpClientConnectionManager extends HttpClientConnectionMana
 
     public PoolStats getStats(final HttpRoute route) {
         return this.pool.getStats(route);
+    }
+
+    public SocketConfig getDefaultSocketConfig() {
+        return this.configData.getDefaultSocketConfig();
+    }
+
+    public void setDefaultSocketConfig(final SocketConfig defaultSocketConfig) {
+        this.configData.setDefaultSocketConfig(defaultSocketConfig);
+    }
+
+    public ConnectionConfig getDefaultConnectionConfig() {
+        return this.configData.getDefaultConnectionConfig();
+    }
+
+    public void setDefaultConnectionConfig(final ConnectionConfig defaultConnectionConfig) {
+        this.configData.setDefaultConnectionConfig(defaultConnectionConfig);
+    }
+
+    public SocketConfig getSocketConfig(final HttpHost host) {
+        return this.configData.getSocketConfig(host);
+    }
+
+    public void setSocketConfig(final HttpHost host, final SocketConfig socketConfig) {
+        this.configData.setSocketConfig(host, socketConfig);
+    }
+
+    public ConnectionConfig getConnectionConfig(final HttpHost host) {
+        return this.configData.getConnectionConfig(host);
+    }
+
+    public void setConnectionConfig(final HttpHost host, final ConnectionConfig connectionConfig) {
+        this.configData.setConnectionConfig(host, connectionConfig);
+    }
+
+    static class ConfigData {
+
+        private final Map<HttpHost, SocketConfig> socketConfigMap;
+        private final Map<HttpHost, ConnectionConfig> connectionConfigMap;
+        private volatile SocketConfig defaultSocketConfig;
+        private volatile ConnectionConfig defaultConnectionConfig;
+
+        ConfigData() {
+            super();
+            this.socketConfigMap = new ConcurrentHashMap<HttpHost, SocketConfig>();
+            this.connectionConfigMap = new ConcurrentHashMap<HttpHost, ConnectionConfig>();
+        }
+
+        public SocketConfig getDefaultSocketConfig() {
+            return this.defaultSocketConfig;
+        }
+
+        public void setDefaultSocketConfig(final SocketConfig defaultSocketConfig) {
+            this.defaultSocketConfig = defaultSocketConfig;
+        }
+
+        public ConnectionConfig getDefaultConnectionConfig() {
+            return this.defaultConnectionConfig;
+        }
+
+        public void setDefaultConnectionConfig(final ConnectionConfig defaultConnectionConfig) {
+            this.defaultConnectionConfig = defaultConnectionConfig;
+        }
+
+        public SocketConfig getSocketConfig(final HttpHost host) {
+            return this.socketConfigMap.get(host);
+        }
+
+        public void setSocketConfig(final HttpHost host, final SocketConfig socketConfig) {
+            this.socketConfigMap.put(host, socketConfig);
+        }
+
+        public ConnectionConfig getConnectionConfig(final HttpHost host) {
+            return this.connectionConfigMap.get(host);
+        }
+
+        public void setConnectionConfig(final HttpHost host, final ConnectionConfig connectionConfig) {
+            this.connectionConfigMap.put(host, connectionConfig);
+        }
+
+    }
+
+    static class InternalConnectionFactory implements ConnFactory<HttpRoute, SocketClientConnection> {
+
+        private final ConfigData configData;
+        private final HttpConnectionFactory<SocketClientConnection> connFactory;
+
+        InternalConnectionFactory(
+                final ConfigData configData,
+                final HttpConnectionFactory<SocketClientConnection> connFactory) {
+            super();
+            this.configData = configData != null ? configData : new ConfigData();
+            this.connFactory = connFactory != null ? connFactory :
+                DefaultClientConnectionFactory.INSTANCE;
+        }
+
+        public SocketClientConnection create(final HttpRoute route) throws IOException {
+            ConnectionConfig config = null;
+            if (route.getProxyHost() != null) {
+                config = this.configData.getConnectionConfig(route.getProxyHost());
+            }
+            if (config == null) {
+                config = this.configData.getConnectionConfig(route.getTargetHost());
+            }
+            if (config == null) {
+                config = this.configData.getDefaultConnectionConfig();
+            }
+            if (config == null) {
+                config = ConnectionConfig.DEFAULT;
+            }
+            return this.connFactory.create(config);
+        }
+
     }
 
 }

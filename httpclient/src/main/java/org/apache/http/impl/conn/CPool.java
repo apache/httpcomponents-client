@@ -26,7 +26,6 @@
  */
 package org.apache.http.impl.conn;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -52,9 +51,10 @@ class CPool extends AbstractConnPool<HttpRoute, SocketClientConnection, CPoolEnt
     private final TimeUnit tunit;
 
     public CPool(
+            final ConnFactory<HttpRoute, SocketClientConnection> connFactory,
             final int defaultMaxPerRoute, final int maxTotal,
             final long timeToLive, final TimeUnit tunit) {
-        super(new InternalConnFactory(), defaultMaxPerRoute, maxTotal);
+        super(connFactory, defaultMaxPerRoute, maxTotal);
         this.timeToLive = timeToLive;
         this.tunit = tunit;
     }
@@ -63,14 +63,6 @@ class CPool extends AbstractConnPool<HttpRoute, SocketClientConnection, CPoolEnt
     protected CPoolEntry createEntry(final HttpRoute route, final SocketClientConnection conn) {
         String id = Long.toString(COUNTER.getAndIncrement());
         return new CPoolEntry(this.log, id, route, conn, this.timeToLive, this.tunit);
-    }
-
-    static class InternalConnFactory implements ConnFactory<HttpRoute, SocketClientConnection> {
-
-        public SocketClientConnection create(final HttpRoute route) throws IOException {
-            return new SocketClientConnectionImpl(8 * 1024);
-        }
-
     }
 
 }

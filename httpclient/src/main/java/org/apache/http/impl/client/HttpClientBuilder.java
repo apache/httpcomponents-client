@@ -60,8 +60,10 @@ import org.apache.http.client.protocol.RequestDefaultHeaders;
 import org.apache.http.client.protocol.RequestExpectContinue;
 import org.apache.http.client.protocol.ResponseContentEncoding;
 import org.apache.http.client.protocol.ResponseProcessCookies;
+import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.Lookup;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.SchemePortResolver;
@@ -125,7 +127,7 @@ import org.apache.http.util.VersionInfo;
  *  <li>http.nonProxyHosts</li>
  *  <li>http.keepAlive</li>
  *  <li>http.maxConnections</li>
- *  <li>http.user</li>
+ *  <li>http.agent</li>
  * </ul>
  * </p>
  *
@@ -164,7 +166,9 @@ public class HttpClientBuilder {
     private CredentialsProvider credentialsProvider;
     private String userAgent;
     private Collection<? extends Header> defaultHeaders;
-    private RequestConfig defaultConfig;
+    private SocketConfig defaultSocketConfig;
+    private ConnectionConfig defaultConnectionConfig;
+    private RequestConfig defaultRequestConfig;
 
     private boolean systemProperties;
     private boolean redirectHandlingDisabled;
@@ -379,8 +383,18 @@ public class HttpClientBuilder {
         return this;
     }
 
-    public final HttpClientBuilder setDefaultConfig(final RequestConfig defaultConfig) {
-        this.defaultConfig = defaultConfig;
+    public final HttpClientBuilder setDefaultSocketConfig(final SocketConfig config) {
+        this.defaultSocketConfig = config;
+        return this;
+    }
+
+    public final HttpClientBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
+        this.defaultConnectionConfig = config;
+        return this;
+    }
+
+    public final HttpClientBuilder setDefaultRequestConfig(final RequestConfig config) {
+        this.defaultRequestConfig = config;
         return this;
     }
 
@@ -438,6 +452,12 @@ public class HttpClientBuilder {
                         .register("http", PlainSocketFactory.getSocketFactory())
                         .register("https", sslSocketFactory)
                         .build());
+            if (defaultSocketConfig != null) {
+                poolingmgr.setDefaultSocketConfig(defaultSocketConfig);
+            }
+            if (defaultConnectionConfig != null) {
+                poolingmgr.setDefaultConnectionConfig(defaultConnectionConfig);
+            }
             if (systemProperties) {
                 String s = System.getProperty("http.keepAlive");
                 if ("true".equalsIgnoreCase(s)) {
@@ -659,7 +679,7 @@ public class HttpClientBuilder {
                 authSchemeRegistry,
                 defaultCookieStore,
                 defaultCredentialsProvider,
-                defaultConfig != null ? defaultConfig : RequestConfig.DEFAULT);
+                defaultRequestConfig != null ? defaultRequestConfig : RequestConfig.DEFAULT);
     }
 
 }
