@@ -2136,6 +2136,54 @@ public class TestCachingHttpClient {
         assertEquals("etag", result2.getFirstHeader("Etag").getValue());
     }
 
+    @Test
+    public void testDoesNotSend304ForNonConditionalRequest() throws Exception {
+
+        Date now = new Date();
+        Date inOneMinute = new Date(System.currentTimeMillis()+60000);
+
+        impl = new CachingHttpClient(mockBackend);
+
+        HttpRequest req1 = new HttpGet("http://foo.example.com/");
+        req1.addHeader("If-None-Match", "etag");
+
+        HttpRequest req2 = new HttpGet("http://foo.example.com/");
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Cache-Control","public, max-age=60");
+        resp1.setHeader("Expires",DateUtils.formatDate(inOneMinute));
+        resp1.setHeader("Etag", "etag");
+        resp1.setHeader("Vary", "Accept-Encoding");
+
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "Ok");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Cache-Control","public, max-age=60");
+        resp2.setHeader("Expires",DateUtils.formatDate(inOneMinute));
+        resp2.setHeader("Etag", "etag");
+        resp2.setHeader("Vary", "Accept-Encoding");
+        resp2.setEntity(HttpTestUtils.makeBody(128));
+
+        expect(
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
+                        isNull())).andReturn(resp1);
+        expect(
+                mockBackend.execute(isA(HttpHost.class),
+                        isA(HttpRequest.class), (HttpContext)
+                        isNull())).andReturn(resp2);
+
+        replayMocks();
+        HttpResponse result1 = impl.execute(host, req1);
+        HttpResponse result2 = impl.execute(host, req2);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getStatusLine().getStatusCode());
+        assertNull(result1.getEntity());
+        assertEquals(HttpStatus.SC_OK, result2.getStatusLine().getStatusCode());
+        Assert.assertNotNull(result2.getEntity());
+    }
+
     private void getCacheEntryReturns(HttpCacheEntry result) throws IOException {
         expect(mockCache.getCacheEntry(host, request)).andReturn(result);
     }

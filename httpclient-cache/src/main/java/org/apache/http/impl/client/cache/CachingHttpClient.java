@@ -451,7 +451,9 @@ public class CachingHttpClient implements HttpClient {
         } else if (!mayCallBackend(request)) {
             log.debug("Cache entry not suitable but only-if-cached requested");
             out = generateGatewayTimeout(context);
-        } else if (validityPolicy.isRevalidatable(entry)) {
+        } else if (validityPolicy.isRevalidatable(entry)
+                && !(entry.getStatusCode() == HttpStatus.SC_NOT_MODIFIED
+                && !suitabilityChecker.isConditional(request))) {
             log.debug("Revalidating cache entry");
             return revalidateCacheEntry(target, request, context, entry, now);
         } else {
