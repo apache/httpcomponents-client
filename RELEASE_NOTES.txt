@@ -1,6 +1,9 @@
 Changes since 4.2.2
 -------------------
 
+* [HTTPCLIENT-1278] Update NTLM documentation.
+  Contributed by Karl Wright <DaddyWri at gmail.com>  
+
 * SystemDefaultHttpClient misinterprets 'http.keepAlive' default value and disables
   connection persistence if the system property is not set. This causes connection
   based authentication schemes such as NTLM to fail.
