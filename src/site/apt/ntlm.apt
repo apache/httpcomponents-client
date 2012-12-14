@@ -47,11 +47,25 @@ NTLM support in HttpClient
     {{{http://www.microsoft.com/interop/principles/default.mspx}Interoperability
     Principles initiative}}. 
 
-    HttpClient as of version 4.1 supports NTLMv1 and NTLMv2 authentication protocols out 
-    of the box using a custom authentication engine. However, there are still known compatibility
-    issues with newer Microsoft products as the default NTLM engine implementation is still 
-    relatively new. One can also use {{{http://jcifs.samba.org/}JCIFS}} as an alternative, more 
-    established and mature NTLM engine developed by Samba project. 
+    HttpClient as of version 4.1 initially supported NTLMv1, NTLMv2, and NTLM2SessionResponse
+    authentication protocols, based on the reverse engineering approach.  As of version
+    4.2.3, HttpClient now supports a more correct implementation, based in large part on
+    Microsoft's own specifications.  This is expected to correct a number of problems, especially
+    since Microsoft (as of Windows Server 2008 R2) began using a new implementation of its
+    protocols.  This new Microsoft implementation has led to authentication failures in some
+    cases from some of the older reverse-engineered client implementations of NTLM.
+    
+    The new HttpClient NTLM implementation is known to have been tried successfully against
+    at least the following systems:
+    
+    * Windows Server 2000 and Server 2003 systems, configured to use LM and NTLMv1 authentication
+    * Windows Server 2003 systems, configured to use NTLMv2 authentication
+    * Windows Server 2008 R2 systems, configured to use NTLM2SessionResponse authentication
+    
+    If the current HttpClient NTLM implementation should prove problematic in your environment,
+    we'd definitely like to hear about it.  You are also welcome to try an alternative NTLM
+    implementation, should it seem necessary. One can also use {{{http://jcifs.samba.org/}JCIFS}},
+    which includes an NTLM engine developed by members of the Samba project. 
 
 * {Using Samba JCIFS as an alternative NTLM engine}
 
