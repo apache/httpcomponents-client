@@ -459,7 +459,7 @@ public class HttpClientBuilder {
                 poolingmgr.setDefaultConnectionConfig(defaultConnectionConfig);
             }
             if (systemProperties) {
-                String s = System.getProperty("http.keepAlive");
+                String s = System.getProperty("http.keepAlive", "true");
                 if ("true".equalsIgnoreCase(s)) {
                     s = System.getProperty("http.maxConnections", "5");
                     int max = Integer.parseInt(s);
@@ -479,7 +479,7 @@ public class HttpClientBuilder {
         ConnectionReuseStrategy reuseStrategy = this.reuseStrategy;
         if (reuseStrategy == null) {
             if (systemProperties) {
-                String s = System.getProperty("http.keepAlive");
+                String s = System.getProperty("http.keepAlive", "true");
                 if ("true".equalsIgnoreCase(s)) {
                     reuseStrategy = DefaultConnectionReuseStrategy.INSTANCE;
                 } else {

@@ -120,7 +120,7 @@ public class SystemDefaultHttpClient extends DefaultHttpClient {
     protected ClientConnectionManager createClientConnectionManager() {
         PoolingClientConnectionManager connmgr = new PoolingClientConnectionManager(
                 SchemeRegistryFactory.createSystemDefault());
-        String s = System.getProperty("http.keepAlive");
+        String s = System.getProperty("http.keepAlive", "true");
         if ("true".equalsIgnoreCase(s)) {
             s = System.getProperty("http.maxConnections", "5");
             int max = Integer.parseInt(s);
@@ -138,7 +138,7 @@ public class SystemDefaultHttpClient extends DefaultHttpClient {
 
     @Override
     protected ConnectionReuseStrategy createConnectionReuseStrategy() {
-        String s = System.getProperty("http.keepAlive");
+        String s = System.getProperty("http.keepAlive", "true");
         if ("true".equalsIgnoreCase(s)) {
             return new DefaultConnectionReuseStrategy();
         } else {
