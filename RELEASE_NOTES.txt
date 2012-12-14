@@ -1,6 +1,9 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-1278] Update NTLM documentation.
+  Contributed by Karl Wright <DaddyWri at gmail.com>  
+
 * [HTTPCLIENT-1276] Cache update on a 304 response causes NPE. 
   Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
 
