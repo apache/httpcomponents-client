@@ -1631,7 +1631,48 @@ public class TestCachingExec {
 		assertEquals("etag", result2.getFirstHeader("Etag").getValue());
 	}
 
-    private IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndReturn(
+	@Test
+	public void testDoesNotSend304ForNonConditionalRequest() throws Exception {
+
+		Date now = new Date();
+		Date inOneMinute = new Date(System.currentTimeMillis()+60000);
+
+		impl = new CachingExec(mockBackend, new BasicHttpCache(),CacheConfig.DEFAULT);
+
+		HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+		req1.addHeader("If-None-Match", "etag");
+
+		HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+
+		HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
+		resp1.setHeader("Date", DateUtils.formatDate(now));
+		resp1.setHeader("Cache-Control","public, max-age=60");
+		resp1.setHeader("Expires",DateUtils.formatDate(inOneMinute));
+		resp1.setHeader("Etag", "etag");
+		resp1.setHeader("Vary", "Accept-Encoding");
+
+		HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "Ok");
+		resp2.setHeader("Date", DateUtils.formatDate(now));
+		resp2.setHeader("Cache-Control","public, max-age=60");
+		resp2.setHeader("Expires",DateUtils.formatDate(inOneMinute));
+		resp2.setHeader("Etag", "etag");
+		resp2.setHeader("Vary", "Accept-Encoding");
+		resp2.setEntity(HttpTestUtils.makeBody(128));
+
+		backendExpectsAnyRequestAndReturn(resp1);
+		backendExpectsAnyRequestAndReturn(resp2).anyTimes();
+		replayMocks();
+		HttpResponse result1 = impl.execute(route, req1);
+		HttpResponse result2 = impl.execute(route, req2);
+		verifyMocks();
+
+		assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getStatusLine().getStatusCode());
+		assertNull(result1.getEntity());
+		assertEquals(HttpStatus.SC_OK, result2.getStatusLine().getStatusCode());
+		Assert.assertNotNull(result2.getEntity());
+	}
+
+	private IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndReturn(
             HttpResponse response) throws Exception {
         CloseableHttpResponse resp = mockBackend.execute(
                 EasyMock.isA(HttpRoute.class),

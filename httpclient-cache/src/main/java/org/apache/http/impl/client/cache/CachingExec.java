@@ -283,7 +283,9 @@ public class CachingExec implements ClientExecChain {
         } else if (!mayCallBackend(request)) {
             log.debug("Cache entry not suitable but only-if-cached requested");
             out = Proxies.enhanceResponse(generateGatewayTimeout(context));
-        } else if (validityPolicy.isRevalidatable(entry)) {
+        } else if (validityPolicy.isRevalidatable(entry) 
+                && !(entry.getStatusCode() == HttpStatus.SC_NOT_MODIFIED 
+                && !suitabilityChecker.isConditional(request))) {
             log.debug("Revalidating cache entry");
             return revalidateCacheEntry(route, request, context, execAware, entry, now);
         } else {

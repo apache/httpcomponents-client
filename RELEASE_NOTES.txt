@@ -1,6 +1,9 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-1277] Caching client sends a 304 to an unconditional request. 
+  Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
+
 * [HTTPCLIENT-1278] Update NTLM documentation.
   Contributed by Karl Wright <DaddyWri at gmail.com>  
 

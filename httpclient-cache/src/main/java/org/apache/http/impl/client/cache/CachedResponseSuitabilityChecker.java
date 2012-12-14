@@ -34,6 +34,7 @@ import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpStatus;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
@@ -144,6 +145,10 @@ class CachedResponseSuitabilityChecker {
         if (hasUnsupportedConditionalHeaders(request)) {
             log.debug("Request contained conditional headers we don't handle");
             return false;
+        }
+
+        if (!isConditional(request) && entry.getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
+		return false;
         }
 
         if (isConditional(request) && !allConditionalsMatch(request, entry, now)) {
