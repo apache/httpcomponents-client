@@ -1,6 +1,10 @@
 Changes since 4.2.2
 -------------------
 
+* SystemDefaultHttpClient misinterprets 'http.keepAlive' default value and disables
+  connection persistence if the system property is not set. This causes connection
+  based authentication schemes such as NTLM to fail.
+
 * [HTTPCLIENT-1276] cache update on a 304 response causes NPE. 
   Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
 
