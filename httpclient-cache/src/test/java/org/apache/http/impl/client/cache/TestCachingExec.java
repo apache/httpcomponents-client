@@ -1593,6 +1593,44 @@ public class TestCachingExec {
 		assertEquals("etag", result2.getFirstHeader("Etag").getValue());
 	}
 
+	@Test
+	public void testNotModifiedResponseWithVaryUpdatesCacheEntryWhenNoEntity() throws Exception {
+
+		Date now = new Date();
+
+		impl = new CachingExec(mockBackend, new BasicHttpCache(),CacheConfig.DEFAULT);
+
+		HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+		req1.addHeader("If-None-Match", "etag");
+
+		HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+		req2.addHeader("If-None-Match", "etag");
+
+		HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
+		resp1.setHeader("Date", DateUtils.formatDate(now));
+		resp1.setHeader("Cache-Control","max-age=0");
+		resp1.setHeader("Etag", "etag");
+		resp1.setHeader("Vary", "Accept-Encoding");
+
+		HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
+		resp2.setHeader("Date", DateUtils.formatDate(now));
+		resp2.setHeader("Cache-Control","max-age=0");
+		resp1.setHeader("Etag", "etag");
+		resp1.setHeader("Vary", "Accept-Encoding");
+
+		backendExpectsAnyRequestAndReturn(resp1);
+		backendExpectsAnyRequestAndReturn(resp2);
+		replayMocks();
+		HttpResponse result1 = impl.execute(route, req1);
+		HttpResponse result2 = impl.execute(route, req2);
+		verifyMocks();
+
+		assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getStatusLine().getStatusCode());
+		assertEquals("etag", result1.getFirstHeader("Etag").getValue());
+		assertEquals(HttpStatus.SC_NOT_MODIFIED, result2.getStatusLine().getStatusCode());
+		assertEquals("etag", result2.getFirstHeader("Etag").getValue());
+	}
+
     private IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndReturn(
             HttpResponse response) throws Exception {
         CloseableHttpResponse resp = mockBackend.execute(
