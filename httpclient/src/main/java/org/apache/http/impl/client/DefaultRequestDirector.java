@@ -1075,6 +1075,10 @@ public class DefaultRequestDirector implements RequestDirector {
             HttpHost proxy = route.getProxyHost();
             if (this.authenticator.isAuthenticationRequested(proxy, response,
                     this.proxyAuthStrategy, this.proxyAuthState, context)) {
+                // if proxy is not set use target host instead
+                if (proxy == null) {
+                    proxy = route.getTargetHost();
+                }
                 if (this.authenticator.authenticate(proxy, response,
                         this.proxyAuthStrategy, this.proxyAuthState, context)) {
                     // Re-try the same request via the same route
