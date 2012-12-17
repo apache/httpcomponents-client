@@ -31,6 +31,7 @@ import java.io.OutputStream;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
+import org.apache.http.util.EntityUtils;
 
 /**
  * Common base class for decompressing {@link HttpEntity} implementations.
@@ -67,13 +68,18 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
      */
     @Override
     public InputStream getContent() throws IOException {
-        if (wrappedEntity.isStreaming()) {
-            if (content == null) {
-                content = getDecompressingInputStream(wrappedEntity.getContent());
+        try {
+            if (wrappedEntity.isStreaming()) {
+                if (content == null) {
+                    content = getDecompressingInputStream(wrappedEntity.getContent());
+                }
+                return content;
+            } else {
+                return getDecompressingInputStream(wrappedEntity.getContent());
             }
-            return content;
-        } else {
-            return getDecompressingInputStream(wrappedEntity.getContent());
+        } catch (IOException e) {
+            EntityUtils.consume(wrappedEntity);
+            throw e;
         }
     }
 
