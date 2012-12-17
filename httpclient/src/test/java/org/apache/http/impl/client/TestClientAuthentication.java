@@ -519,4 +519,42 @@ public class TestClientAuthentication extends BasicServerTestBase {
         Assert.assertEquals(1, requestHandler.getCount());
     }
 
+    static class ProxyAuthHandler implements HttpRequestHandler {
+
+        public void handle(
+                final HttpRequest request,
+                final HttpResponse response,
+                final HttpContext context) throws HttpException, IOException {
+            String creds = (String) context.getAttribute("creds");
+            if (creds == null || !creds.equals("test:test")) {
+                response.setStatusCode(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);
+            } else {
+                response.setStatusCode(HttpStatus.SC_OK);
+                StringEntity entity = new StringEntity("success", Consts.ASCII);
+                response.setEntity(entity);
+            }
+        }
+
+    }
+
+    @Test
+    public void testAuthenticationTargetAsProxy() throws Exception {
+        this.localServer.register("*", new ProxyAuthHandler());
+        this.localServer.start();
+
+        TestCredentialsProvider credsProvider = new TestCredentialsProvider(
+                new UsernamePasswordCredentials("test", "test"));
+
+
+        this.httpclient.setCredentialsProvider(credsProvider);
+
+        HttpGet httpget = new HttpGet("/");
+
+        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
+        HttpEntity entity = response.getEntity();
+        Assert.assertEquals(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED,
+                response.getStatusLine().getStatusCode());
+        EntityUtils.consume(entity);
+    }
+
 }

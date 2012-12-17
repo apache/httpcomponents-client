@@ -1,6 +1,10 @@
 Changes since 4.2.2
 -------------------
 
+* [HTTPCLIENT-1279] Target host responding with status 407 (proxy authentication required) 
+  causes an NPE. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1281] GzipDecompressingEntity does not release InputStream when an IOException 
   occurs while reading the Gzip header 
   Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
