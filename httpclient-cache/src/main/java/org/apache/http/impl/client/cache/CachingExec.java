@@ -804,8 +804,6 @@ public class CachingExec implements ClientExecChain {
             try {
                 return Proxies.enhanceResponse(responseCache.cacheAndReturnResponse(
                         target, request, backendResponse, requestDate, responseDate));
-            } catch (IOException ioe) {
-                log.warn("Unable to store entries in cache", ioe);
             } finally {
                 backendResponse.close();
             }

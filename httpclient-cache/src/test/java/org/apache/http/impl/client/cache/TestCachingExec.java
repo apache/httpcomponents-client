@@ -43,6 +43,9 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -69,11 +72,13 @@ import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.execchain.ClientExecChain;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.easymock.Capture;
 import org.easymock.IExpectationSetters;
 import org.easymock.classextension.EasyMock;
@@ -1348,6 +1353,48 @@ public class TestCachingExec {
     }
 
     @Test
+    public void testSocketTimeoutExceptionIsNotSilentlyCatched()
+            throws Exception {
+        impl = new CachingExec(mockBackend, new BasicHttpCache(),
+                CacheConfig.DEFAULT);
+        Date now = new Date();
+
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
+                "http://foo.example.com"));
+
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(new InputStreamEntity(new InputStream() {
+            private boolean closed = false;
+
+            @Override
+            public void close() throws IOException {
+                closed = true;
+            }
+
+            @Override
+            public int read() throws IOException {
+                if (closed)
+                    throw new SocketException("Socket closed");
+                throw new SocketTimeoutException("Read timed out");
+            }
+        }, 128));
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+
+        backendExpectsAnyRequestAndReturn(resp1);
+
+        replayMocks();
+        try {
+            HttpResponse result1 = impl.execute(route, req1);
+            EntityUtils.toString(result1.getEntity());
+            Assert.fail("We should have had a SocketTimeoutException");
+        } catch (SocketTimeoutException e) {
+        }
+        verifyMocks();
+
+    }
+
+    @Test
     public void testIsSharedCache() {
         Assert.assertTrue(config.isSharedCache());
     }
@@ -1372,7 +1419,7 @@ public class TestCachingExec {
         expect(mockCache.cacheAndReturnResponse(same(host),
                 isA(HttpRequest.class), isA(HttpResponse.class),
                 isA(Date.class), isA(Date.class)))
-            .andThrow(new IOException()).anyTimes();
+            .andReturn(resp).anyTimes();
         expect(mockBackend.execute(
                 same(route),
                 isA(HttpRequestWrapper.class),
