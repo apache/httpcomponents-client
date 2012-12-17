@@ -1,6 +1,10 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-1281] GzipDecompressingEntity does not release InputStream when an IOException occurs 
+  while reading the Gzip header.
+  Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
+
 * [HTTPCLIENT-1277] Caching client sends a 304 to an unconditional request. 
   Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
 
