@@ -1149,8 +1149,9 @@ final class NTLMEngineImpl implements NTLMEngine {
             // seems warranted.
             byte[] userSessionKey;
             try {
+                // This conditional may not work on Windows Server 2008 R2 and above, where it has not yet
+                // been tested
                 if (((type2Flags & FLAG_REQUEST_NTLM2_SESSION) == 0) &&
-                    ((type2Flags & FLAG_REQUEST_NTLMv1) == 0) &&
                     targetInformation != null && target != null) {
                     // NTLMv2
                     ntResp = gen.getNTLMv2Response();

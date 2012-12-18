@@ -27,7 +27,8 @@ Changes since 4.2.2
   protocol interceptor leading to a potential connection leak. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-1268] NTLM engine refactor fix, to correct a buffer overrun.
+* [HTTPCLIENT-1268] NTLM engine refactor fix, to correct a buffer overrun, and get NTLMv2
+  flags right.
   Contributed by Karl Wright <DaddyWri at gmail.com>  
 
 * [HTTPCLIENT-1266] NTLM engine refactoring and compatibility improvements.
