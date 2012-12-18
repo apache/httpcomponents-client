@@ -27,9 +27,9 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
-
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
+import org.apache.http.util.Args;
 
 
 /**
@@ -43,17 +43,13 @@ public class BasicExpiresHandler extends AbstractCookieAttributeHandler {
     private final String[] datepatterns;
 
     public BasicExpiresHandler(final String[] datepatterns) {
-        if (datepatterns == null) {
-            throw new IllegalArgumentException("Array of date patterns may not be null");
-        }
+        Args.notNull(datepatterns, "Array of date patterns");
         this.datepatterns = datepatterns;
     }
 
     public void parse(final SetCookie cookie, final String value)
             throws MalformedCookieException {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
+        Args.notNull(cookie, "Cookie");
         if (value == null) {
             throw new MalformedCookieException("Missing value for expires attribute");
         }

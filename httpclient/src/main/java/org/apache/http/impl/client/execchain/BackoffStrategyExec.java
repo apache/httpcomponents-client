@@ -39,6 +39,7 @@ import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.util.Args;
 
 /**
  * @since 4.3
@@ -55,15 +56,9 @@ public class BackoffStrategyExec implements ClientExecChain {
             final ConnectionBackoffStrategy connectionBackoffStrategy,
             final BackoffManager backoffManager) {
         super();
-        if (requestExecutor == null) {
-            throw new IllegalArgumentException("HTTP client request executor may not be null");
-        }
-        if (connectionBackoffStrategy == null) {
-            throw new IllegalArgumentException("Connection backoff strategy may not be null");
-        }
-        if (backoffManager == null) {
-            throw new IllegalArgumentException("Backoff manager may not be null");
-        }
+        Args.notNull(requestExecutor, "HTTP client request executor");
+        Args.notNull(connectionBackoffStrategy, "Connection backoff strategy");
+        Args.notNull(backoffManager, "Backoff manager");
         this.requestExecutor = requestExecutor;
         this.connectionBackoffStrategy = connectionBackoffStrategy;
         this.backoffManager = backoffManager;
@@ -74,15 +69,9 @@ public class BackoffStrategyExec implements ClientExecChain {
             final HttpRequestWrapper request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
-        if (route == null) {
-            throw new IllegalArgumentException("HTTP route may not be null");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(route, "HTTP route");
+        Args.notNull(request, "HTTP request");
+        Args.notNull(context, "HTTP context");
         CloseableHttpResponse out = null;
         try {
             out = this.requestExecutor.execute(route, request, context, execAware);

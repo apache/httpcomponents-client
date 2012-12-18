@@ -30,7 +30,7 @@ import java.io.Serializable;
 import java.security.Principal;
 
 import org.apache.http.annotation.Immutable;
-
+import org.apache.http.util.Args;
 import org.apache.http.util.LangUtils;
 
 /**
@@ -55,9 +55,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
      */
     public UsernamePasswordCredentials(String usernamePassword) {
         super();
-        if (usernamePassword == null) {
-            throw new IllegalArgumentException("Username:password string may not be null");
-        }
+        Args.notNull(usernamePassword, "Username:password string");
         int atColon = usernamePassword.indexOf(':');
         if (atColon >= 0) {
             this.principal = new BasicUserPrincipal(usernamePassword.substring(0, atColon));
@@ -77,9 +75,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
      */
     public UsernamePasswordCredentials(String userName, String password) {
         super();
-        if (userName == null) {
-            throw new IllegalArgumentException("Username may not be null");
-        }
+        Args.notNull(userName, "Username");
         this.principal = new BasicUserPrincipal(userName);
         this.password = password;
     }

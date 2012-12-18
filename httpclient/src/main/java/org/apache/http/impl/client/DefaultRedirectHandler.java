@@ -30,8 +30,6 @@ package org.apache.http.impl.client;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.apache.http.annotation.Immutable;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -40,6 +38,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -47,8 +46,10 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * Default implementation of {@link RedirectHandler}.
@@ -72,9 +73,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
     public boolean isRedirectRequested(
             final HttpResponse response,
             final HttpContext context) {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
+        Args.notNull(response, "HTTP response");
 
         int statusCode = response.getStatusLine().getStatusCode();
         switch (statusCode) {
@@ -96,9 +95,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
     public URI getLocationURI(
             final HttpResponse response,
             final HttpContext context) throws ProtocolException {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
+        Args.notNull(response, "HTTP response");
         //get the location header to find out where to redirect to
         Header locationHeader = response.getFirstHeader("location");
         if (locationHeader == null) {
@@ -130,10 +127,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
             // Adjust location URI
             HttpHost target = (HttpHost) context.getAttribute(
                     ExecutionContext.HTTP_TARGET_HOST);
-            if (target == null) {
-                throw new IllegalStateException("Target host not available " +
-                        "in the HTTP context");
-            }
+            Asserts.notNull(target, "Target host");
 
             HttpRequest request = (HttpRequest) context.getAttribute(
                     ExecutionContext.HTTP_REQUEST);

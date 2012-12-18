@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.DnsResolver;
+import org.apache.http.util.Args;
 
 /**
  * In-memory DNS resolver implementation.
@@ -71,12 +72,8 @@ public class InMemoryDnsResolver implements DnsResolver {
      *            host name.
      */
     public void add(final String host, final InetAddress... ips) {
-        if (host == null) {
-            throw new IllegalArgumentException("Host name may not be null");
-        }
-        if (ips == null) {
-            throw new IllegalArgumentException("Array of IP addresses may not be null");
-        }
+        Args.notNull(host, "Host name");
+        Args.notNull(ips, "Array of IP addresses");
         dnsMap.put(host, ips);
     }
 

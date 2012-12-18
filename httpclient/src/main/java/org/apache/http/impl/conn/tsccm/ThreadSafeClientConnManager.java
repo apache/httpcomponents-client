@@ -32,19 +32,21 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
-import org.apache.http.params.HttpParams;
+import org.apache.http.conn.params.ConnPerRouteBean;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
+import org.apache.http.params.HttpParams;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * Manages a pool of {@link OperatedClientConnection client connections} and
@@ -130,9 +132,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     public ThreadSafeClientConnManager(final SchemeRegistry schreg,
             long connTTL, TimeUnit connTTLTimeUnit, ConnPerRouteBean connPerRoute) {
         super();
-        if (schreg == null) {
-            throw new IllegalArgumentException("Scheme registry may not be null");
-        }
+        Args.notNull(schreg, "Scheme registry");
         this.log = LogFactory.getLog(getClass());
         this.schemeRegistry = schreg;
         this.connPerRoute = connPerRoute;
@@ -152,9 +152,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     @Deprecated
 	public ThreadSafeClientConnManager(HttpParams params,
                                        SchemeRegistry schreg) {
-        if (schreg == null) {
-            throw new IllegalArgumentException("Scheme registry may not be null");
-        }
+        Args.notNull(schreg, "Scheme registry");
         this.log = LogFactory.getLog(getClass());
         this.schemeRegistry = schreg;
         this.connPerRoute = new ConnPerRouteBean();
@@ -233,9 +231,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
             public ManagedClientConnection getConnection(
                     long timeout, TimeUnit tunit) throws InterruptedException,
                     ConnectionPoolTimeoutException {
-                if (route == null) {
-                    throw new IllegalArgumentException("Route may not be null.");
-                }
+                Args.notNull(route, "Route");
 
                 if (log.isDebugEnabled()) {
                     log.debug("Get connection: " + route + ", timeout = " + timeout);
@@ -250,17 +246,11 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     }
 
     public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
-
-        if (!(conn instanceof BasicPooledConnAdapter)) {
-            throw new IllegalArgumentException
-                ("Connection class mismatch, " +
-                 "connection not obtained from this manager.");
-        }
+        Args.check(conn instanceof BasicPooledConnAdapter, "Connection class mismatch, " +
+                "connection not obtained from this manager");
         BasicPooledConnAdapter hca = (BasicPooledConnAdapter) conn;
-        if ((hca.getPoolEntry() != null) && (hca.getManager() != this)) {
-            throw new IllegalArgumentException
-                ("Connection not obtained from this manager.");
-        }
+        Asserts.check(hca.getPoolEntry() == null, "Connection not obtained from this manager");
+        Asserts.check(hca.getManager() == this, "Connection not obtained from this manager");
         synchronized (hca) {
             BasicPoolEntry entry = (BasicPoolEntry) hca.getPoolEntry();
             if (entry == null) {

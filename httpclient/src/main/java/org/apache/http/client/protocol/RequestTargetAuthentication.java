@@ -36,6 +36,7 @@ import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthState;
 import org.apache.http.impl.client.HttpAuthenticator;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
  * Generates authentication header for the target host, if required,
@@ -55,12 +56,8 @@ public class RequestTargetAuthentication extends RequestAuthenticationBase {
 
     public void process(final HttpRequest request, final HttpContext context)
             throws HttpException, IOException {
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(request, "HTTP request");
+        Args.notNull(context, "HTTP context");
 
         String method = request.getRequestLine().getMethod();
         if (method.equalsIgnoreCase("CONNECT")) {

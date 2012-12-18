@@ -30,6 +30,7 @@ package org.apache.http.impl.cookie;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
+import org.apache.http.util.Args;
 
 /**
  * <tt>"Version"</tt> cookie attribute handler for BrowserCompat cookie spec.
@@ -49,9 +50,7 @@ public class BrowserCompatVersionAttributeHandler extends
 	 */
 	public void parse(final SetCookie cookie, final String value)
 			throws MalformedCookieException {
-		if (cookie == null) {
-			throw new IllegalArgumentException("Cookie may not be null");
-		}
+		Args.notNull(cookie, "Cookie");
 		if (value == null) {
 			throw new MalformedCookieException("Missing value for version attribute");
 		}

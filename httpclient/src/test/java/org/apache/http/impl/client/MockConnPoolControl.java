@@ -68,30 +68,14 @@ public final class MockConnPoolControl implements ConnPoolControl<HttpRoute> {
     }
 
     public void setDefaultMaxPerRoute(int max) {
-        if (max < 1) {
-            throw new IllegalArgumentException
-                ("The maximum must be greater than 0.");
-        }
         this.defaultMax = max;
     }
 
     public void setMaxPerRoute(final HttpRoute route, int max) {
-        if (route == null) {
-            throw new IllegalArgumentException
-                ("HTTP route may not be null.");
-        }
-        if (max < 1) {
-            throw new IllegalArgumentException
-                ("The maximum must be greater than 0.");
-        }
         this.maxPerHostMap.put(route, Integer.valueOf(max));
     }
 
     public int getMaxPerRoute(final HttpRoute route) {
-        if (route == null) {
-            throw new IllegalArgumentException
-                ("HTTP route may not be null.");
-        }
         Integer max = this.maxPerHostMap.get(route);
         if (max != null) {
             return max.intValue();

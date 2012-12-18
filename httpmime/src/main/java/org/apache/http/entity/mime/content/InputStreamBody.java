@@ -34,6 +34,7 @@ import java.io.OutputStream;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MIME;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.util.Args;
 
 /**
  * Binary body part backed by an input stream.
@@ -66,9 +67,7 @@ public class InputStreamBody extends AbstractContentBody {
      */
     public InputStreamBody(final InputStream in, final ContentType contentType, final String filename) {
         super(contentType);
-        if (in == null) {
-            throw new IllegalArgumentException("Input stream may not be null");
-        }
+        Args.notNull(in, "Input stream");
         this.in = in;
         this.filename = filename;
     }
@@ -85,9 +84,7 @@ public class InputStreamBody extends AbstractContentBody {
     }
 
     public void writeTo(final OutputStream out) throws IOException {
-        if (out == null) {
-            throw new IllegalArgumentException("Output stream may not be null");
-        }
+        Args.notNull(out, "Output stream");
         try {
             byte[] tmp = new byte[4096];
             int l;

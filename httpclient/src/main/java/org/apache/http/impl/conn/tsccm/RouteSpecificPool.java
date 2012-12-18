@@ -36,6 +36,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.params.ConnPerRoute;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 import org.apache.http.util.LangUtils;
 
 
@@ -201,7 +203,6 @@ public class RouteSpecificPool {
      *                  or presented to {@link #createdEntry createdEntry}
      */
     public void freeEntry(BasicPoolEntry entry) {
-
         if (numEntries < 1) {
             throw new IllegalStateException
                 ("No entry created for this pool. " + route);
@@ -223,14 +224,7 @@ public class RouteSpecificPool {
      * @param entry     the entry that was created for this pool
      */
     public void createdEntry(BasicPoolEntry entry) {
-
-        if (!route.equals(entry.getPlannedRoute())) {
-            throw new IllegalArgumentException
-                ("Entry not planned for this pool." +
-                 "\npool: " + route +
-                 "\nplan: " + entry.getPlannedRoute());
-        }
-
+        Args.check(route.equals(entry.getPlannedRoute()), "Entry not planned for this pool");
         numEntries++;
     }
 
@@ -261,10 +255,7 @@ public class RouteSpecificPool {
      * from this pool has been lost and will not be returned.
      */
     public void dropEntry() {
-        if (numEntries < 1) {
-            throw new IllegalStateException
-                ("There is no entry that could be dropped.");
-        }
+        Asserts.check(numEntries > 0, "There is no entry that could be dropped");
         numEntries--;
     }
 
@@ -278,10 +269,7 @@ public class RouteSpecificPool {
      * @param wt        the waiting thread
      */
     public void queueThread(WaitingThread wt) {
-        if (wt == null) {
-            throw new IllegalArgumentException
-                ("Waiting thread must not be null.");
-        }
+        Args.notNull(wt, "Waiting thread");
         this.waitingThreads.add(wt);
     }
 

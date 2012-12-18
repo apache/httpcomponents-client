@@ -46,6 +46,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -71,9 +72,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     public CloseableHttpResponse execute(
             final HttpUriRequest request,
             final HttpContext context) throws IOException, ClientProtocolException {
-        if (request == null) {
-            throw new IllegalArgumentException("Request must not be null.");
-        }
+        Args.notNull(request, "HTTP request");
         return doExecute(determineTarget(request), request, context);
     }
 
@@ -126,9 +125,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     public <T> T execute(final HttpHost target, final HttpRequest request,
             final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException, ClientProtocolException {
-        if (responseHandler == null) {
-            throw new IllegalArgumentException("Response handler must not be null.");
-        }
+        Args.notNull(responseHandler, "Response handler");
 
         HttpResponse response = execute(target, request, context);
 

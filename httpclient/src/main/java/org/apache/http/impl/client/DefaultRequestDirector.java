@@ -85,6 +85,8 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -266,58 +268,19 @@ public class DefaultRequestDirector implements RequestDirector {
             final UserTokenHandler userTokenHandler,
             final HttpParams params) {
 
-        if (log == null) {
-            throw new IllegalArgumentException
-                ("Log may not be null.");
-        }
-        if (requestExec == null) {
-            throw new IllegalArgumentException
-                ("Request executor may not be null.");
-        }
-        if (conman == null) {
-            throw new IllegalArgumentException
-                ("Client connection manager may not be null.");
-        }
-        if (reustrat == null) {
-            throw new IllegalArgumentException
-                ("Connection reuse strategy may not be null.");
-        }
-        if (kastrat == null) {
-            throw new IllegalArgumentException
-                ("Connection keep alive strategy may not be null.");
-        }
-        if (rouplan == null) {
-            throw new IllegalArgumentException
-                ("Route planner may not be null.");
-        }
-        if (httpProcessor == null) {
-            throw new IllegalArgumentException
-                ("HTTP protocol processor may not be null.");
-        }
-        if (retryHandler == null) {
-            throw new IllegalArgumentException
-                ("HTTP request retry handler may not be null.");
-        }
-        if (redirectStrategy == null) {
-            throw new IllegalArgumentException
-                ("Redirect strategy may not be null.");
-        }
-        if (targetAuthStrategy == null) {
-            throw new IllegalArgumentException
-                ("Target authentication strategy may not be null.");
-        }
-        if (proxyAuthStrategy == null) {
-            throw new IllegalArgumentException
-                ("Proxy authentication strategy may not be null.");
-        }
-        if (userTokenHandler == null) {
-            throw new IllegalArgumentException
-                ("User token handler may not be null.");
-        }
-        if (params == null) {
-            throw new IllegalArgumentException
-                ("HTTP parameters may not be null");
-        }
+        Args.notNull(log, "Log");
+        Args.notNull(requestExec, "Request executor");
+        Args.notNull(conman, "Client connection manager");
+        Args.notNull(reustrat, "Connection reuse strategy");
+        Args.notNull(kastrat, "Connection keep alive strategy");
+        Args.notNull(rouplan, "Route planner");
+        Args.notNull(httpProcessor, "HTTP protocol processor");
+        Args.notNull(retryHandler, "HTTP request retry handler");
+        Args.notNull(redirectStrategy, "Redirect strategy");
+        Args.notNull(targetAuthStrategy, "Target authentication strategy");
+        Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
+        Args.notNull(userTokenHandler, "User token handler");
+        Args.notNull(params, "HTTP parameters");
         this.log               = log;
         this.authenticator     = new HttpAuthenticator(log);
         this.requestExec        = requestExec;
@@ -780,11 +743,7 @@ public class DefaultRequestDirector implements RequestDirector {
             target = (HttpHost) request.getParams().getParameter(
                 ClientPNames.DEFAULT_HOST);
         }
-        if (target == null) {
-            throw new IllegalStateException
-                ("Target host must not be null, or set in parameters.");
-        }
-
+        Asserts.notNull(target, "Target host");
         return this.routePlanner.determineRoute(target, request, context);
     }
 

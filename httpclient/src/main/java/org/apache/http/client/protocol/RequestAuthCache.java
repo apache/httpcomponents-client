@@ -45,6 +45,7 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
  * Request interceptor that can preemptively authenticate against known hosts,
@@ -64,12 +65,8 @@ public class RequestAuthCache implements HttpRequestInterceptor {
 
     public void process(final HttpRequest request, final HttpContext context)
             throws HttpException, IOException {
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(request, "HTTP request");
+        Args.notNull(context, "HTTP context");
 
         HttpClientContext clientContext = HttpClientContext.adapt(context);
 

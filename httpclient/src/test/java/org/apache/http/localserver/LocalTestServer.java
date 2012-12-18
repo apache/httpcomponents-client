@@ -58,6 +58,7 @@ import org.apache.http.protocol.ResponseContent;
 import org.apache.http.protocol.ResponseDate;
 import org.apache.http.protocol.ResponseServer;
 import org.apache.http.protocol.UriHttpRequestHandlerMapper;
+import org.apache.http.util.Asserts;
 
 /**
  * Local HTTP server for tests that require one.
@@ -224,9 +225,7 @@ public class LocalTestServer {
      * Starts this test server.
      */
     public void start() throws Exception {
-        if (servicedSocket != null) {
-            throw new IllegalStateException(this.toString() + " already running");
-        }
+        Asserts.check(servicedSocket == null, "Already running");
         ServerSocket ssock;
         if (sslcontext != null) {
             SSLServerSocketFactory sf = sslcontext.getServerSocketFactory();
@@ -287,9 +286,7 @@ public class LocalTestServer {
      */
     public InetSocketAddress getServiceAddress() {
         ServerSocket ssock = servicedSocket; // avoid synchronization
-        if (ssock == null) {
-            throw new IllegalStateException("not running");
-        }
+        Asserts.check(ssock != null, "Not running");
         return (InetSocketAddress) ssock.getLocalSocketAddress();
     }
 

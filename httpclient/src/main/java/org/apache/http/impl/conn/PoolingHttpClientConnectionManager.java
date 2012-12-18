@@ -61,6 +61,8 @@ import org.apache.http.pool.ConnFactory;
 import org.apache.http.pool.ConnPoolControl;
 import org.apache.http.pool.PoolStats;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * <tt>ClientConnectionPoolManager</tt> maintains a pool of
@@ -192,9 +194,7 @@ public class PoolingHttpClientConnectionManager implements HttpClientConnectionM
     public ConnectionRequest requestConnection(
             final HttpRoute route,
             final Object state) {
-        if (route == null) {
-            throw new IllegalArgumentException("HTTP route may not be null");
-        }
+        Args.notNull(route, "HTTP route");
         if (this.log.isDebugEnabled()) {
             this.log.debug("Connection request: " + format(route, state) + formatStats(route));
         }
@@ -225,9 +225,7 @@ public class PoolingHttpClientConnectionManager implements HttpClientConnectionM
             if (entry == null || future.isCancelled()) {
                 throw new InterruptedException();
             }
-            if (entry.getConnection() == null) {
-                throw new IllegalStateException("Pool entry with no connection");
-            }
+            Asserts.check(entry.getConnection() != null, "Pool entry with no connection");
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connection leased: " + format(entry) + formatStats(entry.getRoute()));
             }
@@ -249,9 +247,7 @@ public class PoolingHttpClientConnectionManager implements HttpClientConnectionM
             final HttpClientConnection managedConn,
             final Object state,
             final long keepalive, final TimeUnit tunit) {
-        if (managedConn == null) {
-            throw new IllegalArgumentException("Managed connection may not be null");
-        }
+        Args.notNull(managedConn, "Managed connection");
         synchronized (managedConn) {
             CPoolEntry entry = CPoolProxy.detach(managedConn);
             if (entry == null) {
@@ -287,9 +283,7 @@ public class PoolingHttpClientConnectionManager implements HttpClientConnectionM
             final InetAddress local,
             final int connectTimeout,
             final HttpContext context) throws IOException {
-        if (managedConn == null) {
-            throw new IllegalArgumentException("Connection may not be null");
-        }
+        Args.notNull(managedConn, "Connection");
         SocketClientConnection conn;
         synchronized (managedConn) {
             CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
@@ -311,9 +305,7 @@ public class PoolingHttpClientConnectionManager implements HttpClientConnectionM
             final HttpClientConnection managedConn,
             final HttpHost host,
             final HttpContext context) throws IOException {
-        if (managedConn == null) {
-            throw new IllegalArgumentException("Connection may not be null");
-        }
+        Args.notNull(managedConn, "Connection");
         SocketClientConnection conn;
         synchronized (managedConn) {
             CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);

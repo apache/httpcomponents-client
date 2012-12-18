@@ -30,6 +30,7 @@ package org.apache.http.conn.routing;
 import java.net.InetAddress;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.util.Args;
 import org.apache.http.util.LangUtils;
 
 import org.apache.http.HttpHost;
@@ -92,19 +93,14 @@ public final class HttpRoute implements RouteInfo, Cloneable {
                       HttpHost target, HttpHost[] proxies,
                       boolean secure,
                       TunnelType tunnelled, LayerType layered) {
-        if (target == null) {
-            throw new IllegalArgumentException
-                ("Target host may not be null.");
+        Args.notNull(target, "Target host");
+        Args.notNull(proxies, "Array of proxy hosts");
+        for (HttpHost proxy: proxies) {
+            Args.notNull(proxy, "Proxy host");
         }
-        if (proxies == null) {
-            throw new IllegalArgumentException
-                ("Proxies may not be null.");
+        if (tunnelled == TunnelType.TUNNELLED) {
+            Args.check(proxies.length > 0, "Proxy required if tunnelled");
         }
-        if ((tunnelled == TunnelType.TUNNELLED) && (proxies.length == 0)) {
-            throw new IllegalArgumentException
-                ("Proxy required if tunnelled.");
-        }
-
         // tunnelled is already checked above, that is in line with the default
         if (tunnelled == null)
             tunnelled = TunnelType.PLAIN;
@@ -205,10 +201,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         this(local, target, toChain(proxy), secure,
              secure ? TunnelType.TUNNELLED : TunnelType.PLAIN,
              secure ? LayerType.LAYERED    : LayerType.PLAIN);
-        if (proxy == null) {
-            throw new IllegalArgumentException
-                ("Proxy host may not be null.");
-        }
+        Args.notNull(proxy, "Proxy host");
     }
 
 
@@ -238,13 +231,6 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     private static HttpHost[] toChain(HttpHost[] proxies) {
         if ((proxies == null) || (proxies.length < 1))
             return EMPTY_HTTP_HOST_ARRAY;
-
-        for (HttpHost proxy : proxies) {
-            if (proxy == null)
-                throw new IllegalArgumentException
-                        ("Proxy chain may not contain null elements.");
-        }
-
         // copy the proxy chain, the traditional way
         HttpHost[] result = new HttpHost[proxies.length];
         System.arraycopy(proxies, 0, result, 0, proxies.length);
@@ -272,14 +258,9 @@ public final class HttpRoute implements RouteInfo, Cloneable {
 
 
     public final HttpHost getHopTarget(int hop) {
-        if (hop < 0)
-            throw new IllegalArgumentException
-                ("Hop index must not be negative: " + hop);
+        Args.notNegative(hop, "Hop index");
         final int hopcount = getHopCount();
-        if (hop >= hopcount)
-            throw new IllegalArgumentException
-                ("Hop index " + hop +
-                 " exceeds route length " + hopcount);
+        Args.check(hop < hopcount, "Hop index exceeds tracked route length");
 
         HttpHost result = null;
         if (hop < hopcount-1)

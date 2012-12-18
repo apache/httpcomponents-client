@@ -30,23 +30,25 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Queue;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.OperatedClientConnection;
-import org.apache.http.conn.params.ConnPerRoute;
 import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.conn.params.ConnPerRoute;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpParams;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * A connection pool that maintains connections by route.
@@ -122,12 +124,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
             long connTTL,
             final TimeUnit connTTLTimeUnit) {
         super();
-        if (operator == null) {
-            throw new IllegalArgumentException("Connection operator may not be null");
-        }
-        if (connPerRoute == null) {
-            throw new IllegalArgumentException("Connections per route may not be null");
-        }
+        Args.notNull(operator, "Connection operator");
+        Args.notNull(connPerRoute, "Connections per route");
         this.poolLock = super.poolLock;
         this.leasedConnections = super.leasedConnections;
         this.operator = operator;
@@ -341,10 +339,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
             WaitingThread waitingThread = null;
 
             while (entry == null) {
-
-                if (shutdown) {
-                    throw new IllegalStateException("Connection pool shut down");
-                }
+                Asserts.check(!shutdown, "Connection pool shut down");
 
                 if (log.isDebugEnabled()) {
                     log.debug("[" + route + "] total kept alive: " + freeConnections.size() +
@@ -716,9 +711,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      */
     @Override
     public void closeIdleConnections(long idletime, TimeUnit tunit) {
-        if (tunit == null) {
-            throw new IllegalArgumentException("Time unit must not be null.");
-        }
+        Args.notNull(tunit, "Time unit");
         if (idletime < 0) {
             idletime = 0;
         }

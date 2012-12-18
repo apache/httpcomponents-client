@@ -28,6 +28,7 @@
 package org.apache.http.entity.mime;
 
 import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.http.util.Args;
 
 /**
  * FormBodyPart class represents a content body that can be used as a part of multipart encoded
@@ -45,12 +46,8 @@ public class FormBodyPart {
 
     public FormBodyPart(final String name, final ContentBody body) {
         super();
-        if (name == null) {
-            throw new IllegalArgumentException("Name may not be null");
-        }
-        if (body == null) {
-            throw new IllegalArgumentException("Body may not be null");
-        }
+        Args.notNull(name, "Name");
+        Args.notNull(body, "Body");
         this.name = name;
         this.body = body;
         this.header = new Header();
@@ -73,9 +70,7 @@ public class FormBodyPart {
     }
 
     public void addField(final String name, final String value) {
-        if (name == null) {
-            throw new IllegalArgumentException("Field name may not be null");
-        }
+        Args.notNull(name, "Field name");
         this.header.addField(new MinimalField(name, value));
     }
 

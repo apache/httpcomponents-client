@@ -43,6 +43,7 @@ import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Asserts;
 
 @Deprecated
 abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
@@ -108,9 +109,7 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
     }
 
     private void ensureAuthScheme(final AuthScheme authScheme) {
-        if (authScheme == null) {
-            throw new IllegalStateException("Auth scheme is not set");
-        }
+        Asserts.notNull(authScheme, "Auth scheme");
     }
 
     private Header authenticate(
@@ -118,9 +117,7 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
             final Credentials creds,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
-        if (authScheme == null) {
-            throw new IllegalStateException("Auth state object is null");
-        }
+        Asserts.notNull(authScheme, "Auth scheme");
         if (authScheme instanceof ContextAwareAuthScheme) {
             return ((ContextAwareAuthScheme) authScheme).authenticate(creds, request, context);
         } else {

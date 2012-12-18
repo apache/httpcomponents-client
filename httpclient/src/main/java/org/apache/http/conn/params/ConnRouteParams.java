@@ -28,12 +28,12 @@ package org.apache.http.conn.params;
 
 import java.net.InetAddress;
 
-import org.apache.http.annotation.Immutable;
-
 import org.apache.http.HttpHost;
-import org.apache.http.params.HttpParams;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.params.HttpParams;
+import org.apache.http.util.Args;
 
 /**
  * An adaptor for manipulating HTTP routing parameters
@@ -78,9 +78,7 @@ public class ConnRouteParams implements ConnRoutePNames {
      *          <code>null</code> if not set
      */
     public static HttpHost getDefaultProxy(HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException("Parameters must not be null.");
-        }
+        Args.notNull(params, "Parameters");
         HttpHost proxy = (HttpHost)
             params.getParameter(DEFAULT_PROXY);
         if ((proxy != null) && NO_HOST.equals(proxy)) {
@@ -102,9 +100,7 @@ public class ConnRouteParams implements ConnRoutePNames {
      */
     public static void setDefaultProxy(HttpParams params,
                                              HttpHost proxy) {
-        if (params == null) {
-            throw new IllegalArgumentException("Parameters must not be null.");
-        }
+        Args.notNull(params, "Parameters");
         params.setParameter(DEFAULT_PROXY, proxy);
     }
 
@@ -120,9 +116,7 @@ public class ConnRouteParams implements ConnRoutePNames {
      *          <code>null</code> if not set
      */
     public static HttpRoute getForcedRoute(HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException("Parameters must not be null.");
-        }
+        Args.notNull(params, "Parameters");
         HttpRoute route = (HttpRoute)
             params.getParameter(FORCED_ROUTE);
         if ((route != null) && NO_ROUTE.equals(route)) {
@@ -144,9 +138,7 @@ public class ConnRouteParams implements ConnRoutePNames {
      */
     public static void setForcedRoute(HttpParams params,
                                             HttpRoute route) {
-        if (params == null) {
-            throw new IllegalArgumentException("Parameters must not be null.");
-        }
+        Args.notNull(params, "Parameters");
         params.setParameter(FORCED_ROUTE, route);
     }
 
@@ -163,9 +155,7 @@ public class ConnRouteParams implements ConnRoutePNames {
      *          <code>null</code> if not set
      */
     public static InetAddress getLocalAddress(HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException("Parameters must not be null.");
-        }
+        Args.notNull(params, "Parameters");
         InetAddress local = (InetAddress)
             params.getParameter(LOCAL_ADDRESS);
         // no explicit unsetting
@@ -181,9 +171,7 @@ public class ConnRouteParams implements ConnRoutePNames {
      */
     public static void setLocalAddress(HttpParams params,
                                              InetAddress local) {
-        if (params == null) {
-            throw new IllegalArgumentException("Parameters must not be null.");
-        }
+        Args.notNull(params, "Parameters");
         params.setParameter(LOCAL_ADDRESS, local);
     }
 

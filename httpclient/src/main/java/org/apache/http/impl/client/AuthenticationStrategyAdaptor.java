@@ -51,6 +51,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
  * @deprecated (4.2) do not use
@@ -87,18 +88,10 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
             final HttpHost authhost,
             final HttpResponse response,
             final HttpContext context) throws MalformedChallengeException {
-        if (challenges == null) {
-            throw new IllegalArgumentException("Map of auth challenges may not be null");
-        }
-        if (authhost == null) {
-            throw new IllegalArgumentException("Host may not be null");
-        }
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(challenges, "Map of auth challenges");
+        Args.notNull(authhost, "Host");
+        Args.notNull(response, "HTTP response");
+        Args.notNull(context, "HTTP context");
 
         Queue<AuthOption> options = new LinkedList<AuthOption>();
         CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(

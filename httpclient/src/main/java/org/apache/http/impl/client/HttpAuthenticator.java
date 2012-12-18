@@ -49,6 +49,7 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Asserts;
 
 public class HttpAuthenticator {
 
@@ -239,9 +240,7 @@ public class HttpAuthenticator {
     }
 
     private void ensureAuthScheme(final AuthScheme authScheme) {
-        if (authScheme == null) {
-            throw new IllegalStateException("Auth scheme is not set");
-        }
+        Asserts.notNull(authScheme, "Auth scheme");
     }
 
     @SuppressWarnings("deprecation")

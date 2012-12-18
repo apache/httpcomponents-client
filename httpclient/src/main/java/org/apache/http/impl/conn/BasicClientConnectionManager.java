@@ -43,6 +43,8 @@ import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * A connection manager for a single connection. This connection manager maintains only one active
@@ -99,9 +101,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
      * @param schreg    the scheme registry
      */
     public BasicClientConnectionManager(final SchemeRegistry schreg) {
-        if (schreg == null) {
-            throw new IllegalArgumentException("Scheme registry may not be null");
-        }
+        Args.notNull(schreg, "Scheme registry");
         this.schemeRegistry = schreg;
         this.connOperator = createConnectionOperator(schreg);
     }
@@ -147,23 +147,17 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
     }
 
     private void assertNotShutdown() {
-        if (this.shutdown) {
-            throw new IllegalStateException("Connection manager has been shut down");
-        }
+        Asserts.check(!this.shutdown, "Connection manager has been shut down");
     }
 
     ManagedClientConnection getConnection(final HttpRoute route, final Object state) {
-        if (route == null) {
-            throw new IllegalArgumentException("Route may not be null.");
-        }
+        Args.notNull(route, "Route");
         synchronized (this) {
             assertNotShutdown();
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Get connection for route " + route);
             }
-            if (this.conn != null) {
-                throw new IllegalStateException(MISUSE_MESSAGE);
-            }
+            Asserts.check(this.conn == null, MISUSE_MESSAGE);
             if (this.poolEntry != null && !this.poolEntry.getPlannedRoute().equals(route)) {
                 this.poolEntry.close();
                 this.poolEntry = null;
@@ -194,10 +188,8 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
     }
     
     public void releaseConnection(final ManagedClientConnection conn, long keepalive, TimeUnit tunit) {
-        if (!(conn instanceof ManagedClientConnectionImpl)) {
-            throw new IllegalArgumentException("Connection class mismatch, " +
-                 "connection not obtained from this manager");
-        }
+        Args.check(conn instanceof ManagedClientConnectionImpl, "Connection class mismatch, " +
+            "connection not obtained from this manager");
         ManagedClientConnectionImpl managedConn = (ManagedClientConnectionImpl) conn;
         synchronized (managedConn) {
             if (this.log.isDebugEnabled()) {
@@ -207,9 +199,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
                 return; // already released
             }
             ClientConnectionManager manager = managedConn.getManager();
-            if (manager != null && manager != this) {
-                throw new IllegalStateException("Connection not obtained from this manager");
-            }
+            Asserts.check(manager == this, "Connection not obtained from this manager");
             synchronized (this) {
                 if (this.shutdown) {
                     shutdownConnection(managedConn);
@@ -252,9 +242,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
     }
 
     public void closeIdleConnections(long idletime, TimeUnit tunit) {
-        if (tunit == null) {
-            throw new IllegalArgumentException("Time unit must not be null.");
-        }
+        Args.notNull(tunit, "Time unit");
         synchronized (this) {
             assertNotShutdown();
             long time = tunit.toMillis(idletime);

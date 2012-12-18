@@ -212,7 +212,7 @@ public class TestBasicHttpClientConnectionManager {
         mgr.releaseConnection(null, null, 0, TimeUnit.MILLISECONDS);
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=IllegalStateException.class)
     public void testReleaseAnotherConnection() throws Exception {
         HttpClientConnection wrongCon = Mockito.mock(HttpClientConnection.class);
         mgr.releaseConnection(wrongCon, null, 0, TimeUnit.MILLISECONDS);

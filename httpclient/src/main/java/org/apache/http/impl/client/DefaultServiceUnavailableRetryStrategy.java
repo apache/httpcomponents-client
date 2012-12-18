@@ -32,6 +32,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
  * Default implementation of the {@link ServiceUnavailableRetryStrategy} interface.
@@ -57,12 +58,8 @@ public class DefaultServiceUnavailableRetryStrategy implements ServiceUnavailabl
 
     public DefaultServiceUnavailableRetryStrategy(int maxRetries, int retryInterval) {
         super();
-        if (maxRetries < 1) {
-            throw new IllegalArgumentException("MaxRetries must be greater than 1");
-        }
-        if (retryInterval < 1) {
-            throw new IllegalArgumentException("Retry interval must be greater than 1");
-        }
+        Args.positive(maxRetries, "Max retries");
+        Args.positive(retryInterval, "Retry interval");
         this.maxRetries = maxRetries;
         this.retryInterval = retryInterval;
     }

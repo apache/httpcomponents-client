@@ -43,6 +43,8 @@ import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * Socket factory that implements a simple multi-home fail-over on connect failure,
@@ -106,13 +108,8 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
                                 InetAddress localAddress, int localPort,
                                 HttpParams params)
         throws IOException {
-
-        if (host == null) {
-            throw new IllegalArgumentException("Target host may not be null.");
-        }
-        if (params == null) {
-            throw new IllegalArgumentException("Parameters may not be null.");
-        }
+        Args.notNull(host, "Target host");
+        Args.notNull(params, "HTTP parameters");
 
         if (sock == null)
             sock = createSocket();
@@ -170,22 +167,10 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
     public final boolean isSecure(Socket sock)
         throws IllegalArgumentException {
 
-        if (sock == null) {
-            throw new IllegalArgumentException("Socket may not be null.");
-        }
-        // This class check assumes that createSocket() calls the constructor
-        // directly. If it was using javax.net.SocketFactory, we couldn't make
-        // an assumption about the socket class here.
-        if (sock.getClass() != Socket.class) {
-            throw new IllegalArgumentException
-                ("Socket not created by this factory.");
-        }
+        Args.notNull(sock, "Socket");
         // This check is performed last since it calls a method implemented
         // by the argument object. getClass() is final in java.lang.Object.
-        if (sock.isClosed()) {
-            throw new IllegalArgumentException("Socket is closed.");
-        }
-
+        Asserts.check(!sock.isClosed(), "Socket is closed");
         return false;
 
     } // isSecure

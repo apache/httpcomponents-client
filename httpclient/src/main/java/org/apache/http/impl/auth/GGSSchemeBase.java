@@ -40,6 +40,7 @@ import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSException;
@@ -122,9 +123,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
             final Credentials credentials,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
+        Args.notNull(request, "HTTP request");
         switch (state) {
         case UNINITIATED:
             throw new AuthenticationException(getSchemeName() + " authentication has not been initiated");

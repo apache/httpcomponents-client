@@ -32,9 +32,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieSpec;
+import org.apache.http.util.Args;
 
 /**
  * Abstract cookie specification which can delegate the job of parsing,
@@ -62,12 +62,8 @@ public abstract class AbstractCookieSpec implements CookieSpec {
 
     public void registerAttribHandler(
             final String name, final CookieAttributeHandler handler) {
-        if (name == null) {
-            throw new IllegalArgumentException("Attribute name may not be null");
-        }
-        if (handler == null) {
-            throw new IllegalArgumentException("Attribute handler may not be null");
-        }
+        Args.notNull(name, "Attribute name");
+        Args.notNull(handler, "Attribute handler");
         this.attribHandlerMap.put(name, handler);
     }
 

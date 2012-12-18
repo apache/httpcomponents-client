@@ -31,7 +31,7 @@ import java.util.Locale;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.config.Registry;
 import org.apache.http.conn.SchemePortResolver;
-
+import org.apache.http.util.Args;
 import org.apache.http.util.LangUtils;
 
 /**
@@ -89,15 +89,9 @@ public final class Scheme {
      * @since 4.1
      */
     public Scheme(final String name, final int port, final SchemeSocketFactory factory) {
-        if (name == null) {
-            throw new IllegalArgumentException("Scheme name may not be null");
-        }
-        if ((port <= 0) || (port > 0xffff)) {
-            throw new IllegalArgumentException("Port is invalid: " + port);
-        }
-        if (factory == null) {
-            throw new IllegalArgumentException("Socket factory may not be null");
-        }
+        Args.notNull(name, "Scheme name");
+        Args.check(port > 0 && port <= 0xffff, "Port is invalid");
+        Args.notNull(factory, "Socket factory");
         this.name = name.toLowerCase(Locale.ENGLISH);
         this.defaultPort = port;
         if (factory instanceof SchemeLayeredSocketFactory) {
@@ -130,18 +124,9 @@ public final class Scheme {
                   final SocketFactory factory,
                   final int port) {
 
-        if (name == null) {
-            throw new IllegalArgumentException
-                ("Scheme name may not be null");
-        }
-        if (factory == null) {
-            throw new IllegalArgumentException
-                ("Socket factory may not be null");
-        }
-        if ((port <= 0) || (port > 0xffff)) {
-            throw new IllegalArgumentException
-                ("Port is invalid: " + port);
-        }
+        Args.notNull(name, "Scheme name");
+        Args.notNull(factory, "Socket factory");
+        Args.check(port > 0 && port <= 0xffff, "Port is invalid");
 
         this.name = name.toLowerCase(Locale.ENGLISH);
         if (factory instanceof LayeredSocketFactory) {

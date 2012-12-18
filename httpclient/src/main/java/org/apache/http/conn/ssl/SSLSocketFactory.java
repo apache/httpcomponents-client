@@ -27,29 +27,6 @@
 
 package org.apache.http.conn.ssl;
 
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.ThreadSafe;
-
-import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.HttpInetSocketAddress;
-import org.apache.http.conn.scheme.HostNameResolver;
-import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
-import org.apache.http.conn.scheme.LayeredSocketFactory;
-import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
-import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HttpContext;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -66,6 +43,30 @@ import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
+import org.apache.http.HttpHost;
+import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpInetSocketAddress;
+import org.apache.http.conn.scheme.HostNameResolver;
+import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
+import org.apache.http.conn.scheme.LayeredSocketFactory;
+import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * Layered socket factory for TLS/SSL connections.
@@ -477,9 +478,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     public SSLSocketFactory(
             final SSLContext sslContext, final X509HostnameVerifier hostnameVerifier) {
         super();
-        if (sslContext == null) {
-            throw new IllegalArgumentException("SSL context may not be null");
-        }
+        Args.notNull(sslContext, "SSL context");
         this.socketfactory = sslContext.getSocketFactory();
         this.hostnameVerifier = hostnameVerifier;
         this.nameResolver = null;
@@ -491,9 +490,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     public SSLSocketFactory(
             final javax.net.ssl.SSLSocketFactory socketfactory,
             final X509HostnameVerifier hostnameVerifier) {
-        if (socketfactory == null) {
-            throw new IllegalArgumentException("SSL socket factory may not be null");
-        }
+        Args.notNull(socketfactory, "SSL socket factory");
         this.socketfactory = socketfactory;
         this.hostnameVerifier = hostnameVerifier;
         this.nameResolver = null;
@@ -531,12 +528,8 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final InetSocketAddress remoteAddress,
             final InetSocketAddress localAddress,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
-        if (remoteAddress == null) {
-            throw new IllegalArgumentException("Remote address may not be null");
-        }
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(remoteAddress, "Remote address");
+        Args.notNull(params, "HTTP parameters");
         HttpHost host;
         if (remoteAddress instanceof HttpInetSocketAddress) {
             host = ((HttpInetSocketAddress) remoteAddress).getHttpHost();
@@ -565,17 +558,9 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      */
     @Deprecated
     public boolean isSecure(final Socket sock) throws IllegalArgumentException {
-        if (sock == null) {
-            throw new IllegalArgumentException("Socket may not be null");
-        }
-        // This instanceof check is in line with createSocket() above.
-        if (!(sock instanceof SSLSocket)) {
-            throw new IllegalArgumentException("Socket not created by this factory");
-        }
-        // This check is performed last since it calls the argument object.
-        if (sock.isClosed()) {
-            throw new IllegalArgumentException("Socket is closed");
-        }
+        Args.notNull(sock, "Socket");
+        Asserts.check(sock instanceof SSLSocket, "Socket not created by this factory");
+        Asserts.check(!sock.isClosed(), "Socket is closed");
         return true;
     }
 
@@ -610,9 +595,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      */
     @Deprecated
     public void setHostnameVerifier(X509HostnameVerifier hostnameVerifier) {
-        if ( hostnameVerifier == null ) {
-            throw new IllegalArgumentException("Hostname verifier may not be null");
-        }
+        Args.notNull(hostnameVerifier, "Hostname verifier");
         this.hostnameVerifier = hostnameVerifier;
     }
 
@@ -695,12 +678,8 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final InetSocketAddress remoteAddress,
             final InetSocketAddress localAddress,
             final HttpContext context) throws IOException, ConnectTimeoutException {
-        if (host == null) {
-            throw new IllegalArgumentException("HTTP host may not be null");
-        }
-        if (remoteAddress == null) {
-            throw new IllegalArgumentException("Remote address may not be null");
-        }
+        Args.notNull(host, "HTTP host");
+        Args.notNull(remoteAddress, "Remote address");
         Socket sock = socket != null ? socket : createSocket(context);
         if (localAddress != null) {
             sock.bind(localAddress);

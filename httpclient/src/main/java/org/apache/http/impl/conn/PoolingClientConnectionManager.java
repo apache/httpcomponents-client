@@ -35,19 +35,19 @@ import java.util.concurrent.TimeoutException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.pool.ConnPoolControl;
 import org.apache.http.pool.PoolStats;
-import org.apache.http.impl.conn.DefaultClientConnectionOperator;
-import org.apache.http.impl.conn.SchemeRegistryFactory;
-import org.apache.http.conn.DnsResolver;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * Manages a pool of {@link OperatedClientConnection client connections} and
@@ -106,12 +106,8 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
                 final long timeToLive, final TimeUnit tunit,
                 final DnsResolver dnsResolver) {
         super();
-        if (schemeRegistry == null) {
-            throw new IllegalArgumentException("Scheme registry may not be null");
-        }
-        if (dnsResolver == null) {
-            throw new IllegalArgumentException("DNS resolver may not be null");
-        }
+        Args.notNull(schemeRegistry, "Scheme registry");
+        Args.notNull(dnsResolver, "DNS resolver");
         this.schemeRegistry = schemeRegistry;
         this.dnsResolver  = dnsResolver;
         this.operator = createConnectionOperator(schemeRegistry);
@@ -182,9 +178,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
     public ClientConnectionRequest requestConnection(
             final HttpRoute route,
             final Object state) {
-        if (route == null) {
-            throw new IllegalArgumentException("HTTP route may not be null");
-        }
+        Args.notNull(route, "HTTP route");
         if (this.log.isDebugEnabled()) {
             this.log.debug("Connection request: " + format(route, state) + formatStats(route));
         }
@@ -216,9 +210,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
             if (entry == null || future.isCancelled()) {
                 throw new InterruptedException();
             }
-            if (entry.getConnection() == null) {
-                throw new IllegalStateException("Pool entry with no connection");
-            }
+            Asserts.check(entry.getConnection() != null, "Pool entry with no connection");
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connection leased: " + format(entry) + formatStats(entry.getRoute()));
             }
@@ -239,16 +231,10 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
     public void releaseConnection(
             final ManagedClientConnection conn, final long keepalive, final TimeUnit tunit) {
 
-        if (!(conn instanceof ManagedClientConnectionImpl)) {
-            throw new IllegalArgumentException
-                ("Connection class mismatch, " +
-                 "connection not obtained from this manager.");
-        }
+        Args.check(conn instanceof ManagedClientConnectionImpl, "Connection class mismatch, " +
+            "connection not obtained from this manager");
         ManagedClientConnectionImpl managedConn = (ManagedClientConnectionImpl) conn;
-        if (managedConn.getManager() != this) {
-            throw new IllegalStateException("Connection not obtained from this manager.");
-        }
-
+        Asserts.check(managedConn.getManager() == this, "Connection not obtained from this manager");
         synchronized (managedConn) {
             HttpPoolEntry entry = managedConn.detach();
             if (entry == null) {

@@ -28,7 +28,6 @@
 package org.apache.http.client.entity;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -196,13 +195,7 @@ public class EntityBuilder {
             e = new UrlEncodedFormEntity(this.parameters,
                     this.contentType != null ? this.contentType.getCharset() : null);
         } else if (this.serializable != null) {
-            // TODO: replace with constructor from 4.3
-            try {
-                e = new SerializableEntity(this.serializable, false);
-            } catch (IOException never) {
-                throw new IllegalStateException(
-                        "I/O error creating SerializableEntity without buffering");
-            }
+            e = new SerializableEntity(this.serializable);
             e.setContentType(ContentType.DEFAULT_BINARY.toString());
         } else if (this.file != null) {
             e = new FileEntity(this.file, getContentOrDefault(ContentType.DEFAULT_BINARY));

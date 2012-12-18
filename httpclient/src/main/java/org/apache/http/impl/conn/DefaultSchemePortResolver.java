@@ -28,6 +28,7 @@ package org.apache.http.impl.conn;
 
 import org.apache.http.HttpHost;
 import org.apache.http.conn.SchemePortResolver;
+import org.apache.http.util.Args;
 
 /**
  * Default {@link SchemePortResolver}.
@@ -39,9 +40,7 @@ public class DefaultSchemePortResolver implements SchemePortResolver {
     public static final DefaultSchemePortResolver INSTANCE = new DefaultSchemePortResolver();
 
     public int resolve(final HttpHost host) {
-        if (host == null) {
-            throw new IllegalArgumentException("HTTP host may not be null");
-        }
+        Args.notNull(host, "HTTP host");
         int port = host.getPort();
         if (port > 0) {
             return port;

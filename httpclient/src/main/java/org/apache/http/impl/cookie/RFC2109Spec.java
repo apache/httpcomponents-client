@@ -31,10 +31,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
@@ -44,6 +43,7 @@ import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
 import org.apache.http.message.BufferedHeader;
+import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -95,12 +95,8 @@ public class RFC2109Spec extends CookieSpecBase {
 
     public List<Cookie> parse(final Header header, final CookieOrigin origin)
             throws MalformedCookieException {
-        if (header == null) {
-            throw new IllegalArgumentException("Header may not be null");
-        }
-        if (origin == null) {
-            throw new IllegalArgumentException("Cookie origin may not be null");
-        }
+        Args.notNull(header, "Header");
+        Args.notNull(origin, "Cookie origin");
         if (!header.getName().equalsIgnoreCase(SM.SET_COOKIE)) {
             throw new MalformedCookieException("Unrecognized cookie header '"
                     + header.toString() + "'");
@@ -112,9 +108,7 @@ public class RFC2109Spec extends CookieSpecBase {
     @Override
     public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
+        Args.notNull(cookie, "Cookie");
         String name = cookie.getName();
         if (name.indexOf(' ') != -1) {
             throw new CookieRestrictionViolationException("Cookie name may not contain blanks");
@@ -126,12 +120,7 @@ public class RFC2109Spec extends CookieSpecBase {
     }
 
     public List<Header> formatCookies(List<Cookie> cookies) {
-        if (cookies == null) {
-            throw new IllegalArgumentException("List of cookies may not be null");
-        }
-        if (cookies.isEmpty()) {
-            throw new IllegalArgumentException("List of cookies may not be empty");
-        }
+        Args.notEmpty(cookies, "List of cookies");
         if (cookies.size() > 1) {
             // Create a mutable copy and sort the copy.
             cookies = new ArrayList<Cookie>(cookies);

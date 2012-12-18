@@ -29,6 +29,7 @@ package org.apache.http.auth;
 import java.util.Queue;
 
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.util.Args;
 
 /**
  * This class provides detailed information about the state of the authentication process.
@@ -108,12 +109,8 @@ public class AuthState {
      * @since 4.2
      */
     public void update(final AuthScheme authScheme, final Credentials credentials) {
-        if (authScheme == null) {
-            throw new IllegalArgumentException("Auth scheme may not be null or empty");
-        }
-        if (credentials == null) {
-            throw new IllegalArgumentException("Credentials may not be null or empty");
-        }
+        Args.notNull(authScheme, "Auth scheme");
+        Args.notNull(credentials, "Credentials");
         this.authScheme = authScheme;
         this.credentials = credentials;
         this.authOptions = null;
@@ -146,9 +143,7 @@ public class AuthState {
      * @since 4.2
      */
     public void update(final Queue<AuthOption> authOptions) {
-        if (authOptions == null || authOptions.isEmpty()) {
-            throw new IllegalArgumentException("Queue of auth options may not be null or empty");
-        }
+        Args.notEmpty(authOptions, "Queue of auth options");
         this.authOptions = authOptions;
         this.authScheme = null;
         this.credentials = null;

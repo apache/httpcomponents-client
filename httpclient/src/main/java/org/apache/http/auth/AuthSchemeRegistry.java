@@ -36,10 +36,10 @@ import org.apache.http.HttpRequest;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.config.Lookup;
 import org.apache.http.config.Registry;
-
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
  * Authentication scheme registry that can be used to obtain the corresponding
@@ -78,12 +78,8 @@ public final class AuthSchemeRegistry implements Lookup<AuthSchemeProvider> {
     public void register(
             final String name,
             final AuthSchemeFactory factory) {
-         if (name == null) {
-             throw new IllegalArgumentException("Name may not be null");
-         }
-        if (factory == null) {
-            throw new IllegalArgumentException("Authentication scheme factory may not be null");
-        }
+         Args.notNull(name, "Name");
+        Args.notNull(factory, "Authentication scheme factory");
         registeredSchemes.put(name.toLowerCase(Locale.ENGLISH), factory);
     }
 
@@ -94,9 +90,7 @@ public final class AuthSchemeRegistry implements Lookup<AuthSchemeProvider> {
      * @param name the identifier of the class to unregister
      */
     public void unregister(final String name) {
-         if (name == null) {
-             throw new IllegalArgumentException("Name may not be null");
-         }
+         Args.notNull(name, "Name");
         registeredSchemes.remove(name.toLowerCase(Locale.ENGLISH));
     }
 
@@ -114,9 +108,7 @@ public final class AuthSchemeRegistry implements Lookup<AuthSchemeProvider> {
     public AuthScheme getAuthScheme(final String name, final HttpParams params)
         throws IllegalStateException {
 
-        if (name == null) {
-            throw new IllegalArgumentException("Name may not be null");
-        }
+        Args.notNull(name, "Name");
         AuthSchemeFactory factory = registeredSchemes.get(name.toLowerCase(Locale.ENGLISH));
         if (factory != null) {
             return factory.newInstance(params);

@@ -37,6 +37,7 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.client.cache.Resource;
+import org.apache.http.util.Args;
 
 /**
  * {@link HttpCacheStorage} implementation capable of deallocating resources associated with
@@ -84,12 +85,8 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage {
     }
 
     public void putEntry(final String url, final HttpCacheEntry entry) throws IOException {
-        if (url == null) {
-            throw new IllegalArgumentException("URL may not be null");
-        }
-        if (entry == null) {
-            throw new IllegalArgumentException("Cache entry may not be null");
-        }
+        Args.notNull(url, "URL");
+        Args.notNull(entry, "Cache entry");
         ensureValidState();
         synchronized (this) {
             this.entries.put(url, entry);
@@ -98,9 +95,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage {
     }
 
     public HttpCacheEntry getEntry(final String url) throws IOException {
-        if (url == null) {
-            throw new IllegalArgumentException("URL may not be null");
-        }
+        Args.notNull(url, "URL");
         ensureValidState();
         synchronized (this) {
             return this.entries.get(url);
@@ -108,9 +103,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage {
     }
 
     public void removeEntry(String url) throws IOException {
-        if (url == null) {
-            throw new IllegalArgumentException("URL may not be null");
-        }
+        Args.notNull(url, "URL");
         ensureValidState();
         synchronized (this) {
             // Cannot deallocate the associated resources immediately as the
@@ -122,12 +115,8 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage {
     public void updateEntry(
             final String url,
             final HttpCacheUpdateCallback callback) throws IOException {
-        if (url == null) {
-            throw new IllegalArgumentException("URL may not be null");
-        }
-        if (callback == null) {
-            throw new IllegalArgumentException("Callback may not be null");
-        }
+        Args.notNull(url, "URL");
+        Args.notNull(callback, "Callback");
         ensureValidState();
         synchronized (this) {
             HttpCacheEntry existing = this.entries.get(url);

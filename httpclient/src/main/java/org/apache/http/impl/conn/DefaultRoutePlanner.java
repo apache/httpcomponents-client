@@ -40,6 +40,7 @@ import org.apache.http.conn.params.ConnRouteParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
  * Default implementation of an {@link HttpRoutePlanner}. This implementation
@@ -65,12 +66,8 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
             final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws HttpException {
-        if (host == null) {
-            throw new IllegalArgumentException("Target host may not be null");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("Request may not be null");
-        }
+        Args.notNull(host, "Target host");
+        Args.notNull(request, "Request");
 
         // If we have a forced route, we can do without a target.
         HttpRoute route = ConnRouteParams.getForcedRoute(request.getParams());

@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.http.util.Args;
 import org.apache.http.util.ByteArrayBuffer;
 
 /**
@@ -112,12 +113,8 @@ public class HttpMultipart {
      */
     public HttpMultipart(final String subType, final Charset charset, final String boundary, HttpMultipartMode mode) {
         super();
-        if (subType == null) {
-            throw new IllegalArgumentException("Multipart subtype may not be null");
-        }
-        if (boundary == null) {
-            throw new IllegalArgumentException("Multipart boundary may not be null");
-        }
+        Args.notNull(subType, "Multipart subtype");
+        Args.notNull(boundary, "Multipart boundary");
         this.subType = subType;
         this.charset = charset != null ? charset : MIME.DEFAULT_CHARSET;
         this.boundary = boundary;

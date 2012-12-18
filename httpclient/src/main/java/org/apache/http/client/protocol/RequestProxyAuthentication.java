@@ -39,6 +39,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.client.HttpAuthenticator;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
  * Generates authentication header for the proxy host, if required,
@@ -58,12 +59,8 @@ public class RequestProxyAuthentication extends RequestAuthenticationBase {
 
     public void process(final HttpRequest request, final HttpContext context)
             throws HttpException, IOException {
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(request, "HTTP request");
+        Args.notNull(context, "HTTP context");
 
         if (request.containsHeader(AUTH.PROXY_AUTH_RESP)) {
             return;

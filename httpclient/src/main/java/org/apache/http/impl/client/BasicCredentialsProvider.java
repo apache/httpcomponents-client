@@ -30,10 +30,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.annotation.ThreadSafe;
-
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.util.Args;
 
 /**
  * Default implementation of {@link CredentialsProvider}.
@@ -56,9 +56,7 @@ public class BasicCredentialsProvider implements CredentialsProvider {
     public void setCredentials(
             final AuthScope authscope,
             final Credentials credentials) {
-        if (authscope == null) {
-            throw new IllegalArgumentException("Authentication scope may not be null");
-        }
+        Args.notNull(authscope, "Authentication scope");
         credMap.put(authscope, credentials);
     }
 
@@ -95,9 +93,7 @@ public class BasicCredentialsProvider implements CredentialsProvider {
     }
 
     public Credentials getCredentials(final AuthScope authscope) {
-        if (authscope == null) {
-            throw new IllegalArgumentException("Authentication scope may not be null");
-        }
+        Args.notNull(authscope, "Authentication scope");
         return matchCredentials(this.credMap, authscope);
     }
 

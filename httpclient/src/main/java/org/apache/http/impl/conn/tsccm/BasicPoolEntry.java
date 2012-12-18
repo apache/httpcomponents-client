@@ -29,10 +29,11 @@ package org.apache.http.impl.conn.tsccm;
 import java.lang.ref.ReferenceQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ClientConnectionOperator;
+import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.AbstractPoolEntry;
+import org.apache.http.util.Args;
 
 /**
  * Basic implementation of a connection pool entry.
@@ -54,9 +55,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
                           HttpRoute route,
                           ReferenceQueue<Object> queue) {
         super(op, route);
-        if (route == null) {
-            throw new IllegalArgumentException("HTTP route may not be null");
-        }
+        Args.notNull(route, "HTTP route");
         this.created = System.currentTimeMillis();
         this.validUntil = Long.MAX_VALUE;
         this.expiry = this.validUntil;
@@ -86,9 +85,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
     public BasicPoolEntry(ClientConnectionOperator op,
                           HttpRoute route, long connTTL, TimeUnit timeunit) {
         super(op, route);
-        if (route == null) {
-            throw new IllegalArgumentException("HTTP route may not be null");
-        }
+        Args.notNull(route, "HTTP route");
         this.created = System.currentTimeMillis();
         if (connTTL > 0) {
             this.validUntil = this.created + timeunit.toMillis(connTTL);

@@ -46,6 +46,7 @@ import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
  * Response interceptor that adds successfully completed {@link AuthScheme}s
@@ -69,12 +70,8 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
 
     public void process(final HttpResponse response, final HttpContext context)
             throws HttpException, IOException {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(response, "HTTP request");
+        Args.notNull(context, "HTTP context");
         AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
 
         HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);

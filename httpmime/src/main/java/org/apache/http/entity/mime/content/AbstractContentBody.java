@@ -30,6 +30,7 @@ package org.apache.http.entity.mime.content;
 import java.nio.charset.Charset;
 
 import org.apache.http.entity.ContentType;
+import org.apache.http.util.Args;
 
 /**
  *
@@ -44,9 +45,7 @@ public abstract class AbstractContentBody implements ContentBody {
      */
     public AbstractContentBody(final ContentType contentType) {
         super();
-        if (contentType == null) {
-            throw new IllegalArgumentException("Content type may not be null");
-        }
+        Args.notNull(contentType, "Content type");
         this.contentType = contentType;
     }
 

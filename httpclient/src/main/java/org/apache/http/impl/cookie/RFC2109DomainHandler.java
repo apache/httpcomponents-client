@@ -29,13 +29,13 @@ package org.apache.http.impl.cookie;
 import java.util.Locale;
 
 import org.apache.http.annotation.Immutable;
-
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
+import org.apache.http.util.Args;
 
 /**
  *
@@ -50,9 +50,7 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
 
     public void parse(final SetCookie cookie, final String value)
             throws MalformedCookieException {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
+        Args.notNull(cookie, "Cookie");
         if (value == null) {
             throw new MalformedCookieException("Missing value for domain attribute");
         }
@@ -64,12 +62,8 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
 
     public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
-        if (origin == null) {
-            throw new IllegalArgumentException("Cookie origin may not be null");
-        }
+        Args.notNull(cookie, "Cookie");
+        Args.notNull(origin, "Cookie origin");
         String host = origin.getHost();
         String domain = cookie.getDomain();
         if (domain == null) {
@@ -113,12 +107,8 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
     }
 
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
-        if (origin == null) {
-            throw new IllegalArgumentException("Cookie origin may not be null");
-        }
+        Args.notNull(cookie, "Cookie");
+        Args.notNull(origin, "Cookie origin");
         String host = origin.getHost();
         String domain = cookie.getDomain();
         if (domain == null) {

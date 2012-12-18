@@ -31,6 +31,7 @@ import java.util.Map;
 import org.apache.http.client.BackoffManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.ConnPoolControl;
+import org.apache.http.util.Args;
 
 /**
  * <p>The <code>AIMDBackoffManager</code> applies an additive increase,
@@ -126,9 +127,7 @@ public class AIMDBackoffManager implements BackoffManager {
      * @param d must be between 0.0 and 1.0, exclusive.
      */
     public void setBackoffFactor(double d) {
-        if (d <= 0.0 || d >= 1.0) {
-            throw new IllegalArgumentException("backoffFactor must be 0.0 < f < 1.0");
-        }
+        Args.check(d > 0.0 && d < 1.0, "Backoff factor must be 0.0 < f < 1.0");
         backoffFactor = d;
     }
 
@@ -140,9 +139,7 @@ public class AIMDBackoffManager implements BackoffManager {
      * @param l must be positive
      */
     public void setCooldownMillis(long l) {
-        if (coolDown <= 0) {
-            throw new IllegalArgumentException("cooldownMillis must be positive");
-        }
+        Args.positive(coolDown, "Cool down");
         coolDown = l;
     }
 
@@ -152,9 +149,7 @@ public class AIMDBackoffManager implements BackoffManager {
      * @param cap must be >= 1
      */
     public void setPerHostConnectionCap(int cap) {
-        if (cap < 1) {
-            throw new IllegalArgumentException("perHostConnectionCap must be >= 1");
-        }
+        Args.positive(cap, "Per host connection cap");
         this.cap = cap;
     }
 

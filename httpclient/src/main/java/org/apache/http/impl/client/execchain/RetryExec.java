@@ -41,6 +41,7 @@ import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.util.Args;
 
 /**
  * @since 4.3
@@ -56,12 +57,8 @@ public class RetryExec implements ClientExecChain {
     public RetryExec(
             final ClientExecChain requestExecutor,
             final HttpRequestRetryHandler retryHandler) {
-        if (requestExecutor == null) {
-            throw new IllegalArgumentException("HTTP request executor may not be null");
-        }
-        if (retryHandler == null) {
-            throw new IllegalArgumentException("HTTP request retry handler may not be null");
-        }
+        Args.notNull(requestExecutor, "HTTP request executor");
+        Args.notNull(retryHandler, "HTTP request retry handler");
         this.requestExecutor = requestExecutor;
         this.retryHandler = retryHandler;
     }
@@ -71,15 +68,9 @@ public class RetryExec implements ClientExecChain {
             final HttpRequestWrapper request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
-        if (route == null) {
-            throw new IllegalArgumentException("HTTP route may not be null");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(route, "HTTP route");
+        Args.notNull(request, "HTTP request");
+        Args.notNull(context, "HTTP context");
         Header[] origheaders = request.getAllHeaders();
         for (int execCount = 1;; execCount++) {
             try {

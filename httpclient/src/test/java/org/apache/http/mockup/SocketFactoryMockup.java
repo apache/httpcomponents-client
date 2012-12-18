@@ -73,7 +73,7 @@ public class SocketFactoryMockup implements SchemeSocketFactory {
 
     public boolean isSecure(Socket sock) {
         // no way that the argument is from *this* factory...
-        throw new IllegalArgumentException("I'm a mockup!");
+        throw new UnsupportedOperationException("I'm a mockup!");
     }
 
 }

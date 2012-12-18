@@ -28,22 +28,22 @@ package org.apache.http.impl.auth;
 
 import java.nio.charset.Charset;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
+import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EncodingUtils;
 
@@ -153,12 +153,8 @@ public class BasicScheme extends RFC2617Scheme {
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
 
-        if (credentials == null) {
-            throw new IllegalArgumentException("Credentials may not be null");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
+        Args.notNull(credentials, "Credentials");
+        Args.notNull(request, "HTTP request");
         StringBuilder tmp = new StringBuilder();
         tmp.append(credentials.getUserPrincipal().getName());
         tmp.append(":");
@@ -195,12 +191,8 @@ public class BasicScheme extends RFC2617Scheme {
             final Credentials credentials,
             final String charset,
             boolean proxy) {
-        if (credentials == null) {
-            throw new IllegalArgumentException("Credentials may not be null");
-        }
-        if (charset == null) {
-            throw new IllegalArgumentException("charset may not be null");
-        }
+        Args.notNull(credentials, "Credentials");
+        Args.notNull(charset, "charset");
 
         StringBuilder tmp = new StringBuilder();
         tmp.append(credentials.getUserPrincipal().getName());

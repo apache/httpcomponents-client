@@ -33,6 +33,7 @@ import org.apache.http.annotation.ThreadSafe;
 
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.ConnPoolControl;
+import org.apache.http.util.Args;
 
 /**
  * This class maintains a map of HTTP routes to maximum number of connections allowed
@@ -77,30 +78,18 @@ public final class ConnPerRouteBean implements ConnPerRoute {
     }
 
     public void setDefaultMaxPerRoute(int max) {
-        if (max < 1) {
-            throw new IllegalArgumentException
-                ("The maximum must be greater than 0.");
-        }
+        Args.positive(max, "Defautl max per route");
         this.defaultMax = max;
     }
 
     public void setMaxForRoute(final HttpRoute route, int max) {
-        if (route == null) {
-            throw new IllegalArgumentException
-                ("HTTP route may not be null.");
-        }
-        if (max < 1) {
-            throw new IllegalArgumentException
-                ("The maximum must be greater than 0.");
-        }
+        Args.notNull(route, "HTTP route");
+        Args.positive(max, "Max per route");
         this.maxPerHostMap.put(route, Integer.valueOf(max));
     }
 
     public int getMaxForRoute(final HttpRoute route) {
-        if (route == null) {
-            throw new IllegalArgumentException
-                ("HTTP route may not be null.");
-        }
+        Args.notNull(route, "HTTP route");
         Integer max = this.maxPerHostMap.get(route);
         if (max != null) {
             return max.intValue();

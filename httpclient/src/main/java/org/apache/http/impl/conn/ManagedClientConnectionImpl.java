@@ -50,6 +50,8 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.RouteTracker;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * @since 4.2
@@ -71,15 +73,9 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             final ClientConnectionOperator operator,
             final HttpPoolEntry entry) {
         super();
-        if (manager == null) {
-            throw new IllegalArgumentException("Connection manager may not be null");
-        }
-        if (operator == null) {
-            throw new IllegalArgumentException("Connection operator may not be null");
-        }
-        if (entry == null) {
-            throw new IllegalArgumentException("HTTP pool entry may not be null");
-        }
+        Args.notNull(manager, "Connection manager");
+        Args.notNull(operator, "Connection operator");
+        Args.notNull(entry, "HTTP pool entry");
         this.manager = manager;
         this.operator = operator;
         this.poolEntry = entry;
@@ -287,21 +283,16 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             final HttpRoute route,
             final HttpContext context,
             final HttpParams params) throws IOException {
-        if (route == null) {
-            throw new IllegalArgumentException("Route may not be null");
-        }
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(route, "Route");
+        Args.notNull(params, "HTTP parameters");
         OperatedClientConnection conn;
         synchronized (this) {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
             }
             RouteTracker tracker = this.poolEntry.getTracker();
-            if (tracker.isConnected()) {
-                throw new IllegalStateException("Connection already open");
-            }
+            Asserts.notNull(tracker, "Route tracker");
+            Asserts.check(!tracker.isConnected(), "Connection already open");
             conn = this.poolEntry.getConnection();
         }
 
@@ -327,9 +318,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
 
     public void tunnelTarget(
             boolean secure, final HttpParams params) throws IOException {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         HttpHost target;
         OperatedClientConnection conn;
         synchronized (this) {
@@ -337,12 +326,9 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
                 throw new ConnectionShutdownException();
             }
             RouteTracker tracker = this.poolEntry.getTracker();
-            if (!tracker.isConnected()) {
-                throw new IllegalStateException("Connection not open");
-            }
-            if (tracker.isTunnelled()) {
-                throw new IllegalStateException("Connection is already tunnelled");
-            }
+            Asserts.notNull(tracker, "Route tracker");
+            Asserts.check(tracker.isConnected(), "Connection not open");
+            Asserts.check(!tracker.isTunnelled(), "Connection is already tunnelled");
             target = tracker.getTargetHost();
             conn = this.poolEntry.getConnection();
         }
@@ -360,21 +346,16 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
 
     public void tunnelProxy(
             final HttpHost next, boolean secure, final HttpParams params) throws IOException {
-        if (next == null) {
-            throw new IllegalArgumentException("Next proxy amy not be null");
-        }
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(next, "Next proxy");
+        Args.notNull(params, "HTTP parameters");
         OperatedClientConnection conn;
         synchronized (this) {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
             }
             RouteTracker tracker = this.poolEntry.getTracker();
-            if (!tracker.isConnected()) {
-                throw new IllegalStateException("Connection not open");
-            }
+            Asserts.notNull(tracker, "Route tracker");
+            Asserts.check(tracker.isConnected(), "Connection not open");
             conn = this.poolEntry.getConnection();
         }
 
@@ -391,9 +372,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
 
     public void layerProtocol(
             final HttpContext context, final HttpParams params) throws IOException {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         HttpHost target;
         OperatedClientConnection conn;
         synchronized (this) {
@@ -401,15 +380,10 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
                 throw new ConnectionShutdownException();
             }
             RouteTracker tracker = this.poolEntry.getTracker();
-            if (!tracker.isConnected()) {
-                throw new IllegalStateException("Connection not open");
-            }
-            if (!tracker.isTunnelled()) {
-                throw new IllegalStateException("Protocol layering without a tunnel not supported");
-            }
-            if (tracker.isLayered()) {
-                throw new IllegalStateException("Multiple protocol layering not supported");
-            }
+            Asserts.notNull(tracker, "Route tracker");
+            Asserts.check(tracker.isConnected(), "Connection not open");
+            Asserts.check(tracker.isTunnelled(), "Protocol layering without a tunnel not supported");
+            Asserts.check(!tracker.isLayered(), "Multiple protocol layering not supported");
             target = tracker.getTargetHost();
             conn = this.poolEntry.getConnection();
         }

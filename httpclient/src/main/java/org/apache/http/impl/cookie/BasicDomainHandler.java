@@ -27,13 +27,13 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
-
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
+import org.apache.http.util.Args;
 
 /**
  *
@@ -48,9 +48,7 @@ public class BasicDomainHandler implements CookieAttributeHandler {
 
     public void parse(final SetCookie cookie, final String value)
             throws MalformedCookieException {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
+        Args.notNull(cookie, "Cookie");
         if (value == null) {
             throw new MalformedCookieException("Missing value for domain attribute");
         }
@@ -62,12 +60,8 @@ public class BasicDomainHandler implements CookieAttributeHandler {
 
     public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
-        if (origin == null) {
-            throw new IllegalArgumentException("Cookie origin may not be null");
-        }
+        Args.notNull(cookie, "Cookie");
+        Args.notNull(origin, "Cookie origin");
         // Validate the cookies domain attribute.  NOTE:  Domains without
         // any dots are allowed to support hosts on private LANs that don't
         // have DNS names.  Since they have no dots, to domain-match the
@@ -103,12 +97,8 @@ public class BasicDomainHandler implements CookieAttributeHandler {
     }
 
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
-        if (origin == null) {
-            throw new IllegalArgumentException("Cookie origin may not be null");
-        }
+        Args.notNull(cookie, "Cookie");
+        Args.notNull(origin, "Cookie origin");
         String host = origin.getHost();
         String domain = cookie.getDomain();
         if (domain == null) {

@@ -40,6 +40,7 @@ import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.util.Args;
 
 /**
  * {@link ClientExecChain} implementation that can automatically retry the request in case of
@@ -59,13 +60,8 @@ public class ServiceUnavailableRetryExec implements ClientExecChain {
             final ClientExecChain requestExecutor, 
             final ServiceUnavailableRetryStrategy retryStrategy) {
         super();
-        if (requestExecutor == null) {
-            throw new IllegalArgumentException("HTTP request executor may not be null");
-        }
-        if (retryStrategy == null) {
-            throw new IllegalArgumentException(
-                    "ServiceUnavailableRetryStrategy may not be null");
-        }
+        Args.notNull(requestExecutor, "HTTP request executor");
+        Args.notNull(retryStrategy, "Retry strategy");
         this.requestExecutor = requestExecutor;
         this.retryStrategy = retryStrategy;
     }

@@ -26,10 +26,11 @@
 
 package org.apache.http.conn;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.util.Args;
 
 /**
  * A stream wrapper that triggers actions on {@link #close close()} and EOF.
@@ -80,9 +81,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
      */
     public EofSensorInputStream(final InputStream in,
                                 final EofSensorWatcher watcher) {
-        if (in == null) {
-            throw new IllegalArgumentException("Wrapped stream may not be null");
-        }
+        Args.notNull(in, "Wrapped stream");
         wrappedStream = in;
         selfClosed = false;
         eofWatcher = watcher;

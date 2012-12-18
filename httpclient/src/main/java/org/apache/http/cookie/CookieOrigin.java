@@ -29,6 +29,7 @@ package org.apache.http.cookie;
 import java.util.Locale;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.util.Args;
 
 /**
  * CookieOrigin class encapsulates details of an origin server that
@@ -46,21 +47,9 @@ public final class CookieOrigin {
 
     public CookieOrigin(final String host, int port, final String path, boolean secure) {
         super();
-        if (host == null) {
-            throw new IllegalArgumentException(
-                    "Host of origin may not be null");
-        }
-        if (host.trim().length() == 0) {
-            throw new IllegalArgumentException(
-                    "Host of origin may not be blank");
-        }
-        if (port < 0) {
-            throw new IllegalArgumentException("Invalid port: " + port);
-        }
-        if (path == null) {
-            throw new IllegalArgumentException(
-                    "Path of origin may not be null.");
-        }
+        Args.notBlank(host, "Host");
+        Args.notNegative(port, "Port");
+        Args.notNull(path, "Path");
         this.host = host.toLowerCase(Locale.ENGLISH);
         this.port = port;
         if (path.trim().length() != 0) {

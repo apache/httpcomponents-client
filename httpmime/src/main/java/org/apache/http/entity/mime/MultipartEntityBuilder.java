@@ -38,6 +38,7 @@ import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.util.Args;
 
 /**
  * @since 4.3
@@ -79,12 +80,8 @@ public class MultipartEntityBuilder {
 
     public MultipartEntityBuilder addTextBody(
             final String name, final String text, final ContentType contentType) {
-        if (name == null) {
-            throw new IllegalArgumentException("Name may not be null");
-        }
-        if (text == null) {
-            throw new IllegalArgumentException("Text may not be null");
-        }
+        Args.notNull(name, "Name");
+        Args.notNull(text, "Text");
         if (this.bodyParts == null) {
             this.bodyParts = new ArrayList<FormBodyPart>();
         }

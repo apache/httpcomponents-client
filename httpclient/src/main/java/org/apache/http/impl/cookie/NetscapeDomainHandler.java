@@ -30,11 +30,11 @@ import java.util.Locale;
 import java.util.StringTokenizer;
 
 import org.apache.http.annotation.Immutable;
-
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.util.Args;
 
 /**
  *
@@ -93,12 +93,8 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
 
    @Override
    public boolean match(Cookie cookie, CookieOrigin origin) {
-       if (cookie == null) {
-           throw new IllegalArgumentException("Cookie may not be null");
-       }
-       if (origin == null) {
-           throw new IllegalArgumentException("Cookie origin may not be null");
-       }
+       Args.notNull(cookie, "Cookie");
+       Args.notNull(origin, "Cookie origin");
        String host = origin.getHost();
        String domain = cookie.getDomain();
        if (domain == null) {

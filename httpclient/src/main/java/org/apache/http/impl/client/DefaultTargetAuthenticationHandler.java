@@ -30,16 +30,16 @@ package org.apache.http.impl.client;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.annotation.Immutable;
-
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.params.AuthPNames;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
  * Default {@link AuthenticationHandler} implementation for target host
@@ -60,9 +60,7 @@ public class DefaultTargetAuthenticationHandler extends AbstractAuthenticationHa
     public boolean isAuthenticationRequested(
             final HttpResponse response,
             final HttpContext context) {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
+        Args.notNull(response, "HTTP response");
         int status = response.getStatusLine().getStatusCode();
         return status == HttpStatus.SC_UNAUTHORIZED;
     }
@@ -70,9 +68,7 @@ public class DefaultTargetAuthenticationHandler extends AbstractAuthenticationHa
     public Map<String, Header> getChallenges(
             final HttpResponse response,
             final HttpContext context) throws MalformedChallengeException {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
+        Args.notNull(response, "HTTP response");
         Header[] headers = response.getHeaders(AUTH.WWW_AUTH);
         return parseChallenges(headers);
     }

@@ -34,6 +34,7 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.client.AuthCache;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
+import org.apache.http.util.Args;
 
 /**
  * Default implementation of {@link AuthCache}.
@@ -74,23 +75,17 @@ public class BasicAuthCache implements AuthCache {
     }
 
     public void put(final HttpHost host, final AuthScheme authScheme) {
-        if (host == null) {
-            throw new IllegalArgumentException("HTTP host may not be null");
-        }
+        Args.notNull(host, "HTTP host");
         this.map.put(getKey(host), authScheme);
     }
 
     public AuthScheme get(final HttpHost host) {
-        if (host == null) {
-            throw new IllegalArgumentException("HTTP host may not be null");
-        }
+        Args.notNull(host, "HTTP host");
         return this.map.get(getKey(host));
     }
 
     public void remove(final HttpHost host) {
-        if (host == null) {
-            throw new IllegalArgumentException("HTTP host may not be null");
-        }
+        Args.notNull(host, "HTTP host");
         this.map.remove(getKey(host));
     }
 

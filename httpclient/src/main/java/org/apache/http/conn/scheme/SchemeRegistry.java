@@ -31,10 +31,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.http.HttpHost;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.config.Registry;
-
-import org.apache.http.HttpHost;
+import org.apache.http.util.Args;
 
 /**
  * A set of supported protocol {@link Scheme}s.
@@ -90,9 +90,7 @@ public final class SchemeRegistry {
      *          if a scheme with the respective name is not registered
      */
     public final Scheme getScheme(HttpHost host) {
-        if (host == null) {
-            throw new IllegalArgumentException("Host must not be null.");
-        }
+        Args.notNull(host, "Host");
         return getScheme(host.getSchemeName());
     }
 
@@ -105,9 +103,7 @@ public final class SchemeRegistry {
      *          <code>null</code> if there is none by this name
      */
     public final Scheme get(String name) {
-        if (name == null)
-            throw new IllegalArgumentException("Name must not be null.");
-
+        Args.notNull(name, "Scheme name");
         // leave it to the caller to use the correct name - all lowercase
         //name = name.toLowerCase();
         Scheme found = registeredSchemes.get(name);
@@ -125,9 +121,7 @@ public final class SchemeRegistry {
      *          <code>null</code> if none was registered
      */
     public final Scheme register(Scheme sch) {
-        if (sch == null)
-            throw new IllegalArgumentException("Scheme must not be null.");
-
+        Args.notNull(sch, "Scheme");
         Scheme old = registeredSchemes.put(sch.getName(), sch);
         return old;
     }
@@ -141,9 +135,7 @@ public final class SchemeRegistry {
      *          <code>null</code> if there was none
      */
     public final Scheme unregister(String name) {
-        if (name == null)
-            throw new IllegalArgumentException("Name must not be null.");
-
+        Args.notNull(name, "Scheme name");
         // leave it to the caller to use the correct name - all lowercase
         //name = name.toLowerCase();
         Scheme gone = registeredSchemes.remove(name);

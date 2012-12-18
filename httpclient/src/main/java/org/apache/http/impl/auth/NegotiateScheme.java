@@ -34,6 +34,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
@@ -175,9 +176,7 @@ public class NegotiateScheme extends GGSSchemeBase {
      * @return the parameter with the given name
      */
     public String getParameter(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException("Parameter name may not be null");
-        }
+        Args.notNull(name, "Parameter name");
         return null;
     }
 

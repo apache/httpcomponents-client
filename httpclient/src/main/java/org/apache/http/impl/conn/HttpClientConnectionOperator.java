@@ -50,6 +50,8 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainSocketFactory;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 @Immutable
 class HttpClientConnectionOperator {
@@ -65,9 +67,7 @@ class HttpClientConnectionOperator {
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
         super();
-        if (socketFactoryRegistry == null) {
-            throw new IllegalArgumentException("Socket factory registry may nor be null");
-        }
+        Args.notNull(socketFactoryRegistry, "Socket factory registry");
         this.socketFactoryRegistry = socketFactoryRegistry;
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver :
             DefaultSchemePortResolver.INSTANCE;
@@ -149,10 +149,8 @@ class HttpClientConnectionOperator {
         if (sf == null) {
             sf = PlainSocketFactory.INSTANCE;
         }
-        if (!(sf instanceof LayeredConnectionSocketFactory)) {
-            throw new IllegalArgumentException
-                ("Target scheme (" + host.getSchemeName() + ") must have layered socket factory");
-        }
+        Asserts.check(sf instanceof LayeredConnectionSocketFactory,
+            "Socket factory must implement LayeredConnectionSocketFactory");
         LayeredConnectionSocketFactory lsf = (LayeredConnectionSocketFactory) sf;
         Socket sock = conn.getSocket();
         try {

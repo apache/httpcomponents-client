@@ -27,6 +27,7 @@
 package org.apache.http.auth;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.util.Args;
 
 /**
  * @since 4.2
@@ -39,12 +40,8 @@ public final class AuthOption {
 
     public AuthOption(final AuthScheme authScheme, final Credentials creds) {
         super();
-        if (authScheme == null) {
-            throw new IllegalArgumentException("Auth scheme may not be null");
-        }
-        if (creds == null) {
-            throw new IllegalArgumentException("User credentials may not be null");
-        }
+        Args.notNull(authScheme, "Auth scheme");
+        Args.notNull(creds, "User credentials");
         this.authScheme = authScheme;
         this.creds = creds;
     }

@@ -44,6 +44,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -67,13 +68,8 @@ public class AutoRetryHttpClient implements HttpClient {
     public AutoRetryHttpClient(
             final HttpClient client, final ServiceUnavailableRetryStrategy retryStrategy) {
         super();
-        if (client == null) {
-            throw new IllegalArgumentException("HttpClient may not be null");
-        }
-        if (retryStrategy == null) {
-            throw new IllegalArgumentException(
-                    "ServiceUnavailableRetryStrategy may not be null");
-        }
+        Args.notNull(client, "HttpClient");
+        Args.notNull(retryStrategy, "ServiceUnavailableRetryStrategy");
         this.backend = client;
         this.retryStrategy = retryStrategy;
     }

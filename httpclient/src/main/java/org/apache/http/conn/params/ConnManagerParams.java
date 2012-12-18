@@ -27,10 +27,10 @@
 package org.apache.http.conn.params;
 
 import org.apache.http.annotation.Immutable;
-
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.util.Args;
 
 /**
  * An adaptor for manipulating HTTP connection management
@@ -60,9 +60,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      */
     @Deprecated
 	public static long getTimeout(final HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         return params.getLongParameter(TIMEOUT, 0);
     }
 
@@ -77,9 +75,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      */
     @Deprecated
 	public static void setTimeout(final HttpParams params, long timeout) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         params.setLongParameter(TIMEOUT, timeout);
     }
 
@@ -101,10 +97,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      */
     public static void setMaxConnectionsPerRoute(final HttpParams params,
                                                 final ConnPerRoute connPerRoute) {
-        if (params == null) {
-            throw new IllegalArgumentException
-                ("HTTP parameters must not be null.");
-        }
+        Args.notNull(params, "HTTP parameters");
         params.setParameter(MAX_CONNECTIONS_PER_ROUTE, connPerRoute);
     }
 
@@ -116,10 +109,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * @return lookup interface for maximum number of connections allowed per route.
      */
     public static ConnPerRoute getMaxConnectionsPerRoute(final HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException
-                ("HTTP parameters must not be null.");
-        }
+        Args.notNull(params, "HTTP parameters");
         ConnPerRoute connPerRoute = (ConnPerRoute) params.getParameter(MAX_CONNECTIONS_PER_ROUTE);
         if (connPerRoute == null) {
             connPerRoute = DEFAULT_CONN_PER_ROUTE;
@@ -136,10 +126,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
     public static void setMaxTotalConnections(
             final HttpParams params,
             int maxTotalConnections) {
-        if (params == null) {
-            throw new IllegalArgumentException
-                ("HTTP parameters must not be null.");
-        }
+        Args.notNull(params, "HTTP parameters");
         params.setIntParameter(MAX_TOTAL_CONNECTIONS, maxTotalConnections);
     }
 
@@ -152,10 +139,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      */
     public static int getMaxTotalConnections(
             final HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException
-                ("HTTP parameters must not be null.");
-        }
+        Args.notNull(params, "HTTP parameters");
         return params.getIntParameter(MAX_TOTAL_CONNECTIONS, DEFAULT_MAX_TOTAL_CONNECTIONS);
     }
 

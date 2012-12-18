@@ -198,7 +198,7 @@ public class TestHttpClientConnectionOperator {
         Mockito.verify(conn).bind(socket);
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=IllegalStateException.class)
     public void testUpgradeNonLayeringScheme() throws Exception {
         HttpContext context = new BasicHttpContext();
         HttpHost host = new HttpHost("somehost", -1, "http");

@@ -43,6 +43,8 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.RouteTracker;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.params.HttpParams;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * A connection manager for a single connection. This connection manager
@@ -118,10 +120,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @param schreg    the scheme registry
      */
     public SingleClientConnManager(final SchemeRegistry schreg) {
-        if (schreg == null) {
-            throw new IllegalArgumentException
-                ("Scheme registry must not be null.");
-        }
+        Args.notNull(schreg, "Scheme registry");
         this.schemeRegistry  = schreg;
         this.connOperator    = createConnectionOperator(schreg);
         this.uniquePoolEntry = new PoolEntry();
@@ -174,8 +173,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @throws IllegalStateException    if this manager is shut down
      */
     protected final void assertStillUp() throws IllegalStateException {
-        if (this.isShutDown)
-            throw new IllegalStateException("Manager is shut down.");
+        Asserts.check(!this.isShutDown, "Manager is shut down");
     }
 
     public final ClientConnectionRequest requestConnection(
@@ -206,9 +204,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
      *          along the given route
      */
     public ManagedClientConnection getConnection(HttpRoute route, Object state) {
-        if (route == null) {
-            throw new IllegalArgumentException("Route may not be null.");
-        }
+        Args.notNull(route, "Route");
         assertStillUp();
 
         if (log.isDebugEnabled()) {
@@ -216,8 +212,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
 
         synchronized (this) {
-            if (managedConn != null)
-                throw new IllegalStateException(MISUSE_MESSAGE);
+
+            Asserts.check(managedConn == null, MISUSE_MESSAGE);
 
             // check re-usability of the connection
             boolean recreate = false;
@@ -260,13 +256,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
     public void releaseConnection(
             ManagedClientConnection conn,
             long validDuration, TimeUnit timeUnit) {
+        Args.check(conn instanceof ConnAdapter, "Connection class mismatch, " +
+            "connection not obtained from this manager");
         assertStillUp();
-
-        if (!(conn instanceof ConnAdapter)) {
-            throw new IllegalArgumentException
-                ("Connection class mismatch, " +
-                 "connection not obtained from this manager.");
-        }
 
         if (log.isDebugEnabled()) {
             log.debug("Releasing connection " + conn);
@@ -277,10 +269,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
             if (sca.poolEntry == null)
                 return; // already released
             ClientConnectionManager manager = sca.getManager();
-            if (manager != null && manager != this) {
-                throw new IllegalArgumentException
-                    ("Connection not obtained from this manager.");
-            }
+            Asserts.check(manager == this, "Connection not obtained from this manager");
             try {
                 // make sure that the response has been read completely
                 if (sca.isOpen() && (this.alwaysShutDown ||
@@ -325,9 +314,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         assertStillUp();
 
         // idletime can be 0 or negative, no problem there
-        if (tunit == null) {
-            throw new IllegalArgumentException("Time unit must not be null.");
-        }
+        Args.notNull(tunit, "Time unit");
 
         synchronized (this) {
             if ((managedConn == null) && uniquePoolEntry.connection.isOpen()) {

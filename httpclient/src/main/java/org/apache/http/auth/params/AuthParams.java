@@ -30,9 +30,9 @@ package org.apache.http.auth.params;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.client.config.RequestConfig;
-
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.Args;
 
 /**
  * An adaptor for manipulating HTTP authentication parameters
@@ -59,9 +59,7 @@ public final class AuthParams {
      * @return The charset
      */
     public static String getCredentialCharset(final HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         String charset = (String) params.getParameter
             (AuthPNames.CREDENTIAL_CHARSET);
         if (charset == null) {
@@ -78,9 +76,7 @@ public final class AuthParams {
      * @param charset The charset
      */
     public static void setCredentialCharset(final HttpParams params, final String charset) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         params.setParameter(AuthPNames.CREDENTIAL_CHARSET, charset);
     }
 

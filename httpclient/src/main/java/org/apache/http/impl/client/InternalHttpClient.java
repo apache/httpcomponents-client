@@ -62,6 +62,8 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * @since 4.3
@@ -90,15 +92,9 @@ class InternalHttpClient extends CloseableHttpClient {
             final CredentialsProvider credentialsProvider,
             final RequestConfig defaultConfig) {
         super();
-        if (execChain == null) {
-            throw new IllegalArgumentException("HTTP client exec chain may not be null");
-        }
-        if (connManager == null) {
-            throw new IllegalArgumentException("HTTP connection manager may not be null");
-        }
-        if (routePlanner == null) {
-            throw new IllegalArgumentException("HTTP route planner may not be null");
-        }
+        Args.notNull(execChain, "HTTP client exec chain");
+        Args.notNull(connManager, "HTTP connection manager");
+        Args.notNull(routePlanner, "HTTP route planner");
         this.execChain = execChain;
         this.connManager = connManager;
         this.routePlanner = routePlanner;
@@ -118,9 +114,7 @@ class InternalHttpClient extends CloseableHttpClient {
         if (host == null) {
             host = (HttpHost) request.getParams().getParameter(ClientPNames.DEFAULT_HOST);
         }
-        if (host == null) {
-            throw new IllegalStateException("Target host may not be null");
-        }
+        Asserts.notNull(host, "Target host");
         return this.routePlanner.determineRoute(host, request, context);
     }
 
@@ -153,9 +147,7 @@ class InternalHttpClient extends CloseableHttpClient {
             final HttpHost target,
             final HttpRequest request,
             final HttpContext context) throws IOException, ClientProtocolException {
-        if (request == null) {
-            throw new IllegalArgumentException("Request must not be null.");
-        }
+        Args.notNull(request, "Request");
         HttpExecutionAware execListner = null;
         if (request instanceof HttpExecutionAware) {
             execListner = (HttpExecutionAware) request;

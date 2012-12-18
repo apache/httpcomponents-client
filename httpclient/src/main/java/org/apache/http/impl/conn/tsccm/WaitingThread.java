@@ -30,6 +30,8 @@ package org.apache.http.impl.conn.tsccm;
 import java.util.Date;
 import java.util.concurrent.locks.Condition;
 
+import org.apache.http.util.Args;
+
 /**
  * Represents a thread waiting for a connection.
  * This class implements throwaway objects. It is instantiated whenever
@@ -71,9 +73,7 @@ public class WaitingThread {
      */
     public WaitingThread(Condition cond, RouteSpecificPool pool) {
 
-        if (cond == null) {
-            throw new IllegalArgumentException("Condition must not be null.");
-        }
+        Args.notNull(cond, "Condition");
 
         this.cond = cond;
         this.pool = pool;

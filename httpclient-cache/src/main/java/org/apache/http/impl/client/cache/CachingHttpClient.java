@@ -77,6 +77,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.util.VersionInfo;
 
@@ -165,15 +166,9 @@ public class CachingHttpClient implements HttpClient {
             HttpCache cache,
             CacheConfig config) {
         super();
-        if (client == null) {
-            throw new IllegalArgumentException("HttpClient may not be null");
-        }
-        if (cache == null) {
-            throw new IllegalArgumentException("HttpCache may not be null");
-        }
-        if (config == null) {
-            throw new IllegalArgumentException("CacheConfig may not be null");
-        }
+        Args.notNull(client, "HttpClient");
+        Args.notNull(cache, "HttpCache");
+        Args.notNull(config, "CacheConfig");
         this.maxObjectSizeBytes = config.getMaxObjectSize();
         this.sharedCache = config.isSharedCache();
         this.backend = client;

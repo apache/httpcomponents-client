@@ -32,7 +32,7 @@ import java.io.OutputStream;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MIME;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.AbstractContentBody;
+import org.apache.http.util.Args;
 
 /**
  * Binary body part backed by a byte array.
@@ -72,9 +72,7 @@ public class ByteArrayBody extends AbstractContentBody {
      */
     public ByteArrayBody(final byte[] data, final ContentType contentType, final String filename) {
         super(contentType);
-        if (data == null) {
-            throw new IllegalArgumentException("byte[] may not be null");
-        }
+        Args.notNull(data, "byte[]");
         this.data = data;
         this.filename = filename;
     }

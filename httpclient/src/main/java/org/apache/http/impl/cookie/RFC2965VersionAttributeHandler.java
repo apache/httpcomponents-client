@@ -28,7 +28,6 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
-
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
@@ -37,6 +36,7 @@ import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.cookie.SetCookie2;
+import org.apache.http.util.Args;
 
 /**
  * <tt>"Version"</tt> cookie attribute handler for RFC 2965 cookie spec.
@@ -55,9 +55,7 @@ public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
      */
     public void parse(final SetCookie cookie, final String value)
             throws MalformedCookieException {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
+        Args.notNull(cookie, "Cookie");
         if (value == null) {
             throw new MalformedCookieException(
                     "Missing value for version attribute");
@@ -79,9 +77,7 @@ public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
      */
     public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
-        if (cookie == null) {
-            throw new IllegalArgumentException("Cookie may not be null");
-        }
+        Args.notNull(cookie, "Cookie");
         if (cookie instanceof SetCookie2) {
             if (cookie instanceof ClientCookie
                     && !((ClientCookie) cookie).containsAttribute(ClientCookie.VERSION_ATTR)) {

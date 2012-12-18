@@ -41,6 +41,7 @@ import org.apache.http.Consts;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MIME;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.util.Args;
 
 /**
  * Text body part backed by a byte array.
@@ -171,9 +172,7 @@ public class StringBody extends AbstractContentBody {
     }
 
     public void writeTo(final OutputStream out) throws IOException {
-        if (out == null) {
-            throw new IllegalArgumentException("Output stream may not be null");
-        }
+        Args.notNull(out, "Output stream");
         InputStream in = new ByteArrayInputStream(this.content);
         byte[] tmp = new byte[4096];
         int l;

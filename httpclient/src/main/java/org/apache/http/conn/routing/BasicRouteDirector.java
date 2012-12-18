@@ -28,6 +28,7 @@
 package org.apache.http.conn.routing;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.util.Args;
 
 /**
  * Basic implementation of an {@link HttpRouteDirector HttpRouteDirector}.
@@ -50,10 +51,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
      *          0 is for success, a negative value for failure.
      */
     public int nextStep(RouteInfo plan, RouteInfo fact) {
-        if (plan == null) {
-            throw new IllegalArgumentException
-                ("Planned route may not be null.");
-        }
+        Args.notNull(plan, "Planned route");
 
         int step = UNREACHABLE;
 

@@ -55,6 +55,8 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 import org.apache.http.util.LangUtils;
 
 /**
@@ -180,9 +182,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     public final ConnectionRequest requestConnection(
             final HttpRoute route,
             final Object state) {
-        if (route == null) {
-            throw new IllegalArgumentException("Route may not be null");
-        }
+        Args.notNull(route, "Route");
         return new ConnectionRequest() {
 
             public boolean cancel() {
@@ -236,15 +236,11 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     synchronized HttpClientConnection getConnection(final HttpRoute route, final Object state) {
-        if (this.shutdown) {
-            throw new IllegalStateException("Connection manager has been shut down");
-        }
+        Asserts.check(!this.shutdown, "Connection manager has been shut down");
         if (this.log.isDebugEnabled()) {
             this.log.debug("Get connection for route " + route);
         }
-        if (this.leased) {
-            throw new IllegalStateException("Connection is still allocated");
-        }
+        Asserts.check(!this.leased, "Connection is still allocated");
         if (!LangUtils.equals(this.route, route) || !LangUtils.equals(this.state, state)) {
             closeConnection();
         }
@@ -262,12 +258,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             final HttpClientConnection conn,
             final Object state,
             long keepalive, final TimeUnit tunit) {
-        if (conn == null) {
-            throw new IllegalArgumentException("Connection may not be null");
-        }
-        if (conn != this.conn) {
-            throw new IllegalArgumentException("Connection not obtained from this manager");
-        }
+        Args.notNull(conn, "Connection");
+        Asserts.check(conn == this.conn, "Connection not obtained from this manager");
         if (this.log.isDebugEnabled()) {
             this.log.debug("Releasing connection " + conn);
         }
@@ -310,15 +302,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             final InetAddress local,
             final int connectTimeout,
             final HttpContext context) throws IOException {
-        if (conn == null) {
-            throw new IllegalArgumentException("Connection may not be null");
-        }
-        if (host == null) {
-            throw new IllegalArgumentException("HTTP host may not be null");
-        }
-        if (conn != this.conn) {
-            throw new IllegalArgumentException("Connection not obtained from this manager");
-        }
+        Args.notNull(conn, "Connection");
+        Args.notNull(host, "HTTP host");
+        Asserts.check(conn == this.conn, "Connection not obtained from this manager");
         InetSocketAddress localAddress = local != null ? new InetSocketAddress(local, 0) : null;
         this.connectionOperator.connect(this.conn, host, localAddress,
                 connectTimeout, this.socketConfig, context);
@@ -328,15 +314,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             final HttpClientConnection conn,
             final HttpHost host,
             final HttpContext context) throws IOException {
-        if (conn == null) {
-            throw new IllegalArgumentException("Connection may not be null");
-        }
-        if (host == null) {
-            throw new IllegalArgumentException("HTTP host may not be null");
-        }
-        if (conn != this.conn) {
-            throw new IllegalArgumentException("Connection not obtained from this manager");
-        }
+        Args.notNull(conn, "Connection");
+        Args.notNull(host, "HTTP host");
+        Asserts.check(conn == this.conn, "Connection not obtained from this manager");
         this.connectionOperator.upgrade(this.conn, host, context);
     }
 
@@ -350,9 +330,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     public synchronized void closeIdleConnections(long idletime, TimeUnit tunit) {
-        if (tunit == null) {
-            throw new IllegalArgumentException("Time unit must not be null.");
-        }
+        Args.notNull(tunit, "Time unit");
         if (this.shutdown) {
             return;
         }

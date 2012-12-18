@@ -31,6 +31,7 @@ import java.io.OutputStream;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
+import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -88,9 +89,7 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
      */
     @Override
     public void writeTo(OutputStream outstream) throws IOException {
-        if (outstream == null) {
-            throw new IllegalArgumentException("Output stream may not be null");
-        }
+        Args.notNull(outstream, "Output stream");
         InputStream instream = getContent();
         try {
             byte[] buffer = new byte[BUFFER_SIZE];

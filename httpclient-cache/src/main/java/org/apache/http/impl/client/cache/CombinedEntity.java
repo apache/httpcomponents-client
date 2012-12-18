@@ -35,6 +35,7 @@ import java.io.SequenceInputStream;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.util.Args;
 
 @NotThreadSafe
 class CombinedEntity extends AbstractHttpEntity {
@@ -66,9 +67,7 @@ class CombinedEntity extends AbstractHttpEntity {
     }
 
     public void writeTo(final OutputStream outstream) throws IOException {
-        if (outstream == null) {
-            throw new IllegalArgumentException("Output stream may not be null");
-        }
+        Args.notNull(outstream, "Output stream");
         InputStream instream = getContent();
         try {
             int l;

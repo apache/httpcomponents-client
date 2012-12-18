@@ -30,6 +30,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import org.apache.http.HttpHost;
+import org.apache.http.util.Args;
 
 /**
  * Extended {@link InetSocketAddress} implementation that also provides access to the original
@@ -48,9 +49,7 @@ public class HttpInetSocketAddress extends InetSocketAddress {
 
     public HttpInetSocketAddress(final HttpHost httphost, final InetAddress addr, int port) {
         super(addr, port);
-        if (httphost == null) {
-            throw new IllegalArgumentException("HTTP host may not be null");
-        }
+        Args.notNull(httphost, "HTTP host");
         this.httphost = httphost;
     }
 

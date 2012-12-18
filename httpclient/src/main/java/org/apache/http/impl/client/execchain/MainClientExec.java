@@ -74,6 +74,7 @@ import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
 import org.apache.http.protocol.RequestUserAgent;
+import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -104,27 +105,13 @@ public class MainClientExec implements ClientExecChain {
             final AuthenticationStrategy targetAuthStrategy,
             final AuthenticationStrategy proxyAuthStrategy,
             final UserTokenHandler userTokenHandler) {
-        if (requestExecutor == null) {
-            throw new IllegalArgumentException("HTTP request executor may not be null");
-        }
-        if (connManager == null) {
-            throw new IllegalArgumentException("Client connection manager may not be null");
-        }
-        if (reuseStrategy == null) {
-            throw new IllegalArgumentException("Connection reuse strategy may not be null");
-        }
-        if (keepAliveStrategy == null) {
-            throw new IllegalArgumentException("Connection keep alive strategy may not be null");
-        }
-        if (targetAuthStrategy == null) {
-            throw new IllegalArgumentException("Target authentication strategy may not be null");
-        }
-        if (proxyAuthStrategy == null) {
-            throw new IllegalArgumentException("Proxy authentication strategy may not be null");
-        }
-        if (userTokenHandler == null) {
-            throw new IllegalArgumentException("User token handler may not be null");
-        }
+        Args.notNull(requestExecutor, "HTTP request executor");
+        Args.notNull(connManager, "Client connection manager");
+        Args.notNull(reuseStrategy, "Connection reuse strategy");
+        Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
+        Args.notNull(targetAuthStrategy, "Target authentication strategy");
+        Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
+        Args.notNull(userTokenHandler, "User token handler");
         this.authenticator      = new HttpAuthenticator();
         this.proxyHttpProcessor = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {
                 new RequestClientConnControl(),
@@ -145,15 +132,9 @@ public class MainClientExec implements ClientExecChain {
             final HttpRequestWrapper request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
-        if (route == null) {
-            throw new IllegalArgumentException("HTTP route may not be null");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(route, "HTTP route");
+        Args.notNull(request, "HTTP request");
+        Args.notNull(context, "HTTP context");
 
         AuthState targetAuthState = context.getTargetAuthState();
         if (targetAuthState == null) {

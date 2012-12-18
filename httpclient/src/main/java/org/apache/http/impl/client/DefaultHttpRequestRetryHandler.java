@@ -34,14 +34,14 @@ import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLException;
 
-import org.apache.http.annotation.Immutable;
-
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.ExecutionContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
  * The default {@link HttpRequestRetryHandler} used by request executors.
@@ -82,12 +82,8 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             final IOException exception,
             int executionCount,
             final HttpContext context) {
-        if (exception == null) {
-            throw new IllegalArgumentException("Exception parameter may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(exception, "Exception parameter");
+        Args.notNull(context, "HTTP context");
         if (executionCount > this.retryCount) {
             // Do not retry if over max retry count
             return false;

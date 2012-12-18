@@ -30,6 +30,8 @@ package org.apache.http.conn.routing;
 import java.net.InetAddress;
 
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 import org.apache.http.util.LangUtils;
 
 import org.apache.http.HttpHost;
@@ -78,9 +80,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      *                  <code>null</code> for the default
      */
     public RouteTracker(HttpHost target, InetAddress local) {
-        if (target == null) {
-            throw new IllegalArgumentException("Target host may not be null.");
-        }
+        Args.notNull(target, "Target host");
         this.targetHost   = target;
         this.localAddress = local;
         this.tunnelled    = TunnelType.PLAIN;
@@ -116,9 +116,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      *                  <code>false</code> otherwise
      */
     public final void connectTarget(boolean secure) {
-        if (this.connected) {
-            throw new IllegalStateException("Already connected.");
-        }
+        Asserts.check(!this.connected, "Already connected");
         this.connected = true;
         this.secure = secure;
     }
@@ -131,12 +129,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      *                  <code>false</code> otherwise
      */
     public final void connectProxy(HttpHost proxy, boolean secure) {
-        if (proxy == null) {
-            throw new IllegalArgumentException("Proxy host may not be null.");
-        }
-        if (this.connected) {
-            throw new IllegalStateException("Already connected.");
-        }
+        Args.notNull(proxy, "Proxy host");
+        Asserts.check(!this.connected, "Already connected");
         this.connected  = true;
         this.proxyChain = new HttpHost[]{ proxy };
         this.secure     = secure;
@@ -149,12 +143,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      *                  <code>false</code> otherwise
      */
     public final void tunnelTarget(boolean secure) {
-        if (!this.connected) {
-            throw new IllegalStateException("No tunnel unless connected.");
-        }
-        if (this.proxyChain == null) {
-            throw new IllegalStateException("No tunnel without proxy.");
-        }
+        Asserts.check(this.connected, "No tunnel unless connected");
+        Asserts.notNull(this.proxyChain, "No tunnel without proxy");
         this.tunnelled = TunnelType.TUNNELLED;
         this.secure    = secure;
     }
@@ -169,16 +159,9 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      *                  <code>false</code> otherwise
      */
     public final void tunnelProxy(HttpHost proxy, boolean secure) {
-        if (proxy == null) {
-            throw new IllegalArgumentException("Proxy host may not be null.");
-        }
-        if (!this.connected) {
-            throw new IllegalStateException("No tunnel unless connected.");
-        }
-        if (this.proxyChain == null) {
-            throw new IllegalStateException("No proxy tunnel without proxy.");
-        }
-
+        Args.notNull(proxy, "Proxy host");
+        Asserts.check(this.connected, "No tunnel unless connected");
+        Asserts.notNull(this.proxyChain, "No tunnel without proxy");
         // prepare an extended proxy chain
         HttpHost[] proxies = new HttpHost[this.proxyChain.length+1];
         System.arraycopy(this.proxyChain, 0,
@@ -198,10 +181,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     public final void layerProtocol(boolean secure) {
         // it is possible to layer a protocol over a direct connection,
         // although this case is probably not considered elsewhere
-        if (!this.connected) {
-            throw new IllegalStateException
-                ("No layered protocol unless connected.");
-        }
+        Asserts.check(this.connected, "No layered protocol unless connected");
         this.layered = LayerType.LAYERED;
         this.secure  = secure;
     }
@@ -226,16 +206,9 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     }
 
     public final HttpHost getHopTarget(int hop) {
-        if (hop < 0)
-            throw new IllegalArgumentException
-                ("Hop index must not be negative: " + hop);
+        Args.notNegative(hop, "Hop index");
         final int hopcount = getHopCount();
-        if (hop >= hopcount) {
-            throw new IllegalArgumentException
-                ("Hop index " + hop +
-                 " exceeds tracked route length " + hopcount +".");
-        }
-
+        Args.check(hop < hopcount, "Hop index exceeds tracked route length");
         HttpHost result = null;
         if (hop < hopcount-1)
             result = this.proxyChain[hop];

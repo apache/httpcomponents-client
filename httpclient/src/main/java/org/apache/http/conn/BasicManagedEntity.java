@@ -36,6 +36,7 @@ import org.apache.http.annotation.NotThreadSafe;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
+import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -73,11 +74,7 @@ public class BasicManagedEntity extends HttpEntityWrapper
                               ManagedClientConnection conn,
                               boolean reuse) {
         super(entity);
-
-        if (conn == null)
-            throw new IllegalArgumentException
-                ("Connection may not be null.");
-
+        Args.notNull(conn, "Connection");
         this.managedConn = conn;
         this.attemptReuse = reuse;
     }

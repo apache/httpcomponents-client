@@ -29,32 +29,32 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.annotation.ThreadSafe;
-
 import org.apache.http.HttpHost;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.protocol.HttpContext;
-
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.HttpInetSocketAddress;
 import org.apache.http.conn.OperatedClientConnection;
-import org.apache.http.conn.ClientConnectionOperator;
-import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
-
-import org.apache.http.conn.DnsResolver;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * Default implementation of a {@link ClientConnectionOperator}. It uses a {@link SchemeRegistry}
@@ -107,9 +107,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
      * @since 4.2
      */
     public DefaultClientConnectionOperator(final SchemeRegistry schemes) {
-        if (schemes == null) {
-            throw new IllegalArgumentException("Scheme registry amy not be null");
-        }
+        Args.notNull(schemes, "Scheme registry");
         this.schemeRegistry = schemes;
         this.dnsResolver = new SystemDefaultDnsResolver();
     }
@@ -124,14 +122,9 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
     *            the custom DNS lookup mechanism
     */
     public DefaultClientConnectionOperator(final SchemeRegistry schemes,final DnsResolver dnsResolver) {
-        if (schemes == null) {
-            throw new IllegalArgumentException(
-                     "Scheme registry may not be null");
-        }
+        Args.notNull(schemes, "Scheme registry");
 
-        if(dnsResolver == null){
-            throw new IllegalArgumentException("DNS resolver may not be null");
-        }
+        Args.notNull(dnsResolver, "DNS resolver");
 
         this.schemeRegistry = schemes;
         this.dnsResolver = dnsResolver;
@@ -156,18 +149,10 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
             final InetAddress local,
             final HttpContext context,
             final HttpParams params) throws IOException {
-        if (conn == null) {
-            throw new IllegalArgumentException("Connection may not be null");
-        }
-        if (target == null) {
-            throw new IllegalArgumentException("Target host may not be null");
-        }
-        if (params == null) {
-            throw new IllegalArgumentException("Parameters may not be null");
-        }
-        if (conn.isOpen()) {
-            throw new IllegalStateException("Connection must not be open");
-        }
+        Args.notNull(conn, "Connection");
+        Args.notNull(target, "Target host");
+        Args.notNull(params, "HTTP parameters");
+        Asserts.check(!conn.isOpen(), "Connection must not be open");
 
         SchemeRegistry registry = getSchemeRegistry(context);
         Scheme schm = registry.getScheme(target.getSchemeName());
@@ -220,27 +205,15 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
             final HttpHost target,
             final HttpContext context,
             final HttpParams params) throws IOException {
-        if (conn == null) {
-            throw new IllegalArgumentException("Connection may not be null");
-        }
-        if (target == null) {
-            throw new IllegalArgumentException("Target host may not be null");
-        }
-        if (params == null) {
-            throw new IllegalArgumentException("Parameters may not be null");
-        }
-        if (!conn.isOpen()) {
-            throw new IllegalStateException("Connection must be open");
-        }
+        Args.notNull(conn, "Connection");
+        Args.notNull(target, "Target host");
+        Args.notNull(params, "Parameters");
+        Asserts.check(conn.isOpen(), "Connection must be open");
 
         SchemeRegistry registry = getSchemeRegistry(context);
         Scheme schm = registry.getScheme(target.getSchemeName());
-        if (!(schm.getSchemeSocketFactory() instanceof SchemeLayeredSocketFactory)) {
-            throw new IllegalArgumentException
-                ("Target scheme (" + schm.getName() +
-                 ") must have layered socket factory.");
-        }
-
+        Asserts.check(schm.getSchemeSocketFactory() instanceof LayeredConnectionSocketFactory,
+            "Socket factory must implement SchemeLayeredSocketFactory");
         SchemeLayeredSocketFactory lsf = (SchemeLayeredSocketFactory) schm.getSchemeSocketFactory();
         Socket sock;
         try {

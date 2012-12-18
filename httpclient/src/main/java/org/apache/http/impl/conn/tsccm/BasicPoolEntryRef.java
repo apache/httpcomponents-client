@@ -30,6 +30,7 @@ import java.lang.ref.WeakReference;
 import java.lang.ref.ReferenceQueue;
 
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.util.Args;
 
 /**
  * A weak reference to a {@link BasicPoolEntry BasicPoolEntry}.
@@ -56,10 +57,7 @@ public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
     public BasicPoolEntryRef(BasicPoolEntry entry,
                              ReferenceQueue<Object> queue) {
         super(entry, queue);
-        if (entry == null) {
-            throw new IllegalArgumentException
-                ("Pool entry must not be null.");
-        }
+        Args.notNull(entry, "Pool entry");
         route = entry.getPlannedRoute();
     }
 

@@ -51,6 +51,7 @@ import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Asserts;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -142,10 +143,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
         AuthSchemeRegistry registry = (AuthSchemeRegistry) context.getAttribute(
                 ClientContext.AUTHSCHEME_REGISTRY);
-        if (registry == null) {
-            throw new IllegalStateException("AuthScheme registry not set in HTTP context");
-        }
-
+        Asserts.notNull(registry, "AuthScheme registry");
         Collection<String> authPrefs = getAuthPreferences(response, context);
         if (authPrefs == null) {
             authPrefs = DEFAULT_SCHEME_PRIORITY;

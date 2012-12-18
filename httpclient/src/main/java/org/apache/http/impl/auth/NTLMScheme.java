@@ -26,18 +26,17 @@
 
 package org.apache.http.impl.auth;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.NTCredentials;
-import org.apache.http.impl.auth.AuthSchemeBase;
 import org.apache.http.message.BufferedHeader;
+import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -65,9 +64,7 @@ public class NTLMScheme extends AuthSchemeBase {
 
     public NTLMScheme(final NTLMEngine engine) {
         super();
-        if (engine == null) {
-            throw new IllegalArgumentException("NTLM engine may not be null");
-        }
+        Args.notNull(engine, "NTLM engine");
         this.engine = engine;
         this.state = State.UNINITIATED;
         this.challenge = null;

@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.util.Args;
 
 /**
  * A utility class for parsing and formatting HTTP dates as used in cookies and
@@ -134,10 +135,7 @@ public final class DateUtils {
         String[] dateFormats,
         Date startDate
     ) throws DateParseException {
-
-        if (dateValue == null) {
-            throw new IllegalArgumentException("dateValue is null");
-        }
+        Args.notNull(dateValue, "Date value");
         if (dateFormats == null) {
             dateFormats = DEFAULT_PATTERNS;
         }
@@ -192,9 +190,8 @@ public final class DateUtils {
      * @see SimpleDateFormat
      */
     public static String formatDate(Date date, String pattern) {
-        if (date == null) throw new IllegalArgumentException("date is null");
-        if (pattern == null) throw new IllegalArgumentException("pattern is null");
-
+        Args.notNull(date, "Date");
+        Args.notNull(pattern, "Pattern");
         SimpleDateFormat formatter = DateFormatHolder.formatFor(pattern);
         return formatter.format(date);
     }

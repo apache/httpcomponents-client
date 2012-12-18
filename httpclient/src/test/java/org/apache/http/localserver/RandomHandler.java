@@ -155,13 +155,6 @@ public class RandomHandler
          *              0 to maxint
          */
         public RandomEntity(long len) {
-            if (len < 0L)
-                throw new IllegalArgumentException
-                    ("Length must not be negative");
-            if (len > Integer.MAX_VALUE)
-                throw new IllegalArgumentException
-                    ("Length must not exceed Integer.MAX_VALUE");
-
             length = len;
         }
 

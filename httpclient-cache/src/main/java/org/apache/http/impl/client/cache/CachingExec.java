@@ -66,6 +66,7 @@ import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.util.VersionInfo;
 
@@ -119,12 +120,8 @@ public class CachingExec implements ClientExecChain {
             HttpCache cache,
             CacheConfig config) {
         super();
-        if (backend == null) {
-            throw new IllegalArgumentException("HTTP backend may not be null");
-        }
-        if (cache == null) {
-            throw new IllegalArgumentException("HttpCache may not be null");
-        }
+        Args.notNull(backend, "HTTP backend");
+        Args.notNull(cache, "HttpCache");
         this.cacheConfig = config != null ? config : CacheConfig.DEFAULT;
         this.backend = backend;
         this.responseCache = cache;

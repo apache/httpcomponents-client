@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.IOException;
 
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.util.Args;
 
 /**
  * Basic implementation of {@link EofSensorWatcher}. The underlying connection
@@ -58,10 +59,7 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
      */
     public BasicEofSensorWatcher(ManagedClientConnection conn,
                                  boolean reuse) {
-        if (conn == null)
-            throw new IllegalArgumentException
-                ("Connection may not be null.");
-
+        Args.notNull(conn, "Connection");
         managedConn = conn;
         attemptReuse = reuse;
     }

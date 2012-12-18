@@ -34,6 +34,7 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.cookie.CookieSpecRegistry;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
  * Configuration facade for {@link HttpContext} instances.
@@ -49,8 +50,7 @@ public class ClientContextConfigurer implements ClientContext {
     private final HttpContext context;
 
     public ClientContextConfigurer (final HttpContext context) {
-        if (context == null)
-            throw new IllegalArgumentException("HTTP context may not be null");
+        Args.notNull(context, "HTTP context");
         this.context = context;
     }
 

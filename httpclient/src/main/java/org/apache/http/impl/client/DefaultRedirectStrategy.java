@@ -50,6 +50,8 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * Default implementation of {@link RedirectStrategy}. This strategy honors the restrictions
@@ -90,12 +92,8 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             final HttpRequest request,
             final HttpResponse response,
             final HttpContext context) throws ProtocolException {
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
+        Args.notNull(request, "HTTP request");
+        Args.notNull(response, "HTTP response");
 
         int statusCode = response.getStatusLine().getStatusCode();
         String method = request.getRequestLine().getMethod();
@@ -117,15 +115,9 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             final HttpRequest request,
             final HttpResponse response,
             final HttpContext context) throws ProtocolException {
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(request, "HTTP request");
+        Args.notNull(response, "HTTP response");
+        Args.notNull(context, "HTTP context");
 
         HttpClientContext clientContext = HttpClientContext.adapt(context);
 
@@ -158,10 +150,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
                 }
                 // Adjust location URI
                 HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
-                if (target == null) {
-                    throw new IllegalStateException("Target host not available " +
-                            "in the HTTP context");
-                }
+                Asserts.notNull(target, "Target host");
                 URI requestURI = new URI(request.getRequestLine().getUri());
                 URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, true);
                 uri = URIUtils.resolve(absoluteRequestURI, uri);

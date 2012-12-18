@@ -50,6 +50,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
+import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -69,15 +70,9 @@ public class RedirectExec implements ClientExecChain {
             final HttpRoutePlanner routePlanner,
             final RedirectStrategy redirectStrategy) {
         super();
-        if (requestExecutor == null) {
-            throw new IllegalArgumentException("HTTP client request executor may not be null");
-        }
-        if (routePlanner == null) {
-            throw new IllegalArgumentException("HTTP route planner may not be null");
-        }
-        if (redirectStrategy == null) {
-            throw new IllegalArgumentException("HTTP redirect strategy may not be null");
-        }
+        Args.notNull(requestExecutor, "HTTP client request executor");
+        Args.notNull(routePlanner, "HTTP route planner");
+        Args.notNull(redirectStrategy, "HTTP redirect strategy");
         this.requestExecutor = requestExecutor;
         this.routePlanner = routePlanner;
         this.redirectStrategy = redirectStrategy;
@@ -88,15 +83,9 @@ public class RedirectExec implements ClientExecChain {
             final HttpRequestWrapper request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
-        if (route == null) {
-            throw new IllegalArgumentException("HTTP route may not be null");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(route, "HTTP route");
+        Args.notNull(request, "HTTP request");
+        Args.notNull(context, "HTTP context");
 
         RequestConfig config = context.getRequestConfig();
         int maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;

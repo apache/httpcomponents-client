@@ -40,6 +40,7 @@ import org.apache.http.config.Registry;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 
 /**
  * Cookie specification registry that can be used to obtain the corresponding
@@ -73,12 +74,8 @@ public final class CookieSpecRegistry implements Lookup<CookieSpecProvider> {
      * @see #getCookieSpec(String)
      */
     public void register(final String name, final CookieSpecFactory factory) {
-         if (name == null) {
-             throw new IllegalArgumentException("Name may not be null");
-         }
-        if (factory == null) {
-            throw new IllegalArgumentException("Cookie spec factory may not be null");
-        }
+         Args.notNull(name, "Name");
+        Args.notNull(factory, "Cookie spec factory");
         registeredSpecs.put(name.toLowerCase(Locale.ENGLISH), factory);
     }
 
@@ -88,9 +85,7 @@ public final class CookieSpecRegistry implements Lookup<CookieSpecProvider> {
      * @param id the identifier of the {@link CookieSpec cookie specification} to unregister
      */
     public void unregister(final String id) {
-         if (id == null) {
-             throw new IllegalArgumentException("Id may not be null");
-         }
+         Args.notNull(id, "Id");
          registeredSpecs.remove(id.toLowerCase(Locale.ENGLISH));
     }
 
@@ -108,9 +103,7 @@ public final class CookieSpecRegistry implements Lookup<CookieSpecProvider> {
     public CookieSpec getCookieSpec(final String name, final HttpParams params)
         throws IllegalStateException {
 
-        if (name == null) {
-            throw new IllegalArgumentException("Name may not be null");
-        }
+        Args.notNull(name, "Name");
         CookieSpecFactory factory = registeredSpecs.get(name.toLowerCase(Locale.ENGLISH));
         if (factory != null) {
             return factory.newInstance(params);

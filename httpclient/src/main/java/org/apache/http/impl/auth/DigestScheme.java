@@ -38,24 +38,24 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
+import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BasicHeaderValueFormatter;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EncodingUtils;
 
@@ -206,12 +206,8 @@ public class DigestScheme extends RFC2617Scheme {
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
 
-        if (credentials == null) {
-            throw new IllegalArgumentException("Credentials may not be null");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
+        Args.notNull(credentials, "Credentials");
+        Args.notNull(request, "HTTP request");
         if (getParameter("realm") == null) {
             throw new AuthenticationException("missing realm in challenge");
         }

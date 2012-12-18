@@ -30,7 +30,7 @@ import java.util.Locale;
 
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
-
+import org.apache.http.util.Args;
 import org.apache.http.util.LangUtils;
 
 /**
@@ -162,9 +162,7 @@ public class AuthScope {
      */
     public AuthScope(final AuthScope authscope) {
         super();
-        if (authscope == null) {
-            throw new IllegalArgumentException("Scope may not be null");
-        }
+        Args.notNull(authscope, "Scope");
         this.host = authscope.getHost();
         this.port = authscope.getPort();
         this.realm = authscope.getRealm();

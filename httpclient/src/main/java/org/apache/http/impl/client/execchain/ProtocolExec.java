@@ -51,6 +51,7 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
+import org.apache.http.util.Args;
 
 /**
  * @since 4.3
@@ -67,12 +68,8 @@ public class ProtocolExec implements ClientExecChain {
     public ProtocolExec(
             final ClientExecChain requestExecutor,
             final HttpProcessor httpProcessor) {
-        if (requestExecutor == null) {
-            throw new IllegalArgumentException("HTTP client request executor may not be null");
-        }
-        if (httpProcessor == null) {
-            throw new IllegalArgumentException("HTTP protocol processor may not be null");
-        }
+        Args.notNull(requestExecutor, "HTTP client request executor");
+        Args.notNull(httpProcessor, "HTTP protocol processor");
         this.requestExecutor = requestExecutor;
         this.httpProcessor = httpProcessor;
     }
@@ -112,15 +109,9 @@ public class ProtocolExec implements ClientExecChain {
             final HttpRequestWrapper request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
-        if (route == null) {
-            throw new IllegalArgumentException("HTTP route may not be null");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(route, "HTTP route");
+        Args.notNull(request, "HTTP request");
+        Args.notNull(context, "HTTP context");
 
         HttpHost target = route.getTargetHost();
 

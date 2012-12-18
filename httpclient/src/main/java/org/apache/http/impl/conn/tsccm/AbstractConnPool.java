@@ -29,21 +29,21 @@ package org.apache.http.impl.conn.tsccm;
 import java.io.IOException;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
-import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.http.annotation.GuardedBy;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.annotation.GuardedBy;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.IdleConnectionHandler;
+import org.apache.http.util.Args;
 
 /**
  * An abstract connection pool.
@@ -160,9 +160,7 @@ public abstract class AbstractConnPool {
     public void closeIdleConnections(long idletime, TimeUnit tunit) {
 
         // idletime can be 0 or negative, no problem there
-        if (tunit == null) {
-            throw new IllegalArgumentException("Time unit must not be null.");
-        }
+        Args.notNull(tunit, "Time unit");
 
         poolLock.lock();
         try {

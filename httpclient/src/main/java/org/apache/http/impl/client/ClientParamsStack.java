@@ -32,6 +32,7 @@ import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.params.DefaultedHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.AbstractHttpParams;
+import org.apache.http.util.Args;
 
 /**
  * Represents a stack of parameter collections.
@@ -190,10 +191,7 @@ public class ClientParamsStack extends AbstractHttpParams {
      *          <code>null</code> if it is not set anywhere in this stack
      */
     public Object getParameter(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException
-                ("Parameter name must not be null.");
-        }
+        Args.notNull(name, "Parameter name");
 
         Object result = null;
 

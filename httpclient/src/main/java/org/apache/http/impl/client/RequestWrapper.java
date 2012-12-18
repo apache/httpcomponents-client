@@ -30,16 +30,16 @@ package org.apache.http.impl.client;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.params.HttpProtocolParams;
+import org.apache.http.util.Args;
 
 /**
  * A wrapper class for {@link HttpRequest}s that can be used to change
@@ -66,9 +66,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
 
     public RequestWrapper(final HttpRequest request) throws ProtocolException {
         super();
-        if (request == null) {
-            throw new IllegalArgumentException("HTTP request may not be null");
-        }
+        Args.notNull(request, "HTTP request");
         this.original = request;
         setParams(request.getParams());
         setHeaders(request.getAllHeaders());
@@ -102,9 +100,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
     }
 
     public void setMethod(final String method) {
-        if (method == null) {
-            throw new IllegalArgumentException("Method name may not be null");
-        }
+        Args.notNull(method, "Method name");
         this.method = method;
     }
 

@@ -31,12 +31,14 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.message.HeaderGroup;
+import org.apache.http.util.Args;
 
 /**
  * Structure used to store an {@link HttpResponse} in a cache. Some entries
@@ -85,18 +87,10 @@ public class HttpCacheEntry implements Serializable {
             final Resource resource,
             final Map<String,String> variantMap) {
         super();
-        if (requestDate == null) {
-            throw new IllegalArgumentException("Request date may not be null");
-        }
-        if (responseDate == null) {
-            throw new IllegalArgumentException("Response date may not be null");
-        }
-        if (statusLine == null) {
-            throw new IllegalArgumentException("Status line may not be null");
-        }
-        if (responseHeaders == null) {
-            throw new IllegalArgumentException("Response headers may not be null");
-        }
+        Args.notNull(requestDate, "Request date");
+        Args.notNull(responseDate, "Response date");
+        Args.notNull(statusLine, "Status line");
+        Args.notNull(responseHeaders, "Response headers");
         this.requestDate = requestDate;
         this.responseDate = responseDate;
         this.statusLine = statusLine;

@@ -28,9 +28,9 @@ package org.apache.http.client.params;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.config.RequestConfig;
-
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.util.Args;
 
 /**
  * An adaptor for manipulating HTTP client parameters in {@link HttpParams}.
@@ -48,41 +48,31 @@ public class HttpClientParams {
     }
 
     public static boolean isRedirecting(final HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         return params.getBooleanParameter
             (ClientPNames.HANDLE_REDIRECTS, true);
     }
 
     public static void setRedirecting(final HttpParams params, boolean value) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         params.setBooleanParameter
             (ClientPNames.HANDLE_REDIRECTS, value);
     }
 
     public static boolean isAuthenticating(final HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         return params.getBooleanParameter
             (ClientPNames.HANDLE_AUTHENTICATION, true);
     }
 
     public static void setAuthenticating(final HttpParams params, boolean value) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         params.setBooleanParameter
             (ClientPNames.HANDLE_AUTHENTICATION, value);
     }
 
     public static String getCookiePolicy(final HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         String cookiePolicy = (String)
             params.getParameter(ClientPNames.COOKIE_POLICY);
         if (cookiePolicy == null) {
@@ -92,9 +82,7 @@ public class HttpClientParams {
     }
 
     public static void setCookiePolicy(final HttpParams params, final String cookiePolicy) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         params.setParameter(ClientPNames.COOKIE_POLICY, cookiePolicy);
     }
 
@@ -104,9 +92,7 @@ public class HttpClientParams {
      * @since 4.2
      */
     public static void setConnectionManagerTimeout(final HttpParams params, long timeout) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         params.setLongParameter(ClientPNames.CONN_MANAGER_TIMEOUT, timeout);
     }
 
@@ -120,9 +106,7 @@ public class HttpClientParams {
      * @return the timeout value
      */
     public static long getConnectionManagerTimeout(final HttpParams params) {
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(params, "HTTP parameters");
         Long timeout = (Long) params.getParameter(ClientPNames.CONN_MANAGER_TIMEOUT);
         if (timeout != null) {
             return timeout.longValue();

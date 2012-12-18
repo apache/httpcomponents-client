@@ -34,9 +34,9 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.SetCookie;
+import org.apache.http.util.Args;
 
 /**
  * Default implementation of {@link SetCookie}.
@@ -56,9 +56,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
      */
     public BasicClientCookie(final String name, final String value) {
         super();
-        if (name == null) {
-            throw new IllegalArgumentException("Name may not be null");
-        }
+        Args.notNull(name, "Name");
         this.name = name;
         this.attribs = new HashMap<String, String>();
         this.value = value;
@@ -282,9 +280,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
      * @return <tt>true</tt> if the cookie has expired.
      */
     public boolean isExpired(final Date date) {
-        if (date == null) {
-            throw new IllegalArgumentException("Date may not be null");
-        }
+        Args.notNull(date, "Date");
         return (cookieExpiryDate != null
             && cookieExpiryDate.getTime() <= date.getTime());
     }

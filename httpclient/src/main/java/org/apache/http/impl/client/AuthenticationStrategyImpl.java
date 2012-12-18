@@ -59,6 +59,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Lookup;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 @Immutable
@@ -88,9 +89,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
             final HttpHost authhost,
             final HttpResponse response,
             final HttpContext context) {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
+        Args.notNull(response, "HTTP response");
         int status = response.getStatusLine().getStatusCode();
         return status == this.challengeCode;
     }
@@ -99,9 +98,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
             final HttpHost authhost,
             final HttpResponse response,
             final HttpContext context) throws MalformedChallengeException {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
+        Args.notNull(response, "HTTP response");
         Header[] headers = response.getHeaders(this.headerName);
         Map<String, Header> map = new HashMap<String, Header>(headers.length);
         for (Header header : headers) {
@@ -140,18 +137,10 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
             final HttpHost authhost,
             final HttpResponse response,
             final HttpContext context) throws MalformedChallengeException {
-        if (challenges == null) {
-            throw new IllegalArgumentException("Map of auth challenges may not be null");
-        }
-        if (authhost == null) {
-            throw new IllegalArgumentException("Host may not be null");
-        }
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(challenges, "Map of auth challenges");
+        Args.notNull(authhost, "Host");
+        Args.notNull(response, "HTTP response");
+        Args.notNull(context, "HTTP context");
         HttpClientContext clientContext = HttpClientContext.adapt(context);
 
         Queue<AuthOption> options = new LinkedList<AuthOption>();
@@ -210,15 +199,9 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
 
     public void authSucceeded(
             final HttpHost authhost, final AuthScheme authScheme, final HttpContext context) {
-        if (authhost == null) {
-            throw new IllegalArgumentException("Host may not be null");
-        }
-        if (authScheme == null) {
-            throw new IllegalArgumentException("Auth scheme may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(authhost, "Host");
+        Args.notNull(authScheme, "Auth scheme");
+        Args.notNull(context, "HTTP context");
 
         HttpClientContext clientContext = HttpClientContext.adapt(context);
 
@@ -247,12 +230,8 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
 
     public void authFailed(
             final HttpHost authhost, final AuthScheme authScheme, final HttpContext context) {
-        if (authhost == null) {
-            throw new IllegalArgumentException("Host may not be null");
-        }
-        if (context == null) {
-            throw new IllegalArgumentException("HTTP context may not be null");
-        }
+        Args.notNull(authhost, "Host");
+        Args.notNull(context, "HTTP context");
 
         HttpClientContext clientContext = HttpClientContext.adapt(context);
 

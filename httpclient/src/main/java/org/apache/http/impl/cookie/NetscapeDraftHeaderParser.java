@@ -30,15 +30,15 @@ package org.apache.http.impl.cookie;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.annotation.Immutable;
-
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.message.BasicHeaderElement;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.ParserCursor;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -57,12 +57,8 @@ public class NetscapeDraftHeaderParser {
     public HeaderElement parseHeader(
             final CharArrayBuffer buffer,
             final ParserCursor cursor) throws ParseException {
-        if (buffer == null) {
-            throw new IllegalArgumentException("Char array buffer may not be null");
-        }
-        if (cursor == null) {
-            throw new IllegalArgumentException("Parser cursor may not be null");
-        }
+        Args.notNull(buffer, "Char array buffer");
+        Args.notNull(cursor, "Parser cursor");
         NameValuePair nvp = parseNameValuePair(buffer, cursor);
         List<NameValuePair> params = new ArrayList<NameValuePair>();
         while (!cursor.atEnd()) {

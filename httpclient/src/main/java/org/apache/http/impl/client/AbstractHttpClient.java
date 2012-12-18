@@ -89,6 +89,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
+import org.apache.http.util.Args;
 
 /**
  * Base class for {@link HttpClient} implementations. This class acts as
@@ -780,10 +781,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
                                       HttpContext context)
         throws IOException, ClientProtocolException {
 
-        if (request == null) {
-            throw new IllegalArgumentException
-                ("Request must not be null.");
-        }
+        Args.notNull(request, "HTTP request");
         // a null target may be acceptable, this depends on the route planner
         // a null context is acceptable, default context created below
 

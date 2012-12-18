@@ -50,6 +50,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 import org.apache.http.impl.SocketHttpClientConnection;
 import org.apache.http.io.HttpMessageParser;
 import org.apache.http.io.SessionInputBuffer;
@@ -129,11 +130,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
     public void openCompleted(boolean secure, HttpParams params) throws IOException {
+        Args.notNull(params, "Parameters");
         assertNotOpen();
-        if (params == null) {
-            throw new IllegalArgumentException
-                ("Parameters must not be null.");
-        }
         this.connSecure = secure;
         bind(this.socket, params);
     }
@@ -240,14 +238,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         throws IOException {
 
         assertOpen();
-        if (target == null) {
-            throw new IllegalArgumentException
-                ("Target host must not be null.");
-        }
-        if (params == null) {
-            throw new IllegalArgumentException
-                ("Parameters must not be null.");
-        }
+        Args.notNull(target, "Target host");
+        Args.notNull(params, "Parameters");
 
         if (sock != null) {
             this.socket = sock;

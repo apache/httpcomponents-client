@@ -30,9 +30,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Stack;
 
-import org.apache.http.annotation.Immutable;
-
 import org.apache.http.HttpHost;
+import org.apache.http.annotation.Immutable;
+import org.apache.http.util.Args;
 
 /**
  * A collection of utilities for {@link URI URIs}, to workaround
@@ -128,9 +128,7 @@ public class URIUtils {
             final URI uri,
             final HttpHost target,
             boolean dropFragment) throws URISyntaxException {
-        if (uri == null) {
-            throw new IllegalArgumentException("URI may not be null");
-        }
+        Args.notNull(uri, "URI");
         URIBuilder uribuilder = new URIBuilder(uri);
         if (target != null) {
             uribuilder.setScheme(target.getSchemeName());
@@ -169,9 +167,7 @@ public class URIUtils {
      *             If the resulting URI is invalid.
      */
     public static URI rewriteURI(final URI uri) throws URISyntaxException {
-        if (uri == null) {
-            throw new IllegalArgumentException("URI may not be null");
-        }
+        Args.notNull(uri, "URI");
         if (uri.getFragment() != null || uri.getUserInfo() != null) {
             return new URIBuilder(uri).setFragment(null).setUserInfo(null).build();
         } else {
@@ -200,12 +196,8 @@ public class URIUtils {
      * @return the resulting URI
      */
     public static URI resolve(final URI baseURI, URI reference){
-        if (baseURI == null) {
-            throw new IllegalArgumentException("Base URI may nor be null");
-        }
-        if (reference == null) {
-            throw new IllegalArgumentException("Reference URI may nor be null");
-        }
+        Args.notNull(baseURI, "Base URI");
+        Args.notNull(reference, "Reference URI");
         String s = reference.toString();
         if (s.startsWith("?")) {
             return resolveReferenceStartingWithQueryString(baseURI, reference);

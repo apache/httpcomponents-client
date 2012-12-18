@@ -30,7 +30,7 @@ import java.io.Serializable;
 import java.security.Principal;
 
 import org.apache.http.annotation.Immutable;
-
+import org.apache.http.util.Args;
 import org.apache.http.util.LangUtils;
 
 /**
@@ -47,9 +47,7 @@ public final class BasicUserPrincipal implements Principal, Serializable {
 
     public BasicUserPrincipal(final String username) {
         super();
-        if (username == null) {
-            throw new IllegalArgumentException("User name may not be null");
-        }
+        Args.notNull(username, "User name");
         this.username = username;
     }
 

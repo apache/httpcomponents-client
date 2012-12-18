@@ -31,12 +31,12 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpResponse;
+import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.util.Args;
 
 /**
  * HTTP OPTIONS method.
@@ -83,9 +83,7 @@ public class HttpOptions extends HttpRequestBase {
     }
 
     public Set<String> getAllowedMethods(final HttpResponse response) {
-        if (response == null) {
-            throw new IllegalArgumentException("HTTP response may not be null");
-        }
+        Args.notNull(response, "HTTP response");
 
         HeaderIterator it = response.headerIterator("Allow");
         Set<String> methods = new HashSet<String>();

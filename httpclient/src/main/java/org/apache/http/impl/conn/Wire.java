@@ -26,13 +26,13 @@
 
 package org.apache.http.impl.conn;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ByteArrayInputStream;
-
-import org.apache.http.annotation.Immutable;
 
 import org.apache.commons.logging.Log;
+import org.apache.http.annotation.Immutable;
+import org.apache.http.util.Args;
 
 /**
  * Logs data to the wire LOG.
@@ -94,49 +94,37 @@ public class Wire {
 
     public void output(InputStream outstream)
       throws IOException {
-        if (outstream == null) {
-            throw new IllegalArgumentException("Output may not be null");
-        }
+        Args.notNull(outstream, "Output");
         wire(">> ", outstream);
     }
 
     public void input(InputStream instream)
       throws IOException {
-        if (instream == null) {
-            throw new IllegalArgumentException("Input may not be null");
-        }
+        Args.notNull(instream, "Input");
         wire("<< ", instream);
     }
 
     public void output(byte[] b, int off, int len)
       throws IOException {
-        if (b == null) {
-            throw new IllegalArgumentException("Output may not be null");
-        }
+        Args.notNull(b, "Output");
         wire(">> ", new ByteArrayInputStream(b, off, len));
     }
 
     public void input(byte[] b, int off, int len)
       throws IOException {
-        if (b == null) {
-            throw new IllegalArgumentException("Input may not be null");
-        }
+        Args.notNull(b, "Input");
         wire("<< ", new ByteArrayInputStream(b, off, len));
     }
 
     public void output(byte[] b)
       throws IOException {
-        if (b == null) {
-            throw new IllegalArgumentException("Output may not be null");
-        }
+        Args.notNull(b, "Output");
         wire(">> ", new ByteArrayInputStream(b));
     }
 
     public void input(byte[] b)
       throws IOException {
-        if (b == null) {
-            throw new IllegalArgumentException("Input may not be null");
-        }
+        Args.notNull(b, "Input");
         wire("<< ", new ByteArrayInputStream(b));
     }
 
@@ -156,9 +144,7 @@ public class Wire {
     @Deprecated 
     public void output(final String s)
       throws IOException {
-        if (s == null) {
-            throw new IllegalArgumentException("Output may not be null");
-        }
+        Args.notNull(s, "Output");
         output(s.getBytes());
     }
 
@@ -168,9 +154,7 @@ public class Wire {
     @Deprecated 
     public void input(final String s)
       throws IOException {
-        if (s == null) {
-            throw new IllegalArgumentException("Input may not be null");
-        }
+        Args.notNull(s, "Input");
         input(s.getBytes());
     }
 }

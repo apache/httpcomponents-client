@@ -28,11 +28,10 @@ package org.apache.http.impl.auth;
 
 import java.util.Locale;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ChallengeState;
@@ -41,6 +40,7 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -86,9 +86,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
      * is malformed
      */
     public void processChallenge(final Header header) throws MalformedChallengeException {
-        if (header == null) {
-            throw new IllegalArgumentException("Header may not be null");
-        }
+        Args.notNull(header, "Header");
         String authheader = header.getName();
         if (authheader.equalsIgnoreCase(AUTH.WWW_AUTH)) {
             this.challengeState = ChallengeState.TARGET;

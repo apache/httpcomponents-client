@@ -31,7 +31,7 @@ import java.security.Principal;
 import java.util.Locale;
 
 import org.apache.http.annotation.Immutable;
-
+import org.apache.http.util.Args;
 import org.apache.http.util.LangUtils;
 
 /**
@@ -52,9 +52,7 @@ public class NTUserPrincipal implements Principal, Serializable {
             final String domain,
             final String username) {
         super();
-        if (username == null) {
-            throw new IllegalArgumentException("User name may not be null");
-        }
+        Args.notNull(username, "User name");
         this.username = username;
         if (domain != null) {
             this.domain = domain.toUpperCase(Locale.ENGLISH);

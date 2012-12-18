@@ -31,7 +31,7 @@ import java.security.Principal;
 import java.util.Locale;
 
 import org.apache.http.annotation.Immutable;
-
+import org.apache.http.util.Args;
 import org.apache.http.util.LangUtils;
 
 /**
@@ -62,9 +62,7 @@ public class NTCredentials implements Credentials, Serializable {
      */
     public NTCredentials(String usernamePassword) {
         super();
-        if (usernamePassword == null) {
-            throw new IllegalArgumentException("Username:password string may not be null");
-        }
+        Args.notNull(usernamePassword, "Username:password string");
         String username;
         int atColon = usernamePassword.indexOf(':');
         if (atColon >= 0) {
@@ -102,9 +100,7 @@ public class NTCredentials implements Credentials, Serializable {
             final String workstation,
             final String domain) {
         super();
-        if (userName == null) {
-            throw new IllegalArgumentException("User name may not be null");
-        }
+        Args.notNull(userName, "User name");
         this.principal = new NTUserPrincipal(domain, userName);
         this.password = password;
         if (workstation != null) {

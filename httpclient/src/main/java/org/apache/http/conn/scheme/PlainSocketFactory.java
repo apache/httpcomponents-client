@@ -35,11 +35,11 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 import org.apache.http.annotation.Immutable;
-
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.util.Args;
 
 /**
  * The default class for creating plain (unencrypted) sockets.
@@ -100,12 +100,8 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
             final InetSocketAddress remoteAddress,
             final InetSocketAddress localAddress,
             final HttpParams params) throws IOException, ConnectTimeoutException {
-        if (remoteAddress == null) {
-            throw new IllegalArgumentException("Remote address may not be null");
-        }
-        if (params == null) {
-            throw new IllegalArgumentException("HTTP parameters may not be null");
-        }
+        Args.notNull(remoteAddress, "Remote address");
+        Args.notNull(params, "HTTP parameters");
         Socket sock = socket;
         if (sock == null) {
             sock = createSocket();
@@ -134,15 +130,8 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
      * @param sock      the connected socket
      *
      * @return  <code>false</code>
-     *
-     * @throws IllegalArgumentException if the argument is invalid
      */
-    public final boolean isSecure(Socket sock)
-        throws IllegalArgumentException {
-
-        if (sock == null) {
-            throw new IllegalArgumentException("Socket may not be null.");
-        }
+    public final boolean isSecure(Socket sock) {
         return false;
     }
 

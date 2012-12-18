@@ -36,6 +36,8 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
@@ -75,10 +77,7 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
      * @param schreg    the scheme registry
      */
     public DefaultHttpRoutePlanner(SchemeRegistry schreg) {
-        if (schreg == null) {
-            throw new IllegalArgumentException
-                ("SchemeRegistry must not be null.");
-        }
+        Args.notNull(schreg, "Scheme registry");
         schemeRegistry = schreg;
     }
 
@@ -87,10 +86,7 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
                                     HttpContext context)
         throws HttpException {
 
-        if (request == null) {
-            throw new IllegalStateException
-                ("Request must not be null.");
-        }
+        Args.notNull(request, "HTTP request");
 
         // If we have a forced route, we can do without a target.
         HttpRoute route =
@@ -101,10 +97,7 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         // If we get here, there is no forced route.
         // So we need a target to compute a route.
 
-        if (target == null) {
-            throw new IllegalStateException
-                ("Target host must not be null.");
-        }
+        Asserts.notNull(target, "Target host");
 
         final InetAddress local =
             ConnRouteParams.getLocalAddress(request.getParams());
