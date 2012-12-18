@@ -1149,7 +1149,6 @@ final class NTLMEngineImpl implements NTLMEngine {
             byte[] userSessionKey;
             try {
                 if (((type2Flags & FLAG_REQUEST_NTLM2_SESSION) == 0) &&
-                    ((type2Flags & FLAG_REQUEST_NTLMv1) == 0) &&
                     targetInformation != null && target != null) {
                     // NTLMv2
                     ntResp = gen.getNTLMv2Response();
