@@ -52,7 +52,7 @@ public class GzipDecompressingEntity extends DecompressingEntity {
     }
 
     @Override
-    InputStream getDecompressingInputStream(final InputStream wrapped) throws IOException {
+    InputStream decorate(final InputStream wrapped) throws IOException {
         return new GZIPInputStream(wrapped);
     }
 

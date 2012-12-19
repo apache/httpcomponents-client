@@ -31,7 +31,6 @@ import java.io.OutputStream;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.HttpEntityWrapper;
-import org.apache.http.util.EntityUtils;
 
 /**
  * Common base class for decompressing {@link HttpEntity} implementations.
@@ -46,8 +45,8 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
     private static final int BUFFER_SIZE = 1024 * 2;
 
     /**
-     * DecompressingEntities are not repeatable, so they will return the same
-     * InputStream instance when {@link #getContent()} is called.
+     * {@link #getContent()} method must return the same {@link InputStream}
+     * instance when DecompressingEntity is wrapping a streaming entity.
      */
     private InputStream content;
 
@@ -61,25 +60,30 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
         super(wrapped);
     }
 
-    abstract InputStream getDecompressingInputStream(final InputStream wrapped) throws IOException;
+    abstract InputStream decorate(final InputStream wrapped) throws IOException;
+
+    private InputStream getDecompressingStream() throws IOException {
+        InputStream in = wrappedEntity.getContent();
+        try {
+            return decorate(in);
+        } catch (IOException ex) {
+            in.close();
+            throw ex;
+        }
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
     public InputStream getContent() throws IOException {
-        try {
-            if (wrappedEntity.isStreaming()) {
-                if (content == null) {
-                    content = getDecompressingInputStream(wrappedEntity.getContent());
-                }
-                return content;
-            } else {
-                return getDecompressingInputStream(wrappedEntity.getContent());
+        if (wrappedEntity.isStreaming()) {
+            if (content == null) {
+                content = getDecompressingStream();
             }
-        } catch (IOException e) {
-            EntityUtils.consume(wrappedEntity);
-            throw e;
+            return content;
+        } else {
+            return getDecompressingStream();
         }
     }
 
@@ -94,9 +98,7 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
         InputStream instream = getContent();
         try {
             byte[] buffer = new byte[BUFFER_SIZE];
-
             int l;
-
             while ((l = instream.read(buffer)) != -1) {
                 outstream.write(buffer, 0, l);
             }
