@@ -27,9 +27,13 @@
 
 package org.apache.http.impl.client;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -72,6 +76,8 @@ import org.apache.http.util.Asserts;
 @SuppressWarnings("deprecation")
 class InternalHttpClient extends CloseableHttpClient {
 
+    private final Log log = LogFactory.getLog(getClass());
+
     private final ClientExecChain execChain;
     private final HttpClientConnectionManager connManager;
     private final HttpRoutePlanner routePlanner;
@@ -80,6 +86,7 @@ class InternalHttpClient extends CloseableHttpClient {
     private final CookieStore cookieStore;
     private final CredentialsProvider credentialsProvider;
     private final RequestConfig defaultConfig;
+    private final List<Closeable> closeables;
     private final HttpParams params;
 
     public InternalHttpClient(
@@ -90,7 +97,8 @@ class InternalHttpClient extends CloseableHttpClient {
             final Lookup<AuthSchemeProvider> authSchemeRegistry,
             final CookieStore cookieStore,
             final CredentialsProvider credentialsProvider,
-            final RequestConfig defaultConfig) {
+            final RequestConfig defaultConfig,
+            final List<Closeable> closeables) {
         super();
         Args.notNull(execChain, "HTTP client exec chain");
         Args.notNull(connManager, "HTTP connection manager");
@@ -103,6 +111,7 @@ class InternalHttpClient extends CloseableHttpClient {
         this.cookieStore = cookieStore;
         this.credentialsProvider = credentialsProvider;
         this.defaultConfig = defaultConfig;
+        this.closeables = closeables;
         this.params = new BasicHttpParams();
     }
 
@@ -179,6 +188,15 @@ class InternalHttpClient extends CloseableHttpClient {
 
     public void close() {
         this.connManager.shutdown();
+        if (this.closeables != null) {
+            for (Closeable closeable: this.closeables) {
+                try {
+                    closeable.close();
+                } catch (IOException ex) {
+                    this.log.error(ex.getMessage(), ex);
+                }
+            }
+        }
     }
 
     public ClientConnectionManager getConnectionManager() {

@@ -27,10 +27,13 @@
 
 package org.apache.http.impl.client;
 
+import java.io.Closeable;
 import java.net.ProxySelector;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.ConnectionReuseStrategy;
@@ -180,6 +183,8 @@ public class HttpClientBuilder {
 
     private int maxConnTotal = 0;
     private int maxConnPerRoute = 0;
+
+    private List<Closeable> closeables;
 
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
@@ -431,6 +436,17 @@ public class HttpClientBuilder {
         return protocolExec;
     }
 
+    protected void addCloseable(final Closeable closeable) {
+        if (closeable == null) {
+            return;
+        }
+        if (closeables == null) {
+            closeables = new ArrayList<Closeable>();
+        }
+        closeables.add(closeable);
+    }
+
+
     public CloseableHttpClient build() {
         // Create main request executor
         HttpRequestExecutor requestExec = this.requestExec;
@@ -679,7 +695,8 @@ public class HttpClientBuilder {
                 authSchemeRegistry,
                 defaultCookieStore,
                 defaultCredentialsProvider,
-                defaultRequestConfig != null ? defaultRequestConfig : RequestConfig.DEFAULT);
+                defaultRequestConfig != null ? defaultRequestConfig : RequestConfig.DEFAULT,
+                closeables != null ? new ArrayList<Closeable>(closeables) : null);
     }
 
 }

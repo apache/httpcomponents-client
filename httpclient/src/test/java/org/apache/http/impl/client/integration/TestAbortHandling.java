@@ -447,6 +447,9 @@ public class TestAbortHandling extends IntegrationTestBase {
         public void shutdown() {
         }
 
+        public void close() {
+        }
+
         public void releaseConnection(
                 final HttpClientConnection conn,
                 final Object newState,

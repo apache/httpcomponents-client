@@ -26,6 +26,7 @@
 
 package org.apache.http.impl.conn;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -83,7 +84,7 @@ import org.apache.http.util.Asserts;
  * @since 4.3
  */
 @ThreadSafe
-public class PoolingHttpClientConnectionManager implements HttpClientConnectionManager {
+public class PoolingHttpClientConnectionManager implements HttpClientConnectionManager, Closeable {
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -157,6 +158,10 @@ public class PoolingHttpClientConnectionManager implements HttpClientConnectionM
         } finally {
             super.finalize();
         }
+    }
+
+    public void close() {
+        shutdown();
     }
 
     private String format(final HttpRoute route, final Object state) {

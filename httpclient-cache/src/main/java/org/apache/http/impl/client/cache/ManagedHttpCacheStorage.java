@@ -26,6 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
@@ -54,7 +55,7 @@ import org.apache.http.util.Args;
  * @since 4.1
  */
 @ThreadSafe
-public class ManagedHttpCacheStorage implements HttpCacheStorage {
+public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
 
     private final CacheMap entries;
     private final ReferenceQueue<HttpCacheEntry> morque;
@@ -155,6 +156,10 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage {
             while (this.morque.poll() != null) {
             }
         }
+    }
+
+    public void close() {
+        shutdown();
     }
 
 }

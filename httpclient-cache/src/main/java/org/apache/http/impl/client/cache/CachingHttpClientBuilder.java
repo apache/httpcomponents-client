@@ -88,6 +88,13 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
         }
         HttpCacheStorage storage = this.storage;
         if (storage == null) {
+            if (this.cacheDir == null) {
+                storage = new BasicHttpCacheStorage(cacheConfig);
+            } else {
+                ManagedHttpCacheStorage managedStorage = new ManagedHttpCacheStorage(cacheConfig);
+                addCloseable(managedStorage);
+                storage = managedStorage;
+            }
             storage = new BasicHttpCacheStorage(cacheConfig);
         }
         return new CachingExec(mainExec,

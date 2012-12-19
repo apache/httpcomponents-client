@@ -27,6 +27,7 @@
 
 package org.apache.http.impl.conn;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -76,7 +77,7 @@ import org.apache.http.util.LangUtils;
  * @since 4.3
  */
 @ThreadSafe
-public class BasicHttpClientConnectionManager implements HttpClientConnectionManager {
+public class BasicHttpClientConnectionManager implements HttpClientConnectionManager, Closeable {
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -153,6 +154,10 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         } finally { // Make sure we call overridden method even if shutdown barfs
             super.finalize();
         }
+    }
+
+    public void close() {
+        shutdown();
     }
 
     HttpRoute getRoute() {
