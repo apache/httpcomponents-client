@@ -100,7 +100,7 @@ public class TestDecompressingEntity {
         }
 
         @Override
-        InputStream getDecompressingInputStream(final InputStream wrapped) throws IOException {
+        InputStream decorate(final InputStream wrapped) throws IOException {
             return new CheckedInputStream(wrapped, this.checksum);
         }
 

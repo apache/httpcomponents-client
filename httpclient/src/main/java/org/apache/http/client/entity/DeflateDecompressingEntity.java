@@ -70,7 +70,7 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
      * @throws IOException if there was a problem
      */
     @Override
-    InputStream getDecompressingInputStream(final InputStream wrapped) throws IOException {
+    InputStream decorate(final InputStream wrapped) throws IOException {
         /*
          * A zlib stream will have a header.
          *
