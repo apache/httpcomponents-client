@@ -1,6 +1,10 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-1283] NTLM needs to use Locale-independent form of
+  toUpperCase().
+  Contributed by Karl Wright <DaddyWri at gmail.com>  
+
 * [HTTPCLIENT-1279] Target host responding with status 407 (proxy authentication required)
   causes an NPE.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
