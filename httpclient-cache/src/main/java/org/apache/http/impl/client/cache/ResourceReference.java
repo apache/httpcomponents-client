@@ -32,6 +32,7 @@ import java.lang.ref.ReferenceQueue;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.Resource;
+import org.apache.http.util.Args;
 
 @Immutable
 class ResourceReference extends PhantomReference<HttpCacheEntry> {
@@ -40,9 +41,7 @@ class ResourceReference extends PhantomReference<HttpCacheEntry> {
 
     public ResourceReference(final HttpCacheEntry entry, final ReferenceQueue<HttpCacheEntry> q) {
         super(entry, q);
-        if (entry.getResource() == null) {
-            throw new IllegalArgumentException("Resource may not be null");
-        }
+        Args.notNull(entry.getResource(), "Resource");
         this.resource = entry.getResource();
     }
 

@@ -44,6 +44,7 @@ import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.Args;
 
 /**
  * Update a {@link HttpCacheEntry} with new or updated information based on the latest
@@ -84,8 +85,8 @@ class CacheEntryUpdater {
             Date requestDate,
             Date responseDate,
             HttpResponse response) throws IOException {
-        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_NOT_MODIFIED)
-            throw new IllegalArgumentException("Response must have 304 status code");
+        Args.check(response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED,
+                "Response must have 304 status code");
         Header[] mergedHeaders = mergeHeaders(entry, response);
         Resource oldResource = entry.getResource();
         Resource resource = null;
