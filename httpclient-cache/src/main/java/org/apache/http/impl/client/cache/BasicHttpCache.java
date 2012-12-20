@@ -198,13 +198,7 @@ class BasicHttpCache implements HttpCache {
         Resource resource = resourceFactory.copy(requestId, src.getResource());
         Map<String,String> variantMap = new HashMap<String,String>(src.getVariantMap());
         variantMap.put(variantKey, variantCacheKey);
-        return new HttpCacheEntry(
-                src.getRequestDate(),
-                src.getResponseDate(),
-                src.getStatusLine(),
-                src.getAllHeaders(),
-                resource,
-                variantMap);
+        return new HttpCacheEntryBuilder(src).setResource(resource).setVariantMap(variantMap).build();
     }
 
     public HttpCacheEntry updateCacheEntry(HttpHost target, HttpRequest request,
@@ -248,15 +242,25 @@ class BasicHttpCache implements HttpCache {
         if (isIncompleteResponse(originResponse, resource)) {
             return generateIncompleteResponseError(originResponse, resource);
         }
+        int errorCount = 0;
+        if (isErrorResult(originResponse.getStatusLine().getStatusCode())) {
+            errorCount = 1;
+        }
 
-        HttpCacheEntry entry = new HttpCacheEntry(
-                requestSent,
-                responseReceived,
-                originResponse.getStatusLine(),
-                originResponse.getAllHeaders(),
-                resource);
+        HttpCacheEntry entry = new HttpCacheEntryBuilder()
+                .setRequestDate(requestSent)
+                .setResponseDate(responseReceived)
+                .setStatusLine(originResponse.getStatusLine())
+                .setAllHeaders(originResponse.getAllHeaders())
+                .setResource(resource)
+                .setErrorCount(errorCount)
+                .build();
         storeInCache(host, request, entry);
         return responseGenerator.generateResponse(entry);
+    }
+
+    private boolean isErrorResult(int statusCode) {
+        return statusCode >= 400;
     }
 
     SizeLimitedResponseReader getResponseReader(HttpRequest request, HttpResponse backEndResponse) {
