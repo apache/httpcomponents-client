@@ -33,7 +33,6 @@ import java.util.Locale;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import javax.crypto.Mac;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.util.EncodingUtils;

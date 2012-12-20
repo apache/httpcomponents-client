@@ -27,7 +27,6 @@
 
 package org.apache.http.client.entity;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
