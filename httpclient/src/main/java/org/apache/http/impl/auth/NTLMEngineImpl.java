@@ -1222,7 +1222,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 sessionKeyLen = 0;
 
             // Calculate the layout within the packet
-            int lmRespOffset = 76;  // allocate space for the version
+            int lmRespOffset = 72;  // allocate space for the version
             int ntRespOffset = lmRespOffset + lmRespLen;
             int domainOffset = ntRespOffset + ntRespLen;
             int userOffset = domainOffset + domainLen;
@@ -1273,13 +1273,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             addUShort(sessionKeyLen);
 
             // Session key offset
-            if (sessionKeyLen != 0)
-                addULong(sessionKeyOffset);
-            else
-                addULong(0);
-
-            // Message length
-            addULong(finalLength);
+            addULong(sessionKeyOffset);
 
             // Flags. Currently: WORKSTATION_PRESENT + DOMAIN_PRESENT + UNICODE_ENCODING +
             // TARGET_DESIRED + NEGOTIATE_128
