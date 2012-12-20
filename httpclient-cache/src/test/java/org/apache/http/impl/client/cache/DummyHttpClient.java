@@ -139,4 +139,8 @@ public class DummyHttpClient implements HttpClient {
     public int getExecutions() {
     	return executions;
     }
+
+    public void shutdown() {
+
+    }
 }

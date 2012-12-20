@@ -127,4 +127,8 @@ public class DummyHttpClient implements HttpClient {
         return responseHandler.handleResponse(response);
     }
 
+    public void shutdown() {
+        connManager.shutdown();
+    }
+
 }

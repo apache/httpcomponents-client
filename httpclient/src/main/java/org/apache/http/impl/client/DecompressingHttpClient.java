@@ -192,4 +192,9 @@ public class DecompressingHttpClient implements HttpClient {
         }
     }
 
+    public void shutdown()
+    {
+        if (backend != null) backend.shutdown();
+    }
+
 }

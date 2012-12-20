@@ -137,4 +137,8 @@ class AsynchronousValidator {
     ExecutorService getExecutor() {
         return executor;
     }
+
+    public void shutdown() {
+        if (executor != null) executor.shutdown();
+    }
 }

@@ -146,4 +146,7 @@ public abstract class AbstractBasicHttpClient implements HttpClient {
         return result;
     }
 
+    public void shutdown() {
+        // nothing to do by default
+    }
 }

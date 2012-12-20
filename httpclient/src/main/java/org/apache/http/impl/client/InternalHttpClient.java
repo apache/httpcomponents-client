@@ -172,4 +172,10 @@ class InternalHttpClient extends AbstractBasicHttpClient {
         return this.connManager;
     }
 
+    @Override
+    public void shutdown()
+    {
+        super.shutdown();
+        connManager.shutdown();
+    }
 }

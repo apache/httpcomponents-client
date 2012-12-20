@@ -343,6 +343,11 @@ public class CachingHttpClient implements HttpClient {
         return handleAndConsume(responseHandler,resp);
     }
 
+    public void shutdown() {
+        if (asynchRevalidator != null) asynchRevalidator.shutdown();
+        backend.shutdown();
+    }
+
     public HttpResponse execute(HttpUriRequest request) throws IOException {
         HttpContext context = null;
         return execute(request, context);

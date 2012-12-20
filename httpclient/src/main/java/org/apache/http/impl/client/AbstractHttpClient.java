@@ -975,4 +975,15 @@ public abstract class AbstractHttpClient extends AbstractBasicHttpClient {
             (null, getParams(), req.getParams(), null);
     }
 
+    @Override
+    public void shutdown()
+    {
+        super.shutdown();
+        shutdownConnectionManager();
+    }
+
+    private synchronized void shutdownConnectionManager()
+    {
+        if (connManager != null) connManager.shutdown();
+    }
 }

@@ -278,4 +278,8 @@ public interface HttpClient {
             HttpContext context)
         throws IOException, ClientProtocolException;
 
+    /**
+     * Shutdown and free any claimed resources.
+     */
+    void shutdown();
 }
