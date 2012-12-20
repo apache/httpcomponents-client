@@ -43,6 +43,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
@@ -195,6 +196,24 @@ public class TestClientRequestExecution extends IntegrationTestBase {
             Assert.assertEquals("a message showing that this failed", nonRepeat.getCause().getMessage());
             throw ex;
         }
+    }
+
+    @Test
+    public void testNonCompliantURI() throws Exception {
+        this.localServer.register("*", new SimpleService());
+        this.httpclient = HttpClients.createDefault();
+
+        HttpContext context = new BasicHttpContext();
+        BasicHttpRequest request = new BasicHttpRequest("GET", "blah.:.blah.:.");
+        HttpResponse response = this.httpclient.execute(getServerHttp(), request, context);
+        EntityUtils.consume(response.getEntity());
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+
+        HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
+                ExecutionContext.HTTP_REQUEST);
+
+        Assert.assertEquals("blah.:.blah.:.", reqWrapper.getRequestLine().getUri());
     }
 
 }

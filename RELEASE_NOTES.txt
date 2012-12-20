@@ -1,6 +1,9 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-900] Don't enforce URI syntax for messages with an explicit target host.  
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1250] Allow query string to be ignored when determining cacheability for HTTP 1.0 
   responses.
   Contributed by Don Brown <mrdon at twdata.org> 

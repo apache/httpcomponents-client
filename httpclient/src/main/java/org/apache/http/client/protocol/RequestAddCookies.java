@@ -45,7 +45,6 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.config.Lookup;
 import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.cookie.Cookie;
@@ -55,6 +54,7 @@ import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.cookie.SetCookie2;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
+import org.apache.http.util.TextUtils;
 
 /**
  * Request interceptor that matches cookies available in the current
@@ -121,17 +121,12 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             this.log.debug("CookieSpec selected: " + policy);
         }
 
-        URI requestURI;
-        if (request instanceof HttpUriRequest) {
-            requestURI = ((HttpUriRequest) request).getURI();
-        } else {
-            try {
-                requestURI = new URI(request.getRequestLine().getUri());
-            } catch (URISyntaxException ignore) {
-                requestURI = null;
-            }
+        URI requestURI = null;
+        try {
+            requestURI = new URI(request.getRequestLine().getUri());
+        } catch (URISyntaxException ignore) {
         }
-
+        String path = requestURI != null ? requestURI.getPath() : null;
         String hostName = targetHost.getHostName();
         int port = targetHost.getPort();
         if (port < 0) {
@@ -141,7 +136,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         CookieOrigin cookieOrigin = new CookieOrigin(
                 hostName,
                 port >= 0 ? port : 0,
-                requestURI != null ? requestURI.getPath() : "/",
+                !TextUtils.isEmpty(path) ? path : "/",
                 route.isSecure());
 
         // Get an instance of the selected cookie policy
