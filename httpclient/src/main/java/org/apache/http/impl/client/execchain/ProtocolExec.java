@@ -35,6 +35,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthState;
@@ -42,6 +43,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -113,15 +115,16 @@ public class ProtocolExec implements ClientExecChain {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        HttpHost target = route.getTargetHost();
-
         // Get user info from the URI
         AuthState targetAuthState = context.getTargetAuthState();
         if (targetAuthState != null) {
-            String userinfo = request.getURI().getUserInfo();
-            if (userinfo != null) {
-                targetAuthState.update(
-                        new BasicScheme(), new UsernamePasswordCredentials(userinfo));
+            URI uri = request.getURI();
+            if (uri != null) {
+                String userinfo = uri.getUserInfo();
+                if (userinfo != null) {
+                    targetAuthState.update(
+                            new BasicScheme(), new UsernamePasswordCredentials(userinfo));
+                }
             }
         }
 
@@ -132,7 +135,7 @@ public class ProtocolExec implements ClientExecChain {
         HttpHost virtualHost = (HttpHost) params.getParameter(ClientPNames.VIRTUAL_HOST);
         // HTTPCLIENT-1092 - add the port if necessary
         if (virtualHost != null && virtualHost.getPort() == -1) {
-            int port = target.getPort();
+            int port = route.getTargetHost().getPort();
             if (port != -1){
                 virtualHost = new HttpHost(virtualHost.getHostName(), port, virtualHost.getSchemeName());
             }
@@ -141,8 +144,24 @@ public class ProtocolExec implements ClientExecChain {
             }
         }
 
+        HttpHost target = null;
+        if (virtualHost != null) {
+            target = virtualHost;
+        } else {
+            HttpRequest original = request.getOriginal();
+            if (original instanceof HttpUriRequest) {
+                URI uri = ((HttpUriRequest) original).getURI();
+                if (uri.isAbsolute()) {
+                    target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
+                }
+            }
+        }
+        if (target == null) {
+            target = route.getTargetHost();
+        }
+
         // Run request protocol interceptors
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, virtualHost != null ? virtualHost : target);
+        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
         context.setAttribute(ClientContext.ROUTE, route);
         context.setAttribute(ExecutionContext.HTTP_REQUEST, request);
 

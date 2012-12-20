@@ -456,18 +456,23 @@ public class DefaultRequestDirector implements RequestDirector {
                             new BasicScheme(), new UsernamePasswordCredentials(userinfo));
                 }
 
-                // Reset headers on the request wrapper
-                wrapper.resetHeaders();
-
-                // Re-write request URI if needed
-                rewriteRequestURI(wrapper, route);
-
-                // Use virtual host if set
-                target = virtualHost;
-
+                if (virtualHost != null) {
+                    target = virtualHost;
+                } else {
+                    URI requestURI = wrapper.getURI();
+                    if (requestURI.isAbsolute()) {
+                        target = new HttpHost(
+                                requestURI.getHost(), requestURI.getPort(), requestURI.getScheme());
+                    }
+                }
                 if (target == null) {
                     target = route.getTargetHost();
                 }
+
+                // Reset headers on the request wrapper
+                wrapper.resetHeaders();
+                // Re-write request URI if needed
+                rewriteRequestURI(wrapper, route);
 
                 // Populate the execution context
                 context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
