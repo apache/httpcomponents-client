@@ -1,6 +1,10 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-1250] Allow query string to be ignored when determining cacheability for HTTP 1.0 
+  responses.
+  Contributed by Don Brown <mrdon at twdata.org> 
+
 * [HTTPCLIENT-1284] HttpClient incorrectly generates Host header when physical connection
   route differs from the host name specified in the request URI. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>

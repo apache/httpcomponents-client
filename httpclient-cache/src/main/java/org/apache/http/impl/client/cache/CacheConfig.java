@@ -145,6 +145,7 @@ public class CacheConfig implements Cloneable {
     private int asynchronousWorkersCore;
     private int asynchronousWorkerIdleLifetimeSecs;
     private int revalidationQueueSize;
+    private boolean neverCacheHTTP10ResponsesWithQuery;
 
     /**
      * @deprecated (4.3) use {@link Builder}.
@@ -176,7 +177,8 @@ public class CacheConfig implements Cloneable {
             int asynchronousWorkersMax,
             int asynchronousWorkersCore,
             int asynchronousWorkerIdleLifetimeSecs,
-            int revalidationQueueSize) {
+            int revalidationQueueSize,
+            boolean neverCacheHTTP10ResponsesWithQuery) {
         super();
         this.maxObjectSize = maxObjectSize;
         this.maxCacheEntries = maxCacheEntries;
@@ -238,6 +240,15 @@ public class CacheConfig implements Cloneable {
     @Deprecated
     public void setMaxObjectSize(long maxObjectSize) {
         this.maxObjectSize = maxObjectSize;
+    }
+
+    /**
+     * Returns whether the cache will never cache HTTP 1.0 responses with a query string or not.
+     * @return {@code true} to not cache query string responses, {@code false} to cache if explicit cache headers are
+     * found
+     */
+    public boolean isNeverCacheHTTP10ResponsesWithQuery() {
+        return neverCacheHTTP10ResponsesWithQuery;
     }
 
     /**
@@ -470,6 +481,7 @@ public class CacheConfig implements Cloneable {
         private int asynchronousWorkersCore;
         private int asynchronousWorkerIdleLifetimeSecs;
         private int revalidationQueueSize;
+        private boolean neverCacheHTTP10ResponsesWithQuery;
 
         Builder() {
             this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
@@ -602,6 +614,18 @@ public class CacheConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * Sets whether the cache should never cache HTTP 1.0 responses with a query string or not.
+         * @param neverCache1_0ResponsesWithQueryString true to never cache responses with a query
+         * string, false to cache if explicit cache headers are found.  Set this to {@code true}
+         * to better emulate IE, which also never caches responses, regardless of what caching
+         * headers may be present.
+         */
+        public Builder setNeverCache1_0ResponsesWithQueryString(boolean b) {
+            this.neverCacheHTTP10ResponsesWithQuery = b;
+            return this;
+        }
+
         public CacheConfig build() {
             return new CacheConfig(
                     maxObjectSize,
@@ -614,7 +638,8 @@ public class CacheConfig implements Cloneable {
                     asynchronousWorkersMax,
                     asynchronousWorkersCore,
                     asynchronousWorkerIdleLifetimeSecs,
-                    revalidationQueueSize);
+                    revalidationQueueSize,
+                    neverCacheHTTP10ResponsesWithQuery);
         }
 
     }
@@ -632,6 +657,7 @@ public class CacheConfig implements Cloneable {
                 .append(", asynchronousWorkersCore=").append(this.asynchronousWorkersCore)
                 .append(", asynchronousWorkerIdleLifetimeSecs=").append(this.asynchronousWorkerIdleLifetimeSecs)
                 .append(", revalidationQueueSize=").append(this.revalidationQueueSize)
+                .append(", neverCacheHTTP10ResponsesWithQuery=").append(this.neverCacheHTTP10ResponsesWithQuery)
                 .append("]");
         return builder.toString();
     }

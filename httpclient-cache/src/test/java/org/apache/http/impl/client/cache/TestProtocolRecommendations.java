@@ -65,7 +65,6 @@ import org.junit.Test;
  */
 public class TestProtocolRecommendations extends AbstractProtocolTest {
 
-    private Date tenSecondsFromNow;
     private Date now;
     private Date tenSecondsAgo;
     private Date twoMinutesAgo;
@@ -77,7 +76,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         now = new Date();
         tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         twoMinutesAgo = new Date(now.getTime() - 2 * 60 * 1000L);
-        tenSecondsFromNow = new Date(now.getTime() + 10 * 1000L);
     }
 
     /* "identity: The default (identity) encoding; the use of no
@@ -1445,18 +1443,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.9
      */
     @Test
-    public void responseToGetWithQueryFrom1_0OriginIsNotCached()
+    public void responseToGetWithQueryFrom1_0OriginAndNoExpiresIsNotCached()
         throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
-                new HttpGet("http://foo.example.com/bar?baz=quux"));
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "OK");
-        resp1.setEntity(HttpTestUtils.makeBody(200));
-        resp1.setHeader("Content-Length","200");
-        resp1.setHeader("Date", formatDate(now));
-        resp1.setHeader("Expires", formatDate(tenSecondsFromNow));
-
-        backendExpectsAnyRequestAndReturn(resp1);
-
         HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new HttpGet("http://foo.example.com/bar?baz=quux"));
         HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "OK");
@@ -1467,25 +1455,13 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
         impl.execute(route, req2);
         verifyMocks();
     }
 
     @Test
-    public void responseToGetWithQueryFrom1_0OriginVia1_1ProxyIsNotCached()
+    public void responseToGetWithQueryFrom1_0OriginVia1_1ProxyAndNoExpiresIsNotCached()
         throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
-                new HttpGet("http://foo.example.com/bar?baz=quux"));
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        resp1.setEntity(HttpTestUtils.makeBody(200));
-        resp1.setHeader("Content-Length","200");
-        resp1.setHeader("Date", formatDate(now));
-        resp1.setHeader("Expires", formatDate(tenSecondsFromNow));
-        resp1.setHeader("Via","1.0 someproxy");
-
-        backendExpectsAnyRequestAndReturn(resp1);
-
         HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new HttpGet("http://foo.example.com/bar?baz=quux"));
         HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_0, HttpStatus.SC_OK, "OK");
@@ -1497,7 +1473,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
         impl.execute(route, req2);
         verifyMocks();
     }

@@ -174,7 +174,8 @@ public class CachingHttpClient implements HttpClient {
         this.backend = client;
         this.responseCache = cache;
         this.validityPolicy = new CacheValidityPolicy();
-        this.responseCachingPolicy = new ResponseCachingPolicy(maxObjectSizeBytes, sharedCache);
+        this.responseCachingPolicy = new ResponseCachingPolicy(maxObjectSizeBytes, sharedCache,
+                config.isNeverCacheHTTP10ResponsesWithQuery());
         this.responseGenerator = new CachedHttpResponseGenerator(this.validityPolicy);
         this.cacheableRequestPolicy = new CacheableRequestPolicy();
         this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy, config);
