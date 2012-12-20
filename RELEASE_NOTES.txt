@@ -1,6 +1,10 @@
 Changes since 4.2.2
 -------------------
 
+* Kerberos and SPNego auth schemes use incorrect authorization header name when authenticating
+  with a proxy.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1283] NTLM needs to use Locale-independent form of
   toUpperCase().
   Contributed by Karl Wright <DaddyWri at gmail.com>  
