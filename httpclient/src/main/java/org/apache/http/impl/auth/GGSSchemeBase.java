@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
@@ -38,7 +39,7 @@ import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
@@ -175,7 +176,15 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
             if (log.isDebugEnabled()) {
                 log.debug("Sending response '" + tokenstr + "' back to the auth server");
             }
-            return new BasicHeader("Authorization", "Negotiate " + tokenstr);
+            CharArrayBuffer buffer = new CharArrayBuffer(32);
+            if (isProxy()) {
+                buffer.append(AUTH.PROXY_AUTH_RESP);
+            } else {
+                buffer.append(AUTH.WWW_AUTH_RESP);
+            }
+            buffer.append(": Negotiate ");
+            buffer.append(tokenstr);
+            return new BufferedHeader(buffer);
         default:
             throw new IllegalStateException("Illegal state: " + state);
         }
