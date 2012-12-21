@@ -57,7 +57,7 @@ public class TestAsynchronousValidator {
     private HttpContext mockContext;
     private HttpCacheEntry mockCacheEntry;
 
-    private ExecutorService mockExecutor;
+    private SchedulingStrategy mockSchedulingStrategy;
 
     @Before
     public void setUp() {
@@ -67,16 +67,16 @@ public class TestAsynchronousValidator {
         mockContext = EasyMock.createNiceMock(HttpContext.class);
         mockCacheEntry = EasyMock.createNiceMock(HttpCacheEntry.class);
 
-        mockExecutor = EasyMock.createNiceMock(ExecutorService.class);
+        mockSchedulingStrategy = EasyMock.createNiceMock(SchedulingStrategy.class);
 
     }
 
     @Test
     public void testRevalidateCacheEntrySchedulesExecutionAndPopulatesIdentifier() {
-        impl = new AsynchronousValidator(mockClient, mockExecutor);
+        impl = new AsynchronousValidator(mockClient, mockSchedulingStrategy);
 
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
-        mockExecutor.execute(EasyMock.isA(AsynchronousValidationRequest.class));
+        mockSchedulingStrategy.schedule(EasyMock.isA(AsynchronousValidationRequest.class));
 
         replayMocks();
         impl.revalidateCacheEntry(target, request, mockContext, mockCacheEntry);
@@ -87,11 +87,11 @@ public class TestAsynchronousValidator {
 
     @Test
     public void testMarkCompleteRemovesIdentifier() {
-        impl = new AsynchronousValidator(mockClient, mockExecutor);
+        impl = new AsynchronousValidator(mockClient, mockSchedulingStrategy);
 
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
         Capture<AsynchronousValidationRequest> cap = new Capture<AsynchronousValidationRequest>();
-        mockExecutor.execute(EasyMock.capture(cap));
+        mockSchedulingStrategy.schedule(EasyMock.capture(cap));
 
         replayMocks();
         impl.revalidateCacheEntry(target, request, mockContext, mockCacheEntry);
@@ -106,10 +106,10 @@ public class TestAsynchronousValidator {
 
     @Test
     public void testRevalidateCacheEntryDoesNotPopulateIdentifierOnRejectedExecutionException() {
-        impl = new AsynchronousValidator(mockClient, mockExecutor);
+        impl = new AsynchronousValidator(mockClient, mockSchedulingStrategy);
 
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
-        mockExecutor.execute(EasyMock.isA(AsynchronousValidationRequest.class));
+        mockSchedulingStrategy.schedule(EasyMock.isA(AsynchronousValidationRequest.class));
         EasyMock.expectLastCall().andThrow(new RejectedExecutionException());
 
         replayMocks();
@@ -121,10 +121,10 @@ public class TestAsynchronousValidator {
 
     @Test
     public void testRevalidateCacheEntryProperlyCollapsesRequest() {
-        impl = new AsynchronousValidator(mockClient, mockExecutor);
+        impl = new AsynchronousValidator(mockClient, mockSchedulingStrategy);
 
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
-        mockExecutor.execute(EasyMock.isA(AsynchronousValidationRequest.class));
+        mockSchedulingStrategy.schedule(EasyMock.isA(AsynchronousValidationRequest.class));
 
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
 
@@ -138,7 +138,7 @@ public class TestAsynchronousValidator {
 
     @Test
     public void testVariantsBothRevalidated() {
-        impl = new AsynchronousValidator(mockClient, mockExecutor);
+        impl = new AsynchronousValidator(mockClient, mockSchedulingStrategy);
 
         HttpRequest req1 = new HttpGet("/");
         req1.addHeader(new BasicHeader("Accept-Encoding", "identity"));
@@ -152,7 +152,7 @@ public class TestAsynchronousValidator {
 
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(true).times(2);
         EasyMock.expect(mockCacheEntry.getHeaders(HeaderConstants.VARY)).andReturn(variantHeaders).times(2);
-        mockExecutor.execute(EasyMock.isA(AsynchronousValidationRequest.class));
+        mockSchedulingStrategy.schedule(EasyMock.isA(AsynchronousValidationRequest.class));
         EasyMock.expectLastCall().times(2);
 
         replayMocks();
@@ -169,7 +169,8 @@ public class TestAsynchronousValidator {
         CacheConfig config = new CacheConfig();
         config.setAsynchronousWorkersMax(1);
         config.setAsynchronousWorkersCore(1);
-        impl = new AsynchronousValidator(mockClient, config);
+        ImmediateSchedulingStrategy schedulingStrategy = new ImmediateSchedulingStrategy(config);
+        impl = new AsynchronousValidator(mockClient, schedulingStrategy);
 
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
         EasyMock.expect(mockClient.revalidateCacheEntry(target, request, mockContext, mockCacheEntry)).andReturn(null);
@@ -179,9 +180,8 @@ public class TestAsynchronousValidator {
 
         try {
             // shut down backend executor and make sure all finishes properly, 1 second should be sufficient
-            ExecutorService implExecutor = impl.getExecutor();
-            implExecutor.shutdown();
-            implExecutor.awaitTermination(1, TimeUnit.SECONDS);
+            schedulingStrategy.shutdown();
+            schedulingStrategy.awaitTermination(1, TimeUnit.SECONDS);
         } catch (InterruptedException ie) {
 
         } finally {
@@ -192,14 +192,14 @@ public class TestAsynchronousValidator {
     }
 
     public void replayMocks() {
-        EasyMock.replay(mockExecutor);
+        EasyMock.replay(mockSchedulingStrategy);
         EasyMock.replay(mockClient);
         EasyMock.replay(mockContext);
         EasyMock.replay(mockCacheEntry);
     }
 
     public void verifyMocks() {
-        EasyMock.verify(mockExecutor);
+        EasyMock.verify(mockSchedulingStrategy);
         EasyMock.verify(mockClient);
         EasyMock.verify(mockContext);
         EasyMock.verify(mockCacheEntry);

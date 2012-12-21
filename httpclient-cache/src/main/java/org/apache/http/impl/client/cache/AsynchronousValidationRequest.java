@@ -39,7 +39,7 @@ import org.apache.http.protocol.HttpContext;
  * Class used to represent an asynchronous revalidation event, such as with
  * "stale-while-revalidate"
  */
-class AsynchronousValidationRequest implements Runnable {
+public class AsynchronousValidationRequest implements Runnable {
     private final AsynchronousValidator parent;
     private final CachingHttpClient cachingClient;
     private final HttpHost target;
@@ -58,7 +58,6 @@ class AsynchronousValidationRequest implements Runnable {
      * @param request
      * @param context
      * @param cacheEntry
-     * @param bookKeeping
      * @param identifier
      */
     AsynchronousValidationRequest(AsynchronousValidator parent,

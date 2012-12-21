@@ -2015,7 +2015,33 @@ public class TestCachingHttpClient {
 		impl.execute(host, request);
 		assertEquals(1, backend.getExecutions());
 	}
-	
+
+    @Test
+    public void testUpdateBackgroundRevalidationSchedulingStrategy() throws Exception {
+        SchedulingStrategy newStrategy = createNiceMock(SchedulingStrategy.class);
+        newStrategy.schedule(isA(AsynchronousValidationRequest.class));
+
+        mockImplMethods(REVALIDATE_CACHE_ENTRY);
+        cacheInvalidatorWasCalled();
+        requestPolicyAllowsCaching(true);
+        requestProtocolValidationIsCalled();
+        requestIsFatallyNonCompliant(null);
+
+        getCacheEntryReturns(mockCacheEntry);
+        cacheEntrySuitable(false);
+        cacheEntryValidatable(true);
+        cacheEntryMustRevalidate(false);
+        cacheEntryProxyRevalidate(false);
+        mayReturnStaleWhileRevalidating(true);
+
+        replay(newStrategy);
+        replayMocks();
+        impl.updateBackgroundRevalidationSchedulingStrategy(newStrategy);
+        impl.execute(host, request, context);
+        verifyMocks();
+        verify(newStrategy);
+    }
+
     private void getCacheEntryReturns(HttpCacheEntry result) throws IOException {
         expect(mockCache.getCacheEntry(host, request)).andReturn(result);
     }

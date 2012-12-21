@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -144,7 +145,7 @@ public class CachingHttpClient implements HttpClient {
     private final ResponseProtocolCompliance responseCompliance;
     private final RequestProtocolCompliance requestCompliance;
 
-    private final AsynchronousValidator asynchRevalidator;
+    private final AtomicReference<AsynchronousValidator> asynchRevalidatorRef;
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -177,7 +178,7 @@ public class CachingHttpClient implements HttpClient {
         this.responseCompliance = new ResponseProtocolCompliance();
         this.requestCompliance = new RequestProtocolCompliance();
 
-        this.asynchRevalidator = makeAsynchronousValidator(config);
+        this.asynchRevalidatorRef = new AtomicReference<AsynchronousValidator>(makeAsynchronousValidator(config));
     }
 
     /**
@@ -289,7 +290,7 @@ public class CachingHttpClient implements HttpClient {
         this.conditionalRequestBuilder = conditionalRequestBuilder;
         this.responseCompliance = responseCompliance;
         this.requestCompliance = requestCompliance;
-        this.asynchRevalidator = makeAsynchronousValidator(config);
+        this.asynchRevalidatorRef = new AtomicReference<AsynchronousValidator>(makeAsynchronousValidator(config));
     }
 
     private AsynchronousValidator makeAsynchronousValidator(
@@ -327,6 +328,26 @@ public class CachingHttpClient implements HttpClient {
         return cacheUpdates.get();
     }
 
+    /**
+     * Use a new scheduling strategy to schedule new revalidation requests.
+     * This will affect new revalidation requests only. The old
+     * {@link SchedulingStrategy} will try to comple started requests
+     * but won't accept new ones. It is up to the implementation to finish
+     * delayed request.
+     *
+     * @param schedulingStrategy the new strategy to be used when scheduling
+     *                           revalidation requests; not <code>null</code>
+     */
+    public void updateBackgroundRevalidationSchedulingStrategy(SchedulingStrategy schedulingStrategy) {
+        if (schedulingStrategy == null) {
+            throw new IllegalArgumentException("SchedulingStrategy may not be null");
+        }
+
+        AsynchronousValidator newValidator = new AsynchronousValidator(this, schedulingStrategy);
+        AsynchronousValidator oldValidator = asynchRevalidatorRef.getAndSet(newValidator);
+        if (oldValidator != null) oldValidator.shutdown();
+    }
+
     public HttpResponse execute(HttpHost target, HttpRequest request) throws IOException {
         HttpContext defaultContext = null;
         return execute(target, request, defaultContext);
@@ -344,8 +365,13 @@ public class CachingHttpClient implements HttpClient {
     }
 
     public void shutdown() {
-        if (asynchRevalidator != null) asynchRevalidator.shutdown();
+        shutdownAsynchronousRevalidator();
         backend.shutdown();
+    }
+
+    private void shutdownAsynchronousRevalidator() {
+        AsynchronousValidator asynchronousValidator = asynchRevalidatorRef.get();
+        if (asynchronousValidator != null) asynchronousValidator.shutdown();
     }
 
     public HttpResponse execute(HttpUriRequest request) throws IOException {
@@ -478,6 +504,7 @@ public class CachingHttpClient implements HttpClient {
             Date now) throws ClientProtocolException {
 
         try {
+            AsynchronousValidator asynchRevalidator = asynchRevalidatorRef.get();
             if (asynchRevalidator != null
                 && !staleResponseNotAllowed(request, entry, now)
                 && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)) {
