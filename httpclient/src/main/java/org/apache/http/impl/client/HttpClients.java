@@ -28,6 +28,7 @@
 package org.apache.http.impl.client;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 /**
  * @since 4.3
@@ -49,6 +50,10 @@ public class HttpClients {
 
     public static CloseableHttpClient createSystem() {
         return HttpClientBuilder.create().useSystemProperties().build();
+    }
+
+    public static CloseableHttpClient createMinimal() {
+        return new MinimalHttpClient(new PoolingHttpClientConnectionManager());
     }
 
 }
