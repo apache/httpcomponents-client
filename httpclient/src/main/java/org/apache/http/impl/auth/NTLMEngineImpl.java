@@ -966,7 +966,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         String getResponse() {
             // Now, build the message. Calculate its length first, including
             // signature or type.
-            int finalLength = 32 + 8 + hostBytes.length + domainBytes.length;
+            int finalLength = 32 + 8 /*+ hostBytes.length + domainBytes.length */;
 
             // Set up the response. This will initialize the signature, message
             // type, and flags.
@@ -974,11 +974,11 @@ final class NTLMEngineImpl implements NTLMEngine {
 
             // Flags. These are the complete set of flags we support.
             addULong(
-                    FLAG_WORKSTATION_PRESENT |
-                    FLAG_DOMAIN_PRESENT |
+                    //FLAG_WORKSTATION_PRESENT |
+                    //FLAG_DOMAIN_PRESENT |
 
                     // Required flags
-                    //FLAG_REQUEST_LAN_MANAGER_KEY |
+                    FLAG_REQUEST_LAN_MANAGER_KEY |
                     FLAG_REQUEST_NTLMv1 |
                     FLAG_REQUEST_NTLM2_SESSION |
 
@@ -986,28 +986,27 @@ final class NTLMEngineImpl implements NTLMEngine {
                     FLAG_REQUEST_VERSION |
 
                     // Recommended privacy settings
-                    //FLAG_REQUEST_ALWAYS_SIGN |
+                    FLAG_REQUEST_ALWAYS_SIGN |
                     //FLAG_REQUEST_SEAL |
-                    //FLAG_REQUEST_SIGN |
+                    FLAG_REQUEST_SIGN |
 
                     // These must be set according to documentation, based on use of SEAL above
-                    //FLAG_REQUEST_128BIT_KEY_EXCH |
-                    //FLAG_REQUEST_56BIT_ENCRYPTION |
-                    //FLAG_REQUEST_EXPLICIT_KEY_EXCH |
+                    FLAG_REQUEST_128BIT_KEY_EXCH |
+                    FLAG_REQUEST_56BIT_ENCRYPTION |
+                    FLAG_REQUEST_EXPLICIT_KEY_EXCH |
 
-                    FLAG_REQUEST_UNICODE_ENCODING |
-                    FLAG_REQUEST_TARGET);
+                    FLAG_REQUEST_UNICODE_ENCODING);
 
             // Domain length (two times).
-            addUShort(domainBytes.length);
-            addUShort(domainBytes.length);
+            addUShort(/*domainBytes.length*/0);
+            addUShort(/*domainBytes.length*/0);
 
             // Domain offset.
-            addULong(hostBytes.length + 32 + 8);
+            addULong(/*hostBytes.length +*/ 32 + 8);
 
             // Host length (two times).
-            addUShort(hostBytes.length);
-            addUShort(hostBytes.length);
+            addUShort(/*hostBytes.length*/0);
+            addUShort(/*hostBytes.length*/0);
 
             // Host offset (always 32 + 8).
             addULong(32 + 8);
@@ -1017,14 +1016,14 @@ final class NTLMEngineImpl implements NTLMEngine {
             // Build
             addULong(2600);
             // NTLM revision
-            addUShort(15);
+            addUShort(0x0f00);
 
 
             // Host (workstation) String.
-            addBytes(hostBytes);
+            //addBytes(hostBytes);
 
             // Domain String.
-            addBytes(domainBytes);
+            //addBytes(domainBytes);
 
 
             return super.getResponse();
@@ -1151,7 +1150,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             try {
                 // This conditional may not work on Windows Server 2008 R2 and above, where it has not yet
                 // been tested
-                if (((type2Flags & FLAG_REQUEST_NTLM2_SESSION) == 0) &&
+                if (((type2Flags & FLAG_TARGETINFO_PRESENT) != 0) &&
                     targetInformation != null && target != null) {
                     // NTLMv2
                     ntResp = gen.getNTLMv2Response();
@@ -1301,8 +1300,9 @@ final class NTLMEngineImpl implements NTLMEngine {
                     (type2Flags & FLAG_REQUEST_56BIT_ENCRYPTION) |
                     (type2Flags & FLAG_REQUEST_EXPLICIT_KEY_EXCH) |
 
-                    FLAG_REQUEST_UNICODE_ENCODING |
-                    FLAG_REQUEST_TARGET
+                    (type2Flags & FLAG_TARGETINFO_PRESENT) |
+                    (type2Flags & FLAG_REQUEST_UNICODE_ENCODING) |
+                    (type2Flags & FLAG_REQUEST_TARGET)
             );
 
             // Version
@@ -1310,7 +1310,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             // Build
             addULong(2600);
             // NTLM revision
-            addUShort(15);
+            addUShort(0x0f00);
 
             // Add the actual data
             addBytes(lmResp);
