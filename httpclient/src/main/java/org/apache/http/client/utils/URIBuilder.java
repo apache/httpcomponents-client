@@ -293,6 +293,26 @@ public class URIBuilder {
     }
     
     /**
+     * Adds URI query parameters. The parameter name / values are expected to be unescaped
+     * and may contain non ASCII characters.
+     * <p/>
+     * Please note query parameters and custom query component are mutually exclusive. This method
+     * will remove custom query if present.
+     * 
+     * @since 4.3
+     */
+    public URIBuilder addParameters(final List <NameValuePair> nvps) {
+        if (this.queryParams == null) {
+            this.queryParams = new ArrayList<NameValuePair>();
+        }
+        this.queryParams.addAll(nvps);
+        this.encodedQuery = null;
+        this.encodedSchemeSpecificPart = null;
+        this.query = null;
+        return this;
+    }
+    
+    /**
      * Sets URI query parameters. The parameter name / values are expected to be unescaped
      * and may contain non ASCII characters.
      * <p/>

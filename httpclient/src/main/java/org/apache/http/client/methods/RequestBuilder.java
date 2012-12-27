@@ -28,18 +28,27 @@
 package org.apache.http.client.methods;
 
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
+import org.apache.http.NameValuePair;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.utils.CloneUtils;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.HeaderGroup;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.Args;
 
 /**
  * @since 4.3
@@ -52,6 +61,7 @@ public class RequestBuilder {
     private URI uri;
     private HeaderGroup headergroup;
     private HttpEntity entity;
+    private LinkedList<NameValuePair> parameters;
     private RequestConfig config;
 
     RequestBuilder(final String method) {
@@ -64,43 +74,41 @@ public class RequestBuilder {
     }
 
     public static RequestBuilder create(final String method) {
+        Args.notBlank(method, "HTTP method");
         return new RequestBuilder(method);
     }
 
-    public static RequestBuilder createGet() {
+    public static RequestBuilder get() {
         return new RequestBuilder(HttpGet.METHOD_NAME);
     }
 
-    public static RequestBuilder createHead() {
+    public static RequestBuilder head() {
         return new RequestBuilder(HttpHead.METHOD_NAME);
     }
 
-    public static RequestBuilder createPost() {
+    public static RequestBuilder post() {
         return new RequestBuilder(HttpPost.METHOD_NAME);
     }
 
-    public static RequestBuilder createPut() {
+    public static RequestBuilder put() {
         return new RequestBuilder(HttpPut.METHOD_NAME);
     }
 
-    public static RequestBuilder createDelete() {
+    public static RequestBuilder delete() {
         return new RequestBuilder(HttpDelete.METHOD_NAME);
     }
 
-    public static RequestBuilder createTrace() {
+    public static RequestBuilder trace() {
         return new RequestBuilder(HttpTrace.METHOD_NAME);
     }
 
-    public static RequestBuilder createOptions() {
+    public static RequestBuilder options() {
         return new RequestBuilder(HttpOptions.METHOD_NAME);
     }
 
     public static RequestBuilder copy(final HttpRequest request) {
+        Args.notNull(request, "HTTP request");
         return new RequestBuilder().doCopy(request);
-    }
-
-    public static RequestBuilder clone(final HttpRequest request) throws CloneNotSupportedException {
-        return new RequestBuilder().doCopy(CloneUtils.cloneObject(request));
     }
 
     private RequestBuilder doCopy(final HttpRequest request) {
@@ -129,16 +137,12 @@ public class RequestBuilder {
         } else {
             this.config = null;
         }
+        this.parameters = null;
         return this;
     }
 
     public String getMethod() {
         return method;
-    }
-
-    public RequestBuilder setMethod(final String method) {
-        this.method = method;
-        return this;
     }
 
     public ProtocolVersion getVersion() {
@@ -238,6 +242,31 @@ public class RequestBuilder {
         return this;
     }
 
+    public List<NameValuePair> getParameters() {
+        return parameters != null ? new ArrayList<NameValuePair>(parameters) :
+            new ArrayList<NameValuePair>();
+    }
+
+    public RequestBuilder addParameter(final NameValuePair nvp) {
+        Args.notNull(nvp, "Name value pair");
+        if (parameters == null) {
+            parameters = new LinkedList<NameValuePair>();
+        }
+        parameters.add(nvp);
+        return this;
+    }
+
+    public RequestBuilder addParameter(final String name, final String value) {
+        return addParameter(new BasicNameValuePair(name, value));
+    }
+
+    public RequestBuilder addParameters(final NameValuePair... nvps) {
+        for (NameValuePair nvp: nvps) {
+            addParameter(nvp);
+        }
+        return this;
+    }
+
     public RequestConfig getConfig() {
         return config;
     }
@@ -247,24 +276,32 @@ public class RequestBuilder {
         return this;
     }
 
-    private String getMethodName() {
-        return this.method != null ? this.method : 
-            (this.entity != null ? HttpPost.METHOD_NAME : HttpGet.METHOD_NAME);
-    }
-
     public HttpUriRequest build() {
         HttpRequestBase result;
-        String methodName = getMethodName();
-        if (this.entity == null) {
-            InternalRequest request = new InternalRequest(methodName);
+        URI uri = this.uri != null ? this.uri : URI.create("/");
+        HttpEntity entity = this.entity;
+        if (parameters != null && !parameters.isEmpty()) {
+            if (entity == null && (HttpPost.METHOD_NAME.equalsIgnoreCase(method)
+                    || HttpPut.METHOD_NAME.equalsIgnoreCase(method))) {
+                entity = new UrlEncodedFormEntity(parameters, HTTP.DEF_CONTENT_CHARSET);
+            } else {
+                try {
+                    uri = new URIBuilder(uri).addParameters(parameters).build();
+                } catch (URISyntaxException ex) {
+                    // should never happen
+                }
+            }
+        }
+        if (entity == null) {
+            InternalRequest request = new InternalRequest(method);
             result = request;
         } else {
-            InternalEntityEclosingRequest request = new InternalEntityEclosingRequest(methodName);
-            request.setEntity(this.entity);
+            InternalEntityEclosingRequest request = new InternalEntityEclosingRequest(method);
+            request.setEntity(entity);
             result = request;
         }
         result.setProtocolVersion(this.version);
-        result.setURI(this.uri != null ? this.uri : URI.create("/"));
+        result.setURI(uri);
         if (this.headergroup != null) {
             result.setHeaders(this.headergroup.getAllHeaders());
         }
