@@ -28,6 +28,7 @@
 package org.apache.http.impl.client;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 /**
@@ -54,6 +55,10 @@ public class HttpClients {
 
     public static CloseableHttpClient createMinimal() {
         return new MinimalHttpClient(new PoolingHttpClientConnectionManager());
+    }
+
+    public static CloseableHttpClient createMinimal(final HttpClientConnectionManager connManager) {
+        return new MinimalHttpClient(connManager);
     }
 
 }
