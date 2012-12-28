@@ -30,10 +30,10 @@ package org.apache.http.conn.params;
  * Parameter names for connection managers in HttpConn.
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.1) use configuration methods of the specific connection manager implementation.
 */
-@Deprecated 
+@Deprecated
 public interface ConnManagerPNames {
 
     /**

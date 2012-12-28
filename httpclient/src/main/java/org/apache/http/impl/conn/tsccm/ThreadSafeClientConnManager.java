@@ -69,7 +69,7 @@ import org.apache.http.util.Asserts;
  * @deprecated (4.2)  use {@link PoolingClientConnectionManager}
  */
 @ThreadSafe
-@Deprecated 
+@Deprecated
 public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
     private final Log log;
@@ -150,7 +150,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @deprecated (4.1)  use {@link ThreadSafeClientConnManager#ThreadSafeClientConnManager(SchemeRegistry)}
      */
     @Deprecated
-	public ThreadSafeClientConnManager(HttpParams params,
+    public ThreadSafeClientConnManager(HttpParams params,
                                        SchemeRegistry schreg) {
         Args.notNull(schreg, "Scheme registry");
         this.log = LogFactory.getLog(getClass());
@@ -178,7 +178,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @deprecated (4.1)  use #createConnectionPool(long, TimeUnit))
      */
     @Deprecated
-	protected AbstractConnPool createConnectionPool(final HttpParams params) {
+    protected AbstractConnPool createConnectionPool(final HttpParams params) {
         return new ConnPoolByRoute(connOperator, params);
     }
 

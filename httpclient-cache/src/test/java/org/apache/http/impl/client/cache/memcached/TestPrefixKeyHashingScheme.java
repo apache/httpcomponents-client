@@ -49,7 +49,7 @@ public class TestPrefixKeyHashingScheme {
         };
         impl = new PrefixKeyHashingScheme(PREFIX, scheme);
     }
-    
+
     @Test
     public void addsPrefixToBackingScheme() {
         assertEquals("prefixhash", impl.hash(KEY));

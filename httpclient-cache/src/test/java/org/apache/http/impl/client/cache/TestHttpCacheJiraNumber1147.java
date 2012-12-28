@@ -73,12 +73,12 @@ public class TestHttpCacheJiraNumber1147 {
         }
         cacheDir.mkdir();
     }
-    
+
     @After
     public void cleanUp() {
         removeCache();
     }
-    
+
     @Test
     public void testIssue1147() throws Exception {
         CacheConfig cacheConfig = CacheConfig.custom()
@@ -97,30 +97,30 @@ public class TestHttpCacheJiraNumber1147 {
 
         Date now = new Date();
         Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        
+
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.setEntity(HttpTestUtils.makeBody(128));
         response.setHeader("Content-Length", "128");
         response.setHeader("ETag", "\"etag\"");
         response.setHeader("Cache-Control", "public, max-age=3600");
         response.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
-        
+
         EasyMock.expect(backend.execute(
                 EasyMock.eq(route),
                 EasyMock.isA(HttpRequestWrapper.class),
                 EasyMock.same(context),
                 EasyMock.<HttpExecutionAware>isNull())).andReturn(Proxies.enhanceResponse(response));
         EasyMock.replay(backend);
-        
+
         BasicHttpCache cache = new BasicHttpCache(resourceFactory, httpCacheStorage, cacheConfig);
         CachingExec t = new CachingExec(backend, cache, cacheConfig);
 
         HttpResponse response1 = t.execute(route, get, context, null);
         Assert.assertEquals(200, response1.getStatusLine().getStatusCode());
         EntityUtils.consume(response1.getEntity());
-        
+
         EasyMock.verify(backend);
-        
+
         removeCache();
 
         EasyMock.reset(backend);
@@ -130,7 +130,7 @@ public class TestHttpCacheJiraNumber1147 {
                 EasyMock.same(context),
                 EasyMock.<HttpExecutionAware>isNull())).andReturn(Proxies.enhanceResponse(response));
         EasyMock.replay(backend);
-        
+
         HttpResponse response2 = t.execute(route, get, context, null);
         Assert.assertEquals(200, response2.getStatusLine().getStatusCode());
         EntityUtils.consume(response2.getEntity());

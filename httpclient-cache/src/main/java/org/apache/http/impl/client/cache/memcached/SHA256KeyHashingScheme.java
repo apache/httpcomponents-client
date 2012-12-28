@@ -43,7 +43,7 @@ import org.apache.commons.logging.LogFactory;
 public class SHA256KeyHashingScheme implements KeyHashingScheme {
 
     private static final Log log = LogFactory.getLog(SHA256KeyHashingScheme.class);
-    
+
     public String hash(String key) {
         MessageDigest md = getDigest();
         md.update(key.getBytes());

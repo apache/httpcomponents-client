@@ -39,28 +39,28 @@ import org.apache.http.util.Args;
  */
 @Immutable
 public class BrowserCompatVersionAttributeHandler extends
-		AbstractCookieAttributeHandler {
+        AbstractCookieAttributeHandler {
 
-	public BrowserCompatVersionAttributeHandler() {
-		super();
-	}
+    public BrowserCompatVersionAttributeHandler() {
+        super();
+    }
 
-	/**
-	 * Parse cookie version attribute.
-	 */
-	public void parse(final SetCookie cookie, final String value)
-			throws MalformedCookieException {
-		Args.notNull(cookie, "Cookie");
-		if (value == null) {
-			throw new MalformedCookieException("Missing value for version attribute");
-		}
-		int version = 0;
-		try {
-			version = Integer.parseInt(value);
-		} catch (NumberFormatException e) {
-			// Just ignore invalid versions
-		}
-		cookie.setVersion(version);
-	}
+    /**
+     * Parse cookie version attribute.
+     */
+    public void parse(final SetCookie cookie, final String value)
+            throws MalformedCookieException {
+        Args.notNull(cookie, "Cookie");
+        if (value == null) {
+            throw new MalformedCookieException("Missing value for version attribute");
+        }
+        int version = 0;
+        try {
+            version = Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            // Just ignore invalid versions
+        }
+        cookie.setVersion(version);
+    }
 
 }

@@ -41,7 +41,7 @@ import org.apache.http.util.Args;
  *
  * @deprecated (4.2)  do not use
  */
-@Deprecated 
+@Deprecated
 public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
 
     /** The planned route of the entry. */

@@ -49,23 +49,23 @@ public class Async {
         this.executor = executor;
         return this;
     }
-    
+
     public Async use(final java.util.concurrent.Executor concurrentExec) {
         this.concurrentExec = concurrentExec;
         return this;
     }
-    
+
     static class ExecRunnable<T> implements Runnable {
-        
+
         private final BasicFuture<T> future;
         private final Request request;
         private final Executor executor;
         private final ResponseHandler<T> handler;
-        
+
         ExecRunnable(
-                final BasicFuture<T> future, 
-                final Request request, 
-                final Executor executor, 
+                final BasicFuture<T> future,
+                final Request request,
+                final Executor executor,
                 final ResponseHandler<T> handler) {
             super();
             this.future = future;
@@ -83,9 +83,9 @@ public class Async {
                 this.future.failed(ex);
             }
         }
-        
+
     }
-    
+
     public <T> Future<T> execute(
             final Request request, final ResponseHandler<T> handler, final FutureCallback<T> callback) {
         BasicFuture<T> future = new BasicFuture<T>(callback);
@@ -103,7 +103,7 @@ public class Async {
         }
         return future;
     }
-    
+
     public <T> Future<T> execute(final Request request, final ResponseHandler<T> handler) {
         return execute(request, handler, null);
     }
@@ -111,9 +111,9 @@ public class Async {
     public Future<Content> execute(final Request request, final FutureCallback<Content> callback) {
         return execute(request, new ContentResponseHandler(), callback);
     }
-    
+
     public Future<Content> execute(final Request request) {
         return execute(request, new ContentResponseHandler(), null);
     }
-    
+
 }

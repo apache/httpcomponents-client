@@ -38,7 +38,7 @@ import org.apache.http.params.HttpParams;
 /**
  * @deprecated (4.2) do not use
  */
-@Deprecated 
+@Deprecated
 class SchemeLayeredSocketFactoryAdaptor2 implements SchemeLayeredSocketFactory {
 
     private final LayeredSchemeSocketFactory factory;
@@ -53,9 +53,9 @@ class SchemeLayeredSocketFactoryAdaptor2 implements SchemeLayeredSocketFactory {
     }
 
     public Socket connectSocket(
-            final Socket sock, 
+            final Socket sock,
             final InetSocketAddress remoteAddress,
-            final InetSocketAddress localAddress, 
+            final InetSocketAddress localAddress,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         return this.factory.connectSocket(sock, remoteAddress, localAddress, params);
     }

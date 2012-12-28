@@ -66,7 +66,7 @@ import org.apache.http.util.Args;
  * when looking up parameters.
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.3) use {@link DefaultedHttpParams}
  */
 @NotThreadSafe

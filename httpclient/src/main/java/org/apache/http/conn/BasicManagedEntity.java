@@ -44,7 +44,7 @@ import org.apache.http.util.EntityUtils;
  * the unmanaged entity in the response with a managed one.
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.3) do not use.
  */
 @Deprecated
@@ -106,7 +106,7 @@ public class BasicManagedEntity extends HttpEntityWrapper
      * @deprecated (4.1) Use {@link EntityUtils#consume(HttpEntity)}
      */
     @Deprecated
-	@Override
+    @Override
     public void consumeContent() throws IOException {
         ensureConsumed();
     }

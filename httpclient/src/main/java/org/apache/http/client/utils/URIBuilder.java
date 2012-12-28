@@ -72,7 +72,7 @@ public class URIBuilder {
 
     /**
      * Construct an instance from the string which must be a valid URI.
-     * 
+     *
      * @param string a valid URI in string form
      * @throws URISyntaxException if the input is not a valid URI
      */
@@ -103,7 +103,7 @@ public class URIBuilder {
     public URI build() throws URISyntaxException {
         return new URI(buildString());
     }
-    
+
     private String buildString() {
         StringBuilder sb = new StringBuilder();
         if (this.scheme != null) {
@@ -256,9 +256,9 @@ public class URIBuilder {
      * Sets URI query.
      * <p>
      * The value is expected to be encoded form data.
-     * 
+     *
      * @deprecated (4.3) use {@link #setParameters(List)} or {@link #setParameters(NameValuePair...)}
-     * 
+     *
      * @see URLEncodedUtils#parse
      */
     @Deprecated
@@ -269,14 +269,14 @@ public class URIBuilder {
         this.encodedSchemeSpecificPart = null;
         return this;
     }
-    
+
     /**
      * Sets URI query parameters. The parameter name / values are expected to be unescaped
      * and may contain non ASCII characters.
      * <p/>
      * Please note query parameters and custom query component are mutually exclusive. This method
      * will remove custom query if present.
-     * 
+     *
      * @since 4.3
      */
     public URIBuilder setParameters(final List <NameValuePair> nvps) {
@@ -291,14 +291,14 @@ public class URIBuilder {
         this.query = null;
         return this;
     }
-    
+
     /**
      * Adds URI query parameters. The parameter name / values are expected to be unescaped
      * and may contain non ASCII characters.
      * <p/>
      * Please note query parameters and custom query component are mutually exclusive. This method
      * will remove custom query if present.
-     * 
+     *
      * @since 4.3
      */
     public URIBuilder addParameters(final List <NameValuePair> nvps) {
@@ -311,14 +311,14 @@ public class URIBuilder {
         this.query = null;
         return this;
     }
-    
+
     /**
      * Sets URI query parameters. The parameter name / values are expected to be unescaped
      * and may contain non ASCII characters.
      * <p/>
      * Please note query parameters and custom query component are mutually exclusive. This method
      * will remove custom query if present.
-     * 
+     *
      * @since 4.3
      */
     public URIBuilder setParameters(final NameValuePair... nvps) {
@@ -335,7 +335,7 @@ public class URIBuilder {
         this.query = null;
         return this;
     }
-    
+
     /**
      * Adds parameter to URI query. The parameter name and value are expected to be unescaped
      * and may contain non ASCII characters.
@@ -382,7 +382,7 @@ public class URIBuilder {
 
     /**
      * Clears URI query parameters.
-     * 
+     *
      * @since 4.3
      */
     public URIBuilder clearParameters() {
@@ -391,14 +391,14 @@ public class URIBuilder {
         this.encodedSchemeSpecificPart = null;
         return this;
     }
-    
+
     /**
      * Sets custom URI query. The value is expected to be unescaped and may contain non ASCII
-     * characters. 
+     * characters.
      * <p/>
      * Please note query parameters and custom query component are mutually exclusive. This method
      * will remove query parameters if present.
-     * 
+     *
      * @since 4.3
      */
     public URIBuilder setCustomQuery(final String query) {
@@ -408,7 +408,7 @@ public class URIBuilder {
         this.queryParams = null;
         return this;
     }
-    
+
     /**
      * Sets URI fragment. The value is expected to be unescaped and may contain non ASCII
      * characters.

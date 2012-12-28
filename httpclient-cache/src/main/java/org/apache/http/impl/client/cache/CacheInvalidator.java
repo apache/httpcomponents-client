@@ -201,7 +201,7 @@ class CacheInvalidator {
 
         // do not invalidate if response is strictly older than entry
         // or if the etags match
-        
+
         if (responseDateOlderThanEntryDate(response, entry)) return;
         if (!responseAndEntryEtagsDiffer(response, entry)) return;
 

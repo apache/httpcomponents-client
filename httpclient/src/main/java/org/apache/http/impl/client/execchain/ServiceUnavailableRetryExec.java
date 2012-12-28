@@ -57,7 +57,7 @@ public class ServiceUnavailableRetryExec implements ClientExecChain {
     private final ServiceUnavailableRetryStrategy retryStrategy;
 
     public ServiceUnavailableRetryExec(
-            final ClientExecChain requestExecutor, 
+            final ClientExecChain requestExecutor,
             final ServiceUnavailableRetryStrategy retryStrategy) {
         super();
         Args.notNull(requestExecutor, "HTTP request executor");
@@ -67,7 +67,7 @@ public class ServiceUnavailableRetryExec implements ClientExecChain {
     }
 
     public CloseableHttpResponse execute(
-            final HttpRoute route, 
+            final HttpRoute route,
             final HttpRequestWrapper request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {

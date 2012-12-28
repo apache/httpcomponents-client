@@ -48,7 +48,7 @@ import org.apache.http.protocol.HttpContext;
 import org.junit.Before;
 import org.junit.Test;
 
-@Deprecated 
+@Deprecated
 public class TestResponseAuthCache {
 
     private HttpHost target;

@@ -33,7 +33,7 @@ import org.apache.http.HttpResponse;
 
 /**
  * Extended version of the {@link HttpResponse} interface that also extends {@link Closeable}.
- * 
+ *
  * @since 4.3
  */
 public interface CloseableHttpResponse extends HttpResponse, Closeable {

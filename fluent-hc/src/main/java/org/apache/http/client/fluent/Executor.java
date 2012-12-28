@@ -198,10 +198,10 @@ public class Executor {
     }
 
     /**
-     * Executes the request. Please Note that response content must be processed 
+     * Executes the request. Please Note that response content must be processed
      * or discarded using {@link Response#discardContent()}, otherwise the
      * connection used for the request might not be released to the pool.
-     * 
+     *
      * @see Response#handleResponse(org.apache.http.client.ResponseHandler)
      * @see Response#discardContent()
      */

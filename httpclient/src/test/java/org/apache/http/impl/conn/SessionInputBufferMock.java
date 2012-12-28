@@ -46,8 +46,8 @@ public class SessionInputBufferMock extends SessionInputBufferImpl {
     public static final int BUFFER_SIZE = 16;
 
     public SessionInputBufferMock(
-            final InputStream instream, 
-            int buffersize, 
+            final InputStream instream,
+            int buffersize,
             final MessageConstraints constrains,
             final CharsetDecoder decoder) {
         super(new HttpTransportMetricsImpl(), buffersize, -1, constrains, decoder);
@@ -92,7 +92,7 @@ public class SessionInputBufferMock extends SessionInputBufferImpl {
     }
 
     public SessionInputBufferMock(
-            final byte[] bytes, 
+            final byte[] bytes,
             final CharsetDecoder decoder) {
         this(bytes, BUFFER_SIZE, null, decoder);
     }

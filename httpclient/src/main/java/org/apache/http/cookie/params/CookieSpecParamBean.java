@@ -40,7 +40,7 @@ import org.apache.http.params.HttpParams;
  * conventions.
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.3) use constructor parameters of {@link CookieSpecProvider}s.
  */
 @Deprecated

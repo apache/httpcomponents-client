@@ -1574,152 +1574,152 @@ public class TestCachingExec {
         assertEquals(1, backend.getExecutions());
     }
 
-	@Test
-	public void testNoEntityForIfNoneMatchRequestNotYetInCache() throws Exception {
+    @Test
+    public void testNoEntityForIfNoneMatchRequestNotYetInCache() throws Exception {
 
-		Date now = new Date();
-		Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        Date now = new Date();
+        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-		impl = new CachingExec(mockBackend, new BasicHttpCache(),
-				CacheConfig.DEFAULT);
-		HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-				"http://foo.example.com/"));
-		req1.addHeader("If-None-Match", "\"etag\"");
+        impl = new CachingExec(mockBackend, new BasicHttpCache(),
+                CacheConfig.DEFAULT);
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
+                "http://foo.example.com/"));
+        req1.addHeader("If-None-Match", "\"etag\"");
 
-		HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
-				HttpStatus.SC_NOT_MODIFIED, "Not modified");
-		resp1.setHeader("Content-Length", "128");
-		resp1.setHeader("ETag", "\"etag\"");
-		resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
-		resp1.setHeader("Cache-Control", "public, max-age=5");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_NOT_MODIFIED, "Not modified");
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "public, max-age=5");
 
-		backendExpectsAnyRequestAndReturn(resp1);
-		replayMocks();
-		HttpResponse result = impl.execute(route, req1);
-		verifyMocks();
+        backendExpectsAnyRequestAndReturn(resp1);
+        replayMocks();
+        HttpResponse result = impl.execute(route, req1);
+        verifyMocks();
 
-		assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine()
-				.getStatusCode());
-		assertNull("The 304 response messages MUST NOT contain a message-body",
-				result.getEntity());
-	}
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine()
+                .getStatusCode());
+        assertNull("The 304 response messages MUST NOT contain a message-body",
+                result.getEntity());
+    }
 
-	@Test
-	public void testNotModifiedResponseUpdatesCacheEntryWhenNoEntity() throws Exception {
+    @Test
+    public void testNotModifiedResponseUpdatesCacheEntryWhenNoEntity() throws Exception {
 
-		Date now = new Date();
+        Date now = new Date();
 
-		impl = new CachingExec(mockBackend, new BasicHttpCache(),CacheConfig.DEFAULT);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(),CacheConfig.DEFAULT);
 
-		HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
-		req1.addHeader("If-None-Match", "etag");
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        req1.addHeader("If-None-Match", "etag");
 
-		HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
-		req2.addHeader("If-None-Match", "etag");
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        req2.addHeader("If-None-Match", "etag");
 
-		HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
-		resp1.setHeader("Date", DateUtils.formatDate(now));
-		resp1.setHeader("Cache-Control","max-age=0");
-		resp1.setHeader("Etag", "etag");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Cache-Control","max-age=0");
+        resp1.setHeader("Etag", "etag");
 
-		HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
-		resp2.setHeader("Date", DateUtils.formatDate(now));
-		resp2.setHeader("Cache-Control","max-age=0");
-		resp1.setHeader("Etag", "etag");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Cache-Control","max-age=0");
+        resp1.setHeader("Etag", "etag");
 
-		backendExpectsAnyRequestAndReturn(resp1);
-		backendExpectsAnyRequestAndReturn(resp2);
-		replayMocks();
-		HttpResponse result1 = impl.execute(route, req1);
-		HttpResponse result2 = impl.execute(route, req2);
-		verifyMocks();
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
+        replayMocks();
+        HttpResponse result1 = impl.execute(route, req1);
+        HttpResponse result2 = impl.execute(route, req2);
+        verifyMocks();
 
-		assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getStatusLine().getStatusCode());
-		assertEquals("etag", result1.getFirstHeader("Etag").getValue());
-		assertEquals(HttpStatus.SC_NOT_MODIFIED, result2.getStatusLine().getStatusCode());
-		assertEquals("etag", result2.getFirstHeader("Etag").getValue());
-	}
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getStatusLine().getStatusCode());
+        assertEquals("etag", result1.getFirstHeader("Etag").getValue());
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result2.getStatusLine().getStatusCode());
+        assertEquals("etag", result2.getFirstHeader("Etag").getValue());
+    }
 
-	@Test
-	public void testNotModifiedResponseWithVaryUpdatesCacheEntryWhenNoEntity() throws Exception {
+    @Test
+    public void testNotModifiedResponseWithVaryUpdatesCacheEntryWhenNoEntity() throws Exception {
 
-		Date now = new Date();
+        Date now = new Date();
 
-		impl = new CachingExec(mockBackend, new BasicHttpCache(),CacheConfig.DEFAULT);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(),CacheConfig.DEFAULT);
 
-		HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
-		req1.addHeader("If-None-Match", "etag");
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        req1.addHeader("If-None-Match", "etag");
 
-		HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
-		req2.addHeader("If-None-Match", "etag");
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        req2.addHeader("If-None-Match", "etag");
 
-		HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
-		resp1.setHeader("Date", DateUtils.formatDate(now));
-		resp1.setHeader("Cache-Control","max-age=0");
-		resp1.setHeader("Etag", "etag");
-		resp1.setHeader("Vary", "Accept-Encoding");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Cache-Control","max-age=0");
+        resp1.setHeader("Etag", "etag");
+        resp1.setHeader("Vary", "Accept-Encoding");
 
-		HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
-		resp2.setHeader("Date", DateUtils.formatDate(now));
-		resp2.setHeader("Cache-Control","max-age=0");
-		resp1.setHeader("Etag", "etag");
-		resp1.setHeader("Vary", "Accept-Encoding");
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Cache-Control","max-age=0");
+        resp1.setHeader("Etag", "etag");
+        resp1.setHeader("Vary", "Accept-Encoding");
 
-		backendExpectsAnyRequestAndReturn(resp1);
-		backendExpectsAnyRequestAndReturn(resp2);
-		replayMocks();
-		HttpResponse result1 = impl.execute(route, req1);
-		HttpResponse result2 = impl.execute(route, req2);
-		verifyMocks();
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
+        replayMocks();
+        HttpResponse result1 = impl.execute(route, req1);
+        HttpResponse result2 = impl.execute(route, req2);
+        verifyMocks();
 
-		assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getStatusLine().getStatusCode());
-		assertEquals("etag", result1.getFirstHeader("Etag").getValue());
-		assertEquals(HttpStatus.SC_NOT_MODIFIED, result2.getStatusLine().getStatusCode());
-		assertEquals("etag", result2.getFirstHeader("Etag").getValue());
-	}
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getStatusLine().getStatusCode());
+        assertEquals("etag", result1.getFirstHeader("Etag").getValue());
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result2.getStatusLine().getStatusCode());
+        assertEquals("etag", result2.getFirstHeader("Etag").getValue());
+    }
 
-	@Test
-	public void testDoesNotSend304ForNonConditionalRequest() throws Exception {
+    @Test
+    public void testDoesNotSend304ForNonConditionalRequest() throws Exception {
 
-		Date now = new Date();
-		Date inOneMinute = new Date(System.currentTimeMillis()+60000);
+        Date now = new Date();
+        Date inOneMinute = new Date(System.currentTimeMillis()+60000);
 
-		impl = new CachingExec(mockBackend, new BasicHttpCache(),CacheConfig.DEFAULT);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(),CacheConfig.DEFAULT);
 
-		HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
-		req1.addHeader("If-None-Match", "etag");
+        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        req1.addHeader("If-None-Match", "etag");
 
-		HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
 
-		HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
-		resp1.setHeader("Date", DateUtils.formatDate(now));
-		resp1.setHeader("Cache-Control","public, max-age=60");
-		resp1.setHeader("Expires",DateUtils.formatDate(inOneMinute));
-		resp1.setHeader("Etag", "etag");
-		resp1.setHeader("Vary", "Accept-Encoding");
+        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Cache-Control","public, max-age=60");
+        resp1.setHeader("Expires",DateUtils.formatDate(inOneMinute));
+        resp1.setHeader("Etag", "etag");
+        resp1.setHeader("Vary", "Accept-Encoding");
 
-		HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "Ok");
-		resp2.setHeader("Date", DateUtils.formatDate(now));
-		resp2.setHeader("Cache-Control","public, max-age=60");
-		resp2.setHeader("Expires",DateUtils.formatDate(inOneMinute));
-		resp2.setHeader("Etag", "etag");
-		resp2.setHeader("Vary", "Accept-Encoding");
-		resp2.setEntity(HttpTestUtils.makeBody(128));
+        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "Ok");
+        resp2.setHeader("Date", DateUtils.formatDate(now));
+        resp2.setHeader("Cache-Control","public, max-age=60");
+        resp2.setHeader("Expires",DateUtils.formatDate(inOneMinute));
+        resp2.setHeader("Etag", "etag");
+        resp2.setHeader("Vary", "Accept-Encoding");
+        resp2.setEntity(HttpTestUtils.makeBody(128));
 
-		backendExpectsAnyRequestAndReturn(resp1);
-		backendExpectsAnyRequestAndReturn(resp2).anyTimes();
-		replayMocks();
-		HttpResponse result1 = impl.execute(route, req1);
-		HttpResponse result2 = impl.execute(route, req2);
-		verifyMocks();
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2).anyTimes();
+        replayMocks();
+        HttpResponse result1 = impl.execute(route, req1);
+        HttpResponse result2 = impl.execute(route, req2);
+        verifyMocks();
 
-		assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getStatusLine().getStatusCode());
-		assertNull(result1.getEntity());
-		assertEquals(HttpStatus.SC_OK, result2.getStatusLine().getStatusCode());
-		Assert.assertNotNull(result2.getEntity());
-	}
+        assertEquals(HttpStatus.SC_NOT_MODIFIED, result1.getStatusLine().getStatusCode());
+        assertNull(result1.getEntity());
+        assertEquals(HttpStatus.SC_OK, result2.getStatusLine().getStatusCode());
+        Assert.assertNotNull(result2.getEntity());
+    }
 
-	private IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndReturn(
+    private IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndReturn(
             HttpResponse response) throws Exception {
         CloseableHttpResponse resp = mockBackend.execute(
                 EasyMock.isA(HttpRoute.class),

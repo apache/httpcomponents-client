@@ -1234,7 +1234,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
             // Start the response. Length includes signature and type
             prepareResponse(finalLength, 3);
-            
+
             // LM Resp Length (twice)
             addUShort(lmRespLen);
             addUShort(lmRespLen);

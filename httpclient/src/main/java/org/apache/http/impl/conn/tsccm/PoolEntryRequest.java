@@ -38,7 +38,7 @@ import org.apache.http.conn.ConnectionPoolTimeoutException;
  *
  * @deprecated (4.2)  use {@link Future}
  */
-@Deprecated 
+@Deprecated
 public interface PoolEntryRequest {
 
     /**

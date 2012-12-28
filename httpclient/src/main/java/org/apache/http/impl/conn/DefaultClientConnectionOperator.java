@@ -142,7 +142,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         }
         return reg;
     }
-    
+
     public void openConnection(
             final OperatedClientConnection conn,
             final HttpHost target,

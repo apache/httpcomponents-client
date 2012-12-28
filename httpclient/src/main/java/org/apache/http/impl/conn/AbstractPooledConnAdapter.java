@@ -71,11 +71,11 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
      * Obtains the pool entry.
      *
      * @return  the pool entry, or <code>null</code> if detached
-     * 
-     * @deprecated (4.0.1) 
+     *
+     * @deprecated (4.0.1)
      */
     @Deprecated
-	protected AbstractPoolEntry getPoolEntry() {
+    protected AbstractPoolEntry getPoolEntry() {
         return this.poolEntry;
     }
 
@@ -97,7 +97,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
      * @deprecated (4.1)  use {@link #assertValid(AbstractPoolEntry)}
      */
     @Deprecated
-	protected final void assertAttached() {
+    protected final void assertAttached() {
         if (poolEntry == null) {
             throw new ConnectionShutdownException();
         }

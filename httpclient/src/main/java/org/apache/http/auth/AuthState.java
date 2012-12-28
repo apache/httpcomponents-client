@@ -154,7 +154,7 @@ public class AuthState {
      *
      * @deprecated (4.2)  use {@link #reset()}
      */
-    @Deprecated 
+    @Deprecated
     public void invalidate() {
         reset();
     }
@@ -174,7 +174,7 @@ public class AuthState {
      *
      * @deprecated (4.2)  use {@link #update(AuthScheme, Credentials)}
      */
-    @Deprecated 
+    @Deprecated
     public void setAuthScheme(final AuthScheme authScheme) {
         if (authScheme == null) {
             reset();

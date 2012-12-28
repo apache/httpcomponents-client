@@ -330,7 +330,7 @@ public class HttpClientBuilder {
         this.backoffManager = backoffManager;
         return this;
     }
-    
+
     public final HttpClientBuilder setServiceUnavailableRetryStrategy(
             final ServiceUnavailableRetryStrategy serviceUnavailStrategy) {
         this.serviceUnavailStrategy = serviceUnavailStrategy;

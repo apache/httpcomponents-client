@@ -192,9 +192,9 @@ public class TestURIBuilder {
                 .build();
 
         Assert.assertEquals(uri.getHost(), bld.getHost());
-        
+
         Assert.assertEquals(uri.getUserInfo(), bld.getUserInfo());
-        
+
         Assert.assertEquals(uri.getPath(), bld.getPath());
 
         Assert.assertEquals(uri.getQuery(), bld.getQuery());
@@ -221,9 +221,9 @@ public class TestURIBuilder {
                 .build();
 
         Assert.assertEquals(uri.getHost(), bld.getHost());
-        
+
         Assert.assertEquals(uri.getRawUserInfo(), bld.getRawUserInfo());
-        
+
         Assert.assertEquals(uri.getRawPath(), bld.getRawPath());
 
         Assert.assertEquals(uri.getRawQuery(), bld.getRawQuery());

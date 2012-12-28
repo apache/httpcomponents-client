@@ -51,31 +51,31 @@ public class TestMemcachedCacheEntryImpl {
         entry = HttpTestUtils.makeCacheEntry();
         impl = new MemcachedCacheEntryImpl("foo", entry);
     }
-    
+
     @Test
     public void canBeCreatedEmpty() {
         impl = new MemcachedCacheEntryImpl();
         assertNull(impl.getStorageKey());
         assertNull(impl.getHttpCacheEntry());
     }
-    
+
     @Test
     public void canBeSerialized() {
         byte[] bytes = impl.toByteArray();
         assertNotNull(bytes);
         assertTrue(bytes.length > 0);
     }
-    
+
     @Test
     public void knowsItsCacheKey() {
         assertEquals("foo", impl.getStorageKey());
     }
-    
+
     @Test
     public void knowsItsCacheEntry() {
         assertEquals(entry, impl.getHttpCacheEntry());
     }
-    
+
     @Test
     public void canBeReconstitutedFromByteArray() throws Exception {
         String key = impl.getStorageKey();
@@ -83,11 +83,11 @@ public class TestMemcachedCacheEntryImpl {
         byte[] bytes = impl.toByteArray();
         impl = new MemcachedCacheEntryImpl();
         impl.set(bytes);
-        
+
         assertEquals(key, impl.getStorageKey());
         assertEquivalent(entry, impl.getHttpCacheEntry());
     }
-    
+
     @Test(expected=MemcachedSerializationException.class)
     public void cannotReconstituteFromGarbage() {
         impl = new MemcachedCacheEntryImpl();

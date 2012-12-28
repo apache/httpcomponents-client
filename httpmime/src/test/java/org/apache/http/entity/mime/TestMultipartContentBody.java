@@ -51,7 +51,7 @@ public class TestMultipartContentBody {
 
         Assert.assertEquals(MIME.ENC_8BIT, b1.getTransferEncoding());
 
-        StringBody b2 = new StringBody("more text", 
+        StringBody b2 = new StringBody("more text",
                 ContentType.create("text/other", MIME.DEFAULT_CHARSET));
         Assert.assertEquals(9, b2.getContentLength());
         Assert.assertEquals(MIME.DEFAULT_CHARSET.name(), b2.getCharset());

@@ -49,7 +49,7 @@ import org.apache.http.util.Args;
  *
  * @deprecated (4.2)  use {@link ProxyAuthenticationStrategy}
  */
-@Deprecated 
+@Deprecated
 @Immutable
 public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHandler {
 

@@ -37,7 +37,7 @@ import java.net.InetAddress;
  *
  * @deprecated (4.1)  Do not use
  */
-@Deprecated 
+@Deprecated
 public interface HostNameResolver {
 
     /**

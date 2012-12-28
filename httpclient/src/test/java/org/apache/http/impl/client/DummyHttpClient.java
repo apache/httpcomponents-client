@@ -51,11 +51,11 @@ public class DummyHttpClient implements HttpClient {
     private ClientConnectionManager connManager = new SingleClientConnManager();
     private HttpRequest request;
     private HttpResponse response = new BasicHttpResponse(new ProtocolVersion("HTTP",1,1), HttpStatus.SC_OK, "OK");
-    
+
     public void setParams(HttpParams params) {
         this.params = params;
     }
-    
+
     public HttpParams getParams() {
         return params;
     }
@@ -63,15 +63,15 @@ public class DummyHttpClient implements HttpClient {
     public ClientConnectionManager getConnectionManager() {
         return connManager;
     }
-    
+
     public void setConnectionManager(ClientConnectionManager ccm) {
         connManager = ccm;
     }
-    
+
     public void setResponse(HttpResponse resp) {
         response = resp;
     }
-    
+
     public HttpRequest getCapturedRequest() {
         return request;
     }

@@ -37,10 +37,10 @@ import org.apache.http.params.HttpParams;
  * using Java Beans conventions.
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.2) do not use
  */
-@Deprecated 
+@Deprecated
 public class ConnConnectionParamBean extends HttpAbstractParamBean {
 
     public ConnConnectionParamBean (final HttpParams params) {
@@ -51,7 +51,7 @@ public class ConnConnectionParamBean extends HttpAbstractParamBean {
      * @deprecated (4.2)  Use custom {@link DefaultHttpResponseParser} implementation
      */
     @Deprecated
-	public void setMaxStatusLineGarbage (final int maxStatusLineGarbage) {
+    public void setMaxStatusLineGarbage (final int maxStatusLineGarbage) {
         params.setIntParameter(ConnConnectionPNames.MAX_STATUS_LINE_GARBAGE, maxStatusLineGarbage);
     }
 

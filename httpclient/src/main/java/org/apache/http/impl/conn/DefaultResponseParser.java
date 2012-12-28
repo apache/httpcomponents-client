@@ -58,7 +58,7 @@ import org.apache.http.util.CharArrayBuffer;
  * </ul>
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.2) use {@link DefaultHttpResponseParser}
  */
 @Deprecated

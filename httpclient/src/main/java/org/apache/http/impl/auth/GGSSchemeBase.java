@@ -113,7 +113,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     /**
      * @deprecated (4.2) Use {@link ContextAwareAuthScheme#authenticate(Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
      */
-    @Deprecated 
+    @Deprecated
     public Header authenticate(
             final Credentials credentials,
             final HttpRequest request) throws AuthenticationException {

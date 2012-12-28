@@ -29,10 +29,10 @@ package org.apache.http.client.fluent;
 public class FluentQuickStart {
 
     public static void main(String[] args) throws Exception {
-        // The fluent API relieves the user from having to deal with manual 
-        // deallocation of system resources at the cost of having to buffer 
+        // The fluent API relieves the user from having to deal with manual
+        // deallocation of system resources at the cost of having to buffer
         // response content in memory in some cases.
-        
+
         Request.Get("http://targethost/homepage")
             .execute().returnContent();
         Request.Post("http://targethost/login")

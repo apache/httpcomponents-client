@@ -45,7 +45,7 @@ public class FluentAsync {
         // Use pool of two threads
         ExecutorService threadpool = Executors.newFixedThreadPool(2);
         Async async = Async.newInstance().use(threadpool);
-        
+
         Request[] requests = new Request[] {
                 Request.Get("http://www.google.com/"),
                 Request.Get("http://www.yahoo.com/"),
@@ -53,23 +53,23 @@ public class FluentAsync {
                 Request.Get("http://www.apple.com/")
         };
 
-        
+
         Queue<Future<Content>> queue = new LinkedList<Future<Content>>();
         // Execute requests asynchronously
         for (final Request request: requests) {
             Future<Content> future = async.execute(request, new FutureCallback<Content>() {
-                
+
                 public void failed(final Exception ex) {
                     System.out.println(ex.getMessage() + ": " + request);
                 }
-                
+
                 public void completed(final Content content) {
                     System.out.println("Request completed: " + request);
                 }
-                
+
                 public void cancelled() {
                 }
-                
+
             });
             queue.add(future);
         }

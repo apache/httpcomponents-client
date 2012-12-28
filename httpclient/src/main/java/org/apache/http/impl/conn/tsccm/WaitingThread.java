@@ -47,7 +47,7 @@ import org.apache.http.util.Args;
  *
  * @deprecated (4.2)  do not use
  */
-@Deprecated 
+@Deprecated
 public class WaitingThread {
 
     /** The condition on which the thread is waiting. */

@@ -39,10 +39,10 @@ import org.apache.http.util.Args;
  * @since 4.0
  *
  * @see ConnManagerPNames
- * 
+ *
  * @deprecated (4.1) use configuration methods of the specific connection manager implementation.
  */
-@Deprecated 
+@Deprecated
 @Immutable
 public final class ConnManagerParams implements ConnManagerPNames {
 
@@ -59,7 +59,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * @deprecated (4.1)  use {@link HttpConnectionParams#getConnectionTimeout(HttpParams)}
      */
     @Deprecated
-	public static long getTimeout(final HttpParams params) {
+    public static long getTimeout(final HttpParams params) {
         Args.notNull(params, "HTTP parameters");
         return params.getLongParameter(TIMEOUT, 0);
     }
@@ -74,7 +74,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * @deprecated (4.1)  use {@link HttpConnectionParams#setConnectionTimeout(HttpParams, int)}
      */
     @Deprecated
-	public static void setTimeout(final HttpParams params, long timeout) {
+    public static void setTimeout(final HttpParams params, long timeout) {
         Args.notNull(params, "HTTP parameters");
         params.setLongParameter(TIMEOUT, timeout);
     }

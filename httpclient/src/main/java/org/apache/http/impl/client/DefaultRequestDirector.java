@@ -128,7 +128,7 @@ import org.apache.http.util.EntityUtils;
  * </ul>
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.3)
  */
 @Deprecated
@@ -1050,7 +1050,7 @@ public class DefaultRequestDirector implements RequestDirector {
                 }
             }
         }
-        
+
         if (HttpClientParams.isRedirecting(params) &&
                 this.redirectStrategy.isRedirected(request, response, context)) {
 

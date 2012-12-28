@@ -44,7 +44,7 @@ import org.apache.http.util.Args;
  *
  * @deprecated (4.2)  use {@link ConnPoolControl}
  */
-@Deprecated 
+@Deprecated
 @ThreadSafe
 public final class ConnPerRouteBean implements ConnPerRoute {
 

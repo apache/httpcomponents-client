@@ -34,7 +34,7 @@ import org.apache.http.conn.routing.HttpRoute;
  * A request with the route along which it should be sent.
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.3) do not use.
  */
 @Deprecated

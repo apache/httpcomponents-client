@@ -36,8 +36,8 @@ import org.apache.http.protocol.HTTP;
 
 public class Content {
 
-    public static final Content NO_CONTENT = new Content(new byte[] {}, ContentType.DEFAULT_BINARY); 
-    
+    public static final Content NO_CONTENT = new Content(new byte[] {}, ContentType.DEFAULT_BINARY);
+
     private final byte[] raw;
     private final ContentType type;
 
@@ -75,5 +75,5 @@ public class Content {
     public String toString() {
         return asString();
     }
-    
+
 }

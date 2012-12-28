@@ -98,7 +98,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
             }
 
         };
-        
+
         this.httpclient = HttpClients.custom()
             .setConnectionManager(mgr)
             .setUserTokenHandler(userTokenHandler)
@@ -233,7 +233,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
             .setConnectionManager(connMngr)
             .setUserTokenHandler(userTokenHandler)
             .build();
-        
+
         // Bottom of the pool : a *keep alive* connection to Route 1.
         HttpContext context1 = new BasicHttpContext();
         context1.setAttribute("user", "stuff");

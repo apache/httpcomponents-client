@@ -48,10 +48,10 @@ import org.apache.http.protocol.HTTP;
  * the state of the original request.
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.3) do not use.
  */
-@Deprecated 
+@Deprecated
 @NotThreadSafe // e.g. [gs]etEntity()
 public class EntityEnclosingRequestWrapper extends RequestWrapper
     implements HttpEntityEnclosingRequest {

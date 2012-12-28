@@ -32,7 +32,7 @@ import org.apache.http.impl.conn.DefaultHttpResponseParser;
  * Parameter names for HTTP client connections.
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.1) use custom {@link DefaultHttpResponseParser} implementation.
  */
 @Deprecated
@@ -58,7 +58,7 @@ public interface ConnConnectionPNames {
      * @deprecated (4.1) Use custom {@link DefaultHttpResponseParser} implementation
      */
     @Deprecated
-	public static final String MAX_STATUS_LINE_GARBAGE = "http.connection.max-status-line-garbage";
+    public static final String MAX_STATUS_LINE_GARBAGE = "http.connection.max-status-line-garbage";
 
 
 }

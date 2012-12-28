@@ -58,15 +58,15 @@ class ResponseCachingPolicy {
     private final boolean sharedCache;
     private final boolean neverCache1_0ResponsesWithQueryString;
     private final Log log = LogFactory.getLog(getClass());
-    private static final Set<Integer> cacheableStatuses = 
-    	new HashSet<Integer>(Arrays.asList(HttpStatus.SC_OK,
-    			HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION,
-    			HttpStatus.SC_MULTIPLE_CHOICES,
-    			HttpStatus.SC_MOVED_PERMANENTLY,
-    			HttpStatus.SC_GONE));
+    private static final Set<Integer> cacheableStatuses =
+        new HashSet<Integer>(Arrays.asList(HttpStatus.SC_OK,
+                HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION,
+                HttpStatus.SC_MULTIPLE_CHOICES,
+                HttpStatus.SC_MOVED_PERMANENTLY,
+                HttpStatus.SC_GONE));
     private static final Set<Integer> uncacheableStatuses =
-    		new HashSet<Integer>(Arrays.asList(HttpStatus.SC_PARTIAL_CONTENT,
-    				HttpStatus.SC_SEE_OTHER));
+            new HashSet<Integer>(Arrays.asList(HttpStatus.SC_PARTIAL_CONTENT,
+                    HttpStatus.SC_SEE_OTHER));
     /**
      * Define a cache policy that limits the size of things that should be stored
      * in the cache to a maximum of {@link HttpResponse} bytes in size.
@@ -99,19 +99,19 @@ class ResponseCachingPolicy {
             log.debug("Response was not cacheable.");
             return false;
         }
-        
+
         int status = response.getStatusLine().getStatusCode();
         if (cacheableStatuses.contains(status)) {
-        	// these response codes MAY be cached
-        	cacheable = true;
+            // these response codes MAY be cached
+            cacheable = true;
         } else if (uncacheableStatuses.contains(status)) {
-        	return false;
+            return false;
         } else if (unknownStatusCode(status)) {
-        	// a response with an unknown status code MUST NOT be
-        	// cached
-        	return false;
+            // a response with an unknown status code MUST NOT be
+            // cached
+            return false;
         }
-        
+
         Header contentLength = response.getFirstHeader(HTTP.CONTENT_LEN);
         if (contentLength != null) {
             int contentLengthValue = Integer.parseInt(contentLength.getValue());
@@ -155,15 +155,15 @@ class ResponseCachingPolicy {
     }
 
     private boolean unknownStatusCode(int status) {
-    	if (status >= 100 && status <= 101) return false;
-    	if (status >= 200 && status <= 206) return false;
-    	if (status >= 300 && status <= 307) return false;
-    	if (status >= 400 && status <= 417) return false;
-    	if (status >= 500 && status <= 505) return false;
-		return true;
-	}
+        if (status >= 100 && status <= 101) return false;
+        if (status >= 200 && status <= 206) return false;
+        if (status >= 300 && status <= 307) return false;
+        if (status >= 400 && status <= 417) return false;
+        if (status >= 500 && status <= 505) return false;
+        return true;
+    }
 
-	protected boolean isExplicitlyNonCacheable(HttpResponse response) {
+    protected boolean isExplicitlyNonCacheable(HttpResponse response) {
         Header[] cacheControlHeaders = response.getHeaders(HeaderConstants.CACHE_CONTROL);
         for (Header header : cacheControlHeaders) {
             for (HeaderElement elem : header.getElements()) {

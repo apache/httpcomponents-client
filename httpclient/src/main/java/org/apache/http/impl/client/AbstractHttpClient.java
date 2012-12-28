@@ -174,7 +174,7 @@ import org.apache.http.util.Args;
  *   shut down by calling {@link ClientConnectionManager#shutdown()}!
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.3) use {@link HttpClientBuilder}.
  */
 @ThreadSafe
@@ -395,7 +395,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     /**
      * @deprecated (4.1) do not use
      */
-    @Deprecated 
+    @Deprecated
     protected RedirectHandler createRedirectHandler() {
         return new DefaultRedirectHandler();
     }
@@ -407,7 +407,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     protected AuthenticationHandler createTargetAuthenticationHandler() {
         return new DefaultTargetAuthenticationHandler();
     }
@@ -419,7 +419,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     protected AuthenticationHandler createProxyAuthenticationHandler() {
         return new DefaultProxyAuthenticationHandler();
     }
@@ -553,7 +553,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     /**
      * @deprecated (4.1) do not use
      */
-    @Deprecated 
+    @Deprecated
     public synchronized final RedirectHandler getRedirectHandler() {
         return createRedirectHandler();
     }
@@ -561,7 +561,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     /**
      * @deprecated (4.1) do not use
      */
-    @Deprecated 
+    @Deprecated
     public synchronized void setRedirectHandler(final RedirectHandler handler) {
         this.redirectStrategy = new DefaultRedirectStrategyAdaptor(handler);
     }
@@ -586,7 +586,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     public synchronized final AuthenticationHandler getTargetAuthenticationHandler() {
         return createTargetAuthenticationHandler();
     }
@@ -594,7 +594,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     public synchronized void setTargetAuthenticationHandler(final AuthenticationHandler handler) {
         this.targetAuthStrategy = new AuthenticationStrategyAdaptor(handler);
     }
@@ -619,7 +619,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     public synchronized final AuthenticationHandler getProxyAuthenticationHandler() {
         return createProxyAuthenticationHandler();
     }
@@ -627,7 +627,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     public synchronized void setProxyAuthenticationHandler(final AuthenticationHandler handler) {
         this.proxyAuthStrategy = new AuthenticationStrategyAdaptor(handler);
     }
@@ -777,7 +777,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     }
 
     @Override
-	protected final CloseableHttpResponse doExecute(HttpHost target, HttpRequest request,
+    protected final CloseableHttpResponse doExecute(HttpHost target, HttpRequest request,
                                       HttpContext context)
         throws IOException, ClientProtocolException {
 
@@ -894,7 +894,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     protected RequestDirector createClientRequestDirector(
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,

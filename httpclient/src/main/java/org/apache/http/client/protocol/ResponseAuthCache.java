@@ -59,7 +59,7 @@ import org.apache.http.util.Args;
  * @deprecated (4.2)  use {@link AuthenticationStrategy}
  */
 @Immutable
-@Deprecated 
+@Deprecated
 public class ResponseAuthCache implements HttpResponseInterceptor {
 
     private final Log log = LogFactory.getLog(getClass());

@@ -57,7 +57,7 @@ public abstract class LocalServerTestBase {
         localServer.setTimeout(5000);
         localServer.start();
     }
-    
+
     /**
      * Obtains the address of the local test server.
      *

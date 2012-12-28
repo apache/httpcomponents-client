@@ -56,7 +56,7 @@ public class ClientParamBean extends HttpAbstractParamBean {
     /**
      * @deprecated (4.2)  do not use.
      */
-    @Deprecated 
+    @Deprecated
     public void setConnectionManagerFactoryClassName (final String factory) {
         params.setParameter(ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME, factory);
     }

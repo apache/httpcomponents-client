@@ -50,11 +50,11 @@ import org.apache.http.util.Args;
  * the state of the original request.
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.3) do not use.
  */
 @NotThreadSafe
-@Deprecated 
+@Deprecated
 public class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
 
     private final HttpRequest original;

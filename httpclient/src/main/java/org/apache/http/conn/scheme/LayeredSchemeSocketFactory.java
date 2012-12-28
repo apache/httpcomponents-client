@@ -35,7 +35,7 @@ import java.net.UnknownHostException;
  * Extended {@link SchemeSocketFactory} interface for layered sockets such as SSL/TLS.
  *
  * @since 4.1
- * 
+ *
  * @deprecated (4.2)  use {@link SchemeLayeredSocketFactory}
  */
 @Deprecated

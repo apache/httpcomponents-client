@@ -37,7 +37,7 @@ import org.apache.http.protocol.BasicHttpProcessor;
 /**
  * {@link DefaultHttpClient} sub-class which includes a {@link RequestAcceptEncoding}
  * for the request and response.
- * 
+ *
  * <b>Deprecation note:</b> due to the way this class modifies a response body
  * without changing the response headers to reflect the entity changes, it cannot
  * be used as the &quot;backend&quot; for a caching {@link HttpClient} and still
@@ -47,7 +47,7 @@ import org.apache.http.protocol.BasicHttpProcessor;
  * responses in compressed or uncompressed form.
  *
  * @since 4.1
- * 
+ *
  * @deprecated (4.2) use {@link HttpClientBuilder}
  */
 @Deprecated

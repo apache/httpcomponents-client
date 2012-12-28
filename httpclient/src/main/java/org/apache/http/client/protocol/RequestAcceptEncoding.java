@@ -56,7 +56,7 @@ public class RequestAcceptEncoding implements HttpRequestInterceptor {
         /* Signal support for Accept-Encoding transfer encodings. */
         if (!request.containsHeader("Accept-Encoding")) {
             request.addHeader("Accept-Encoding", "gzip,deflate");
-        } 
+        }
     }
 
 }

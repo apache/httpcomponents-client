@@ -257,7 +257,7 @@ public class URLEncodedUtils {
         return result.toString();
     }
 
-    /** 
+    /**
      * Unreserved characters, i.e. alphanumeric, plus: {@code _ - ! . ~ ' ( ) *}
      * <p>
      *  This list is the same as the {@code unreserved} list in
@@ -270,28 +270,28 @@ public class URLEncodedUtils {
      * These are the additional characters allowed by userinfo.
      */
     private static final BitSet PUNCT        = new BitSet(256);
-    /** Characters which are safe to use in userinfo, 
+    /** Characters which are safe to use in userinfo,
      * i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation */
     private static final BitSet USERINFO     = new BitSet(256);
-    /** Characters which are safe to use in a path, 
+    /** Characters which are safe to use in a path,
      * i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation plus / @ */
     private static final BitSet PATHSAFE     = new BitSet(256);
-    /** Characters which are safe to use in a query or a fragment, 
+    /** Characters which are safe to use in a query or a fragment,
      * i.e. {@link #RESERVED} plus {@link #UNRESERVED} */
     private static final BitSet URIC     = new BitSet(256);
 
-    /** 
+    /**
      * Reserved characters, i.e. {@code ;/?:@&=+$,[]}
      * <p>
-     *  This list is the same as the {@code reserved} list in 
+     *  This list is the same as the {@code reserved} list in
      *  <a href="http://www.ietf.org/rfc/rfc2396.txt">RFC 2396</a>
      *  as augmented by
      *  <a href="http://www.ietf.org/rfc/rfc2732.txt">RFC 2732</a>
      */
     private static final BitSet RESERVED     = new BitSet(256);
 
-    
-    /** 
+
+    /**
      * Safe characters for x-www-form-urlencoded data, as per java.net.URLEncoder and browser behaviour,
      * i.e. alphanumeric plus {@code "-", "_", ".", "*"}
      */
@@ -343,7 +343,7 @@ public class URLEncodedUtils {
         PATHSAFE.set('+');
         PATHSAFE.set('$');
         PATHSAFE.set(',');
-        
+
         RESERVED.set(';');
         RESERVED.set('/');
         RESERVED.set('?');
@@ -356,7 +356,7 @@ public class URLEncodedUtils {
         RESERVED.set(',');
         RESERVED.set('['); // added by RFC 2732
         RESERVED.set(']'); // added by RFC 2732
-        
+
         URIC.or(RESERVED);
         URIC.or(UNRESERVED);
     }
@@ -365,7 +365,7 @@ public class URLEncodedUtils {
 
     /**
      * Emcode/escape a portion of a URL, to use with the query part ensure {@code plusAsBlank} is true.
-     * 
+     *
      * @param content the portion to decode
      * @param charset the charset to use
      * @param blankAsPlus if {@code true}, then convert space to '+' (e.g. for www-url-form-encoded content), otherwise leave as is.
@@ -400,7 +400,7 @@ public class URLEncodedUtils {
 
     /**
      * Decode/unescape a portion of a URL, to use with the query part ensure {@code plusAsBlank} is true.
-     * 
+     *
      * @param content the portion to decode
      * @param charset the charset to use
      * @param plusAsBlank if {@code true}, then convert '+' to space (e.g. for www-url-form-encoded content), otherwise leave as is.
@@ -441,7 +441,7 @@ public class URLEncodedUtils {
 
     /**
      * Decode/unescape www-url-form-encoded content.
-     * 
+     *
      * @param content the content to decode, will decode '+' as space
      * @param charset the charset to use
      * @return
@@ -455,7 +455,7 @@ public class URLEncodedUtils {
 
     /**
      * Decode/unescape www-url-form-encoded content.
-     * 
+     *
      * @param content the content to decode, will decode '+' as space
      * @param charset the charset to use
      * @return
@@ -473,7 +473,7 @@ public class URLEncodedUtils {
      * Uses the {@link #URLENCODER} set of characters, rather than
      * the {@link #UNRSERVED} set; this is for compatibilty with previous
      * releases, URLEncoder.encode() and most browsers.
-     * 
+     *
      * @param content the content to encode, will convert space to '+'
      * @param charset the charset to use
      * @return
@@ -492,7 +492,7 @@ public class URLEncodedUtils {
      * Uses the {@link #URLENCODER} set of characters, rather than
      * the {@link #UNRSERVED} set; this is for compatibilty with previous
      * releases, URLEncoder.encode() and most browsers.
-     * 
+     *
      * @param content the content to encode, will convert space to '+'
      * @param charset the charset to use
      * @return
@@ -508,7 +508,7 @@ public class URLEncodedUtils {
      * Encode a String using the {@link #USERINFO} set of characters.
      * <p>
      * Used by URIBuilder to encode the userinfo segment.
-     * 
+     *
      * @param content the string to encode, does not convert space to '+'
      * @param charset the charset to use
      * @return the encoded string
@@ -521,7 +521,7 @@ public class URLEncodedUtils {
      * Encode a String using the {@link #URIC} set of characters.
      * <p>
      * Used by URIBuilder to encode the query and fragment segments.
-     * 
+     *
      * @param content the string to encode, does not convert space to '+'
      * @param charset the charset to use
      * @return the encoded string
@@ -534,7 +534,7 @@ public class URLEncodedUtils {
      * Encode a String using the {@link #PATHSAFE} set of characters.
      * <p>
      * Used by URIBuilder to encode path segments.
-     * 
+     *
      * @param content the string to encode, does not convert space to '+'
      * @param charset the charset to use
      * @return the encoded string

@@ -152,7 +152,7 @@ class InternalHttpClient extends CloseableHttpClient {
     }
 
     @Override
-	protected CloseableHttpResponse doExecute(
+    protected CloseableHttpResponse doExecute(
             final HttpHost target,
             final HttpRequest request,
             final HttpContext context) throws IOException, ClientProtocolException {

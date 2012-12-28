@@ -44,7 +44,7 @@ import org.apache.http.protocol.HttpContext;
  * @deprecated (4.1) do not use
  */
 @Immutable
-@Deprecated 
+@Deprecated
 class DefaultRedirectStrategyAdaptor implements RedirectStrategy {
 
     private final RedirectHandler handler;

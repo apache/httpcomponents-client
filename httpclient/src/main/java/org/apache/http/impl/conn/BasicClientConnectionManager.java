@@ -48,7 +48,7 @@ import org.apache.http.util.Asserts;
 
 /**
  * A connection manager for a single connection. This connection manager maintains only one active
- * connection. Even though this class is fully thread-safe it ought to be used by one execution 
+ * connection. Even though this class is fully thread-safe it ought to be used by one execution
  * thread only, as only one thread a time can lease the connection at a time.
  * <p/>
  * This connection manager will make an effort to reuse the connection for subsequent requests
@@ -186,7 +186,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
             }
         }
     }
-    
+
     public void releaseConnection(final ManagedClientConnection conn, long keepalive, TimeUnit tunit) {
         Args.check(conn instanceof ManagedClientConnectionImpl, "Connection class mismatch, " +
             "connection not obtained from this manager");

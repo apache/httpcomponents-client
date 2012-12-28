@@ -67,7 +67,7 @@ class CacheEntity implements HttpEntity, Serializable {
     }
 
     public long getContentLength() {
-		return this.cacheEntry.getResource().length();
+        return this.cacheEntry.getResource().length();
     }
 
     public InputStream getContent() throws IOException {

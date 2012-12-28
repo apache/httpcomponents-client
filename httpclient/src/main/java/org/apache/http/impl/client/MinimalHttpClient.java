@@ -86,7 +86,7 @@ class MinimalHttpClient extends CloseableHttpClient {
     }
 
     @Override
-	protected CloseableHttpResponse doExecute(
+    protected CloseableHttpResponse doExecute(
             final HttpHost target,
             final HttpRequest request,
             final HttpContext context) throws IOException, ClientProtocolException {
@@ -109,7 +109,7 @@ class MinimalHttpClient extends CloseableHttpClient {
             }
             if (config.getDefaultProxy() != null) {
                 throw new ClientProtocolException("Minimal HttpClient does not support" +
-				" request execution via proxy");
+                " request execution via proxy");
             }
             localcontext.setRequestConfig(config);
             return this.requestExecutor.execute(route, wrapper, localcontext, execAware);

@@ -33,11 +33,11 @@
   <module name="FileLength">
     <property name="max" value="10000" />
   </module>
-  <!-- <module name="FileTabCharacter">
+  <module name="FileTabCharacter">
     <property name="eachLine" value="true"/>
   </module>
   <module name="RegexpSingleline">
     <property name="format" value="[ \t]+$"/>
     <property name="message" value="Trailing whitespace"/>
-  </module> -->
+  </module>
 </module>

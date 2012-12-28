@@ -39,7 +39,7 @@ import org.apache.http.impl.conn.AbstractPooledConnAdapter;
  *
  * @deprecated (4.2)  do not use
  */
-@Deprecated 
+@Deprecated
 public class BasicPooledConnAdapter extends AbstractPooledConnAdapter {
 
     /**

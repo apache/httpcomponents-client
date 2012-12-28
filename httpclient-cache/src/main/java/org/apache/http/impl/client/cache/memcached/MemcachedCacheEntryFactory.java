@@ -43,14 +43,14 @@ public interface MemcachedCacheEntryFactory {
      * cache collisions. Therefore, we store the storage key along
      * with the <code>HttpCacheEntry</code> so it can be compared
      * on retrieval and thus detect collisions.
-     * @param storageKey storage key under which the entry will 
+     * @param storageKey storage key under which the entry will
      *   be logically stored
      * @param entry the cache entry to store
      * @return a {@link MemcachedCacheEntry} ready to provide
      *   a serialized representation
      */
     MemcachedCacheEntry getMemcachedCacheEntry(String storageKey, HttpCacheEntry entry);
-    
+
     /**
      * Creates an "unset" {@link MemcachedCacheEntry} ready to accept
      * a serialized representation via {@link MemcachedCacheEntry#set(byte[])}

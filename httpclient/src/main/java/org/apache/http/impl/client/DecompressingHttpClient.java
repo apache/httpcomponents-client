@@ -58,20 +58,20 @@ import org.apache.http.util.EntityUtils;
  * header on the response to uncompress any compressed response bodies.
  * The {@link java.io.InputStream} of the entity will contain the uncompressed
  * content.</p>
- * 
+ *
  * <p><b>N.B.</b> Any upstream clients of this class need to be aware that
  * this effectively obscures visibility into the length of a server
  * response body, since the <code>Content-Length</code> header will
  * correspond to the compressed entity length received from the server,
  * but the content length experienced by reading the response body may
  * be different (hopefully higher!).</p>
- * 
- * <p>That said, this decorator is compatible with the 
- * <code>CachingHttpClient</code> in that the two decorators can be added 
- * in either order and still have cacheable responses be cached.</p> 
- * 
+ *
+ * <p>That said, this decorator is compatible with the
+ * <code>CachingHttpClient</code> in that the two decorators can be added
+ * in either order and still have cacheable responses be cached.</p>
+ *
  * @since 4.2
- * 
+ *
  * @deprecated (4.3) use {@link HttpClientBuilder}
  */
 @Deprecated
@@ -80,7 +80,7 @@ public class DecompressingHttpClient implements HttpClient {
     private final HttpClient backend;
     private final HttpRequestInterceptor acceptEncodingInterceptor;
     private final HttpResponseInterceptor contentEncodingInterceptor;
-    
+
     /**
      * Constructs a decorator to ask for and handle compressed
      * entities on the fly.
@@ -98,9 +98,9 @@ public class DecompressingHttpClient implements HttpClient {
     public DecompressingHttpClient(HttpClient backend) {
         this(backend, new RequestAcceptEncoding(), new ResponseContentEncoding());
     }
-        
-    DecompressingHttpClient(HttpClient backend, 
-            HttpRequestInterceptor requestInterceptor, 
+
+    DecompressingHttpClient(HttpClient backend,
+            HttpRequestInterceptor requestInterceptor,
             HttpResponseInterceptor responseInterceptor) {
         this.backend = backend;
         this.acceptEncodingInterceptor = requestInterceptor;
@@ -122,7 +122,7 @@ public class DecompressingHttpClient implements HttpClient {
 
     /**
      * Gets the HttpClient to issue request.
-     * 
+     *
      * @return the HttpClient to issue request
      */
     public HttpClient getHttpClient() {

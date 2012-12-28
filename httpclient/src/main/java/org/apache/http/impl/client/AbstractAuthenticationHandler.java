@@ -61,7 +61,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @deprecated (4.2)  use {@link AuthenticationStrategy}
  */
-@Deprecated 
+@Deprecated
 @Immutable
 public abstract class AbstractAuthenticationHandler implements AuthenticationHandler {
 

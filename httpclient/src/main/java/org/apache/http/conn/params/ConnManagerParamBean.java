@@ -37,11 +37,11 @@ import org.apache.http.params.HttpParams;
  * using Java Beans conventions.
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.1) use configuration methods of the specific connection manager implementation.
  */
 @NotThreadSafe
-@Deprecated 
+@Deprecated
 public class ConnManagerParamBean extends HttpAbstractParamBean {
 
     public ConnManagerParamBean (final HttpParams params) {

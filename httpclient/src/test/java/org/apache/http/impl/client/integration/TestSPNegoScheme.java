@@ -156,7 +156,7 @@ public class TestSPNegoScheme extends IntegrationTestBase {
         HttpHost target = new HttpHost("localhost", port);
 
         AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
-        CredentialsProvider credentialsProvider = new BasicCredentialsProvider(); 
+        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
 
@@ -164,7 +164,7 @@ public class TestSPNegoScheme extends IntegrationTestBase {
             .registerAuthScheme(AuthSchemes.SPNEGO, nsf)
             .setCredentialsProvider(credentialsProvider)
             .build();
-        
+
         String s = "/path";
         HttpGet httpget = new HttpGet(s);
         HttpResponse response = this.httpclient.execute(target, httpget);
@@ -186,15 +186,15 @@ public class TestSPNegoScheme extends IntegrationTestBase {
 
         AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
 
-        CredentialsProvider credentialsProvider = new BasicCredentialsProvider(); 
+        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
-        
+
         this.httpclient = HttpClients.custom()
             .registerAuthScheme(AuthSchemes.SPNEGO, nsf)
             .setCredentialsProvider(credentialsProvider)
             .build();
-        
+
         String s = "/path";
         HttpGet httpget = new HttpGet(s);
         HttpResponse response = this.httpclient.execute(target, httpget);

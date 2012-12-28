@@ -73,7 +73,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 @Deprecated
 @RunWith(MockitoJUnitRunner.class)
 public class TestDecompressingHttpClient {
-    
+
     private DummyHttpClient backend;
     @Mock private ClientConnectionManager mockConnManager;
     @Mock private ResponseHandler<Object> mockHandler;
@@ -84,7 +84,7 @@ public class TestDecompressingHttpClient {
     @Mock private HttpResponse mockResponse;
     @Mock private HttpEntity mockEntity;
     private Object handled;
-    
+
     @Before
     public void canCreate() {
         handled = new Object();
@@ -95,61 +95,61 @@ public class TestDecompressingHttpClient {
         ctx = new BasicHttpContext();
         host = new HttpHost("www.example.com");
     }
-    
+
     @Test
     public void isAnHttpClient() {
         assertTrue(impl instanceof HttpClient);
     }
-    
+
     @Test
     public void usesParamsFromBackend() {
         HttpParams params = new BasicHttpParams();
         backend.setParams(params);
         assertSame(params, impl.getParams());
     }
-    
+
     @Test
     public void extractsHostNameFromUriRequest() {
-        assertEquals(new HttpHost("www.example.com"), 
+        assertEquals(new HttpHost("www.example.com"),
                 impl.getHttpHost(new HttpGet("http://www.example.com/")));
     }
-    
+
     @Test
     public void extractsHostNameAndPortFromUriRequest() {
-        assertEquals(new HttpHost("www.example.com", 8080), 
+        assertEquals(new HttpHost("www.example.com", 8080),
                 impl.getHttpHost(new HttpGet("http://www.example.com:8080/")));
     }
 
     @Test
     public void extractsIPAddressFromUriRequest() {
-        assertEquals(new HttpHost("10.0.0.1"), 
+        assertEquals(new HttpHost("10.0.0.1"),
                 impl.getHttpHost(new HttpGet("http://10.0.0.1/")));
     }
 
     @Test
     public void extractsIPAddressAndPortFromUriRequest() {
-        assertEquals(new HttpHost("10.0.0.1", 8080), 
+        assertEquals(new HttpHost("10.0.0.1", 8080),
                 impl.getHttpHost(new HttpGet("http://10.0.0.1:8080/")));
     }
 
     @Test
     public void extractsLocalhostFromUriRequest() {
-        assertEquals(new HttpHost("localhost"), 
+        assertEquals(new HttpHost("localhost"),
                 impl.getHttpHost(new HttpGet("http://localhost/")));
     }
 
     @Test
     public void extractsLocalhostAndPortFromUriRequest() {
-        assertEquals(new HttpHost("localhost", 8080), 
+        assertEquals(new HttpHost("localhost", 8080),
                 impl.getHttpHost(new HttpGet("http://localhost:8080/")));
     }
-    
+
     @Test
     public void usesConnectionManagerFromBackend() {
         backend.setConnectionManager(mockConnManager);
         assertSame(mockConnManager, impl.getConnectionManager());
     }
-    
+
     private void assertAcceptEncodingGzipAndDeflateWereAddedToRequest(HttpRequest captured) {
         boolean foundGzip = false;
         boolean foundDeflate = false;
@@ -162,7 +162,7 @@ public class TestDecompressingHttpClient {
         assertTrue(foundGzip);
         assertTrue(foundDeflate);
     }
-    
+
     @Test
     public void addsAcceptEncodingHeaderToHttpUriRequest() throws Exception {
         impl.execute(request);
@@ -174,19 +174,19 @@ public class TestDecompressingHttpClient {
         impl.execute(request, ctx);
         assertAcceptEncodingGzipAndDeflateWereAddedToRequest(backend.getCapturedRequest());
     }
-    
+
     @Test
     public void addsAcceptEncodingHeaderToHostAndHttpRequest() throws Exception {
         impl.execute(host, request);
         assertAcceptEncodingGzipAndDeflateWereAddedToRequest(backend.getCapturedRequest());
     }
-    
+
     @Test
     public void addsAcceptEncodingHeaderToHostAndHttpRequestWithContext() throws Exception {
         impl.execute(host, request, ctx);
         assertAcceptEncodingGzipAndDeflateWereAddedToRequest(backend.getCapturedRequest());
     }
-    
+
     @Test
     public void addsAcceptEncodingHeaderToUriRequestWithHandler() throws Exception {
         when(mockHandler.handleResponse(isA(HttpResponse.class))).thenReturn(new Object());
@@ -223,35 +223,35 @@ public class TestDecompressingHttpClient {
         when(mockResponse.getLastHeader("Content-Encoding")).thenReturn(null);
         when(mockResponse.getEntity()).thenReturn(mockEntity);
     }
-    
+
     @Test
     public void doesNotModifyResponseBodyIfNoContentEncoding() throws Exception {
         mockResponseHasNoContentEncodingHeaders();
         assertSame(mockResponse, impl.execute(request));
         verify(mockResponse, never()).setEntity(any(HttpEntity.class));
     }
-    
+
     @Test
     public void doesNotModifyResponseBodyIfNoContentEncodingWithContext() throws Exception {
         mockResponseHasNoContentEncodingHeaders();
         assertSame(mockResponse, impl.execute(request, ctx));
         verify(mockResponse, never()).setEntity(any(HttpEntity.class));
     }
-    
+
     @Test
     public void doesNotModifyResponseBodyIfNoContentEncodingForHostRequest() throws Exception {
         mockResponseHasNoContentEncodingHeaders();
         assertSame(mockResponse, impl.execute(host, request));
         verify(mockResponse, never()).setEntity(any(HttpEntity.class));
     }
-    
+
     @Test
     public void doesNotModifyResponseBodyIfNoContentEncodingForHostRequestWithContext() throws Exception {
         mockResponseHasNoContentEncodingHeaders();
         assertSame(mockResponse, impl.execute(host, request, ctx));
         verify(mockResponse, never()).setEntity(any(HttpEntity.class));
     }
-    
+
     @Test
     public void doesNotModifyResponseBodyWithHandlerIfNoContentEncoding() throws Exception {
         mockResponseHasNoContentEncodingHeaders();
@@ -259,7 +259,7 @@ public class TestDecompressingHttpClient {
         assertSame(handled, impl.execute(request, mockHandler));
         verify(mockResponse, never()).setEntity(any(HttpEntity.class));
     }
-    
+
     @Test
     public void doesNotModifyResponseBodyWithHandlerAndContextIfNoContentEncoding() throws Exception {
         mockResponseHasNoContentEncodingHeaders();
@@ -267,7 +267,7 @@ public class TestDecompressingHttpClient {
         assertSame(handled, impl.execute(request, mockHandler, ctx));
         verify(mockResponse, never()).setEntity(any(HttpEntity.class));
     }
-    
+
     @Test
     public void doesNotModifyResponseBodyWithHostAndHandlerIfNoContentEncoding() throws Exception {
         mockResponseHasNoContentEncodingHeaders();
@@ -275,7 +275,7 @@ public class TestDecompressingHttpClient {
         assertSame(handled, impl.execute(host, request, mockHandler));
         verify(mockResponse, never()).setEntity(any(HttpEntity.class));
     }
-    
+
     @Test
     public void doesNotModifyResponseBodyWithHostAndHandlerAndContextIfNoContentEncoding() throws Exception {
         mockResponseHasNoContentEncodingHeaders();
@@ -283,13 +283,13 @@ public class TestDecompressingHttpClient {
         assertSame(handled, impl.execute(host, request, mockHandler, ctx));
         verify(mockResponse, never()).setEntity(any(HttpEntity.class));
     }
-    
+
     @Test
     public void successfullyUncompressesContent() throws Exception {
         final String plainText = "hello\n";
         HttpResponse response = getGzippedResponse(plainText);
         backend.setResponse(response);
-        
+
         HttpResponse result = impl.execute(request);
         ByteArrayOutputStream resultBuf = new ByteArrayOutputStream();
         InputStream is = result.getEntity().getContent();
@@ -300,13 +300,13 @@ public class TestDecompressingHttpClient {
         is.close();
         assertEquals(plainText, new String(resultBuf.toByteArray()));
     }
-    
+
     @Test
     public void uncompressedResponseHasUnknownLength() throws Exception {
         final String plainText = "hello\n";
         HttpResponse response = getGzippedResponse(plainText);
         backend.setResponse(response);
-        
+
         HttpResponse result = impl.execute(request);
         HttpEntity entity = result.getEntity();
         assertEquals(-1, entity.getContentLength());
@@ -319,22 +319,22 @@ public class TestDecompressingHttpClient {
         final String plainText = "hello\n";
         HttpResponse response = getGzippedResponse(plainText);
         backend.setResponse(response);
-        
+
         HttpResponse result = impl.execute(request);
         assertNull(result.getFirstHeader("Content-Encoding"));
     }
-    
+
     @Test
     public void uncompressedResponseHasContentMD5Removed() throws Exception {
         final String plainText = "hello\n";
         HttpResponse response = getGzippedResponse(plainText);
         response.setHeader("Content-MD5","a checksum");
         backend.setResponse(response);
-        
+
         HttpResponse result = impl.execute(request);
         assertNull(result.getFirstHeader("Content-MD5"));
     }
-    
+
     @Test
     public void unencodedResponseRetainsContentMD5() throws Exception {
         final String plainText = "hello\n";
@@ -342,20 +342,20 @@ public class TestDecompressingHttpClient {
         response.setHeader("Content-MD5","a checksum");
         response.setEntity(new ByteArrayEntity(plainText.getBytes()));
         backend.setResponse(response);
-        
+
         HttpResponse result = impl.execute(request);
         assertNotNull(result.getFirstHeader("Content-MD5"));
     }
-    
+
     @Test
     public void passesThroughTheBodyOfAPOST() throws Exception {
-    	when(mockHandler.handleResponse(isA(HttpResponse.class))).thenReturn(new Object());
-    	HttpPost post = new HttpPost("http://localhost:8080/");
-    	post.setEntity(new ByteArrayEntity("hello".getBytes()));
-    	impl.execute(host, post, mockHandler, ctx);
-    	assertNotNull(((HttpEntityEnclosingRequest)backend.getCapturedRequest()).getEntity());
+        when(mockHandler.handleResponse(isA(HttpResponse.class))).thenReturn(new Object());
+        HttpPost post = new HttpPost("http://localhost:8080/");
+        post.setEntity(new ByteArrayEntity("hello".getBytes()));
+        impl.execute(host, post, mockHandler, ctx);
+        assertNotNull(((HttpEntityEnclosingRequest)backend.getCapturedRequest()).getEntity());
     }
-    
+
     private HttpResponse getGzippedResponse(final String plainText)
             throws IOException {
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");

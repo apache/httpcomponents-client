@@ -40,7 +40,7 @@ import org.apache.http.conn.ManagedClientConnection;
  * down the underlying HTTP connection.
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.3) use {@link HttpExecutionAware}
  */
 @Deprecated

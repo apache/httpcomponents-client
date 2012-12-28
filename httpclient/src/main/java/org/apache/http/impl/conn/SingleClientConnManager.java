@@ -62,7 +62,7 @@ import org.apache.http.util.Asserts;
  * @deprecated (4.2)  use {@link BasicClientConnectionManager}
  */
 @ThreadSafe
-@Deprecated 
+@Deprecated
 public class SingleClientConnManager implements ClientConnectionManager {
 
     private final Log log = LogFactory.getLog(getClass());
@@ -109,7 +109,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @deprecated (4.1)  use {@link SingleClientConnManager#SingleClientConnManager(SchemeRegistry)}
      */
     @Deprecated
-	public SingleClientConnManager(HttpParams params,
+    public SingleClientConnManager(HttpParams params,
                                    SchemeRegistry schreg) {
         this(schreg);
     }

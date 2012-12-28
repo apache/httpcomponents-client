@@ -32,6 +32,6 @@ public class SSLInitializationException extends IllegalStateException {
 
     public SSLInitializationException(final String message, final Throwable cause) {
         super(message, cause);
-    }    
-    
+    }
+
 }

@@ -38,7 +38,7 @@ import org.apache.http.params.HttpParams;
  *
  * @deprecated (4.2)  use {@link SPNegoSchemeFactory} or {@link KerberosSchemeFactory}.
  */
-@Deprecated 
+@Deprecated
 public class NegotiateSchemeFactory implements AuthSchemeFactory {
 
     private final SpnegoTokenGenerator spengoGenerator;

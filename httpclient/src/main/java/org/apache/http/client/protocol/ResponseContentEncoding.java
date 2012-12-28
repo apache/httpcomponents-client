@@ -52,8 +52,8 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class ResponseContentEncoding implements HttpResponseInterceptor {
 
-    public static final String UNCOMPRESSED = "http.client.response.uncompressed"; 
-    
+    public static final String UNCOMPRESSED = "http.client.response.uncompressed";
+
     /**
      * Handles the following {@code Content-Encoding}s by
      * using the appropriate decompressor to wrap the response Entity:

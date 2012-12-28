@@ -37,7 +37,7 @@ import org.apache.http.util.Args;
  * is released on close or EOF.
  *
  * @since 4.0
- * 
+ *
  * @deprecated (4.3) do not use.
  */
 @Deprecated

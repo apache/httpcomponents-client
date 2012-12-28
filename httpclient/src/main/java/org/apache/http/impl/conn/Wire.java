@@ -141,7 +141,7 @@ public class Wire {
     /**
      * @deprecated (4.1)  do not use
      */
-    @Deprecated 
+    @Deprecated
     public void output(final String s)
       throws IOException {
         Args.notNull(s, "Output");
@@ -151,7 +151,7 @@ public class Wire {
     /**
      * @deprecated (4.1)  do not use
      */
-    @Deprecated 
+    @Deprecated
     public void input(final String s)
       throws IOException {
         Args.notNull(s, "Input");

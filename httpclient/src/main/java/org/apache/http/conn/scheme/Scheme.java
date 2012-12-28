@@ -119,7 +119,7 @@ public final class Scheme {
      *
      * @deprecated (4.1)  Use {@link #Scheme(String, int, SchemeSocketFactory)}
      */
-    @Deprecated 
+    @Deprecated
     public Scheme(final String name,
                   final SocketFactory factory,
                   final int port) {
