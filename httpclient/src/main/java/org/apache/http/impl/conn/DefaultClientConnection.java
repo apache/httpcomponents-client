@@ -36,8 +36,6 @@ import java.util.Map;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
@@ -46,18 +44,18 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseFactory;
+import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.conn.OperatedClientConnection;
+import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.impl.SocketHttpClientConnection;
+import org.apache.http.io.HttpMessageParser;
+import org.apache.http.io.SessionInputBuffer;
+import org.apache.http.io.SessionOutputBuffer;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
-import org.apache.http.impl.SocketHttpClientConnection;
-import org.apache.http.io.HttpMessageParser;
-import org.apache.http.io.SessionInputBuffer;
-import org.apache.http.io.SessionOutputBuffer;
-
-import org.apache.http.conn.SocketClientConnection;
-import org.apache.http.conn.OperatedClientConnection;
 
 /**
  * Default implementation of an operated client connection.

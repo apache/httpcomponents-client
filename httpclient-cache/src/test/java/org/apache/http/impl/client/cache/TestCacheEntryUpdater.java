@@ -26,6 +26,14 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.apache.http.impl.cookie.DateUtils.formatDate;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.util.Date;
+
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -36,12 +44,6 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.util.Date;
-
-import static org.junit.Assert.*;
-import static org.apache.http.impl.cookie.DateUtils.formatDate;
 
 public class TestCacheEntryUpdater {
 

@@ -27,10 +27,6 @@
 
 package org.apache.http.conn.ssl;
 
-import org.apache.http.annotation.Immutable;
-
-import org.apache.http.conn.util.InetAddressUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.Certificate;
@@ -47,6 +43,9 @@ import java.util.StringTokenizer;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
+
+import org.apache.http.annotation.Immutable;
+import org.apache.http.conn.util.InetAddressUtils;
 
 /**
  * Abstract base class for all standard {@link X509HostnameVerifier}

@@ -26,6 +26,8 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.apache.http.impl.cookie.DateUtils.formatDate;
+
 import java.util.Date;
 import java.util.Random;
 
@@ -34,7 +36,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
-import static org.apache.http.impl.cookie.DateUtils.formatDate;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;

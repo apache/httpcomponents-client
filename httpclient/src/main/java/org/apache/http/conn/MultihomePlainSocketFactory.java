@@ -33,12 +33,11 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Arrays;
 
 import org.apache.http.annotation.Immutable;
-
 import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.params.HttpConnectionParams;

@@ -28,10 +28,9 @@
 package org.apache.http.impl.client;
 
 import org.apache.http.annotation.NotThreadSafe;
-
+import org.apache.http.params.AbstractHttpParams;
 import org.apache.http.params.DefaultedHttpParams;
 import org.apache.http.params.HttpParams;
-import org.apache.http.params.AbstractHttpParams;
 import org.apache.http.util.Args;
 
 /**

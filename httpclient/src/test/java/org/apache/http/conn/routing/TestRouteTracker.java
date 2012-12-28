@@ -32,8 +32,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.http.HttpHost;
-import org.apache.http.conn.routing.RouteInfo.TunnelType;
 import org.apache.http.conn.routing.RouteInfo.LayerType;
+import org.apache.http.conn.routing.RouteInfo.TunnelType;
 import org.junit.Assert;
 import org.junit.Test;
 

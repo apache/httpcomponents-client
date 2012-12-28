@@ -28,6 +28,8 @@ package org.apache.http.impl.client.cache;
 
 import java.util.Date;
 
+import net.sf.ehcache.CacheEntry;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

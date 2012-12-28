@@ -22,6 +22,7 @@
  * individuals on behalf of the Apache Software Foundation.  For more
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
+ *
  */
 package org.apache.http.impl.client;
 

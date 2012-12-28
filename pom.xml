@@ -390,4 +390,88 @@
     </plugins>
   </reporting>
 
+  <profiles>
+    <profile>
+      <id>profile-checkstyle</id> <!-- Requires Maven 3 -->
+      <activation>
+        <file>
+          <exists>${basedir}</exists>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>2.9.1</version>
+            <configuration>
+              <encoding>UTF-8</encoding>
+            </configuration>
+            <executions>
+              <execution>
+                <id>validate</id>
+                <phase>validate</phase>
+                <configuration>
+                  <configLocation>hc-checkstyle.xml</configLocation>
+                  <consoleOutput>true</consoleOutput>
+                  <failsOnError>true</failsOnError>
+                  <linkXRef>false</linkXRef>
+                  <sourceDirectory>${basedir}/src</sourceDirectory>
+                </configuration>
+                <goals>
+                  <goal>checkstyle</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>profile-clover-report</id> <!-- Requires Maven 2 -->
+      <activation>
+        <file>
+          <missing>${basedir}</missing>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.atlassian.maven.plugins</groupId>
+            <artifactId>maven-clover2-plugin</artifactId>
+            <configuration>
+              <flushPolicy>threaded</flushPolicy>
+              <flushInterval>100</flushInterval>
+              <targetPercentage>50%</targetPercentage>
+            </configuration>
+            <executions>
+              <execution>
+                <id>site</id>
+                <phase>pre-site</phase>
+                <goals>
+                  <goal>instrument</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+
+      <reporting>
+        <plugins>
+          <plugin>
+            <groupId>com.atlassian.maven.plugins</groupId>
+            <artifactId>maven-clover2-plugin</artifactId>
+            <version>${clover.version}</version>
+            <configuration>
+              <jdk>1.5</jdk>
+            </configuration>
+          </plugin>
+        </plugins>
+      </reporting>
+
+    </profile>
+
+  </profiles>
+
 </project>

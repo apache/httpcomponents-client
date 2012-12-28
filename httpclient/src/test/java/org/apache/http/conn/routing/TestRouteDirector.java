@@ -30,8 +30,8 @@ package org.apache.http.conn.routing;
 import java.net.InetAddress;
 
 import org.apache.http.HttpHost;
-import org.apache.http.conn.routing.RouteInfo.TunnelType;
 import org.apache.http.conn.routing.RouteInfo.LayerType;
+import org.apache.http.conn.routing.RouteInfo.TunnelType;
 import org.junit.Assert;
 import org.junit.Test;
 

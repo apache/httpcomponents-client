@@ -29,9 +29,9 @@ package org.apache.http.impl.auth;
 
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BufferedHeader;

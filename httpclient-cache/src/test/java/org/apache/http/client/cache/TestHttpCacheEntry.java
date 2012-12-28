@@ -26,17 +26,22 @@
  */
 package org.apache.http.client.cache;
 
-import static org.easymock.classextension.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.classextension.EasyMock.createNiceMock;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.http.Header;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.StatusLine;
-import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicStatusLine;

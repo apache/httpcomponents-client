@@ -27,7 +27,6 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
-
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;

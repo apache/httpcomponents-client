@@ -27,10 +27,9 @@
 
 package org.apache.http.impl.client;
 
-import org.apache.http.annotation.Immutable;
-
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
+import org.apache.http.annotation.Immutable;
 
 /**
  * Signals that the tunnel request was rejected by the proxy host.

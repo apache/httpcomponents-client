@@ -29,14 +29,13 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.protocol.HTTP;

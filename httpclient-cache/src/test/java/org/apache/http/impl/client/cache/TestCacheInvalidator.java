@@ -26,6 +26,12 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.apache.http.impl.cookie.DateUtils.formatDate;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.classextension.EasyMock.createNiceMock;
+import static org.easymock.classextension.EasyMock.replay;
+import static org.easymock.classextension.EasyMock.verify;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,14 +47,10 @@ import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
-import static org.apache.http.impl.cookie.DateUtils.formatDate;
-
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
-
-import static org.easymock.classextension.EasyMock.*;
 import org.junit.Before;
 import org.junit.Test;
 

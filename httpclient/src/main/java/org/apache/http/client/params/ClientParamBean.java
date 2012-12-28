@@ -29,11 +29,10 @@ package org.apache.http.client.params;
 
 import java.util.Collection;
 
-import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.client.config.RequestConfig;
-
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 

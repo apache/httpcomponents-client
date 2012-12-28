@@ -31,7 +31,6 @@ import java.util.Collection;
 
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.cookie.CookieSpecProvider;
-
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 

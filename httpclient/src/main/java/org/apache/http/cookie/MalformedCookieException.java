@@ -27,9 +27,8 @@
 
 package org.apache.http.cookie;
 
-import org.apache.http.annotation.Immutable;
-
 import org.apache.http.ProtocolException;
+import org.apache.http.annotation.Immutable;
 
 /**
  * Signals that a cookie is in some way invalid or illegal in a given

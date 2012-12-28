@@ -30,11 +30,10 @@ package org.apache.http.impl.conn;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.annotation.GuardedBy;
-import org.apache.http.annotation.ThreadSafe;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.annotation.GuardedBy;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;

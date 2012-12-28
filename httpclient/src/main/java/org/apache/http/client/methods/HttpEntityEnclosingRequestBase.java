@@ -27,11 +27,10 @@
 
 package org.apache.http.client.methods;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.utils.CloneUtils;
 import org.apache.http.protocol.HTTP;
 

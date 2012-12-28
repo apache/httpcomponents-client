@@ -32,10 +32,9 @@ import java.net.URI;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.utils.CloneUtils;
 import org.apache.http.concurrent.Cancellable;

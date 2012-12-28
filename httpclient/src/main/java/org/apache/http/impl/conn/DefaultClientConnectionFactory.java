@@ -34,8 +34,8 @@ import java.nio.charset.CodingErrorAction;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.config.ConnectionConfig;
-import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.HttpConnectionFactory;
+import org.apache.http.conn.SocketClientConnection;
 
 /**
  * @since 4.3

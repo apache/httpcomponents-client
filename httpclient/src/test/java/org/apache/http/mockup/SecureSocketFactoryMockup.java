@@ -29,6 +29,7 @@ package org.apache.http.mockup;
 
 import java.net.Socket;
 
+import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
 import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
 import org.apache.http.params.HttpParams;
 

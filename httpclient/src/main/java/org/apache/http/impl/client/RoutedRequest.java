@@ -28,7 +28,6 @@
 package org.apache.http.impl.client;
 
 import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.conn.routing.HttpRoute;
 
 /**

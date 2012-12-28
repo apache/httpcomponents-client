@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.params.HttpParams;
 
 /**

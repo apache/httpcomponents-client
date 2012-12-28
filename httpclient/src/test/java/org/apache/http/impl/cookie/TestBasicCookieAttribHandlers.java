@@ -36,16 +36,6 @@ import java.util.Locale;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
-import org.apache.http.impl.cookie.BasicClientCookie;
-import org.apache.http.impl.cookie.BasicCommentHandler;
-import org.apache.http.impl.cookie.BasicDomainHandler;
-import org.apache.http.impl.cookie.BasicExpiresHandler;
-import org.apache.http.impl.cookie.BasicMaxAgeHandler;
-import org.apache.http.impl.cookie.BasicPathHandler;
-import org.apache.http.impl.cookie.BasicSecureHandler;
-import org.apache.http.impl.cookie.DateUtils;
-import org.apache.http.impl.cookie.PublicSuffixFilter;
-import org.apache.http.impl.cookie.RFC2109DomainHandler;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -31,7 +31,6 @@ import java.io.Serializable;
 import java.util.Date;
 
 import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.cookie.SetCookie2;
 
 /**

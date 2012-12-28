@@ -38,14 +38,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
-import org.apache.http.annotation.Immutable;
-import org.apache.http.entity.ContentType;
-
 import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
+import org.apache.http.annotation.Immutable;
+import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.ParserCursor;

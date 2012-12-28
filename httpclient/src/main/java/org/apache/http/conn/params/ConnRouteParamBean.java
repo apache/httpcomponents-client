@@ -29,9 +29,8 @@ package org.apache.http.conn.params;
 
 import java.net.InetAddress;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import org.apache.http.HttpHost;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpAbstractParamBean;

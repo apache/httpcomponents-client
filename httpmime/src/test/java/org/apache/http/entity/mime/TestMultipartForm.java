@@ -36,9 +36,6 @@ import java.nio.charset.Charset;
 
 import org.apache.http.Consts;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.FormBodyPart;
-import org.apache.http.entity.mime.HttpMultipart;
-import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;

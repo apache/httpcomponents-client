@@ -29,11 +29,10 @@ package org.apache.http.conn.routing;
 
 import java.net.InetAddress;
 
+import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.util.Args;
 import org.apache.http.util.LangUtils;
-
-import org.apache.http.HttpHost;
 
 /**
  * The route for a request.

@@ -26,6 +26,8 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,6 +38,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.ProtocolVersion;
@@ -45,7 +48,6 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicStatusLine;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -39,9 +39,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheEntrySerializer;
-import org.apache.http.client.cache.HttpCacheUpdateException;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
+import org.apache.http.client.cache.HttpCacheUpdateException;
 import org.apache.http.impl.client.cache.CacheConfig;
 
 /**

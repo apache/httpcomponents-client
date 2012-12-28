@@ -33,7 +33,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.apache.http.conn.DnsResolver;
-
 import org.junit.Assert;
 import org.junit.Test;
 
