@@ -30,6 +30,7 @@ package org.apache.http.impl.client;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -87,7 +88,7 @@ class InternalHttpClient extends CloseableHttpClient {
     private final CredentialsProvider credentialsProvider;
     private final RequestConfig defaultConfig;
     private final List<Closeable> closeables;
-    private final HttpParams params;
+    private final BasicHttpParams params;
 
     public InternalHttpClient(
             final ClientExecChain execChain,
@@ -173,9 +174,14 @@ class InternalHttpClient extends CloseableHttpClient {
                 config = this.defaultConfig;
             }
             if (config == null) {
-                config = HttpClientParamConfig.getRequestConfig(params);
+                Set<String> names = params.getNames();
+                if (!names.isEmpty()) {
+                    config = HttpClientParamConfig.getRequestConfig(params);
+                }
             }
-            localcontext.setRequestConfig(config);
+            if (config != null) {
+                localcontext.setRequestConfig(config);
+            }
             return this.execChain.execute(route, wrapper, localcontext, execAware);
         } catch (HttpException httpException) {
             throw new ClientProtocolException(httpException);
