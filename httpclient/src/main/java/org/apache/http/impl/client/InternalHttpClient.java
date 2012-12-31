@@ -30,7 +30,6 @@ package org.apache.http.impl.client;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -63,8 +62,8 @@ import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.client.execchain.ClientExecChain;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpParamsNames;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
@@ -88,7 +87,6 @@ class InternalHttpClient extends CloseableHttpClient {
     private final CredentialsProvider credentialsProvider;
     private final RequestConfig defaultConfig;
     private final List<Closeable> closeables;
-    private final BasicHttpParams params;
 
     public InternalHttpClient(
             final ClientExecChain execChain,
@@ -113,7 +111,6 @@ class InternalHttpClient extends CloseableHttpClient {
         this.credentialsProvider = credentialsProvider;
         this.defaultConfig = defaultConfig;
         this.closeables = closeables;
-        this.params = new BasicHttpParams();
     }
 
     private HttpRoute determineRoute(
@@ -128,9 +125,7 @@ class InternalHttpClient extends CloseableHttpClient {
         return this.routePlanner.determineRoute(host, request, context);
     }
 
-    private HttpClientContext setupContext(final HttpContext localContext) {
-        HttpClientContext context = HttpClientContext.adapt(
-                localContext != null ? localContext : new BasicHttpContext());
+    private void setupContext(final HttpClientContext context) {
         if (context.getAttribute(ClientContext.TARGET_AUTH_STATE) == null) {
             context.setAttribute(ClientContext.TARGET_AUTH_STATE, new AuthState());
         }
@@ -149,7 +144,9 @@ class InternalHttpClient extends CloseableHttpClient {
         if (context.getAttribute(ClientContext.CREDS_PROVIDER) == null) {
             context.setAttribute(ClientContext.CREDS_PROVIDER, this.credentialsProvider);
         }
-        return context;
+        if (context.getAttribute(ClientContext.REQUEST_CONFIG) == null) {
+            context.setAttribute(ClientContext.REQUEST_CONFIG, this.defaultConfig);
+        }
     }
 
     @Override
@@ -164,32 +161,31 @@ class InternalHttpClient extends CloseableHttpClient {
         }
         try {
             HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
-            HttpClientContext localcontext = setupContext(context);
-            HttpRoute route = determineRoute(target, wrapper, localcontext);
+            HttpClientContext localcontext = HttpClientContext.adapt(
+                    context != null ? context : new BasicHttpContext());
             RequestConfig config = null;
             if (request instanceof Configurable) {
                 config = ((Configurable) request).getConfig();
             }
             if (config == null) {
-                config = this.defaultConfig;
-            }
-            if (config == null) {
-                Set<String> names = params.getNames();
-                if (!names.isEmpty()) {
+                HttpParams params = request.getParams();
+                if (params instanceof HttpParamsNames) {
+                    if (!((HttpParamsNames) params).getNames().isEmpty()) {
+                        config = HttpClientParamConfig.getRequestConfig(params);
+                    }
+                } else {
                     config = HttpClientParamConfig.getRequestConfig(params);
                 }
             }
             if (config != null) {
                 localcontext.setRequestConfig(config);
             }
+            setupContext(localcontext);
+            HttpRoute route = determineRoute(target, wrapper, localcontext);
             return this.execChain.execute(route, wrapper, localcontext, execAware);
         } catch (HttpException httpException) {
             throw new ClientProtocolException(httpException);
         }
-    }
-
-    public HttpParams getParams() {
-        return this.params;
     }
 
     public void close() {
@@ -203,6 +199,10 @@ class InternalHttpClient extends CloseableHttpClient {
                 }
             }
         }
+    }
+
+    public HttpParams getParams() {
+        throw new UnsupportedOperationException();
     }
 
     public ClientConnectionManager getConnectionManager() {

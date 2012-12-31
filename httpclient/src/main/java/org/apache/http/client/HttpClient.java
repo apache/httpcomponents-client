@@ -32,6 +32,7 @@ import java.io.IOException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -113,7 +114,10 @@ public interface HttpClient {
      * dependent objects in this client.
      *
      * @return  the default parameters
+     *
+     * @deprecated (4.3) use {@link RequestConfig}.
      */
+    @Deprecated
     HttpParams getParams();
 
     /**
