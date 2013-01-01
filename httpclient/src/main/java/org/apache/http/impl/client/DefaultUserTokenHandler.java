@@ -76,7 +76,7 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
 
         if (userPrincipal == null) {
             HttpConnection conn = clientContext.getConnection();
-            if (conn instanceof SocketClientConnection) {
+            if (conn.isOpen() && conn instanceof SocketClientConnection) {
                 SSLSession sslsession = ((SocketClientConnection) conn).getSSLSession();
                 if (sslsession != null) {
                     userPrincipal = sslsession.getLocalPrincipal();
