@@ -351,7 +351,7 @@ public class DefaultRequestDirector implements RequestDirector {
             } else {
                 // Make sure the request URI is relative
                 if (uri.isAbsolute()) {
-                    uri = URIUtils.rewriteURI(uri, null);
+                    uri = URIUtils.rewriteURI(uri, null, true);
                 } else {
                     uri = URIUtils.rewriteURI(uri);
                 }

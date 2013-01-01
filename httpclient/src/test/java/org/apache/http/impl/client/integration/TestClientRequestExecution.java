@@ -28,10 +28,12 @@ package org.apache.http.impl.client.integration;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URI;
 
 import org.apache.http.Header;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
@@ -41,6 +43,7 @@ import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
@@ -215,6 +218,48 @@ public class TestClientRequestExecution extends IntegrationTestBase {
                 ExecutionContext.HTTP_REQUEST);
 
         Assert.assertEquals("blah.:.blah.:.", reqWrapper.getRequestLine().getUri());
+    }
+
+    @Test
+    public void testRelativeRequestURIWithFragment() throws Exception {
+        this.localServer.register("*", new SimpleService());
+        this.httpclient = HttpClients.createDefault();
+        HttpHost target = getServerHttp();
+
+        HttpGet httpget = new HttpGet("/stuff#blahblah");
+        HttpContext context = new BasicHttpContext();
+
+        HttpResponse response = this.httpclient.execute(target, httpget, context);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        EntityUtils.consume(response.getEntity());
+
+        HttpRequest request = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
+        Assert.assertEquals("/stuff", request.getRequestLine().getUri());
+    }
+
+    @Test
+    public void testAbsoluteRequestURIWithFragment() throws Exception {
+        this.localServer.register("*", new SimpleService());
+        this.httpclient = HttpClients.createDefault();
+        HttpHost target = getServerHttp();
+
+        URI uri = new URIBuilder()
+            .setHost(target.getHostName())
+            .setPort(target.getPort())
+            .setScheme(target.getSchemeName())
+            .setPath("/stuff")
+            .setFragment("blahblah")
+            .build();
+
+        HttpGet httpget = new HttpGet(uri);
+        HttpContext context = new BasicHttpContext();
+
+        HttpResponse response = this.httpclient.execute(httpget, context);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        EntityUtils.consume(response.getEntity());
+
+        HttpRequest request = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
+        Assert.assertEquals("/stuff", request.getRequestLine().getUri());
     }
 
 }

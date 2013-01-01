@@ -8,6 +8,10 @@ Changes in trunk
   responses.
   Contributed by Don Brown <mrdon at twdata.org> 
 
+* [HTTPCLIENT-1286] Request URI rewriting is inconsistent - URI fragments are not removed 
+  from absolute request URIs.  
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1284] HttpClient incorrectly generates Host header when physical connection
   route differs from the host name specified in the request URI. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>
