@@ -83,8 +83,8 @@ public class ExponentialBackingOffSchedulingStrategy implements SchedulingStrate
     public void schedule(AsynchronousValidationRequest revalidationRequest) {
         checkNotNull("revalidationRequest", revalidationRequest);
         HttpCacheEntry cacheEntry = revalidationRequest.getCacheEntry();
-        long deleyInMillis = calculateDelayInMillis(cacheEntry);
-        executor.schedule(revalidationRequest, deleyInMillis, TimeUnit.MILLISECONDS);
+        long delayInMillis = calculateDelayInMillis(cacheEntry);
+        executor.schedule(revalidationRequest, delayInMillis, TimeUnit.MILLISECONDS);
     }
 
     public void shutdown() {
