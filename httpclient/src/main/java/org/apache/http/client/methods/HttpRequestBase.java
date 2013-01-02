@@ -27,20 +27,12 @@
 
 package org.apache.http.client.methods;
 
-import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.utils.CloneUtils;
-import org.apache.http.concurrent.Cancellable;
-import org.apache.http.conn.ClientConnectionRequest;
-import org.apache.http.conn.ConnectionReleaseTrigger;
-import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.params.HttpProtocolParams;
 
@@ -51,21 +43,12 @@ import org.apache.http.params.HttpProtocolParams;
  */
 @SuppressWarnings("deprecation")
 @NotThreadSafe
-public abstract class HttpRequestBase extends AbstractHttpMessage
-    implements HttpUriRequest, Configurable, HttpExecutionAware, AbortableHttpRequest, Cloneable {
-
-    private Lock abortLock;
-    private volatile boolean aborted;
+public abstract class HttpRequestBase extends AbstractExecutionAwareRequest
+    implements HttpUriRequest, Configurable {
 
     private ProtocolVersion version;
     private URI uri;
-    private Cancellable cancellable;
     private RequestConfig config;
-
-    public HttpRequestBase() {
-        super();
-        this.abortLock = new ReentrantLock();
-    }
 
     public abstract String getMethod();
 
@@ -104,9 +87,6 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
         return new BasicRequestLine(method, uritext, ver);
     }
 
-    public void setURI(final URI uri) {
-        this.uri = uri;
-    }
 
     public RequestConfig getConfig() {
         return config;
@@ -116,120 +96,14 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
         this.config = config;
     }
 
-    @Deprecated
-    public void setConnectionRequest(final ClientConnectionRequest connRequest) {
-        if (this.aborted) {
-            return;
-        }
-        this.abortLock.lock();
-        try {
-            this.cancellable = new Cancellable() {
-
-                public boolean cancel() {
-                    connRequest.abortRequest();
-                    return true;
-                }
-
-            };
-        } finally {
-            this.abortLock.unlock();
-        }
-    }
-
-    @Deprecated
-    public void setReleaseTrigger(final ConnectionReleaseTrigger releaseTrigger) {
-        if (this.aborted) {
-            return;
-        }
-        this.abortLock.lock();
-        try {
-            this.cancellable = new Cancellable() {
-
-                public boolean cancel() {
-                    try {
-                        releaseTrigger.abortConnection();
-                        return true;
-                    } catch (IOException ex) {
-                        return false;
-                    }
-                }
-
-            };
-        } finally {
-            this.abortLock.unlock();
-        }
-    }
-
-    private void cancelExecution() {
-        if (this.cancellable != null) {
-            this.cancellable.cancel();
-            this.cancellable = null;
-        }
-    }
-
-    public void abort() {
-        if (this.aborted) {
-            return;
-        }
-        this.abortLock.lock();
-        try {
-            this.aborted = true;
-            cancelExecution();
-        } finally {
-            this.abortLock.unlock();
-        }
-    }
-
-    public boolean isAborted() {
-        return this.aborted;
+    public void setURI(final URI uri) {
+        this.uri = uri;
     }
 
     /**
      * @since 4.2
      */
     public void started() {
-    }
-
-    /**
-     * @since 4.2
-     */
-    public void setCancellable(final Cancellable cancellable) {
-        if (this.aborted) {
-            return;
-        }
-        this.abortLock.lock();
-        try {
-            this.cancellable = cancellable;
-        } finally {
-            this.abortLock.unlock();
-        }
-    }
-
-    /**
-     * @since 4.2
-     */
-    public void completed() {
-        this.abortLock.lock();
-        try {
-            this.cancellable = null;
-        } finally {
-            this.abortLock.unlock();
-        }
-    }
-
-    /**
-     * Resets internal state of the request making it reusable.
-     *
-     * @since 4.2
-     */
-    public void reset() {
-        this.abortLock.lock();
-        try {
-            cancelExecution();
-            this.aborted = false;
-        } finally {
-            this.abortLock.unlock();
-        }
     }
 
     /**
@@ -240,17 +114,6 @@ public abstract class HttpRequestBase extends AbstractHttpMessage
      */
     public void releaseConnection() {
         reset();
-    }
-
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        HttpRequestBase clone = (HttpRequestBase) super.clone();
-        clone.abortLock = new ReentrantLock();
-        clone.aborted = false;
-        clone.cancellable = null;
-        clone.headergroup = CloneUtils.cloneObject(this.headergroup);
-        clone.params = CloneUtils.cloneObject(this.params);
-        return clone;
     }
 
     @Override
