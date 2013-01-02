@@ -41,7 +41,7 @@ import org.apache.http.message.AbstractHttpMessage;
 public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage implements
         HttpExecutionAware, AbortableHttpRequest, Cloneable, HttpRequest {
 
-    private final Lock abortLock;
+    private Lock abortLock;
     private volatile boolean aborted;
     private volatile Cancellable cancellable;
 
@@ -138,6 +138,9 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
         AbstractExecutionAwareRequest clone = (AbstractExecutionAwareRequest) super.clone();
         clone.headergroup = CloneUtils.cloneObject(this.headergroup);
         clone.params = CloneUtils.cloneObject(this.params);
+        clone.abortLock = new ReentrantLock();
+        clone.cancellable = null;
+        clone.aborted = false;
         return clone;
     }
 
