@@ -90,4 +90,7 @@ public class AsynchronousValidationRequest implements Runnable {
         return identifier;
     }
 
+    public HttpCacheEntry getCacheEntry() {
+        return cacheEntry;
+    }
 }
