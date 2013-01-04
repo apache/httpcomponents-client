@@ -1,4 +1,13 @@
-Changes since 4.2.2
+Release 4.2.3
+-------------------
+
+HttpClient 4.2.3 (GA) is a bug fix release that addresses a number of issues reported since 
+release 4.2.2. This release also includes thoroughly reworked NTLM authentication engine 
+which should result in a better compatibility with the newest Microsoft products. 
+
+Users of HttpClient 4.x are advised to upgrade.
+
+Changelog
 -------------------
 
 * [HTTPCLIENT-1286] Request URI rewriting is inconsistent - URI fragments are not removed 
