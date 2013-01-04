@@ -26,6 +26,8 @@
  */
 package org.apache.http.impl.client.cache;
 
+import org.apache.http.util.Args;
+
 /**
  * <p>Java Beans-style configuration for a {@link CachingHttpClient}. Any class
  * in the caching module that has configuration options should take a
@@ -468,6 +470,24 @@ public class CacheConfig implements Cloneable {
         return new Builder();
     }
 
+    public static Builder copy(final CacheConfig config) {
+        Args.notNull(config, "Cache config");
+        return new Builder()
+            .setMaxObjectSize(config.getMaxObjectSize())
+            .setMaxCacheEntries(config.getMaxCacheEntries())
+            .setMaxUpdateRetries(config.getMaxUpdateRetries())
+            .setHeuristicCachingEnabled(config.isHeuristicCachingEnabled())
+            .setHeuristicCoefficient(config.getHeuristicCoefficient())
+            .setHeuristicDefaultLifetime(config.getHeuristicDefaultLifetime())
+            .setSharedCache(config.isSharedCache())
+            .setAsynchronousWorkersMax(config.getAsynchronousWorkersMax())
+            .setAsynchronousWorkersCore(config.getAsynchronousWorkersCore())
+            .setAsynchronousWorkerIdleLifetimeSecs(config.getAsynchronousWorkerIdleLifetimeSecs())
+            .setRevalidationQueueSize(config.getRevalidationQueueSize())
+            .setNeverCacheHTTP10ResponsesWithQueryString(config.isNeverCacheHTTP10ResponsesWithQuery());
+    }
+
+
     public static class Builder {
 
         private long maxObjectSize;
@@ -621,7 +641,7 @@ public class CacheConfig implements Cloneable {
          * to better emulate IE, which also never caches responses, regardless of what caching
          * headers may be present.
          */
-        public Builder setNeverCache1_0ResponsesWithQueryString(boolean b) {
+        public Builder setNeverCacheHTTP10ResponsesWithQueryString(boolean b) {
             this.neverCacheHTTP10ResponsesWithQuery = b;
             return this;
         }

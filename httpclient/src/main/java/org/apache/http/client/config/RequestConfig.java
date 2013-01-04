@@ -177,6 +177,25 @@ public class RequestConfig implements Cloneable {
         return new Builder();
     }
 
+    public static RequestConfig.Builder copy(final RequestConfig config) {
+        return new Builder()
+            .setExpectContinueEnabled(config.isExpectContinueEnabled())
+            .setDefaultProxy(config.getDefaultProxy())
+            .setLocalAddress(config.getLocalAddress())
+            .setStaleConnectionCheckEnabled(config.isStaleConnectionCheckEnabled())
+            .setCookieSpec(config.getCookieSpec())
+            .setRedirectsEnabled(config.isRedirectsEnabled())
+            .setRelativeRedirectsAllowed(config.isRelativeRedirectsAllowed())
+            .setCircularRedirectsAllowed(config.isCircularRedirectsAllowed())
+            .setMaxRedirects(config.getMaxRedirects())
+            .setAuthenticationEnabled(config.isAuthenticationEnabled())
+            .setTargetPreferredAuthSchemes(config.getProxyPreferredAuthSchemes())
+            .setProxyPreferredAuthSchemes(config.getProxyPreferredAuthSchemes())
+            .setConnectionRequestTimeout(config.getConnectionRequestTimeout())
+            .setConnectTimeout(config.getConnectTimeout())
+            .setSocketTimeout(config.getSocketTimeout());
+    }
+
     public static class Builder {
 
         private boolean expectContinueEnabled;
