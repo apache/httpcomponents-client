@@ -331,7 +331,7 @@ public class CachingHttpClient implements HttpClient {
     /**
      * Use a new scheduling strategy to schedule new revalidation requests.
      * This will affect new revalidation requests only. The old
-     * {@link SchedulingStrategy} will try to comple started requests
+     * {@link SchedulingStrategy} will try to complete started requests
      * but won't accept new ones. It is up to the implementation to finish
      * delayed request.
      *
