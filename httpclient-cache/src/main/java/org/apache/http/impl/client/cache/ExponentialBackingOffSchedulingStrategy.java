@@ -1,15 +1,15 @@
 package org.apache.http.impl.client.cache;
 
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.client.cache.HttpCacheEntry;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * An implementation that backs off exponentially based on the cache entry's
- * {@link org.apache.http.client.cache.HttpCacheEntry#getErrorCount()}. It uses the following defaults:
+ * An implementation that backs off exponentially based on the number of
+ * consecutive failed attempts stored in the
+ * {@link AsynchronousValidationRequest}. It uses the following defaults:
  * <pre>
  *         no delay in case it was never tried or didn't fail so far
  *     6 secs delay for one failed attempt (= {@link #getInitialExpiryInMillis()})
@@ -22,10 +22,9 @@ import java.util.concurrent.TimeUnit;
  *
  * The following equation is used to calculate the delay for a specific revalidation request:
  * <pre>
- *     delay = {@link #getInitialExpiryInMillis()} * Math.pow({@link #getBackOffRate()}, {@link org.apache.http.client.cache.HttpCacheEntry#getErrorCount()} - 1))
+ *     delay = {@link #getInitialExpiryInMillis()} * Math.pow({@link #getBackOffRate()}, {@link AsynchronousValidationRequest#getConsecutiveFailedAttempts()} - 1))
  * </pre>
- * It is assumed that {@link org.apache.http.client.cache.HttpCacheEntry#getErrorCount()} is the number of consecutive
- * failed revalidation attempts. The resulting delay won't exceed {@link #getMaxExpiryInMillis()}.
+ * The resulting delay won't exceed {@link #getMaxExpiryInMillis()}.
  */
 @ThreadSafe
 public class ExponentialBackingOffSchedulingStrategy implements SchedulingStrategy {
@@ -82,8 +81,8 @@ public class ExponentialBackingOffSchedulingStrategy implements SchedulingStrate
 
     public void schedule(AsynchronousValidationRequest revalidationRequest) {
         checkNotNull("revalidationRequest", revalidationRequest);
-        HttpCacheEntry cacheEntry = revalidationRequest.getCacheEntry();
-        long delayInMillis = calculateDelayInMillis(cacheEntry);
+        int consecutiveFailedAttempts = revalidationRequest.getConsecutiveFailedAttempts();
+        long delayInMillis = calculateDelayInMillis(consecutiveFailedAttempts);
         executor.schedule(revalidationRequest, delayInMillis, TimeUnit.MILLISECONDS);
     }
 
@@ -103,10 +102,9 @@ public class ExponentialBackingOffSchedulingStrategy implements SchedulingStrate
         return maxExpiryInMillis;
     }
 
-    protected long calculateDelayInMillis(HttpCacheEntry cacheEntry) {
-        int errorCount = cacheEntry != null ? cacheEntry.getErrorCount() : 0;
-        if (errorCount > 0) {
-            long delayInSeconds = (long) (initialExpiryInMillis * Math.pow(backOffRate, errorCount - 1));
+    protected long calculateDelayInMillis(int consecutiveFailedAttempts) {
+        if (consecutiveFailedAttempts > 0) {
+            long delayInSeconds = (long) (initialExpiryInMillis * Math.pow(backOffRate, consecutiveFailedAttempts - 1));
             return Math.min(delayInSeconds, maxExpiryInMillis);
         }
         else {

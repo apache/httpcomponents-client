@@ -49,6 +49,7 @@ class AsynchronousValidator {
     private final SchedulingStrategy schedulingStrategy;
     private final Set<String> queued;
     private final CacheKeyGenerator cacheKeyGenerator;
+    private final FailureCache failureCache;
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -83,6 +84,7 @@ class AsynchronousValidator {
         this.queued = new HashSet<String>();
         this.cacheKeyGenerator = new CacheKeyGenerator();
         this.schedulingStrategy = schedulingStrategy;
+        this.failureCache = new DefaultFailureCache();
     }
 
     public synchronized void revalidateCacheEntry(HttpHost target,
@@ -91,9 +93,10 @@ class AsynchronousValidator {
         String uri = cacheKeyGenerator.getVariantURI(target, request, entry);
 
         if (!queued.contains(uri)) {
+            int consecutiveFailedAttempts = failureCache.getErrorCount(uri);
             AsynchronousValidationRequest revalidationRequest =
                 new AsynchronousValidationRequest(this, cachingClient, target,
-                        request, context, entry, uri);
+                        request, context, entry, uri, consecutiveFailedAttempts);
 
             try {
                 schedulingStrategy.schedule(revalidationRequest);
@@ -113,6 +116,26 @@ class AsynchronousValidator {
      */
     synchronized void markComplete(String identifier) {
         queued.remove(identifier);
+    }
+
+    /**
+     * The revalidation job was successful thus the number of consecutive
+     * failed attempts will be reset to zero. Should be called by
+     * {@link AsynchronousValidationRequest#run()}.
+     * @param identifier the revalidation job's unique identifier
+     */
+    void jobSuccessful(String identifier) {
+        failureCache.resetErrorCount(identifier);
+    }
+
+    /**
+     * The revalidation job did fail and thus the number of consecutive failed
+     * attempts will be increased. Should be called by
+     * {@link AsynchronousValidationRequest#run()}.
+     * @param identifier the revalidation job's unique identifier
+     */
+    void jobFailed(String identifier) {
+        failureCache.increaseErrorCount(identifier);
     }
 
     Set<String> getScheduledIdentifiers() {

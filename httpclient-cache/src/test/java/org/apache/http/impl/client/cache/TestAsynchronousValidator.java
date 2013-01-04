@@ -27,7 +27,6 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +35,9 @@ import junit.framework.Assert;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
+import org.apache.http.StatusLine;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpGet;
@@ -56,6 +57,8 @@ public class TestAsynchronousValidator {
     private HttpRequest request;
     private HttpContext mockContext;
     private HttpCacheEntry mockCacheEntry;
+    private HttpResponse mockResponse;
+    private StatusLine mockStatusLine;
 
     private SchedulingStrategy mockSchedulingStrategy;
 
@@ -66,6 +69,8 @@ public class TestAsynchronousValidator {
         request = new HttpGet("/");
         mockContext = EasyMock.createNiceMock(HttpContext.class);
         mockCacheEntry = EasyMock.createNiceMock(HttpCacheEntry.class);
+        mockResponse = EasyMock.createNiceMock(HttpResponse.class);
+        mockStatusLine = EasyMock.createNiceMock(StatusLine.class);
 
         mockSchedulingStrategy = EasyMock.createNiceMock(SchedulingStrategy.class);
 
@@ -173,7 +178,9 @@ public class TestAsynchronousValidator {
         impl = new AsynchronousValidator(mockClient, schedulingStrategy);
 
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
-        EasyMock.expect(mockClient.revalidateCacheEntry(target, request, mockContext, mockCacheEntry)).andReturn(null);
+        EasyMock.expect(mockClient.revalidateCacheEntry(target, request, mockContext, mockCacheEntry)).andReturn(mockResponse);
+        EasyMock.expect(mockResponse.getStatusLine()).andReturn(mockStatusLine);
+        EasyMock.expect(mockStatusLine.getStatusCode()).andReturn(200);
 
         replayMocks();
         impl.revalidateCacheEntry(target, request, mockContext, mockCacheEntry);
@@ -196,6 +203,8 @@ public class TestAsynchronousValidator {
         EasyMock.replay(mockClient);
         EasyMock.replay(mockContext);
         EasyMock.replay(mockCacheEntry);
+        EasyMock.replay(mockResponse);
+        EasyMock.replay(mockStatusLine);
     }
 
     public void verifyMocks() {
@@ -203,5 +212,7 @@ public class TestAsynchronousValidator {
         EasyMock.verify(mockClient);
         EasyMock.verify(mockContext);
         EasyMock.verify(mockCacheEntry);
+        EasyMock.verify(mockResponse);
+        EasyMock.verify(mockStatusLine);
     }
 }

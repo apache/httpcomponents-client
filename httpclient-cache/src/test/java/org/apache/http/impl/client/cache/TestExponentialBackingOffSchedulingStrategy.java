@@ -1,15 +1,12 @@
 package org.apache.http.impl.client.cache;
 
-import org.apache.http.Header;
 import org.apache.http.HttpHost;
-import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -32,8 +29,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithoutPreviousError() {
-        HttpCacheEntry cacheEntry = createCacheEntry(withErrorCount(0));
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(cacheEntry);
+        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(0));
 
         expectRequestScheduledWithoutDelay(request);
 
@@ -44,8 +40,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithOneFailedAttempt() {
-        HttpCacheEntry cacheEntry = createCacheEntry(withErrorCount(1));
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(cacheEntry);
+        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(1));
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(6));
 
@@ -56,8 +51,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithTwoFailedAttempts() {
-        HttpCacheEntry cacheEntry = createCacheEntry(withErrorCount(2));
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(cacheEntry);
+        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(2));
 
         expectRequestScheduledWithDelay(request, TimeUnit.MINUTES.toMillis(1));
 
@@ -68,8 +62,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithThreeFailedAttempts() {
-        HttpCacheEntry cacheEntry = createCacheEntry(withErrorCount(3));
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(cacheEntry);
+        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(3));
 
         expectRequestScheduledWithDelay(request, TimeUnit.MINUTES.toMillis(10));
 
@@ -80,8 +73,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithFourFailedAttempts() {
-        HttpCacheEntry cacheEntry = createCacheEntry(withErrorCount(4));
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(cacheEntry);
+        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(4));
 
         expectRequestScheduledWithDelay(request, TimeUnit.MINUTES.toMillis(100));
 
@@ -92,8 +84,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithFiveFailedAttempts() {
-        HttpCacheEntry cacheEntry = createCacheEntry(withErrorCount(5));
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(cacheEntry);
+        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(5));
 
         expectRequestScheduledWithDelay(request, TimeUnit.MINUTES.toMillis(1000));
 
@@ -104,8 +95,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithSixFailedAttempts() {
-        HttpCacheEntry cacheEntry = createCacheEntry(withErrorCount(6));
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(cacheEntry);
+        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(6));
 
         expectRequestScheduledWithDelay(request, TimeUnit.DAYS.toMillis(1));
 
@@ -116,8 +106,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithMaxNumberOfFailedAttempts() {
-        HttpCacheEntry cacheEntry = createCacheEntry(withErrorCount(Integer.MAX_VALUE));
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(cacheEntry);
+        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(Integer.MAX_VALUE));
 
         expectRequestScheduledWithDelay(request, TimeUnit.DAYS.toMillis(1));
 
@@ -142,23 +131,13 @@ public class TestExponentialBackingOffSchedulingStrategy {
         EasyMock.verify(mockExecutor);
     }
 
-    private AsynchronousValidationRequest createAsynchronousValidationRequest(HttpCacheEntry cacheEntry) {
+    private AsynchronousValidationRequest createAsynchronousValidationRequest(int errorCount) {
         CachingHttpClient cachingHttpClient = new CachingHttpClient();
         AsynchronousValidator mockValidator = new AsynchronousValidator(cachingHttpClient, impl);
         HttpHost target = new HttpHost("foo.example.com");
         HttpGet request = new HttpGet("/");
         HttpContext mockHttpContext = EasyMock.createNiceMock(HttpContext.class);
-        return new AsynchronousValidationRequest(mockValidator, cachingHttpClient, target, request, mockHttpContext, cacheEntry, "identifier");
-    }
-
-    private HttpCacheEntry createCacheEntry(int errorCount) {
-        return new HttpCacheEntryBuilder()
-                .setRequestDate(new Date())
-                .setResponseDate(new Date())
-                .setStatusLine(new OKStatus())
-                .setAllHeaders(new Header[0])
-                .setErrorCount(errorCount)
-                .build();
+        return new AsynchronousValidationRequest(mockValidator, cachingHttpClient, target, request, mockHttpContext, null, "identifier", errorCount);
     }
 
     private static int withErrorCount(int errorCount) {

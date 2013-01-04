@@ -29,9 +29,12 @@ package org.apache.http.impl.client.cache;
 import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
+import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.protocol.HttpContext;
 
@@ -47,6 +50,7 @@ public class AsynchronousValidationRequest implements Runnable {
     private final HttpContext context;
     private final HttpCacheEntry cacheEntry;
     private final String identifier;
+    private final int consecutiveFailedAttempts;
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -59,12 +63,13 @@ public class AsynchronousValidationRequest implements Runnable {
      * @param context
      * @param cacheEntry
      * @param identifier
+     * @param consecutiveFailedAttempts
      */
     AsynchronousValidationRequest(AsynchronousValidator parent,
             CachingHttpClient cachingClient, HttpHost target,
             HttpRequest request, HttpContext context,
             HttpCacheEntry cacheEntry,
-            String identifier) {
+            String identifier, int consecutiveFailedAttempts) {
         this.parent = parent;
         this.cachingClient = cachingClient;
         this.target = target;
@@ -72,25 +77,63 @@ public class AsynchronousValidationRequest implements Runnable {
         this.context = context;
         this.cacheEntry = cacheEntry;
         this.identifier = identifier;
+        this.consecutiveFailedAttempts = consecutiveFailedAttempts;
     }
 
     public void run() {
         try {
-            cachingClient.revalidateCacheEntry(target, request, context, cacheEntry);
-        } catch (IOException ioe) {
-            log.debug("Asynchronous revalidation failed due to exception: " + ioe);
-        } catch (ProtocolException pe) {
-            log.error("ProtocolException thrown during asynchronous revalidation: " + pe);
+            if (revalidateCacheEntry()) {
+                parent.jobSuccessful(identifier);
+            } else {
+                parent.jobFailed(identifier);
+            }
         } finally {
             parent.markComplete(identifier);
         }
+    }
+
+    /**
+     * Revalidate the cache entry and return if the operation was successful.
+     * Success means a connection to the server was established and replay did
+     * not indicate a server error.
+     * @return <code>true</code> if the cache entry was successfully validated;
+     * otherwise <code>false</code>
+     */
+    protected boolean revalidateCacheEntry() {
+        try {
+            HttpResponse httpResponse = cachingClient.revalidateCacheEntry(target, request, context, cacheEntry);
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            return isNotServerError(statusCode) && isNotStale(httpResponse);
+        } catch (IOException ioe) {
+            log.debug("Asynchronous revalidation failed due to exception: " + ioe);
+            return false;
+        } catch (ProtocolException pe) {
+            log.error("ProtocolException thrown during asynchronous revalidation: " + pe);
+            return false;
+        } catch (RuntimeException re) {
+            log.error("RuntimeException thrown during asynchronous revalidation: " + re);
+            return false;
+        }
+    }
+
+    private boolean isNotServerError(int statusCode) {
+        return statusCode < 500;
+    }
+
+    private boolean isNotStale(HttpResponse httpResponse) {
+        Header[] warnings = httpResponse.getHeaders(HeaderConstants.WARNING);
+        return warnings == null || warnings.length == 0;
     }
 
     String getIdentifier() {
         return identifier;
     }
 
-    public HttpCacheEntry getCacheEntry() {
-        return cacheEntry;
+    /**
+     * The number of consecutivly failed revalidation attempts.
+     * @return the number of consecutively failed revalidation attempts.
+     */
+    public int getConsecutiveFailedAttempts() {
+        return consecutiveFailedAttempts;
     }
 }
