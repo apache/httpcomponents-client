@@ -50,7 +50,6 @@ import org.apache.http.message.HeaderGroup;
 @Immutable
 public class HttpCacheEntry implements Serializable {
 
-    // TODO update me?
     private static final long serialVersionUID = -6300496422359477413L;
 
     private final Date requestDate;
@@ -59,59 +58,6 @@ public class HttpCacheEntry implements Serializable {
     private final HeaderGroup responseHeaders;
     private final Resource resource;
     private final Map<String,String> variantMap;
-    private final int errorCount;
-
-    /**
-     * Create a new {@link HttpCacheEntry} with variants.
-     * @param requestDate
-     *          Date/time when the request was made (Used for age
-     *            calculations)
-     * @param responseDate
-     *          Date/time that the response came back (Used for age
-     *            calculations)
-     * @param statusLine
-     *          HTTP status line from origin response
-     * @param responseHeaders
-     *          Header[] from original HTTP Response
-     * @param resource representing origin response body
-     * @param variantMap describing cache entries that are variants
-     *   of this parent entry; this maps a "variant key" (derived
-     *   from the varying request headers) to a "cache key" (where
-     *   in the cache storage the particular variant is located)
-     * @param errorCount the number of unsuccessful background validation tries in a row
-     */
-    public HttpCacheEntry(
-            final Date requestDate,
-            final Date responseDate,
-            final StatusLine statusLine,
-            final Header[] responseHeaders,
-            final Resource resource,
-            final Map<String,String> variantMap,
-            final int errorCount) {
-        super();
-        if (requestDate == null) {
-            throw new IllegalArgumentException("Request date may not be null");
-        }
-        if (responseDate == null) {
-            throw new IllegalArgumentException("Response date may not be null");
-        }
-        if (statusLine == null) {
-            throw new IllegalArgumentException("Status line may not be null");
-        }
-        if (responseHeaders == null) {
-            throw new IllegalArgumentException("Response headers may not be null");
-        }
-        this.requestDate = requestDate;
-        this.responseDate = responseDate;
-        this.statusLine = statusLine;
-        this.responseHeaders = new HeaderGroup();
-        this.responseHeaders.setHeaders(responseHeaders);
-        this.resource = resource;
-        this.variantMap = variantMap != null
-            ? new HashMap<String,String>(variantMap)
-            : Collections.<String, String>emptyMap();
-        this.errorCount = errorCount;
-    }
 
     /**
      * Create a new {@link HttpCacheEntry} with variants.
@@ -138,7 +84,28 @@ public class HttpCacheEntry implements Serializable {
             final Header[] responseHeaders,
             final Resource resource,
             final Map<String,String> variantMap) {
-        this(requestDate, responseDate, statusLine, responseHeaders, resource, variantMap, 0);
+        super();
+        if (requestDate == null) {
+            throw new IllegalArgumentException("Request date may not be null");
+        }
+        if (responseDate == null) {
+            throw new IllegalArgumentException("Response date may not be null");
+        }
+        if (statusLine == null) {
+            throw new IllegalArgumentException("Status line may not be null");
+        }
+        if (responseHeaders == null) {
+            throw new IllegalArgumentException("Response headers may not be null");
+        }
+        this.requestDate = requestDate;
+        this.responseDate = responseDate;
+        this.statusLine = statusLine;
+        this.responseHeaders = new HeaderGroup();
+        this.responseHeaders.setHeaders(responseHeaders);
+        this.resource = resource;
+        this.variantMap = variantMap != null
+            ? new HashMap<String,String>(variantMap)
+            : null;
     }
 
     /**
@@ -259,16 +226,6 @@ public class HttpCacheEntry implements Serializable {
      */
     public Map<String, String> getVariantMap() {
         return Collections.unmodifiableMap(variantMap);
-    }
-
-    /**
-     * Returns the number of unsuccessful revalidation attempts in a row.
-     *
-     * @return the number of unsuccessful revalidation attempts in a row
-     */
-    public int getErrorCount()
-    {
-        return errorCount;
     }
 
     /**

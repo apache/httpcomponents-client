@@ -88,14 +88,12 @@ class CacheEntryUpdater {
             throw new IllegalArgumentException("Response must have 304 status code");
         Header[] mergedHeaders = mergeHeaders(entry, response);
         Resource resource = resourceFactory.copy(requestId, entry.getResource());
-        return new HttpCacheEntryBuilder(entry)
-                .setRequestDate(requestDate)
-                .setResponseDate(responseDate)
-                .setStatusLine(entry.getStatusLine())
-                .setAllHeaders(mergedHeaders)
-                .setResource(resource)
-                .setErrorCount(0)
-                .build();
+        return new HttpCacheEntry(
+                requestDate,
+                responseDate,
+                entry.getStatusLine(),
+                mergedHeaders,
+                resource);
     }
 
     protected Header[] mergeHeaders(HttpCacheEntry entry, HttpResponse response) {

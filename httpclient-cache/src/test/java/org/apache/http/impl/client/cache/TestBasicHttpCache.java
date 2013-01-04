@@ -379,21 +379,4 @@ public class TestBasicHttpCache {
 
     }
 
-    @Test
-    public void testNonSuccessfulResultIncreasesErrorCount() throws Exception {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest request = new HttpGet("http://foo.example.com/bar");
-
-        Date now = new Date();
-        Date requestSent = new Date(now.getTime() - 3 * 1000L);
-        Date responseReceived = new Date(now.getTime() - 1 * 1000L);
-
-        HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_FOUND, "Not Found");
-        originResponse.setEntity(HttpTestUtils.makeBody((int) CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES - 1));
-
-        impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
-        assertEquals(1, backing.map.size());
-        HttpCacheEntry cacheEntry = backing.map.entrySet().iterator().next().getValue();
-        assertEquals(1, cacheEntry.getErrorCount());
-    }
 }
