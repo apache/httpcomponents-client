@@ -2,7 +2,7 @@ Release 4.2.3
 -------------------
 
 HttpClient 4.2.3 (GA) is a bug fix release that addresses a number of issues reported since 
-release 4.2.2. This release also includes thoroughly reworked NTLM authentication engine 
+release 4.2.2. This release also includes a thoroughly reworked NTLM authentication engine 
 which should result in a better compatibility with the newest Microsoft products. 
 
 Users of HttpClient 4.x are advised to upgrade.
