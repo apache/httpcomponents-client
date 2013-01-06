@@ -3,12 +3,12 @@ Building HttpComponents Client
 
 (1) Requisites
 --------------
-HttpClient utilizes Maven 2 as a distribution management and packaging tool. 
-Version 2.1.0 or above is required, which requires JDK 1.4 or later.
-However, it is recommended that you use Maven 2.2.1 or later, which  
-require JDK 1.5 or above, as does HttpClient itself.
+JDK 1.5+ is required in order to compile and run HttpClient.
 
-Maven 3.0.x and Clover are not compatible and will cause a build error.
+HttpClient utilizes Maven as a distribution management and packaging tool.
+Version 3.0.3 or later is recommended. Maven 3.0.x, however it is known 
+to be incompatible with the Clover plugin. Use Maven 2.2.1 to generate 
+web site content with Clover coverage reports.
 
 Maven installation and configuration instructions can be found here:
 
@@ -22,14 +22,17 @@ mvn test
 
 (3) Building packages 
 
-Execute the following command in order to build the JAR packages
+Execute the following command in order to build the JAR packages and install 
+them to the local repository:
 
-mvn package
+mvn install
 
-The resultant packages can be found in the target folders of their respective modules
+The JAR packages can be found in the target folders of their respective modules
 
 httpclient/target/httpclient-<VERSION>.jar
 httpmime/target/httpmime-<VERSION>.jar
+httpclient-cache/target/httpclient-cache-<VERSION>.jar
+fluent-hc/target/fluent-hc-<VERSION>.jar
 httpclient-osgi/target/org.apache.httpcomponents.httpclient_<VERSION>.jar
 
 where <VERSION> is the release version
