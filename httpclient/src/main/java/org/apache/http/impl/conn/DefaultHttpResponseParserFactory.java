@@ -51,12 +51,18 @@ public class DefaultHttpResponseParserFactory implements HttpMessageParserFactor
     private final LineParser lineParser;
     private final HttpResponseFactory responseFactory;
 
-    public DefaultHttpResponseParserFactory(final LineParser lineParser,
+    public DefaultHttpResponseParserFactory(
+            final LineParser lineParser,
             final HttpResponseFactory responseFactory) {
         super();
         this.lineParser = lineParser != null ? lineParser : BasicLineParser.INSTANCE;
         this.responseFactory = responseFactory != null ? responseFactory
                 : DefaultHttpResponseFactory.INSTANCE;
+    }
+
+    public DefaultHttpResponseParserFactory(
+            final HttpResponseFactory responseFactory) {
+        this(null, responseFactory);
     }
 
     public DefaultHttpResponseParserFactory() {

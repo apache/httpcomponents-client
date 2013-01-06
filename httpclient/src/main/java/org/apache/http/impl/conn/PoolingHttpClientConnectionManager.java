@@ -121,6 +121,13 @@ public class PoolingHttpClientConnectionManager implements HttpClientConnectionM
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
             final HttpConnectionFactory<SocketClientConnection> connFactory,
+            final DnsResolver dnsResolver) {
+        this(socketFactoryRegistry, connFactory, null, dnsResolver, -1, TimeUnit.MILLISECONDS);
+    }
+
+    public PoolingHttpClientConnectionManager(
+            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final HttpConnectionFactory<SocketClientConnection> connFactory,
             final long timeToLive, final TimeUnit tunit) {
         this(socketFactoryRegistry, connFactory, null, null, timeToLive, tunit);
     }

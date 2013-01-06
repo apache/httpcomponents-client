@@ -349,7 +349,10 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         return sslcontext;
     }
 
-    private static SSLContext createDefaultSSLContext() throws SSLInitializationException {
+    /**
+     * @since 4.3
+     */
+    public static SSLContext createDefaultSSLContext() throws SSLInitializationException {
         try {
             return createSSLContext(TLS, null, null, null, null, null);
         } catch (Exception ex) {
@@ -357,7 +360,10 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         }
     }
 
-    private static SSLContext createSystemSSLContext() throws SSLInitializationException {
+    /**
+     * @since 4.3
+     */
+    public static SSLContext createSystemSSLContext() throws SSLInitializationException {
         try {
             return createSystemSSLContext(TLS, null);
         } catch (Exception ex) {

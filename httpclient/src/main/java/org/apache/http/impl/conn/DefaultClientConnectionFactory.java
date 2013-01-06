@@ -32,10 +32,16 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.HttpConnectionFactory;
 import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.impl.io.DefaultHttpRequestWriterFactory;
+import org.apache.http.io.HttpMessageParserFactory;
+import org.apache.http.io.HttpMessageWriterFactory;
+import org.apache.http.util.Args;
 
 /**
  * @since 4.3
@@ -44,6 +50,36 @@ import org.apache.http.conn.SocketClientConnection;
 public class DefaultClientConnectionFactory implements HttpConnectionFactory<SocketClientConnection> {
 
     public static final DefaultClientConnectionFactory INSTANCE = new DefaultClientConnectionFactory();
+
+    private final int bufferSize;
+    private final HttpMessageWriterFactory<HttpRequest> requestWriterFactory;
+    private final HttpMessageParserFactory<HttpResponse> responseParserFactory;
+
+    public DefaultClientConnectionFactory(
+            int bufferSize,
+            final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
+            final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
+        super();
+        this.bufferSize = Args.notNegative(bufferSize, "Buffer size");
+        this.requestWriterFactory = requestWriterFactory != null ? requestWriterFactory :
+            DefaultHttpRequestWriterFactory.INSTANCE;
+        this.responseParserFactory = responseParserFactory != null ? responseParserFactory :
+            DefaultHttpResponseParserFactory.INSTANCE;
+    }
+
+    public DefaultClientConnectionFactory(
+            final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
+        this(8 * 1024, null, responseParserFactory);
+    }
+
+    public DefaultClientConnectionFactory(
+            int bufferSize) {
+        this(bufferSize, null, null);
+    }
+
+    public DefaultClientConnectionFactory() {
+        this(8 * 1024, null, null);
+    }
 
     public SocketClientConnection create(final ConnectionConfig config) {
         ConnectionConfig cconfig = config != null ? config : ConnectionConfig.DEFAULT;
@@ -62,11 +98,12 @@ public class DefaultClientConnectionFactory implements HttpConnectionFactory<Soc
             charencoder.onMalformedInput(malformedInputAction);
             charencoder.onUnmappableCharacter(unmappableInputAction);
         }
-        return new SocketClientConnectionImpl(8 * 1024,
+        return new SocketClientConnectionImpl(bufferSize,
                 chardecoder, charencoder,
                 cconfig.getMessageConstraints(),
-                null, null, null,
-                DefaultHttpResponseParserFactory.INSTANCE);
+                null, null,
+                requestWriterFactory,
+                responseParserFactory);
     }
 
 }
