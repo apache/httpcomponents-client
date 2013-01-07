@@ -116,13 +116,33 @@ public class AsynchronousValidationRequest implements Runnable {
         }
     }
 
+    /**
+     * Return whether the status code indicates a server error or not.
+     * @param statusCode the status code to be checked
+     * @return if the status code indicates a server error or not
+     */
     private boolean isNotServerError(int statusCode) {
         return statusCode < 500;
     }
 
+    /**
+     * Try to detect if the returned response is generated from a stale cache entry.
+     * @param httpResponse the response to be checked
+     * @return whether the response is stale or not
+     */
     private boolean isNotStale(HttpResponse httpResponse) {
         Header[] warnings = httpResponse.getHeaders(HeaderConstants.WARNING);
-        return warnings == null || warnings.length == 0;
+        if (warnings != null)
+        {
+            for (Header warning : warnings)
+            {
+                if (warning.getValue().contains("Response is stale"))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     String getIdentifier() {

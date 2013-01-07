@@ -37,6 +37,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
 import org.easymock.classextension.EasyMock;
 import org.junit.Before;
@@ -52,11 +53,10 @@ public class TestAsynchronousValidationRequest {
     private HttpCacheEntry mockCacheEntry;
     private HttpResponse mockResponse;
     private StatusLine mockStatusLine;
-    private Header mockHeader;
 
     @Before
     public void setUp() {
-        mockParent = EasyMock.createStrictMock(AsynchronousValidator.class);
+        mockParent = EasyMock.createMock(AsynchronousValidator.class);
         mockClient = EasyMock.createNiceMock(CachingHttpClient.class);
         target = new HttpHost("foo.example.com");
         request = new HttpGet("/");
@@ -64,7 +64,6 @@ public class TestAsynchronousValidationRequest {
         mockCacheEntry = EasyMock.createNiceMock(HttpCacheEntry.class);
         mockResponse = EasyMock.createNiceMock(HttpResponse.class);
         mockStatusLine = EasyMock.createNiceMock(StatusLine.class);
-        mockHeader =  EasyMock.createNiceMock(Header.class);
     }
 
     @Test
@@ -119,7 +118,7 @@ public class TestAsynchronousValidationRequest {
         EasyMock.expect(mockClient.revalidateCacheEntry(target, request, mockContext, mockCacheEntry)).andReturn(mockResponse);
         EasyMock.expect(mockResponse.getStatusLine()).andReturn(mockStatusLine);
         EasyMock.expect(mockStatusLine.getStatusCode()).andReturn(200);
-        EasyMock.expect(mockResponse.getHeaders(HeaderConstants.WARNING)).andReturn(new Header[]{mockHeader});
+        EasyMock.expect(mockResponse.getHeaders(HeaderConstants.WARNING)).andReturn(new Header[] {new BasicHeader(HeaderConstants.WARNING, "\"Response is stale\"")});
         mockParent.markComplete(identifier);
         mockParent.jobFailed(identifier);
 
@@ -194,7 +193,7 @@ public class TestAsynchronousValidationRequest {
         EasyMock.replay(mockCacheEntry);
         EasyMock.replay(mockResponse);
         EasyMock.replay(mockStatusLine);
-        EasyMock.replay(mockHeader);
+        EasyMock.replay(mockParent);
     }
 
     public void verifyMocks() {
@@ -203,6 +202,6 @@ public class TestAsynchronousValidationRequest {
         EasyMock.verify(mockCacheEntry);
         EasyMock.verify(mockResponse);
         EasyMock.verify(mockStatusLine);
-        EasyMock.verify(mockHeader);
+        EasyMock.verify(mockParent);
     }
 }
