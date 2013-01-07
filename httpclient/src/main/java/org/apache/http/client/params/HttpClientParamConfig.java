@@ -55,7 +55,7 @@ public final class HttpClientParamConfig {
                 .setConnectionRequestTimeout((int) HttpClientParams.getConnectionManagerTimeout(params))
                 .setConnectTimeout(HttpConnectionParams.getConnectionTimeout(params))
                 .setCookieSpec(HttpClientParams.getCookiePolicy(params))
-                .setDefaultProxy(ConnRouteParams.getDefaultProxy(params))
+                .setProxy(ConnRouteParams.getDefaultProxy(params))
                 .setExpectContinueEnabled(HttpProtocolParams.useExpectContinue(params))
                 .setLocalAddress(ConnRouteParams.getLocalAddress(params))
                 .setMaxRedirects(params.getIntParameter(ClientPNames.MAX_REDIRECTS, 50))

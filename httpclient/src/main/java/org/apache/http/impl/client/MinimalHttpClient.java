@@ -107,7 +107,7 @@ class MinimalHttpClient extends CloseableHttpClient {
             if (config == null) {
                 config = RequestConfig.DEFAULT;
             }
-            if (config.getDefaultProxy() != null) {
+            if (config.getProxy() != null) {
                 throw new ClientProtocolException("Minimal HttpClient does not support" +
                 " request execution via proxy");
             }

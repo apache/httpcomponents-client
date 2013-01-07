@@ -167,7 +167,6 @@ public class ClientConfiguration {
             .setStaleConnectionCheckEnabled(true)
             .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
             .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC))
-            .setDefaultProxy(new HttpHost("myproxy", 8080))
             .build();
 
         // Create an HttpClient with the given custom dependencies and configuration.
@@ -175,6 +174,7 @@ public class ClientConfiguration {
             .setConnectionManager(connManager)
             .setCookieStore(cookieStore)
             .setCredentialsProvider(credentialsProvider)
+            .setProxy(new HttpHost("myproxy", 8080))
             .setDefaultRequestConfig(defaultRequestConfig)
             .build();
 
@@ -186,6 +186,7 @@ public class ClientConfiguration {
                 .setSocketTimeout(5000)
                 .setConnectTimeout(5000)
                 .setConnectionRequestTimeout(5000)
+                .setProxy(new HttpHost("myotherproxy", 8080))
                 .build();
             httpget.setConfig(requestConfig);
 

@@ -38,6 +38,7 @@ import java.util.Map;
 
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.annotation.NotThreadSafe;
@@ -90,6 +91,7 @@ import org.apache.http.impl.client.execchain.ProtocolExec;
 import org.apache.http.impl.client.execchain.RedirectExec;
 import org.apache.http.impl.client.execchain.RetryExec;
 import org.apache.http.impl.client.execchain.ServiceUnavailableRetryExec;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.DefaultRoutePlanner;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -168,6 +170,7 @@ public class HttpClientBuilder {
     private CookieStore cookieStore;
     private CredentialsProvider credentialsProvider;
     private String userAgent;
+    private HttpHost proxy;
     private Collection<? extends Header> defaultHeaders;
     private SocketConfig defaultSocketConfig;
     private ConnectionConfig defaultConnectionConfig;
@@ -380,6 +383,11 @@ public class HttpClientBuilder {
 
     public final HttpClientBuilder setUserAgent(final String userAgent) {
         this.userAgent = userAgent;
+        return this;
+    }
+
+    public final HttpClientBuilder setProxy(final HttpHost proxy) {
+        this.proxy = proxy;
         return this;
     }
 
@@ -617,7 +625,9 @@ public class HttpClientBuilder {
         // Add redirect executor, if not disabled
         HttpRoutePlanner routePlanner = this.routePlanner;
         if (routePlanner == null) {
-            if (systemProperties) {
+            if (proxy != null) {
+                routePlanner = new DefaultProxyRoutePlanner(proxy, schemePortResolver);
+            } else if (systemProperties) {
                 routePlanner = new SystemDefaultRoutePlanner(
                         schemePortResolver, ProxySelector.getDefault());
             } else {

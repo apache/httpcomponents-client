@@ -37,7 +37,7 @@ public class RequestConfig implements Cloneable {
     public static final RequestConfig DEFAULT = new Builder().build();
 
     private final boolean expectContinueEnabled;
-    private final HttpHost defaultProxy;
+    private final HttpHost proxy;
     private final InetAddress localAddress;
     private final boolean staleConnectionCheckEnabled;
     private final String cookieSpec;
@@ -54,7 +54,7 @@ public class RequestConfig implements Cloneable {
 
     RequestConfig(
             final boolean expectContinueEnabled,
-            final HttpHost defaultProxy,
+            final HttpHost proxy,
             final InetAddress localAddress,
             final boolean staleConnectionCheckEnabled,
             final String cookieSpec,
@@ -70,7 +70,7 @@ public class RequestConfig implements Cloneable {
             final int socketTimeout) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
-        this.defaultProxy = defaultProxy;
+        this.proxy = proxy;
         this.localAddress = localAddress;
         this.staleConnectionCheckEnabled = staleConnectionCheckEnabled;
         this.cookieSpec = cookieSpec;
@@ -90,8 +90,8 @@ public class RequestConfig implements Cloneable {
         return expectContinueEnabled;
     }
 
-    public HttpHost getDefaultProxy() {
-        return defaultProxy;
+    public HttpHost getProxy() {
+        return proxy;
     }
 
     public InetAddress getLocalAddress() {
@@ -155,7 +155,7 @@ public class RequestConfig implements Cloneable {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(", expectContinueEnabled=").append(expectContinueEnabled);
-        builder.append(", defaultProxy=").append(defaultProxy);
+        builder.append(", proxy=").append(proxy);
         builder.append(", localAddress=").append(localAddress);
         builder.append(", staleConnectionCheckEnabled=").append(staleConnectionCheckEnabled);
         builder.append(", cookieSpec=").append(cookieSpec);
@@ -180,7 +180,7 @@ public class RequestConfig implements Cloneable {
     public static RequestConfig.Builder copy(final RequestConfig config) {
         return new Builder()
             .setExpectContinueEnabled(config.isExpectContinueEnabled())
-            .setDefaultProxy(config.getDefaultProxy())
+            .setProxy(config.getProxy())
             .setLocalAddress(config.getLocalAddress())
             .setStaleConnectionCheckEnabled(config.isStaleConnectionCheckEnabled())
             .setCookieSpec(config.getCookieSpec())
@@ -199,7 +199,7 @@ public class RequestConfig implements Cloneable {
     public static class Builder {
 
         private boolean expectContinueEnabled;
-        private HttpHost defaultProxy;
+        private HttpHost proxy;
         private InetAddress localAddress;
         private boolean staleConnectionCheckEnabled;
         private String cookieSpec;
@@ -231,8 +231,8 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
-        public Builder setDefaultProxy(final HttpHost defaultProxy) {
-            this.defaultProxy = defaultProxy;
+        public Builder setProxy(final HttpHost proxy) {
+            this.proxy = proxy;
             return this;
         }
 
@@ -304,7 +304,7 @@ public class RequestConfig implements Cloneable {
         public RequestConfig build() {
             return new RequestConfig(
                     expectContinueEnabled,
-                    defaultProxy,
+                    proxy,
                     localAddress,
                     staleConnectionCheckEnabled,
                     cookieSpec,

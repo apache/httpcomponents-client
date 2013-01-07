@@ -51,7 +51,7 @@ public class ClientExecuteProxy {
             HttpHost target = new HttpHost("issues.apache.org", 443, "https");
             HttpHost proxy = new HttpHost("127.0.0.1", 8080, "http");
 
-            RequestConfig config = RequestConfig.custom().setDefaultProxy(proxy).build();
+            RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
             HttpGet request = new HttpGet("/");
             request.setConfig(config);
 

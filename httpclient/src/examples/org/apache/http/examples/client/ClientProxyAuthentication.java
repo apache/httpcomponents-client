@@ -56,7 +56,9 @@ public class ClientProxyAuthentication {
             HttpHost targetHost = new HttpHost("www.verisign.com", 443, "https");
             HttpHost proxy = new HttpHost("localhost", 8080);
 
-            RequestConfig config = RequestConfig.custom().setDefaultProxy(proxy).build();
+            RequestConfig config = RequestConfig.custom()
+                .setProxy(proxy)
+                .build();
             HttpGet httpget = new HttpGet("/");
             httpget.setConfig(config);
 

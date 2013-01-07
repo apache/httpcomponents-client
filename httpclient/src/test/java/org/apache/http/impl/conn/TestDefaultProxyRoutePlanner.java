@@ -43,21 +43,24 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 /**
- * Tests for {@link DefaultRoutePlanner}.
+ * Tests for {@link DefaultProxyRoutePlanner}.
  */
-public class TestDefaultRoutePlanner {
+public class TestDefaultProxyRoutePlanner {
 
+    private HttpHost defaultProxy;
     private SchemePortResolver schemePortResolver;
-    private DefaultRoutePlanner routePlanner;
+    private DefaultProxyRoutePlanner routePlanner;
 
     @Before
     public void setup() {
+        defaultProxy = new HttpHost("default.proxy.host", 8888);
         schemePortResolver = Mockito.mock(SchemePortResolver.class);
-        routePlanner = new DefaultRoutePlanner(schemePortResolver);
+        routePlanner = new DefaultProxyRoutePlanner(defaultProxy,
+            schemePortResolver);
     }
 
     @Test
-    public void testDirect() throws Exception {
+    public void testDefaultProxyDirect() throws Exception {
         HttpHost target = new HttpHost("somehost", 80, "http");
         HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
@@ -65,29 +68,15 @@ public class TestDefaultRoutePlanner {
         HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assert.assertEquals(target, route.getTargetHost());
-        Assert.assertEquals(1, route.getHopCount());
+        Assert.assertEquals(defaultProxy, route.getProxyHost());
+        Assert.assertEquals(2, route.getHopCount());
         Assert.assertFalse(route.isSecure());
-        Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.<HttpHost>any());
-    }
-
-    @Test
-    public void testDirectDefaultPort() throws Exception {
-        HttpHost target = new HttpHost("somehost", -1, "https");
-        Mockito.when(schemePortResolver.resolve(target)).thenReturn(443);
-        HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
-
-        HttpContext context = new BasicHttpContext();
-        HttpRoute route = routePlanner.determineRoute(target, request, context);
-
-        Assert.assertEquals(new HttpHost("somehost", 443, "https"), route.getTargetHost());
-        Assert.assertEquals(1, route.getHopCount());
-        Assert.assertTrue(route.isSecure());
     }
 
     @Test
     public void testViaProxy() throws Exception {
         HttpHost target = new HttpHost("somehost", 80, "http");
-        HttpHost proxy = new HttpHost("proxy", 8080);
+        HttpHost proxy = new HttpHost("custom.proxy.host", 8080);
         HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
         HttpClientContext context = HttpClientContext.create();
@@ -98,7 +87,6 @@ public class TestDefaultRoutePlanner {
         Assert.assertEquals(proxy, route.getProxyHost());
         Assert.assertEquals(2, route.getHopCount());
         Assert.assertFalse(route.isSecure());
-        Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.<HttpHost>any());
     }
 
 }

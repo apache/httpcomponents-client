@@ -36,22 +36,18 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.SchemePortResolver;
-import org.apache.http.conn.params.ConnRouteParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 
 /**
- * Default implementation of an {@link HttpRoutePlanner}. This implementation
- * is based on {@link org.apache.http.conn.params.ConnRoutePNames parameters}.
- * It will not make use of any Java system properties, nor of system or
- * browser proxy settings.
+ * Default implementation of an {@link HttpRoutePlanner}. It will not make use of
+ * any Java system properties, nor of system or browser proxy settings.
  *
  * @since 4.3
  */
 @Immutable
-@SuppressWarnings("deprecation")
 public class DefaultRoutePlanner implements HttpRoutePlanner {
 
     private final SchemePortResolver schemePortResolver;
@@ -68,19 +64,12 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
             final HttpContext context) throws HttpException {
         Args.notNull(host, "Target host");
         Args.notNull(request, "Request");
-
-        // If we have a forced route, we can do without a target.
-        HttpRoute route = ConnRouteParams.getForcedRoute(request.getParams());
-        if (route != null) {
-            return route;
-        }
-
         HttpClientContext clientContext = HttpClientContext.adapt(context);
         RequestConfig config = clientContext.getRequestConfig();
         InetAddress local = config.getLocalAddress();
-        HttpHost proxy = determineProxy(host, request, context);
+        HttpHost proxy = config.getProxy();
         if (proxy == null) {
-            proxy = config.getDefaultProxy();
+            proxy = determineProxy(host, request, context);
         }
 
         HttpHost target;
