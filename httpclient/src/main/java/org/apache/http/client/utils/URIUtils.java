@@ -112,7 +112,7 @@ public class URIUtils {
      * A convenience method for creating a new {@link URI} whose scheme, host
      * and port are taken from the target host, but whose path, query and
      * fragment are taken from the existing URI. The fragment is only used if
-     * dropFragment is false.
+     * dropFragment is false. The path is set to "/" if not explicitly specified.
      *
      * @param uri
      *            Contains the path, query and fragment to use.
@@ -144,6 +144,9 @@ public class URIUtils {
         if (dropFragment) {
             uribuilder.setFragment(null);
         }
+        if (uribuilder.getPath() == null || uribuilder.getPath().length() == 0) {
+            uribuilder.setPath("/");
+        }
         return uribuilder.build();
     }
 
@@ -161,7 +164,8 @@ public class URIUtils {
     /**
      * A convenience method that creates a new {@link URI} whose scheme, host, port, path,
      * query are taken from the existing URI, dropping any fragment or user-information.
-     * The existing URI is returned unmodified if it has no fragment or user-information.
+     * The path is set to "/" if not explicitly specified. The existing URI is returned
+     * unmodified if it has no fragment or user-information and has a path.
      *
      * @param uri
      *            original URI.
@@ -172,8 +176,14 @@ public class URIUtils {
         if (uri == null) {
             throw new IllegalArgumentException("URI may not be null");
         }
-        if (uri.getFragment() != null || uri.getUserInfo() != null) {
-            return new URIBuilder(uri).setFragment(null).setUserInfo(null).build();
+        if (uri.getFragment() != null || uri.getUserInfo() != null
+                || (uri.getPath() == null || uri.getPath().length() == 0)) {
+            URIBuilder uribuilder = new URIBuilder(uri);
+            uribuilder.setFragment(null).setUserInfo(null);
+            if (uribuilder.getPath() == null || uribuilder.getPath().length() == 0) {
+                uribuilder.setPath("/");
+            }
+            return uribuilder.build();
         } else {
             return uri;
         }

@@ -10,6 +10,10 @@ Users of HttpClient 4.x are advised to upgrade.
 Changelog
 -------------------
 
+* [HTTPCLIENT-1291] Absolute request URIs without an explicitly specified path are rewritten 
+  to have "/" path).  
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1286] Request URI rewriting is inconsistent - URI fragments are not removed 
   from absolute request URIs.  
   Contributed by Oleg Kalnichevski <olegk at apache.org>

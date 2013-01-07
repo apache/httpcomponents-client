@@ -54,6 +54,10 @@ public class TestURIUtils {
                 URI.create("http://thishost/stuff#crap"), target, true).toString());
         Assert.assertEquals("http://thathost/stuff#crap", URIUtils.rewriteURI(
                 URI.create("http://thishost/stuff#crap"), target, false).toString());
+        Assert.assertEquals("http://thathost/", URIUtils.rewriteURI(
+                URI.create("http://thishost#crap"), target, true).toString());
+        Assert.assertEquals("http://thathost/#crap", URIUtils.rewriteURI(
+                URI.create("http://thishost#crap"), target, false).toString());
         Assert.assertEquals("/stuff/", URIUtils.rewriteURI(
                 URI.create("http://thishost//////////////stuff/"), null).toString());
         Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
@@ -62,6 +66,8 @@ public class TestURIUtils {
                 URI.create("http://thathost/stuff#fragment")).toString());
         Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
                 URI.create("http://userinfo@thathost/stuff#fragment")).toString());
+        Assert.assertEquals("http://thathost/", URIUtils.rewriteURI(
+                URI.create("http://thathost")).toString());
     }
 
     @Test
