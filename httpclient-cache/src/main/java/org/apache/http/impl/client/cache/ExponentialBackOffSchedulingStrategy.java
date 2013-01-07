@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * The resulting delay won't exceed {@link #getMaxExpiryInMillis()}.
  */
 @ThreadSafe
-public class ExponentialBackingOffSchedulingStrategy implements SchedulingStrategy {
+public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy {
 
     public static final long DEFAULT_BACK_OFF_RATE = 10;
     public static final long DEFAULT_INITIAL_EXPIRY_IN_MILLIS = TimeUnit.SECONDS.toMillis(6);
@@ -47,7 +47,7 @@ public class ExponentialBackingOffSchedulingStrategy implements SchedulingStrate
      * @see #DEFAULT_INITIAL_EXPIRY_IN_MILLIS
      * @see #DEFAULT_MAX_EXPIRY_IN_MILLIS
      */
-    public ExponentialBackingOffSchedulingStrategy(CacheConfig cacheConfig) {
+    public ExponentialBackOffSchedulingStrategy(CacheConfig cacheConfig) {
         this(cacheConfig, DEFAULT_BACK_OFF_RATE, DEFAULT_INITIAL_EXPIRY_IN_MILLIS, DEFAULT_MAX_EXPIRY_IN_MILLIS);
     }
 
@@ -60,9 +60,9 @@ public class ExponentialBackingOffSchedulingStrategy implements SchedulingStrate
      * @param initialExpiryInMillis the initial expiry in milli seconds; not negative
      * @param maxExpiryInMillis the upper limit of the delay in milli seconds; not negative
      * @see org.apache.http.impl.client.cache.CacheConfig#getAsynchronousWorkersMax()
-     * @see ExponentialBackingOffSchedulingStrategy
+     * @see ExponentialBackOffSchedulingStrategy
      */
-    public ExponentialBackingOffSchedulingStrategy(CacheConfig cacheConfig, long backOffRate, long initialExpiryInMillis, long maxExpiryInMillis) {
+    public ExponentialBackOffSchedulingStrategy(CacheConfig cacheConfig, long backOffRate, long initialExpiryInMillis, long maxExpiryInMillis) {
         this(createThreadPoolFromCacheConfig(cacheConfig), backOffRate, initialExpiryInMillis, maxExpiryInMillis);
     }
 
@@ -72,7 +72,7 @@ public class ExponentialBackingOffSchedulingStrategy implements SchedulingStrate
         return scheduledThreadPoolExecutor;
     }
 
-    ExponentialBackingOffSchedulingStrategy(ScheduledExecutorService executor, long backOffRate, long initialExpiryInMillis, long maxExpiryInMillis) {
+    ExponentialBackOffSchedulingStrategy(ScheduledExecutorService executor, long backOffRate, long initialExpiryInMillis, long maxExpiryInMillis) {
         this.executor = checkNotNull("executor", executor);
         this.backOffRate = checkNotNegative("backOffRate", backOffRate);
         this.initialExpiryInMillis = checkNotNegative("initialExpiryInMillis", initialExpiryInMillis);

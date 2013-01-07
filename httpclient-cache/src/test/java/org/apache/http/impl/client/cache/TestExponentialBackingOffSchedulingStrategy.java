@@ -13,17 +13,17 @@ import java.util.concurrent.TimeUnit;
 public class TestExponentialBackingOffSchedulingStrategy {
 
     private ScheduledExecutorService mockExecutor;
-    private ExponentialBackingOffSchedulingStrategy impl;
+    private ExponentialBackOffSchedulingStrategy impl;
 
     @Before
     public void setUp() {
         mockExecutor = EasyMock.createNiceMock(ScheduledExecutorService.class);
 
-        impl = new ExponentialBackingOffSchedulingStrategy(
+        impl = new ExponentialBackOffSchedulingStrategy(
                 mockExecutor,
-                ExponentialBackingOffSchedulingStrategy.DEFAULT_BACK_OFF_RATE,
-                ExponentialBackingOffSchedulingStrategy.DEFAULT_INITIAL_EXPIRY_IN_MILLIS,
-                ExponentialBackingOffSchedulingStrategy.DEFAULT_MAX_EXPIRY_IN_MILLIS
+                ExponentialBackOffSchedulingStrategy.DEFAULT_BACK_OFF_RATE,
+                ExponentialBackOffSchedulingStrategy.DEFAULT_INITIAL_EXPIRY_IN_MILLIS,
+                ExponentialBackOffSchedulingStrategy.DEFAULT_MAX_EXPIRY_IN_MILLIS
         );
     }
 
