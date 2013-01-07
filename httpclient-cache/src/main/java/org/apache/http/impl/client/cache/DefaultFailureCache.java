@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentMap;
 public class DefaultFailureCache implements FailureCache {
 
     static final int DEFAULT_MAX_SIZE = 1000;
+    static final int MAX_UPDATE_TRIES = 10;
 
     private final int maxSize;
     private final ConcurrentMap<String, FailureCacheValue> storage;
@@ -63,8 +64,12 @@ public class DefaultFailureCache implements FailureCache {
          * Due to concurrency it is possible that someone else is modifying an
          * entry before we could write back our updated value. So we keep
          * trying until it is our turn.
+         *
+         * In case there is a lot of contention on that identifier, a thread
+         * might starve. Thus is gives up after a certain number of failed
+         * update tries.
          */
-        while (true) {
+        for (int i = 0; i < MAX_UPDATE_TRIES; i++) {
             FailureCacheValue oldValue = storage.get(identifier);
             if (oldValue == null) {
                 FailureCacheValue newValue = new FailureCacheValue(identifier, 1);
