@@ -1,6 +1,10 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-1291] Absolute request URIs without an explicitly specified path are rewritten 
+  to have "/" path).  
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-900] Don't enforce URI syntax for messages with an explicit target host.  
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
