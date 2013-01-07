@@ -67,7 +67,7 @@ public class DefaultFailureCache implements FailureCache {
         while (true) {
             FailureCacheValue oldValue = storage.get(identifier);
             if (oldValue == null) {
-                FailureCacheValue newValue = new FailureCacheValue(1);
+                FailureCacheValue newValue = new FailureCacheValue(identifier, 1);
                 if (storage.putIfAbsent(identifier, newValue) == null) {
                     return;
                 }
@@ -77,7 +77,7 @@ public class DefaultFailureCache implements FailureCache {
                 if (errorCount == Integer.MAX_VALUE) {
                     return;
                 }
-                FailureCacheValue newValue = new FailureCacheValue(errorCount + 1);
+                FailureCacheValue newValue = new FailureCacheValue(identifier, errorCount + 1);
                 if (storage.replace(identifier, oldValue, newValue)) {
                     return;
                 }
@@ -87,24 +87,24 @@ public class DefaultFailureCache implements FailureCache {
 
     private void removeOldestEntryIfMapSizeExceeded() {
         if (storage.size() > maxSize) {
-            String keyWithOldestTimestamp = findKeyWithOldestTimestamp();
-            if (keyWithOldestTimestamp != null) {
-                storage.remove(keyWithOldestTimestamp);
+            FailureCacheValue valueWithOldestTimestamp = findValueWithOldestTimestamp();
+            if (valueWithOldestTimestamp != null) {
+                storage.remove(valueWithOldestTimestamp.getKey(), valueWithOldestTimestamp);
             }
         }
     }
 
-    private String findKeyWithOldestTimestamp() {
+    private FailureCacheValue findValueWithOldestTimestamp() {
         long oldestTimestamp = Long.MAX_VALUE;
-        String oldestKey = null;
+        FailureCacheValue oldestValue = null;
         for (Map.Entry<String, FailureCacheValue> storageEntry : storage.entrySet()) {
             FailureCacheValue value = storageEntry.getValue();
             long creationTimeInNanos = value.getCreationTimeInNanos();
             if (creationTimeInNanos < oldestTimestamp) {
                 oldestTimestamp = creationTimeInNanos;
-                oldestKey = storageEntry.getKey();
+                oldestValue = storageEntry.getValue();
             }
         }
-        return oldestKey;
+        return oldestValue;
     }
 }
