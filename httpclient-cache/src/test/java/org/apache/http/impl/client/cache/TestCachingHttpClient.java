@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import junit.framework.AssertionFailedError;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -1078,6 +1079,33 @@ public class TestCachingHttpClient {
         Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
 
     }
+
+	@Test
+	public void testReturns304ForIfModifiedSinceHeaderIf304ResponseInCache() throws Exception {
+		Date now = new Date();
+		Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
+		Date inTenMinutes = new Date(now.getTime() + 600 * 1000L);
+		impl = new CachingHttpClient(mockBackend);
+		HttpRequest req1 = new HttpGet("http://foo.example.com/");
+		req1.addHeader("If-Modified-Since", DateUtils.formatDate(oneHourAgo));
+		HttpRequest req2 = new HttpGet("http://foo.example.com/");
+		req2.addHeader("If-Modified-Since", DateUtils.formatDate(oneHourAgo));
+
+		HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not modified");
+		resp1.setHeader("Date", DateUtils.formatDate(now));
+		resp1.setHeader("Cache-control", "max-age=600");
+		resp1.setHeader("Expires", DateUtils.formatDate(inTenMinutes));
+
+		expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class), (HttpContext) isNull())).andReturn(resp1).once();
+		expect(mockBackend.execute(isA(HttpHost.class), isA(HttpRequest.class), (HttpContext) isNull())).andThrow(new AssertionFailedError("Should have reused cached 304 response")).anyTimes();
+
+		replayMocks();
+		impl.execute(host, req1);
+		HttpResponse result = impl.execute(host, req2);
+		verifyMocks();
+		Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
+		Assert.assertFalse(result.containsHeader("Last-Modified"));
+	}
 
     @Test
     public void testReturns200ForIfModifiedSinceDateIsLess() throws Exception {

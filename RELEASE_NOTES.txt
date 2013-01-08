@@ -10,6 +10,10 @@ Users of HttpClient 4.x are advised to upgrade.
 Changelog
 -------------------
 
+* [HTTPCLIENT-1290] 304 cached response never reused with If-modified-since conditional 
+  requests. 
+  Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net>
+
 * [HTTPCLIENT-1291] Absolute request URIs without an explicitly specified path are rewritten 
   to have "/" path).  
   Contributed by Oleg Kalnichevski <olegk at apache.org>
@@ -22,8 +26,8 @@ Changelog
   route differs from the host name specified in the request URI. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* Kerberos and SPNego auth schemes use incorrect authorization header name when authenticating
-  with a proxy.
+* [HTTPCLIENT-1293] Kerberos and SPNego auth schemes use incorrect authorization header name 
+  when authenticating with a proxy.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-1283] NTLM needs to use Locale-independent form of

@@ -458,13 +458,13 @@ public class CachingHttpClient implements HttpClient {
             return revalidateCacheEntry(target, request, context, entry, now);
         } else {
             log.debug("Cache entry not usable; calling backend");
-        	return callBackend(target, request, context);
+            return callBackend(target, request, context);
         }
         if (context != null) {
-        	context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
-        	context.setAttribute(ExecutionContext.HTTP_REQUEST, request);
-        	context.setAttribute(ExecutionContext.HTTP_RESPONSE, out);
-        	context.setAttribute(ExecutionContext.HTTP_REQ_SENT, true);
+            context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+            context.setAttribute(ExecutionContext.HTTP_REQUEST, request);
+            context.setAttribute(ExecutionContext.HTTP_RESPONSE, out);
+            context.setAttribute(ExecutionContext.HTTP_REQ_SENT, true);
         }
         return out;
     }
@@ -915,6 +915,7 @@ public class CachingHttpClient implements HttpClient {
         if (cacheable &&
             !alreadyHaveNewerCacheEntry(target, request, backendResponse)) {
             try {
+                storeRequestIfModifiedSinceFor304Response(request, backendResponse);
                 return responseCache.cacheAndReturnResponse(target, request, backendResponse, requestDate,
                         responseDate);
             } catch (IOException ioe) {
@@ -929,6 +930,24 @@ public class CachingHttpClient implements HttpClient {
             }
         }
         return backendResponse;
+    }
+
+    /**
+     * For 304 Not modified responses, adds a "Last-Modified" header with the
+     * value of the "If-Modified-Since" header passed in the request. This
+     * header is required to be able to reuse match the cache entry for
+     * subsequent requests but as defined in http specifications it is not
+     * included in 304 responses by backend servers. This header will not be
+     * included in the resulting response.
+     */
+    private void storeRequestIfModifiedSinceFor304Response(
+            HttpRequest request, HttpResponse backendResponse) {
+        if (backendResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
+            Header h = request.getFirstHeader("If-Modified-Since");
+            if (h != null) {
+                backendResponse.addHeader("Last-Modified", h.getValue());
+            }
+        }
     }
 
     private boolean alreadyHaveNewerCacheEntry(HttpHost target, HttpRequest request,
