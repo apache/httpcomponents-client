@@ -29,11 +29,12 @@
     <artifactId>project</artifactId>
     <groupId>org.apache.httpcomponents</groupId>
     <version>6</version>
+    <relativePath>../project/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>httpcomponents-client</artifactId>
   <name>HttpComponents Client</name>
-  <version>4.3-alpha1-atlassian-1-SNAPSHOT</version>
+  <version>4.3-alpha1-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <inceptionYear>1999</inceptionYear>
@@ -58,21 +59,10 @@
   </issueManagement>
 
   <scm>
-    <connection>scm:git:ssh://git@github.com:atlassian/httpclient.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com:atlassian/httpclient.git</developerConnection>
-    <url>https://github.com/atlassian/httpclient</url>
+    <connection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</developerConnection>
+    <url>https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</url>
   </scm>
-
-  <distributionManagement>
-    <repository>
-      <id>atlassian-3rdparty</id>
-      <url>https://maven.atlassian.com/3rdparty</url>
-    </repository>
-    <snapshotRepository>
-      <id>atlassian-3rdparty-snapshot</id>
-      <url>https://maven.atlassian.com/3rdparty-snapshot</url>
-    </snapshotRepository>
-  </distributionManagement>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -250,11 +240,9 @@
       </plugin>
       <plugin>
         <artifactId>maven-site-plugin</artifactId>
-          <version>2.0</version>
       </plugin>
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.2</version>
         <configuration>
           <descriptors>
             <descriptor>src/main/assembly/bin.xml</descriptor>
