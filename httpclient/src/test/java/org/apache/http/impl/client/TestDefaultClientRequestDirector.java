@@ -54,6 +54,8 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -359,6 +361,24 @@ public class TestDefaultClientRequestDirector extends BasicServerTestBase {
             Assert.assertEquals(failureMsg, nonRepeat.getCause().getMessage());
             throw ex;
         }
+    }
+
+    @Test
+    public void testDefaultPortVirtualHost() throws Exception {
+        this.localServer.register("*", new SimpleService());
+        this.httpclient = new DefaultHttpClient();
+        HttpHost target = getServerHttp();
+        HttpHost hostHost = new HttpHost(target.getHostName(),-1,target.getSchemeName());
+
+        httpclient.getParams().setParameter(ClientPNames.DEFAULT_HOST,target);
+        httpclient.getParams().setParameter(ClientPNames.VIRTUAL_HOST,hostHost);
+
+        HttpGet httpget = new HttpGet("/stuff");
+        HttpContext context = new BasicHttpContext();
+
+        HttpResponse response = this.httpclient.execute(null, httpget, context);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        EntityUtils.consume(response.getEntity());
     }
 
     @Test

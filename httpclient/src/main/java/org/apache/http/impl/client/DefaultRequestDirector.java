@@ -417,7 +417,8 @@ public class DefaultRequestDirector implements RequestDirector {
 
         // HTTPCLIENT-1092 - add the port if necessary
         if (virtualHost != null && virtualHost.getPort() == -1) {
-            int port = target.getPort();
+            HttpHost host = (target != null) ? target : origRoute.getTargetHost();
+            int port = host.getPort();
             if (port != -1){
                 virtualHost = new HttpHost(virtualHost.getHostName(), port, virtualHost.getSchemeName());
             }
