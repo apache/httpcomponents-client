@@ -380,14 +380,6 @@ public class DefaultRequestDirector implements RequestDirector {
 
         virtualHost = (HttpHost) origWrapper.getParams().getParameter(ClientPNames.VIRTUAL_HOST);
 
-        // HTTPCLIENT-1092 - add the port if necessary
-        if (virtualHost != null && virtualHost.getPort() == -1) {
-            int port = target.getPort();
-            if (port != -1){
-                virtualHost = new HttpHost(virtualHost.getHostName(), port, virtualHost.getSchemeName());
-            }
-        }
-
         RoutedRequest roureq = new RoutedRequest(origWrapper, origRoute);
 
         boolean reuse = false;
@@ -456,17 +448,26 @@ public class DefaultRequestDirector implements RequestDirector {
                             new BasicScheme(), new UsernamePasswordCredentials(userinfo));
                 }
 
-                if (virtualHost != null) {
-                    target = virtualHost;
-                } else {
-                    URI requestURI = wrapper.getURI();
-                    if (requestURI.isAbsolute()) {
-                        target = new HttpHost(
-                                requestURI.getHost(), requestURI.getPort(), requestURI.getScheme());
-                    }
+                // Get target.  Even if there's virtual host, we may need the target to set the port.
+                URI requestURI = wrapper.getURI();
+                if (requestURI.isAbsolute()) {
+                    target = new HttpHost(
+                        requestURI.getHost(), requestURI.getPort(), requestURI.getScheme());
                 }
                 if (target == null) {
                     target = route.getTargetHost();
+                }
+
+                // Override the target if the virtual host is present.  But make sure the port is right.
+                if (virtualHost != null) {
+                    // HTTPCLIENT-1092 - add the port if necessary
+                    if (virtualHost.getPort() == -1 && target != null) {
+                        int port = target.getPort();
+                        if (port != -1) {
+                            virtualHost = new HttpHost(virtualHost.getHostName(), port, virtualHost.getSchemeName());
+                        }
+                    }
+                    target = virtualHost;
                 }
 
                 // Reset headers on the request wrapper

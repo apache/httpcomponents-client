@@ -1,6 +1,10 @@
 Changes in trunk
 -------------------
 
+* [HTTPCLIENT-1296] NPE gets thrown if you combine a default host with a virtual host
+  that has a -1 value for the port.
+  Contributed by Karl Wright <daddywri at gmail.com>
+  
 * [HTTPCLIENT-1290] 304 cached response never reused with If-modified-since conditional 
   requests. 
   Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net>
