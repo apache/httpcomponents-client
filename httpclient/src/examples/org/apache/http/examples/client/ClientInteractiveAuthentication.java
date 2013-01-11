@@ -55,7 +55,7 @@ public class ClientInteractiveAuthentication {
     public static void main(String[] args) throws Exception {
         BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         CloseableHttpClient httpclient = HttpClients.custom()
-                .setCredentialsProvider(credsProvider).build();
+                .setDefaultCredentialsProvider(credsProvider).build();
         try {
             // Create local execution context
             HttpClientContext localContext = HttpClientContext.create();

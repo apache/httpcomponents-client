@@ -51,7 +51,7 @@ public class ClientFormLogin {
 
     public static void main(String[] args) throws Exception {
         BasicCookieStore cookieStore = new BasicCookieStore();
-        CloseableHttpClient httpclient = HttpClients.custom().setCookieStore(cookieStore).build();
+        CloseableHttpClient httpclient = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
         try {
             HttpGet httpget = new HttpGet("https://portal.sun.com/portal/dt");
 

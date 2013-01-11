@@ -51,7 +51,7 @@ public class ClientProxyAuthentication {
                 new AuthScope("localhost", 8080),
                 new UsernamePasswordCredentials("username", "password"));
         CloseableHttpClient httpclient = HttpClients.custom()
-                .setCredentialsProvider(credsProvider).build();
+                .setDefaultCredentialsProvider(credsProvider).build();
         try {
             HttpHost targetHost = new HttpHost("www.verisign.com", 443, "https");
             HttpHost proxy = new HttpHost("localhost", 8080);

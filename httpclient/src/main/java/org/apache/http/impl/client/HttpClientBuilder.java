@@ -31,10 +31,8 @@ import java.io.Closeable;
 import java.net.ProxySelector;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Header;
@@ -165,8 +163,6 @@ public class HttpClientBuilder {
     private ServiceUnavailableRetryStrategy serviceUnavailStrategy;
     private Lookup<AuthSchemeProvider> authSchemeRegistry;
     private Lookup<CookieSpecProvider> cookieSpecRegistry;
-    private Map<String, AuthSchemeProvider> authShemes;
-    private Map<String, CookieSpecProvider> cookieSpecs;
     private CookieStore cookieStore;
     private CredentialsProvider credentialsProvider;
     private String userAgent;
@@ -340,44 +336,26 @@ public class HttpClientBuilder {
         return this;
     }
 
-    public final HttpClientBuilder setCookieStore(final CookieStore cookieStore) {
+    public final HttpClientBuilder setDefaultCookieStore(final CookieStore cookieStore) {
         this.cookieStore = cookieStore;
         return this;
     }
 
-    public final HttpClientBuilder setCredentialsProvider(
+    public final HttpClientBuilder setDefaultCredentialsProvider(
             final CredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
         return this;
     }
 
-    public final HttpClientBuilder setAuthSchemeRegistry(
+    public final HttpClientBuilder setDefaultAuthSchemeRegistry(
             final Lookup<AuthSchemeProvider> authSchemeRegistry) {
         this.authSchemeRegistry = authSchemeRegistry;
         return this;
     }
 
-    public final HttpClientBuilder setCookieSpecRegistry(
+    public final HttpClientBuilder setDefaultCookieSpecRegistry(
             final Lookup<CookieSpecProvider> cookieSpecRegistry) {
         this.cookieSpecRegistry = cookieSpecRegistry;
-        return this;
-    }
-
-    public final HttpClientBuilder registerAuthScheme(
-            final String name, final AuthSchemeProvider authSchemeProvider) {
-        if (this.authShemes == null) {
-            this.authShemes = new HashMap<String, AuthSchemeProvider>();
-        }
-        this.authShemes.put(name, authSchemeProvider);
-        return this;
-    }
-
-    public final HttpClientBuilder registerCookiePolicy(
-            final String name, final CookieSpecProvider cookieSpecProvider) {
-        if (this.cookieSpecs == null) {
-            this.cookieSpecs = new HashMap<String, CookieSpecProvider>();
-        }
-        this.cookieSpecs.put(name, cookieSpecProvider);
         return this;
     }
 
@@ -656,35 +634,24 @@ public class HttpClientBuilder {
 
         Lookup<AuthSchemeProvider> authSchemeRegistry = this.authSchemeRegistry;
         if (authSchemeRegistry == null) {
-            RegistryBuilder<AuthSchemeProvider> b = RegistryBuilder.<AuthSchemeProvider>create();
-            b.register(AuthSchemes.BASIC, new BasicSchemeFactory())
+            authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
                 .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
                 .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
                 .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory())
                 .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory())
                 .build();
-            if (authShemes != null) {
-                for (Map.Entry<String, AuthSchemeProvider> entry: authShemes.entrySet()) {
-                    b.register(entry.getKey(), entry.getValue());
-                }
-            }
-            authSchemeRegistry = b.build();
         }
         Lookup<CookieSpecProvider> cookieSpecRegistry = this.cookieSpecRegistry;
         if (cookieSpecRegistry == null) {
-            RegistryBuilder<CookieSpecProvider> b = RegistryBuilder.<CookieSpecProvider>create();
-            b.register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
+            cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
+                .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
                 .register(CookieSpecs.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
                 .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
                 .register(CookieSpecs.RFC_2109, new RFC2109SpecFactory())
                 .register(CookieSpecs.RFC_2965, new RFC2965SpecFactory())
-                .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory());
-            if (cookieSpecs != null) {
-                for (Map.Entry<String, CookieSpecProvider> entry: cookieSpecs.entrySet()) {
-                    b.register(entry.getKey(), entry.getValue());
-                }
-            }
-            cookieSpecRegistry = b.build();
+                .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory())
+                .build();
         }
 
         CookieStore defaultCookieStore = this.cookieStore;

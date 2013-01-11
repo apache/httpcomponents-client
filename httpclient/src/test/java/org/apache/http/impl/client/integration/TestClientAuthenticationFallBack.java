@@ -138,7 +138,7 @@ public class TestClientAuthenticationFallBack extends IntegrationTestBase {
         TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        this.httpclient = HttpClients.custom().setCredentialsProvider(credsProvider).build();
+        this.httpclient = HttpClients.custom().setDefaultCredentialsProvider(credsProvider).build();
 
         HttpGet httpget = new HttpGet("/");
 

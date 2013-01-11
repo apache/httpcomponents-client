@@ -49,7 +49,7 @@ public class ClientAuthentication {
                 new AuthScope("localhost", 443),
                 new UsernamePasswordCredentials("username", "password"));
         CloseableHttpClient httpclient = HttpClients.custom()
-                .setCredentialsProvider(credsProvider).build();
+                .setDefaultCredentialsProvider(credsProvider).build();
         try {
             HttpGet httpget = new HttpGet("https://localhost/protected");
 

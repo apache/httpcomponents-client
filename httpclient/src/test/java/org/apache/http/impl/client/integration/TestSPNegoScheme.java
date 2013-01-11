@@ -41,6 +41,8 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.SPNegoScheme;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -160,9 +162,12 @@ public class TestSPNegoScheme extends IntegrationTestBase {
         Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
 
+        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+            .register(AuthSchemes.SPNEGO, nsf)
+            .build();
         this.httpclient = HttpClients.custom()
-            .registerAuthScheme(AuthSchemes.SPNEGO, nsf)
-            .setCredentialsProvider(credentialsProvider)
+            .setDefaultAuthSchemeRegistry(authSchemeRegistry)
+            .setDefaultCredentialsProvider(credentialsProvider)
             .build();
 
         String s = "/path";
@@ -190,9 +195,12 @@ public class TestSPNegoScheme extends IntegrationTestBase {
         Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
 
+        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+            .register(AuthSchemes.SPNEGO, nsf)
+            .build();
         this.httpclient = HttpClients.custom()
-            .registerAuthScheme(AuthSchemes.SPNEGO, nsf)
-            .setCredentialsProvider(credentialsProvider)
+            .setDefaultAuthSchemeRegistry(authSchemeRegistry)
+            .setDefaultCredentialsProvider(credentialsProvider)
             .build();
 
         String s = "/path";

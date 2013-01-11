@@ -49,6 +49,8 @@ import org.apache.http.util.Args;
 @Immutable
 public class DefaultClientConnectionFactory implements HttpConnectionFactory<SocketClientConnection> {
 
+    private static final int DEFAULT_BUFSIZE = 8 * 1024;
+
     public static final DefaultClientConnectionFactory INSTANCE = new DefaultClientConnectionFactory();
 
     private final int bufferSize;
@@ -68,17 +70,22 @@ public class DefaultClientConnectionFactory implements HttpConnectionFactory<Soc
     }
 
     public DefaultClientConnectionFactory(
+            final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
-        this(8 * 1024, null, responseParserFactory);
+        this(DEFAULT_BUFSIZE, requestWriterFactory, responseParserFactory);
     }
 
     public DefaultClientConnectionFactory(
-            int bufferSize) {
+            final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
+        this(null, responseParserFactory);
+    }
+
+    public DefaultClientConnectionFactory(int bufferSize) {
         this(bufferSize, null, null);
     }
 
     public DefaultClientConnectionFactory() {
-        this(8 * 1024, null, null);
+        this(DEFAULT_BUFSIZE, null, null);
     }
 
     public SocketClientConnection create(final ConnectionConfig config) {

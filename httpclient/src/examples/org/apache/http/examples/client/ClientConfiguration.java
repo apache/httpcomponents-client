@@ -27,17 +27,20 @@
 
 package org.apache.http.examples.client;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.CodingErrorAction;
 import java.util.Arrays;
 
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.Consts;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpResponseFactory;
+import org.apache.http.ParseException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
@@ -66,12 +69,19 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultClientConnectionFactory;
+import org.apache.http.impl.conn.DefaultHttpResponseParser;
 import org.apache.http.impl.conn.DefaultHttpResponseParserFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultDnsResolver;
 import org.apache.http.impl.io.DefaultHttpRequestWriterFactory;
+import org.apache.http.io.HttpMessageParser;
 import org.apache.http.io.HttpMessageParserFactory;
 import org.apache.http.io.HttpMessageWriterFactory;
+import org.apache.http.io.SessionInputBuffer;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicLineParser;
+import org.apache.http.message.LineParser;
+import org.apache.http.util.CharArrayBuffer;
 
 /**
  * This example demonstrates how to customize and configure the most common aspects
@@ -81,14 +91,38 @@ public class ClientConfiguration {
 
     public final static void main(String[] args) throws Exception {
 
-        // Use a custom response factory to customize the way HTTP response
-        // objects are generated.
-        HttpResponseFactory responseFactory = new DefaultHttpResponseFactory();
-
         // Use custom message parser / writer to customize the way HTTP
         // messages are parsed from and written out to the data stream.
-        HttpMessageParserFactory<HttpResponse> responseParserFactory = new DefaultHttpResponseParserFactory(
-                responseFactory);
+        HttpMessageParserFactory<HttpResponse> responseParserFactory = new DefaultHttpResponseParserFactory() {
+
+            @Override
+            public HttpMessageParser<HttpResponse> create(
+                SessionInputBuffer buffer, MessageConstraints constraints) {
+                LineParser lineParser = new BasicLineParser() {
+
+                    @Override
+                    public Header parseHeader(final CharArrayBuffer buffer) {
+                        try {
+                            return super.parseHeader(buffer);
+                        } catch (ParseException ex) {
+                            return new BasicHeader(buffer.toString(), null);
+                        }
+                    }
+
+                };
+                return new DefaultHttpResponseParser(
+                    buffer, lineParser, DefaultHttpResponseFactory.INSTANCE, constraints) {
+
+                    @Override
+                    protected boolean reject(final CharArrayBuffer line, int count) {
+                        // try to ignore all garbage preceding a status line infinitely
+                        return false;
+                    }
+
+                };
+            }
+
+        };
         HttpMessageWriterFactory<HttpRequest> requestWriterFactory = new DefaultHttpRequestWriterFactory();
 
         // Use a custom connection factory to customize the process of
@@ -118,7 +152,18 @@ public class ClientConfiguration {
             .build();
 
         // Use custom DNS resolver to override the system DNS resolution.
-        DnsResolver dnsResolver = new SystemDefaultDnsResolver();
+        DnsResolver dnsResolver = new SystemDefaultDnsResolver() {
+
+            @Override
+            public InetAddress[] resolve(final String host) throws UnknownHostException {
+                if (host.equalsIgnoreCase("myhost")) {
+                    return new InetAddress[] { InetAddress.getByAddress(new byte[] {127, 0, 0, 1}) };
+                } else {
+                    return super.resolve(host);
+                }
+            }
+
+        };
 
         // Create a connection manager with custom configuration.
         PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(
@@ -172,8 +217,8 @@ public class ClientConfiguration {
         // Create an HttpClient with the given custom dependencies and configuration.
         CloseableHttpClient httpclient = HttpClients.custom()
             .setConnectionManager(connManager)
-            .setCookieStore(cookieStore)
-            .setCredentialsProvider(credentialsProvider)
+            .setDefaultCookieStore(cookieStore)
+            .setDefaultCredentialsProvider(credentialsProvider)
             .setProxy(new HttpHost("myproxy", 8080))
             .setDefaultRequestConfig(defaultRequestConfig)
             .build();

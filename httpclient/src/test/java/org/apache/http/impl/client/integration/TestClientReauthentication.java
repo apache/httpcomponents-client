@@ -39,12 +39,15 @@ import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.BasicSchemeFactory;
@@ -181,10 +184,13 @@ public class TestClientReauthentication extends IntegrationTestBase {
         RequestConfig config = RequestConfig.custom()
             .setTargetPreferredAuthSchemes(Arrays.asList("MyBasic"))
             .build();
+        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+            .register("MyBasic", myBasicAuthSchemeFactory)
+            .build();
         this.httpclient = HttpClients.custom()
-            .registerAuthScheme("MyBasic", myBasicAuthSchemeFactory)
+            .setDefaultAuthSchemeRegistry(authSchemeRegistry)
             .setTargetAuthenticationStrategy(myAuthStrategy)
-            .setCredentialsProvider(credsProvider)
+            .setDefaultCredentialsProvider(credsProvider)
             .build();
 
         HttpContext context = new BasicHttpContext();

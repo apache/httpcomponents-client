@@ -104,18 +104,29 @@ public class PoolingHttpClientConnectionManager implements HttpClientConnectionM
     }
 
     public PoolingHttpClientConnectionManager(final long timeToLive, final TimeUnit tunit) {
-        this(getDefaultRegistry(), null, timeToLive, tunit);
+        this(getDefaultRegistry(), null, null ,null, timeToLive, tunit);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry) {
-        this(socketFactoryRegistry, null, -1, TimeUnit.MILLISECONDS);
+        this(socketFactoryRegistry, null, null);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
             final DnsResolver dnsResolver) {
-        this(socketFactoryRegistry, null, null, dnsResolver, -1, TimeUnit.MILLISECONDS);
+        this(socketFactoryRegistry, null, dnsResolver);
+    }
+
+    public PoolingHttpClientConnectionManager(
+            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
+            final HttpConnectionFactory<SocketClientConnection> connFactory) {
+        this(socketFactoryRegistry, connFactory, null);
+    }
+
+    public PoolingHttpClientConnectionManager(
+            final HttpConnectionFactory<SocketClientConnection> connFactory) {
+        this(getDefaultRegistry(), connFactory, null);
     }
 
     public PoolingHttpClientConnectionManager(
@@ -123,13 +134,6 @@ public class PoolingHttpClientConnectionManager implements HttpClientConnectionM
             final HttpConnectionFactory<SocketClientConnection> connFactory,
             final DnsResolver dnsResolver) {
         this(socketFactoryRegistry, connFactory, null, dnsResolver, -1, TimeUnit.MILLISECONDS);
-    }
-
-    public PoolingHttpClientConnectionManager(
-            final Registry<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<SocketClientConnection> connFactory,
-            final long timeToLive, final TimeUnit tunit) {
-        this(socketFactoryRegistry, connFactory, null, null, timeToLive, tunit);
     }
 
     public PoolingHttpClientConnectionManager(

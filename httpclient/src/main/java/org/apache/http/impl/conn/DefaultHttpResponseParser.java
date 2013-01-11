@@ -108,6 +108,20 @@ public class DefaultHttpResponseParser extends AbstractMessageParser<HttpRespons
      * Creates new instance of DefaultHttpResponseParser.
      *
      * @param buffer the session input buffer.
+     * @param constraints the message constraints. If <code>null</code>
+     *   {@link MessageConstraints#DEFAULT} will be used.
+     *
+     * @since 4.3
+     */
+    public DefaultHttpResponseParser(
+        final SessionInputBuffer buffer, final MessageConstraints constraints) {
+        this(buffer, null, null, constraints);
+    }
+
+    /**
+     * Creates new instance of DefaultHttpResponseParser.
+     *
+     * @param buffer the session input buffer.
      *
      * @since 4.3
      */

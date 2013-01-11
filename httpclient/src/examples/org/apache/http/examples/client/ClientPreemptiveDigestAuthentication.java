@@ -59,7 +59,7 @@ public class ClientPreemptiveDigestAuthentication {
                 new AuthScope(targetHost.getHostName(), targetHost.getPort()),
                 new UsernamePasswordCredentials("username", "password"));
         CloseableHttpClient httpclient = HttpClients.custom()
-                .setCredentialsProvider(credsProvider).build();
+                .setDefaultCredentialsProvider(credsProvider).build();
         try {
 
             // Create AuthCache instance
