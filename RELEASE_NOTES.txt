@@ -1,10 +1,86 @@
-Changes in trunk
+Release 4.3 ALPHA1
+-------------------
+
+This is the first ALPHA release of HttpClient 4.3. The 4.3 branch enhances HttpClient in several
+key areas and includes several notable features and improvements:
+
+* Support for Java 7 try-with-resources for resource management (connection release)
+
+* Added fluent Builder classes for HttpEntity, HttpRequest and HttpClient instances. 
+
+* Deprecation of preference and configuration API based on HttpParams interface in favor of
+constructor injection and plain configuration objects
+
+* Reliance on object immutablity instead of access synchronization for thread safety. 
+Several old classes whose instances can be shared by multiple request exchanges have
+been replaced by immutable equivalents. 
+
+* DefaultHttpClient,  DecompressingHttpClient, CachingHttpClient and similar classes are 
+deprecated in favor of builder classes that produce immutable HttpClient instances. 
+
+* HttpClient builders now dynamically construct a request execution pipeline tailored 
+specifically to the user configuration by physically excluding unnecessary protocol components.
+
+* There is now an option to construct a minimal HttpClient implementation that can only execute 
+basic HTTP message exchanges without redirects, authentication, state management or proxy support.
+This feature might be of particular use in web crawler development. 
+
+* There is now option to avoid strict URI syntax for request URIs by executing HTTP requests 
+with an explicitly specified target host. HttpClient will no longer attempt to parse the request 
+URI if it does not need to extract the target host from it.
+
+We are kindly asking all upstream projects to review API changes and help us improve 
+the APIs by providing feedback and sharing ideas on dev@hc.apache.org. 
+
+This release also includes all fixes from the stable 4.2.x release branch.
+
+Please note that new features included in this release are still considered experimental and
+their API may change in the future 4.3 releases.
+
+
+Changelog
+-------------------
+
+* [HTTPCLIENT-1250] Allow query string to be ignored when determining cacheability for 
+  HTTP 1.0 responses.
+  Contributed by Don Brown <mrdon at twdata.org> 
+
+* [HTTPCLIENT-1261] Make SystemDefaultHttpClient honor http.agent system property.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-900] Don't enforce URI syntax for messages with an explicit target host.  
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1190] HttpClient cache does not support "Vary: Cookie"
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1259] Calling #abort() on requests executed with DecompressingHttpClient has no 
+  effect.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1253] URIBuilder setParameter() method could exceed the http header size. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1216] Added method to force clean thread-local used by DateUtils.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+Release 4.2.3
+-------------------
+
+HttpClient 4.2.3 (GA) is a bug fix release that addresses a number of issues reported since 
+release 4.2.2. This release also includes a thoroughly reworked NTLM authentication engine 
+which should result in a better compatibility with the newest Microsoft products. 
+
+Users of HttpClient 4.x are advised to upgrade.
+
+Changelog
 -------------------
 
 * [HTTPCLIENT-1296] NPE gets thrown if you combine a default host with a virtual host
   that has a -1 value for the port.
   Contributed by Karl Wright <daddywri at gmail.com>
-  
+
 * [HTTPCLIENT-1290] 304 cached response never reused with If-modified-since conditional 
   requests. 
   Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net>
@@ -12,13 +88,6 @@ Changes in trunk
 * [HTTPCLIENT-1291] Absolute request URIs without an explicitly specified path are rewritten 
   to have "/" path).  
   Contributed by Oleg Kalnichevski <olegk at apache.org>
-
-* [HTTPCLIENT-900] Don't enforce URI syntax for messages with an explicit target host.  
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
-
-* [HTTPCLIENT-1250] Allow query string to be ignored when determining cacheability for HTTP 1.0 
-  responses.
-  Contributed by Don Brown <mrdon at twdata.org> 
 
 * [HTTPCLIENT-1286] Request URI rewriting is inconsistent - URI fragments are not removed 
   from absolute request URIs.  
@@ -36,21 +105,25 @@ Changes in trunk
   toUpperCase().
   Contributed by Karl Wright <DaddyWri at gmail.com>  
 
-* [HTTPCLIENT-1279] Target host responding with status 407 (proxy authentication required)
-  causes an NPE.
+* [HTTPCLIENT-1279] Target host responding with status 407 (proxy authentication required) 
+  causes an NPE. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-1281] GzipDecompressingEntity does not release InputStream when an IOException
-  occurs while reading the Gzip header.
+* [HTTPCLIENT-1281] GzipDecompressingEntity does not release InputStream when an IOException 
+  occurs while reading the Gzip header 
   Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
 
-* [HTTPCLIENT-1277] Caching client sends a 304 to an unconditional request. 
-  Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
+* [HTTPCLIENT-1277] Caching client sends a 304 to an unconditional request.
+  Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net>
 
 * [HTTPCLIENT-1278] Update NTLM documentation.
   Contributed by Karl Wright <DaddyWri at gmail.com>  
 
-* [HTTPCLIENT-1276] Cache update on a 304 response causes NPE. 
+* SystemDefaultHttpClient misinterprets 'http.keepAlive' default value and disables
+  connection persistence if the system property is not set. This causes connection
+  based authentication schemes such as NTLM to fail.
+
+* [HTTPCLIENT-1276] cache update on a 304 response causes NPE. 
   Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
 
 * [HTTPCLIENT-1273] DecompressingHttpClient does not automatically consume response 
@@ -58,23 +131,16 @@ Changes in trunk
   protocol interceptor leading to a potential connection leak. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-1080] NTLM dead code commented out.
+* [HTTPCLIENT-1268] NTLM engine refactor fix, to correct a buffer overrun, and get NTLMv2
+  flags right.
   Contributed by Karl Wright <DaddyWri at gmail.com>  
 
-* [HTTPCLIENT-1268] NTLM engine refactor fix, to correct a buffer overrun, and get
-  flags right for when NTLMv2 response should be sent.
+* [HTTPCLIENT-1266] NTLM engine refactoring and compatibility improvements.
   Contributed by Karl Wright <DaddyWri at gmail.com>  
 
 * [HTTPCLIENT-1263] BrowserCompatSpec: attribute values containing spaces or special characters 
   should be enclosed with quotes marks for version 1 cookies.
   Contributed by Francois-Xavier Bonnet <francois-xavier.bonnet at centraliens.net> 
-
-* [HTTPCLIENT-1266] NTLM engine refactoring and compatibility improvements.
-  Contributed by Karl Wright <DaddyWri at gmail.com>  
-
-* [HTTPCLIENT-1260]
-  Javadoc incorrectly states StringBody(String)'s encoding uses the system default. 
-  Contributed by Tim <tdhutt at gmail.com> and Gary Gregory <ggregory at apache.org> 
 
 * [HTTPCLIENT-1263] CachingHttpClient fails to release connections back to the connection
   manager for some type of HTTP response messages when used together with DecompressingHttpClient.  
@@ -89,6 +155,19 @@ Changes in trunk
 
 * [HTTPCLIENT-1255] AbstractVerifier incorrectly parses certificate CN containing wildcard.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
+Release 4.2.2 
+-------------------
+
+HttpClient 4.2.2 (GA) is a bug fix release that addresses a number of issues reported since 
+release 4.2.1.
+
+Users of HttpClient 4.2 are advised to upgrade.
+
+Changelog
+-------------------
 
 * [HTTPCLIENT-1248] Default and lax redirect strategies should not convert requests redirected
   with 307 status to GET method.  
@@ -109,12 +188,19 @@ Changes in trunk
 * [HTTPCLIENT-1227] Date parsing in DateUtils made more efficient.
   Contributed by Patrick Linskey <pcl at apache.org>
 
+* [HTTPCLIENT-1224] (regression) NTLM auth not retried after a redirect over a non-persistent 
+  connection.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1223] Cache could be more aggressive on cache invalidations
   from Content-Location. Contributed by Jon Moore <jonm at apache.org>.
   Contributed by Jon Moore <jonm at apache.org>
 
-* [HTTPCLIENT-1216] Added method to force clean thread-local used by DateUtils.
+* [HTTPCLIENT-1217] AutoRetryHttpClient does not release connection used by the previous response 
+  when request is retried
   Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
 
 Release 4.2.1 
 -------------------
