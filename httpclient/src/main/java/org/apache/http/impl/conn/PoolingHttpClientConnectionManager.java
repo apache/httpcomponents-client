@@ -84,7 +84,8 @@ import org.apache.http.util.Asserts;
  * @since 4.3
  */
 @ThreadSafe
-public class PoolingHttpClientConnectionManager implements HttpClientConnectionManager, Closeable {
+public class PoolingHttpClientConnectionManager
+    implements HttpClientConnectionManager, ConnPoolControl<HttpRoute>, Closeable {
 
     private final Log log = LogFactory.getLog(getClass());
 

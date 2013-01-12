@@ -33,6 +33,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import org.apache.http.HttpClientConnection;
+import org.apache.http.HttpConnection;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.protocol.HttpContext;
@@ -42,6 +43,22 @@ import org.apache.http.protocol.HttpContext;
  */
 @NotThreadSafe
 class CPoolProxy implements InvocationHandler {
+
+    private static final Method CLOSE_METHOD;
+    private static final Method SHUTDOWN_METHOD;
+    private static final Method IS_OPEN_METHOD;
+    private static final Method IS_STALE_METHOD;
+
+    static {
+        try {
+            CLOSE_METHOD = HttpConnection.class.getMethod("close");
+            SHUTDOWN_METHOD = HttpConnection.class.getMethod("shutdown");
+            IS_OPEN_METHOD = HttpConnection.class.getMethod("isOpen");
+            IS_STALE_METHOD = HttpConnection.class.getMethod("isStale");
+        } catch (NoSuchMethodException ex) {
+            throw new Error(ex);
+        }
+    }
 
     private volatile CPoolEntry poolEntry;
 
@@ -104,16 +121,15 @@ class CPoolProxy implements InvocationHandler {
 
     public Object invoke(
             final Object proxy, final Method method, final Object[] args) throws Throwable {
-        String mname = method.getName();
-        if (mname.equals("close")) {
+        if (method.equals(CLOSE_METHOD)) {
             close();
             return null;
-        } else if (mname.equals("shutdown")) {
+        } else if (method.equals(SHUTDOWN_METHOD)) {
             shutdown();
             return null;
-        } else if (mname.equals("isOpen")) {
+        } else if (method.equals(IS_OPEN_METHOD)) {
             return Boolean.valueOf(isOpen());
-        } else if (mname.equals("isStale")) {
+        } else if (method.equals(IS_STALE_METHOD)) {
             return Boolean.valueOf(isStale());
         } else {
             HttpClientConnection conn = getConnection();
@@ -137,7 +153,7 @@ class CPoolProxy implements InvocationHandler {
             final CPoolEntry poolEntry) {
         return (HttpClientConnection) Proxy.newProxyInstance(
                 CPoolProxy.class.getClassLoader(),
-                new Class<?>[] { HttpClientConnection.class, SocketClientConnection.class, HttpContext.class },
+                new Class<?>[] { SocketClientConnection.class, HttpContext.class },
                 new CPoolProxy(poolEntry));
     }
 

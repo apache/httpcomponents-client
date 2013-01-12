@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.SocketClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.AbstractConnPool;
@@ -46,7 +45,7 @@ class CPool extends AbstractConnPool<HttpRoute, SocketClientConnection, CPoolEnt
 
     private static AtomicLong COUNTER = new AtomicLong();
 
-    private final Log log = LogFactory.getLog(HttpClientConnectionManager.class);
+    private final Log log = LogFactory.getLog(CPool.class);
     private final long timeToLive;
     private final TimeUnit tunit;
 
