@@ -39,12 +39,12 @@ import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.conn.HttpClientConnectionManager;
 
 /**
- * Internal {@link ConnectionReleaseTrigger} implementation.
+ * Internal connection holder.
  *
  * @since 4.3
  */
 @ThreadSafe
-class ConnectionReleaseTriggerImpl implements ConnectionReleaseTrigger, Cancellable, Closeable {
+class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeable {
 
     private final Log log;
 
@@ -57,7 +57,7 @@ class ConnectionReleaseTriggerImpl implements ConnectionReleaseTrigger, Cancella
 
     private volatile boolean released;
 
-    public ConnectionReleaseTriggerImpl(
+    public ConnectionHolder(
             final Log log,
             final HttpClientConnectionManager manager,
             final HttpClientConnection managedConn) {

@@ -38,31 +38,31 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class TestConnectionReleaseTriggerImpl {
+public class TestConnectionHolder {
 
     private Log log;
     private HttpClientConnectionManager mgr;
     private HttpClientConnection conn;
-    private ConnectionReleaseTriggerImpl releaseTrigger;
+    private ConnectionHolder connHolder;
 
     @Before
     public void setup() {
         log = Mockito.mock(Log.class);
         mgr = Mockito.mock(HttpClientConnectionManager.class);
         conn = Mockito.mock(HttpClientConnection.class);
-        releaseTrigger = new ConnectionReleaseTriggerImpl(log, mgr, conn);
+        connHolder = new ConnectionHolder(log, mgr, conn);
     }
 
     @Test
     public void testAbortConnection() throws Exception {
-        releaseTrigger.abortConnection();
+        connHolder.abortConnection();
 
-        Assert.assertTrue(releaseTrigger.isReleased());
+        Assert.assertTrue(connHolder.isReleased());
 
         Mockito.verify(conn).shutdown();
         Mockito.verify(mgr).releaseConnection(conn, null, 0, TimeUnit.MILLISECONDS);
 
-        releaseTrigger.abortConnection();
+        connHolder.abortConnection();
 
         Mockito.verify(conn, Mockito.times(1)).shutdown();
         Mockito.verify(mgr, Mockito.times(1)).releaseConnection(
@@ -76,9 +76,9 @@ public class TestConnectionReleaseTriggerImpl {
     public void testAbortConnectionIOError() throws Exception {
         Mockito.doThrow(new IOException()).when(conn).shutdown();
 
-        releaseTrigger.abortConnection();
+        connHolder.abortConnection();
 
-        Assert.assertTrue(releaseTrigger.isReleased());
+        Assert.assertTrue(connHolder.isReleased());
 
         Mockito.verify(conn).shutdown();
         Mockito.verify(mgr).releaseConnection(conn, null, 0, TimeUnit.MILLISECONDS);
@@ -86,14 +86,14 @@ public class TestConnectionReleaseTriggerImpl {
 
     @Test
     public void testCancell() throws Exception {
-        Assert.assertTrue(releaseTrigger.cancel());
+        Assert.assertTrue(connHolder.cancel());
 
-        Assert.assertTrue(releaseTrigger.isReleased());
+        Assert.assertTrue(connHolder.isReleased());
 
         Mockito.verify(conn).shutdown();
         Mockito.verify(mgr).releaseConnection(conn, null, 0, TimeUnit.MILLISECONDS);
 
-        Assert.assertFalse(releaseTrigger.cancel());
+        Assert.assertFalse(connHolder.cancel());
 
         Mockito.verify(conn, Mockito.times(1)).shutdown();
         Mockito.verify(mgr, Mockito.times(1)).releaseConnection(
@@ -105,18 +105,18 @@ public class TestConnectionReleaseTriggerImpl {
 
     @Test
     public void testReleaseConnectionReusable() throws Exception {
-        releaseTrigger.setState("some state");
-        releaseTrigger.setValidFor(100, TimeUnit.SECONDS);
-        releaseTrigger.markReusable();
+        connHolder.setState("some state");
+        connHolder.setValidFor(100, TimeUnit.SECONDS);
+        connHolder.markReusable();
 
-        releaseTrigger.releaseConnection();
+        connHolder.releaseConnection();
 
-        Assert.assertTrue(releaseTrigger.isReleased());
+        Assert.assertTrue(connHolder.isReleased());
 
         Mockito.verify(conn, Mockito.never()).close();
         Mockito.verify(mgr).releaseConnection(conn, "some state", 100, TimeUnit.SECONDS);
 
-        releaseTrigger.releaseConnection();
+        connHolder.releaseConnection();
 
         Mockito.verify(mgr, Mockito.times(1)).releaseConnection(
                 Mockito.<HttpClientConnection>any(),
@@ -127,18 +127,18 @@ public class TestConnectionReleaseTriggerImpl {
 
     @Test
     public void testReleaseConnectionNonReusable() throws Exception {
-        releaseTrigger.setState("some state");
-        releaseTrigger.setValidFor(100, TimeUnit.SECONDS);
-        releaseTrigger.markNonReusable();
+        connHolder.setState("some state");
+        connHolder.setValidFor(100, TimeUnit.SECONDS);
+        connHolder.markNonReusable();
 
-        releaseTrigger.releaseConnection();
+        connHolder.releaseConnection();
 
-        Assert.assertTrue(releaseTrigger.isReleased());
+        Assert.assertTrue(connHolder.isReleased());
 
         Mockito.verify(conn, Mockito.times(1)).close();
         Mockito.verify(mgr).releaseConnection(conn, null, 0, TimeUnit.MILLISECONDS);
 
-        releaseTrigger.releaseConnection();
+        connHolder.releaseConnection();
 
         Mockito.verify(mgr, Mockito.times(1)).releaseConnection(
                 Mockito.<HttpClientConnection>any(),

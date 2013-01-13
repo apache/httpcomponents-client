@@ -83,11 +83,11 @@ class Proxies {
 
     public static CloseableHttpResponse enhanceResponse(
             final HttpResponse original,
-            final ConnectionReleaseTriggerImpl connReleaseTrigger) {
+            final ConnectionHolder connHolder) {
         return (CloseableHttpResponse) Proxy.newProxyInstance(
                 ResponseProxyHandler.class.getClassLoader(),
                 new Class<?>[] { CloseableHttpResponse.class },
-                new ResponseProxyHandler(original, connReleaseTrigger));
+                new ResponseProxyHandler(original, connHolder));
     }
 
 }

@@ -186,15 +186,14 @@ public class MainClientExec implements ClientExecChain {
             }
         }
 
-        ConnectionReleaseTriggerImpl releaseTrigger = new ConnectionReleaseTriggerImpl(
-                this.log, this.connManager, managedConn);
+        ConnectionHolder connHolder = new ConnectionHolder(this.log, this.connManager, managedConn);
         try {
             if (execAware != null) {
                 if (execAware.isAborted()) {
-                    releaseTrigger.abortConnection();
+                    connHolder.abortConnection();
                     throw new RequestAbortedException("Request aborted");
                 } else {
-                    execAware.setCancellable(releaseTrigger);
+                    execAware.setCancellable(connHolder);
                 }
             }
 
@@ -264,15 +263,15 @@ public class MainClientExec implements ClientExecChain {
                         }
                         this.log.debug("Connection can be kept alive " + s);
                     }
-                    releaseTrigger.setValidFor(duration, TimeUnit.MILLISECONDS);
-                    releaseTrigger.markReusable();
+                    connHolder.setValidFor(duration, TimeUnit.MILLISECONDS);
+                    connHolder.markReusable();
                 } else {
-                    releaseTrigger.markNonReusable();
+                    connHolder.markNonReusable();
                 }
 
                 if (needAuthentication(
                         targetAuthState, proxyAuthState, route, request, response, context)) {
-                    if (releaseTrigger.isReusable()) {
+                    if (connHolder.isReusable()) {
                         // Make sure the response body is fully consumed, if present
                         HttpEntity entity = response.getEntity();
                         EntityUtils.consume(entity);
@@ -306,17 +305,17 @@ public class MainClientExec implements ClientExecChain {
                 context.setAttribute(ClientContext.USER_TOKEN, userToken);
             }
             if (userToken != null) {
-                releaseTrigger.setState(userToken);
+                connHolder.setState(userToken);
             }
 
             // check for entity, release connection if possible
             HttpEntity entity = response.getEntity();
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
-                releaseTrigger.releaseConnection();
+                connHolder.releaseConnection();
                 return Proxies.enhanceResponse(response, null);
             } else {
-                return Proxies.enhanceResponse(response, releaseTrigger);
+                return Proxies.enhanceResponse(response, connHolder);
             }
         } catch (ConnectionShutdownException ex) {
             InterruptedIOException ioex = new InterruptedIOException(
@@ -324,13 +323,13 @@ public class MainClientExec implements ClientExecChain {
             ioex.initCause(ex);
             throw ioex;
         } catch (HttpException ex) {
-            releaseTrigger.abortConnection();
+            connHolder.abortConnection();
             throw ex;
         } catch (IOException ex) {
-            releaseTrigger.abortConnection();
+            connHolder.abortConnection();
             throw ex;
         } catch (RuntimeException ex) {
-            releaseTrigger.abortConnection();
+            connHolder.abortConnection();
             throw ex;
         }
     }

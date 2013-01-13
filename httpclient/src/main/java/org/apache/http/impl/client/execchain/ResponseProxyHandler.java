@@ -57,23 +57,23 @@ class ResponseProxyHandler implements InvocationHandler {
     }
 
     private final HttpResponse original;
-    private final ConnectionReleaseTriggerImpl connReleaseTrigger;
+    private final ConnectionHolder connHolder;
 
     ResponseProxyHandler(
             final HttpResponse original,
-            final ConnectionReleaseTriggerImpl connReleaseTrigger) {
+            final ConnectionHolder connHolder) {
         super();
         this.original = original;
-        this.connReleaseTrigger = connReleaseTrigger;
+        this.connHolder = connHolder;
         HttpEntity entity = original.getEntity();
-        if (entity != null && entity.isStreaming() && connReleaseTrigger != null) {
-            this.original.setEntity(new ResponseEntityWrapper(entity, connReleaseTrigger));
+        if (entity != null && entity.isStreaming() && connHolder != null) {
+            this.original.setEntity(new ResponseEntityWrapper(entity, connHolder));
         }
     }
 
     public void close() throws IOException {
-        if (this.connReleaseTrigger != null) {
-            this.connReleaseTrigger.abortConnection();
+        if (this.connHolder != null) {
+            this.connHolder.abortConnection();
         }
     }
 

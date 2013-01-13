@@ -132,8 +132,7 @@ public class MinimalClientExec implements ClientExecChain {
             throw new RequestAbortedException("Request aborted", interrupted);
         }
 
-        ConnectionReleaseTriggerImpl releaseTrigger = new ConnectionReleaseTriggerImpl(
-                log, connManager, managedConn);
+        ConnectionHolder releaseTrigger = new ConnectionHolder(log, connManager, managedConn);
         try {
             if (execAware != null) {
                 if (execAware.isAborted()) {

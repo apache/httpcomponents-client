@@ -46,11 +46,11 @@ import org.apache.http.entity.HttpEntityWrapper;
 @NotThreadSafe
 class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatcher {
 
-    private final ConnectionReleaseTriggerImpl connReleaseTrigger;
+    private final ConnectionHolder connReleaseTrigger;
 
     public ResponseEntityWrapper(
             final HttpEntity entity,
-            final ConnectionReleaseTriggerImpl connReleaseTrigger) {
+            final ConnectionHolder connReleaseTrigger) {
         super(entity);
         this.connReleaseTrigger = connReleaseTrigger;
     }
