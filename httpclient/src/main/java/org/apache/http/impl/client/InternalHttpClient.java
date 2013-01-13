@@ -61,7 +61,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.impl.client.execchain.ClientExecChain;
+import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpParamsNames;
 import org.apache.http.protocol.BasicHttpContext;

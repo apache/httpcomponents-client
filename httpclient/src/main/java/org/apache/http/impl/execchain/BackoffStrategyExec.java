@@ -25,16 +25,15 @@
  *
  */
 
-package org.apache.http.impl.client.execchain;
+package org.apache.http.impl.execchain;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
+import java.lang.reflect.UndeclaredThrowableException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpException;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.ServiceUnavailableRetryStrategy;
+import org.apache.http.client.BackoffManager;
+import org.apache.http.client.ConnectionBackoffStrategy;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
@@ -43,27 +42,26 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.util.Args;
 
 /**
- * {@link ClientExecChain} implementation that can automatically retry the request in case of
- * a non-2xx response using the {@link ServiceUnavailableRetryStrategy} interface.
- *
  * @since 4.3
  */
 @Immutable
-public class ServiceUnavailableRetryExec implements ClientExecChain {
-
-    private final Log log = LogFactory.getLog(getClass());
+public class BackoffStrategyExec implements ClientExecChain {
 
     private final ClientExecChain requestExecutor;
-    private final ServiceUnavailableRetryStrategy retryStrategy;
+    private final ConnectionBackoffStrategy connectionBackoffStrategy;
+    private final BackoffManager backoffManager;
 
-    public ServiceUnavailableRetryExec(
+    public BackoffStrategyExec(
             final ClientExecChain requestExecutor,
-            final ServiceUnavailableRetryStrategy retryStrategy) {
+            final ConnectionBackoffStrategy connectionBackoffStrategy,
+            final BackoffManager backoffManager) {
         super();
-        Args.notNull(requestExecutor, "HTTP request executor");
-        Args.notNull(retryStrategy, "Retry strategy");
+        Args.notNull(requestExecutor, "HTTP client request executor");
+        Args.notNull(connectionBackoffStrategy, "Connection backoff strategy");
+        Args.notNull(backoffManager, "Backoff manager");
         this.requestExecutor = requestExecutor;
-        this.retryStrategy = retryStrategy;
+        this.connectionBackoffStrategy = connectionBackoffStrategy;
+        this.backoffManager = backoffManager;
     }
 
     public CloseableHttpResponse execute(
@@ -71,30 +69,30 @@ public class ServiceUnavailableRetryExec implements ClientExecChain {
             final HttpRequestWrapper request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
-        for (int c = 1;; c++) {
-            CloseableHttpResponse response = this.requestExecutor.execute(
-                    route, request, context, execAware);
-            try {
-                if (this.retryStrategy.retryRequest(response, c, context)) {
-                    response.close();
-                    long nextInterval = this.retryStrategy.getRetryInterval();
-                    try {
-                        this.log.trace("Wait for " + nextInterval);
-                        Thread.sleep(nextInterval);
-                    } catch (InterruptedException e) {
-                        throw new InterruptedIOException(e.getMessage());
-                    }
-                } else {
-                    return response;
-                }
-            } catch (RuntimeException ex) {
-                response.close();
-                throw ex;
-            } catch (IOException ex) {
-                response.close();
-                throw ex;
+        Args.notNull(route, "HTTP route");
+        Args.notNull(request, "HTTP request");
+        Args.notNull(context, "HTTP context");
+        CloseableHttpResponse out = null;
+        try {
+            out = this.requestExecutor.execute(route, request, context, execAware);
+        } catch (Exception ex) {
+            if (out != null) {
+                out.close();
             }
+            if (this.connectionBackoffStrategy.shouldBackoff(ex)) {
+                this.backoffManager.backOff(route);
+            }
+            if (ex instanceof RuntimeException) throw (RuntimeException) ex;
+            if (ex instanceof HttpException) throw (HttpException) ex;
+            if (ex instanceof IOException) throw (IOException) ex;
+            throw new UndeclaredThrowableException(ex);
         }
+        if (this.connectionBackoffStrategy.shouldBackoff(out)) {
+            this.backoffManager.backOff(route);
+        } else {
+            this.backoffManager.probe(route);
+        }
+        return out;
     }
 
 }

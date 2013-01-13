@@ -38,7 +38,7 @@ import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.client.execchain.ClientExecChain;
+import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.message.BasicHttpResponse;
 
 public class DummyBackend implements ClientExecChain {

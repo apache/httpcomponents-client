@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client;
+package org.apache.http.impl.execchain;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
@@ -35,10 +35,7 @@ import org.apache.http.annotation.Immutable;
  * Signals that the tunnel request was rejected by the proxy host.
  *
  * @since 4.0
- *
- * @deprecated (4.3) reserved for internal use.
  */
-@Deprecated
 @Immutable
 public class TunnelRefusedException extends HttpException {
 

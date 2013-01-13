@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.impl.client.execchain;
+package org.apache.http.impl.execchain;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;

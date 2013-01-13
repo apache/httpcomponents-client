@@ -48,7 +48,7 @@ import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
-import org.apache.http.impl.client.execchain.MinimalClientExec;
+import org.apache.http.impl.execchain.MinimalClientExec;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;

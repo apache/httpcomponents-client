@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.execchain;
+package org.apache.http.impl.execchain;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -64,9 +64,6 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRouteDirector;
 import org.apache.http.conn.routing.RouteTracker;
 import org.apache.http.entity.BufferedHttpEntity;
-import org.apache.http.impl.client.HttpAuthenticator;
-import org.apache.http.impl.client.RequestAbortedException;
-import org.apache.http.impl.client.TunnelRefusedException;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.ExecutionContext;

@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.execchain;
+package org.apache.http.impl.execchain;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -55,7 +55,6 @@ import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.client.RequestAbortedException;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;

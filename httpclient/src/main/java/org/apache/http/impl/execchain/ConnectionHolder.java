@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.client.execchain;
+package org.apache.http.impl.execchain;
 
 import java.io.Closeable;
 import java.io.IOException;

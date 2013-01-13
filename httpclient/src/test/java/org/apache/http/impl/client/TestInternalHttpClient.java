@@ -47,7 +47,7 @@ import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.impl.client.execchain.ClientExecChain;
+import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.params.CoreConnectionPNames;
 import org.junit.Before;
 import org.junit.Test;

@@ -24,74 +24,63 @@
  * <http://www.apache.org/>.
  *
  */
+package org.apache.http.impl.execchain;
 
-package org.apache.http.impl.client.execchain;
-
-import java.io.Closeable;
-import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.annotation.NotThreadSafe;
 
 /**
- * A proxy class for {@link HttpResponse} that can be used to release client connection
- * associated with the original response.
+ * A wrapper class for {@link HttpEntity} enclosed in a request message.
  *
  * @since 4.3
  */
 @NotThreadSafe
-class ResponseProxyHandler implements InvocationHandler {
+class RequestEntityExecHandler implements InvocationHandler  {
 
-    private static final Method CLOSE_METHOD;
+    private static final Method WRITE_TO_METHOD;
 
     static {
         try {
-            CLOSE_METHOD = Closeable.class.getMethod("close");
+            WRITE_TO_METHOD = HttpEntity.class.getMethod("writeTo", OutputStream.class);
         } catch (NoSuchMethodException ex) {
             throw new Error(ex);
         }
     }
 
-    private final HttpResponse original;
-    private final ConnectionHolder connHolder;
+    private final HttpEntity original;
+    private boolean consumed = false;
 
-    ResponseProxyHandler(
-            final HttpResponse original,
-            final ConnectionHolder connHolder) {
+    RequestEntityExecHandler(final HttpEntity original) {
         super();
         this.original = original;
-        this.connHolder = connHolder;
-        HttpEntity entity = original.getEntity();
-        if (entity != null && entity.isStreaming() && connHolder != null) {
-            this.original.setEntity(new ResponseEntityWrapper(entity, connHolder));
-        }
     }
 
-    public void close() throws IOException {
-        if (this.connHolder != null) {
-            this.connHolder.abortConnection();
-        }
+    public HttpEntity getOriginal() {
+        return original;
+    }
+
+    public boolean isConsumed() {
+        return consumed;
     }
 
     public Object invoke(
             final Object proxy, final Method method, final Object[] args) throws Throwable {
-        if (method.equals(CLOSE_METHOD)) {
-            close();
-            return null;
-        } else {
-            try {
-                return method.invoke(original, args);
-            } catch (InvocationTargetException ex) {
-                Throwable cause = ex.getCause();
-                if (cause != null) {
-                    throw cause;
-                } else {
-                    throw ex;
-                }
+        try {
+            if (method.equals(WRITE_TO_METHOD)) {
+                this.consumed = true;
+            }
+            return method.invoke(original, args);
+        } catch (InvocationTargetException ex) {
+            Throwable cause = ex.getCause();
+            if (cause != null) {
+                throw cause;
+            } else {
+                throw ex;
             }
         }
     }

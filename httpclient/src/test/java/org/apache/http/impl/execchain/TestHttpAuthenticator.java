@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.impl.client;
+package org.apache.http.impl.execchain;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -56,6 +56,8 @@ import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.TargetAuthenticationStrategy;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;

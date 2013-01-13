@@ -25,17 +25,16 @@
  *
  */
 
-package org.apache.http.impl.client.execchain;
+package org.apache.http.impl.execchain;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.HttpRequestRetryHandler;
-import org.apache.http.client.NonRepeatableRequestException;
+import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
@@ -44,23 +43,27 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.util.Args;
 
 /**
+ * {@link ClientExecChain} implementation that can automatically retry the request in case of
+ * a non-2xx response using the {@link ServiceUnavailableRetryStrategy} interface.
+ *
  * @since 4.3
  */
 @Immutable
-public class RetryExec implements ClientExecChain {
+public class ServiceUnavailableRetryExec implements ClientExecChain {
 
     private final Log log = LogFactory.getLog(getClass());
 
     private final ClientExecChain requestExecutor;
-    private final HttpRequestRetryHandler retryHandler;
+    private final ServiceUnavailableRetryStrategy retryStrategy;
 
-    public RetryExec(
+    public ServiceUnavailableRetryExec(
             final ClientExecChain requestExecutor,
-            final HttpRequestRetryHandler retryHandler) {
+            final ServiceUnavailableRetryStrategy retryStrategy) {
+        super();
         Args.notNull(requestExecutor, "HTTP request executor");
-        Args.notNull(retryHandler, "HTTP request retry handler");
+        Args.notNull(retryStrategy, "Retry strategy");
         this.requestExecutor = requestExecutor;
-        this.retryHandler = retryHandler;
+        this.retryStrategy = retryStrategy;
     }
 
     public CloseableHttpResponse execute(
@@ -68,37 +71,28 @@ public class RetryExec implements ClientExecChain {
             final HttpRequestWrapper request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
-        Args.notNull(route, "HTTP route");
-        Args.notNull(request, "HTTP request");
-        Args.notNull(context, "HTTP context");
-        Header[] origheaders = request.getAllHeaders();
-        for (int execCount = 1;; execCount++) {
+        for (int c = 1;; c++) {
+            CloseableHttpResponse response = this.requestExecutor.execute(
+                    route, request, context, execAware);
             try {
-                return this.requestExecutor.execute(route, request, context, execAware);
-            } catch (IOException ex) {
-                if (execAware != null && execAware.isAborted()) {
-                    this.log.debug("Request has been aborted");
-                    throw ex;
-                }
-                if (retryHandler.retryRequest(ex, execCount, context)) {
-                    if (this.log.isInfoEnabled()) {
-                        this.log.info("I/O exception ("+ ex.getClass().getName() +
-                                ") caught when processing request: "
-                                + ex.getMessage());
+                if (this.retryStrategy.retryRequest(response, c, context)) {
+                    response.close();
+                    long nextInterval = this.retryStrategy.getRetryInterval();
+                    try {
+                        this.log.trace("Wait for " + nextInterval);
+                        Thread.sleep(nextInterval);
+                    } catch (InterruptedException e) {
+                        throw new InterruptedIOException(e.getMessage());
                     }
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug(ex.getMessage(), ex);
-                    }
-                    if (!Proxies.isRepeatable(request)) {
-                        this.log.debug("Cannot retry non-repeatable request");
-                        throw new NonRepeatableRequestException("Cannot retry request " +
-                                "with a non-repeatable request entity", ex);
-                    }
-                    request.setHeaders(origheaders);
-                    this.log.info("Retrying request");
                 } else {
-                    throw ex;
+                    return response;
                 }
+            } catch (RuntimeException ex) {
+                response.close();
+                throw ex;
+            } catch (IOException ex) {
+                response.close();
+                throw ex;
             }
         }
     }

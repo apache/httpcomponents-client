@@ -24,63 +24,74 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.impl.client.execchain;
 
-import java.io.OutputStream;
+package org.apache.http.impl.execchain;
+
+import java.io.Closeable;
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.annotation.NotThreadSafe;
 
 /**
- * A wrapper class for {@link HttpEntity} enclosed in a request message.
+ * A proxy class for {@link HttpResponse} that can be used to release client connection
+ * associated with the original response.
  *
  * @since 4.3
  */
 @NotThreadSafe
-class RequestEntityExecHandler implements InvocationHandler  {
+class ResponseProxyHandler implements InvocationHandler {
 
-    private static final Method WRITE_TO_METHOD;
+    private static final Method CLOSE_METHOD;
 
     static {
         try {
-            WRITE_TO_METHOD = HttpEntity.class.getMethod("writeTo", OutputStream.class);
+            CLOSE_METHOD = Closeable.class.getMethod("close");
         } catch (NoSuchMethodException ex) {
             throw new Error(ex);
         }
     }
 
-    private final HttpEntity original;
-    private boolean consumed = false;
+    private final HttpResponse original;
+    private final ConnectionHolder connHolder;
 
-    RequestEntityExecHandler(final HttpEntity original) {
+    ResponseProxyHandler(
+            final HttpResponse original,
+            final ConnectionHolder connHolder) {
         super();
         this.original = original;
+        this.connHolder = connHolder;
+        HttpEntity entity = original.getEntity();
+        if (entity != null && entity.isStreaming() && connHolder != null) {
+            this.original.setEntity(new ResponseEntityWrapper(entity, connHolder));
+        }
     }
 
-    public HttpEntity getOriginal() {
-        return original;
-    }
-
-    public boolean isConsumed() {
-        return consumed;
+    public void close() throws IOException {
+        if (this.connHolder != null) {
+            this.connHolder.abortConnection();
+        }
     }
 
     public Object invoke(
             final Object proxy, final Method method, final Object[] args) throws Throwable {
-        try {
-            if (method.equals(WRITE_TO_METHOD)) {
-                this.consumed = true;
-            }
-            return method.invoke(original, args);
-        } catch (InvocationTargetException ex) {
-            Throwable cause = ex.getCause();
-            if (cause != null) {
-                throw cause;
-            } else {
-                throw ex;
+        if (method.equals(CLOSE_METHOD)) {
+            close();
+            return null;
+        } else {
+            try {
+                return method.invoke(original, args);
+            } catch (InvocationTargetException ex) {
+                Throwable cause = ex.getCause();
+                if (cause != null) {
+                    throw cause;
+                } else {
+                    throw ex;
+                }
             }
         }
     }
