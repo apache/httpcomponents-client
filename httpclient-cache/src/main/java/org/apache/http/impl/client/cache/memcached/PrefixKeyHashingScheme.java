@@ -35,8 +35,8 @@ package org.apache.http.impl.client.cache.memcached;
  */
 public class PrefixKeyHashingScheme implements KeyHashingScheme {
 
-    private String prefix;
-    private KeyHashingScheme backingScheme;
+    private final String prefix;
+    private final KeyHashingScheme backingScheme;
 
     /**
      * Creates a new {@link KeyHashingScheme} that prepends the given

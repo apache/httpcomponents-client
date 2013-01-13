@@ -186,7 +186,7 @@ public class TestRedirects extends IntegrationTestBase {
     }
 
     private static class BogusRedirectService implements HttpRequestHandler {
-        private String url;
+        private final String url;
 
         public BogusRedirectService(String redirectUrl) {
             super();

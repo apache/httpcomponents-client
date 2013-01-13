@@ -331,7 +331,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
     static class TestTargetAuthenticationStrategy extends TargetAuthenticationStrategy {
 
-        private AtomicLong count;
+        private final AtomicLong count;
 
         public TestTargetAuthenticationStrategy() {
             super();
@@ -424,7 +424,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
     static class CountingAuthHandler implements HttpRequestHandler {
 
-        private AtomicLong count;
+        private final AtomicLong count;
 
         public CountingAuthHandler() {
             super();

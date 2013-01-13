@@ -49,7 +49,7 @@ public class TestResponseCachingPolicy {
     private ResponseCachingPolicy policy;
     private HttpResponse response;
     private HttpRequest request;
-    private int[] acceptableCodes = new int[] { HttpStatus.SC_OK,
+    private final int[] acceptableCodes = new int[] { HttpStatus.SC_OK,
             HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, HttpStatus.SC_MULTIPLE_CHOICES,
             HttpStatus.SC_MOVED_PERMANENTLY, HttpStatus.SC_GONE };
     private Date now;

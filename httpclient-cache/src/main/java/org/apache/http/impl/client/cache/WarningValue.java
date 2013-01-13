@@ -45,7 +45,7 @@ class WarningValue {
 
     private int offs;
     private int init_offs;
-    private String src;
+    private final String src;
     private int warnCode;
     private String warnAgent;
     private String warnText;

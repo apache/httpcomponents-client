@@ -51,7 +51,7 @@ public class InMemoryDnsResolver implements DnsResolver {
      * In-memory collection that will hold the associations between a host name
      * and an array of InetAddress instances.
      */
-    private Map<String, InetAddress[]> dnsMap;
+    private final Map<String, InetAddress[]> dnsMap;
 
     /**
      * Builds a DNS resolver that will resolve the host names against a

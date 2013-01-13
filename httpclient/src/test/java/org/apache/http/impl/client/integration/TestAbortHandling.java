@@ -325,8 +325,8 @@ public class TestAbortHandling extends IntegrationTestBase {
     }
 
    private static class BasicRedirectService implements HttpRequestHandler {
-        private int statuscode = HttpStatus.SC_SEE_OTHER;
-        private int port;
+        private final int statuscode = HttpStatus.SC_SEE_OTHER;
+        private final int port;
 
         public BasicRedirectService(int port) {
             this.port = port;

@@ -31,7 +31,7 @@ import org.easymock.IArgumentMatcher;
 
 public class RequestEquivalent implements IArgumentMatcher {
 
-    private HttpRequest expected;
+    private final HttpRequest expected;
 
     public RequestEquivalent(HttpRequest expected) {
         this.expected = expected;

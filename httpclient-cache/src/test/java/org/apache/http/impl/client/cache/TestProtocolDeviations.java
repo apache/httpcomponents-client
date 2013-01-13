@@ -75,7 +75,7 @@ public class TestProtocolDeviations {
 
     private static final int MAX_BYTES = 1024;
     private static final int MAX_ENTRIES = 100;
-    private int entityLength = 128;
+    private final int entityLength = 128;
 
     private HttpHost host;
     private HttpRoute route;

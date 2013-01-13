@@ -32,7 +32,7 @@ import java.io.InputStream;
 
 public class ConsumableInputStream extends InputStream {
 
-    private ByteArrayInputStream buf;
+    private final ByteArrayInputStream buf;
     private boolean closed = false;
 
     public ConsumableInputStream(ByteArrayInputStream buf) {

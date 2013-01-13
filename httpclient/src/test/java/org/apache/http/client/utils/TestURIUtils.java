@@ -38,7 +38,7 @@ import org.junit.Test;
  */
 public class TestURIUtils {
 
-    private URI baseURI = URI.create("http://a/b/c/d;p?q");
+    private final URI baseURI = URI.create("http://a/b/c/d;p?q");
 
     @Test
     public void testRewrite() throws Exception {

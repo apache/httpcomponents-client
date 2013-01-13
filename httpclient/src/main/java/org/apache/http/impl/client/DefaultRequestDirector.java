@@ -198,7 +198,7 @@ public class DefaultRequestDirector implements RequestDirector {
 
     private int redirectCount;
 
-    private int maxRedirects;
+    private final int maxRedirects;
 
     private HttpHost virtualHost;
 
