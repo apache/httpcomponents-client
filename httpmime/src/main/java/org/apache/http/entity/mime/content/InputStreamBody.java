@@ -55,7 +55,7 @@ public class InputStreamBody extends AbstractContentBody {
      *  String)} or {@link MultipartEntityBuilder}
      */
     @Deprecated
-	public InputStreamBody(final InputStream in, final String mimeType, final String filename) {
+    public InputStreamBody(final InputStream in, final String mimeType, final String filename) {
         this(in, ContentType.create(mimeType), filename);
     }
 

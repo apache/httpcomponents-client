@@ -66,7 +66,7 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
     }
 
     @Override
-	protected HttpHost determineProxy(
+    protected HttpHost determineProxy(
             final HttpHost    target,
             final HttpRequest request,
             final HttpContext context) throws HttpException {
