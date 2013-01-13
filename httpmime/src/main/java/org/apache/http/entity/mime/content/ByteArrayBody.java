@@ -63,7 +63,8 @@ public class ByteArrayBody extends AbstractContentBody {
      * @deprecated (4.3) use {@link ByteArrayBody#ByteArrayBody(byte[], ContentType, String)}
      *   or {@link MultipartEntityBuilder}
      */
-    public ByteArrayBody(final byte[] data, final String mimeType, final String filename) {
+    @Deprecated
+	public ByteArrayBody(final byte[] data, final String mimeType, final String filename) {
         this(data, ContentType.create(mimeType), filename);
     }
 
@@ -95,7 +96,8 @@ public class ByteArrayBody extends AbstractContentBody {
         out.write(data);
     }
 
-    public String getCharset() {
+    @Override
+	public String getCharset() {
         return null;
     }
 

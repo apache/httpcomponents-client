@@ -66,7 +66,8 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
      *
      * @deprecated (4.3) do not use.
      */
-    public AuthSchemeBase(final ChallengeState challengeState) {
+    @Deprecated
+	public AuthSchemeBase(final ChallengeState challengeState) {
         super();
         this.challengeState = challengeState;
     }
