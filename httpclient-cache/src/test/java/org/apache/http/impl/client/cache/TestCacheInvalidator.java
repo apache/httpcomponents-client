@@ -561,20 +561,20 @@ public class TestCacheInvalidator {
 
 
     // Expectations
-    private void cacheEntryHasVariantMap(Map<String,String> variantMap) {
+    private void cacheEntryHasVariantMap(final Map<String,String> variantMap) {
         expect(mockEntry.getVariantMap()).andReturn(variantMap);
     }
 
-    private void cacheReturnsEntryForUri(String theUri) throws IOException {
+    private void cacheReturnsEntryForUri(final String theUri) throws IOException {
         expect(mockStorage.getEntry(theUri)).andReturn(mockEntry);
     }
 
-    private void cacheReturnsExceptionForUri(String theUri) throws IOException {
+    private void cacheReturnsExceptionForUri(final String theUri) throws IOException {
         expect(mockStorage.getEntry(theUri)).andThrow(
                 new IOException("TOTAL FAIL"));
     }
 
-    private void entryIsRemoved(String theUri) throws IOException {
+    private void entryIsRemoved(final String theUri) throws IOException {
         mockStorage.removeEntry(theUri);
     }
 

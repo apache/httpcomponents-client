@@ -53,7 +53,7 @@ class ConditionalRequestBuilder {
      * @return the wrapped request
      * @throws ProtocolException when I am unable to build a new origin request.
      */
-    public HttpRequestWrapper buildConditionalRequest(HttpRequestWrapper request, HttpCacheEntry cacheEntry)
+    public HttpRequestWrapper buildConditionalRequest(final HttpRequestWrapper request, final HttpCacheEntry cacheEntry)
             throws ProtocolException {
         HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
         newRequest.setHeaders(request.getAllHeaders());
@@ -92,8 +92,8 @@ class ConditionalRequestBuilder {
      * @param variants
      * @return the wrapped request
      */
-    public HttpRequestWrapper buildConditionalRequestFromVariants(HttpRequestWrapper request,
-            Map<String, Variant> variants) {
+    public HttpRequestWrapper buildConditionalRequestFromVariants(final HttpRequestWrapper request,
+            final Map<String, Variant> variants) {
         HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
         newRequest.setHeaders(request.getAllHeaders());
 
@@ -123,7 +123,7 @@ class ConditionalRequestBuilder {
      * @param entry existing cache entry we are trying to validate
      * @return an unconditional validation request
      */
-    public HttpRequestWrapper buildUnconditionalRequest(HttpRequestWrapper request, HttpCacheEntry entry) {
+    public HttpRequestWrapper buildUnconditionalRequest(final HttpRequestWrapper request, final HttpCacheEntry entry) {
         HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
         newRequest.setHeaders(request.getAllHeaders());
         newRequest.addHeader(HeaderConstants.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);

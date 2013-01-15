@@ -68,7 +68,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
      * @see #addCookies(Cookie[])
      *
      */
-    public synchronized void addCookie(Cookie cookie) {
+    public synchronized void addCookie(final Cookie cookie) {
         if (cookie != null) {
             // first remove any old cookie that is equivalent
             cookies.remove(cookie);
@@ -88,7 +88,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
      * @see #addCookie(Cookie)
      *
      */
-    public synchronized void addCookies(Cookie[] cookies) {
+    public synchronized void addCookies(final Cookie[] cookies) {
         if (cookies != null) {
             for (Cookie cooky : cookies) {
                 this.addCookie(cooky);

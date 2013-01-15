@@ -81,8 +81,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
     private static HttpClientConnection getConnection(
             final HttpClientConnectionManager mgr,
             final HttpRoute route,
-            long timeout,
-            TimeUnit unit) throws ConnectionPoolTimeoutException, InterruptedException {
+            final long timeout,
+            final TimeUnit unit) throws ConnectionPoolTimeoutException, InterruptedException {
         ConnectionRequest connRequest = mgr.requestConnection(route, null);
         return connRequest.get(timeout, unit);
     }
@@ -601,7 +601,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         private final CountDownLatch waitLatch = new CountDownLatch(1);
         protected final WaitPolicy waitPolicy;
 
-        LatchSupport(CountDownLatch continueLatch, WaitPolicy waitPolicy) {
+        LatchSupport(final CountDownLatch continueLatch, final WaitPolicy waitPolicy) {
             this.continueLatch = continueLatch;
             this.waitPolicy = waitPolicy;
         }

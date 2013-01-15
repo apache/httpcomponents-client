@@ -45,18 +45,18 @@ public class LoggingOutputStream extends OutputStream {
     }
 
     @Override
-    public void write(int b) throws IOException {
+    public void write(final int b) throws IOException {
         wire.output(b);
     }
 
     @Override
-    public void write(byte[] b) throws IOException {
+    public void write(final byte[] b) throws IOException {
         wire.output(b);
         out.write(b);
     }
 
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+    public void write(final byte[] b, final int off, final int len) throws IOException {
         wire.output(b, off, len);
         out.write(b, off, len);
     }

@@ -52,7 +52,7 @@ public class UnsupportedDigestAlgorithmException extends RuntimeException {
      *
      * @param message the exception detail message
      */
-    public UnsupportedDigestAlgorithmException(String message) {
+    public UnsupportedDigestAlgorithmException(final String message) {
         super(message);
     }
 
@@ -63,7 +63,7 @@ public class UnsupportedDigestAlgorithmException extends RuntimeException {
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
      */
-    public UnsupportedDigestAlgorithmException(String message, Throwable cause) {
+    public UnsupportedDigestAlgorithmException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }

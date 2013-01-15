@@ -131,7 +131,7 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
      *
      * @return  <code>false</code>
      */
-    public final boolean isSecure(Socket sock) {
+    public final boolean isSecure(final Socket sock) {
         return false;
     }
 
@@ -141,7 +141,7 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
     @Deprecated
     public Socket connectSocket(
             final Socket socket,
-            final String host, int port,
+            final String host, final int port,
             final InetAddress localAddress, int localPort,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         InetSocketAddress local = null;

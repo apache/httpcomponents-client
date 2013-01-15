@@ -35,7 +35,7 @@ public class ConsumableInputStream extends InputStream {
     private final ByteArrayInputStream buf;
     private boolean closed = false;
 
-    public ConsumableInputStream(ByteArrayInputStream buf) {
+    public ConsumableInputStream(final ByteArrayInputStream buf) {
         this.buf = buf;
     }
 

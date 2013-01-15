@@ -45,7 +45,7 @@ public class SPNegoSchemeFactory implements AuthSchemeFactory, AuthSchemeProvide
 
     private final boolean stripPort;
 
-    public SPNegoSchemeFactory(boolean stripPort) {
+    public SPNegoSchemeFactory(final boolean stripPort) {
         super();
         this.stripPort = stripPort;
     }

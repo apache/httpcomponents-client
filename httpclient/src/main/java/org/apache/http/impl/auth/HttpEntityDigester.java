@@ -43,7 +43,7 @@ class HttpEntityDigester extends OutputStream {
     }
 
     @Override
-    public void write(int b) throws IOException {
+    public void write(final int b) throws IOException {
         if (this.closed) {
             throw new IOException("Stream has been already closed");
         }
@@ -51,7 +51,7 @@ class HttpEntityDigester extends OutputStream {
     }
 
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+    public void write(final byte[] b, final int off, final int len) throws IOException {
         if (this.closed) {
             throw new IOException("Stream has been already closed");
         }

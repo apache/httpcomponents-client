@@ -60,13 +60,13 @@ class SchemeLayeredSocketFactoryAdaptor2 implements SchemeLayeredSocketFactory {
         return this.factory.connectSocket(sock, remoteAddress, localAddress, params);
     }
 
-    public boolean isSecure(Socket sock) throws IllegalArgumentException {
+    public boolean isSecure(final Socket sock) throws IllegalArgumentException {
         return this.factory.isSecure(sock);
     }
 
     public Socket createLayeredSocket(
             final Socket socket,
-            final String target, int port,
+            final String target, final int port,
             final HttpParams params) throws IOException, UnknownHostException {
         return this.factory.createLayeredSocket(socket, target, port, true);
     }

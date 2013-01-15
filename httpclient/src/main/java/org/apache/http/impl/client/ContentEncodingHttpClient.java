@@ -60,14 +60,14 @@ public class ContentEncodingHttpClient extends DefaultHttpClient {
      * @param params    the parameters
      * @param conman    the connection manager
      */
-    public ContentEncodingHttpClient(ClientConnectionManager conman, HttpParams params) {
+    public ContentEncodingHttpClient(final ClientConnectionManager conman, final HttpParams params) {
         super(conman, params);
     }
 
     /**
      * @param params
      */
-    public ContentEncodingHttpClient(HttpParams params) {
+    public ContentEncodingHttpClient(final HttpParams params) {
         this(null, params);
     }
 

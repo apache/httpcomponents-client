@@ -69,7 +69,7 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
      * with default configuration options.
      * @param cache where to store cached origin responses
      */
-    public EhcacheHttpCacheStorage(Ehcache cache) {
+    public EhcacheHttpCacheStorage(final Ehcache cache) {
         this(cache, CacheConfig.DEFAULT, new DefaultHttpCacheEntrySerializer());
     }
 
@@ -81,7 +81,7 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
      *   the setting for max object size <b>will be ignored</b> and
      *   should be configured in the Ehcache instead.
      */
-    public EhcacheHttpCacheStorage(Ehcache cache, CacheConfig config){
+    public EhcacheHttpCacheStorage(final Ehcache cache, final CacheConfig config){
         this(cache, config, new DefaultHttpCacheEntrySerializer());
     }
 
@@ -95,19 +95,19 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
      *   should be configured in the Ehcache instead.
      * @param serializer alternative serialization mechanism
      */
-    public EhcacheHttpCacheStorage(Ehcache cache, CacheConfig config, HttpCacheEntrySerializer serializer){
+    public EhcacheHttpCacheStorage(final Ehcache cache, final CacheConfig config, final HttpCacheEntrySerializer serializer){
         this.cache = cache;
         this.maxUpdateRetries = config.getMaxUpdateRetries();
         this.serializer = serializer;
     }
 
-    public synchronized void putEntry(String key, HttpCacheEntry entry) throws IOException {
+    public synchronized void putEntry(final String key, final HttpCacheEntry entry) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         serializer.writeTo(entry, bos);
         cache.put(new Element(key, bos.toByteArray()));
     }
 
-    public synchronized HttpCacheEntry getEntry(String key) throws IOException {
+    public synchronized HttpCacheEntry getEntry(final String key) throws IOException {
         Element e = cache.get(key);
         if(e == null){
             return null;
@@ -117,11 +117,11 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
         return serializer.readFrom(new ByteArrayInputStream(data));
     }
 
-    public synchronized void removeEntry(String key) {
+    public synchronized void removeEntry(final String key) {
         cache.remove(key);
     }
 
-    public synchronized void updateEntry(String key, HttpCacheUpdateCallback callback)
+    public synchronized void updateEntry(final String key, final HttpCacheUpdateCallback callback)
             throws IOException, HttpCacheUpdateException {
         int numRetries = 0;
         do{

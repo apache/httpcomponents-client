@@ -79,7 +79,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
     private final int challengeCode;
     private final String headerName;
 
-    AuthenticationStrategyImpl(int challengeCode, final String headerName) {
+    AuthenticationStrategyImpl(final int challengeCode, final String headerName) {
         super();
         this.challengeCode = challengeCode;
         this.headerName = headerName;

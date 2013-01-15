@@ -109,8 +109,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @deprecated (4.1)  use {@link SingleClientConnManager#SingleClientConnManager(SchemeRegistry)}
      */
     @Deprecated
-    public SingleClientConnManager(HttpParams params,
-                                   SchemeRegistry schreg) {
+    public SingleClientConnManager(final HttpParams params,
+                                   final SchemeRegistry schreg) {
         this(schreg);
     }
     /**
@@ -162,7 +162,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @return  the connection operator to use
      */
     protected ClientConnectionOperator
-        createConnectionOperator(SchemeRegistry schreg) {
+        createConnectionOperator(final SchemeRegistry schreg) {
         return new DefaultClientConnectionOperator(schreg);
     }
 
@@ -186,7 +186,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
             }
 
             public ManagedClientConnection getConnection(
-                    long timeout, TimeUnit tunit) {
+                    final long timeout, final TimeUnit tunit) {
                 return SingleClientConnManager.this.getConnection(
                         route, state);
             }
@@ -202,7 +202,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * @return  a connection that can be used to communicate
      *          along the given route
      */
-    public ManagedClientConnection getConnection(HttpRoute route, Object state) {
+    public ManagedClientConnection getConnection(final HttpRoute route, final Object state) {
         Args.notNull(route, "Route");
         assertStillUp();
 
@@ -254,8 +254,8 @@ public class SingleClientConnManager implements ClientConnectionManager {
     }
 
     public void releaseConnection(
-            ManagedClientConnection conn,
-            long validDuration, TimeUnit timeUnit) {
+            final ManagedClientConnection conn,
+            final long validDuration, final TimeUnit timeUnit) {
         Args.check(conn instanceof ConnAdapter, "Connection class mismatch, " +
             "connection not obtained from this manager");
         assertStillUp();
@@ -314,7 +314,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
     }
 
-    public void closeIdleConnections(long idletime, TimeUnit tunit) {
+    public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
         assertStillUp();
 
         // idletime can be 0 or negative, no problem there
@@ -416,7 +416,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
          * @param entry   the pool entry for the connection being wrapped
          * @param route   the planned route for this connection
          */
-        protected ConnAdapter(PoolEntry entry, HttpRoute route) {
+        protected ConnAdapter(final PoolEntry entry, final HttpRoute route) {
             super(SingleClientConnManager.this, entry);
             markReusable();
             entry.route = route;

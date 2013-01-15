@@ -48,7 +48,7 @@ public class SocketFactoryMockup implements SchemeSocketFactory {
     /** The name of this mockup socket factory. */
     protected final String mockup_name;
 
-    public SocketFactoryMockup(String name) {
+    public SocketFactoryMockup(final String name) {
         mockup_name = (name != null) ? name : String.valueOf(hashCode());
     }
 
@@ -64,14 +64,14 @@ public class SocketFactoryMockup implements SchemeSocketFactory {
     }
 
     public Socket connectSocket(
-            Socket sock,
-            InetSocketAddress remoteAddress,
-            InetSocketAddress localAddress,
-            HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
+            final Socket sock,
+            final InetSocketAddress remoteAddress,
+            final InetSocketAddress localAddress,
+            final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         throw new UnsupportedOperationException("I'm a mockup!");
     }
 
-    public boolean isSecure(Socket sock) {
+    public boolean isSecure(final Socket sock) {
         // no way that the argument is from *this* factory...
         throw new UnsupportedOperationException("I'm a mockup!");
     }

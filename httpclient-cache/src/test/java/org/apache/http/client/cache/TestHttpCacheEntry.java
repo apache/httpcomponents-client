@@ -67,7 +67,7 @@ public class TestHttpCacheEntry {
         mockResource = createNiceMock(Resource.class);
     }
 
-    private HttpCacheEntry makeEntry(Header[] headers) {
+    private HttpCacheEntry makeEntry(final Header[] headers) {
         return new HttpCacheEntry(elevenSecondsAgo, nineSecondsAgo,
                 statusLine, headers, mockResource);
     }

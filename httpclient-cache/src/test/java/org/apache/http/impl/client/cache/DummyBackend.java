@@ -47,7 +47,7 @@ public class DummyBackend implements ClientExecChain {
     private HttpResponse response = new BasicHttpResponse(new ProtocolVersion("HTTP",1,1), HttpStatus.SC_OK, "OK");
     private int executions = 0;
 
-    public void setResponse(HttpResponse resp) {
+    public void setResponse(final HttpResponse resp) {
         response = resp;
     }
 

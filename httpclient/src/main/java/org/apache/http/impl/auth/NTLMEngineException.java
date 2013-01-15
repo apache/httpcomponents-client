@@ -49,7 +49,7 @@ public class NTLMEngineException extends AuthenticationException {
      *
      * @param message the exception detail message
      */
-    public NTLMEngineException(String message) {
+    public NTLMEngineException(final String message) {
         super(message);
     }
 
@@ -60,7 +60,7 @@ public class NTLMEngineException extends AuthenticationException {
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
      */
-    public NTLMEngineException(String message, Throwable cause) {
+    public NTLMEngineException(final String message, final Throwable cause) {
         super(message, cause);
     }
 

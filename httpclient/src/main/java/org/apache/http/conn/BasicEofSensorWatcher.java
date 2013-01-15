@@ -56,14 +56,14 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
      * @param conn      the connection to auto-release
      * @param reuse     whether the connection should be re-used
      */
-    public BasicEofSensorWatcher(ManagedClientConnection conn,
-                                 boolean reuse) {
+    public BasicEofSensorWatcher(final ManagedClientConnection conn,
+                                 final boolean reuse) {
         Args.notNull(conn, "Connection");
         managedConn = conn;
         attemptReuse = reuse;
     }
 
-    public boolean eofDetected(InputStream wrapped)
+    public boolean eofDetected(final InputStream wrapped)
         throws IOException {
 
         try {
@@ -79,7 +79,7 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
         return false;
     }
 
-    public boolean streamClosed(InputStream wrapped)
+    public boolean streamClosed(final InputStream wrapped)
         throws IOException {
 
         try {
@@ -95,7 +95,7 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
         return false;
     }
 
-    public boolean streamAbort(InputStream wrapped)
+    public boolean streamAbort(final InputStream wrapped)
         throws IOException {
 
         managedConn.abortConnection();

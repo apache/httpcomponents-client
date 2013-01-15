@@ -93,7 +93,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
      * @param domain The cookie domain attribute.
      * @return true if the specified host matches the given domain.
      */
-    public boolean domainMatch(String host, String domain) {
+    public boolean domainMatch(final String host, final String domain) {
         boolean match = host.equals(domain)
                         || (domain.startsWith(".") && host.endsWith(domain));
 

@@ -50,7 +50,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
      *          either the next step to perform, or success, or failure.
      *          0 is for success, a negative value for failure.
      */
-    public int nextStep(RouteInfo plan, RouteInfo fact) {
+    public int nextStep(final RouteInfo plan, final RouteInfo fact) {
         Args.notNull(plan, "Planned route");
 
         int step = UNREACHABLE;
@@ -75,7 +75,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
      *
      * @return  the first step
      */
-    protected int firstStep(RouteInfo plan) {
+    protected int firstStep(final RouteInfo plan) {
 
         return (plan.getHopCount() > 1) ?
             CONNECT_PROXY : CONNECT_TARGET;
@@ -91,7 +91,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
      * @return  one of the constants defined in this class, indicating
      *          either the next step to perform, or success, or failure
      */
-    protected int directStep(RouteInfo plan, RouteInfo fact) {
+    protected int directStep(final RouteInfo plan, final RouteInfo fact) {
 
         if (fact.getHopCount() > 1) {
 			return UNREACHABLE;
@@ -131,7 +131,7 @@ public class BasicRouteDirector implements HttpRouteDirector {
      * @return  one of the constants defined in this class, indicating
      *          either the next step to perform, or success, or failure
      */
-    protected int proxiedStep(RouteInfo plan, RouteInfo fact) {
+    protected int proxiedStep(final RouteInfo plan, final RouteInfo fact) {
 
         if (fact.getHopCount() <= 1) {
 			return UNREACHABLE;

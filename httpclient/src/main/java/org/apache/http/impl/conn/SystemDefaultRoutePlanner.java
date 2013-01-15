@@ -92,7 +92,7 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
         return result;
     }
 
-    private String getHost(InetSocketAddress isa) {
+    private String getHost(final InetSocketAddress isa) {
 
         //@@@ Will this work with literal IPv6 addresses, or do we
         //@@@ need to wrap these in [] for the string representation?

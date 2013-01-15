@@ -191,7 +191,7 @@ public class TestURLEncodedUtils {
         0x432, 0x435, 0x442
     };
 
-    private static String constructString(int [] unicodeChars) {
+    private static String constructString(final int [] unicodeChars) {
         StringBuffer buffer = new StringBuffer();
         if (unicodeChars != null) {
             for (int unicodeChar : unicodeChars) {

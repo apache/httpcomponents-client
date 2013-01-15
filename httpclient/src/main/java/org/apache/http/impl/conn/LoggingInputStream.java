@@ -54,7 +54,7 @@ public class LoggingInputStream extends InputStream {
     }
 
     @Override
-    public int read(byte[] b) throws IOException {
+    public int read(final byte[] b) throws IOException {
         int bytesRead = in.read(b);
         if (bytesRead != -1) {
             wire.input(b, 0, bytesRead);
@@ -63,7 +63,7 @@ public class LoggingInputStream extends InputStream {
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException {
+    public int read(final byte[] b, final int off, final int len) throws IOException {
         int bytesRead = in.read(b, off, len);
         if (bytesRead != -1) {
             wire.input(b, off, bytesRead);
@@ -72,7 +72,7 @@ public class LoggingInputStream extends InputStream {
     }
 
     @Override
-    public long skip(long n) throws IOException {
+    public long skip(final long n) throws IOException {
         return super.skip(n);
     }
 
@@ -82,7 +82,7 @@ public class LoggingInputStream extends InputStream {
     }
 
     @Override
-    public synchronized void mark(int readlimit) {
+    public synchronized void mark(final int readlimit) {
         super.mark(readlimit);
     }
 

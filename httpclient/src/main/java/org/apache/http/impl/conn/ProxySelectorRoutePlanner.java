@@ -88,8 +88,8 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
      * @param prosel    the proxy selector, or
      *                  <code>null</code> for the system default
      */
-    public ProxySelectorRoutePlanner(SchemeRegistry schreg,
-                                     ProxySelector prosel) {
+    public ProxySelectorRoutePlanner(final SchemeRegistry schreg,
+                                     final ProxySelector prosel) {
         Args.notNull(schreg, "SchemeRegistry");
         schemeRegistry = schreg;
         proxySelector  = prosel;
@@ -110,13 +110,13 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
      * @param prosel    the proxy selector, or
      *                  <code>null</code> to use the system default
      */
-    public void setProxySelector(ProxySelector prosel) {
+    public void setProxySelector(final ProxySelector prosel) {
         this.proxySelector = prosel;
     }
 
-    public HttpRoute determineRoute(HttpHost target,
-                                    HttpRequest request,
-                                    HttpContext context)
+    public HttpRoute determineRoute(final HttpHost target,
+                                    final HttpRequest request,
+                                    final HttpContext context)
         throws HttpException {
 
         Args.notNull(request, "HTTP request");
@@ -163,9 +163,9 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
      * @throws HttpException
      *         in case of system proxy settings that cannot be handled
      */
-    protected HttpHost determineProxy(HttpHost    target,
-                                      HttpRequest request,
-                                      HttpContext context)
+    protected HttpHost determineProxy(final HttpHost    target,
+                                      final HttpRequest request,
+                                      final HttpContext context)
         throws HttpException {
 
         // the proxy selector can be 'unset', so we better deal with null here
@@ -213,7 +213,7 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
      * <br/>
      * (TODO: determine format for IPv6 addresses, with or without [brackets])
      */
-    protected String getHost(InetSocketAddress isa) {
+    protected String getHost(final InetSocketAddress isa) {
 
         //@@@ Will this work with literal IPv6 addresses, or do we
         //@@@ need to wrap these in [] for the string representation?
@@ -239,10 +239,10 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
      *
      * @return  a proxy type
      */
-    protected Proxy chooseProxy(List<Proxy> proxies,
-                                HttpHost    target,
-                                HttpRequest request,
-                                HttpContext context) {
+    protected Proxy chooseProxy(final List<Proxy> proxies,
+                                final HttpHost    target,
+                                final HttpRequest request,
+                                final HttpContext context) {
         Args.notEmpty(proxies, "List of proxies");
 
         Proxy result = null;

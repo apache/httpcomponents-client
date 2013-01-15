@@ -85,7 +85,7 @@ public class TestDefaultHttpResponseParser {
         HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer) {
 
             @Override
-            protected boolean reject(final CharArrayBuffer line, int count) {
+            protected boolean reject(final CharArrayBuffer line, final int count) {
                 return count >= 2;
             }
 

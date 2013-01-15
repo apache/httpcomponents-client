@@ -71,18 +71,18 @@ public class AIMDBackoffManager implements BackoffManager {
      * @param connPerRoute per-host routing maximums to
      *   be managed
      */
-    public AIMDBackoffManager(ConnPoolControl<HttpRoute> connPerRoute) {
+    public AIMDBackoffManager(final ConnPoolControl<HttpRoute> connPerRoute) {
         this(connPerRoute, new SystemClock());
     }
 
-    AIMDBackoffManager(ConnPoolControl<HttpRoute> connPerRoute, Clock clock) {
+    AIMDBackoffManager(final ConnPoolControl<HttpRoute> connPerRoute, final Clock clock) {
         this.clock = clock;
         this.connPerRoute = connPerRoute;
         this.lastRouteProbes = new HashMap<HttpRoute,Long>();
         this.lastRouteBackoffs = new HashMap<HttpRoute,Long>();
     }
 
-    public void backOff(HttpRoute route) {
+    public void backOff(final HttpRoute route) {
         synchronized(connPerRoute) {
             int curr = connPerRoute.getMaxPerRoute(route);
             Long lastUpdate = getLastUpdate(lastRouteBackoffs, route);
@@ -95,14 +95,14 @@ public class AIMDBackoffManager implements BackoffManager {
         }
     }
 
-    private int getBackedOffPoolSize(int curr) {
+    private int getBackedOffPoolSize(final int curr) {
         if (curr <= 1) {
 			return 1;
 		}
         return (int)(Math.floor(backoffFactor * curr));
     }
 
-    public void probe(HttpRoute route) {
+    public void probe(final HttpRoute route) {
         synchronized(connPerRoute) {
             int curr = connPerRoute.getMaxPerRoute(route);
             int max = (curr >= cap) ? cap : curr + 1;
@@ -117,7 +117,7 @@ public class AIMDBackoffManager implements BackoffManager {
         }
     }
 
-    private Long getLastUpdate(Map<HttpRoute,Long> updates, HttpRoute route) {
+    private Long getLastUpdate(final Map<HttpRoute,Long> updates, final HttpRoute route) {
         Long lastUpdate = updates.get(route);
         if (lastUpdate == null) {
 			lastUpdate = Long.valueOf(0L);
@@ -134,7 +134,7 @@ public class AIMDBackoffManager implements BackoffManager {
      * below 1, however. Defaults to 0.5.
      * @param d must be between 0.0 and 1.0, exclusive.
      */
-    public void setBackoffFactor(double d) {
+    public void setBackoffFactor(final double d) {
         Args.check(d > 0.0 && d < 1.0, "Backoff factor must be 0.0 < f < 1.0");
         backoffFactor = d;
     }
@@ -146,7 +146,7 @@ public class AIMDBackoffManager implements BackoffManager {
      * to 5000L (5 seconds).
      * @param l must be positive
      */
-    public void setCooldownMillis(long l) {
+    public void setCooldownMillis(final long l) {
         Args.positive(coolDown, "Cool down");
         coolDown = l;
     }
@@ -156,7 +156,7 @@ public class AIMDBackoffManager implements BackoffManager {
      * probe up to; defaults to 2 (the default per-host max).
      * @param cap must be >= 1
      */
-    public void setPerHostConnectionCap(int cap) {
+    public void setPerHostConnectionCap(final int cap) {
         Args.positive(cap, "Per host connection cap");
         this.cap = cap;
     }

@@ -103,7 +103,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         }
     }
 
-    public void removeEntry(String url) throws IOException {
+    public void removeEntry(final String url) throws IOException {
         Args.notNull(url, "URL");
         ensureValidState();
         synchronized (this) {

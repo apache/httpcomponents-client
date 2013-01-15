@@ -47,7 +47,7 @@ public class Rfc3492Idn implements Idn {
     private static final char delimiter = '-';
     private static final String ACE_PREFIX = "xn--";
 
-    private int adapt(int delta, int numpoints, boolean firsttime) {
+    private int adapt(int delta, final int numpoints, final boolean firsttime) {
         if (firsttime) {
 			delta = delta / damp;
 		} else {
@@ -62,7 +62,7 @@ public class Rfc3492Idn implements Idn {
         return k + (((base - tmin + 1) * delta) / (delta + skew));
     }
 
-    private int digit(char c) {
+    private int digit(final char c) {
         if ((c >= 'A') && (c <= 'Z')) {
 			return (c - 'A');
 		}
@@ -75,7 +75,7 @@ public class Rfc3492Idn implements Idn {
         throw new IllegalArgumentException("illegal digit: "+ c);
     }
 
-    public String toUnicode(String punycode) {
+    public String toUnicode(final String punycode) {
         StringBuilder unicode = new StringBuilder(punycode.length());
         StringTokenizer tok = new StringTokenizer(punycode, ".");
         while (tok.hasMoreTokens()) {

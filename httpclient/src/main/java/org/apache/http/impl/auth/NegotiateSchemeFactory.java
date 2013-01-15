@@ -44,7 +44,7 @@ public class NegotiateSchemeFactory implements AuthSchemeFactory {
     private final SpnegoTokenGenerator spengoGenerator;
     private final boolean stripPort;
 
-    public NegotiateSchemeFactory(final SpnegoTokenGenerator spengoGenerator, boolean stripPort) {
+    public NegotiateSchemeFactory(final SpnegoTokenGenerator spengoGenerator, final boolean stripPort) {
         super();
         this.spengoGenerator = spengoGenerator;
         this.stripPort = stripPort;

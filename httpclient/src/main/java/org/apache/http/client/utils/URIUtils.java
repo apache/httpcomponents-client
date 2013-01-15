@@ -76,7 +76,7 @@ public class URIUtils {
     public static URI createURI(
             final String scheme,
             final String host,
-            int port,
+            final int port,
             final String path,
             final String query,
             final String fragment) throws URISyntaxException {
@@ -128,7 +128,7 @@ public class URIUtils {
     public static URI rewriteURI(
             final URI uri,
             final HttpHost target,
-            boolean dropFragment) throws URISyntaxException {
+            final boolean dropFragment) throws URISyntaxException {
         Args.notNull(uri, "URI");
         URIBuilder uribuilder = new URIBuilder(uri);
         if (target != null) {
@@ -247,7 +247,7 @@ public class URIUtils {
      * @param uri the original URI
      * @return the URI without dot segments
      */
-    private static URI removeDotSegments(URI uri) {
+    private static URI removeDotSegments(final URI uri) {
         String path = uri.getPath();
         if ((path == null) || (path.indexOf("/.") == -1)) {
             // No dot segments to remove

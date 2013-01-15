@@ -56,7 +56,7 @@ public class DefaultServiceUnavailableRetryStrategy implements ServiceUnavailabl
      */
     private final long retryInterval;
 
-    public DefaultServiceUnavailableRetryStrategy(int maxRetries, int retryInterval) {
+    public DefaultServiceUnavailableRetryStrategy(final int maxRetries, final int retryInterval) {
         super();
         Args.positive(maxRetries, "Max retries");
         Args.positive(retryInterval, "Retry interval");
@@ -68,7 +68,7 @@ public class DefaultServiceUnavailableRetryStrategy implements ServiceUnavailabl
         this(1, 1000);
     }
 
-    public boolean retryRequest(final HttpResponse response, int executionCount, final HttpContext context) {
+    public boolean retryRequest(final HttpResponse response, final int executionCount, final HttpContext context) {
         return executionCount <= maxRetries &&
             response.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE;
     }

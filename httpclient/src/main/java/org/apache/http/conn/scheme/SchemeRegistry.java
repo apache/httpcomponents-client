@@ -69,7 +69,7 @@ public final class SchemeRegistry {
      * @throws IllegalStateException
      *          if the scheme with the given name is not registered
      */
-    public final Scheme getScheme(String name) {
+    public final Scheme getScheme(final String name) {
         Scheme found = get(name);
         if (found == null) {
             throw new IllegalStateException
@@ -89,7 +89,7 @@ public final class SchemeRegistry {
      * @throws IllegalStateException
      *          if a scheme with the respective name is not registered
      */
-    public final Scheme getScheme(HttpHost host) {
+    public final Scheme getScheme(final HttpHost host) {
         Args.notNull(host, "Host");
         return getScheme(host.getSchemeName());
     }
@@ -102,7 +102,7 @@ public final class SchemeRegistry {
      * @return  the scheme, or
      *          <code>null</code> if there is none by this name
      */
-    public final Scheme get(String name) {
+    public final Scheme get(final String name) {
         Args.notNull(name, "Scheme name");
         // leave it to the caller to use the correct name - all lowercase
         //name = name.toLowerCase();
@@ -120,7 +120,7 @@ public final class SchemeRegistry {
      * @return  the scheme previously registered with that name, or
      *          <code>null</code> if none was registered
      */
-    public final Scheme register(Scheme sch) {
+    public final Scheme register(final Scheme sch) {
         Args.notNull(sch, "Scheme");
         Scheme old = registeredSchemes.put(sch.getName(), sch);
         return old;
@@ -134,7 +134,7 @@ public final class SchemeRegistry {
      * @return  the unregistered scheme, or
      *          <code>null</code> if there was none
      */
-    public final Scheme unregister(String name) {
+    public final Scheme unregister(final String name) {
         Args.notNull(name, "Scheme name");
         // leave it to the caller to use the correct name - all lowercase
         //name = name.toLowerCase();

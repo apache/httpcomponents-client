@@ -60,7 +60,7 @@ public abstract class AbstractProtocolTest {
     protected CachingExec impl;
     protected HttpCache cache;
 
-    public static HttpRequestWrapper eqRequest(HttpRequestWrapper in) {
+    public static HttpRequestWrapper eqRequest(final HttpRequestWrapper in) {
         EasyMock.reportMatcher(new RequestEquivalent(in));
         return null;
     }
@@ -108,7 +108,7 @@ public abstract class AbstractProtocolTest {
     }
 
     protected IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndReturn(
-            HttpResponse reponse) throws Exception {
+            final HttpResponse reponse) throws Exception {
         CloseableHttpResponse resp = mockBackend.execute(
                 EasyMock.isA(HttpRoute.class),
                 EasyMock.isA(HttpRequestWrapper.class),

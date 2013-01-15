@@ -111,7 +111,7 @@ public class StringBody extends AbstractContentBody {
     public StringBody(
             final String text,
             final String mimeType,
-            Charset charset) throws UnsupportedEncodingException {
+            final Charset charset) throws UnsupportedEncodingException {
         this(text, ContentType.create(mimeType, charset));
     }
 

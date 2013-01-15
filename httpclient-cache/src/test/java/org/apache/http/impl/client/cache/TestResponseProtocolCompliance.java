@@ -62,12 +62,12 @@ public class TestResponseProtocolCompliance {
         public boolean set;
     }
 
-    private void setMinimalResponseHeaders(HttpResponse resp) {
+    private void setMinimalResponseHeaders(final HttpResponse resp) {
         resp.setHeader("Date", DateUtils.formatDate(new Date()));
         resp.setHeader("Server", "MyServer/1.0");
     }
 
-    private ByteArrayInputStream makeTrackableBody(int nbytes, final Flag closed) {
+    private ByteArrayInputStream makeTrackableBody(final int nbytes, final Flag closed) {
         byte[] buf = HttpTestUtils.getRandomBytes(nbytes);
         ByteArrayInputStream bais = new ByteArrayInputStream(buf) {
             @Override
@@ -78,7 +78,7 @@ public class TestResponseProtocolCompliance {
         return bais;
     }
 
-    private HttpResponse makePartialResponse(int nbytes) {
+    private HttpResponse makePartialResponse(final int nbytes) {
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         setMinimalResponseHeaders(resp);
         resp.setHeader("Content-Length","" + nbytes);

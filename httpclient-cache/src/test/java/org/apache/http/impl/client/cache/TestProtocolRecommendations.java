@@ -112,8 +112,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
      */
     private void cacheGenerated304ForValidatorShouldNotContainEntityHeader(
-            String headerName, String headerValue, String validatorHeader,
-            String validator, String conditionalHeader) throws Exception,
+            final String headerName, final String headerValue, final String validatorHeader,
+            final String validator, final String conditionalHeader) throws Exception,
             IOException {
         HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         HttpResponse resp1 = HttpTestUtils.make200Response();
@@ -137,14 +137,14 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     }
 
     private void cacheGenerated304ForStrongETagValidatorShouldNotContainEntityHeader(
-            String headerName, String headerValue) throws Exception,
+            final String headerName, final String headerValue) throws Exception,
             IOException {
         cacheGenerated304ForValidatorShouldNotContainEntityHeader(headerName,
                 headerValue, "ETag", "\"etag\"", "If-None-Match");
     }
 
     private void cacheGenerated304ForStrongDateValidatorShouldNotContainEntityHeader(
-            String headerName, String headerValue) throws Exception,
+            final String headerName, final String headerValue) throws Exception,
             IOException {
         cacheGenerated304ForValidatorShouldNotContainEntityHeader(headerName,
                 headerValue, "Last-Modified", formatDate(twoMinutesAgo),
@@ -222,7 +222,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     }
 
     private void cacheGenerated304ForStrongValidatorShouldNotContainContentRange(
-            String validatorHeader, String validator, String conditionalHeader)
+            final String validatorHeader, final String validator, final String conditionalHeader)
             throws Exception, IOException, ClientProtocolException {
         HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         req1.setHeader("Range","bytes=0-127");
@@ -308,7 +308,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     }
 
     private void shouldStripEntityHeaderFromOrigin304ResponseToStrongValidation(
-            String entityHeader, String entityHeaderValue) throws Exception,
+            final String entityHeader, final String entityHeaderValue) throws Exception,
             IOException {
         HttpRequestWrapper req = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         req.setHeader("If-None-Match", "\"etag\"");
@@ -416,7 +416,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         return req1;
     }
 
-    private void testDoesNotReturnStaleResponseOnError(HttpRequestWrapper req2)
+    private void testDoesNotReturnStaleResponseOnError(final HttpRequestWrapper req2)
             throws Exception, IOException {
         HttpRequestWrapper req1 = requestToPopulateStaleCacheEntry();
 

@@ -111,7 +111,7 @@ class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatche
         return false;
     }
 
-    public boolean streamClosed(InputStream wrapped) throws IOException {
+    public boolean streamClosed(final InputStream wrapped) throws IOException {
         try {
             boolean open = connReleaseTrigger != null && !connReleaseTrigger.isReleased();
             // this assumes that closing the stream will
@@ -130,7 +130,7 @@ class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatche
         return false;
     }
 
-    public boolean streamAbort(InputStream wrapped) throws IOException {
+    public boolean streamAbort(final InputStream wrapped) throws IOException {
         cleanup();
         return false;
     }

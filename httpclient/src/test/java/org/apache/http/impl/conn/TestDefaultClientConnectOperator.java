@@ -72,7 +72,7 @@ public class TestDefaultClientConnectOperator {
         operator.resolveHostname("localhost");
     }
 
-    private InetAddress[] translateIp(String ip) throws UnknownHostException {
+    private InetAddress[] translateIp(final String ip) throws UnknownHostException {
         String[] ipParts = ip.split("\\.");
 
         byte[] byteIpAddress = new byte[4];

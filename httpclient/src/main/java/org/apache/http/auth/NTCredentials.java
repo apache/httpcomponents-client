@@ -60,7 +60,7 @@ public class NTCredentials implements Credentials, Serializable {
      *
      * @param usernamePassword the domain/username:password formed string
      */
-    public NTCredentials(String usernamePassword) {
+    public NTCredentials(final String usernamePassword) {
         super();
         Args.notNull(usernamePassword, "Username:password string");
         String username;
@@ -149,7 +149,7 @@ public class NTCredentials implements Credentials, Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
 			return true;
 		}

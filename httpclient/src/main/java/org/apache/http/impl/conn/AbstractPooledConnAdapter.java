@@ -61,8 +61,8 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
      * @param manager   the connection manager
      * @param entry     the pool entry for the connection being wrapped
      */
-    protected AbstractPooledConnAdapter(ClientConnectionManager manager,
-                                        AbstractPoolEntry entry) {
+    protected AbstractPooledConnAdapter(final ClientConnectionManager manager,
+                                        final AbstractPoolEntry entry) {
         super(manager, entry.connection);
         this.poolEntry = entry;
     }
@@ -119,29 +119,29 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         return (entry.tracker == null) ? null : entry.tracker.toRoute();
     }
 
-    public void open(HttpRoute route,
-                     HttpContext context, HttpParams params)
+    public void open(final HttpRoute route,
+                     final HttpContext context, final HttpParams params)
         throws IOException {
         AbstractPoolEntry entry = getPoolEntry();
         assertValid(entry);
         entry.open(route, context, params);
     }
 
-    public void tunnelTarget(boolean secure, HttpParams params)
+    public void tunnelTarget(final boolean secure, final HttpParams params)
         throws IOException {
         AbstractPoolEntry entry = getPoolEntry();
         assertValid(entry);
         entry.tunnelTarget(secure, params);
     }
 
-    public void tunnelProxy(HttpHost next, boolean secure, HttpParams params)
+    public void tunnelProxy(final HttpHost next, final boolean secure, final HttpParams params)
         throws IOException {
         AbstractPoolEntry entry = getPoolEntry();
         assertValid(entry);
         entry.tunnelProxy(next, secure, params);
     }
 
-    public void layerProtocol(HttpContext context, HttpParams params)
+    public void layerProtocol(final HttpContext context, final HttpParams params)
         throws IOException {
         AbstractPoolEntry entry = getPoolEntry();
         assertValid(entry);

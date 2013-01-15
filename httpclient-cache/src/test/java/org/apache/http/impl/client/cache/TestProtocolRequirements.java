@@ -299,7 +299,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * these field values when a message is forwarded."
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
      */
-    private void testOrderOfMultipleHeadersIsPreservedOnRequests(String h, HttpRequestWrapper request)
+    private void testOrderOfMultipleHeadersIsPreservedOnRequests(final String h, final HttpRequestWrapper request)
             throws Exception {
         Capture<HttpRequestWrapper> reqCapture = new Capture<HttpRequestWrapper>();
 
@@ -422,7 +422,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         testOrderOfMultipleHeadersIsPreservedOnRequests("Warning", request);
     }
 
-    private void testOrderOfMultipleHeadersIsPreservedOnResponses(String h) throws Exception {
+    private void testOrderOfMultipleHeadersIsPreservedOnResponses(final String h) throws Exception {
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.isA(HttpRoute.class),
@@ -500,7 +500,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec6.html#sec6.1.1
      */
-    private void testUnknownResponseStatusCodeIsNotCached(int code) throws Exception {
+    private void testUnknownResponseStatusCodeIsNotCached(final int code) throws Exception {
 
         emptyMockCacheExpectsNoPuts();
 
@@ -934,8 +934,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.4
      */
-    private void testHEADResponseWithUpdatedEntityFieldsMakeACacheEntryStale(String eHeader,
-            String oldVal, String newVal) throws Exception {
+    private void testHEADResponseWithUpdatedEntityFieldsMakeACacheEntryStale(final String eHeader,
+            final String oldVal, final String newVal) throws Exception {
 
         // put something cacheable in the cache
         HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
@@ -2987,7 +2987,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * for validation, but we can't tell if we receive a conditional request
      * from upstream.
      */
-    private HttpResponse testRequestWithWeakETagValidatorIsNotAllowed(String header)
+    private HttpResponse testRequestWithWeakETagValidatorIsNotAllowed(final String header)
             throws Exception {
         Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
@@ -3332,7 +3332,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * request or response, and it MUST NOT add any of these fields if not
      * already present: - Content-Location - Content-MD5 - ETag - Last-Modified
      */
-    private void testDoesNotModifyHeaderFromOrigin(String header, String value) throws Exception {
+    private void testDoesNotModifyHeaderFromOrigin(final String header, final String value) throws Exception {
         originResponse = Proxies.enhanceResponse(HttpTestUtils.make200Response());
         originResponse.setHeader(header, value);
 
@@ -3368,7 +3368,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         testDoesNotModifyHeaderFromOrigin("Last-Modified", lm);
     }
 
-    private void testDoesNotAddHeaderToOriginResponse(String header) throws Exception {
+    private void testDoesNotAddHeaderToOriginResponse(final String header) throws Exception {
         originResponse.removeHeaders(header);
 
         backendExpectsAnyRequest().andReturn(originResponse);
@@ -3400,7 +3400,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         testDoesNotAddHeaderToOriginResponse("Last-Modified");
     }
 
-    private void testDoesNotModifyHeaderFromOriginOnCacheHit(String header, String value)
+    private void testDoesNotModifyHeaderFromOriginOnCacheHit(final String header, final String value)
             throws Exception {
 
         HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
@@ -3444,7 +3444,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         testDoesNotModifyHeaderFromOriginOnCacheHit("Last-Modified", lm);
     }
 
-    private void testDoesNotAddHeaderOnCacheHit(String header) throws Exception {
+    private void testDoesNotAddHeaderOnCacheHit(final String header) throws Exception {
 
         HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
@@ -3484,7 +3484,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         testDoesNotAddHeaderOnCacheHit("Last-Modified");
     }
 
-    private void testDoesNotModifyHeaderOnRequest(String header, String value) throws Exception {
+    private void testDoesNotModifyHeaderOnRequest(final String header, final String value) throws Exception {
         BasicHttpEntityEnclosingRequest req =
             new BasicHttpEntityEnclosingRequest("POST","/",HttpVersion.HTTP_1_1);
         req.setEntity(HttpTestUtils.makeBody(128));
@@ -3531,7 +3531,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         testDoesNotModifyHeaderOnRequest("Last-Modified", lm);
     }
 
-    private void testDoesNotAddHeaderToRequestIfNotPresent(String header) throws Exception {
+    private void testDoesNotAddHeaderToRequestIfNotPresent(final String header) throws Exception {
         BasicHttpEntityEnclosingRequest req =
             new BasicHttpEntityEnclosingRequest("POST","/",HttpVersion.HTTP_1_1);
         req.setEntity(HttpTestUtils.makeBody(128));
@@ -3642,7 +3642,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * - Content-Type"
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.2
      */
-    private void testDoesNotModifyHeaderFromOriginResponseWithNoTransform(String header, String value) throws Exception {
+    private void testDoesNotModifyHeaderFromOriginResponseWithNoTransform(final String header, final String value) throws Exception {
         originResponse.addHeader("Cache-Control","no-transform");
         originResponse.setHeader(header, value);
 
@@ -3676,7 +3676,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         testDoesNotModifyHeaderFromOriginResponseWithNoTransform("Content-Type","text/html;charset=utf-8");
     }
 
-    private void testDoesNotModifyHeaderOnCachedResponseWithNoTransform(String header, String value) throws Exception {
+    private void testDoesNotModifyHeaderOnCachedResponseWithNoTransform(final String header, final String value) throws Exception {
         HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
@@ -3853,7 +3853,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * with corresponding headers received in the incoming response,
      * except for Warning headers as described immediately above."
      */
-    private void decorateWithEndToEndHeaders(HttpResponse r) {
+    private void decorateWithEndToEndHeaders(final HttpResponse r) {
         r.setHeader("Allow","GET");
         r.setHeader("Content-Encoding","gzip");
         r.setHeader("Content-Language","en");
@@ -4646,7 +4646,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.9
      */
     protected void testUnsafeOperationInvalidatesCacheForThatUri(
-            HttpRequestWrapper unsafeReq) throws Exception, IOException {
+            final HttpRequestWrapper unsafeReq) throws Exception, IOException {
         HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         HttpResponse resp1 = HttpTestUtils.make200Response();
@@ -4692,7 +4692,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     protected void testUnsafeMethodInvalidatesCacheForHeaderUri(
-            HttpRequestWrapper unsafeReq) throws Exception, IOException {
+            final HttpRequestWrapper unsafeReq) throws Exception, IOException {
         HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/content", HttpVersion.HTTP_1_1));
         HttpResponse resp1 = HttpTestUtils.make200Response();
@@ -4720,19 +4720,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     protected void testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(
-            HttpRequestWrapper unsafeReq) throws Exception, IOException {
+            final HttpRequestWrapper unsafeReq) throws Exception, IOException {
         unsafeReq.setHeader("Content-Location","http://foo.example.com/content");
         testUnsafeMethodInvalidatesCacheForHeaderUri(unsafeReq);
     }
 
     protected void testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(
-            HttpRequestWrapper unsafeReq) throws Exception, IOException {
+            final HttpRequestWrapper unsafeReq) throws Exception, IOException {
         unsafeReq.setHeader("Content-Location","/content");
         testUnsafeMethodInvalidatesCacheForHeaderUri(unsafeReq);
     }
 
     protected void testUnsafeMethodInvalidatesCacheForUriInLocationHeader(
-            HttpRequestWrapper unsafeReq) throws Exception, IOException {
+            final HttpRequestWrapper unsafeReq) throws Exception, IOException {
         unsafeReq.setHeader("Location","http://foo.example.com/content");
         testUnsafeMethodInvalidatesCacheForHeaderUri(unsafeReq);
     }
@@ -4798,7 +4798,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      *  http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.10
      */
     protected void testUnsafeMethodDoesNotInvalidateCacheForHeaderUri(
-            HttpRequestWrapper unsafeReq) throws Exception, IOException {
+            final HttpRequestWrapper unsafeReq) throws Exception, IOException {
 
         HttpHost otherHost = new HttpHost("bar.example.com");
         HttpRoute otherRoute = new HttpRoute(otherHost);
@@ -4824,18 +4824,18 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     protected void testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(
-            HttpRequestWrapper unsafeReq) throws Exception, IOException {
+            final HttpRequestWrapper unsafeReq) throws Exception, IOException {
         unsafeReq.setHeader("Content-Location","http://bar.example.com/content");
         testUnsafeMethodDoesNotInvalidateCacheForHeaderUri(unsafeReq);
     }
 
     protected void testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(
-            HttpRequestWrapper unsafeReq) throws Exception, IOException {
+            final HttpRequestWrapper unsafeReq) throws Exception, IOException {
         unsafeReq.setHeader("Location","http://bar.example.com/content");
         testUnsafeMethodDoesNotInvalidateCacheForHeaderUri(unsafeReq);
     }
 
-    protected HttpRequestWrapper makeRequestWithBody(String method, String requestUri) {
+    protected HttpRequestWrapper makeRequestWithBody(final String method, final String requestUri) {
         HttpEntityEnclosingRequest request =
             new BasicHttpEntityEnclosingRequest(method, requestUri, HttpVersion.HTTP_1_1);
         int nbytes = 128;
@@ -4891,7 +4891,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.11
      */
-    private void testRequestIsWrittenThroughToOrigin(HttpRequest req)
+    private void testRequestIsWrittenThroughToOrigin(final HttpRequest req)
         throws Exception {
         HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
         HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
@@ -5034,7 +5034,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      *    it MAY be returned in reply to any subsequent request.
      */
     protected void testSharedCacheRevalidatesAuthorizedResponse(
-            HttpResponse authorizedResponse, int minTimes, int maxTimes) throws Exception,
+            final HttpResponse authorizedResponse, final int minTimes, final int maxTimes) throws Exception,
             IOException {
         if (config.isSharedCache()) {
             String authorization = "Basic dXNlcjpwYXNzd2Q=";
@@ -5107,7 +5107,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     protected void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponse(
-            HttpResponse authorizedResponse) throws Exception, IOException,
+            final HttpResponse authorizedResponse) throws Exception, IOException,
             ClientProtocolException {
         if (config.isSharedCache()) {
             String authorization1 = "Basic dXNlcjpwYXNzd2Q=";
@@ -5273,7 +5273,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
      */
-    protected void testCacheIsNotUsedWhenRespondingToRequest(HttpRequestWrapper req)
+    protected void testCacheIsNotUsedWhenRespondingToRequest(final HttpRequestWrapper req)
         throws Exception {
         HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
@@ -5333,7 +5333,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
      */
     protected void testStaleCacheResponseMustBeRevalidatedWithOrigin(
-            HttpResponse staleResponse) throws Exception {
+            final HttpResponse staleResponse) throws Exception {
         HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
@@ -5393,7 +5393,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * for any reason, it MUST generate a 504 (Gateway Timeout) response."
      */
     protected void testGenerates504IfCannotRevalidateStaleResponse(
-            HttpResponse staleResponse) throws Exception {
+            final HttpResponse staleResponse) throws Exception {
         HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
@@ -6018,7 +6018,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
 
-    private void assertValidViaHeader(String via) {
+    private void assertValidViaHeader(final String via) {
         //        Via =  "Via" ":" 1#( received-protocol received-by [ comment ] )
         //        received-protocol = [ protocol-name "/" ] protocol-version
         //        protocol-name     = token
@@ -6056,7 +6056,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         }
     }
 
-    private boolean isValidComment(String s) {
+    private boolean isValidComment(final String s) {
         final String leafComment = "^\\(([^\\p{Cntrl}()]|\\\\\\p{ASCII})*\\)$";
         final String nestedPrefix = "^\\(([^\\p{Cntrl}()]|\\\\\\p{ASCII})*\\(";
         final String nestedSuffix = "\\)([^\\p{Cntrl}()]|\\\\\\p{ASCII})*\\)$";

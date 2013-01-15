@@ -53,7 +53,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
      * @param usernamePassword the username:password formed string
      * @see #toString
      */
-    public UsernamePasswordCredentials(String usernamePassword) {
+    public UsernamePasswordCredentials(final String usernamePassword) {
         super();
         Args.notNull(usernamePassword, "Username:password string");
         int atColon = usernamePassword.indexOf(':');
@@ -73,7 +73,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
      * @param userName the user name
      * @param password the password
      */
-    public UsernamePasswordCredentials(String userName, String password) {
+    public UsernamePasswordCredentials(final String userName, final String password) {
         super();
         Args.notNull(userName, "Username");
         this.principal = new BasicUserPrincipal(userName);
@@ -98,7 +98,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
 			return true;
 		}

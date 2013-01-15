@@ -55,7 +55,7 @@ public final class ConnPerRouteBean implements ConnPerRoute {
 
     private volatile int defaultMax;
 
-    public ConnPerRouteBean(int defaultMax) {
+    public ConnPerRouteBean(final int defaultMax) {
         super();
         this.maxPerHostMap = new ConcurrentHashMap<HttpRoute, Integer>();
         setDefaultMaxPerRoute(defaultMax);
@@ -76,12 +76,12 @@ public final class ConnPerRouteBean implements ConnPerRoute {
         return this.defaultMax;
     }
 
-    public void setDefaultMaxPerRoute(int max) {
+    public void setDefaultMaxPerRoute(final int max) {
         Args.positive(max, "Defautl max per route");
         this.defaultMax = max;
     }
 
-    public void setMaxForRoute(final HttpRoute route, int max) {
+    public void setMaxForRoute(final HttpRoute route, final int max) {
         Args.notNull(route, "HTTP route");
         Args.positive(max, "Max per route");
         this.maxPerHostMap.put(route, Integer.valueOf(max));

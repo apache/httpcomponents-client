@@ -68,7 +68,7 @@ class ResponseProtocolCompliance {
      * @param response The {@link HttpResponse} from the origin server
      * @throws IOException Bad things happened
      */
-    public void ensureProtocolCompliance(HttpRequestWrapper request, HttpResponse response)
+    public void ensureProtocolCompliance(final HttpRequestWrapper request, final HttpResponse response)
             throws IOException {
         if (backendResponseMustNotHaveBody(request, response)) {
             consumeBody(response);
@@ -92,7 +92,7 @@ class ResponseProtocolCompliance {
         warningsWithNonMatchingWarnDatesAreRemoved(response);
     }
 
-    private void consumeBody(HttpResponse response) throws IOException {
+    private void consumeBody(final HttpResponse response) throws IOException {
         HttpEntity body = response.getEntity();
         if (body != null) {
 			EntityUtils.consume(body);
@@ -100,7 +100,7 @@ class ResponseProtocolCompliance {
     }
 
     private void warningsWithNonMatchingWarnDatesAreRemoved(
-            HttpResponse response) {
+            final HttpResponse response) {
         Date responseDate = null;
         try {
             responseDate = DateUtils.parseDate(response.getFirstHeader(HTTP.DATE_HEADER).getValue());
@@ -138,7 +138,7 @@ class ResponseProtocolCompliance {
         }
     }
 
-    private void identityIsNotUsedInContentEncoding(HttpResponse response) {
+    private void identityIsNotUsedInContentEncoding(final HttpResponse response) {
         Header[] hdrs = response.getHeaders(HTTP.CONTENT_ENCODING);
         if (hdrs == null || hdrs.length == 0) {
 			return;
@@ -173,15 +173,15 @@ class ResponseProtocolCompliance {
         }
     }
 
-    private void ensure206ContainsDateHeader(HttpResponse response) {
+    private void ensure206ContainsDateHeader(final HttpResponse response) {
         if (response.getFirstHeader(HTTP.DATE_HEADER) == null) {
             response.addHeader(HTTP.DATE_HEADER, DateUtils.formatDate(new Date()));
         }
 
     }
 
-    private void ensurePartialContentIsNotSentToAClientThatDidNotRequestIt(HttpRequest request,
-            HttpResponse response) throws IOException {
+    private void ensurePartialContentIsNotSentToAClientThatDidNotRequestIt(final HttpRequest request,
+            final HttpResponse response) throws IOException {
         if (request.getFirstHeader(HeaderConstants.RANGE) != null
                 || response.getStatusLine().getStatusCode() != HttpStatus.SC_PARTIAL_CONTENT) {
 			return;
@@ -191,8 +191,8 @@ class ResponseProtocolCompliance {
         throw new ClientProtocolException(UNEXPECTED_PARTIAL_CONTENT);
     }
 
-    private void ensure200ForOPTIONSRequestWithNoBodyHasContentLengthZero(HttpRequest request,
-            HttpResponse response) {
+    private void ensure200ForOPTIONSRequestWithNoBodyHasContentLengthZero(final HttpRequest request,
+            final HttpResponse response) {
         if (!request.getRequestLine().getMethod().equalsIgnoreCase(HeaderConstants.OPTIONS_METHOD)) {
             return;
         }
@@ -206,7 +206,7 @@ class ResponseProtocolCompliance {
         }
     }
 
-    private void ensure304DoesNotContainExtraEntityHeaders(HttpResponse response) {
+    private void ensure304DoesNotContainExtraEntityHeaders(final HttpResponse response) {
         String[] disallowedEntityHeaders = { HeaderConstants.ALLOW, HTTP.CONTENT_ENCODING,
                 "Content-Language", HTTP.CONTENT_LEN, "Content-MD5",
                 "Content-Range", HTTP.CONTENT_TYPE, HeaderConstants.LAST_MODIFIED
@@ -218,15 +218,15 @@ class ResponseProtocolCompliance {
         }
     }
 
-    private boolean backendResponseMustNotHaveBody(HttpRequest request, HttpResponse backendResponse) {
+    private boolean backendResponseMustNotHaveBody(final HttpRequest request, final HttpResponse backendResponse) {
         return HeaderConstants.HEAD_METHOD.equals(request.getRequestLine().getMethod())
                 || backendResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT
                 || backendResponse.getStatusLine().getStatusCode() == HttpStatus.SC_RESET_CONTENT
                 || backendResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED;
     }
 
-    private void requestDidNotExpect100ContinueButResponseIsOne(HttpRequestWrapper request,
-            HttpResponse response) throws IOException {
+    private void requestDidNotExpect100ContinueButResponseIsOne(final HttpRequestWrapper request,
+            final HttpResponse response) throws IOException {
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CONTINUE) {
             return;
         }
@@ -241,8 +241,8 @@ class ResponseProtocolCompliance {
         throw new ClientProtocolException(UNEXPECTED_100_CONTINUE);
     }
 
-    private void transferEncodingIsNotReturnedTo1_0Client(HttpRequestWrapper request,
-            HttpResponse response) {
+    private void transferEncodingIsNotReturnedTo1_0Client(final HttpRequestWrapper request,
+            final HttpResponse response) {
         HttpRequest originalRequest = request.getOriginal();
         if (originalRequest.getProtocolVersion().compareToVersion(HttpVersion.HTTP_1_1) >= 0) {
             return;
@@ -251,7 +251,7 @@ class ResponseProtocolCompliance {
         removeResponseTransferEncoding(response);
     }
 
-    private void removeResponseTransferEncoding(HttpResponse response) {
+    private void removeResponseTransferEncoding(final HttpResponse response) {
         response.removeHeaders("TE");
         response.removeHeaders(HTTP.TRANSFER_ENCODING);
     }

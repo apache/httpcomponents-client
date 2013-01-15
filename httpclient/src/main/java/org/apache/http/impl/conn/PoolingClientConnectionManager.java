@@ -135,7 +135,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
      *
      * @return  the connection operator to use
      */
-    protected ClientConnectionOperator createConnectionOperator(SchemeRegistry schreg) {
+    protected ClientConnectionOperator createConnectionOperator(final SchemeRegistry schreg) {
             return new DefaultClientConnectionOperator(schreg, this.dnsResolver);
     }
 
@@ -282,7 +282,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         this.log.debug("Connection manager shut down");
     }
 
-    public void closeIdleConnections(long idleTimeout, TimeUnit tunit) {
+    public void closeIdleConnections(final long idleTimeout, final TimeUnit tunit) {
         if (this.log.isDebugEnabled()) {
             this.log.debug("Closing connections idle longer than " + idleTimeout + " " + tunit);
         }
@@ -298,7 +298,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         return this.pool.getMaxTotal();
     }
 
-    public void setMaxTotal(int max) {
+    public void setMaxTotal(final int max) {
         this.pool.setMaxTotal(max);
     }
 
@@ -306,7 +306,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         return this.pool.getDefaultMaxPerRoute();
     }
 
-    public void setDefaultMaxPerRoute(int max) {
+    public void setDefaultMaxPerRoute(final int max) {
         this.pool.setDefaultMaxPerRoute(max);
     }
 
@@ -314,7 +314,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         return this.pool.getMaxPerRoute(route);
     }
 
-    public void setMaxPerRoute(final HttpRoute route, int max) {
+    public void setMaxPerRoute(final HttpRoute route, final int max) {
         this.pool.setMaxPerRoute(route, max);
     }
 

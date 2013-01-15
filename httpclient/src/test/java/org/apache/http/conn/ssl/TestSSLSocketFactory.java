@@ -121,18 +121,18 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
 
         private boolean fired = false;
 
-        public boolean verify(String host, SSLSession session) {
+        public boolean verify(final String host, final SSLSession session) {
             return true;
         }
 
-        public void verify(String host, SSLSocket ssl) throws IOException {
+        public void verify(final String host, final SSLSocket ssl) throws IOException {
             this.fired = true;
         }
 
-        public void verify(String host, String[] cns, String[] subjectAlts) throws SSLException {
+        public void verify(final String host, final String[] cns, final String[] subjectAlts) throws SSLException {
         }
 
-        public void verify(String host, X509Certificate cert) throws SSLException {
+        public void verify(final String host, final X509Certificate cert) throws SSLException {
         }
 
         public boolean isFired() {

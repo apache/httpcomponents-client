@@ -90,7 +90,7 @@ public class RFC2965PortAttributeHandler implements CookieAttributeHandler {
      * @return true returns <tt>true</tt> if the given port exists in
      *         the given ports list; <tt>false</tt> otherwise.
      */
-    private static boolean portMatch(int port, int[] ports) {
+    private static boolean portMatch(final int port, final int[] ports) {
         boolean portInList = false;
         for (int port2 : ports) {
             if (port == port2) {

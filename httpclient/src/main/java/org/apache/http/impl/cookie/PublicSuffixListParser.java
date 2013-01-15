@@ -45,7 +45,7 @@ public class PublicSuffixListParser {
     private static final int MAX_LINE_LEN = 256;
     private final PublicSuffixFilter filter;
 
-    PublicSuffixListParser(PublicSuffixFilter filter) {
+    PublicSuffixListParser(final PublicSuffixFilter filter) {
         this.filter = filter;
     }
 
@@ -57,7 +57,7 @@ public class PublicSuffixListParser {
      * @param list the suffix list. The caller is responsible for closing the reader.
      * @throws IOException on error while reading from list
      */
-    public void parse(Reader list) throws IOException {
+    public void parse(final Reader list) throws IOException {
         Collection<String> rules = new ArrayList<String>();
         Collection<String> exceptions = new ArrayList<String>();
         BufferedReader r = new BufferedReader(list);
@@ -101,7 +101,7 @@ public class PublicSuffixListParser {
      * @return false when the end of the stream is reached
      * @throws IOException
      */
-    private boolean readLine(Reader r, StringBuilder sb) throws IOException {
+    private boolean readLine(final Reader r, final StringBuilder sb) throws IOException {
         sb.setLength(0);
         int b;
         boolean hitWhitespace = false;

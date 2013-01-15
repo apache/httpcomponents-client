@@ -100,7 +100,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
      * @param address where the <i>memcached</i> daemon is running
      * @throws IOException in case of an error
      */
-    public MemcachedHttpCacheStorage(InetSocketAddress address) throws IOException {
+    public MemcachedHttpCacheStorage(final InetSocketAddress address) throws IOException {
         this(new MemcachedClient(address));
     }
 
@@ -109,7 +109,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
      * <i>memcached</i> client.
      * @param cache client to use for communicating with <i>memcached</i>
      */
-    public MemcachedHttpCacheStorage(MemcachedClientIF cache) {
+    public MemcachedHttpCacheStorage(final MemcachedClientIF cache) {
         this(cache, CacheConfig.DEFAULT, new MemcachedCacheEntryFactoryImpl(),
                 new SHA256KeyHashingScheme());
     }
@@ -132,8 +132,8 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
      * @deprecated (4.2) do not use
      */
     @Deprecated
-    public MemcachedHttpCacheStorage(MemcachedClientIF client, CacheConfig config,
-            HttpCacheEntrySerializer serializer) {
+    public MemcachedHttpCacheStorage(final MemcachedClientIF client, final CacheConfig config,
+            final HttpCacheEntrySerializer serializer) {
         this(client, config, new MemcachedCacheEntryFactoryImpl(),
                 new SHA256KeyHashingScheme());
     }
@@ -149,16 +149,16 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
      * @param keyHashingScheme how to map higher-level logical "storage keys"
      *   onto "cache keys" suitable for use with memcached
      */
-    public MemcachedHttpCacheStorage(MemcachedClientIF client, CacheConfig config,
-            MemcachedCacheEntryFactory memcachedCacheEntryFactory,
-            KeyHashingScheme keyHashingScheme) {
+    public MemcachedHttpCacheStorage(final MemcachedClientIF client, final CacheConfig config,
+            final MemcachedCacheEntryFactory memcachedCacheEntryFactory,
+            final KeyHashingScheme keyHashingScheme) {
         this.client = client;
         this.maxUpdateRetries = config.getMaxUpdateRetries();
         this.memcachedCacheEntryFactory = memcachedCacheEntryFactory;
         this.keyHashingScheme = keyHashingScheme;
     }
 
-    public void putEntry(String url, HttpCacheEntry entry) throws IOException  {
+    public void putEntry(final String url, final HttpCacheEntry entry) throws IOException  {
         byte[] bytes = serializeEntry(url, entry);
         String key = getCacheKey(url);
         if (key == null) {
@@ -171,7 +171,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         }
     }
 
-    private String getCacheKey(String url) {
+    private String getCacheKey(final String url) {
         try {
             return keyHashingScheme.hash(url);
         } catch (MemcachedKeyHashingException mkhe) {
@@ -179,7 +179,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         }
     }
 
-    private byte[] serializeEntry(String url, HttpCacheEntry hce) throws IOException {
+    private byte[] serializeEntry(final String url, final HttpCacheEntry hce) throws IOException {
         MemcachedCacheEntry mce = memcachedCacheEntryFactory.getMemcachedCacheEntry(url, hce);
         try {
             return mce.toByteArray();
@@ -190,7 +190,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         }
     }
 
-    private byte[] convertToByteArray(Object o) {
+    private byte[] convertToByteArray(final Object o) {
         if (o == null) {
 			return null;
 		}
@@ -201,7 +201,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         return (byte[])o;
     }
 
-    private MemcachedCacheEntry reconstituteEntry(Object o) throws IOException {
+    private MemcachedCacheEntry reconstituteEntry(final Object o) throws IOException {
         byte[] bytes = convertToByteArray(o);
         if (bytes == null) {
 			return null;
@@ -215,7 +215,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         return mce;
     }
 
-    public HttpCacheEntry getEntry(String url) throws IOException {
+    public HttpCacheEntry getEntry(final String url) throws IOException {
         String key = getCacheKey(url);
         if (key == null) {
 			return null;
@@ -231,7 +231,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         }
     }
 
-    public void removeEntry(String url) throws IOException {
+    public void removeEntry(final String url) throws IOException {
         String key = getCacheKey(url);
         if (key == null) {
 			return;
@@ -243,7 +243,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         }
     }
 
-    public void updateEntry(String url, HttpCacheUpdateCallback callback)
+    public void updateEntry(final String url, final HttpCacheUpdateCallback callback)
             throws HttpCacheUpdateException, IOException {
         int numRetries = 0;
         String key = getCacheKey(url);

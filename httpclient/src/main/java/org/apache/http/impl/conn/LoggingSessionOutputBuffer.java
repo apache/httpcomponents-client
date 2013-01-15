@@ -69,21 +69,21 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
         this(out, wire, null);
     }
 
-    public void write(byte[] b, int off, int len) throws IOException {
+    public void write(final byte[] b, final int off, final int len) throws IOException {
         this.out.write(b,  off,  len);
         if (this.wire.enabled()) {
             this.wire.output(b, off, len);
         }
     }
 
-    public void write(int b) throws IOException {
+    public void write(final int b) throws IOException {
         this.out.write(b);
         if (this.wire.enabled()) {
             this.wire.output(b);
         }
     }
 
-    public void write(byte[] b) throws IOException {
+    public void write(final byte[] b) throws IOException {
         this.out.write(b);
         if (this.wire.enabled()) {
             this.wire.output(b);

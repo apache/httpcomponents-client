@@ -49,7 +49,7 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
 
     private final CacheMap entries;
 
-    public BasicHttpCacheStorage(CacheConfig config) {
+    public BasicHttpCacheStorage(final CacheConfig config) {
         super();
         this.entries = new CacheMap(config.getMaxCacheEntries());
     }
@@ -62,7 +62,7 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
      * @param entry
      *            HttpCacheEntry to place in the cache
      */
-    public synchronized void putEntry(String url, HttpCacheEntry entry) throws IOException {
+    public synchronized void putEntry(final String url, final HttpCacheEntry entry) throws IOException {
         entries.put(url, entry);
     }
 
@@ -73,7 +73,7 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
      *            Url that is the cache key
      * @return HttpCacheEntry if one exists, or null for cache miss
      */
-    public synchronized HttpCacheEntry getEntry(String url) throws IOException {
+    public synchronized HttpCacheEntry getEntry(final String url) throws IOException {
         return entries.get(url);
     }
 
@@ -83,13 +83,13 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
      * @param url
      *            Url that is the cache key
      */
-    public synchronized void removeEntry(String url) throws IOException {
+    public synchronized void removeEntry(final String url) throws IOException {
         entries.remove(url);
     }
 
     public synchronized void updateEntry(
-            String url,
-            HttpCacheUpdateCallback callback) throws IOException {
+            final String url,
+            final HttpCacheUpdateCallback callback) throws IOException {
         HttpCacheEntry existingEntry = entries.get(url);
         entries.put(url, callback.update(existingEntry));
     }

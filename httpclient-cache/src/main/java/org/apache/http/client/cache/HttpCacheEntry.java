@@ -117,8 +117,8 @@ public class HttpCacheEntry implements Serializable {
      *          Header[] from original HTTP Response
      * @param resource representing origin response body
      */
-    public HttpCacheEntry(Date requestDate, Date responseDate, StatusLine statusLine,
-            Header[] responseHeaders, Resource resource) {
+    public HttpCacheEntry(final Date requestDate, final Date responseDate, final StatusLine statusLine,
+            final Header[] responseHeaders, final Resource resource) {
         this(requestDate, responseDate, statusLine, responseHeaders, resource,
                 new HashMap<String,String>());
     }
@@ -180,7 +180,7 @@ public class HttpCacheEntry implements Serializable {
      * Returns the first header from the origin response with the given
      * name.
      */
-    public Header getFirstHeader(String name) {
+    public Header getFirstHeader(final String name) {
         return responseHeaders.getFirstHeader(name);
     }
 
@@ -188,7 +188,7 @@ public class HttpCacheEntry implements Serializable {
      * Gets all the headers with the given name that were on the origin
      * response.
      */
-    public Header[] getHeaders(String name) {
+    public Header[] getHeaders(final String name) {
         return responseHeaders.getHeaders(name);
     }
 

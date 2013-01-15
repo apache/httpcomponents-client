@@ -44,7 +44,7 @@ public class KerberosScheme extends GGSSchemeBase {
 
     private static final String KERBEROS_OID = "1.2.840.113554.1.2.2";
 
-    public KerberosScheme(boolean stripPort) {
+    public KerberosScheme(final boolean stripPort) {
         super(stripPort);
     }
 
@@ -87,7 +87,7 @@ public class KerberosScheme extends GGSSchemeBase {
      *
      * @return <code>null</code>
      */
-    public String getParameter(String name) {
+    public String getParameter(final String name) {
         Args.notNull(name, "Parameter name");
         return null;
     }

@@ -51,9 +51,9 @@ public class BasicPoolEntry extends AbstractPoolEntry {
     private long validUntil;
     private long expiry;
 
-    public BasicPoolEntry(ClientConnectionOperator op,
-                          HttpRoute route,
-                          ReferenceQueue<Object> queue) {
+    public BasicPoolEntry(final ClientConnectionOperator op,
+                          final HttpRoute route,
+                          final ReferenceQueue<Object> queue) {
         super(op, route);
         Args.notNull(route, "HTTP route");
         this.created = System.currentTimeMillis();
@@ -67,8 +67,8 @@ public class BasicPoolEntry extends AbstractPoolEntry {
      * @param op      the connection operator
      * @param route   the planned route for the connection
      */
-    public BasicPoolEntry(ClientConnectionOperator op,
-                          HttpRoute route) {
+    public BasicPoolEntry(final ClientConnectionOperator op,
+                          final HttpRoute route) {
         this(op, route, -1, TimeUnit.MILLISECONDS);
     }
 
@@ -82,8 +82,8 @@ public class BasicPoolEntry extends AbstractPoolEntry {
      *
      * @since 4.1
      */
-    public BasicPoolEntry(ClientConnectionOperator op,
-                          HttpRoute route, long connTTL, TimeUnit timeunit) {
+    public BasicPoolEntry(final ClientConnectionOperator op,
+                          final HttpRoute route, final long connTTL, final TimeUnit timeunit) {
         super(op, route);
         Args.notNull(route, "HTTP route");
         this.created = System.currentTimeMillis();
@@ -140,7 +140,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
     /**
      * @since 4.1
      */
-    public void updateExpiry(long time, TimeUnit timeunit) {
+    public void updateExpiry(final long time, final TimeUnit timeunit) {
         this.updated = System.currentTimeMillis();
         long newExpiry;
         if (time > 0) {
@@ -154,7 +154,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
     /**
      * @since 4.1
      */
-    public boolean isExpired(long now) {
+    public boolean isExpired(final long now) {
         return now >= this.expiry;
     }
 

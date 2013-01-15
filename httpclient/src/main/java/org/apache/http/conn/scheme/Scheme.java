@@ -214,7 +214,7 @@ public final class Scheme {
      *
      * @return the given port or the defaultPort
      */
-    public final int resolvePort(int port) {
+    public final int resolvePort(final int port) {
         return port <= 0 ? defaultPort : port;
     }
 
@@ -236,7 +236,7 @@ public final class Scheme {
     }
 
     @Override
-    public final boolean equals(Object obj) {
+    public final boolean equals(final Object obj) {
         if (this == obj) {
 			return true;
 		}

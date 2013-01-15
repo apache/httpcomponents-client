@@ -34,7 +34,7 @@ public class MockClock implements Clock {
         return t;
     }
 
-    public void setCurrentTime(long now) {
+    public void setCurrentTime(final long now) {
         t = now;
     }
 

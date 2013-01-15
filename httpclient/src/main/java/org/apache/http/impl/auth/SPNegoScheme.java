@@ -45,7 +45,7 @@ public class SPNegoScheme extends GGSSchemeBase {
 
     private static final String SPNEGO_OID = "1.3.6.1.5.5.2";
 
-    public SPNegoScheme(boolean stripPort) {
+    public SPNegoScheme(final boolean stripPort) {
         super(stripPort);
     }
 
@@ -88,7 +88,7 @@ public class SPNegoScheme extends GGSSchemeBase {
      *
      * @return <code>null</code>
      */
-    public String getParameter(String name) {
+    public String getParameter(final String name) {
         Args.notNull(name, "Parameter name");
         return null;
     }

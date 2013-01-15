@@ -45,7 +45,7 @@ public class KerberosSchemeFactory implements AuthSchemeFactory, AuthSchemeProvi
 
     private final boolean stripPort;
 
-    public KerberosSchemeFactory(boolean stripPort) {
+    public KerberosSchemeFactory(final boolean stripPort) {
         super();
         this.stripPort = stripPort;
     }

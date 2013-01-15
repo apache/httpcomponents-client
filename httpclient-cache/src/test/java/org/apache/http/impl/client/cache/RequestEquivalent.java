@@ -33,11 +33,11 @@ public class RequestEquivalent implements IArgumentMatcher {
 
     private final HttpRequest expected;
 
-    public RequestEquivalent(HttpRequest expected) {
+    public RequestEquivalent(final HttpRequest expected) {
         this.expected = expected;
     }
 
-    public boolean matches(Object actual) {
+    public boolean matches(final Object actual) {
         if (!(actual instanceof HttpRequest)) {
 			return false;
 		}
@@ -45,7 +45,7 @@ public class RequestEquivalent implements IArgumentMatcher {
         return HttpTestUtils.equivalent(expected, other);
     }
 
-    public void appendTo(StringBuffer buf) {
+    public void appendTo(final StringBuffer buf) {
         buf.append("eqRequest(");
         buf.append(expected);
         buf.append(")");

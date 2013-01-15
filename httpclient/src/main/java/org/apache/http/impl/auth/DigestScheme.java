@@ -448,7 +448,7 @@ public class DigestScheme extends RFC2617Scheme {
      * @param binaryData array containing the digest
      * @return encoded MD5, or <CODE>null</CODE> if encoding failed
      */
-    static String encode(byte[] binaryData) {
+    static String encode(final byte[] binaryData) {
         int n = binaryData.length;
         char[] buffer = new char[n * 2];
         for (int i = 0; i < n; i++) {

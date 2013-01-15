@@ -77,7 +77,7 @@ public class TestRedirects extends IntegrationTestBase {
 
         private final int statuscode;
 
-        public BasicRedirectService(int statuscode) {
+        public BasicRedirectService(final int statuscode) {
             super();
             this.statuscode = statuscode > 0 ? statuscode : HttpStatus.SC_MOVED_TEMPORARILY;
         }
@@ -188,7 +188,7 @@ public class TestRedirects extends IntegrationTestBase {
     private static class BogusRedirectService implements HttpRequestHandler {
         private final String url;
 
-        public BogusRedirectService(String redirectUrl) {
+        public BogusRedirectService(final String redirectUrl) {
             super();
             this.url = redirectUrl;
         }

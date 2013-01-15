@@ -53,7 +53,7 @@ public class HttpClientParams {
             (ClientPNames.HANDLE_REDIRECTS, true);
     }
 
-    public static void setRedirecting(final HttpParams params, boolean value) {
+    public static void setRedirecting(final HttpParams params, final boolean value) {
         Args.notNull(params, "HTTP parameters");
         params.setBooleanParameter
             (ClientPNames.HANDLE_REDIRECTS, value);
@@ -65,7 +65,7 @@ public class HttpClientParams {
             (ClientPNames.HANDLE_AUTHENTICATION, true);
     }
 
-    public static void setAuthenticating(final HttpParams params, boolean value) {
+    public static void setAuthenticating(final HttpParams params, final boolean value) {
         Args.notNull(params, "HTTP parameters");
         params.setBooleanParameter
             (ClientPNames.HANDLE_AUTHENTICATION, value);
@@ -91,7 +91,7 @@ public class HttpClientParams {
      *
      * @since 4.2
      */
-    public static void setConnectionManagerTimeout(final HttpParams params, long timeout) {
+    public static void setConnectionManagerTimeout(final HttpParams params, final long timeout) {
         Args.notNull(params, "HTTP parameters");
         params.setLongParameter(ClientPNames.CONN_MANAGER_TIMEOUT, timeout);
     }

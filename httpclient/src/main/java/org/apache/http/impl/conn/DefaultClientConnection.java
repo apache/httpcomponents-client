@@ -114,7 +114,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         }
     }
 
-    public void opening(Socket sock, HttpHost target) throws IOException {
+    public void opening(final Socket sock, final HttpHost target) throws IOException {
         assertNotOpen();
         this.socket = sock;
         this.targetHost = target;
@@ -127,7 +127,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         }
     }
 
-    public void openCompleted(boolean secure, HttpParams params) throws IOException {
+    public void openCompleted(final boolean secure, final HttpParams params) throws IOException {
         Args.notNull(params, "Parameters");
         assertNotOpen();
         this.connSecure = secure;
@@ -228,12 +228,12 @@ public class DefaultClientConnection extends SocketHttpClientConnection
             (buffer, null, responseFactory, params);
     }
 
-    public void bind(Socket socket) throws IOException {
+    public void bind(final Socket socket) throws IOException {
         bind(socket, new BasicHttpParams());
     }
 
-    public void update(Socket sock, HttpHost target,
-                       boolean secure, HttpParams params)
+    public void update(final Socket sock, final HttpHost target,
+                       final boolean secure, final HttpParams params)
         throws IOException {
 
         assertOpen();
@@ -265,7 +265,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     }
 
     @Override
-    public void sendRequestHeader(HttpRequest request) throws HttpException, IOException {
+    public void sendRequestHeader(final HttpRequest request) throws HttpException, IOException {
         if (log.isDebugEnabled()) {
             log.debug("Sending request: " + request.getRequestLine());
         }

@@ -70,7 +70,7 @@ public class RFC2109Spec extends CookieSpecBase {
     private final boolean oneHeader;
 
     /** Default constructor */
-    public RFC2109Spec(final String[] datepatterns, boolean oneHeader) {
+    public RFC2109Spec(final String[] datepatterns, final boolean oneHeader) {
         super();
         if (datepatterns != null) {
             this.datepatterns = datepatterns.clone();
@@ -181,7 +181,7 @@ public class RFC2109Spec extends CookieSpecBase {
      * @param version The cookie version
      */
     protected void formatParamAsVer(final CharArrayBuffer buffer,
-            final String name, final String value, int version) {
+            final String name, final String value, final int version) {
         buffer.append(name);
         buffer.append("=");
         if (value != null) {
@@ -203,7 +203,7 @@ public class RFC2109Spec extends CookieSpecBase {
      * @param version The version to use.
      */
     protected void formatCookieAsVer(final CharArrayBuffer buffer,
-            final Cookie cookie, int version) {
+            final Cookie cookie, final int version) {
         formatParamAsVer(buffer, cookie.getName(), cookie.getValue(), version);
         if (cookie.getPath() != null) {
             if (cookie instanceof ClientCookie

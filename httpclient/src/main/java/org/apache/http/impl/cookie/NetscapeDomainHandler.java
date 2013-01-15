@@ -92,7 +92,7 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
    }
 
    @Override
-   public boolean match(Cookie cookie, CookieOrigin origin) {
+   public boolean match(final Cookie cookie, final CookieOrigin origin) {
        Args.notNull(cookie, "Cookie");
        Args.notNull(origin, "Cookie origin");
        String host = origin.getHost();

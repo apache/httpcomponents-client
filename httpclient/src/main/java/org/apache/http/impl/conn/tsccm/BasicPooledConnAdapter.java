@@ -48,8 +48,8 @@ public class BasicPooledConnAdapter extends AbstractPooledConnAdapter {
      * @param tsccm   the connection manager
      * @param entry   the pool entry for the connection being wrapped
      */
-    protected BasicPooledConnAdapter(ThreadSafeClientConnManager tsccm,
-                               AbstractPoolEntry entry) {
+    protected BasicPooledConnAdapter(final ThreadSafeClientConnManager tsccm,
+                               final AbstractPoolEntry entry) {
         super(tsccm, entry);
         markReusable();
     }

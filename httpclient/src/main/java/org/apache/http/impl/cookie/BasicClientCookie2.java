@@ -75,7 +75,7 @@ public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2,
         this.commentURL = commentURL;
     }
 
-    public void setDiscard(boolean discard) {
+    public void setDiscard(final boolean discard) {
         this.discard = discard;
     }
 

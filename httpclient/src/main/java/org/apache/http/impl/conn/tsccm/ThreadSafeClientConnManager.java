@@ -113,7 +113,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @since 4.1
      */
     public ThreadSafeClientConnManager(final SchemeRegistry schreg,
-            long connTTL, TimeUnit connTTLTimeUnit) {
+            final long connTTL, final TimeUnit connTTLTimeUnit) {
         this(schreg, connTTL, connTTLTimeUnit, new ConnPerRouteBean());
     }
 
@@ -130,7 +130,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @since 4.2
      */
     public ThreadSafeClientConnManager(final SchemeRegistry schreg,
-            long connTTL, TimeUnit connTTLTimeUnit, ConnPerRouteBean connPerRoute) {
+            final long connTTL, final TimeUnit connTTLTimeUnit, final ConnPerRouteBean connPerRoute) {
         super();
         Args.notNull(schreg, "Scheme registry");
         this.log = LogFactory.getLog(getClass());
@@ -150,8 +150,8 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @deprecated (4.1)  use {@link ThreadSafeClientConnManager#ThreadSafeClientConnManager(SchemeRegistry)}
      */
     @Deprecated
-    public ThreadSafeClientConnManager(HttpParams params,
-                                       SchemeRegistry schreg) {
+    public ThreadSafeClientConnManager(final HttpParams params,
+                                       final SchemeRegistry schreg) {
         Args.notNull(schreg, "Scheme registry");
         this.log = LogFactory.getLog(getClass());
         this.schemeRegistry = schreg;
@@ -189,7 +189,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      *
      * @since 4.1
      */
-    protected ConnPoolByRoute createConnectionPool(long connTTL, TimeUnit connTTLTimeUnit) {
+    protected ConnPoolByRoute createConnectionPool(final long connTTL, final TimeUnit connTTLTimeUnit) {
         return new ConnPoolByRoute(connOperator, connPerRoute, 20, connTTL, connTTLTimeUnit);
     }
 
@@ -206,7 +206,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * @return  the connection operator to use
      */
     protected ClientConnectionOperator
-        createConnectionOperator(SchemeRegistry schreg) {
+        createConnectionOperator(final SchemeRegistry schreg) {
 
         return new DefaultClientConnectionOperator(schreg);// @ThreadSafe
     }
@@ -229,7 +229,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
             }
 
             public ManagedClientConnection getConnection(
-                    long timeout, TimeUnit tunit) throws InterruptedException,
+                    final long timeout, final TimeUnit tunit) throws InterruptedException,
                     ConnectionPoolTimeoutException {
                 Args.notNull(route, "Route");
 
@@ -245,7 +245,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
     }
 
-    public void releaseConnection(ManagedClientConnection conn, long validDuration, TimeUnit timeUnit) {
+    public void releaseConnection(final ManagedClientConnection conn, final long validDuration, final TimeUnit timeUnit) {
         Args.check(conn instanceof BasicPooledConnAdapter, "Connection class mismatch, " +
                 "connection not obtained from this manager");
         BasicPooledConnAdapter hca = (BasicPooledConnAdapter) conn;
@@ -320,7 +320,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         return pool.getConnectionsInPool();
     }
 
-    public void closeIdleConnections(long idleTimeout, TimeUnit tunit) {
+    public void closeIdleConnections(final long idleTimeout, final TimeUnit tunit) {
         if (log.isDebugEnabled()) {
             log.debug("Closing connections idle longer than " + idleTimeout + " " + tunit);
         }
@@ -342,7 +342,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     /**
      * since 4.1
      */
-    public void setMaxTotal(int max) {
+    public void setMaxTotal(final int max) {
         pool.setMaxTotalConnections(max);
     }
 
@@ -356,7 +356,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     /**
      * @since 4.1
      */
-    public void setDefaultMaxPerRoute(int max) {
+    public void setDefaultMaxPerRoute(final int max) {
         connPerRoute.setDefaultMaxPerRoute(max);
     }
 
@@ -370,7 +370,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     /**
      * @since 4.1
      */
-    public void setMaxForRoute(final HttpRoute route, int max) {
+    public void setMaxForRoute(final HttpRoute route, final int max) {
         connPerRoute.setMaxForRoute(route, max);
     }
 

@@ -157,7 +157,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
     }
 
-    public void setSocketTimeout(int timeout) {
+    public void setSocketTimeout(final int timeout) {
         OperatedClientConnection conn = ensureConnection();
         conn.setSocketTimeout(timeout);
     }
@@ -177,7 +177,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         conn.flush();
     }
 
-    public boolean isResponseAvailable(int timeout) throws IOException {
+    public boolean isResponseAvailable(final int timeout) throws IOException {
         OperatedClientConnection conn = ensureConnection();
         return conn.isResponseAvailable(timeout);
     }
@@ -230,7 +230,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         return conn.isSecure();
     }
 
-    public void bind(Socket socket) throws IOException {
+    public void bind(final Socket socket) throws IOException {
         throw new UnsupportedOperationException();
     }
 
@@ -317,7 +317,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public void tunnelTarget(
-            boolean secure, final HttpParams params) throws IOException {
+            final boolean secure, final HttpParams params) throws IOException {
         Args.notNull(params, "HTTP parameters");
         HttpHost target;
         OperatedClientConnection conn;
@@ -345,7 +345,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public void tunnelProxy(
-            final HttpHost next, boolean secure, final HttpParams params) throws IOException {
+            final HttpHost next, final boolean secure, final HttpParams params) throws IOException {
         Args.notNull(next, "Next proxy");
         Args.notNull(params, "HTTP parameters");
         OperatedClientConnection conn;
@@ -420,7 +420,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         return this.reusable;
     }
 
-    public void setIdleDuration(long duration, TimeUnit unit) {
+    public void setIdleDuration(final long duration, final TimeUnit unit) {
         if(duration > 0) {
             this.duration = unit.toMillis(duration);
         } else {

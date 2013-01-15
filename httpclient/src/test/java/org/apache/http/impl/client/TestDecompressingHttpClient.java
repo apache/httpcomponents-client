@@ -150,7 +150,7 @@ public class TestDecompressingHttpClient {
         assertSame(mockConnManager, impl.getConnectionManager());
     }
 
-    private void assertAcceptEncodingGzipAndDeflateWereAddedToRequest(HttpRequest captured) {
+    private void assertAcceptEncodingGzipAndDeflateWereAddedToRequest(final HttpRequest captured) {
         boolean foundGzip = false;
         boolean foundDeflate = false;
         for(Header h : captured.getHeaders("Accept-Encoding")) {

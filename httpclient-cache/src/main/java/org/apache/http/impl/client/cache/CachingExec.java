@@ -116,9 +116,9 @@ public class CachingExec implements ClientExecChain {
     private final Log log = LogFactory.getLog(getClass());
 
     public CachingExec(
-            ClientExecChain backend,
-            HttpCache cache,
-            CacheConfig config) {
+            final ClientExecChain backend,
+            final HttpCache cache,
+            final CacheConfig config) {
         super();
         Args.notNull(backend, "HTTP backend");
         Args.notNull(cache, "HttpCache");
@@ -139,29 +139,29 @@ public class CachingExec implements ClientExecChain {
     }
 
     public CachingExec(
-            ClientExecChain backend,
-            ResourceFactory resourceFactory,
-            HttpCacheStorage storage,
-            CacheConfig config) {
+            final ClientExecChain backend,
+            final ResourceFactory resourceFactory,
+            final HttpCacheStorage storage,
+            final CacheConfig config) {
         this(backend, new BasicHttpCache(resourceFactory, storage, config), config);
     }
 
-    public CachingExec(ClientExecChain backend) {
+    public CachingExec(final ClientExecChain backend) {
         this(backend, new BasicHttpCache(), CacheConfig.DEFAULT);
     }
 
     CachingExec(
-            ClientExecChain backend,
-            HttpCache responseCache,
-            CacheValidityPolicy validityPolicy,
-            ResponseCachingPolicy responseCachingPolicy,
-            CachedHttpResponseGenerator responseGenerator,
-            CacheableRequestPolicy cacheableRequestPolicy,
-            CachedResponseSuitabilityChecker suitabilityChecker,
-            ConditionalRequestBuilder conditionalRequestBuilder,
-            ResponseProtocolCompliance responseCompliance,
-            RequestProtocolCompliance requestCompliance,
-            CacheConfig config) {
+            final ClientExecChain backend,
+            final HttpCache responseCache,
+            final CacheValidityPolicy validityPolicy,
+            final ResponseCachingPolicy responseCachingPolicy,
+            final CachedHttpResponseGenerator responseGenerator,
+            final CacheableRequestPolicy cacheableRequestPolicy,
+            final CachedResponseSuitabilityChecker suitabilityChecker,
+            final ConditionalRequestBuilder conditionalRequestBuilder,
+            final ResponseProtocolCompliance responseCompliance,
+            final RequestProtocolCompliance requestCompliance,
+            final CacheConfig config) {
         this.cacheConfig = config != null ? config : CacheConfig.DEFAULT;
         this.backend = backend;
         this.responseCache = responseCache;
@@ -177,7 +177,7 @@ public class CachingExec implements ClientExecChain {
     }
 
     private AsynchronousValidator makeAsynchronousValidator(
-            CacheConfig config) {
+            final CacheConfig config) {
         if (config.getAsynchronousWorkersMax() > 0) {
             return new AsynchronousValidator(this, config);
         }
@@ -397,7 +397,7 @@ public class CachingExec implements ClientExecChain {
         }
     }
 
-    private void recordCacheUpdate(HttpContext context) {
+    private void recordCacheUpdate(final HttpContext context) {
         cacheUpdates.getAndIncrement();
         setResponseStatus(context, CacheResponseStatus.VALIDATED);
     }
@@ -412,8 +412,8 @@ public class CachingExec implements ClientExecChain {
         }
     }
 
-    private HttpResponse generateCachedResponse(HttpRequestWrapper request,
-            HttpContext context, HttpCacheEntry entry, Date now) {
+    private HttpResponse generateCachedResponse(final HttpRequestWrapper request,
+            final HttpContext context, final HttpCacheEntry entry, final Date now) {
         final HttpResponse cachedResponse;
         if (request.containsHeader(HeaderConstants.IF_NONE_MATCH)
                 || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
@@ -586,8 +586,8 @@ public class CachingExec implements ClientExecChain {
         }
     }
 
-    private boolean revalidationResponseIsTooOld(HttpResponse backendResponse,
-            HttpCacheEntry cacheEntry) {
+    private boolean revalidationResponseIsTooOld(final HttpResponse backendResponse,
+            final HttpCacheEntry cacheEntry) {
         final Header entryDateHeader = cacheEntry.getFirstHeader(HTTP.DATE_HEADER);
         final Header responseDateHeader = backendResponse.getFirstHeader(HTTP.DATE_HEADER);
         if (entryDateHeader != null && responseDateHeader != null) {
@@ -785,7 +785,7 @@ public class CachingExec implements ClientExecChain {
                 requestDate, responseDate, backendResponse);
     }
 
-    private boolean staleIfErrorAppliesTo(int statusCode) {
+    private boolean staleIfErrorAppliesTo(final int statusCode) {
         return statusCode == HttpStatus.SC_INTERNAL_SERVER_ERROR
                 || statusCode == HttpStatus.SC_BAD_GATEWAY
                 || statusCode == HttpStatus.SC_SERVICE_UNAVAILABLE
@@ -835,7 +835,7 @@ public class CachingExec implements ClientExecChain {
      * included in the resulting response.
      */
     private void storeRequestIfModifiedSinceFor304Response(
-            HttpRequest request, HttpResponse backendResponse) {
+            final HttpRequest request, final HttpResponse backendResponse) {
         if (backendResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
             Header h = request.getFirstHeader("If-Modified-Since");
             if (h != null) {
@@ -844,8 +844,8 @@ public class CachingExec implements ClientExecChain {
         }
     }
 
-    private boolean alreadyHaveNewerCacheEntry(HttpHost target, HttpRequestWrapper request,
-            HttpResponse backendResponse) {
+    private boolean alreadyHaveNewerCacheEntry(final HttpHost target, final HttpRequestWrapper request,
+            final HttpResponse backendResponse) {
         HttpCacheEntry existing = null;
         try {
             existing = responseCache.getCacheEntry(target, request);

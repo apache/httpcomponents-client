@@ -43,7 +43,7 @@ public class SystemDefaultDnsResolver implements DnsResolver {
     /**
      * {@inheritDoc}
      */
-    public InetAddress[] resolve(String host) throws UnknownHostException {
+    public InetAddress[] resolve(final String host) throws UnknownHostException {
         return InetAddress.getAllByName(host);
     }
 

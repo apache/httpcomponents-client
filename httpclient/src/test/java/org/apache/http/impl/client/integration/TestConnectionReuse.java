@@ -289,8 +289,8 @@ public class TestConnectionReuse {
                 final HttpClient httpclient,
                 final HttpHost target,
                 final URI requestURI,
-                int repetitions,
-                boolean forceClose) {
+                final int repetitions,
+                final boolean forceClose) {
             super();
             this.httpclient = httpclient;
             this.requestURI = requestURI;
@@ -327,7 +327,7 @@ public class TestConnectionReuse {
     // A very basic keep-alive header interceptor, to add Keep-Alive: timeout=1
     // if there is no Connection: close header.
     private static class ResponseKeepAlive implements HttpResponseInterceptor {
-        public void process(HttpResponse response, HttpContext context)
+        public void process(final HttpResponse response, final HttpContext context)
                 throws HttpException, IOException {
             Header connection = response.getFirstHeader(HTTP.CONN_DIRECTIVE);
             if(connection != null) {

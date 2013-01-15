@@ -37,11 +37,11 @@ import org.apache.http.client.ConnectionBackoffStrategy;
  */
 public class NullBackoffStrategy implements ConnectionBackoffStrategy {
 
-    public boolean shouldBackoff(Throwable t) {
+    public boolean shouldBackoff(final Throwable t) {
         return false;
     }
 
-    public boolean shouldBackoff(HttpResponse resp) {
+    public boolean shouldBackoff(final HttpResponse resp) {
         return false;
     }
 }

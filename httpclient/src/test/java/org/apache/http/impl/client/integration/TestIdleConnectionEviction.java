@@ -98,7 +98,7 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
                 final HttpClient httpclient,
                 final HttpHost target,
                 final HttpUriRequest request,
-                int count) {
+                final int count) {
             super();
             this.httpclient = httpclient;
             this.target = target;

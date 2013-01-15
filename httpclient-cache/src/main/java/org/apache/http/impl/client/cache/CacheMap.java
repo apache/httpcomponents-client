@@ -37,7 +37,7 @@ final class CacheMap extends LinkedHashMap<String, HttpCacheEntry> {
 
     private final int maxEntries;
 
-    CacheMap(int maxEntries) {
+    CacheMap(final int maxEntries) {
         super(20, 0.75f, true);
         this.maxEntries = maxEntries;
     }

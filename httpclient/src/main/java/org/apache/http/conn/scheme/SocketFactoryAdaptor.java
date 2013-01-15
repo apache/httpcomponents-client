@@ -57,7 +57,7 @@ class SocketFactoryAdaptor implements SocketFactory {
 
     public Socket connectSocket(
             final Socket socket,
-            final String host, int port,
+            final String host, final int port,
             final InetAddress localAddress, int localPort,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         InetSocketAddress local = null;

@@ -77,8 +77,8 @@ public class TestAbortHandling extends IntegrationTestBase {
         final CountDownLatch wait = new CountDownLatch(1);
 
         this.localServer.register("*", new HttpRequestHandler(){
-            public void handle(HttpRequest request, HttpResponse response,
-                    HttpContext context) throws HttpException, IOException {
+            public void handle(final HttpRequest request, final HttpResponse response,
+                    final HttpContext context) throws HttpException, IOException {
                 try {
                     wait.countDown(); // trigger abort
                     Thread.sleep(2000); // allow time for abort to happen
@@ -329,7 +329,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         private final int statuscode = HttpStatus.SC_SEE_OTHER;
         private final int port;
 
-        public BasicRedirectService(int port) {
+        public BasicRedirectService(final int port) {
             this.port = port;
         }
 
@@ -348,14 +348,14 @@ public class TestAbortHandling extends IntegrationTestBase {
         private final CountDownLatch connLatch;
         private final CountDownLatch awaitLatch;
 
-        public ConnMan4(CountDownLatch connLatch, CountDownLatch awaitLatch) {
+        public ConnMan4(final CountDownLatch connLatch, final CountDownLatch awaitLatch) {
             super();
             this.connLatch = connLatch;
             this.awaitLatch = awaitLatch;
         }
 
         @Override
-        public ConnectionRequest requestConnection(HttpRoute route, Object state) {
+        public ConnectionRequest requestConnection(final HttpRoute route, final Object state) {
             // If this is the redirect route, stub the return value
             // so-as to pretend the host is waiting on a slot...
             if(route.getTargetHost().getHostName().equals("localhost")) {
@@ -369,7 +369,7 @@ public class TestAbortHandling extends IntegrationTestBase {
                     }
 
                     public HttpClientConnection get(
-                            long timeout, TimeUnit tunit)
+                            long timeout, final TimeUnit tunit)
                             throws InterruptedException,
                             ConnectionPoolTimeoutException {
                         connLatch.countDown(); // notify waiter that we're getting a connection
@@ -397,12 +397,12 @@ public class TestAbortHandling extends IntegrationTestBase {
         private final CountDownLatch connLatch;
         private final CountDownLatch awaitLatch;
 
-        public ConMan(CountDownLatch connLatch, CountDownLatch awaitLatch) {
+        public ConMan(final CountDownLatch connLatch, final CountDownLatch awaitLatch) {
             this.connLatch = connLatch;
             this.awaitLatch = awaitLatch;
         }
 
-        public void closeIdleConnections(long idletime, TimeUnit tunit) {
+        public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
             throw new UnsupportedOperationException("just a mockup");
         }
 
@@ -410,8 +410,8 @@ public class TestAbortHandling extends IntegrationTestBase {
             throw new UnsupportedOperationException("just a mockup");
         }
 
-        public HttpClientConnection getConnection(HttpRoute route,
-                long timeout, TimeUnit tunit) {
+        public HttpClientConnection getConnection(final HttpRoute route,
+                final long timeout, final TimeUnit tunit) {
             throw new UnsupportedOperationException("just a mockup");
         }
 
@@ -429,7 +429,7 @@ public class TestAbortHandling extends IntegrationTestBase {
                 }
 
                 public HttpClientConnection get(
-                        long timeout, TimeUnit tunit)
+                        long timeout, final TimeUnit tunit)
                         throws InterruptedException,
                         ConnectionPoolTimeoutException {
                     connLatch.countDown(); // notify waiter that we're getting a connection
@@ -458,7 +458,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         public void releaseConnection(
                 final HttpClientConnection conn,
                 final Object newState,
-                long validDuration, TimeUnit timeUnit) {
+                final long validDuration, final TimeUnit timeUnit) {
             throw new UnsupportedOperationException("just a mockup");
         }
 
@@ -482,13 +482,13 @@ public class TestAbortHandling extends IntegrationTestBase {
     private static class CustomGet extends HttpGet {
         private final CountDownLatch releaseTriggerLatch;
 
-        public CustomGet(String uri, CountDownLatch releaseTriggerLatch) {
+        public CustomGet(final String uri, final CountDownLatch releaseTriggerLatch) {
             super(uri);
             this.releaseTriggerLatch = releaseTriggerLatch;
         }
 
         @Override
-        public void setCancellable(Cancellable cancellable) {
+        public void setCancellable(final Cancellable cancellable) {
             try {
                 if(!releaseTriggerLatch.await(1, TimeUnit.SECONDS)) {
 					throw new RuntimeException("Waited too long...");

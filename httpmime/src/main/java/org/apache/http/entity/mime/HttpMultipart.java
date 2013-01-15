@@ -111,7 +111,7 @@ public class HttpMultipart {
      * @param mode the mode to use
      * @throws IllegalArgumentException if charset is null or boundary is null
      */
-    public HttpMultipart(final String subType, final Charset charset, final String boundary, HttpMultipartMode mode) {
+    public HttpMultipart(final String subType, final Charset charset, final String boundary, final HttpMultipartMode mode) {
         super();
         Args.notNull(subType, "Multipart subtype");
         Args.notNull(boundary, "Multipart boundary");
@@ -169,7 +169,7 @@ public class HttpMultipart {
     private void doWriteTo(
         final HttpMultipartMode mode,
         final OutputStream out,
-        boolean writeContent) throws IOException {
+        final boolean writeContent) throws IOException {
 
         ByteArrayBuffer boundary = encode(this.charset, getBoundary());
         for (FormBodyPart part: this.parts) {

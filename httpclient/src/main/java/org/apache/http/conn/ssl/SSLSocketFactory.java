@@ -393,7 +393,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      * @since 4.1
      */
     public SSLSocketFactory(
-            String algorithm,
+            final String algorithm,
             final KeyStore keystore,
             final String keystorePassword,
             final KeyStore truststore,
@@ -409,7 +409,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      * @since 4.1
      */
     public SSLSocketFactory(
-            String algorithm,
+            final String algorithm,
             final KeyStore keystore,
             final String keystorePassword,
             final KeyStore truststore,
@@ -600,7 +600,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      * @deprecated (4.1) use constructor.
      */
     @Deprecated
-    public void setHostnameVerifier(X509HostnameVerifier hostnameVerifier) {
+    public void setHostnameVerifier(final X509HostnameVerifier hostnameVerifier) {
         Args.notNull(hostnameVerifier, "Hostname verifier");
         this.hostnameVerifier = hostnameVerifier;
     }
@@ -616,7 +616,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     @Deprecated
     public Socket connectSocket(
             final Socket socket,
-            final String host, int port,
+            final String host, final int port,
             final InetAddress local, int localPort,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         InetAddress remote;
@@ -644,8 +644,8 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     @Deprecated
     public Socket createSocket(
             final Socket socket,
-            final String host, int port,
-            boolean autoClose) throws IOException, UnknownHostException {
+            final String host, final int port,
+            final boolean autoClose) throws IOException, UnknownHostException {
         return createLayeredSocket(socket, host, port, autoClose);
     }
 
@@ -707,7 +707,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     public Socket createLayeredSocket(
             final Socket socket,
             final String target,
-            int port,
+            final int port,
             final HttpContext context) throws IOException, UnknownHostException {
         SSLSocket sslSocket = (SSLSocket) this.socketfactory.createSocket(
                 socket,

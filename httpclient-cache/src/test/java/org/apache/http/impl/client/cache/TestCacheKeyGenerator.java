@@ -126,7 +126,7 @@ public class TestCacheKeyGenerator {
         org.easymock.EasyMock.expect(mockEntry.hasVariants()).andReturn(false);
         extractor = new CacheKeyGenerator() {
             @Override
-            public String getURI(HttpHost h, HttpRequest req) {
+            public String getURI(final HttpHost h, final HttpRequest req) {
                 Assert.assertSame(host, h);
                 Assert.assertSame(mockRequest, req);
                 return theURI;
@@ -147,7 +147,7 @@ public class TestCacheKeyGenerator {
 
         extractor = new CacheKeyGenerator() {
             @Override
-            public String getURI(HttpHost h, HttpRequest req) {
+            public String getURI(final HttpHost h, final HttpRequest req) {
                 Assert.assertSame(host, h);
                 Assert.assertSame(mockRequest, req);
                 return theURI;
@@ -172,7 +172,7 @@ public class TestCacheKeyGenerator {
         Header[] varyHeaders = { new BasicHeader("Vary", "Accept-Encoding") };
         extractor = new CacheKeyGenerator() {
             @Override
-            public String getURI(HttpHost h, HttpRequest req) {
+            public String getURI(final HttpHost h, final HttpRequest req) {
                 Assert.assertSame(host, h);
                 Assert.assertSame(mockRequest, req);
                 return theURI;
@@ -198,7 +198,7 @@ public class TestCacheKeyGenerator {
         Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
         extractor = new CacheKeyGenerator() {
             @Override
-            public String getURI(HttpHost h, HttpRequest req) {
+            public String getURI(final HttpHost h, final HttpRequest req) {
                 Assert.assertSame(host, h);
                 Assert.assertSame(mockRequest, req);
                 return theURI;
@@ -226,7 +226,7 @@ public class TestCacheKeyGenerator {
         Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
         extractor = new CacheKeyGenerator() {
             @Override
-            public String getURI(HttpHost h, HttpRequest req) {
+            public String getURI(final HttpHost h, final HttpRequest req) {
                 Assert.assertSame(host, h);
                 Assert.assertSame(mockRequest, req);
                 return theURI;
@@ -253,7 +253,7 @@ public class TestCacheKeyGenerator {
         Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
         extractor = new CacheKeyGenerator() {
             @Override
-            public String getURI(HttpHost h, HttpRequest req) {
+            public String getURI(final HttpHost h, final HttpRequest req) {
                 Assert.assertSame(host, h);
                 Assert.assertSame(mockRequest, req);
                 return theURI;

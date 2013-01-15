@@ -76,7 +76,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
         return doExecute(determineTarget(request), request, context);
     }
 
-    private static HttpHost determineTarget(HttpUriRequest request) throws ClientProtocolException {
+    private static HttpHost determineTarget(final HttpUriRequest request) throws ClientProtocolException {
         // A null target may be acceptable if there is a default target.
         // Otherwise, the null target is detected in the director.
         HttpHost target = null;

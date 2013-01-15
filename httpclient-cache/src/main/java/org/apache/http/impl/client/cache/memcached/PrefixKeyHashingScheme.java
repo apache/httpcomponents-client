@@ -47,12 +47,12 @@ public class PrefixKeyHashingScheme implements KeyHashingScheme {
      * @param prefix
      * @param backingScheme
      */
-    public PrefixKeyHashingScheme(String prefix, KeyHashingScheme backingScheme) {
+    public PrefixKeyHashingScheme(final String prefix, final KeyHashingScheme backingScheme) {
         this.prefix = prefix;
         this.backingScheme = backingScheme;
     }
 
-    public String hash(String storageKey) {
+    public String hash(final String storageKey) {
         return prefix + backingScheme.hash(storageKey);
     }
 

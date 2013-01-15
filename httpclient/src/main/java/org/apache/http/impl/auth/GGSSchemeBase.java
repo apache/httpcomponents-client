@@ -73,7 +73,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     /** base64 decoded challenge **/
     private byte[] token;
 
-    GGSSchemeBase(boolean stripPort) {
+    GGSSchemeBase(final boolean stripPort) {
         super();
         this.base64codec = new Base64();
         this.state = State.UNINITIATED;
@@ -197,7 +197,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     @Override
     protected void parseChallenge(
             final CharArrayBuffer buffer,
-            int beginIndex, int endIndex) throws MalformedChallengeException {
+            final int beginIndex, final int endIndex) throws MalformedChallengeException {
         String challenge = buffer.substringTrimmed(beginIndex, endIndex);
         if (log.isDebugEnabled()) {
             log.debug("Received challenge '" + challenge + "' from the auth server");

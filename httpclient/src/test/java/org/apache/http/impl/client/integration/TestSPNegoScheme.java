@@ -140,7 +140,7 @@ public class TestSPNegoScheme extends IntegrationTestBase {
             scheme = new NegotiateSchemeWithMockGssManager();
         }
 
-        public AuthScheme create(HttpContext context) {
+        public AuthScheme create(final HttpContext context) {
             return scheme;
         }
 

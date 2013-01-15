@@ -57,23 +57,23 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
         return statusLine;
     }
 
-    public void setStatusLine(StatusLine statusline) {
+    public void setStatusLine(final StatusLine statusline) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
-    public void setStatusLine(ProtocolVersion ver, int code) {
+    public void setStatusLine(final ProtocolVersion ver, final int code) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
-    public void setStatusLine(ProtocolVersion ver, int code, String reason) {
+    public void setStatusLine(final ProtocolVersion ver, final int code, final String reason) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
-    public void setStatusCode(int code) throws IllegalStateException {
+    public void setStatusCode(final int code) throws IllegalStateException {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
-    public void setReasonPhrase(String reason) throws IllegalStateException {
+    public void setReasonPhrase(final String reason) throws IllegalStateException {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
@@ -81,7 +81,7 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
         return null;
     }
 
-    public void setEntity(HttpEntity entity) {
+    public void setEntity(final HttpEntity entity) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
@@ -89,7 +89,7 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
         return null;
     }
 
-    public void setLocale(Locale loc) {
+    public void setLocale(final Locale loc) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
@@ -98,22 +98,22 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
     }
 
     @Override
-    public boolean containsHeader(String name) {
+    public boolean containsHeader(final String name) {
         return this.headergroup.containsHeader(name);
     }
 
     @Override
-    public Header[] getHeaders(String name) {
+    public Header[] getHeaders(final String name) {
         return this.headergroup.getHeaders(name);
     }
 
     @Override
-    public Header getFirstHeader(String name) {
+    public Header getFirstHeader(final String name) {
         return this.headergroup.getFirstHeader(name);
     }
 
     @Override
-    public Header getLastHeader(String name) {
+    public Header getLastHeader(final String name) {
         return this.headergroup.getLastHeader(name);
     }
 
@@ -123,37 +123,37 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
     }
 
     @Override
-    public void addHeader(Header header) {
+    public void addHeader(final Header header) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
     @Override
-    public void addHeader(String name, String value) {
+    public void addHeader(final String name, final String value) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
     @Override
-    public void setHeader(Header header) {
+    public void setHeader(final Header header) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
     @Override
-    public void setHeader(String name, String value) {
+    public void setHeader(final String name, final String value) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
     @Override
-    public void setHeaders(Header[] headers) {
+    public void setHeaders(final Header[] headers) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
     @Override
-    public void removeHeader(Header header) {
+    public void removeHeader(final Header header) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
     @Override
-    public void removeHeaders(String name) {
+    public void removeHeaders(final String name) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
@@ -163,7 +163,7 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
     }
 
     @Override
-    public HeaderIterator headerIterator(String name) {
+    public HeaderIterator headerIterator(final String name) {
         return this.headergroup.iterator(name);
     }
 
@@ -176,7 +176,7 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
     }
 
     @Override
-    public void setParams(HttpParams params) {
+    public void setParams(final HttpParams params) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 }

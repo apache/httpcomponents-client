@@ -101,7 +101,7 @@ public class AuthScope {
      *   May be set to <tt>null</tt> if credentials are applicable to
      *   any authentication scheme.
      */
-    public AuthScope(final String host, int port,
+    public AuthScope(final String host, final int port,
         final String realm, final String scheme)
     {
         this.host =   (host == null)   ? ANY_HOST: host.toLowerCase(Locale.ENGLISH);
@@ -138,7 +138,7 @@ public class AuthScope {
      *   to <tt>null</tt> if credentials are applicable to
      *   any realm.
      */
-    public AuthScope(final String host, int port, final String realm) {
+    public AuthScope(final String host, final int port, final String realm) {
         this(host, port, realm, ANY_SCHEME);
     }
 
@@ -153,7 +153,7 @@ public class AuthScope {
      *   to negative value if credentials are applicable to
      *   any port.
      */
-    public AuthScope(final String host, int port) {
+    public AuthScope(final String host, final int port) {
         this(host, port, ANY_REALM, ANY_SCHEME);
     }
 
@@ -241,7 +241,7 @@ public class AuthScope {
      * @see java.lang.Object#equals(Object)
      */
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (o == null) {
             return false;
         }

@@ -454,7 +454,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
      *
      * @param params    the new default parameters
      */
-    public synchronized void setParams(HttpParams params) {
+    public synchronized void setParams(final HttpParams params) {
         defaultParams = params;
     }
 
@@ -724,11 +724,11 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
         return getHttpProcessor().getResponseInterceptorCount();
     }
 
-    public synchronized HttpResponseInterceptor getResponseInterceptor(int index) {
+    public synchronized HttpResponseInterceptor getResponseInterceptor(final int index) {
         return getHttpProcessor().getResponseInterceptor(index);
     }
 
-    public synchronized HttpRequestInterceptor getRequestInterceptor(int index) {
+    public synchronized HttpRequestInterceptor getRequestInterceptor(final int index) {
         return getHttpProcessor().getRequestInterceptor(index);
     }
 
@@ -741,7 +741,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
         protocolProcessor = null;
     }
 
-    public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp, int index) {
+    public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp, final int index) {
         getHttpProcessor().addInterceptor(itcp, index);
         protocolProcessor = null;
     }
@@ -751,7 +751,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
         protocolProcessor = null;
     }
 
-    public synchronized void removeResponseInterceptorByClass(Class<? extends HttpResponseInterceptor> clazz) {
+    public synchronized void removeResponseInterceptorByClass(final Class<? extends HttpResponseInterceptor> clazz) {
         getHttpProcessor().removeResponseInterceptorByClass(clazz);
         protocolProcessor = null;
     }
@@ -761,7 +761,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
         protocolProcessor = null;
     }
 
-    public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp, int index) {
+    public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp, final int index) {
         getHttpProcessor().addInterceptor(itcp, index);
         protocolProcessor = null;
     }
@@ -771,14 +771,14 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
         protocolProcessor = null;
     }
 
-    public synchronized void removeRequestInterceptorByClass(Class<? extends HttpRequestInterceptor> clazz) {
+    public synchronized void removeRequestInterceptorByClass(final Class<? extends HttpRequestInterceptor> clazz) {
         getHttpProcessor().removeRequestInterceptorByClass(clazz);
         protocolProcessor = null;
     }
 
     @Override
-    protected final CloseableHttpResponse doExecute(HttpHost target, HttpRequest request,
-                                      HttpContext context)
+    protected final CloseableHttpResponse doExecute(final HttpHost target, final HttpRequest request,
+                                      final HttpContext context)
         throws IOException, ClientProtocolException {
 
         Args.notNull(request, "HTTP request");
@@ -976,7 +976,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
      *
      * @return  the parameters to use
      */
-    protected HttpParams determineParams(HttpRequest req) {
+    protected HttpParams determineParams(final HttpRequest req) {
         return new ClientParamsStack
             (null, getParams(), req.getParams(), null);
     }

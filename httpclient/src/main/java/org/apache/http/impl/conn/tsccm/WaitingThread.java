@@ -71,7 +71,7 @@ public class WaitingThread {
      * @param pool      the pool on which the thread will be waiting,
      *                  or <code>null</code>
      */
-    public WaitingThread(Condition cond, RouteSpecificPool pool) {
+    public WaitingThread(final Condition cond, final RouteSpecificPool pool) {
 
         Args.notNull(cond, "Condition");
 
@@ -133,7 +133,7 @@ public class WaitingThread {
      *
      * @see #wakeup
      */
-    public boolean await(Date deadline)
+    public boolean await(final Date deadline)
         throws InterruptedException {
 
         // This is only a sanity check. We cannot synchronize here,

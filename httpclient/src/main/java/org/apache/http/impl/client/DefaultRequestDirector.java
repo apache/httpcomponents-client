@@ -366,8 +366,8 @@ public class DefaultRequestDirector implements RequestDirector {
 
 
     // non-javadoc, see interface ClientRequestDirector
-    public HttpResponse execute(HttpHost target, HttpRequest request,
-                                HttpContext context)
+    public HttpResponse execute(HttpHost target, final HttpRequest request,
+                                final HttpContext context)
         throws HttpException, IOException {
 
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, targetAuthState);
@@ -743,8 +743,8 @@ public class DefaultRequestDirector implements RequestDirector {
      * @throws HttpException    in case of a problem
      */
     protected HttpRoute determineRoute(HttpHost    target,
-                                           HttpRequest request,
-                                           HttpContext context)
+                                           final HttpRequest request,
+                                           final HttpContext context)
         throws HttpException {
 
         if (target == null) {
@@ -765,7 +765,7 @@ public class DefaultRequestDirector implements RequestDirector {
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
-    protected void establishRoute(HttpRoute route, HttpContext context)
+    protected void establishRoute(final HttpRoute route, final HttpContext context)
         throws HttpException, IOException {
 
         HttpRouteDirector rowdy = new BasicRouteDirector();
@@ -839,8 +839,8 @@ public class DefaultRequestDirector implements RequestDirector {
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
-    protected boolean createTunnelToTarget(HttpRoute route,
-                                           HttpContext context)
+    protected boolean createTunnelToTarget(final HttpRoute route,
+                                           final HttpContext context)
         throws HttpException, IOException {
 
         HttpHost proxy = route.getProxyHost();
@@ -941,8 +941,8 @@ public class DefaultRequestDirector implements RequestDirector {
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
-    protected boolean createTunnelToProxy(HttpRoute route, int hop,
-                                          HttpContext context)
+    protected boolean createTunnelToProxy(final HttpRoute route, final int hop,
+                                          final HttpContext context)
         throws HttpException, IOException {
 
         // Have a look at createTunnelToTarget and replicate the parts
@@ -968,8 +968,8 @@ public class DefaultRequestDirector implements RequestDirector {
      *
      * @return  the CONNECT request for tunnelling
      */
-    protected HttpRequest createConnectRequest(HttpRoute route,
-                                               HttpContext context) {
+    protected HttpRequest createConnectRequest(final HttpRoute route,
+                                               final HttpContext context) {
         // see RFC 2817, section 5.2 and
         // INTERNET-DRAFT: Tunneling TCP based protocols through
         // Web proxy servers
@@ -1011,9 +1011,9 @@ public class DefaultRequestDirector implements RequestDirector {
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
-    protected RoutedRequest handleResponse(RoutedRequest roureq,
-                                           HttpResponse response,
-                                           HttpContext context)
+    protected RoutedRequest handleResponse(final RoutedRequest roureq,
+                                           final HttpResponse response,
+                                           final HttpContext context)
         throws HttpException, IOException {
 
         HttpRoute route = roureq.getRoute();

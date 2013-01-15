@@ -86,8 +86,8 @@ public abstract class AbstractPoolEntry {
      * @param route   the planned route for the connection,
      *                or <code>null</code>
      */
-    protected AbstractPoolEntry(ClientConnectionOperator connOperator,
-                                HttpRoute route) {
+    protected AbstractPoolEntry(final ClientConnectionOperator connOperator,
+                                final HttpRoute route) {
         super();
         Args.notNull(connOperator, "Connection operator");
         this.connOperator = connOperator;
@@ -123,8 +123,8 @@ public abstract class AbstractPoolEntry {
      *
      * @throws IOException  in case of a problem
      */
-    public void open(HttpRoute route,
-                     HttpContext context, HttpParams params)
+    public void open(final HttpRoute route,
+                     final HttpContext context, final HttpParams params)
         throws IOException {
 
         Args.notNull(route, "Route");
@@ -173,7 +173,7 @@ public abstract class AbstractPoolEntry {
      *
      * @throws IOException  in case of a problem
      */
-    public void tunnelTarget(boolean secure, HttpParams params)
+    public void tunnelTarget(final boolean secure, final HttpParams params)
         throws IOException {
 
         Args.notNull(params, "HTTP parameters");
@@ -201,7 +201,7 @@ public abstract class AbstractPoolEntry {
      *
      * @throws IOException  in case of a problem
      */
-    public void tunnelProxy(HttpHost next, boolean secure, HttpParams params)
+    public void tunnelProxy(final HttpHost next, final boolean secure, final HttpParams params)
         throws IOException {
 
         Args.notNull(next, "Next proxy");
@@ -222,7 +222,7 @@ public abstract class AbstractPoolEntry {
      *
      * @throws IOException  in case of a problem
      */
-    public void layerProtocol(HttpContext context, HttpParams params)
+    public void layerProtocol(final HttpContext context, final HttpParams params)
         throws IOException {
 
         //@@@ is context allowed to be null? depends on operator?

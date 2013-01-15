@@ -54,8 +54,8 @@ public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
      * @param entry   the pool entry, must not be <code>null</code>
      * @param queue   the reference queue, or <code>null</code>
      */
-    public BasicPoolEntryRef(BasicPoolEntry entry,
-                             ReferenceQueue<Object> queue) {
+    public BasicPoolEntryRef(final BasicPoolEntry entry,
+                             final ReferenceQueue<Object> queue) {
         super(entry, queue);
         Args.notNull(entry, "Pool entry");
         route = entry.getPlannedRoute();

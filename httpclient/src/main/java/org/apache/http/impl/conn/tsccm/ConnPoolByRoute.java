@@ -110,7 +110,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     public ConnPoolByRoute(
             final ClientConnectionOperator operator,
             final ConnPerRoute connPerRoute,
-            int maxTotalConnections) {
+            final int maxTotalConnections) {
         this(operator, connPerRoute, maxTotalConnections, -1, TimeUnit.MILLISECONDS);
     }
 
@@ -120,8 +120,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
     public ConnPoolByRoute(
             final ClientConnectionOperator operator,
             final ConnPerRoute connPerRoute,
-            int maxTotalConnections,
-            long connTTL,
+            final int maxTotalConnections,
+            final long connTTL,
             final TimeUnit connTTLTimeUnit) {
         super();
         Args.notNull(operator, "Connection operator");
@@ -193,7 +193,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @return  the new pool
      */
-    protected RouteSpecificPool newRouteSpecificPool(HttpRoute route) {
+    protected RouteSpecificPool newRouteSpecificPool(final HttpRoute route) {
         return new RouteSpecificPool(route, this.connPerRoute);
     }
 
@@ -207,8 +207,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @return  a waiting thread representation
      */
-    protected WaitingThread newWaitingThread(Condition cond,
-                                             RouteSpecificPool rospl) {
+    protected WaitingThread newWaitingThread(final Condition cond,
+                                             final RouteSpecificPool rospl) {
         return new WaitingThread(cond, rospl);
     }
 
@@ -232,8 +232,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @return  the pool for the argument route,
      *     never <code>null</code> if <code>create</code> is <code>true</code>
      */
-    protected RouteSpecificPool getRoutePool(HttpRoute route,
-                                             boolean create) {
+    protected RouteSpecificPool getRoutePool(final HttpRoute route,
+                                             final boolean create) {
         RouteSpecificPool rospl = null;
         poolLock.lock();
         try {
@@ -252,7 +252,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
         return rospl;
     }
 
-    public int getConnectionsInPool(HttpRoute route) {
+    public int getConnectionsInPool(final HttpRoute route) {
         poolLock.lock();
         try {
             // don't allow a pool to be created here!
@@ -292,8 +292,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
             }
 
             public BasicPoolEntry getPoolEntry(
-                    long timeout,
-                    TimeUnit tunit)
+                    final long timeout,
+                    final TimeUnit tunit)
                         throws InterruptedException, ConnectionPoolTimeoutException {
                 return getEntryBlocking(route, state, timeout, tunit, aborter);
             }
@@ -320,9 +320,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *         if the calling thread was interrupted
      */
     protected BasicPoolEntry getEntryBlocking(
-                                   HttpRoute route, Object state,
-                                   long timeout, TimeUnit tunit,
-                                   WaitingThreadAborter aborter)
+                                   final HttpRoute route, final Object state,
+                                   final long timeout, final TimeUnit tunit,
+                                   final WaitingThreadAborter aborter)
         throws ConnectionPoolTimeoutException, InterruptedException {
 
         Date deadline = null;
@@ -422,7 +422,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     }
 
     @Override
-    public void freeEntry(BasicPoolEntry entry, boolean reusable, long validDuration, TimeUnit timeUnit) {
+    public void freeEntry(final BasicPoolEntry entry, final boolean reusable, final long validDuration, final TimeUnit timeUnit) {
 
         HttpRoute route = entry.getPlannedRoute();
         if (log.isDebugEnabled()) {
@@ -479,7 +479,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @return  an available pool entry for the given route, or
      *          <code>null</code> if none is available
      */
-    protected BasicPoolEntry getFreeEntry(RouteSpecificPool rospl, Object state) {
+    protected BasicPoolEntry getFreeEntry(final RouteSpecificPool rospl, final Object state) {
 
         BasicPoolEntry entry = null;
         poolLock.lock();
@@ -539,8 +539,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @return  the new pool entry for a new connection
      */
-    protected BasicPoolEntry createEntry(RouteSpecificPool rospl,
-                                         ClientConnectionOperator op) {
+    protected BasicPoolEntry createEntry(final RouteSpecificPool rospl,
+                                         final ClientConnectionOperator op) {
 
         if (log.isDebugEnabled()) {
             log.debug("Creating new connection [" + rospl.getRoute() + "]");
@@ -573,7 +573,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @param entry         the pool entry for the connection to delete
      */
-    protected void deleteEntry(BasicPoolEntry entry) {
+    protected void deleteEntry(final BasicPoolEntry entry) {
 
         HttpRoute route = entry.getPlannedRoute();
 
@@ -622,7 +622,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     }
 
     @Override
-    protected void handleLostEntry(HttpRoute route) {
+    protected void handleLostEntry(final HttpRoute route) {
 
         poolLock.lock();
         try {
@@ -649,7 +649,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @param rospl     the pool in which to notify, or <code>null</code>
      */
-    protected void notifyWaitingThread(RouteSpecificPool rospl) {
+    protected void notifyWaitingThread(final RouteSpecificPool rospl) {
 
         //@@@ while this strategy provides for best connection re-use,
         //@@@ is it fair? only do this if the connection is open?
@@ -711,7 +711,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @param tunit     the unit for the <code>idletime</code>
      */
     @Override
-    public void closeIdleConnections(long idletime, TimeUnit tunit) {
+    public void closeIdleConnections(long idletime, final TimeUnit tunit) {
         Args.notNull(tunit, "Time unit");
         if (idletime < 0) {
             idletime = 0;
@@ -810,7 +810,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     /**
      * since 4.1
      */
-    public void setMaxTotalConnections(int max) {
+    public void setMaxTotalConnections(final int max) {
         poolLock.lock();
         try {
             maxTotalConnections = max;

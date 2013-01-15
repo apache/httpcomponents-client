@@ -45,7 +45,7 @@ public final class CookieOrigin {
     private final String path;
     private final boolean secure;
 
-    public CookieOrigin(final String host, int port, final String path, boolean secure) {
+    public CookieOrigin(final String host, final int port, final String path, final boolean secure) {
         super();
         Args.notBlank(host, "Host");
         Args.notNegative(port, "Port");

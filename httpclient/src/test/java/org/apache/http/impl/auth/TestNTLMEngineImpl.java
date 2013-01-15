@@ -46,7 +46,7 @@ public class TestNTLMEngineImpl {
     }
 
     /* Test suite helper */
-    static byte toNibble(char c) {
+    static byte toNibble(final char c) {
         if (c >= 'a' && c <= 'f') {
 			return (byte) (c - 'a' + 0x0a);
 		}
@@ -54,7 +54,7 @@ public class TestNTLMEngineImpl {
     }
 
     /* Test suite helper */
-    static byte[] toBytes(String hex) {
+    static byte[] toBytes(final String hex) {
         byte[] rval = new byte[hex.length() / 2];
         int i = 0;
         while (i < rval.length) {
@@ -66,7 +66,7 @@ public class TestNTLMEngineImpl {
     }
 
     /* Test suite MD4 helper */
-    static void checkMD4(String input, String hexOutput) throws Exception {
+    static void checkMD4(final String input, final String hexOutput) throws Exception {
         NTLMEngineImpl.MD4 md4;
         md4 = new NTLMEngineImpl.MD4();
         md4.update(input.getBytes("ASCII"));
@@ -225,7 +225,7 @@ public class TestNTLMEngineImpl {
     }
 
     /* Byte array check helper */
-    static void checkArraysMatch(byte[] a1, byte[] a2)
+    static void checkArraysMatch(final byte[] a1, final byte[] a2)
         throws Exception {
         Assert.assertEquals(a1.length,a2.length);
         for (int i = 0; i < a1.length; i++) {

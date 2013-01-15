@@ -325,7 +325,7 @@ public class TestCachingExec {
         Assert.assertSame(mockBackendResponse, result);
     }
 
-    private void requestIsFatallyNonCompliant(RequestProtocolError error) {
+    private void requestIsFatallyNonCompliant(final RequestProtocolError error) {
         List<RequestProtocolError> errors = new ArrayList<RequestProtocolError>();
         if (error != null) {
             errors.add(error);
@@ -1760,7 +1760,7 @@ public class TestCachingExec {
     }
 
     private IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndReturn(
-            HttpResponse response) throws Exception {
+            final HttpResponse response) throws Exception {
         CloseableHttpResponse resp = mockBackend.execute(
                 EasyMock.isA(HttpRoute.class),
                 EasyMock.isA(HttpRequestWrapper.class),
@@ -1770,7 +1770,7 @@ public class TestCachingExec {
     }
 
     private IExpectationSetters<CloseableHttpResponse> implExpectsAnyRequestAndReturn(
-            CloseableHttpResponse response) throws Exception {
+            final CloseableHttpResponse response) throws Exception {
         CloseableHttpResponse resp = impl.callBackend(
                 EasyMock.isA(HttpRoute.class),
                 EasyMock.isA(HttpRequestWrapper.class),
@@ -1780,7 +1780,7 @@ public class TestCachingExec {
     }
 
     private IExpectationSetters<CloseableHttpResponse> backendExpectsRequestAndReturn(
-            HttpRequestWrapper request, HttpResponse response) throws Exception {
+            final HttpRequestWrapper request, final HttpResponse response) throws Exception {
         CloseableHttpResponse resp = mockBackend.execute(
                 EasyMock.isA(HttpRoute.class),
                 EasyMock.eq(request),
@@ -1790,7 +1790,7 @@ public class TestCachingExec {
     }
 
     private IExpectationSetters<CloseableHttpResponse> backendExpectsRequestAndReturn(
-            HttpRequestWrapper request, CloseableHttpResponse response) throws Exception {
+            final HttpRequestWrapper request, final CloseableHttpResponse response) throws Exception {
         CloseableHttpResponse resp = mockBackend.execute(
                 EasyMock.isA(HttpRoute.class),
                 EasyMock.eq(request),
@@ -1800,7 +1800,7 @@ public class TestCachingExec {
     }
 
     private IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndThrows(
-            Throwable throwable) throws Exception {
+            final Throwable throwable) throws Exception {
         CloseableHttpResponse resp = mockBackend.execute(
                 EasyMock.isA(HttpRoute.class),
                 EasyMock.isA(HttpRequestWrapper.class),
@@ -1810,7 +1810,7 @@ public class TestCachingExec {
     }
 
     private IExpectationSetters<CloseableHttpResponse> backendCaptureRequestAndReturn(
-            Capture<HttpRequestWrapper> cap, HttpResponse response) throws Exception {
+            final Capture<HttpRequestWrapper> cap, final HttpResponse response) throws Exception {
         CloseableHttpResponse resp = mockBackend.execute(
                 EasyMock.isA(HttpRoute.class),
                 EasyMock.capture(cap),
@@ -1819,11 +1819,11 @@ public class TestCachingExec {
         return EasyMock.expect(resp).andReturn(Proxies.enhanceResponse(response));
     }
 
-    private void getCacheEntryReturns(HttpCacheEntry result) throws IOException {
+    private void getCacheEntryReturns(final HttpCacheEntry result) throws IOException {
         expect(mockCache.getCacheEntry(host, request)).andReturn(result);
     }
 
-    private void getVariantCacheEntriesReturns(Map<String,Variant> result) throws IOException {
+    private void getVariantCacheEntriesReturns(final Map<String,Variant> result) throws IOException {
         expect(mockCache.getVariantCacheEntriesWithEtags(host, request)).andReturn(result);
     }
 
@@ -1833,42 +1833,42 @@ public class TestCachingExec {
                 (HttpRequest)anyObject());
     }
 
-    private void cacheEntryValidatable(boolean b) {
+    private void cacheEntryValidatable(final boolean b) {
         expect(mockValidityPolicy.isRevalidatable(
                 (HttpCacheEntry)anyObject())).andReturn(b);
     }
 
-    private void cacheEntryMustRevalidate(boolean b) {
+    private void cacheEntryMustRevalidate(final boolean b) {
         expect(mockValidityPolicy.mustRevalidate(mockCacheEntry))
             .andReturn(b);
     }
 
-    private void cacheEntryProxyRevalidate(boolean b) {
+    private void cacheEntryProxyRevalidate(final boolean b) {
         expect(mockValidityPolicy.proxyRevalidate(mockCacheEntry))
             .andReturn(b);
     }
 
-    private void mayReturnStaleWhileRevalidating(boolean b) {
+    private void mayReturnStaleWhileRevalidating(final boolean b) {
         expect(mockValidityPolicy.mayReturnStaleWhileRevalidating(
                 (HttpCacheEntry)anyObject(), (Date)anyObject())).andReturn(b);
     }
 
-    private void conditionalRequestBuilderReturns(HttpRequestWrapper validate)
+    private void conditionalRequestBuilderReturns(final HttpRequestWrapper validate)
             throws Exception {
         expect(mockConditionalRequestBuilder.buildConditionalRequest(
                 request, entry)).andReturn(validate);
 }
 
-    private void getCurrentDateReturns(Date date) {
+    private void getCurrentDateReturns(final Date date) {
         expect(impl.getCurrentDate()).andReturn(date);
     }
 
-    private void requestPolicyAllowsCaching(boolean allow) {
+    private void requestPolicyAllowsCaching(final boolean allow) {
         expect(mockRequestPolicy.isServableFromCache(
                 (HttpRequest)anyObject())).andReturn(allow);
     }
 
-    private void cacheEntrySuitable(boolean suitable) {
+    private void cacheEntrySuitable(final boolean suitable) {
         expect(
                 mockSuitabilityChecker.canCachedResponseBeUsed(
                         (HttpHost)anyObject(),
@@ -1877,7 +1877,7 @@ public class TestCachingExec {
                         (Date)anyObject())).andReturn(suitable);
     }
 
-    private void entryHasStaleness(long staleness) {
+    private void entryHasStaleness(final long staleness) {
         expect(mockValidityPolicy.getStalenessSecs(
                 (HttpCacheEntry)anyObject(),
                 (Date)anyObject()
@@ -1889,7 +1889,7 @@ public class TestCachingExec {
                 (HttpCacheEntry)anyObject())).andReturn(mockCachedResponse);
     }
 
-    private void handleBackendResponseReturnsResponse(HttpRequestWrapper request, HttpResponse response)
+    private void handleBackendResponseReturnsResponse(final HttpRequestWrapper request, final HttpResponse response)
             throws IOException {
         expect(
                 impl.handleBackendResponse(
@@ -1903,7 +1903,7 @@ public class TestCachingExec {
                                 Proxies.enhanceResponse(response));
     }
 
-    private void mockImplMethods(String... methods) {
+    private void mockImplMethods(final String... methods) {
         mockedImpl = true;
         impl = createMockBuilder(CachingExec.class).withConstructor(
                 mockBackend,

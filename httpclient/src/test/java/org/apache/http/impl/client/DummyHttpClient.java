@@ -52,7 +52,7 @@ public class DummyHttpClient implements HttpClient {
     private HttpRequest request;
     private HttpResponse response = new BasicHttpResponse(new ProtocolVersion("HTTP",1,1), HttpStatus.SC_OK, "OK");
 
-    public void setParams(HttpParams params) {
+    public void setParams(final HttpParams params) {
         this.params = params;
     }
 
@@ -64,11 +64,11 @@ public class DummyHttpClient implements HttpClient {
         return connManager;
     }
 
-    public void setConnectionManager(ClientConnectionManager ccm) {
+    public void setConnectionManager(final ClientConnectionManager ccm) {
         connManager = ccm;
     }
 
-    public void setResponse(HttpResponse resp) {
+    public void setResponse(final HttpResponse resp) {
         response = resp;
     }
 
@@ -76,53 +76,53 @@ public class DummyHttpClient implements HttpClient {
         return request;
     }
 
-    public HttpResponse execute(HttpUriRequest request) throws IOException,
+    public HttpResponse execute(final HttpUriRequest request) throws IOException,
             ClientProtocolException {
         this.request = request;
         return response;
     }
 
-    public HttpResponse execute(HttpUriRequest request, HttpContext context)
+    public HttpResponse execute(final HttpUriRequest request, final HttpContext context)
             throws IOException, ClientProtocolException {
         this.request = request;
         return response;
     }
 
-    public HttpResponse execute(HttpHost target, HttpRequest request)
+    public HttpResponse execute(final HttpHost target, final HttpRequest request)
             throws IOException, ClientProtocolException {
         this.request = request;
         return response;
     }
 
-    public HttpResponse execute(HttpHost target, HttpRequest request,
-            HttpContext context) throws IOException, ClientProtocolException {
+    public HttpResponse execute(final HttpHost target, final HttpRequest request,
+            final HttpContext context) throws IOException, ClientProtocolException {
         this.request = request;
         return response;
     }
 
-    public <T> T execute(HttpUriRequest request,
-            ResponseHandler<? extends T> responseHandler) throws IOException,
+    public <T> T execute(final HttpUriRequest request,
+            final ResponseHandler<? extends T> responseHandler) throws IOException,
             ClientProtocolException {
         this.request = request;
         return responseHandler.handleResponse(response);
     }
 
-    public <T> T execute(HttpUriRequest request,
-            ResponseHandler<? extends T> responseHandler, HttpContext context)
+    public <T> T execute(final HttpUriRequest request,
+            final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException, ClientProtocolException {
         this.request = request;
         return responseHandler.handleResponse(response);
     }
 
-    public <T> T execute(HttpHost target, HttpRequest request,
-            ResponseHandler<? extends T> responseHandler) throws IOException,
+    public <T> T execute(final HttpHost target, final HttpRequest request,
+            final ResponseHandler<? extends T> responseHandler) throws IOException,
             ClientProtocolException {
         this.request = request;
         return responseHandler.handleResponse(response);
     }
 
-    public <T> T execute(HttpHost target, HttpRequest request,
-            ResponseHandler<? extends T> responseHandler, HttpContext context)
+    public <T> T execute(final HttpHost target, final HttpRequest request,
+            final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException, ClientProtocolException {
         this.request = request;
         return responseHandler.handleResponse(response);

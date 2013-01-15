@@ -57,7 +57,7 @@ public class JdkIdn implements Idn {
         }
     }
 
-    public String toUnicode(String punycode) {
+    public String toUnicode(final String punycode) {
         try {
             return (String) toUnicode.invoke(null, punycode);
         } catch (IllegalAccessException e) {

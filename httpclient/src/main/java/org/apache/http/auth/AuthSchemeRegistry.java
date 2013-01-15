@@ -144,7 +144,7 @@ public final class AuthSchemeRegistry implements Lookup<AuthSchemeProvider> {
     public AuthSchemeProvider lookup(final String name) {
         return new AuthSchemeProvider() {
 
-            public AuthScheme create(HttpContext context) {
+            public AuthScheme create(final HttpContext context) {
                 HttpRequest request = (HttpRequest) context.getAttribute(
                         ExecutionContext.HTTP_REQUEST);
                 return getAuthScheme(name, request.getParams());

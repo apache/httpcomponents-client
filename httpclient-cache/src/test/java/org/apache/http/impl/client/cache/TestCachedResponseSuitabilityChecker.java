@@ -69,7 +69,7 @@ public class TestCachedResponseSuitabilityChecker {
         impl = new CachedResponseSuitabilityChecker(CacheConfig.DEFAULT);
     }
 
-    private HttpCacheEntry getEntry(Header[] headers) {
+    private HttpCacheEntry getEntry(final Header[] headers) {
         return HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, headers);
     }
 

@@ -52,7 +52,7 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
     private Set<String> exceptions;
     private Set<String> suffixes;
 
-    public PublicSuffixFilter(CookieAttributeHandler wrapped) {
+    public PublicSuffixFilter(final CookieAttributeHandler wrapped) {
         this.wrapped = wrapped;
     }
 
@@ -62,7 +62,7 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
      * TODO add support for patterns like "lib.*.us"
      * @param suffixes
      */
-    public void setPublicSuffixes(Collection<String> suffixes) {
+    public void setPublicSuffixes(final Collection<String> suffixes) {
         this.suffixes = new HashSet<String>(suffixes);
     }
 
@@ -71,29 +71,29 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
      * TODO add support for patterns
      * @param exceptions
      */
-    public void setExceptions(Collection<String> exceptions) {
+    public void setExceptions(final Collection<String> exceptions) {
         this.exceptions = new HashSet<String>(exceptions);
     }
 
     /**
      * Never matches if the cookie's domain is from the blacklist.
      */
-    public boolean match(Cookie cookie, CookieOrigin origin) {
+    public boolean match(final Cookie cookie, final CookieOrigin origin) {
         if (isForPublicSuffix(cookie)) {
 			return false;
 		}
         return wrapped.match(cookie, origin);
     }
 
-    public void parse(SetCookie cookie, String value) throws MalformedCookieException {
+    public void parse(final SetCookie cookie, final String value) throws MalformedCookieException {
         wrapped.parse(cookie, value);
     }
 
-    public void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException {
+    public void validate(final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
         wrapped.validate(cookie, origin);
     }
 
-    private boolean isForPublicSuffix(Cookie cookie) {
+    private boolean isForPublicSuffix(final Cookie cookie) {
         String domain = cookie.getDomain();
         if (domain.startsWith(".")) {
 			domain = domain.substring(1);

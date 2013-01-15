@@ -103,9 +103,9 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
      * @throws  IOException if an error occurs during the connection
      * @throws  SocketTimeoutException if timeout expires before connecting
      */
-    public Socket connectSocket(Socket sock, String host, int port,
-                                InetAddress localAddress, int localPort,
-                                HttpParams params)
+    public Socket connectSocket(Socket sock, final String host, final int port,
+                                final InetAddress localAddress, int localPort,
+                                final HttpParams params)
         throws IOException {
         Args.notNull(host, "Target host");
         Args.notNull(params, "HTTP parameters");
@@ -166,7 +166,7 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
      *
      * @throws IllegalArgumentException if the argument is invalid
      */
-    public final boolean isSecure(Socket sock)
+    public final boolean isSecure(final Socket sock)
         throws IllegalArgumentException {
 
         Args.notNull(sock, "Socket");

@@ -195,7 +195,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 return false;
             }
 
-            public HttpClientConnection get(long timeout, TimeUnit tunit) {
+            public HttpClientConnection get(final long timeout, final TimeUnit tunit) {
                 return BasicHttpClientConnectionManager.this.getConnection(
                         route, state);
             }
@@ -262,7 +262,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     public synchronized void releaseConnection(
             final HttpClientConnection conn,
             final Object state,
-            long keepalive, final TimeUnit tunit) {
+            final long keepalive, final TimeUnit tunit) {
         Args.notNull(conn, "Connection");
         Asserts.check(conn == this.conn, "Connection not obtained from this manager");
         if (this.log.isDebugEnabled()) {
@@ -334,7 +334,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
-    public synchronized void closeIdleConnections(long idletime, TimeUnit tunit) {
+    public synchronized void closeIdleConnections(final long idletime, final TimeUnit tunit) {
         Args.notNull(tunit, "Time unit");
         if (this.shutdown) {
             return;

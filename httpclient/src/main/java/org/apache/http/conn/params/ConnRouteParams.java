@@ -77,7 +77,7 @@ public class ConnRouteParams implements ConnRoutePNames {
      * @return  the default proxy set in the argument parameters, or
      *          <code>null</code> if not set
      */
-    public static HttpHost getDefaultProxy(HttpParams params) {
+    public static HttpHost getDefaultProxy(final HttpParams params) {
         Args.notNull(params, "Parameters");
         HttpHost proxy = (HttpHost)
             params.getParameter(DEFAULT_PROXY);
@@ -98,8 +98,8 @@ public class ConnRouteParams implements ConnRoutePNames {
      *                  <code>null</code> by {@link #getDefaultProxy},
      *                  to allow for explicit unsetting in hierarchies.
      */
-    public static void setDefaultProxy(HttpParams params,
-                                             HttpHost proxy) {
+    public static void setDefaultProxy(final HttpParams params,
+                                             final HttpHost proxy) {
         Args.notNull(params, "Parameters");
         params.setParameter(DEFAULT_PROXY, proxy);
     }
@@ -115,7 +115,7 @@ public class ConnRouteParams implements ConnRoutePNames {
      * @return  the forced route set in the argument parameters, or
      *          <code>null</code> if not set
      */
-    public static HttpRoute getForcedRoute(HttpParams params) {
+    public static HttpRoute getForcedRoute(final HttpParams params) {
         Args.notNull(params, "Parameters");
         HttpRoute route = (HttpRoute)
             params.getParameter(FORCED_ROUTE);
@@ -136,8 +136,8 @@ public class ConnRouteParams implements ConnRoutePNames {
      *                  <code>null</code> by {@link #getForcedRoute},
      *                  to allow for explicit unsetting in hierarchies.
      */
-    public static void setForcedRoute(HttpParams params,
-                                            HttpRoute route) {
+    public static void setForcedRoute(final HttpParams params,
+                                            final HttpRoute route) {
         Args.notNull(params, "Parameters");
         params.setParameter(FORCED_ROUTE, route);
     }
@@ -154,7 +154,7 @@ public class ConnRouteParams implements ConnRoutePNames {
      * @return  the local address set in the argument parameters, or
      *          <code>null</code> if not set
      */
-    public static InetAddress getLocalAddress(HttpParams params) {
+    public static InetAddress getLocalAddress(final HttpParams params) {
         Args.notNull(params, "Parameters");
         InetAddress local = (InetAddress)
             params.getParameter(LOCAL_ADDRESS);
@@ -169,8 +169,8 @@ public class ConnRouteParams implements ConnRoutePNames {
      * @param params    the parameters in which to set the value
      * @param local     the value to set, may be <code>null</code>
      */
-    public static void setLocalAddress(HttpParams params,
-                                             InetAddress local) {
+    public static void setLocalAddress(final HttpParams params,
+                                             final InetAddress local) {
         Args.notNull(params, "Parameters");
         params.setParameter(LOCAL_ADDRESS, local);
     }

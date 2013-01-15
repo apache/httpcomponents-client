@@ -49,16 +49,16 @@ public class Wire {
     /**
      * @since 4.3
      */
-    public Wire(Log log, String id) {
+    public Wire(final Log log, final String id) {
         this.log = log;
         this.id = id;
     }
 
-    public Wire(Log log) {
+    public Wire(final Log log) {
         this(log, "");
     }
 
-    private void wire(String header, InputStream instream)
+    private void wire(final String header, final InputStream instream)
       throws IOException {
         StringBuilder buffer = new StringBuilder();
         int ch;
@@ -92,48 +92,48 @@ public class Wire {
         return log.isDebugEnabled();
     }
 
-    public void output(InputStream outstream)
+    public void output(final InputStream outstream)
       throws IOException {
         Args.notNull(outstream, "Output");
         wire(">> ", outstream);
     }
 
-    public void input(InputStream instream)
+    public void input(final InputStream instream)
       throws IOException {
         Args.notNull(instream, "Input");
         wire("<< ", instream);
     }
 
-    public void output(byte[] b, int off, int len)
+    public void output(final byte[] b, final int off, final int len)
       throws IOException {
         Args.notNull(b, "Output");
         wire(">> ", new ByteArrayInputStream(b, off, len));
     }
 
-    public void input(byte[] b, int off, int len)
+    public void input(final byte[] b, final int off, final int len)
       throws IOException {
         Args.notNull(b, "Input");
         wire("<< ", new ByteArrayInputStream(b, off, len));
     }
 
-    public void output(byte[] b)
+    public void output(final byte[] b)
       throws IOException {
         Args.notNull(b, "Output");
         wire(">> ", new ByteArrayInputStream(b));
     }
 
-    public void input(byte[] b)
+    public void input(final byte[] b)
       throws IOException {
         Args.notNull(b, "Input");
         wire("<< ", new ByteArrayInputStream(b));
     }
 
-    public void output(int b)
+    public void output(final int b)
       throws IOException {
         output(new byte[] {(byte) b});
     }
 
-    public void input(int b)
+    public void input(final int b)
       throws IOException {
         input(new byte[] {(byte) b});
     }

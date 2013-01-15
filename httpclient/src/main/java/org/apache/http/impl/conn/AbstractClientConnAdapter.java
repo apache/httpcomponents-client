@@ -98,8 +98,8 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
      * @param mgr       the connection manager, or <code>null</code>
      * @param conn      the connection to wrap, or <code>null</code>
      */
-    protected AbstractClientConnAdapter(ClientConnectionManager mgr,
-                                        OperatedClientConnection conn) {
+    protected AbstractClientConnAdapter(final ClientConnectionManager mgr,
+                                        final OperatedClientConnection conn) {
         super();
         connManager = mgr;
         wrappedConnection = conn;
@@ -177,7 +177,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return conn.isStale();
     }
 
-    public void setSocketTimeout(int timeout) {
+    public void setSocketTimeout(final int timeout) {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         conn.setSocketTimeout(timeout);
@@ -201,13 +201,13 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         conn.flush();
     }
 
-    public boolean isResponseAvailable(int timeout) throws IOException {
+    public boolean isResponseAvailable(final int timeout) throws IOException {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.isResponseAvailable(timeout);
     }
 
-    public void receiveResponseEntity(HttpResponse response)
+    public void receiveResponseEntity(final HttpResponse response)
         throws HttpException, IOException {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
@@ -223,7 +223,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return conn.receiveResponseHeader();
     }
 
-    public void sendRequestEntity(HttpEntityEnclosingRequest request)
+    public void sendRequestEntity(final HttpEntityEnclosingRequest request)
         throws HttpException, IOException {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
@@ -231,7 +231,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         conn.sendRequestEntity(request);
     }
 
-    public void sendRequestHeader(HttpRequest request)
+    public void sendRequestHeader(final HttpRequest request)
         throws HttpException, IOException {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
@@ -269,7 +269,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return conn.isSecure();
     }
 
-    public void bind(Socket socket) throws IOException {
+    public void bind(final Socket socket) throws IOException {
         throw new UnsupportedOperationException();
     }
 
@@ -309,7 +309,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return markedReusable;
     }
 
-    public void setIdleDuration(long duration, TimeUnit unit) {
+    public void setIdleDuration(final long duration, final TimeUnit unit) {
         if(duration > 0) {
             this.duration = unit.toMillis(duration);
         } else {

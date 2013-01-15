@@ -88,9 +88,9 @@ public class TestContentCodings extends IntegrationTestBase {
              * {@inheritDoc}
              */
             public void handle(
-                    HttpRequest request,
-                    HttpResponse response,
-                    HttpContext context) throws HttpException, IOException {
+                    final HttpRequest request,
+                    final HttpResponse response,
+                    final HttpContext context) throws HttpException, IOException {
                 response.setStatusCode(HttpStatus.SC_NO_CONTENT);
             }
         });
@@ -308,9 +308,9 @@ public class TestContentCodings extends IntegrationTestBase {
              * {@inheritDoc}
              */
             public void handle(
-                    HttpRequest request,
-                    HttpResponse response,
-                    HttpContext context) throws HttpException, IOException {
+                    final HttpRequest request,
+                    final HttpResponse response,
+                    final HttpContext context) throws HttpException, IOException {
                 response.setEntity(new StringEntity(entityText));
                 response.addHeader("Content-Type", "text/plain");
                 Header[] acceptEncodings = request.getHeaders("Accept-Encoding");
@@ -357,9 +357,9 @@ public class TestContentCodings extends IntegrationTestBase {
              * {@inheritDoc}
              */
             public void handle(
-                    HttpRequest request,
-                    HttpResponse response,
-                    HttpContext context) throws HttpException, IOException {
+                    final HttpRequest request,
+                    final HttpResponse response,
+                    final HttpContext context) throws HttpException, IOException {
                 response.setEntity(new StringEntity(entityText));
                 response.addHeader("Content-Type", "text/plain");
                 Header[] acceptEncodings = request.getHeaders("Accept-Encoding");
@@ -442,7 +442,7 @@ public class TestContentCodings extends IntegrationTestBase {
          */
         private String text;
 
-        WorkerTask(HttpClient client, boolean identity, CountDownLatch startGate, CountDownLatch endGate) {
+        WorkerTask(final HttpClient client, final boolean identity, final CountDownLatch startGate, final CountDownLatch endGate) {
             this.client = client;
             this.request = new HttpGet("/some-resource");
             if (identity) {

@@ -59,7 +59,7 @@ class CachedResponseSuitabilityChecker {
     private final CacheValidityPolicy validityStrategy;
 
     CachedResponseSuitabilityChecker(final CacheValidityPolicy validityStrategy,
-            CacheConfig config) {
+            final CacheConfig config) {
         super();
         this.validityStrategy = validityStrategy;
         this.sharedCache = config.isSharedCache();
@@ -68,11 +68,11 @@ class CachedResponseSuitabilityChecker {
         this.heuristicDefaultLifetime = config.getHeuristicDefaultLifetime();
     }
 
-    CachedResponseSuitabilityChecker(CacheConfig config) {
+    CachedResponseSuitabilityChecker(final CacheConfig config) {
         this(new CacheValidityPolicy(), config);
     }
 
-    private boolean isFreshEnough(HttpCacheEntry entry, HttpRequest request, Date now) {
+    private boolean isFreshEnough(final HttpCacheEntry entry, final HttpRequest request, final Date now) {
         if (validityStrategy.isResponseFresh(entry, now)) {
 			return true;
 		}
@@ -90,7 +90,7 @@ class CachedResponseSuitabilityChecker {
         return (maxstale > validityStrategy.getStalenessSecs(entry, now));
     }
 
-    private boolean originInsistsOnFreshness(HttpCacheEntry entry) {
+    private boolean originInsistsOnFreshness(final HttpCacheEntry entry) {
         if (validityStrategy.mustRevalidate(entry)) {
 			return true;
 		}
@@ -101,7 +101,7 @@ class CachedResponseSuitabilityChecker {
             validityStrategy.hasCacheControlDirective(entry, "s-maxage");
     }
 
-    private long getMaxStale(HttpRequest request) {
+    private long getMaxStale(final HttpRequest request) {
         long maxstale = -1;
         for(Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for(HeaderElement elt : h.getElements()) {
@@ -143,7 +143,7 @@ class CachedResponseSuitabilityChecker {
      *            Right now in time
      * @return boolean yes/no answer
      */
-    public boolean canCachedResponseBeUsed(HttpHost host, HttpRequest request, HttpCacheEntry entry, Date now) {
+    public boolean canCachedResponseBeUsed(final HttpHost host, final HttpRequest request, final HttpCacheEntry entry, final Date now) {
 
         if (!isFreshEnough(entry, request, now)) {
             log.trace("Cache entry was not fresh enough");
@@ -239,7 +239,7 @@ class CachedResponseSuitabilityChecker {
      * @param request The current httpRequest being made
      * @return {@code true} if the request is supported
      */
-    public boolean isConditional(HttpRequest request) {
+    public boolean isConditional(final HttpRequest request) {
         return hasSupportedEtagValidator(request) || hasSupportedLastModifiedValidator(request);
     }
 
@@ -250,7 +250,7 @@ class CachedResponseSuitabilityChecker {
      * @param now right NOW in time
      * @return {@code true} if the request matches all conditionals
      */
-    public boolean allConditionalsMatch(HttpRequest request, HttpCacheEntry entry, Date now) {
+    public boolean allConditionalsMatch(final HttpRequest request, final HttpCacheEntry entry, final Date now) {
         boolean hasEtagValidator = hasSupportedEtagValidator(request);
         boolean hasLastModifiedValidator = hasSupportedLastModifiedValidator(request);
 
@@ -270,17 +270,17 @@ class CachedResponseSuitabilityChecker {
         return true;
     }
 
-    private boolean hasUnsupportedConditionalHeaders(HttpRequest request) {
+    private boolean hasUnsupportedConditionalHeaders(final HttpRequest request) {
         return (request.getFirstHeader(HeaderConstants.IF_RANGE) != null
                 || request.getFirstHeader(HeaderConstants.IF_MATCH) != null
                 || hasValidDateField(request, HeaderConstants.IF_UNMODIFIED_SINCE));
     }
 
-    private boolean hasSupportedEtagValidator(HttpRequest request) {
+    private boolean hasSupportedEtagValidator(final HttpRequest request) {
         return request.containsHeader(HeaderConstants.IF_NONE_MATCH);
     }
 
-    private boolean hasSupportedLastModifiedValidator(HttpRequest request) {
+    private boolean hasSupportedLastModifiedValidator(final HttpRequest request) {
         return hasValidDateField(request, HeaderConstants.IF_MODIFIED_SINCE);
     }
 
@@ -290,7 +290,7 @@ class CachedResponseSuitabilityChecker {
      * @param entry the cache entry
      * @return boolean does the etag validator match
      */
-    private boolean etagValidatorMatches(HttpRequest request, HttpCacheEntry entry) {
+    private boolean etagValidatorMatches(final HttpRequest request, final HttpCacheEntry entry) {
         Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
         String etag = (etagHeader != null) ? etagHeader.getValue() : null;
         Header[] ifNoneMatch = request.getHeaders(HeaderConstants.IF_NONE_MATCH);
@@ -316,7 +316,7 @@ class CachedResponseSuitabilityChecker {
      * @param now right NOW in time
      * @return  boolean Does the last modified header match
      */
-    private boolean lastModifiedValidatorMatches(HttpRequest request, HttpCacheEntry entry, Date now) {
+    private boolean lastModifiedValidatorMatches(final HttpRequest request, final HttpCacheEntry entry, final Date now) {
         Header lastModifiedHeader = entry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
         Date lastModified = null;
         try {
@@ -344,7 +344,7 @@ class CachedResponseSuitabilityChecker {
         return true;
     }
 
-    private boolean hasValidDateField(HttpRequest request, String headerName) {
+    private boolean hasValidDateField(final HttpRequest request, final String headerName) {
         for(Header h : request.getHeaders(headerName)) {
             try {
                 DateUtils.parseDate(h.getValue());

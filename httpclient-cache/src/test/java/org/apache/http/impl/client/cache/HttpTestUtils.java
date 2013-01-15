@@ -94,7 +94,7 @@ public class HttpTestUtils {
      *
      * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.1
      */
-    public static boolean isHopByHopHeader(String name) {
+    public static boolean isHopByHopHeader(final String name) {
         for (String s : HOP_BY_HOP_HEADERS) {
             if (s.equalsIgnoreCase(name)) {
 				return true;
@@ -106,7 +106,7 @@ public class HttpTestUtils {
     /*
      * Determines whether a given header name may appear multiple times.
      */
-    public static boolean isMultiHeader(String name) {
+    public static boolean isMultiHeader(final String name) {
         for (String s : MULTI_HEADERS) {
             if (s.equalsIgnoreCase(name)) {
 				return true;
@@ -118,7 +118,7 @@ public class HttpTestUtils {
     /*
      * Determines whether a given header name may only appear once in a message.
      */
-    public static boolean isSingleHeader(String name) {
+    public static boolean isSingleHeader(final String name) {
         for (String s : SINGLE_HEADERS) {
             if (s.equalsIgnoreCase(name)) {
 				return true;
@@ -129,7 +129,7 @@ public class HttpTestUtils {
     /*
      * Assert.asserts that two request or response bodies are byte-equivalent.
      */
-    public static boolean equivalent(HttpEntity e1, HttpEntity e2) throws Exception {
+    public static boolean equivalent(final HttpEntity e1, final HttpEntity e2) throws Exception {
         InputStream i1 = e1.getContent();
         InputStream i2 = e2.getContent();
         if (i1 == null && i2 == null) {
@@ -156,19 +156,19 @@ public class HttpTestUtils {
      *
      * @see http://www.ietf.org/rfc/rfc2145.txt
      */
-    public static boolean semanticallyTransparent(StatusLine l1, StatusLine l2) {
+    public static boolean semanticallyTransparent(final StatusLine l1, final StatusLine l2) {
         return (l1.getReasonPhrase().equals(l2.getReasonPhrase()) && l1.getStatusCode() == l2
                 .getStatusCode());
     }
 
     /* Assert.asserts that the components of two status lines match. */
-    public static boolean equivalent(StatusLine l1, StatusLine l2) {
+    public static boolean equivalent(final StatusLine l1, final StatusLine l2) {
         return (l1.getProtocolVersion().equals(l2.getProtocolVersion()) && semanticallyTransparent(
                 l1, l2));
     }
 
     /* Assert.asserts that the components of two request lines match. */
-    public static boolean equivalent(RequestLine l1, RequestLine l2) {
+    public static boolean equivalent(final RequestLine l1, final RequestLine l2) {
         return (l1.getMethod().equals(l2.getMethod())
                 && l1.getProtocolVersion().equals(l2.getProtocolVersion()) && l1.getUri().equals(
                         l2.getUri()));
@@ -180,7 +180,7 @@ public class HttpTestUtils {
      *
      * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
      */
-    public static String getCanonicalHeaderValue(HttpMessage r, String name) {
+    public static String getCanonicalHeaderValue(final HttpMessage r, final String name) {
         if (isSingleHeader(name)) {
             Header h = r.getFirstHeader(name);
             return (h != null) ? h.getValue() : null;
@@ -201,7 +201,7 @@ public class HttpTestUtils {
      * Assert.asserts that all the headers appearing in r1 also appear in r2
      * with the same canonical header values.
      */
-    public static boolean isEndToEndHeaderSubset(HttpMessage r1, HttpMessage r2) {
+    public static boolean isEndToEndHeaderSubset(final HttpMessage r1, final HttpMessage r2) {
         for (Header h : r1.getAllHeaders()) {
             if (!isHopByHopHeader(h.getName())) {
                 String r1val = getCanonicalHeaderValue(r1, h.getName());
@@ -223,7 +223,7 @@ public class HttpTestUtils {
      *
      * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec1.html#sec1.3
      */
-    public static boolean semanticallyTransparent(HttpResponse r1, HttpResponse r2)
+    public static boolean semanticallyTransparent(final HttpResponse r1, final HttpResponse r2)
     throws Exception {
         final boolean entitiesEquivalent = equivalent(r1.getEntity(), r2.getEntity());
         if (!entitiesEquivalent) {
@@ -239,12 +239,12 @@ public class HttpTestUtils {
     }
 
     /* Assert.asserts that two requests are morally equivalent. */
-    public static boolean equivalent(HttpRequest r1, HttpRequest r2) {
+    public static boolean equivalent(final HttpRequest r1, final HttpRequest r2) {
         return (equivalent(r1.getRequestLine(), r2.getRequestLine()) && isEndToEndHeaderSubset(r1,
                 r2));
     }
 
-    public static byte[] getRandomBytes(int nbytes) {
+    public static byte[] getRandomBytes(final int nbytes) {
         byte[] bytes = new byte[nbytes];
         (new Random()).nextBytes(bytes);
         return bytes;
@@ -254,16 +254,16 @@ public class HttpTestUtils {
      *  @param nbytes length of the desired response body
      *  @return an {@link HttpEntity}
      */
-    public static HttpEntity makeBody(int nbytes) {
+    public static HttpEntity makeBody(final int nbytes) {
         return new ByteArrayEntity(getRandomBytes(nbytes));
     }
 
-    public static HttpCacheEntry makeCacheEntry(Date requestDate, Date responseDate) {
+    public static HttpCacheEntry makeCacheEntry(final Date requestDate, final Date responseDate) {
         Date when = new Date((responseDate.getTime() + requestDate.getTime()) / 2);
         return makeCacheEntry(requestDate, responseDate, getStockHeaders(when));
     }
 
-    public static Header[] getStockHeaders(Date when) {
+    public static Header[] getStockHeaders(final Date when) {
         Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(when)),
                 new BasicHeader("Server", "MockServer/1.0")
@@ -271,42 +271,42 @@ public class HttpTestUtils {
         return headers;
     }
 
-    public static HttpCacheEntry makeCacheEntry(Date requestDate,
-            Date responseDate, Header[] headers) {
+    public static HttpCacheEntry makeCacheEntry(final Date requestDate,
+            final Date responseDate, final Header[] headers) {
         byte[] bytes = getRandomBytes(128);
         return makeCacheEntry(requestDate, responseDate, headers, bytes);
     }
 
-    public static HttpCacheEntry makeCacheEntry(Date requestDate,
-            Date responseDate, Header[] headers, byte[] bytes) {
+    public static HttpCacheEntry makeCacheEntry(final Date requestDate,
+            final Date responseDate, final Header[] headers, final byte[] bytes) {
         Map<String,String> variantMap = null;
         return makeCacheEntry(requestDate, responseDate, headers, bytes,
                 variantMap);
     }
 
-    public static HttpCacheEntry makeCacheEntry(Map<String,String> variantMap) {
+    public static HttpCacheEntry makeCacheEntry(final Map<String,String> variantMap) {
         Date now = new Date();
         return makeCacheEntry(now, now, getStockHeaders(now),
                 getRandomBytes(128), variantMap);
     }
 
-    public static HttpCacheEntry makeCacheEntry(Date requestDate,
-            Date responseDate, Header[] headers, byte[] bytes,
-            Map<String,String> variantMap) {
+    public static HttpCacheEntry makeCacheEntry(final Date requestDate,
+            final Date responseDate, final Header[] headers, final byte[] bytes,
+            final Map<String,String> variantMap) {
         StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         return new HttpCacheEntry(requestDate, responseDate, statusLine, headers, new HeapResource(bytes), variantMap);
     }
 
-    public static HttpCacheEntry makeCacheEntry(Header[] headers, byte[] bytes) {
+    public static HttpCacheEntry makeCacheEntry(final Header[] headers, final byte[] bytes) {
         Date now = new Date();
         return makeCacheEntry(now, now, headers, bytes);
     }
 
-    public static HttpCacheEntry makeCacheEntry(byte[] bytes) {
+    public static HttpCacheEntry makeCacheEntry(final byte[] bytes) {
         return makeCacheEntry(getStockHeaders(new Date()), bytes);
     }
 
-    public static HttpCacheEntry makeCacheEntry(Header[] headers) {
+    public static HttpCacheEntry makeCacheEntry(final Header[] headers) {
         return makeCacheEntry(headers, getRandomBytes(128));
     }
 
@@ -324,7 +324,7 @@ public class HttpTestUtils {
         return out;
     }
 
-    public static final HttpResponse make200Response(Date date, String cacheControl) {
+    public static final HttpResponse make200Response(final Date date, final String cacheControl) {
         HttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("Date", DateUtils.formatDate(date));
         response.setHeader("Cache-Control",cacheControl);
@@ -332,7 +332,7 @@ public class HttpTestUtils {
         return response;
     }
 
-    public static final void assert110WarningFound(HttpResponse response) {
+    public static final void assert110WarningFound(final HttpResponse response) {
         boolean found110Warning = false;
         for(Header h : response.getHeaders("Warning")) {
             for(HeaderElement elt : h.getElements()) {

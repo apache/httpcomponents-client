@@ -52,7 +52,7 @@ public class DateParseException extends Exception {
     /**
      * @param message the exception message
      */
-    public DateParseException(String message) {
+    public DateParseException(final String message) {
         super(message);
     }
 

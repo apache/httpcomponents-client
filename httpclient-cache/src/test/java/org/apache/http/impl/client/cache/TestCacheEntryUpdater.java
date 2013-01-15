@@ -241,7 +241,7 @@ public class TestCacheEntryUpdater {
         }
     }
 
-    private void headersContain(Header[] headers, String name, String value) {
+    private void headersContain(final Header[] headers, final String name, final String value) {
         for (Header header : headers) {
             if (header.getName().equals(name)) {
                 if (header.getValue().equals(value)) {

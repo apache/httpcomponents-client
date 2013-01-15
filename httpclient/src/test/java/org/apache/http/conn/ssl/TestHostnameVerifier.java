@@ -220,8 +220,8 @@ public class TestHostnameVerifier {
 
     }
 
-    public void exceptionPlease(X509HostnameVerifier hv, String host,
-                                 X509Certificate x509) {
+    public void exceptionPlease(final X509HostnameVerifier hv, final String host,
+                                 final X509Certificate x509) {
         try {
             hv.verify(host, x509);
             Assert.fail("HostnameVerifier shouldn't allow [" + host + "]");
@@ -232,8 +232,8 @@ public class TestHostnameVerifier {
     }
 
     // Test helper method
-    private void checkMatching(X509HostnameVerifier hv, String host,
-            String[] cns, String[] alts, boolean shouldFail) {
+    private void checkMatching(final X509HostnameVerifier hv, final String host,
+            final String[] cns, final String[] alts, final boolean shouldFail) {
         try {
             hv.verify(host, cns, alts);
             if (shouldFail) {
@@ -332,7 +332,7 @@ public class TestHostnameVerifier {
     }
 
     // Helper
-    private void checkWildcard(String host, boolean isOK) {
+    private void checkWildcard(final String host, final boolean isOK) {
         Assert.assertTrue(host+" should be "+isOK, isOK==AbstractVerifier.acceptableCountryWildcard(host));
     }
 

@@ -173,7 +173,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
      * <li>{@link CoreProtocolPNames#USER_AGENT}: Apache-HttpClient/<release> (java 1.5)</li>
      * </ul>
      */
-    public static void setDefaultHttpParams(HttpParams params) {
+    public static void setDefaultHttpParams(final HttpParams params) {
         HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
         HttpProtocolParams.setContentCharset(params, HTTP.DEF_CONTENT_CHARSET.name());
         HttpConnectionParams.setTcpNoDelay(params, true);

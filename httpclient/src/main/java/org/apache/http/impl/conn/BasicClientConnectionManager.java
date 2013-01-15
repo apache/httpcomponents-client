@@ -138,7 +138,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
             }
 
             public ManagedClientConnection getConnection(
-                    long timeout, TimeUnit tunit) {
+                    final long timeout, final TimeUnit tunit) {
                 return BasicClientConnectionManager.this.getConnection(
                         route, state);
             }
@@ -187,7 +187,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
         }
     }
 
-    public void releaseConnection(final ManagedClientConnection conn, long keepalive, TimeUnit tunit) {
+    public void releaseConnection(final ManagedClientConnection conn, final long keepalive, final TimeUnit tunit) {
         Args.check(conn instanceof ManagedClientConnectionImpl, "Connection class mismatch, " +
             "connection not obtained from this manager");
         ManagedClientConnectionImpl managedConn = (ManagedClientConnectionImpl) conn;
@@ -241,7 +241,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
         }
     }
 
-    public void closeIdleConnections(long idletime, TimeUnit tunit) {
+    public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
         Args.notNull(tunit, "Time unit");
         synchronized (this) {
             assertNotShutdown();

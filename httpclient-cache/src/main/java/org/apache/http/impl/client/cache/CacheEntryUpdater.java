@@ -80,11 +80,11 @@ class CacheEntryUpdater {
      * @throws java.io.IOException if something bad happens while trying to read the body from the original entry
      */
     public HttpCacheEntry updateCacheEntry(
-            String requestId,
-            HttpCacheEntry entry,
-            Date requestDate,
-            Date responseDate,
-            HttpResponse response) throws IOException {
+            final String requestId,
+            final HttpCacheEntry entry,
+            final Date requestDate,
+            final Date responseDate,
+            final HttpResponse response) throws IOException {
         Args.check(response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED,
                 "Response must have 304 status code");
         Header[] mergedHeaders = mergeHeaders(entry, response);
@@ -102,7 +102,7 @@ class CacheEntryUpdater {
                 resource);
     }
 
-    protected Header[] mergeHeaders(HttpCacheEntry entry, HttpResponse response) {
+    protected Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {
 
         if (entryAndResponseHaveDateHeader(entry, response)
                 && entryDateHeaderNewerThenResponse(entry, response)) {
@@ -119,8 +119,8 @@ class CacheEntryUpdater {
         return cacheEntryHeaderList.toArray(new Header[cacheEntryHeaderList.size()]);
     }
 
-    private void removeCacheHeadersThatMatchResponse(List<Header> cacheEntryHeaderList,
-            HttpResponse response) {
+    private void removeCacheHeadersThatMatchResponse(final List<Header> cacheEntryHeaderList,
+            final HttpResponse response) {
         for (Header responseHeader : response.getAllHeaders()) {
             ListIterator<Header> cacheEntryHeaderListIter = cacheEntryHeaderList.listIterator();
 
@@ -134,7 +134,7 @@ class CacheEntryUpdater {
         }
     }
 
-    private void removeCacheEntry1xxWarnings(List<Header> cacheEntryHeaderList, HttpCacheEntry entry) {
+    private void removeCacheEntry1xxWarnings(final List<Header> cacheEntryHeaderList, final HttpCacheEntry entry) {
         ListIterator<Header> cacheEntryHeaderListIter = cacheEntryHeaderList.listIterator();
 
         while (cacheEntryHeaderListIter.hasNext()) {
@@ -150,7 +150,7 @@ class CacheEntryUpdater {
         }
     }
 
-    private boolean entryDateHeaderNewerThenResponse(HttpCacheEntry entry, HttpResponse response) {
+    private boolean entryDateHeaderNewerThenResponse(final HttpCacheEntry entry, final HttpResponse response) {
         try {
             Date entryDate = DateUtils.parseDate(entry.getFirstHeader(HTTP.DATE_HEADER)
                     .getValue());
@@ -167,7 +167,7 @@ class CacheEntryUpdater {
         return true;
     }
 
-    private boolean entryAndResponseHaveDateHeader(HttpCacheEntry entry, HttpResponse response) {
+    private boolean entryAndResponseHaveDateHeader(final HttpCacheEntry entry, final HttpResponse response) {
         if (entry.getFirstHeader(HTTP.DATE_HEADER) != null
                 && response.getFirstHeader(HTTP.DATE_HEADER) != null) {
             return true;

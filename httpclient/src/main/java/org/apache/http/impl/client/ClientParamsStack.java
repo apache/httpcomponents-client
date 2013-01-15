@@ -96,8 +96,8 @@ public class ClientParamsStack extends AbstractHttpParams {
      * @param rparams   request parameters, or <code>null</code>
      * @param oparams   override parameters, or <code>null</code>
      */
-    public ClientParamsStack(HttpParams aparams, HttpParams cparams,
-                             HttpParams rparams, HttpParams oparams) {
+    public ClientParamsStack(final HttpParams aparams, final HttpParams cparams,
+                             final HttpParams rparams, final HttpParams oparams) {
         applicationParams = aparams;
         clientParams      = cparams;
         requestParams     = rparams;
@@ -112,7 +112,7 @@ public class ClientParamsStack extends AbstractHttpParams {
      *
      * @param stack     the stack to copy
      */
-    public ClientParamsStack(ClientParamsStack stack) {
+    public ClientParamsStack(final ClientParamsStack stack) {
         this(stack.getApplicationParams(),
              stack.getClientParams(),
              stack.getRequestParams(),
@@ -133,9 +133,9 @@ public class ClientParamsStack extends AbstractHttpParams {
      * @param rparams   request parameters, or <code>null</code>
      * @param oparams   override parameters, or <code>null</code>
      */
-    public ClientParamsStack(ClientParamsStack stack,
-                             HttpParams aparams, HttpParams cparams,
-                             HttpParams rparams, HttpParams oparams) {
+    public ClientParamsStack(final ClientParamsStack stack,
+                             final HttpParams aparams, final HttpParams cparams,
+                             final HttpParams rparams, final HttpParams oparams) {
         this((aparams != null) ? aparams : stack.getApplicationParams(),
              (cparams != null) ? cparams : stack.getClientParams(),
              (rparams != null) ? rparams : stack.getRequestParams(),
@@ -189,7 +189,7 @@ public class ClientParamsStack extends AbstractHttpParams {
      * @return  the highest-priority value for that parameter, or
      *          <code>null</code> if it is not set anywhere in this stack
      */
-    public Object getParameter(String name) {
+    public Object getParameter(final String name) {
         Args.notNull(name, "Parameter name");
 
         Object result = null;
@@ -222,7 +222,7 @@ public class ClientParamsStack extends AbstractHttpParams {
      *
      * @throws UnsupportedOperationException    always
      */
-    public HttpParams setParameter(String name, Object value)
+    public HttpParams setParameter(final String name, final Object value)
         throws UnsupportedOperationException {
 
         throw new UnsupportedOperationException
@@ -242,7 +242,7 @@ public class ClientParamsStack extends AbstractHttpParams {
      *
      * @throws UnsupportedOperationException    always
      */
-    public boolean removeParameter(String name) {
+    public boolean removeParameter(final String name) {
         throw new UnsupportedOperationException
         ("Removing parameters in a stack is not supported.");
     }

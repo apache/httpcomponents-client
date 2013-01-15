@@ -53,7 +53,7 @@ class CacheableRequestPolicy {
      *            an HttpRequest
      * @return boolean Is it possible to serve this request from cache
      */
-    public boolean isServableFromCache(HttpRequest request) {
+    public boolean isServableFromCache(final HttpRequest request) {
         String method = request.getRequestLine().getMethod();
 
         ProtocolVersion pv = request.getRequestLine().getProtocolVersion();

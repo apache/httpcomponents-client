@@ -47,7 +47,7 @@ public class Punycode {
         impl = _impl;
     }
 
-    public static String toUnicode(String punycode) {
+    public static String toUnicode(final String punycode) {
         return impl.toUnicode(punycode);
     }
 

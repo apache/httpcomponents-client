@@ -42,12 +42,12 @@ import org.apache.http.client.ConnectionBackoffStrategy;
  */
 public class DefaultBackoffStrategy implements ConnectionBackoffStrategy {
 
-    public boolean shouldBackoff(Throwable t) {
+    public boolean shouldBackoff(final Throwable t) {
         return (t instanceof SocketTimeoutException
                 || t instanceof ConnectException);
     }
 
-    public boolean shouldBackoff(HttpResponse resp) {
+    public boolean shouldBackoff(final HttpResponse resp) {
         return (resp.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE);
     }
 

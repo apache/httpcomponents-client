@@ -61,7 +61,7 @@ public class NegotiateScheme extends GGSSchemeBase {
      * Default constructor for the Negotiate authentication scheme.
      *
      */
-    public NegotiateScheme(final SpnegoTokenGenerator spengoGenerator, boolean stripPort) {
+    public NegotiateScheme(final SpnegoTokenGenerator spengoGenerator, final boolean stripPort) {
         super(stripPort);
         this.spengoGenerator = spengoGenerator;
     }
@@ -176,7 +176,7 @@ public class NegotiateScheme extends GGSSchemeBase {
      *
      * @return the parameter with the given name
      */
-    public String getParameter(String name) {
+    public String getParameter(final String name) {
         Args.notNull(name, "Parameter name");
         return null;
     }

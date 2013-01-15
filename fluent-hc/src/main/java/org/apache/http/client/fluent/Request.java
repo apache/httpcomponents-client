@@ -179,7 +179,7 @@ public class Request {
         return this;
     }
 
-    public Request setCacheControl(String cacheControl) {
+    public Request setCacheControl(final String cacheControl) {
         this.request.setHeader(HttpHeader.CACHE_CONTROL, cacheControl);
         return this;
     }
@@ -247,15 +247,15 @@ public class Request {
 
     //// HTTP connection parameter operations
 
-    public Request socketTimeout(int timeout) {
+    public Request socketTimeout(final int timeout) {
         return config(CoreConnectionPNames.SO_TIMEOUT, timeout);
     }
 
-    public Request connectTimeout(int timeout) {
+    public Request connectTimeout(final int timeout) {
         return config(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
     }
 
-    public Request staleConnectionCheck(boolean b) {
+    public Request staleConnectionCheck(final boolean b) {
         return config(CoreConnectionPNames.STALE_CONNECTION_CHECK, b);
     }
 
@@ -301,7 +301,7 @@ public class Request {
         return body(new ByteArrayEntity(b));
     }
 
-    public Request bodyByteArray(final byte[] b, int off, int len) {
+    public Request bodyByteArray(final byte[] b, final int off, final int len) {
         return body(new ByteArrayEntity(b, off, len));
     }
 

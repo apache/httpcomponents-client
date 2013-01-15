@@ -169,18 +169,18 @@ public class CacheConfig implements Cloneable {
     }
 
     CacheConfig(
-            long maxObjectSize,
-            int maxCacheEntries,
-            int maxUpdateRetries,
-            boolean heuristicCachingEnabled,
-            float heuristicCoefficient,
-            long heuristicDefaultLifetime,
-            boolean isSharedCache,
-            int asynchronousWorkersMax,
-            int asynchronousWorkersCore,
-            int asynchronousWorkerIdleLifetimeSecs,
-            int revalidationQueueSize,
-            boolean neverCacheHTTP10ResponsesWithQuery) {
+            final long maxObjectSize,
+            final int maxCacheEntries,
+            final int maxUpdateRetries,
+            final boolean heuristicCachingEnabled,
+            final float heuristicCoefficient,
+            final long heuristicDefaultLifetime,
+            final boolean isSharedCache,
+            final int asynchronousWorkersMax,
+            final int asynchronousWorkersCore,
+            final int asynchronousWorkerIdleLifetimeSecs,
+            final int revalidationQueueSize,
+            final boolean neverCacheHTTP10ResponsesWithQuery) {
         super();
         this.maxObjectSize = maxObjectSize;
         this.maxCacheEntries = maxCacheEntries;
@@ -213,7 +213,7 @@ public class CacheConfig implements Cloneable {
      * @deprecated (4.2)  use {@link Builder}.
      */
     @Deprecated
-    public void setMaxObjectSizeBytes(int maxObjectSizeBytes) {
+    public void setMaxObjectSizeBytes(final int maxObjectSizeBytes) {
         if (maxObjectSizeBytes > Integer.MAX_VALUE) {
             this.maxObjectSize = Integer.MAX_VALUE;
         } else {
@@ -240,7 +240,7 @@ public class CacheConfig implements Cloneable {
      * @deprecated (4.3) use {@link Builder}.
      */
     @Deprecated
-    public void setMaxObjectSize(long maxObjectSize) {
+    public void setMaxObjectSize(final long maxObjectSize) {
         this.maxObjectSize = maxObjectSize;
     }
 
@@ -266,7 +266,7 @@ public class CacheConfig implements Cloneable {
      * @deprecated (4.3) use {@link Builder}.
      */
     @Deprecated
-    public void setMaxCacheEntries(int maxCacheEntries) {
+    public void setMaxCacheEntries(final int maxCacheEntries) {
         this.maxCacheEntries = maxCacheEntries;
     }
 
@@ -283,7 +283,7 @@ public class CacheConfig implements Cloneable {
      * @deprecated (4.3) use {@link Builder}.
      */
     @Deprecated
-    public void setMaxUpdateRetries(int maxUpdateRetries){
+    public void setMaxUpdateRetries(final int maxUpdateRetries){
         this.maxUpdateRetries = maxUpdateRetries;
     }
 
@@ -303,7 +303,7 @@ public class CacheConfig implements Cloneable {
      * @deprecated (4.3) use {@link Builder}.
      */
     @Deprecated
-    public void setHeuristicCachingEnabled(boolean heuristicCachingEnabled) {
+    public void setHeuristicCachingEnabled(final boolean heuristicCachingEnabled) {
         this.heuristicCachingEnabled = heuristicCachingEnabled;
     }
 
@@ -325,7 +325,7 @@ public class CacheConfig implements Cloneable {
      * @deprecated (4.3) use {@link Builder}.
      */
     @Deprecated
-    public void setHeuristicCoefficient(float heuristicCoefficient) {
+    public void setHeuristicCoefficient(final float heuristicCoefficient) {
         this.heuristicCoefficient = heuristicCoefficient;
     }
 
@@ -351,7 +351,7 @@ public class CacheConfig implements Cloneable {
      * @deprecated (4.3) use {@link Builder}.
      */
     @Deprecated
-    public void setHeuristicDefaultLifetime(long heuristicDefaultLifetimeSecs) {
+    public void setHeuristicDefaultLifetime(final long heuristicDefaultLifetimeSecs) {
         this.heuristicDefaultLifetime = heuristicDefaultLifetimeSecs;
     }
 
@@ -373,7 +373,7 @@ public class CacheConfig implements Cloneable {
      * @deprecated (4.3) use {@link Builder}.
      */
     @Deprecated
-    public void setSharedCache(boolean isSharedCache) {
+    public void setSharedCache(final boolean isSharedCache) {
         this.isSharedCache = isSharedCache;
     }
 
@@ -395,7 +395,7 @@ public class CacheConfig implements Cloneable {
      * @deprecated (4.3) use {@link Builder}.
      */
     @Deprecated
-    public void setAsynchronousWorkersMax(int max) {
+    public void setAsynchronousWorkersMax(final int max) {
         this.asynchronousWorkersMax = max;
     }
 
@@ -416,7 +416,7 @@ public class CacheConfig implements Cloneable {
      * @deprecated (4.3) use {@link Builder}.
      */
     @Deprecated
-    public void setAsynchronousWorkersCore(int min) {
+    public void setAsynchronousWorkersCore(final int min) {
         this.asynchronousWorkersCore = min;
     }
 
@@ -440,7 +440,7 @@ public class CacheConfig implements Cloneable {
      * @deprecated (4.3) use {@link Builder}.
      */
     @Deprecated
-    public void setAsynchronousWorkerIdleLifetimeSecs(int secs) {
+    public void setAsynchronousWorkerIdleLifetimeSecs(final int secs) {
         this.asynchronousWorkerIdleLifetimeSecs = secs;
     }
 
@@ -457,7 +457,7 @@ public class CacheConfig implements Cloneable {
      * @deprecated (4.3) use {@link Builder}.
      */
     @Deprecated
-    public void setRevalidationQueueSize(int size) {
+    public void setRevalidationQueueSize(final int size) {
         this.revalidationQueueSize = size;
     }
 
@@ -521,7 +521,7 @@ public class CacheConfig implements Cloneable {
          * Specifies the maximum response body size that will be eligible for caching.
          * @param maxObjectSize size in bytes
          */
-        public Builder setMaxObjectSize(long maxObjectSize) {
+        public Builder setMaxObjectSize(final long maxObjectSize) {
             this.maxObjectSize = maxObjectSize;
             return this;
         }
@@ -529,7 +529,7 @@ public class CacheConfig implements Cloneable {
         /**
          * Sets the maximum number of cache entries the cache will retain.
          */
-        public Builder setMaxCacheEntries(int maxCacheEntries) {
+        public Builder setMaxCacheEntries(final int maxCacheEntries) {
             this.maxCacheEntries = maxCacheEntries;
             return this;
         }
@@ -537,7 +537,7 @@ public class CacheConfig implements Cloneable {
         /**
          * Sets the number of times to retry a cache update on failure
          */
-        public Builder setMaxUpdateRetries(int maxUpdateRetries) {
+        public Builder setMaxUpdateRetries(final int maxUpdateRetries) {
             this.maxUpdateRetries = maxUpdateRetries;
             return this;
         }
@@ -547,7 +547,7 @@ public class CacheConfig implements Cloneable {
          * @param heuristicCachingEnabled should be {@code true} to
          *   permit heuristic caching, {@code false} to enable it.
          */
-        public Builder setHeuristicCachingEnabled(boolean heuristicCachingEnabled) {
+        public Builder setHeuristicCachingEnabled(final boolean heuristicCachingEnabled) {
             this.heuristicCachingEnabled = heuristicCachingEnabled;
             return this;
         }
@@ -560,7 +560,7 @@ public class CacheConfig implements Cloneable {
          * @param heuristicCoefficient should be between {@code 0.0} and
          *   {@code 1.0}.
          */
-        public Builder setHeuristicCoefficient(float heuristicCoefficient) {
+        public Builder setHeuristicCoefficient(final float heuristicCoefficient) {
             this.heuristicCoefficient = heuristicCoefficient;
             return this;
         }
@@ -576,7 +576,7 @@ public class CacheConfig implements Cloneable {
          *   information. Set this to {@code 0} to disable this style of
          *   heuristic caching.
          */
-        public Builder setHeuristicDefaultLifetime(long heuristicDefaultLifetime) {
+        public Builder setHeuristicDefaultLifetime(final long heuristicDefaultLifetime) {
             this.heuristicDefaultLifetime = heuristicDefaultLifetime;
             return this;
         }
@@ -587,7 +587,7 @@ public class CacheConfig implements Cloneable {
          * behave as a non-shared (private) cache. To have the cache
          * behave like a browser cache, you want to set this to {@code false}.
          */
-        public Builder setSharedCache(boolean isSharedCache) {
+        public Builder setSharedCache(final boolean isSharedCache) {
             this.isSharedCache = isSharedCache;
             return this;
         }
@@ -598,7 +598,7 @@ public class CacheConfig implements Cloneable {
          * @param max number of threads; a value of 0 disables background
          * revalidations.
          */
-        public Builder setAsynchronousWorkersMax(int asynchronousWorkersMax) {
+        public Builder setAsynchronousWorkersMax(final int asynchronousWorkersMax) {
             this.asynchronousWorkersMax = asynchronousWorkersMax;
             return this;
         }
@@ -609,7 +609,7 @@ public class CacheConfig implements Cloneable {
          * @param min should be greater than zero and less than or equal
          *   to <code>getAsynchronousWorkersMax()</code>
          */
-        public Builder setAsynchronousWorkersCore(int asynchronousWorkersCore) {
+        public Builder setAsynchronousWorkersCore(final int asynchronousWorkersCore) {
             this.asynchronousWorkersCore = asynchronousWorkersCore;
             return this;
         }
@@ -621,7 +621,7 @@ public class CacheConfig implements Cloneable {
          * threads alive, the worker will be reclaimed.
          * @param secs idle lifetime in seconds
          */
-        public Builder setAsynchronousWorkerIdleLifetimeSecs(int asynchronousWorkerIdleLifetimeSecs) {
+        public Builder setAsynchronousWorkerIdleLifetimeSecs(final int asynchronousWorkerIdleLifetimeSecs) {
             this.asynchronousWorkerIdleLifetimeSecs = asynchronousWorkerIdleLifetimeSecs;
             return this;
         }
@@ -629,7 +629,7 @@ public class CacheConfig implements Cloneable {
         /**
          * Sets the current maximum queue size for background revalidations.
          */
-        public Builder setRevalidationQueueSize(int revalidationQueueSize) {
+        public Builder setRevalidationQueueSize(final int revalidationQueueSize) {
             this.revalidationQueueSize = revalidationQueueSize;
             return this;
         }
@@ -641,7 +641,7 @@ public class CacheConfig implements Cloneable {
          * to better emulate IE, which also never caches responses, regardless of what caching
          * headers may be present.
          */
-        public Builder setNeverCacheHTTP10ResponsesWithQueryString(boolean b) {
+        public Builder setNeverCacheHTTP10ResponsesWithQueryString(final boolean b) {
             this.neverCacheHTTP10ResponsesWithQuery = b;
             return this;
         }

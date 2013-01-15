@@ -70,7 +70,7 @@ public class IdleConnectionHandler {
      *
      * @see #remove
      */
-    public void add(HttpConnection connection, long validDuration, TimeUnit unit) {
+    public void add(final HttpConnection connection, final long validDuration, final TimeUnit unit) {
 
         long timeAdded = System.currentTimeMillis();
 
@@ -89,7 +89,7 @@ public class IdleConnectionHandler {
      * @param connection
      * @return True if the connection is still valid.
      */
-    public boolean remove(HttpConnection connection) {
+    public boolean remove(final HttpConnection connection) {
         TimeValues times = connectionToTimes.remove(connection);
         if(times == null) {
             log.warn("Removing a connection that never existed!");
@@ -111,7 +111,7 @@ public class IdleConnectionHandler {
      *
      * @param idleTime the minimum idle time, in milliseconds, for connections to be closed
      */
-    public void closeIdleConnections(long idleTime) {
+    public void closeIdleConnections(final long idleTime) {
 
         // the latest time for which connections will be closed
         long idleTimeout = System.currentTimeMillis() - idleTime;
@@ -169,7 +169,7 @@ public class IdleConnectionHandler {
          * @param validDuration The duration this connection is valid for
          * @param validUnit The unit of time the duration is specified in.
          */
-        TimeValues(long now, long validDuration, TimeUnit validUnit) {
+        TimeValues(final long now, final long validDuration, final TimeUnit validUnit) {
             this.timeAdded = now;
             if(validDuration > 0) {
                 this.timeExpires = now + validUnit.toMillis(validDuration);

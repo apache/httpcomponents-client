@@ -60,7 +60,7 @@ public class BestMatchSpec implements CookieSpec {
     private RFC2109Spec obsoleteStrict; // @NotThreadSafe
     private BrowserCompatSpec compat; // @NotThreadSafe
 
-    public BestMatchSpec(final String[] datepatterns, boolean oneHeader) {
+    public BestMatchSpec(final String[] datepatterns, final boolean oneHeader) {
         super();
         this.datepatterns = datepatterns == null ? null : datepatterns.clone();
         this.oneHeader = oneHeader;

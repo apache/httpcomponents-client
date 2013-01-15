@@ -97,7 +97,7 @@ public final class DateUtils {
      * @throws DateParseException if the value could not be parsed using any of the
      * supported date formats
      */
-    public static Date parseDate(String dateValue) throws DateParseException {
+    public static Date parseDate(final String dateValue) throws DateParseException {
         return parseDate(dateValue, null, null);
     }
 
@@ -111,7 +111,7 @@ public final class DateUtils {
      *
      * @throws DateParseException if none of the dataFormats could parse the dateValue
      */
-    public static Date parseDate(final String dateValue, String[] dateFormats)
+    public static Date parseDate(final String dateValue, final String[] dateFormats)
         throws DateParseException {
         return parseDate(dateValue, dateFormats, null);
     }
@@ -173,7 +173,7 @@ public final class DateUtils {
      *
      * @see #PATTERN_RFC1123
      */
-    public static String formatDate(Date date) {
+    public static String formatDate(final Date date) {
         return formatDate(date, PATTERN_RFC1123);
     }
 
@@ -190,7 +190,7 @@ public final class DateUtils {
      *
      * @see SimpleDateFormat
      */
-    public static String formatDate(Date date, String pattern) {
+    public static String formatDate(final Date date, final String pattern) {
         Args.notNull(date, "Date");
         Args.notNull(pattern, "Pattern");
         SimpleDateFormat formatter = DateFormatHolder.formatFor(pattern);
@@ -241,7 +241,7 @@ public final class DateUtils {
          *         to {@link SimpleDateFormat#applyPattern(String) apply} to a
          *         different pattern.
          */
-        public static SimpleDateFormat formatFor(String pattern) {
+        public static SimpleDateFormat formatFor(final String pattern) {
             SoftReference<Map<String, SimpleDateFormat>> ref = THREADLOCAL_FORMATS.get();
             Map<String, SimpleDateFormat> formats = ref.get();
             if (formats == null) {

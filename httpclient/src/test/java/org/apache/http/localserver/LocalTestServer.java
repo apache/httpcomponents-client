@@ -200,7 +200,7 @@ public class LocalTestServer {
      * @param pattern   the URL pattern to match
      * @param handler   the handler to apply
      */
-    public void register(String pattern, HttpRequestHandler handler) {
+    public void register(final String pattern, final HttpRequestHandler handler) {
         handlerRegistry.register(pattern, handler);
     }
 
@@ -209,7 +209,7 @@ public class LocalTestServer {
      *
      * @param pattern   the URL pattern
      */
-    public void unregister(String pattern) {
+    public void unregister(final String pattern) {
         handlerRegistry.unregister(pattern);
     }
 
@@ -217,7 +217,7 @@ public class LocalTestServer {
         return timeout;
     }
 
-    public void setTimeout(int timeout) {
+    public void setTimeout(final int timeout) {
         this.timeout = timeout;
     }
 
@@ -261,7 +261,7 @@ public class LocalTestServer {
         }
     }
 
-    public void awaitTermination(long timeMs) throws InterruptedException {
+    public void awaitTermination(final long timeMs) throws InterruptedException {
         if (listenerThread != null) {
             listenerThread.join(timeMs);
         }

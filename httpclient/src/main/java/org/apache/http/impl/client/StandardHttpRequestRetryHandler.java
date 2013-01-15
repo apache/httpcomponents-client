@@ -53,7 +53,7 @@ public class StandardHttpRequestRetryHandler extends DefaultHttpRequestRetryHand
     /**
      * Default constructor
      */
-    public StandardHttpRequestRetryHandler(int retryCount, boolean requestSentRetryEnabled) {
+    public StandardHttpRequestRetryHandler(final int retryCount, final boolean requestSentRetryEnabled) {
         super(retryCount, requestSentRetryEnabled);
         this.idempotentMethods = new ConcurrentHashMap<String, Boolean>();
         this.idempotentMethods.put("GET", Boolean.TRUE);

@@ -62,7 +62,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
     /**
      * Default constructor
      */
-    public DefaultHttpRequestRetryHandler(int retryCount, boolean requestSentRetryEnabled) {
+    public DefaultHttpRequestRetryHandler(final int retryCount, final boolean requestSentRetryEnabled) {
         super();
         this.retryCount = retryCount;
         this.requestSentRetryEnabled = requestSentRetryEnabled;
@@ -80,7 +80,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
      */
     public boolean retryRequest(
             final IOException exception,
-            int executionCount,
+            final int executionCount,
             final HttpContext context) {
         Args.notNull(exception, "Exception parameter");
         Args.notNull(context, "HTTP context");

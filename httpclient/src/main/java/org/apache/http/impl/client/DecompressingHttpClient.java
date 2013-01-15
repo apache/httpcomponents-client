@@ -95,13 +95,13 @@ public class DecompressingHttpClient implements HttpClient {
      * @param backend the {@link HttpClient} to use for actually
      *   issuing requests
      */
-    public DecompressingHttpClient(HttpClient backend) {
+    public DecompressingHttpClient(final HttpClient backend) {
         this(backend, new RequestAcceptEncoding(), new ResponseContentEncoding());
     }
 
-    DecompressingHttpClient(HttpClient backend,
-            HttpRequestInterceptor requestInterceptor,
-            HttpResponseInterceptor responseInterceptor) {
+    DecompressingHttpClient(final HttpClient backend,
+            final HttpRequestInterceptor requestInterceptor,
+            final HttpResponseInterceptor responseInterceptor) {
         this.backend = backend;
         this.acceptEncodingInterceptor = requestInterceptor;
         this.contentEncodingInterceptor = responseInterceptor;
@@ -115,7 +115,7 @@ public class DecompressingHttpClient implements HttpClient {
         return backend.getConnectionManager();
     }
 
-    public HttpResponse execute(HttpUriRequest request) throws IOException,
+    public HttpResponse execute(final HttpUriRequest request) throws IOException,
             ClientProtocolException {
         return execute(getHttpHost(request), request, (HttpContext)null);
     }
@@ -129,22 +129,22 @@ public class DecompressingHttpClient implements HttpClient {
         return this.backend;
     }
 
-    HttpHost getHttpHost(HttpUriRequest request) {
+    HttpHost getHttpHost(final HttpUriRequest request) {
         URI uri = request.getURI();
         return URIUtils.extractHost(uri);
     }
 
-    public HttpResponse execute(HttpUriRequest request, HttpContext context)
+    public HttpResponse execute(final HttpUriRequest request, final HttpContext context)
             throws IOException, ClientProtocolException {
         return execute(getHttpHost(request), request, context);
     }
 
-    public HttpResponse execute(HttpHost target, HttpRequest request)
+    public HttpResponse execute(final HttpHost target, final HttpRequest request)
             throws IOException, ClientProtocolException {
         return execute(target, request, (HttpContext)null);
     }
 
-    public HttpResponse execute(HttpHost target, HttpRequest request,
+    public HttpResponse execute(final HttpHost target, final HttpRequest request,
             HttpContext context) throws IOException, ClientProtocolException {
         try {
             if (context == null) {
@@ -181,26 +181,26 @@ public class DecompressingHttpClient implements HttpClient {
         }
     }
 
-    public <T> T execute(HttpUriRequest request,
-            ResponseHandler<? extends T> responseHandler) throws IOException,
+    public <T> T execute(final HttpUriRequest request,
+            final ResponseHandler<? extends T> responseHandler) throws IOException,
             ClientProtocolException {
         return execute(getHttpHost(request), request, responseHandler);
     }
 
-    public <T> T execute(HttpUriRequest request,
-            ResponseHandler<? extends T> responseHandler, HttpContext context)
+    public <T> T execute(final HttpUriRequest request,
+            final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException, ClientProtocolException {
         return execute(getHttpHost(request), request, responseHandler, context);
     }
 
-    public <T> T execute(HttpHost target, HttpRequest request,
-            ResponseHandler<? extends T> responseHandler) throws IOException,
+    public <T> T execute(final HttpHost target, final HttpRequest request,
+            final ResponseHandler<? extends T> responseHandler) throws IOException,
             ClientProtocolException {
         return execute(target, request, responseHandler, null);
     }
 
-    public <T> T execute(HttpHost target, HttpRequest request,
-            ResponseHandler<? extends T> responseHandler, HttpContext context)
+    public <T> T execute(final HttpHost target, final HttpRequest request,
+            final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException, ClientProtocolException {
         HttpResponse response = execute(target, request, context);
         try {

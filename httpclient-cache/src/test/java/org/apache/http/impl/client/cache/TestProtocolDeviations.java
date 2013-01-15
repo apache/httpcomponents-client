@@ -133,13 +133,13 @@ public class TestProtocolDeviations {
         EasyMock.verify(mockEntity);
     }
 
-    private HttpEntity makeBody(int nbytes) {
+    private HttpEntity makeBody(final int nbytes) {
         byte[] bytes = new byte[nbytes];
         (new Random()).nextBytes(bytes);
         return new ByteArrayEntity(bytes);
     }
 
-    public static HttpRequest eqRequest(HttpRequest in) {
+    public static HttpRequest eqRequest(final HttpRequest in) {
         org.easymock.EasyMock.reportMatcher(new RequestEquivalent(in));
         return null;
     }

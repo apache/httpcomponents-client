@@ -73,14 +73,14 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
      *
      * @param schreg    the scheme registry
      */
-    public DefaultHttpRoutePlanner(SchemeRegistry schreg) {
+    public DefaultHttpRoutePlanner(final SchemeRegistry schreg) {
         Args.notNull(schreg, "Scheme registry");
         schemeRegistry = schreg;
     }
 
-    public HttpRoute determineRoute(HttpHost target,
-                                    HttpRequest request,
-                                    HttpContext context)
+    public HttpRoute determineRoute(final HttpHost target,
+                                    final HttpRequest request,
+                                    final HttpContext context)
         throws HttpException {
 
         Args.notNull(request, "HTTP request");

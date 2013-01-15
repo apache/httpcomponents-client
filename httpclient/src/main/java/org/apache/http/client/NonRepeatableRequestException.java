@@ -53,7 +53,7 @@ public class NonRepeatableRequestException extends ProtocolException {
      *
      * @param message The exception detail message
      */
-    public NonRepeatableRequestException(String message) {
+    public NonRepeatableRequestException(final String message) {
         super(message);
     }
 
@@ -63,7 +63,7 @@ public class NonRepeatableRequestException extends ProtocolException {
      * @param message The exception detail message
      * @param cause the cause
      */
-    public NonRepeatableRequestException(String message, Throwable cause) {
+    public NonRepeatableRequestException(final String message, final Throwable cause) {
         super(message, cause);
     }
 

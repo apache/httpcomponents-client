@@ -135,12 +135,12 @@ public class TestClientReauthentication extends IntegrationTestBase {
         public void clear() {
         }
 
-        public Credentials getCredentials(AuthScope authscope) {
+        public Credentials getCredentials(final AuthScope authscope) {
             this.authscope = authscope;
             return this.creds;
         }
 
-        public void setCredentials(AuthScope authscope, Credentials credentials) {
+        public void setCredentials(final AuthScope authscope, final Credentials credentials) {
         }
 
         public AuthScope getAuthScope() {
@@ -156,7 +156,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
         BasicSchemeFactory myBasicAuthSchemeFactory = new BasicSchemeFactory() {
 
             @Override
-            public AuthScheme create(HttpContext context) {
+            public AuthScheme create(final HttpContext context) {
                 return new BasicScheme() {
 
                     @Override

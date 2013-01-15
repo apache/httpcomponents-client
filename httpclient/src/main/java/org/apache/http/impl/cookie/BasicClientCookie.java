@@ -109,7 +109,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
      *
      * @see #getComment()
      */
-    public void setComment(String comment) {
+    public void setComment(final String comment) {
         cookieComment = comment;
     }
 
@@ -148,7 +148,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
      * @see #getExpiryDate
      *
      */
-    public void setExpiryDate (Date expiryDate) {
+    public void setExpiryDate (final Date expiryDate) {
         cookieExpiryDate = expiryDate;
     }
 
@@ -183,7 +183,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
      *
      * @see #getDomain
      */
-    public void setDomain(String domain) {
+    public void setDomain(final String domain) {
         if (domain != null) {
             cookieDomain = domain.toLowerCase(Locale.ENGLISH);
         } else {
@@ -211,7 +211,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
      * @see #getPath
      *
      */
-    public void setPath(String path) {
+    public void setPath(final String path) {
         cookiePath = path;
     }
 
@@ -235,7 +235,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
      *
      * @see #isSecure()
      */
-    public void setSecure (boolean secure) {
+    public void setSecure (final boolean secure) {
         isSecure = secure;
     }
 
@@ -269,7 +269,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
      *
      * @see #getVersion
      */
-    public void setVersion(int version) {
+    public void setVersion(final int version) {
         cookieVersion = version;
     }
 

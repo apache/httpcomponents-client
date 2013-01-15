@@ -88,9 +88,9 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      * @param layered   the layering type of this route, or
      *                  <code>null</code> for PLAIN
      */
-    private HttpRoute(InetAddress local,
-                      HttpHost target, HttpHost[] proxies,
-                      boolean secure,
+    private HttpRoute(final InetAddress local,
+                      final HttpHost target, final HttpHost[] proxies,
+                      final boolean secure,
                       TunnelType tunnelled, LayerType layered) {
         Args.notNull(target, "Target host");
         Args.notNull(proxies, "Array of proxy hosts");
@@ -130,8 +130,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      * @param tunnelled the tunnel type of this route
      * @param layered   the layering type of this route
      */
-    public HttpRoute(HttpHost target, InetAddress local, HttpHost[] proxies,
-                     boolean secure, TunnelType tunnelled, LayerType layered) {
+    public HttpRoute(final HttpHost target, final InetAddress local, final HttpHost[] proxies,
+                     final boolean secure, final TunnelType tunnelled, final LayerType layered) {
         this(local, target, toChain(proxies), secure, tunnelled, layered);
     }
 
@@ -153,8 +153,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *                  layered protocol,
      *                  <code>false</code> otherwise
      */
-    public HttpRoute(HttpHost target, InetAddress local, HttpHost proxy,
-                     boolean secure, TunnelType tunnelled, LayerType layered) {
+    public HttpRoute(final HttpHost target, final InetAddress local, final HttpHost proxy,
+                     final boolean secure, final TunnelType tunnelled, final LayerType layered) {
         this(local, target, toChain(proxy), secure, tunnelled, layered);
     }
 
@@ -169,7 +169,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      * @param secure    <code>true</code> if the route is (to be) secure,
      *                  <code>false</code> otherwise
      */
-    public HttpRoute(HttpHost target, InetAddress local, boolean secure) {
+    public HttpRoute(final HttpHost target, final InetAddress local, final boolean secure) {
         this(local, target, EMPTY_HTTP_HOST_ARRAY, secure, TunnelType.PLAIN, LayerType.PLAIN);
     }
 
@@ -179,7 +179,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *
      * @param target    the host to which to route
      */
-    public HttpRoute(HttpHost target) {
+    public HttpRoute(final HttpHost target) {
         this(null, target, EMPTY_HTTP_HOST_ARRAY, false, TunnelType.PLAIN, LayerType.PLAIN);
     }
 
@@ -197,8 +197,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      * @param secure    <code>true</code> if the route is (to be) secure,
      *                  <code>false</code> otherwise
      */
-    public HttpRoute(HttpHost target, InetAddress local, HttpHost proxy,
-                     boolean secure) {
+    public HttpRoute(final HttpHost target, final InetAddress local, final HttpHost proxy,
+                     final boolean secure) {
         this(local, target, toChain(proxy), secure,
              secure ? TunnelType.TUNNELLED : TunnelType.PLAIN,
              secure ? LayerType.LAYERED    : LayerType.PLAIN);
@@ -213,7 +213,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *
      * @return  a proxy chain array, may be empty (never null)
      */
-    private static HttpHost[] toChain(HttpHost proxy) {
+    private static HttpHost[] toChain(final HttpHost proxy) {
         if (proxy == null) {
 			return EMPTY_HTTP_HOST_ARRAY;
 		}
@@ -230,7 +230,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *
      * @return  a new proxy chain array, may be empty (never null)
      */
-    private static HttpHost[] toChain(HttpHost[] proxies) {
+    private static HttpHost[] toChain(final HttpHost[] proxies) {
         if ((proxies == null) || (proxies.length < 1)) {
 			return EMPTY_HTTP_HOST_ARRAY;
 		}
@@ -260,7 +260,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     }
 
 
-    public final HttpHost getHopTarget(int hop) {
+    public final HttpHost getHopTarget(final int hop) {
         Args.notNegative(hop, "Hop index");
         final int hopcount = getHopCount();
         Args.check(hop < hopcount, "Hop index exceeds tracked route length");
@@ -315,7 +315,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *          <code>false</code>
      */
     @Override
-    public final boolean equals(Object obj) {
+    public final boolean equals(final Object obj) {
         if (this == obj) {
 			return true;
 		}

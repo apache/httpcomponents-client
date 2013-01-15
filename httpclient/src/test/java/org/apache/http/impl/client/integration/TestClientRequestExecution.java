@@ -90,7 +90,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
 
         private final String failureMsg;
 
-        public FaultyHttpRequestExecutor(String failureMsg) {
+        public FaultyHttpRequestExecutor(final String failureMsg) {
             this.failureMsg = failureMsg;
         }
 
@@ -130,7 +130,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
 
             public boolean retryRequest(
                     final IOException exception,
-                    int executionCount,
+                    final int executionCount,
                     final HttpContext context) {
                 return true;
             }
@@ -170,7 +170,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
 
             public boolean retryRequest(
                     final IOException exception,
-                    int executionCount,
+                    final int executionCount,
                     final HttpContext context) {
                 return true;
             }

@@ -154,7 +154,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
         public HttpWorker(
                 final String uid,
                 final HttpContext context,
-                int requestCount,
+                final int requestCount,
                 final HttpHost target,
                 final HttpClient httpclient) {
             super();

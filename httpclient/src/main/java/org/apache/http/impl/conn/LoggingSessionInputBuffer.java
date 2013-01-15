@@ -75,11 +75,11 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
         this(in, wire, null);
     }
 
-    public boolean isDataAvailable(int timeout) throws IOException {
+    public boolean isDataAvailable(final int timeout) throws IOException {
         return this.in.isDataAvailable(timeout);
     }
 
-    public int read(byte[] b, int off, int len) throws IOException {
+    public int read(final byte[] b, final int off, final int len) throws IOException {
         int l = this.in.read(b,  off,  len);
         if (this.wire.enabled() && l > 0) {
             this.wire.input(b, off, l);
@@ -95,7 +95,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
         return l;
     }
 
-    public int read(byte[] b) throws IOException {
+    public int read(final byte[] b) throws IOException {
         int l = this.in.read(b);
         if (this.wire.enabled() && l > 0) {
             this.wire.input(b, 0, l);

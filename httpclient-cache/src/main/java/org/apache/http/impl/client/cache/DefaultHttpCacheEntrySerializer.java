@@ -48,7 +48,7 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
 @Immutable
 public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer {
 
-    public void writeTo(HttpCacheEntry cacheEntry, OutputStream os) throws IOException {
+    public void writeTo(final HttpCacheEntry cacheEntry, final OutputStream os) throws IOException {
         ObjectOutputStream oos = new ObjectOutputStream(os);
         try {
             oos.writeObject(cacheEntry);
@@ -57,7 +57,7 @@ public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer
         }
     }
 
-    public HttpCacheEntry readFrom(InputStream is) throws IOException {
+    public HttpCacheEntry readFrom(final InputStream is) throws IOException {
         ObjectInputStream ois = new ObjectInputStream(is);
         try {
             return (HttpCacheEntry) ois.readObject();

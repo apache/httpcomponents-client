@@ -91,7 +91,7 @@ public class AutoRetryHttpClient implements HttpClient {
      * @param config
      *            retry configuration module options
      */
-    public AutoRetryHttpClient(ServiceUnavailableRetryStrategy config) {
+    public AutoRetryHttpClient(final ServiceUnavailableRetryStrategy config) {
         this(new DefaultHttpClient(), config);
     }
 
@@ -103,34 +103,34 @@ public class AutoRetryHttpClient implements HttpClient {
      * @param client
      *            used to make origin requests
      */
-    public AutoRetryHttpClient(HttpClient client) {
+    public AutoRetryHttpClient(final HttpClient client) {
         this(client, new DefaultServiceUnavailableRetryStrategy());
     }
 
-    public HttpResponse execute(HttpHost target, HttpRequest request)
+    public HttpResponse execute(final HttpHost target, final HttpRequest request)
             throws IOException {
         HttpContext defaultContext = null;
         return execute(target, request, defaultContext);
     }
 
-    public <T> T execute(HttpHost target, HttpRequest request,
-            ResponseHandler<? extends T> responseHandler) throws IOException {
+    public <T> T execute(final HttpHost target, final HttpRequest request,
+            final ResponseHandler<? extends T> responseHandler) throws IOException {
         return execute(target, request, responseHandler, null);
     }
 
-    public <T> T execute(HttpHost target, HttpRequest request,
-            ResponseHandler<? extends T> responseHandler, HttpContext context)
+    public <T> T execute(final HttpHost target, final HttpRequest request,
+            final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException {
         HttpResponse resp = execute(target, request, context);
         return responseHandler.handleResponse(resp);
     }
 
-    public HttpResponse execute(HttpUriRequest request) throws IOException {
+    public HttpResponse execute(final HttpUriRequest request) throws IOException {
         HttpContext context = null;
         return execute(request, context);
     }
 
-    public HttpResponse execute(HttpUriRequest request, HttpContext context)
+    public HttpResponse execute(final HttpUriRequest request, final HttpContext context)
             throws IOException {
         URI uri = request.getURI();
         HttpHost httpHost = new HttpHost(uri.getHost(), uri.getPort(),
@@ -138,20 +138,20 @@ public class AutoRetryHttpClient implements HttpClient {
         return execute(httpHost, request, context);
     }
 
-    public <T> T execute(HttpUriRequest request,
-            ResponseHandler<? extends T> responseHandler) throws IOException {
+    public <T> T execute(final HttpUriRequest request,
+            final ResponseHandler<? extends T> responseHandler) throws IOException {
         return execute(request, responseHandler, null);
     }
 
-    public <T> T execute(HttpUriRequest request,
-            ResponseHandler<? extends T> responseHandler, HttpContext context)
+    public <T> T execute(final HttpUriRequest request,
+            final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException {
         HttpResponse resp = execute(request, context);
         return responseHandler.handleResponse(resp);
     }
 
-    public HttpResponse execute(HttpHost target, HttpRequest request,
-            HttpContext context) throws IOException {
+    public HttpResponse execute(final HttpHost target, final HttpRequest request,
+            final HttpContext context) throws IOException {
         for (int c = 1;; c++) {
             HttpResponse response = backend.execute(target, request, context);
             try {

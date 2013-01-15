@@ -43,7 +43,7 @@ public class SecureSocketFactoryMockup extends SocketFactoryMockup
     /* A default instance of this mockup. */
     public final static SchemeLayeredSocketFactory INSTANCE = new SecureSocketFactoryMockup("INSTANCE");
 
-    public SecureSocketFactoryMockup(String name) {
+    public SecureSocketFactoryMockup(final String name) {
         super(name);
     }
 
@@ -55,8 +55,8 @@ public class SecureSocketFactoryMockup extends SocketFactoryMockup
     }
 
 
-    public Socket createLayeredSocket(Socket socket, String host, int port,
-                                      HttpParams params) {
+    public Socket createLayeredSocket(final Socket socket, final String host, final int port,
+                                      final HttpParams params) {
         throw new UnsupportedOperationException("I'm a mockup!");
     }
 

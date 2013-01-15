@@ -74,7 +74,7 @@ public class NTLMScheme extends AuthSchemeBase {
         return "ntlm";
     }
 
-    public String getParameter(String name) {
+    public String getParameter(final String name) {
         // String parameters not supported
         return null;
     }
@@ -91,7 +91,7 @@ public class NTLMScheme extends AuthSchemeBase {
     @Override
     protected void parseChallenge(
             final CharArrayBuffer buffer,
-            int beginIndex, int endIndex) throws MalformedChallengeException {
+            final int beginIndex, final int endIndex) throws MalformedChallengeException {
         String challenge = buffer.substringTrimmed(beginIndex, endIndex);
         if (challenge.length() == 0) {
             if (this.state == State.UNINITIATED) {

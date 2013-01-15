@@ -68,7 +68,7 @@ class SocketClientConnectionImpl extends DefaultBHttpClientConnection
     private volatile boolean shutdown;
 
     public SocketClientConnectionImpl(
-            int buffersize,
+            final int buffersize,
             final CharsetDecoder chardecoder,
             final CharsetEncoder charencoder,
             final MessageConstraints constraints,
@@ -86,7 +86,7 @@ class SocketClientConnectionImpl extends DefaultBHttpClientConnection
         this.attributes = new ConcurrentHashMap<String, Object>();
     }
 
-    public SocketClientConnectionImpl(int buffersize) {
+    public SocketClientConnectionImpl(final int buffersize) {
         this(buffersize, null, null, null, null, null, null, null);
     }
 

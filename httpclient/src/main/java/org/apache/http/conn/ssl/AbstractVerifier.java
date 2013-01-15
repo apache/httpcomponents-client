@@ -79,7 +79,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         super();
     }
 
-    public final void verify(String host, SSLSocket ssl)
+    public final void verify(final String host, final SSLSocket ssl)
           throws IOException {
         if(host == null) {
             throw new NullPointerException("host to verify is null");
@@ -127,7 +127,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         verify(host, x509);
     }
 
-    public final boolean verify(String host, SSLSession session) {
+    public final boolean verify(final String host, final SSLSession session) {
         try {
             Certificate[] certs = session.getPeerCertificates();
             X509Certificate x509 = (X509Certificate) certs[0];
@@ -139,7 +139,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         }
     }
 
-    public final void verify(String host, X509Certificate cert)
+    public final void verify(final String host, final X509Certificate cert)
           throws SSLException {
         String[] cns = getCNs(cert);
         String[] subjectAlts = getSubjectAlts(cert, host);
@@ -227,7 +227,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         }
     }
 
-    public static boolean acceptableCountryWildcard(String cn) {
+    public static boolean acceptableCountryWildcard(final String cn) {
         String parts[] = cn.split("\\.");
         if (parts.length != 3 || parts[2].length() != 2) {
             return true; // it's not an attempt to wildcard a 2TLD within a country code
@@ -235,7 +235,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         return Arrays.binarySearch(BAD_COUNTRY_2LDS, parts[1]) < 0;
     }
 
-    public static String[] getCNs(X509Certificate cert) {
+    public static String[] getCNs(final X509Certificate cert) {
         LinkedList<String> cnList = new LinkedList<String>();
         /*
           Sebastian Hauer's original StrictSSLProtocolSocketFactory used
@@ -336,7 +336,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
      * @param cert X509Certificate
      * @return Array of SubjectALT DNS names stored in the certificate.
      */
-    public static String[] getDNSSubjectAlts(X509Certificate cert) {
+    public static String[] getDNSSubjectAlts(final X509Certificate cert) {
         return getSubjectAlts(cert, null);
     }
 

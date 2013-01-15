@@ -156,7 +156,7 @@ public final class CookieSpecRegistry implements Lookup<CookieSpecProvider> {
     public CookieSpecProvider lookup(final String name) {
         return new CookieSpecProvider() {
 
-            public CookieSpec create(HttpContext context) {
+            public CookieSpec create(final HttpContext context) {
                 HttpRequest request = (HttpRequest) context.getAttribute(
                         ExecutionContext.HTTP_REQUEST);
                 return getCookieSpec(name, request.getParams());

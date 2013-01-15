@@ -146,7 +146,7 @@ public class TestCachedHttpResponseGenerator {
         Assert.assertEquals(CacheValidityPolicy.MAX_AGE, Long.parseLong(ageHdr.getValue()));
     }
 
-    private void currentAge(long sec) {
+    private void currentAge(final long sec) {
         EasyMock.expect(
                 mockValidityPolicy.getCurrentAgeSecs(EasyMock.same(entry),
                         EasyMock.isA(Date.class))).andReturn(sec);

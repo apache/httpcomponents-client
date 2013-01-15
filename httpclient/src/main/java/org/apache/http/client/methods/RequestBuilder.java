@@ -196,7 +196,7 @@ public class RequestBuilder {
         return this;
     }
 
-    public RequestBuilder removeHeader(Header header) {
+    public RequestBuilder removeHeader(final Header header) {
         if (headergroup == null) {
             headergroup = new HeaderGroup();
         }

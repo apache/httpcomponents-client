@@ -68,9 +68,9 @@ public class BasicManagedEntity extends HttpEntityWrapper
      * @param conn      the connection to release
      * @param reuse     whether the connection should be re-used
      */
-    public BasicManagedEntity(HttpEntity entity,
-                              ManagedClientConnection conn,
-                              boolean reuse) {
+    public BasicManagedEntity(final HttpEntity entity,
+                              final ManagedClientConnection conn,
+                              final boolean reuse) {
         super(entity);
         Args.notNull(conn, "Connection");
         this.managedConn = conn;
@@ -133,7 +133,7 @@ public class BasicManagedEntity extends HttpEntityWrapper
         }
     }
 
-    public boolean eofDetected(InputStream wrapped) throws IOException {
+    public boolean eofDetected(final InputStream wrapped) throws IOException {
         try {
             if (attemptReuse && (managedConn != null)) {
                 // there may be some cleanup required, such as
@@ -147,7 +147,7 @@ public class BasicManagedEntity extends HttpEntityWrapper
         return false;
     }
 
-    public boolean streamClosed(InputStream wrapped) throws IOException {
+    public boolean streamClosed(final InputStream wrapped) throws IOException {
         try {
             if (attemptReuse && (managedConn != null)) {
                 boolean valid = managedConn.isOpen();
@@ -168,7 +168,7 @@ public class BasicManagedEntity extends HttpEntityWrapper
         return false;
     }
 
-    public boolean streamAbort(InputStream wrapped) throws IOException {
+    public boolean streamAbort(final InputStream wrapped) throws IOException {
         if (managedConn != null) {
             managedConn.abortConnection();
         }

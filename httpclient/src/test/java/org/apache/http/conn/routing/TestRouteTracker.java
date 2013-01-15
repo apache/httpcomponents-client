@@ -554,9 +554,9 @@ public class TestRouteTracker {
 
 
     /** Helper to check the status of the four flags. */
-    public final static void checkCTLS(RouteTracker rt,
-                                       boolean c, boolean t,
-                                       boolean l, boolean s) {
+    public final static void checkCTLS(final RouteTracker rt,
+                                       final boolean c, final boolean t,
+                                       final boolean l, final boolean s) {
         String rts = rt.toString();
         Assert.assertEquals("wrong flag connected: " + rts, c, rt.isConnected());
         Assert.assertEquals("wrong flag tunnelled: " + rts, t, rt.isTunnelled());
@@ -583,8 +583,8 @@ public class TestRouteTracker {
      *
      * @return  <code>true</code> iff the route is complete
      */
-    public final static boolean checkVia(RouteTracker rt, HttpRoute r,
-                                         HttpRouteDirector rd, int steps) {
+    public final static boolean checkVia(final RouteTracker rt, final HttpRoute r,
+                                         final HttpRouteDirector rd, int steps) {
 
         final String msg = r.toString() + " @ " + rt.toString();
 
@@ -690,7 +690,7 @@ public class TestRouteTracker {
      *
      * @return  the result of <code>rt.toString()</code>
      */
-    public final static String checkToString(RouteTracker rt) {
+    public final static String checkToString(final RouteTracker rt) {
         if (rt == null) {
 			return null;
 		}

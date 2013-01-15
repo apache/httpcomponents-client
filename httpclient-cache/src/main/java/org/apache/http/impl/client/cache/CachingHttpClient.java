@@ -162,9 +162,9 @@ public class CachingHttpClient implements HttpClient {
     private final Log log = LogFactory.getLog(getClass());
 
     CachingHttpClient(
-            HttpClient client,
-            HttpCache cache,
-            CacheConfig config) {
+            final HttpClient client,
+            final HttpCache cache,
+            final CacheConfig config) {
         super();
         Args.notNull(client, "HttpClient");
         Args.notNull(cache, "HttpCache");
@@ -204,7 +204,7 @@ public class CachingHttpClient implements HttpClient {
      * for backend requests.
      * @param config cache module options
      */
-    public CachingHttpClient(CacheConfig config) {
+    public CachingHttpClient(final CacheConfig config) {
         this(new DefaultHttpClient(),
                 new BasicHttpCache(config),
                 config);
@@ -216,7 +216,7 @@ public class CachingHttpClient implements HttpClient {
      * for backend requests.
      * @param client used to make origin requests
      */
-    public CachingHttpClient(HttpClient client) {
+    public CachingHttpClient(final HttpClient client) {
         this(client,
                 new BasicHttpCache(),
                 new CacheConfig());
@@ -229,7 +229,7 @@ public class CachingHttpClient implements HttpClient {
      * @param config cache module options
      * @param client used to make origin requests
      */
-    public CachingHttpClient(HttpClient client, CacheConfig config) {
+    public CachingHttpClient(final HttpClient client, final CacheConfig config) {
         this(client,
                 new BasicHttpCache(config),
                 config);
@@ -246,10 +246,10 @@ public class CachingHttpClient implements HttpClient {
      * @param config cache module options
      */
     public CachingHttpClient(
-            HttpClient client,
-            ResourceFactory resourceFactory,
-            HttpCacheStorage storage,
-            CacheConfig config) {
+            final HttpClient client,
+            final ResourceFactory resourceFactory,
+            final HttpCacheStorage storage,
+            final CacheConfig config) {
         this(client,
                 new BasicHttpCache(resourceFactory, storage, config),
                 config);
@@ -264,25 +264,25 @@ public class CachingHttpClient implements HttpClient {
      * @param config cache module options
      */
     public CachingHttpClient(
-            HttpClient client,
-            HttpCacheStorage storage,
-            CacheConfig config) {
+            final HttpClient client,
+            final HttpCacheStorage storage,
+            final CacheConfig config) {
         this(client,
                 new BasicHttpCache(new HeapResourceFactory(), storage, config),
                 config);
     }
 
     CachingHttpClient(
-            HttpClient backend,
-            CacheValidityPolicy validityPolicy,
-            ResponseCachingPolicy responseCachingPolicy,
-            HttpCache responseCache,
-            CachedHttpResponseGenerator responseGenerator,
-            CacheableRequestPolicy cacheableRequestPolicy,
-            CachedResponseSuitabilityChecker suitabilityChecker,
-            ConditionalRequestBuilder conditionalRequestBuilder,
-            ResponseProtocolCompliance responseCompliance,
-            RequestProtocolCompliance requestCompliance) {
+            final HttpClient backend,
+            final CacheValidityPolicy validityPolicy,
+            final ResponseCachingPolicy responseCachingPolicy,
+            final HttpCache responseCache,
+            final CachedHttpResponseGenerator responseGenerator,
+            final CacheableRequestPolicy cacheableRequestPolicy,
+            final CachedResponseSuitabilityChecker suitabilityChecker,
+            final ConditionalRequestBuilder conditionalRequestBuilder,
+            final ResponseProtocolCompliance responseCompliance,
+            final RequestProtocolCompliance requestCompliance) {
         CacheConfig config = new CacheConfig();
         this.maxObjectSizeBytes = config.getMaxObjectSize();
         this.sharedCache = config.isSharedCache();
@@ -300,7 +300,7 @@ public class CachingHttpClient implements HttpClient {
     }
 
     private AsynchronousValidator makeAsynchronousValidator(
-            CacheConfig config) {
+            final CacheConfig config) {
         if (config.getAsynchronousWorkersMax() > 0) {
             return new AsynchronousValidator(this, config);
         }
@@ -334,47 +334,47 @@ public class CachingHttpClient implements HttpClient {
         return cacheUpdates.get();
     }
 
-    public HttpResponse execute(HttpHost target, HttpRequest request) throws IOException {
+    public HttpResponse execute(final HttpHost target, final HttpRequest request) throws IOException {
         HttpContext defaultContext = null;
         return execute(target, request, defaultContext);
     }
 
-    public <T> T execute(HttpHost target, HttpRequest request,
-                         ResponseHandler<? extends T> responseHandler) throws IOException {
+    public <T> T execute(final HttpHost target, final HttpRequest request,
+                         final ResponseHandler<? extends T> responseHandler) throws IOException {
         return execute(target, request, responseHandler, null);
     }
 
-    public <T> T execute(HttpHost target, HttpRequest request,
-                         ResponseHandler<? extends T> responseHandler, HttpContext context) throws IOException {
+    public <T> T execute(final HttpHost target, final HttpRequest request,
+                         final ResponseHandler<? extends T> responseHandler, final HttpContext context) throws IOException {
         HttpResponse resp = execute(target, request, context);
         return handleAndConsume(responseHandler,resp);
     }
 
-    public HttpResponse execute(HttpUriRequest request) throws IOException {
+    public HttpResponse execute(final HttpUriRequest request) throws IOException {
         HttpContext context = null;
         return execute(request, context);
     }
 
-    public HttpResponse execute(HttpUriRequest request, HttpContext context) throws IOException {
+    public HttpResponse execute(final HttpUriRequest request, final HttpContext context) throws IOException {
         URI uri = request.getURI();
         HttpHost httpHost = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
         return execute(httpHost, request, context);
     }
 
-    public <T> T execute(HttpUriRequest request, ResponseHandler<? extends T> responseHandler)
+    public <T> T execute(final HttpUriRequest request, final ResponseHandler<? extends T> responseHandler)
             throws IOException {
         return execute(request, responseHandler, null);
     }
 
-    public <T> T execute(HttpUriRequest request, ResponseHandler<? extends T> responseHandler,
-                         HttpContext context) throws IOException {
+    public <T> T execute(final HttpUriRequest request, final ResponseHandler<? extends T> responseHandler,
+                         final HttpContext context) throws IOException {
         HttpResponse resp = execute(request, context);
         return handleAndConsume(responseHandler, resp);
     }
 
     private <T> T handleAndConsume(
             final ResponseHandler<? extends T> responseHandler,
-            HttpResponse response) throws Error, IOException {
+            final HttpResponse response) throws Error, IOException {
         T result;
         try {
             result = responseHandler.handleResponse(response);
@@ -411,7 +411,7 @@ public class CachingHttpClient implements HttpClient {
         return backend.getParams();
     }
 
-    public HttpResponse execute(HttpHost target, HttpRequest originalRequest, HttpContext context)
+    public HttpResponse execute(final HttpHost target, final HttpRequest originalRequest, final HttpContext context)
             throws IOException {
 
         HttpRequestWrapper request;
@@ -455,8 +455,8 @@ public class CachingHttpClient implements HttpClient {
         return handleCacheHit(target, request, context, entry);
     }
 
-    private HttpResponse handleCacheHit(HttpHost target, HttpRequestWrapper request,
-            HttpContext context, HttpCacheEntry entry)
+    private HttpResponse handleCacheHit(final HttpHost target, final HttpRequestWrapper request,
+            final HttpContext context, final HttpCacheEntry entry)
             throws ClientProtocolException, IOException {
         recordCacheHit(target, request);
         HttpResponse out = null;
@@ -483,9 +483,9 @@ public class CachingHttpClient implements HttpClient {
         return out;
     }
 
-    private HttpResponse revalidateCacheEntry(HttpHost target,
-            HttpRequestWrapper request, HttpContext context, HttpCacheEntry entry,
-            Date now) throws ClientProtocolException {
+    private HttpResponse revalidateCacheEntry(final HttpHost target,
+            final HttpRequestWrapper request, final HttpContext context, final HttpCacheEntry entry,
+            final Date now) throws ClientProtocolException {
 
         try {
             if (asynchRevalidator != null
@@ -506,8 +506,8 @@ public class CachingHttpClient implements HttpClient {
         }
     }
 
-    private HttpResponse handleCacheMiss(HttpHost target, HttpRequestWrapper request,
-            HttpContext context) throws IOException {
+    private HttpResponse handleCacheMiss(final HttpHost target, final HttpRequestWrapper request,
+            final HttpContext context) throws IOException {
         recordCacheMiss(target, request);
 
         if (!mayCallBackend(request)) {
@@ -524,7 +524,7 @@ public class CachingHttpClient implements HttpClient {
         return callBackend(target, request, context);
     }
 
-    private HttpCacheEntry satisfyFromCache(HttpHost target, HttpRequestWrapper request) {
+    private HttpCacheEntry satisfyFromCache(final HttpHost target, final HttpRequestWrapper request) {
         HttpCacheEntry entry = null;
         try {
             entry = responseCache.getCacheEntry(target, request);
@@ -534,8 +534,8 @@ public class CachingHttpClient implements HttpClient {
         return entry;
     }
 
-    private HttpResponse getFatallyNoncompliantResponse(HttpRequestWrapper request,
-            HttpContext context) {
+    private HttpResponse getFatallyNoncompliantResponse(final HttpRequestWrapper request,
+            final HttpContext context) {
         HttpResponse fatalErrorResponse = null;
         List<RequestProtocolError> fatalError = requestCompliance.requestIsFatallyNonCompliant(request);
 
@@ -546,8 +546,8 @@ public class CachingHttpClient implements HttpClient {
         return fatalErrorResponse;
     }
 
-    private Map<String, Variant> getExistingCacheVariants(HttpHost target,
-            HttpRequestWrapper request) {
+    private Map<String, Variant> getExistingCacheVariants(final HttpHost target,
+            final HttpRequestWrapper request) {
         Map<String,Variant> variants = null;
         try {
             variants = responseCache.getVariantCacheEntriesWithEtags(target, request);
@@ -557,7 +557,7 @@ public class CachingHttpClient implements HttpClient {
         return variants;
     }
 
-    private void recordCacheMiss(HttpHost target, HttpRequestWrapper request) {
+    private void recordCacheMiss(final HttpHost target, final HttpRequestWrapper request) {
         cacheMisses.getAndIncrement();
         if (log.isTraceEnabled()) {
             RequestLine rl = request.getRequestLine();
@@ -565,7 +565,7 @@ public class CachingHttpClient implements HttpClient {
         }
     }
 
-    private void recordCacheHit(HttpHost target, HttpRequestWrapper request) {
+    private void recordCacheHit(final HttpHost target, final HttpRequestWrapper request) {
         cacheHits.getAndIncrement();
         if (log.isTraceEnabled()) {
             RequestLine rl = request.getRequestLine();
@@ -573,13 +573,13 @@ public class CachingHttpClient implements HttpClient {
         }
     }
 
-    private void recordCacheUpdate(HttpContext context) {
+    private void recordCacheUpdate(final HttpContext context) {
         cacheUpdates.getAndIncrement();
         setResponseStatus(context, CacheResponseStatus.VALIDATED);
     }
 
-    private void flushEntriesInvalidatedByRequest(HttpHost target,
-            HttpRequestWrapper request) {
+    private void flushEntriesInvalidatedByRequest(final HttpHost target,
+            final HttpRequestWrapper request) {
         try {
             responseCache.flushInvalidatedCacheEntriesFor(target, request);
         } catch (IOException ioe) {
@@ -587,8 +587,8 @@ public class CachingHttpClient implements HttpClient {
         }
     }
 
-    private HttpResponse generateCachedResponse(HttpRequestWrapper request,
-            HttpContext context, HttpCacheEntry entry, Date now) {
+    private HttpResponse generateCachedResponse(final HttpRequestWrapper request,
+            final HttpContext context, final HttpCacheEntry entry, final Date now) {
         final HttpResponse cachedResponse;
         if (request.containsHeader(HeaderConstants.IF_NONE_MATCH)
                 || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
@@ -603,8 +603,8 @@ public class CachingHttpClient implements HttpClient {
         return cachedResponse;
     }
 
-    private HttpResponse handleRevalidationFailure(HttpRequestWrapper request,
-            HttpContext context, HttpCacheEntry entry, Date now) {
+    private HttpResponse handleRevalidationFailure(final HttpRequestWrapper request,
+            final HttpContext context, final HttpCacheEntry entry, final Date now) {
         if (staleResponseNotAllowed(request, entry, now)) {
             return generateGatewayTimeout(context);
         } else {
@@ -612,28 +612,28 @@ public class CachingHttpClient implements HttpClient {
         }
     }
 
-    private HttpResponse generateGatewayTimeout(HttpContext context) {
+    private HttpResponse generateGatewayTimeout(final HttpContext context) {
         setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
         return new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
     }
 
-    private HttpResponse unvalidatedCacheHit(HttpContext context,
-            HttpCacheEntry entry) {
+    private HttpResponse unvalidatedCacheHit(final HttpContext context,
+            final HttpCacheEntry entry) {
         final HttpResponse cachedResponse = responseGenerator.generateResponse(entry);
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
         cachedResponse.addHeader(HeaderConstants.WARNING, "111 localhost \"Revalidation failed\"");
         return cachedResponse;
     }
 
-    private boolean staleResponseNotAllowed(HttpRequestWrapper request,
-            HttpCacheEntry entry, Date now) {
+    private boolean staleResponseNotAllowed(final HttpRequestWrapper request,
+            final HttpCacheEntry entry, final Date now) {
         return validityPolicy.mustRevalidate(entry)
             || (isSharedCache() && validityPolicy.proxyRevalidate(entry))
             || explicitFreshnessRequest(request, entry, now);
     }
 
-    private boolean mayCallBackend(HttpRequestWrapper request) {
+    private boolean mayCallBackend(final HttpRequestWrapper request) {
         for (Header h: request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for (HeaderElement elt : h.getElements()) {
                 if ("only-if-cached".equals(elt.getName())) {
@@ -645,7 +645,7 @@ public class CachingHttpClient implements HttpClient {
         return true;
     }
 
-    private boolean explicitFreshnessRequest(HttpRequestWrapper request, HttpCacheEntry entry, Date now) {
+    private boolean explicitFreshnessRequest(final HttpRequestWrapper request, final HttpCacheEntry entry, final Date now) {
         for(Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for(HeaderElement elt : h.getElements()) {
                 if (HeaderConstants.CACHE_CONTROL_MAX_STALE.equals(elt.getName())) {
@@ -668,7 +668,7 @@ public class CachingHttpClient implements HttpClient {
         return false;
     }
 
-    private String generateViaHeader(HttpMessage msg) {
+    private String generateViaHeader(final HttpMessage msg) {
 
         final ProtocolVersion pv = msg.getProtocolVersion();
         String existingEntry = viaHeaders.get(pv);
@@ -723,7 +723,7 @@ public class CachingHttpClient implements HttpClient {
         return new Date();
     }
 
-    boolean clientRequestsOurOptions(HttpRequest request) {
+    boolean clientRequestsOurOptions(final HttpRequest request) {
         RequestLine line = request.getRequestLine();
 
         if (!HeaderConstants.OPTIONS_METHOD.equals(line.getMethod())) {
@@ -741,7 +741,7 @@ public class CachingHttpClient implements HttpClient {
         return true;
     }
 
-    HttpResponse callBackend(HttpHost target, HttpRequestWrapper request, HttpContext context)
+    HttpResponse callBackend(final HttpHost target, final HttpRequestWrapper request, final HttpContext context)
             throws IOException {
 
         Date requestDate = getCurrentDate();
@@ -754,8 +754,8 @@ public class CachingHttpClient implements HttpClient {
 
     }
 
-    private boolean revalidationResponseIsTooOld(HttpResponse backendResponse,
-            HttpCacheEntry cacheEntry) {
+    private boolean revalidationResponseIsTooOld(final HttpResponse backendResponse,
+            final HttpCacheEntry cacheEntry) {
         final Header entryDateHeader = cacheEntry.getFirstHeader(HTTP.DATE_HEADER);
         final Header responseDateHeader = backendResponse.getFirstHeader(HTTP.DATE_HEADER);
         if (entryDateHeader != null && responseDateHeader != null) {
@@ -775,9 +775,9 @@ public class CachingHttpClient implements HttpClient {
         return false;
     }
 
-    HttpResponse negotiateResponseFromVariants(HttpHost target,
-            HttpRequestWrapper request, HttpContext context,
-            Map<String, Variant> variants) throws IOException {
+    HttpResponse negotiateResponseFromVariants(final HttpHost target,
+            final HttpRequestWrapper request, final HttpContext context,
+            final Map<String, Variant> variants) throws IOException {
         HttpRequestWrapper conditionalRequest = conditionalRequestBuilder
             .buildConditionalRequestFromVariants(request, variants);
 
@@ -828,18 +828,18 @@ public class CachingHttpClient implements HttpClient {
         return resp;
     }
 
-    private HttpResponse retryRequestUnconditionally(HttpHost target,
-            HttpRequestWrapper request, HttpContext context,
-            HttpCacheEntry matchedEntry) throws IOException {
+    private HttpResponse retryRequestUnconditionally(final HttpHost target,
+            final HttpRequestWrapper request, final HttpContext context,
+            final HttpCacheEntry matchedEntry) throws IOException {
         HttpRequestWrapper unconditional = conditionalRequestBuilder
             .buildUnconditionalRequest(request, matchedEntry);
         return callBackend(target, unconditional, context);
     }
 
-    private HttpCacheEntry getUpdatedVariantEntry(HttpHost target,
-            HttpRequestWrapper conditionalRequest, Date requestDate,
-            Date responseDate, HttpResponse backendResponse,
-            Variant matchingVariant, HttpCacheEntry matchedEntry) {
+    private HttpCacheEntry getUpdatedVariantEntry(final HttpHost target,
+            final HttpRequestWrapper conditionalRequest, final Date requestDate,
+            final Date responseDate, final HttpResponse backendResponse,
+            final Variant matchingVariant, final HttpCacheEntry matchedEntry) {
         HttpCacheEntry responseEntry = matchedEntry;
         try {
             responseEntry = responseCache.updateVariantCacheEntry(target, conditionalRequest,
@@ -850,8 +850,8 @@ public class CachingHttpClient implements HttpClient {
         return responseEntry;
     }
 
-    private void tryToUpdateVariantMap(HttpHost target, HttpRequestWrapper request,
-            Variant matchingVariant) {
+    private void tryToUpdateVariantMap(final HttpHost target, final HttpRequestWrapper request,
+            final Variant matchingVariant) {
         try {
             responseCache.reuseVariantEntryFor(target, request, matchingVariant);
         } catch (IOException ioe) {
@@ -859,17 +859,17 @@ public class CachingHttpClient implements HttpClient {
         }
     }
 
-    private boolean shouldSendNotModifiedResponse(HttpRequestWrapper request,
-            HttpCacheEntry responseEntry) {
+    private boolean shouldSendNotModifiedResponse(final HttpRequestWrapper request,
+            final HttpCacheEntry responseEntry) {
         return (suitabilityChecker.isConditional(request)
                 && suitabilityChecker.allConditionalsMatch(request, responseEntry, new Date()));
     }
 
     HttpResponse revalidateCacheEntry(
-            HttpHost target,
-            HttpRequestWrapper request,
-            HttpContext context,
-            HttpCacheEntry cacheEntry) throws IOException, ProtocolException {
+            final HttpHost target,
+            final HttpRequestWrapper request,
+            final HttpContext context,
+            final HttpCacheEntry cacheEntry) throws IOException, ProtocolException {
 
         HttpRequestWrapper conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(request, cacheEntry);
 
@@ -919,7 +919,7 @@ public class CachingHttpClient implements HttpClient {
                                      backendResponse);
     }
 
-    private boolean staleIfErrorAppliesTo(int statusCode) {
+    private boolean staleIfErrorAppliesTo(final int statusCode) {
         return statusCode == HttpStatus.SC_INTERNAL_SERVER_ERROR
                 || statusCode == HttpStatus.SC_BAD_GATEWAY
                 || statusCode == HttpStatus.SC_SERVICE_UNAVAILABLE
@@ -927,11 +927,11 @@ public class CachingHttpClient implements HttpClient {
     }
 
     HttpResponse handleBackendResponse(
-            HttpHost target,
-            HttpRequestWrapper request,
-            Date requestDate,
-            Date responseDate,
-            HttpResponse backendResponse) throws IOException {
+            final HttpHost target,
+            final HttpRequestWrapper request,
+            final Date requestDate,
+            final Date responseDate,
+            final HttpResponse backendResponse) throws IOException {
 
         log.trace("Handling Backend response");
         responseCompliance.ensureProtocolCompliance(request, backendResponse);
@@ -967,7 +967,7 @@ public class CachingHttpClient implements HttpClient {
      * included in the resulting response.
      */
     private void storeRequestIfModifiedSinceFor304Response(
-            HttpRequest request, HttpResponse backendResponse) {
+            final HttpRequest request, final HttpResponse backendResponse) {
         if (backendResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
             Header h = request.getFirstHeader("If-Modified-Since");
             if (h != null) {
@@ -976,8 +976,8 @@ public class CachingHttpClient implements HttpClient {
         }
     }
 
-    private boolean alreadyHaveNewerCacheEntry(HttpHost target, HttpRequest request,
-            HttpResponse backendResponse) {
+    private boolean alreadyHaveNewerCacheEntry(final HttpHost target, final HttpRequest request,
+            final HttpResponse backendResponse) {
         HttpCacheEntry existing = null;
         try {
             existing = responseCache.getCacheEntry(target, request);
@@ -1025,8 +1025,8 @@ public class CachingHttpClient implements HttpClient {
          * {@link CacheConfig#getAsynchronousWorkerIdleLifetimeSecs()},
          * and {@link CacheConfig#getRevalidationQueueSize()}.
          */
-        public AsynchronousValidator(CachingHttpClient cachingClient,
-                CacheConfig config) {
+        public AsynchronousValidator(final CachingHttpClient cachingClient,
+                final CacheConfig config) {
             this(cachingClient,
                     new ThreadPoolExecutor(config.getAsynchronousWorkersCore(),
                             config.getAsynchronousWorkersMax(),
@@ -1043,8 +1043,8 @@ public class CachingHttpClient implements HttpClient {
          * @param cachingClient used to execute asynchronous requests
          * @param executor used to manage a thread pool of revalidation workers
          */
-        AsynchronousValidator(CachingHttpClient cachingClient,
-                ExecutorService executor) {
+        AsynchronousValidator(final CachingHttpClient cachingClient,
+                final ExecutorService executor) {
             this.cachingClient = cachingClient;
             this.executor = executor;
             this.queued = new HashSet<String>();
@@ -1059,8 +1059,8 @@ public class CachingHttpClient implements HttpClient {
          * @param context
          * @param entry
          */
-        public synchronized void revalidateCacheEntry(HttpHost target,
-                HttpRequestWrapper request, HttpContext context, HttpCacheEntry entry) {
+        public synchronized void revalidateCacheEntry(final HttpHost target,
+                final HttpRequestWrapper request, final HttpContext context, final HttpCacheEntry entry) {
             // getVariantURI will fall back on getURI if no variants exist
             String uri = cacheKeyGenerator.getVariantURI(target, request, entry);
 
@@ -1085,7 +1085,7 @@ public class CachingHttpClient implements HttpClient {
          * complete, using the identifier passed in during constructions.
          * @param identifier
          */
-        synchronized void markComplete(String identifier) {
+        synchronized void markComplete(final String identifier) {
             queued.remove(identifier);
         }
 
@@ -1120,11 +1120,11 @@ public class CachingHttpClient implements HttpClient {
          * @param bookKeeping
          * @param identifier
          */
-        AsynchronousValidationRequest(AsynchronousValidator parent,
-                CachingHttpClient cachingClient, HttpHost target,
-                HttpRequestWrapper request, HttpContext context,
-                HttpCacheEntry cacheEntry,
-                String identifier) {
+        AsynchronousValidationRequest(final AsynchronousValidator parent,
+                final CachingHttpClient cachingClient, final HttpHost target,
+                final HttpRequestWrapper request, final HttpContext context,
+                final HttpCacheEntry cacheEntry,
+                final String identifier) {
             this.parent = parent;
             this.cachingClient = cachingClient;
             this.target = target;

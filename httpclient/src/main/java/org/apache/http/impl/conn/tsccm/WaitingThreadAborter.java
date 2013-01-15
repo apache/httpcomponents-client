@@ -59,7 +59,7 @@ public class WaitingThreadAborter {
      *
      * @param waitingThread The thread to interrupt when aborting.
      */
-    public void setWaitingThread(WaitingThread waitingThread) {
+    public void setWaitingThread(final WaitingThread waitingThread) {
         this.waitingThread = waitingThread;
         if (aborted) {
 			waitingThread.interrupt();

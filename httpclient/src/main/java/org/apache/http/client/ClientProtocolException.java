@@ -44,15 +44,15 @@ public class ClientProtocolException extends IOException {
         super();
     }
 
-    public ClientProtocolException(String s) {
+    public ClientProtocolException(final String s) {
         super(s);
     }
 
-    public ClientProtocolException(Throwable cause) {
+    public ClientProtocolException(final Throwable cause) {
         initCause(cause);
     }
 
-    public ClientProtocolException(String message, Throwable cause) {
+    public ClientProtocolException(final String message, final Throwable cause) {
         super(message);
         initCause(cause);
     }

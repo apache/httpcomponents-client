@@ -67,8 +67,8 @@ class AsynchronousValidator {
      * {@link CacheConfig#getAsynchronousWorkerIdleLifetimeSecs()},
      * and {@link CacheConfig#getRevalidationQueueSize()}.
      */
-    public AsynchronousValidator(CachingExec cachingExect,
-            CacheConfig config) {
+    public AsynchronousValidator(final CachingExec cachingExect,
+            final CacheConfig config) {
         this(cachingExect,
                 new ThreadPoolExecutor(config.getAsynchronousWorkersCore(),
                         config.getAsynchronousWorkersMax(),
@@ -85,7 +85,7 @@ class AsynchronousValidator {
      * @param cachingExect used to execute asynchronous requests
      * @param executor used to manage a thread pool of revalidation workers
      */
-    AsynchronousValidator(CachingExec cachingExec, ExecutorService executor) {
+    AsynchronousValidator(final CachingExec cachingExec, final ExecutorService executor) {
         this.cachingExec = cachingExec;
         this.executor = executor;
         this.queued = new HashSet<String>();
@@ -125,7 +125,7 @@ class AsynchronousValidator {
      * complete, using the identifier passed in during constructions.
      * @param identifier
      */
-    synchronized void markComplete(String identifier) {
+    synchronized void markComplete(final String identifier) {
         queued.remove(identifier);
     }
 

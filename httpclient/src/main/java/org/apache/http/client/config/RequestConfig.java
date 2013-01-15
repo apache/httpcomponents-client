@@ -226,7 +226,7 @@ public class RequestConfig implements Cloneable {
             this.socketTimeout = -1;
         }
 
-        public Builder setExpectContinueEnabled(boolean expectContinueEnabled) {
+        public Builder setExpectContinueEnabled(final boolean expectContinueEnabled) {
             this.expectContinueEnabled = expectContinueEnabled;
             return this;
         }
@@ -241,7 +241,7 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
-        public Builder setStaleConnectionCheckEnabled(boolean staleConnectionCheckEnabled) {
+        public Builder setStaleConnectionCheckEnabled(final boolean staleConnectionCheckEnabled) {
             this.staleConnectionCheckEnabled = staleConnectionCheckEnabled;
             return this;
         }
@@ -251,17 +251,17 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
-        public Builder setRedirectsEnabled(boolean redirectsEnabled) {
+        public Builder setRedirectsEnabled(final boolean redirectsEnabled) {
             this.redirectsEnabled = redirectsEnabled;
             return this;
         }
 
-        public Builder setRelativeRedirectsAllowed(boolean relativeRedirectsAllowed) {
+        public Builder setRelativeRedirectsAllowed(final boolean relativeRedirectsAllowed) {
             this.relativeRedirectsAllowed = relativeRedirectsAllowed;
             return this;
         }
 
-        public Builder setCircularRedirectsAllowed(boolean circularRedirectsAllowed) {
+        public Builder setCircularRedirectsAllowed(final boolean circularRedirectsAllowed) {
             this.circularRedirectsAllowed = circularRedirectsAllowed;
             return this;
         }
@@ -271,7 +271,7 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
-        public Builder setAuthenticationEnabled(boolean authenticationEnabled) {
+        public Builder setAuthenticationEnabled(final boolean authenticationEnabled) {
             this.authenticationEnabled = authenticationEnabled;
             return this;
         }
@@ -291,7 +291,7 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
-        public Builder setConnectTimeout(int connectTimeout) {
+        public Builder setConnectTimeout(final int connectTimeout) {
             this.connectTimeout = connectTimeout;
             return this;
         }

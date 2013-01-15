@@ -96,7 +96,7 @@ public class TestCacheValidityPolicy {
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         impl = new CacheValidityPolicy() {
             @Override
-            protected long getApparentAgeSecs(HttpCacheEntry entry) {
+            protected long getApparentAgeSecs(final HttpCacheEntry entry) {
                 return 6;
             }
         };
@@ -109,7 +109,7 @@ public class TestCacheValidityPolicy {
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         impl = new CacheValidityPolicy() {
             @Override
-            protected long getApparentAgeSecs(HttpCacheEntry entry) {
+            protected long getApparentAgeSecs(final HttpCacheEntry entry) {
                 return 10;
             }
         };
@@ -127,12 +127,12 @@ public class TestCacheValidityPolicy {
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            protected long getCorrectedReceivedAgeSecs(HttpCacheEntry entry) {
+            protected long getCorrectedReceivedAgeSecs(final HttpCacheEntry entry) {
                 return 7;
             }
 
             @Override
-            protected long getResponseDelaySecs(HttpCacheEntry entry) {
+            protected long getResponseDelaySecs(final HttpCacheEntry entry) {
                 return 13;
             }
         };
@@ -151,11 +151,11 @@ public class TestCacheValidityPolicy {
         HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            protected long getCorrectedInitialAgeSecs(HttpCacheEntry entry) {
+            protected long getCorrectedInitialAgeSecs(final HttpCacheEntry entry) {
                 return 11;
             }
             @Override
-            protected long getResidentTimeSecs(HttpCacheEntry entry, Date d) {
+            protected long getResidentTimeSecs(final HttpCacheEntry entry, final Date d) {
                 return 17;
             }
         };
@@ -252,13 +252,13 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            public long getCurrentAgeSecs(HttpCacheEntry e, Date d) {
+            public long getCurrentAgeSecs(final HttpCacheEntry e, final Date d) {
                 assertSame(entry, e);
                 assertEquals(now, d);
                 return 6;
             }
             @Override
-            public long getFreshnessLifetimeSecs(HttpCacheEntry e) {
+            public long getFreshnessLifetimeSecs(final HttpCacheEntry e) {
                 assertSame(entry, e);
                 return 10;
             }
@@ -271,13 +271,13 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            public long getCurrentAgeSecs(HttpCacheEntry e, Date d) {
+            public long getCurrentAgeSecs(final HttpCacheEntry e, final Date d) {
                 assertEquals(now, d);
                 assertSame(entry, e);
                 return 6;
             }
             @Override
-            public long getFreshnessLifetimeSecs(HttpCacheEntry e) {
+            public long getFreshnessLifetimeSecs(final HttpCacheEntry e) {
                 assertSame(entry, e);
                 return 6;
             }
@@ -290,13 +290,13 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            public long getCurrentAgeSecs(HttpCacheEntry e, Date d) {
+            public long getCurrentAgeSecs(final HttpCacheEntry e, final Date d) {
                 assertEquals(now, d);
                 assertSame(entry, e);
                 return 10;
             }
             @Override
-            public long getFreshnessLifetimeSecs(HttpCacheEntry e) {
+            public long getFreshnessLifetimeSecs(final HttpCacheEntry e) {
                 assertSame(entry, e);
                 return 6;
             }

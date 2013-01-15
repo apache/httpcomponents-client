@@ -63,7 +63,7 @@ public class RFC2965Spec extends RFC2109Spec {
         this(null, false);
     }
 
-    public RFC2965Spec(final String[] datepatterns, boolean oneHeader) {
+    public RFC2965Spec(final String[] datepatterns, final boolean oneHeader) {
         super(datepatterns, oneHeader);
         registerAttribHandler(ClientCookie.DOMAIN_ATTR, new RFC2965DomainAttributeHandler());
         registerAttribHandler(ClientCookie.PORT_ATTR, new RFC2965PortAttributeHandler());
@@ -159,7 +159,7 @@ public class RFC2965Spec extends RFC2109Spec {
      */
     @Override
     protected void formatCookieAsVer(final CharArrayBuffer buffer,
-            final Cookie cookie, int version) {
+            final Cookie cookie, final int version) {
         super.formatCookieAsVer(buffer, cookie, version);
         // format port attribute
         if (cookie instanceof ClientCookie) {

@@ -54,7 +54,7 @@ public class MalformedCookieException extends ProtocolException {
      *
      * @param message The exception detail message
      */
-    public MalformedCookieException(String message) {
+    public MalformedCookieException(final String message) {
         super(message);
     }
 
@@ -65,7 +65,7 @@ public class MalformedCookieException extends ProtocolException {
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
      */
-    public MalformedCookieException(String message, Throwable cause) {
+    public MalformedCookieException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }

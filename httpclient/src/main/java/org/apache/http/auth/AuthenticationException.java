@@ -52,7 +52,7 @@ public class AuthenticationException extends ProtocolException {
      *
      * @param message the exception detail message
      */
-    public AuthenticationException(String message) {
+    public AuthenticationException(final String message) {
         super(message);
     }
 
@@ -63,7 +63,7 @@ public class AuthenticationException extends ProtocolException {
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
      */
-    public AuthenticationException(String message, Throwable cause) {
+    public AuthenticationException(final String message, final Throwable cause) {
         super(message, cause);
     }
 

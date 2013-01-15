@@ -35,7 +35,7 @@ class Variant {
     private final String cacheKey;
     private final HttpCacheEntry entry;
 
-    public Variant(String variantKey, String cacheKey, HttpCacheEntry entry) {
+    public Variant(final String variantKey, final String cacheKey, final HttpCacheEntry entry) {
         this.variantKey = variantKey;
         this.cacheKey = cacheKey;
         this.entry = entry;

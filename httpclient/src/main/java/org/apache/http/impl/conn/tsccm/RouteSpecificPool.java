@@ -80,11 +80,11 @@ public class RouteSpecificPool {
      * @deprecated (4.1)  use {@link RouteSpecificPool#RouteSpecificPool(HttpRoute, ConnPerRoute)}
      */
     @Deprecated
-    public RouteSpecificPool(HttpRoute route, int maxEntries) {
+    public RouteSpecificPool(final HttpRoute route, final int maxEntries) {
         this.route = route;
         this.maxEntries = maxEntries;
         this.connPerRoute = new ConnPerRoute() {
-            public int getMaxForRoute(HttpRoute route) {
+            public int getMaxForRoute(final HttpRoute route) {
                 return RouteSpecificPool.this.maxEntries;
             }
         };
@@ -100,7 +100,7 @@ public class RouteSpecificPool {
      * @param route the route for which to pool
      * @param connPerRoute the connections per route configuration
      */
-    public RouteSpecificPool(HttpRoute route, ConnPerRoute connPerRoute) {
+    public RouteSpecificPool(final HttpRoute route, final ConnPerRoute connPerRoute) {
         this.route = route;
         this.connPerRoute = connPerRoute;
         this.maxEntries = connPerRoute.getMaxForRoute(route);
@@ -202,7 +202,7 @@ public class RouteSpecificPool {
      * @param entry     the entry obtained from {@link #allocEntry allocEntry}
      *                  or presented to {@link #createdEntry createdEntry}
      */
-    public void freeEntry(BasicPoolEntry entry) {
+    public void freeEntry(final BasicPoolEntry entry) {
         if (numEntries < 1) {
             throw new IllegalStateException
                 ("No entry created for this pool. " + route);
@@ -223,7 +223,7 @@ public class RouteSpecificPool {
      *
      * @param entry     the entry that was created for this pool
      */
-    public void createdEntry(BasicPoolEntry entry) {
+    public void createdEntry(final BasicPoolEntry entry) {
         Args.check(route.equals(entry.getPlannedRoute()), "Entry not planned for this pool");
         numEntries++;
     }
@@ -239,7 +239,7 @@ public class RouteSpecificPool {
      * @return  <code>true</code> if the entry was found and deleted, or
      *          <code>false</code> if the entry was not found
      */
-    public boolean deleteEntry(BasicPoolEntry entry) {
+    public boolean deleteEntry(final BasicPoolEntry entry) {
 
         final boolean found = freeEntries.remove(entry);
         if (found) {
@@ -269,7 +269,7 @@ public class RouteSpecificPool {
      *
      * @param wt        the waiting thread
      */
-    public void queueThread(WaitingThread wt) {
+    public void queueThread(final WaitingThread wt) {
         Args.notNull(wt, "Waiting thread");
         this.waitingThreads.add(wt);
     }
@@ -301,7 +301,7 @@ public class RouteSpecificPool {
      *
      * @param wt        the waiting thread
      */
-    public void removeThread(WaitingThread wt) {
+    public void removeThread(final WaitingThread wt) {
         if (wt == null) {
 			return;
 		}

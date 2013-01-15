@@ -44,7 +44,7 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
     private String key;
     private HttpCacheEntry httpCacheEntry;
 
-    public MemcachedCacheEntryImpl(String key, HttpCacheEntry httpCacheEntry) {
+    public MemcachedCacheEntryImpl(final String key, final HttpCacheEntry httpCacheEntry) {
         this.key = key;
         this.httpCacheEntry = httpCacheEntry;
     }
@@ -86,7 +86,7 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
     /* (non-Javadoc)
      * @see org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry#set(byte[])
      */
-    synchronized public void set(byte[] bytes) {
+    synchronized public void set(final byte[] bytes) {
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
         ObjectInputStream ois;
         String s;

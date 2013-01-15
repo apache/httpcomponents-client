@@ -67,7 +67,7 @@ public class TestHttpCacheEntrySerializers {
         readWriteVerify(makeCacheEntryWithVariantMap());
     }
 
-    public void readWriteVerify(HttpCacheEntry writeEntry) throws IOException {
+    public void readWriteVerify(final HttpCacheEntry writeEntry) throws IOException {
         // write the entry
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         impl.writeTo(writeEntry, out);
@@ -99,7 +99,7 @@ public class TestHttpCacheEntrySerializers {
         return cacheEntry;
     }
 
-    private boolean areEqual(HttpCacheEntry one, HttpCacheEntry two) throws IOException {
+    private boolean areEqual(final HttpCacheEntry one, final HttpCacheEntry two) throws IOException {
         // dates are only stored with second precision, so scrub milliseconds
         if (!((one.getRequestDate().getTime() / 1000) == (two.getRequestDate()
                 .getTime() / 1000))) {
@@ -137,7 +137,7 @@ public class TestHttpCacheEntrySerializers {
         return true;
     }
 
-    private byte[] resourceToBytes(Resource res) throws IOException {
+    private byte[] resourceToBytes(final Resource res) throws IOException {
         InputStream inputStream = res.getInputStream();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 

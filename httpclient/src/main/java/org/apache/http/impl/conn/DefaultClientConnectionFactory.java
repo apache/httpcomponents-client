@@ -58,7 +58,7 @@ public class DefaultClientConnectionFactory implements HttpConnectionFactory<Soc
     private final HttpMessageParserFactory<HttpResponse> responseParserFactory;
 
     public DefaultClientConnectionFactory(
-            int bufferSize,
+            final int bufferSize,
             final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
         super();
@@ -80,7 +80,7 @@ public class DefaultClientConnectionFactory implements HttpConnectionFactory<Soc
         this(null, responseParserFactory);
     }
 
-    public DefaultClientConnectionFactory(int bufferSize) {
+    public DefaultClientConnectionFactory(final int bufferSize) {
         this(bufferSize, null, null);
     }
 

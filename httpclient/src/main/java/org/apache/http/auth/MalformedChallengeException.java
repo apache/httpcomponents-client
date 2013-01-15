@@ -53,7 +53,7 @@ public class MalformedChallengeException extends ProtocolException {
      *
      * @param message the exception detail message
      */
-    public MalformedChallengeException(String message) {
+    public MalformedChallengeException(final String message) {
         super(message);
     }
 
@@ -64,7 +64,7 @@ public class MalformedChallengeException extends ProtocolException {
      * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
      * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
      */
-    public MalformedChallengeException(String message, Throwable cause) {
+    public MalformedChallengeException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }

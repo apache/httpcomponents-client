@@ -437,7 +437,7 @@ public class TestRequestAddCookies {
     }
 
     // Helper method
-    private BasicClientCookie makeCookie(String name, String value, String domain, String path) {
+    private BasicClientCookie makeCookie(final String name, final String value, final String domain, final String path) {
         BasicClientCookie cookie = new BasicClientCookie(name, value);
         cookie.setDomain(domain);
         cookie.setPath(path);

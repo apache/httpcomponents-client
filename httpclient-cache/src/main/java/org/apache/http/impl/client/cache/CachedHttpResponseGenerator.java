@@ -69,7 +69,7 @@ class CachedHttpResponseGenerator {
      *            {@link CacheEntity} to transform into an {@link HttpResponse}
      * @return {@link HttpResponse} that was constructed
      */
-    HttpResponse generateResponse(HttpCacheEntry entry) {
+    HttpResponse generateResponse(final HttpCacheEntry entry) {
 
         Date now = new Date();
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, entry
@@ -102,7 +102,7 @@ class CachedHttpResponseGenerator {
      * @param entry
      * @return
      */
-    HttpResponse generateNotModifiedResponse(HttpCacheEntry entry) {
+    HttpResponse generateNotModifiedResponse(final HttpCacheEntry entry) {
 
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_NOT_MODIFIED, "Not Modified");
@@ -150,7 +150,7 @@ class CachedHttpResponseGenerator {
         return response;
     }
 
-    private void addMissingContentLengthHeader(HttpResponse response, HttpEntity entity) {
+    private void addMissingContentLengthHeader(final HttpResponse response, final HttpEntity entity) {
         if (transferEncodingIsPresent(response)) {
 			return;
 		}
@@ -163,7 +163,7 @@ class CachedHttpResponseGenerator {
         }
     }
 
-    private boolean transferEncodingIsPresent(HttpResponse response) {
+    private boolean transferEncodingIsPresent(final HttpResponse response) {
         Header hdr = response.getFirstHeader(HTTP.TRANSFER_ENCODING);
         return hdr != null;
     }

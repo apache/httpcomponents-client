@@ -77,8 +77,8 @@ class ResponseCachingPolicy {
      * @param neverCache1_0ResponsesWithQueryString true to never cache HTTP 1.0 responses with a query string, false
      * to cache if explicit cache headers are found.
      */
-    public ResponseCachingPolicy(long maxObjectSizeBytes, boolean sharedCache,
-                                 boolean neverCache1_0ResponsesWithQueryString
+    public ResponseCachingPolicy(final long maxObjectSizeBytes, final boolean sharedCache,
+                                 final boolean neverCache1_0ResponsesWithQueryString
     ) {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
         this.sharedCache = sharedCache;
@@ -92,7 +92,7 @@ class ResponseCachingPolicy {
      * @param response The origin response
      * @return <code>true</code> if response is cacheable
      */
-    public boolean isResponseCacheable(String httpMethod, HttpResponse response) {
+    public boolean isResponseCacheable(final String httpMethod, final HttpResponse response) {
         boolean cacheable = false;
 
         if (!HeaderConstants.GET_METHOD.equals(httpMethod)) {
@@ -159,7 +159,7 @@ class ResponseCachingPolicy {
         return (cacheable || isExplicitlyCacheable(response));
     }
 
-    private boolean unknownStatusCode(int status) {
+    private boolean unknownStatusCode(final int status) {
         if (status >= 100 && status <= 101) {
 			return false;
 		}
@@ -178,7 +178,7 @@ class ResponseCachingPolicy {
         return true;
     }
 
-    protected boolean isExplicitlyNonCacheable(HttpResponse response) {
+    protected boolean isExplicitlyNonCacheable(final HttpResponse response) {
         Header[] cacheControlHeaders = response.getHeaders(HeaderConstants.CACHE_CONTROL);
         for (Header header : cacheControlHeaders) {
             for (HeaderElement elem : header.getElements()) {
@@ -192,7 +192,7 @@ class ResponseCachingPolicy {
         return false;
     }
 
-    protected boolean hasCacheControlParameterFrom(HttpMessage msg, String[] params) {
+    protected boolean hasCacheControlParameterFrom(final HttpMessage msg, final String[] params) {
         Header[] cacheControlHeaders = msg.getHeaders(HeaderConstants.CACHE_CONTROL);
         for (Header header : cacheControlHeaders) {
             for (HeaderElement elem : header.getElements()) {
@@ -206,7 +206,7 @@ class ResponseCachingPolicy {
         return false;
     }
 
-    protected boolean isExplicitlyCacheable(HttpResponse response) {
+    protected boolean isExplicitlyCacheable(final HttpResponse response) {
         if (response.getFirstHeader(HeaderConstants.EXPIRES) != null) {
 			return true;
 		}
@@ -226,7 +226,7 @@ class ResponseCachingPolicy {
      * @param response the {@link HttpResponse} from the origin
      * @return <code>true</code> if response is cacheable
      */
-    public boolean isResponseCacheable(HttpRequest request, HttpResponse response) {
+    public boolean isResponseCacheable(final HttpRequest request, final HttpResponse response) {
         if (requestProtocolGreaterThanAccepted(request)) {
             log.debug("Response was not cacheable.");
             return false;
@@ -266,7 +266,7 @@ class ResponseCachingPolicy {
     }
 
     private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(
-            HttpResponse response) {
+            final HttpResponse response) {
         if (response.getFirstHeader(HeaderConstants.CACHE_CONTROL) != null) {
 			return false;
 		}
@@ -284,7 +284,7 @@ class ResponseCachingPolicy {
         }
     }
 
-    private boolean from1_0Origin(HttpResponse response) {
+    private boolean from1_0Origin(final HttpResponse response) {
         Header via = response.getFirstHeader(HeaderConstants.VIA);
         if (via != null) {
             for(HeaderElement elt : via.getElements()) {
@@ -299,7 +299,7 @@ class ResponseCachingPolicy {
         return HttpVersion.HTTP_1_0.equals(response.getProtocolVersion());
     }
 
-    private boolean requestProtocolGreaterThanAccepted(HttpRequest req) {
+    private boolean requestProtocolGreaterThanAccepted(final HttpRequest req) {
         return req.getProtocolVersion().compareToVersion(HttpVersion.HTTP_1_1) > 0;
     }
 

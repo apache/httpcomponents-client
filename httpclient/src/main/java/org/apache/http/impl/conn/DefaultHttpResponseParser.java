@@ -162,7 +162,7 @@ public class DefaultHttpResponseParser extends AbstractMessageParser<HttpRespons
         return this.responseFactory.newHttpResponse(statusline, null);
     }
 
-    protected boolean reject(CharArrayBuffer line, int count) {
+    protected boolean reject(final CharArrayBuffer line, final int count) {
         return false;
     }
 

@@ -34,7 +34,7 @@ public class MemcachedSerializationException extends RuntimeException {
 
     private static final long serialVersionUID = 2201652990656412236L;
 
-    public MemcachedSerializationException(Throwable cause) {
+    public MemcachedSerializationException(final Throwable cause) {
         super(cause);
     }
 

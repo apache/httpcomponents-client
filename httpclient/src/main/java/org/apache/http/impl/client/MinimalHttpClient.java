@@ -125,13 +125,13 @@ class MinimalHttpClient extends CloseableHttpClient {
             }
 
             public ClientConnectionRequest requestConnection(
-                    HttpRoute route, Object state) {
+                    final HttpRoute route, final Object state) {
                 throw new UnsupportedOperationException();
             }
 
             public void releaseConnection(
-                    ManagedClientConnection conn,
-                    long validDuration, TimeUnit timeUnit) {
+                    final ManagedClientConnection conn,
+                    final long validDuration, final TimeUnit timeUnit) {
                 throw new UnsupportedOperationException();
             }
 
@@ -139,7 +139,7 @@ class MinimalHttpClient extends CloseableHttpClient {
                 throw new UnsupportedOperationException();
             }
 
-            public void closeIdleConnections(long idletime, TimeUnit tunit) {
+            public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
                 connManager.closeIdleConnections(idletime, tunit);
             }
 

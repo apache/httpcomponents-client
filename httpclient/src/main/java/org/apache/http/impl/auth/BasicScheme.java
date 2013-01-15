@@ -190,7 +190,7 @@ public class BasicScheme extends RFC2617Scheme {
     public static Header authenticate(
             final Credentials credentials,
             final String charset,
-            boolean proxy) {
+            final boolean proxy) {
         Args.notNull(credentials, "Credentials");
         Args.notNull(charset, "charset");
 

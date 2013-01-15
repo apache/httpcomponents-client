@@ -93,7 +93,7 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
      * {@inheritDoc}
      */
     @Override
-    public void writeTo(OutputStream outstream) throws IOException {
+    public void writeTo(final OutputStream outstream) throws IOException {
         Args.notNull(outstream, "Output stream");
         InputStream instream = getContent();
         try {

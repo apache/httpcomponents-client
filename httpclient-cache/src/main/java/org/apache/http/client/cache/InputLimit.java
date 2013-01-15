@@ -45,7 +45,7 @@ public class InputLimit {
      * read.
      * @param value maximum length in bytes
      */
-    public InputLimit(long value) {
+    public InputLimit(final long value) {
         super();
         this.value = value;
         this.reached = false;

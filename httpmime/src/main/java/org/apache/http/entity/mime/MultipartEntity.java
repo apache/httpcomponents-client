@@ -69,7 +69,7 @@ public class MultipartEntity implements HttpEntity {
     public MultipartEntity(
             HttpMultipartMode mode,
             String boundary,
-            Charset charset) {
+            final Charset charset) {
         super();
         if (boundary == null) {
             boundary = generateBoundary();

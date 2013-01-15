@@ -115,10 +115,10 @@ public abstract class AbstractConnPool {
      */
     public final
         BasicPoolEntry getEntry(
-                HttpRoute route,
-                Object state,
-                long timeout,
-                TimeUnit tunit)
+                final HttpRoute route,
+                final Object state,
+                final long timeout,
+                final TimeUnit tunit)
                     throws ConnectionPoolTimeoutException, InterruptedException {
         return requestPoolEntry(route, state).getPoolEntry(timeout, tunit);
     }
@@ -145,7 +145,7 @@ public abstract class AbstractConnPool {
     public abstract void freeEntry(BasicPoolEntry entry, boolean reusable, long validDuration, TimeUnit timeUnit)
         ;
 
-    public void handleReference(Reference<?> ref) {
+    public void handleReference(final Reference<?> ref) {
     }
 
     protected abstract void handleLostEntry(HttpRoute route);
@@ -157,7 +157,7 @@ public abstract class AbstractConnPool {
      *                  in order to be closed now
      * @param tunit     the unit for the <code>idletime</code>
      */
-    public void closeIdleConnections(long idletime, TimeUnit tunit) {
+    public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
 
         // idletime can be 0 or negative, no problem there
         Args.notNull(tunit, "Time unit");

@@ -95,8 +95,8 @@ public class TestMemcachedCacheEntryImpl {
         impl.set(bytes);
     }
 
-    private void assertEquivalent(HttpCacheEntry entry,
-            HttpCacheEntry resultEntry) throws IOException {
+    private void assertEquivalent(final HttpCacheEntry entry,
+            final HttpCacheEntry resultEntry) throws IOException {
         /* Ugh. Implementing HttpCacheEntry#equals is problematic
          * due to the Resource response body (may cause unexpected
          * I/O to users). Checking that two entries

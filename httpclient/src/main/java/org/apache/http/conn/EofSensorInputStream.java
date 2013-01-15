@@ -129,7 +129,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException {
+    public int read(final byte[] b, final int off, final int len) throws IOException {
         int l = -1;
 
         if (isReadAllowed()) {
@@ -146,7 +146,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
     }
 
     @Override
-    public int read(byte[] b) throws IOException {
+    public int read(final byte[] b) throws IOException {
         return read(b, 0, b.length);
     }
 
@@ -190,7 +190,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
      * @throws IOException
      *          in case of an IO problem on closing the underlying stream
      */
-    protected void checkEOF(int eof) throws IOException {
+    protected void checkEOF(final int eof) throws IOException {
 
         if ((wrappedStream != null) && (eof < 0)) {
             try {

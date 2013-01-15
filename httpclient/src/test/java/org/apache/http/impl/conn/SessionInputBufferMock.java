@@ -47,7 +47,7 @@ public class SessionInputBufferMock extends SessionInputBufferImpl {
 
     public SessionInputBufferMock(
             final InputStream instream,
-            int buffersize,
+            final int buffersize,
             final MessageConstraints constrains,
             final CharsetDecoder decoder) {
         super(new HttpTransportMetricsImpl(), buffersize, -1, constrains, decoder);
@@ -56,13 +56,13 @@ public class SessionInputBufferMock extends SessionInputBufferImpl {
 
     public SessionInputBufferMock(
             final InputStream instream,
-            int buffersize) {
+            final int buffersize) {
         this(instream, buffersize, null, null);
     }
 
     public SessionInputBufferMock(
             final byte[] bytes,
-            int buffersize,
+            final int buffersize,
             final MessageConstraints constrains,
             final CharsetDecoder decoder) {
         this(new ByteArrayInputStream(bytes), buffersize, constrains, decoder);
@@ -70,14 +70,14 @@ public class SessionInputBufferMock extends SessionInputBufferImpl {
 
     public SessionInputBufferMock(
             final byte[] bytes,
-            int buffersize,
+            final int buffersize,
             final MessageConstraints constrains) {
         this(new ByteArrayInputStream(bytes), buffersize, constrains, null);
     }
 
     public SessionInputBufferMock(
             final byte[] bytes,
-            int buffersize) {
+            final int buffersize) {
         this(new ByteArrayInputStream(bytes), buffersize);
     }
 
@@ -104,7 +104,7 @@ public class SessionInputBufferMock extends SessionInputBufferImpl {
     }
 
     @Override
-    public boolean isDataAvailable(int timeout) throws IOException {
+    public boolean isDataAvailable(final int timeout) throws IOException {
         return true;
     }
 

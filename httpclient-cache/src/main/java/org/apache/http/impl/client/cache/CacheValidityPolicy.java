@@ -50,7 +50,7 @@ class CacheValidityPolicy {
         super();
     }
 
-    public long getCurrentAgeSecs(final HttpCacheEntry entry, Date now) {
+    public long getCurrentAgeSecs(final HttpCacheEntry entry, final Date now) {
         return getCorrectedInitialAgeSecs(entry) + getResidentTimeSecs(entry, now);
     }
 
@@ -73,7 +73,7 @@ class CacheValidityPolicy {
         return (diff / 1000);
     }
 
-    public boolean isResponseFresh(final HttpCacheEntry entry, Date now) {
+    public boolean isResponseFresh(final HttpCacheEntry entry, final Date now) {
         return (getCurrentAgeSecs(entry, now) < getFreshnessLifetimeSecs(entry));
     }
 
@@ -91,12 +91,12 @@ class CacheValidityPolicy {
      * @return {@code true} if the response is fresh
      */
     public boolean isResponseHeuristicallyFresh(final HttpCacheEntry entry,
-            Date now, float coefficient, long defaultLifetime) {
+            final Date now, final float coefficient, final long defaultLifetime) {
         return (getCurrentAgeSecs(entry, now) < getHeuristicFreshnessLifetimeSecs(entry, coefficient, defaultLifetime));
     }
 
-    public long getHeuristicFreshnessLifetimeSecs(HttpCacheEntry entry,
-            float coefficient, long defaultLifetime) {
+    public long getHeuristicFreshnessLifetimeSecs(final HttpCacheEntry entry,
+            final float coefficient, final long defaultLifetime) {
         Date dateValue = getDateValue(entry);
         Date lastModifiedValue = getLastModifiedValue(entry);
 
@@ -124,7 +124,7 @@ class CacheValidityPolicy {
         return hasCacheControlDirective(entry, HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE);
     }
 
-    public boolean mayReturnStaleWhileRevalidating(final HttpCacheEntry entry, Date now) {
+    public boolean mayReturnStaleWhileRevalidating(final HttpCacheEntry entry, final Date now) {
         for (Header h : entry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for(HeaderElement elt : h.getElements()) {
                 if (HeaderConstants.STALE_WHILE_REVALIDATE.equalsIgnoreCase(elt.getName())) {
@@ -143,8 +143,8 @@ class CacheValidityPolicy {
         return false;
     }
 
-    public boolean mayReturnStaleIfError(HttpRequest request,
-            HttpCacheEntry entry, Date now) {
+    public boolean mayReturnStaleIfError(final HttpRequest request,
+            final HttpCacheEntry entry, final Date now) {
         long stalenessSecs = getStalenessSecs(entry, now);
         return mayReturnStaleIfError(request.getHeaders(HeaderConstants.CACHE_CONTROL),
                                      stalenessSecs)
@@ -152,7 +152,7 @@ class CacheValidityPolicy {
                                          stalenessSecs);
     }
 
-    private boolean mayReturnStaleIfError(Header[] headers, long stalenessSecs) {
+    private boolean mayReturnStaleIfError(final Header[] headers, final long stalenessSecs) {
         boolean result = false;
         for(Header h : headers) {
             for(HeaderElement elt : h.getElements()) {
@@ -211,7 +211,7 @@ class CacheValidityPolicy {
         }
     }
 
-    protected boolean hasContentLengthHeader(HttpCacheEntry entry) {
+    protected boolean hasContentLengthHeader(final HttpCacheEntry entry) {
         return null != entry.getFirstHeader(HTTP.CONTENT_LEN);
     }
 
@@ -270,7 +270,7 @@ class CacheValidityPolicy {
         return getCorrectedReceivedAgeSecs(entry) + getResponseDelaySecs(entry);
     }
 
-    protected long getResidentTimeSecs(HttpCacheEntry entry, Date now) {
+    protected long getResidentTimeSecs(final HttpCacheEntry entry, final Date now) {
         long diff = now.getTime() - entry.getResponseDate().getTime();
         return (diff / 1000L);
     }
@@ -321,7 +321,7 @@ class CacheValidityPolicy {
         return false;
     }
 
-    public long getStalenessSecs(HttpCacheEntry entry, Date now) {
+    public long getStalenessSecs(final HttpCacheEntry entry, final Date now) {
         long age = getCurrentAgeSecs(entry, now);
         long freshness = getFreshnessLifetimeSecs(entry);
         if (age <= freshness) {

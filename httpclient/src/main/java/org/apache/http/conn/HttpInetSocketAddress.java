@@ -47,7 +47,7 @@ public class HttpInetSocketAddress extends InetSocketAddress {
 
     private final HttpHost httphost;
 
-    public HttpInetSocketAddress(final HttpHost httphost, final InetAddress addr, int port) {
+    public HttpInetSocketAddress(final HttpHost httphost, final InetAddress addr, final int port) {
         super(addr, port);
         Args.notNull(httphost, "HTTP host");
         this.httphost = httphost;

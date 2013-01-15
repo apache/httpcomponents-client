@@ -33,7 +33,7 @@ import java.io.ObjectOutputStream;
 
 public class Serializer<T> {
 
-    public byte[] serialize(T object) throws Exception {
+    public byte[] serialize(final T object) throws Exception {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
         objectStream.writeObject(object);
@@ -41,7 +41,7 @@ public class Serializer<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public T deserialize(byte[] serialized) throws Exception {
+    public T deserialize(final byte[] serialized) throws Exception {
         ByteArrayInputStream byteStream = new ByteArrayInputStream(serialized);
         ObjectInputStream objectStream = new ObjectInputStream(byteStream);
         T object = (T) objectStream.readObject();

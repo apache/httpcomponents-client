@@ -649,7 +649,7 @@ public class TestBrowserCompatSpec {
         }
     }
 
-    private void checkDate(String date) throws Exception {
+    private void checkDate(final String date) throws Exception {
         Header header = new BasicHeader("Set-Cookie", "custno=12345;Expires='"+date+"';");
         CookieSpec cookiespec = new BrowserCompatSpec();
         CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);

@@ -60,14 +60,14 @@ class CacheKeyGenerator {
      * @param req the {@link HttpRequest}
      * @return String the extracted URI
      */
-    public String getURI(HttpHost host, HttpRequest req) {
+    public String getURI(final HttpHost host, final HttpRequest req) {
         if (isRelativeRequest(req)) {
             return canonicalizeUri(String.format("%s%s", host.toString(), req.getRequestLine().getUri()));
         }
         return canonicalizeUri(req.getRequestLine().getUri());
     }
 
-    public String canonicalizeUri(String uri) {
+    public String canonicalizeUri(final String uri) {
         try {
             URL u = new URL(uri);
             String protocol = u.getProtocol().toLowerCase();
@@ -86,7 +86,7 @@ class CacheKeyGenerator {
         }
     }
 
-    private String canonicalizePath(String path) {
+    private String canonicalizePath(final String path) {
         try {
             String decoded = URLDecoder.decode(path, "UTF-8");
             return (new URI(decoded)).getPath();
@@ -96,7 +96,7 @@ class CacheKeyGenerator {
         return path;
     }
 
-    private int canonicalizePort(int port, String protocol) {
+    private int canonicalizePort(final int port, final String protocol) {
         if (port == -1 && "http".equalsIgnoreCase(protocol)) {
             return 80;
         } else if (port == -1 && "https".equalsIgnoreCase(protocol)) {
@@ -105,12 +105,12 @@ class CacheKeyGenerator {
         return port;
     }
 
-    private boolean isRelativeRequest(HttpRequest req) {
+    private boolean isRelativeRequest(final HttpRequest req) {
         String requestUri = req.getRequestLine().getUri();
         return ("*".equals(requestUri) || requestUri.startsWith("/"));
     }
 
-    protected String getFullHeaderValue(Header[] headers) {
+    protected String getFullHeaderValue(final Header[] headers) {
         if (headers == null) {
 			return "";
 		}
@@ -138,7 +138,7 @@ class CacheKeyGenerator {
      * @param entry the parent entry used to track the variants
      * @return String the extracted variant URI
      */
-    public String getVariantURI(HttpHost host, HttpRequest req, HttpCacheEntry entry) {
+    public String getVariantURI(final HttpHost host, final HttpRequest req, final HttpCacheEntry entry) {
         if (!entry.hasVariants()) {
 			return getURI(host, req);
 		}
@@ -154,7 +154,7 @@ class CacheKeyGenerator {
      * @param entry cache entry in question that has variants
      * @return a <code>String</code> variant key
      */
-    public String getVariantKey(HttpRequest req, HttpCacheEntry entry) {
+    public String getVariantKey(final HttpRequest req, final HttpCacheEntry entry) {
         List<String> variantHeaderNames = new ArrayList<String>();
         for (Header varyHdr : entry.getHeaders(HeaderConstants.VARY)) {
             for (HeaderElement elt : varyHdr.getElements()) {

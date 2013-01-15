@@ -43,19 +43,19 @@ public class TestAbstractCookieSpec {
 
     private static class DummyCookieSpec extends AbstractCookieSpec {
 
-        public List<Header> formatCookies(List<Cookie> cookies) {
+        public List<Header> formatCookies(final List<Cookie> cookies) {
             return null;
         }
 
-        public boolean match(Cookie cookie, CookieOrigin origin) {
+        public boolean match(final Cookie cookie, final CookieOrigin origin) {
             return true;
         }
 
-        public List<Cookie> parse(Header header, CookieOrigin origin) throws MalformedCookieException {
+        public List<Cookie> parse(final Header header, final CookieOrigin origin) throws MalformedCookieException {
             return null;
         }
 
-        public void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException {
+        public void validate(final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
         }
 
         public int getVersion() {
@@ -70,14 +70,14 @@ public class TestAbstractCookieSpec {
 
     private static class DummyCookieAttribHandler implements CookieAttributeHandler {
 
-        public boolean match(Cookie cookie, CookieOrigin origin) {
+        public boolean match(final Cookie cookie, final CookieOrigin origin) {
             return true;
         }
 
-        public void parse(SetCookie cookie, String value) throws MalformedCookieException {
+        public void parse(final SetCookie cookie, final String value) throws MalformedCookieException {
         }
 
-        public void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException {
+        public void validate(final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
         }
 
     }

@@ -216,12 +216,12 @@ public class HttpClientBuilder {
         return this;
     }
 
-    public final HttpClientBuilder setMaxConnTotal(int maxConnTotal) {
+    public final HttpClientBuilder setMaxConnTotal(final int maxConnTotal) {
         this.maxConnTotal = maxConnTotal;
         return this;
     }
 
-    public final HttpClientBuilder setMaxConnPerRoute(int maxConnPerRoute) {
+    public final HttpClientBuilder setMaxConnPerRoute(final int maxConnPerRoute) {
         this.maxConnPerRoute = maxConnPerRoute;
         return this;
     }

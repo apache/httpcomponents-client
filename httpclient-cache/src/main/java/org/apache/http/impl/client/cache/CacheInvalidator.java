@@ -80,7 +80,7 @@ class CacheInvalidator {
      * @param host The backend host we are talking to
      * @param req The HttpRequest to that host
      */
-    public void flushInvalidatedCacheEntries(HttpHost host, HttpRequest req)  {
+    public void flushInvalidatedCacheEntries(final HttpHost host, final HttpRequest req)  {
         if (requestShouldNotBeCached(req)) {
             log.debug("Request should not be cached");
 
@@ -115,7 +115,7 @@ class CacheInvalidator {
         }
     }
 
-    private void flushEntry(String uri) {
+    private void flushEntry(final String uri) {
         try {
             storage.removeEntry(uri);
         } catch (IOException ioe) {
@@ -123,7 +123,7 @@ class CacheInvalidator {
         }
     }
 
-    private HttpCacheEntry getEntry(String theUri) {
+    private HttpCacheEntry getEntry(final String theUri) {
         try {
             return storage.getEntry(theUri);
         } catch (IOException ioe) {
@@ -132,7 +132,7 @@ class CacheInvalidator {
         return null;
     }
 
-    protected void flushUriIfSameHost(URL requestURL, URL targetURL) {
+    protected void flushUriIfSameHost(final URL requestURL, final URL targetURL) {
         URL canonicalTarget = getAbsoluteURL(cacheKeyGenerator.canonicalizeUri(targetURL.toString()));
         if (canonicalTarget == null) {
 			return;
@@ -142,7 +142,7 @@ class CacheInvalidator {
         }
     }
 
-    protected void flushRelativeUriFromSameHost(URL reqURL, String relUri) {
+    protected void flushRelativeUriFromSameHost(final URL reqURL, final String relUri) {
         URL relURL = getRelativeURL(reqURL, relUri);
         if (relURL == null) {
 			return;
@@ -151,7 +151,7 @@ class CacheInvalidator {
     }
 
 
-    protected boolean flushAbsoluteUriFromSameHost(URL reqURL, String uri) {
+    protected boolean flushAbsoluteUriFromSameHost(final URL reqURL, final String uri) {
         URL absURL = getAbsoluteURL(uri);
         if (absURL == null) {
 			return false;
@@ -160,7 +160,7 @@ class CacheInvalidator {
         return true;
     }
 
-    private URL getAbsoluteURL(String uri) {
+    private URL getAbsoluteURL(final String uri) {
         URL absURL = null;
         try {
             absURL = new URL(uri);
@@ -170,7 +170,7 @@ class CacheInvalidator {
         return absURL;
     }
 
-    private URL getRelativeURL(URL reqURL, String relUri) {
+    private URL getRelativeURL(final URL reqURL, final String relUri) {
         URL relURL = null;
         try {
             relURL = new URL(reqURL,relUri);
@@ -180,12 +180,12 @@ class CacheInvalidator {
         return relURL;
     }
 
-    protected boolean requestShouldNotBeCached(HttpRequest req) {
+    protected boolean requestShouldNotBeCached(final HttpRequest req) {
         String method = req.getRequestLine().getMethod();
         return notGetOrHeadRequest(method);
     }
 
-    private boolean notGetOrHeadRequest(String method) {
+    private boolean notGetOrHeadRequest(final String method) {
         return !(HeaderConstants.GET_METHOD.equals(method) || HeaderConstants.HEAD_METHOD
                 .equals(method));
     }
@@ -193,8 +193,8 @@ class CacheInvalidator {
     /** Flushes entries that were invalidated by the given response
      * received for the given host/request pair.
      */
-    public void flushInvalidatedCacheEntries(HttpHost host,
-            HttpRequest request, HttpResponse response) {
+    public void flushInvalidatedCacheEntries(final HttpHost host,
+            final HttpRequest request, final HttpResponse response) {
         int status = response.getStatusLine().getStatusCode();
         if (status < 200 || status > 299) {
 			return;
@@ -226,7 +226,7 @@ class CacheInvalidator {
         flushUriIfSameHost(reqURL, canonURL);
     }
 
-    private URL getContentLocationURL(URL reqURL, HttpResponse response) {
+    private URL getContentLocationURL(final URL reqURL, final HttpResponse response) {
         Header clHeader = response.getFirstHeader("Content-Location");
         if (clHeader == null) {
 			return null;
@@ -239,8 +239,8 @@ class CacheInvalidator {
         return getRelativeURL(reqURL, contentLocation);
     }
 
-    private boolean responseAndEntryEtagsDiffer(HttpResponse response,
-            HttpCacheEntry entry) {
+    private boolean responseAndEntryEtagsDiffer(final HttpResponse response,
+            final HttpCacheEntry entry) {
         Header entryEtag = entry.getFirstHeader(HeaderConstants.ETAG);
         Header responseEtag = response.getFirstHeader(HeaderConstants.ETAG);
         if (entryEtag == null || responseEtag == null) {
@@ -249,8 +249,8 @@ class CacheInvalidator {
         return (!entryEtag.getValue().equals(responseEtag.getValue()));
     }
 
-    private boolean responseDateOlderThanEntryDate(HttpResponse response,
-            HttpCacheEntry entry) {
+    private boolean responseDateOlderThanEntryDate(final HttpResponse response,
+            final HttpCacheEntry entry) {
         Header entryDateHeader = entry.getFirstHeader(HTTP.DATE_HEADER);
         Header responseDateHeader = response.getFirstHeader(HTTP.DATE_HEADER);
         if (entryDateHeader == null || responseDateHeader == null) {

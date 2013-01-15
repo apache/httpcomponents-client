@@ -59,10 +59,10 @@ class SizeLimitedResponseReader {
      * the size of objects that will be stored in the cache.
      */
     public SizeLimitedResponseReader(
-            ResourceFactory resourceFactory,
-            long maxResponseSizeBytes,
-            HttpRequest request,
-            HttpResponse response) {
+            final ResourceFactory resourceFactory,
+            final long maxResponseSizeBytes,
+            final HttpRequest request,
+            final HttpResponse response) {
         super();
         this.resourceFactory = resourceFactory;
         this.maxResponseSizeBytes = maxResponseSizeBytes;

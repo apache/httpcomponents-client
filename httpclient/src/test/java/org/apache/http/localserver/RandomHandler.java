@@ -154,7 +154,7 @@ public class RandomHandler
          * @param len   the number of random bytes to generate,
          *              0 to maxint
          */
-        public RandomEntity(long len) {
+        public RandomEntity(final long len) {
             length = len;
         }
 
@@ -204,7 +204,7 @@ public class RandomHandler
          *
          * @param out   where to write the content to
          */
-        public void writeTo(OutputStream out) throws IOException {
+        public void writeTo(final OutputStream out) throws IOException {
 
             final int blocksize = 2048;
             int       remaining = (int) length; // range checked in constructor

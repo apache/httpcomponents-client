@@ -74,7 +74,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      * @deprecated (4.1)  use {@link HttpConnectionParams#setConnectionTimeout(HttpParams, int)}
      */
     @Deprecated
-    public static void setTimeout(final HttpParams params, long timeout) {
+    public static void setTimeout(final HttpParams params, final long timeout) {
         Args.notNull(params, "HTTP parameters");
         params.setLongParameter(TIMEOUT, timeout);
     }
@@ -82,7 +82,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
     /** The default maximum number of connections allowed per host */
     private static final ConnPerRoute DEFAULT_CONN_PER_ROUTE = new ConnPerRoute() {
 
-        public int getMaxForRoute(HttpRoute route) {
+        public int getMaxForRoute(final HttpRoute route) {
             return ConnPerRouteBean.DEFAULT_MAX_CONNECTIONS_PER_ROUTE;
         }
 
@@ -125,7 +125,7 @@ public final class ConnManagerParams implements ConnManagerPNames {
      */
     public static void setMaxTotalConnections(
             final HttpParams params,
-            int maxTotalConnections) {
+            final int maxTotalConnections) {
         Args.notNull(params, "HTTP parameters");
         params.setIntParameter(MAX_TOTAL_CONNECTIONS, maxTotalConnections);
     }

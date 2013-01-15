@@ -51,11 +51,11 @@ class WarningValue {
     private String warnText;
     private Date warnDate;
 
-    WarningValue(String s) {
+    WarningValue(final String s) {
         this(s, 0);
     }
 
-    WarningValue(String s, int offs) {
+    WarningValue(final String s, final int offs) {
         this.offs = this.init_offs = offs;
         this.src = s;
         consumeWarnValue();
@@ -69,7 +69,7 @@ class WarningValue {
      * @param h Warning {@link Header} to parse
      * @return array of <code>WarnValue</code> objects
      */
-    public static WarningValue[] getWarningValues(Header h) {
+    public static WarningValue[] getWarningValues(final Header h) {
         List<WarningValue> out = new ArrayList<WarningValue>();
         String src = h.getValue();
         int offs = 0;
@@ -119,7 +119,7 @@ class WarningValue {
     /*
      * CHAR           = <any US-ASCII character (octets 0 - 127)>
      */
-    private boolean isChar(char c) {
+    private boolean isChar(final char c) {
         int i = c;
         return (i >= 0 && i <= 127);
     }
@@ -128,7 +128,7 @@ class WarningValue {
      * CTL            = <any US-ASCII control character
                         (octets 0 - 31) and DEL (127)>
      */
-    private boolean isControl(char c) {
+    private boolean isControl(final char c) {
         int i = c;
         return (i == 127 || (i >=0 && i <= 31));
     }
@@ -139,7 +139,7 @@ class WarningValue {
      *                | "/" | "[" | "]" | "?" | "="
      *                | "{" | "}" | SP | HT
      */
-    private boolean isSeparator(char c) {
+    private boolean isSeparator(final char c) {
         return (c == '(' || c == ')' || c == '<' || c == '>'
                 || c == '@' || c == ',' || c == ';' || c == ':'
                 || c == '\\' || c == '\"' || c == '/'
@@ -162,7 +162,7 @@ class WarningValue {
         }
     }
 
-    private boolean isTokenChar(char c) {
+    private boolean isTokenChar(final char c) {
         return (isChar(c) && !isControl(c) && !isSeparator(c));
     }
 
@@ -293,7 +293,7 @@ class WarningValue {
         }
     }
 
-    protected void consumeCharacter(char c) {
+    protected void consumeCharacter(final char c) {
         if (offs + 1 > src.length()
             || c != src.charAt(offs)) {
             parseError();
