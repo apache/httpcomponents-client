@@ -40,7 +40,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.localserver.ServerTestBase;
 import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
@@ -83,7 +82,6 @@ public class TestStatefulConnManagement extends ServerTestBase {
         HttpHost target = new HttpHost("localhost", port);
 
         HttpParams params = new BasicHttpParams();
-        HttpConnectionParams.setConnectionTimeout(params, 10);
 
         PoolingClientConnectionManager mgr = new PoolingClientConnectionManager(supportedSchemes);
         mgr.setMaxTotal(workerCount);
