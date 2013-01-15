@@ -4,14 +4,14 @@ Release 4.3 ALPHA1
 This is the first ALPHA release of HttpClient 4.3. The 4.3 branch enhances HttpClient in several
 key areas and includes several notable features and improvements:
 
-* Support for Java 7 try-with-resources for resource management (connection release)
+* Support for Java 7 try-with-resources for resource management (connection release.)
 
 * Added fluent Builder classes for HttpEntity, HttpRequest and HttpClient instances. 
 
 * Deprecation of preference and configuration API based on HttpParams interface in favor of
-constructor injection and plain configuration objects
+constructor injection and plain configuration objects.
 
-* Reliance on object immutablity instead of access synchronization for thread safety. 
+* Reliance on object immutability instead of access synchronization for thread safety. 
 Several old classes whose instances can be shared by multiple request exchanges have
 been replaced by immutable equivalents. 
 
@@ -35,7 +35,7 @@ the APIs by providing feedback and sharing ideas on dev@hc.apache.org.
 This release also includes all fixes from the stable 4.2.x release branch.
 
 Please note that new features included in this release are still considered experimental and
-their API may change in the future 4.3 releases.
+their API may change in the future 4.3 alpha and beta releases.
 
 
 Changelog
@@ -58,7 +58,7 @@ Changelog
   effect.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-1253] URIBuilder setParameter() method could exceed the http header size. 
+* [HTTPCLIENT-1253] URIBuilder setParameter() method could exceed the HTTP header size. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-1216] Added method to force clean thread-local used by DateUtils.
