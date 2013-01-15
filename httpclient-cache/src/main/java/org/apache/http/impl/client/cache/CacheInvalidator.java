@@ -134,7 +134,9 @@ class CacheInvalidator {
 
     protected void flushUriIfSameHost(URL requestURL, URL targetURL) {
         URL canonicalTarget = getAbsoluteURL(cacheKeyGenerator.canonicalizeUri(targetURL.toString()));
-        if (canonicalTarget == null) return;
+        if (canonicalTarget == null) {
+			return;
+		}
         if (canonicalTarget.getAuthority().equalsIgnoreCase(requestURL.getAuthority())) {
             flushEntry(canonicalTarget.toString());
         }
@@ -142,14 +144,18 @@ class CacheInvalidator {
 
     protected void flushRelativeUriFromSameHost(URL reqURL, String relUri) {
         URL relURL = getRelativeURL(reqURL, relUri);
-        if (relURL == null) return;
+        if (relURL == null) {
+			return;
+		}
         flushUriIfSameHost(reqURL, relURL);
     }
 
 
     protected boolean flushAbsoluteUriFromSameHost(URL reqURL, String uri) {
         URL absURL = getAbsoluteURL(uri);
-        if (absURL == null) return false;
+        if (absURL == null) {
+			return false;
+		}
         flushUriIfSameHost(reqURL,absURL);
         return true;
     }
@@ -190,30 +196,46 @@ class CacheInvalidator {
     public void flushInvalidatedCacheEntries(HttpHost host,
             HttpRequest request, HttpResponse response) {
         int status = response.getStatusLine().getStatusCode();
-        if (status < 200 || status > 299) return;
+        if (status < 200 || status > 299) {
+			return;
+		}
         URL reqURL = getAbsoluteURL(cacheKeyGenerator.getURI(host, request));
-        if (reqURL == null) return;
+        if (reqURL == null) {
+			return;
+		}
         URL canonURL = getContentLocationURL(reqURL, response);
-        if (canonURL == null) return;
+        if (canonURL == null) {
+			return;
+		}
         String cacheKey = cacheKeyGenerator.canonicalizeUri(canonURL.toString());
         HttpCacheEntry entry = getEntry(cacheKey);
-        if (entry == null) return;
+        if (entry == null) {
+			return;
+		}
 
         // do not invalidate if response is strictly older than entry
         // or if the etags match
 
-        if (responseDateOlderThanEntryDate(response, entry)) return;
-        if (!responseAndEntryEtagsDiffer(response, entry)) return;
+        if (responseDateOlderThanEntryDate(response, entry)) {
+			return;
+		}
+        if (!responseAndEntryEtagsDiffer(response, entry)) {
+			return;
+		}
 
         flushUriIfSameHost(reqURL, canonURL);
     }
 
     private URL getContentLocationURL(URL reqURL, HttpResponse response) {
         Header clHeader = response.getFirstHeader("Content-Location");
-        if (clHeader == null) return null;
+        if (clHeader == null) {
+			return null;
+		}
         String contentLocation = clHeader.getValue();
         URL canonURL = getAbsoluteURL(contentLocation);
-        if (canonURL != null) return canonURL;
+        if (canonURL != null) {
+			return canonURL;
+		}
         return getRelativeURL(reqURL, contentLocation);
     }
 
@@ -221,7 +243,9 @@ class CacheInvalidator {
             HttpCacheEntry entry) {
         Header entryEtag = entry.getFirstHeader(HeaderConstants.ETAG);
         Header responseEtag = response.getFirstHeader(HeaderConstants.ETAG);
-        if (entryEtag == null || responseEtag == null) return false;
+        if (entryEtag == null || responseEtag == null) {
+			return false;
+		}
         return (!entryEtag.getValue().equals(responseEtag.getValue()));
     }
 

@@ -79,7 +79,9 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
      * Never matches if the cookie's domain is from the blacklist.
      */
     public boolean match(Cookie cookie, CookieOrigin origin) {
-        if (isForPublicSuffix(cookie)) return false;
+        if (isForPublicSuffix(cookie)) {
+			return false;
+		}
         return wrapped.match(cookie, origin);
     }
 
@@ -93,23 +95,35 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
 
     private boolean isForPublicSuffix(Cookie cookie) {
         String domain = cookie.getDomain();
-        if (domain.startsWith(".")) domain = domain.substring(1);
+        if (domain.startsWith(".")) {
+			domain = domain.substring(1);
+		}
         domain = Punycode.toUnicode(domain);
 
         // An exception rule takes priority over any other matching rule.
         if (this.exceptions != null) {
-            if (this.exceptions.contains(domain)) return false;
+            if (this.exceptions.contains(domain)) {
+				return false;
+			}
         }
 
 
-        if (this.suffixes == null) return false;
+        if (this.suffixes == null) {
+			return false;
+		}
 
         do {
-            if (this.suffixes.contains(domain)) return true;
+            if (this.suffixes.contains(domain)) {
+				return true;
+			}
             // patterns
-            if (domain.startsWith("*.")) domain = domain.substring(2);
+            if (domain.startsWith("*.")) {
+				domain = domain.substring(2);
+			}
             int nextdot = domain.indexOf('.');
-            if (nextdot == -1) break;
+            if (nextdot == -1) {
+				break;
+			}
             domain = "*" + domain.substring(nextdot);
         } while (domain.length() > 0);
 

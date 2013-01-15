@@ -195,10 +195,12 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
         if ((wrappedStream != null) && (eof < 0)) {
             try {
                 boolean scws = true; // should close wrapped stream?
-                if (eofWatcher != null)
-                    scws = eofWatcher.eofDetected(wrappedStream);
-                if (scws)
-                    wrappedStream.close();
+                if (eofWatcher != null) {
+					scws = eofWatcher.eofDetected(wrappedStream);
+				}
+                if (scws) {
+					wrappedStream.close();
+				}
             } finally {
                 wrappedStream = null;
             }
@@ -221,10 +223,12 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
         if (wrappedStream != null) {
             try {
                 boolean scws = true; // should close wrapped stream?
-                if (eofWatcher != null)
-                    scws = eofWatcher.streamClosed(wrappedStream);
-                if (scws)
-                    wrappedStream.close();
+                if (eofWatcher != null) {
+					scws = eofWatcher.streamClosed(wrappedStream);
+				}
+                if (scws) {
+					wrappedStream.close();
+				}
             } finally {
                 wrappedStream = null;
             }
@@ -249,10 +253,12 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
         if (wrappedStream != null) {
             try {
                 boolean scws = true; // should close wrapped stream?
-                if (eofWatcher != null)
-                    scws = eofWatcher.streamAbort(wrappedStream);
-                if (scws)
-                    wrappedStream.close();
+                if (eofWatcher != null) {
+					scws = eofWatcher.streamAbort(wrappedStream);
+				}
+                if (scws) {
+					wrappedStream.close();
+				}
             } finally {
                 wrappedStream = null;
             }

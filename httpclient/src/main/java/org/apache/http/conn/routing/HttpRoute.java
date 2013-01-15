@@ -101,10 +101,12 @@ public final class HttpRoute implements RouteInfo, Cloneable {
             Args.check(proxies.length > 0, "Proxy required if tunnelled");
         }
         // tunnelled is already checked above, that is in line with the default
-        if (tunnelled == null)
-            tunnelled = TunnelType.PLAIN;
-        if (layered == null)
-            layered = LayerType.PLAIN;
+        if (tunnelled == null) {
+			tunnelled = TunnelType.PLAIN;
+		}
+        if (layered == null) {
+			layered = LayerType.PLAIN;
+		}
 
         this.targetHost   = target;
         this.localAddress = local;
@@ -212,8 +214,9 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      * @return  a proxy chain array, may be empty (never null)
      */
     private static HttpHost[] toChain(HttpHost proxy) {
-        if (proxy == null)
-            return EMPTY_HTTP_HOST_ARRAY;
+        if (proxy == null) {
+			return EMPTY_HTTP_HOST_ARRAY;
+		}
 
         return new HttpHost[]{ proxy };
     }
@@ -228,8 +231,9 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      * @return  a new proxy chain array, may be empty (never null)
      */
     private static HttpHost[] toChain(HttpHost[] proxies) {
-        if ((proxies == null) || (proxies.length < 1))
-            return EMPTY_HTTP_HOST_ARRAY;
+        if ((proxies == null) || (proxies.length < 1)) {
+			return EMPTY_HTTP_HOST_ARRAY;
+		}
         // copy the proxy chain, the traditional way
         HttpHost[] result = new HttpHost[proxies.length];
         System.arraycopy(proxies, 0, result, 0, proxies.length);
@@ -262,10 +266,11 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         Args.check(hop < hopcount, "Hop index exceeds tracked route length");
 
         HttpHost result = null;
-        if (hop < hopcount-1)
-            result = this.proxyChain[hop];
-        else
-            result = this.targetHost;
+        if (hop < hopcount-1) {
+			result = this.proxyChain[hop];
+		} else {
+			result = this.targetHost;
+		}
 
         return result;
     }
@@ -311,7 +316,9 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      */
     @Override
     public final boolean equals(Object obj) {
-        if (this == obj) return true;
+        if (this == obj) {
+			return true;
+		}
         if (obj instanceof HttpRoute) {
             HttpRoute that = (HttpRoute) obj;
             return
@@ -361,12 +368,15 @@ public final class HttpRoute implements RouteInfo, Cloneable {
             cab.append("->");
         }
         cab.append('{');
-        if (this.tunnelled == TunnelType.TUNNELLED)
-            cab.append('t');
-        if (this.layered == LayerType.LAYERED)
-            cab.append('l');
-        if (this.secure)
-            cab.append('s');
+        if (this.tunnelled == TunnelType.TUNNELLED) {
+			cab.append('t');
+		}
+        if (this.layered == LayerType.LAYERED) {
+			cab.append('l');
+		}
+        if (this.secure) {
+			cab.append('s');
+		}
         cab.append("}->");
         for (HttpHost aProxyChain : this.proxyChain) {
             cab.append(aProxyChain);

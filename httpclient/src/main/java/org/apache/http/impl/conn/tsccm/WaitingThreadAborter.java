@@ -47,8 +47,9 @@ public class WaitingThreadAborter {
     public void abort() {
         aborted = true;
 
-        if (waitingThread != null)
-            waitingThread.interrupt();
+        if (waitingThread != null) {
+			waitingThread.interrupt();
+		}
 
     }
 
@@ -60,8 +61,9 @@ public class WaitingThreadAborter {
      */
     public void setWaitingThread(WaitingThread waitingThread) {
         this.waitingThread = waitingThread;
-        if (aborted)
-            waitingThread.interrupt();
+        if (aborted) {
+			waitingThread.interrupt();
+		}
     }
 
 }

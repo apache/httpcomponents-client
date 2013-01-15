@@ -1651,10 +1651,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         boolean found1 = false;
         boolean found2 = false;
         while ((b = i.read()) != -1) {
-            if (b == 1)
-                found1 = true;
-            if (b == 2)
-                found2 = true;
+            if (b == 1) {
+				found1 = true;
+			}
+            if (b == 2) {
+				found2 = true;
+			}
         }
         i.close();
         Assert.assertFalse(found1 && found2); // mixture of content
@@ -1743,10 +1745,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         boolean found1 = false;
         boolean found2 = false;
         while ((b = i.read()) != -1) {
-            if (b == 1)
-                found1 = true;
-            if (b == 2)
-                found2 = true;
+            if (b == 1) {
+				found1 = true;
+			}
+            if (b == 2) {
+				found2 = true;
+			}
         }
         i.close();
         Assert.assertFalse(found1 && found2); // mixture of content
@@ -2609,8 +2613,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         if (status == 200) {
             boolean foundWarning = false;
             for (Header h : result.getHeaders("Warning")) {
-                if (h.getValue().split(" ")[0].equals("111"))
-                    foundWarning = true;
+                if (h.getValue().split(" ")[0].equals("111")) {
+					foundWarning = true;
+				}
             }
             Assert.assertTrue(foundWarning);
         } else {
@@ -2686,14 +2691,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         boolean found1xxWarning = false;
         for (Header h : result1.getHeaders("Warning")) {
             for (HeaderElement elt : h.getElements()) {
-                if (elt.getName().startsWith("1"))
-                    found1xxWarning = true;
+                if (elt.getName().startsWith("1")) {
+					found1xxWarning = true;
+				}
             }
         }
         for (Header h : result2.getHeaders("Warning")) {
             for (HeaderElement elt : h.getElements()) {
-                if (elt.getName().startsWith("1"))
-                    found1xxWarning = true;
+                if (elt.getName().startsWith("1")) {
+					found1xxWarning = true;
+				}
             }
         }
         Assert.assertFalse(found1xxWarning);
@@ -2757,8 +2764,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         for (Header h : result1.getHeaders("Warning")) {
             for (HeaderElement elt : h.getElements()) {
                 String[] parts = elt.getName().split(" ");
-                if ("214".equals(parts[0]))
-                    found214Warning = true;
+                if ("214".equals(parts[0])) {
+					found214Warning = true;
+				}
             }
         }
         Assert.assertTrue(found214Warning);
@@ -2767,8 +2775,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         for (Header h : result2.getHeaders("Warning")) {
             for (HeaderElement elt : h.getElements()) {
                 String[] parts = elt.getName().split(" ");
-                if ("214".equals(parts[0]))
-                    found214Warning = true;
+                if ("214".equals(parts[0])) {
+					found214Warning = true;
+				}
             }
         }
         Assert.assertTrue(found214Warning);
@@ -3160,14 +3169,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             boolean foundETag = false;
             for (Header h : validation.getHeaders("If-Match")) {
                 for (HeaderElement elt : h.getElements()) {
-                    if ("W/\"etag\"".equals(elt.getName()))
-                        foundETag = true;
+                    if ("W/\"etag\"".equals(elt.getName())) {
+						foundETag = true;
+					}
                 }
             }
             for (Header h : validation.getHeaders("If-None-Match")) {
                 for (HeaderElement elt : h.getElements()) {
-                    if ("W/\"etag\"".equals(elt.getName()))
-                        foundETag = true;
+                    if ("W/\"etag\"".equals(elt.getName())) {
+						foundETag = true;
+					}
                 }
             }
             Assert.assertTrue(foundETag);
@@ -6050,11 +6061,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         final String nestedPrefix = "^\\(([^\\p{Cntrl}()]|\\\\\\p{ASCII})*\\(";
         final String nestedSuffix = "\\)([^\\p{Cntrl}()]|\\\\\\p{ASCII})*\\)$";
 
-        if (Pattern.matches(leafComment,s)) return true;
+        if (Pattern.matches(leafComment,s)) {
+			return true;
+		}
         Matcher pref = Pattern.compile(nestedPrefix).matcher(s);
         Matcher suff = Pattern.compile(nestedSuffix).matcher(s);
-        if (!pref.find()) return false;
-        if (!suff.find()) return false;
+        if (!pref.find()) {
+			return false;
+		}
+        if (!suff.find()) {
+			return false;
+		}
         return isValidComment(s.substring(pref.end() - 1, suff.start() + 1));
     }
 

@@ -82,9 +82,15 @@ public class BackoffStrategyExec implements ClientExecChain {
             if (this.connectionBackoffStrategy.shouldBackoff(ex)) {
                 this.backoffManager.backOff(route);
             }
-            if (ex instanceof RuntimeException) throw (RuntimeException) ex;
-            if (ex instanceof HttpException) throw (HttpException) ex;
-            if (ex instanceof IOException) throw (IOException) ex;
+            if (ex instanceof RuntimeException) {
+				throw (RuntimeException) ex;
+			}
+            if (ex instanceof HttpException) {
+				throw (HttpException) ex;
+			}
+            if (ex instanceof IOException) {
+				throw (IOException) ex;
+			}
             throw new UndeclaredThrowableException(ex);
         }
         if (this.connectionBackoffStrategy.shouldBackoff(out)) {

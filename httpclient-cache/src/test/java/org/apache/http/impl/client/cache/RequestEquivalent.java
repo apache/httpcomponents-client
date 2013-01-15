@@ -38,8 +38,9 @@ public class RequestEquivalent implements IArgumentMatcher {
     }
 
     public boolean matches(Object actual) {
-        if (!(actual instanceof HttpRequest))
-            return false;
+        if (!(actual instanceof HttpRequest)) {
+			return false;
+		}
         HttpRequest other = (HttpRequest) actual;
         return HttpTestUtils.equivalent(expected, other);
     }

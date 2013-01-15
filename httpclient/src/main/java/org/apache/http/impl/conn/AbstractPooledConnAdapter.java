@@ -150,8 +150,9 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
 
     public void close() throws IOException {
         AbstractPoolEntry entry = getPoolEntry();
-        if (entry != null)
-            entry.shutdownEntry();
+        if (entry != null) {
+			entry.shutdownEntry();
+		}
 
         OperatedClientConnection conn = getWrappedConnection();
         if (conn != null) {
@@ -161,8 +162,9 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
 
     public void shutdown() throws IOException {
         AbstractPoolEntry entry = getPoolEntry();
-        if (entry != null)
-            entry.shutdownEntry();
+        if (entry != null) {
+			entry.shutdownEntry();
+		}
 
         OperatedClientConnection conn = getWrappedConnection();
         if (conn != null) {

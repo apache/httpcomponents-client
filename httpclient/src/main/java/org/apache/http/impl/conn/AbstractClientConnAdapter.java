@@ -158,18 +158,21 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
 
     public boolean isOpen() {
         OperatedClientConnection conn = getWrappedConnection();
-        if (conn == null)
-            return false;
+        if (conn == null) {
+			return false;
+		}
 
         return conn.isOpen();
     }
 
     public boolean isStale() {
-        if (isReleased())
-            return true;
+        if (isReleased()) {
+			return true;
+		}
         OperatedClientConnection conn = getWrappedConnection();
-        if (conn == null)
-            return true;
+        if (conn == null) {
+			return true;
+		}
 
         return conn.isStale();
     }
@@ -273,16 +276,18 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     public Socket getSocket() {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-        if (!isOpen())
-            return null;
+        if (!isOpen()) {
+			return null;
+		}
         return conn.getSocket();
     }
 
     public SSLSession getSSLSession() {
         OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
-        if (!isOpen())
-            return null;
+        if (!isOpen()) {
+			return null;
+		}
 
         SSLSession result = null;
         Socket    sock    = conn.getSocket();

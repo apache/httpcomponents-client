@@ -82,8 +82,9 @@ public class EchoHandler
         }
 
         HttpEntity entity = null;
-        if (request instanceof HttpEntityEnclosingRequest)
-            entity = ((HttpEntityEnclosingRequest)request).getEntity();
+        if (request instanceof HttpEntityEnclosingRequest) {
+			entity = ((HttpEntityEnclosingRequest)request).getEntity();
+		}
 
         // For some reason, just putting the incoming entity into
         // the response will not work. We have to buffer the message.

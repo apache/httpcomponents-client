@@ -194,8 +194,9 @@ public abstract class AbstractConnPool {
         poolLock.lock();
         try {
 
-            if (isShutDown)
-                return;
+            if (isShutDown) {
+				return;
+			}
 
             // close all connections that are issued to an application
             Iterator<BasicPoolEntry> iter = leasedConnections.iterator();

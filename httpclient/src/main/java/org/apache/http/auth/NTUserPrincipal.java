@@ -92,7 +92,9 @@ public class NTUserPrincipal implements Principal, Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
+        if (this == o) {
+			return true;
+		}
         if (o instanceof NTUserPrincipal) {
             NTUserPrincipal that = (NTUserPrincipal) o;
             if (LangUtils.equals(this.username, that.username)

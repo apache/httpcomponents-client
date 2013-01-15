@@ -243,8 +243,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 }
             }
 
-            if (recreate)
-                uniquePoolEntry = new PoolEntry();
+            if (recreate) {
+				uniquePoolEntry = new PoolEntry();
+			}
 
             managedConn = new ConnAdapter(uniquePoolEntry, route);
 
@@ -266,7 +267,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
         ConnAdapter sca = (ConnAdapter) conn;
         synchronized (sca) {
             if (sca.poolEntry == null)
-                return; // already released
+			 {
+				return; // already released
+			}
             ClientConnectionManager manager = sca.getManager();
             Asserts.check(manager == this, "Connection not obtained from this manager");
             try {
@@ -285,18 +288,20 @@ public class SingleClientConnManager implements ClientConnectionManager {
                     sca.shutdown();
                 }
             } catch (IOException iox) {
-                if (log.isDebugEnabled())
-                    log.debug("Exception shutting down released connection.",
+                if (log.isDebugEnabled()) {
+					log.debug("Exception shutting down released connection.",
                               iox);
+				}
             } finally {
                 sca.detach();
                 synchronized (this) {
                     managedConn = null;
                     lastReleaseTime = System.currentTimeMillis();
-                    if(validDuration > 0)
-                        connectionExpiresTime = timeUnit.toMillis(validDuration) + lastReleaseTime;
-                    else
-                        connectionExpiresTime = Long.MAX_VALUE;
+                    if(validDuration > 0) {
+						connectionExpiresTime = timeUnit.toMillis(validDuration) + lastReleaseTime;
+					} else {
+						connectionExpiresTime = Long.MAX_VALUE;
+					}
                 }
             }
         }
@@ -335,8 +340,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
         this.isShutDown = true;
         synchronized (this) {
             try {
-                if (uniquePoolEntry != null) // and connection open?
-                    uniquePoolEntry.shutdown();
+                if (uniquePoolEntry != null) {
+					uniquePoolEntry.shutdown();
+				}
             } catch (IOException iox) {
                 // ignore
                 log.debug("Problem while shutting down manager.", iox);
@@ -349,8 +355,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
 
     protected void revokeConnection() {
         ConnAdapter conn = managedConn;
-        if (conn == null)
-            return;
+        if (conn == null) {
+			return;
+		}
         conn.detach();
 
         synchronized (this) {
@@ -381,8 +388,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
          */
         protected void close() throws IOException {
             shutdownEntry();
-            if (connection.isOpen())
-                connection.close();
+            if (connection.isOpen()) {
+				connection.close();
+			}
         }
 
         /**
@@ -390,8 +398,9 @@ public class SingleClientConnManager implements ClientConnectionManager {
          */
         protected void shutdown() throws IOException {
             shutdownEntry();
-            if (connection.isOpen())
-                connection.shutdown();
+            if (connection.isOpen()) {
+				connection.shutdown();
+			}
         }
 
     }

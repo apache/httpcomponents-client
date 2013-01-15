@@ -486,7 +486,9 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
 
         HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
             public HttpCacheEntry update(HttpCacheEntry old) {
-                if (old == existingValue) return updatedValue;
+                if (old == existingValue) {
+					return updatedValue;
+				}
                 assertSame(existingValue2, old);
                 return updatedValue2;
             }

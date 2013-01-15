@@ -486,7 +486,9 @@ public class CachingExec implements ClientExecChain {
                         int maxstale = Integer.parseInt(elt.getValue());
                         long age = validityPolicy.getCurrentAgeSecs(entry, now);
                         long lifetime = validityPolicy.getFreshnessLifetimeSecs(entry);
-                        if (age - lifetime > maxstale) return true;
+                        if (age - lifetime > maxstale) {
+							return true;
+						}
                     } catch (NumberFormatException nfe) {
                         return true;
                     }
@@ -503,7 +505,9 @@ public class CachingExec implements ClientExecChain {
 
         final ProtocolVersion pv = msg.getProtocolVersion();
         String existingEntry = viaHeaders.get(pv);
-        if (existingEntry != null) return existingEntry;
+        if (existingEntry != null) {
+			return existingEntry;
+		}
 
         final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client", getClass().getClassLoader());
         final String release = (vi != null) ? vi.getRelease() : VersionInfo.UNAVAILABLE;
@@ -544,14 +548,17 @@ public class CachingExec implements ClientExecChain {
     boolean clientRequestsOurOptions(final HttpRequest request) {
         RequestLine line = request.getRequestLine();
 
-        if (!HeaderConstants.OPTIONS_METHOD.equals(line.getMethod()))
-            return false;
+        if (!HeaderConstants.OPTIONS_METHOD.equals(line.getMethod())) {
+			return false;
+		}
 
-        if (!"*".equals(line.getUri()))
-            return false;
+        if (!"*".equals(line.getUri())) {
+			return false;
+		}
 
-        if (!"0".equals(request.getFirstHeader(HeaderConstants.MAX_FORWARDS).getValue()))
-            return false;
+        if (!"0".equals(request.getFirstHeader(HeaderConstants.MAX_FORWARDS).getValue())) {
+			return false;
+		}
 
         return true;
     }
@@ -587,7 +594,9 @@ public class CachingExec implements ClientExecChain {
             try {
                 Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
                 Date respDate = DateUtils.parseDate(responseDateHeader.getValue());
-                if (respDate.before(entryDate)) return true;
+                if (respDate.before(entryDate)) {
+					return true;
+				}
             } catch (DateParseException e) {
                 // either backend response or cached entry did not have a valid
                 // Date header, so we can't tell if they are out of order
@@ -843,11 +852,17 @@ public class CachingExec implements ClientExecChain {
         } catch (IOException ioe) {
             // nop
         }
-        if (existing == null) return false;
+        if (existing == null) {
+			return false;
+		}
         Header entryDateHeader = existing.getFirstHeader(HTTP.DATE_HEADER);
-        if (entryDateHeader == null) return false;
+        if (entryDateHeader == null) {
+			return false;
+		}
         Header responseDateHeader = backendResponse.getFirstHeader(HTTP.DATE_HEADER);
-        if (responseDateHeader == null) return false;
+        if (responseDateHeader == null) {
+			return false;
+		}
         try {
             Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
             Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());

@@ -150,7 +150,9 @@ public class NTCredentials implements Credentials, Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
+        if (this == o) {
+			return true;
+		}
         if (o instanceof NTCredentials) {
             NTCredentials that = (NTCredentials) o;
             if (LangUtils.equals(this.principal, that.principal)

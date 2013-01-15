@@ -840,8 +840,12 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
                     if (connectionBackoffStrategy.shouldBackoff(e)) {
                         backoffManager.backOff(route);
                     }
-                    if (e instanceof HttpException) throw (HttpException)e;
-                    if (e instanceof IOException) throw (IOException)e;
+                    if (e instanceof HttpException) {
+						throw (HttpException)e;
+					}
+                    if (e instanceof IOException) {
+						throw (IOException)e;
+					}
                     throw new UndeclaredThrowableException(e);
                 }
                 if (connectionBackoffStrategy.shouldBackoff(out)) {

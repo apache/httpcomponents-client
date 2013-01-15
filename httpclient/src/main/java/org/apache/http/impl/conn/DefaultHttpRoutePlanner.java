@@ -88,8 +88,9 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         // If we have a forced route, we can do without a target.
         HttpRoute route =
             ConnRouteParams.getForcedRoute(request.getParams());
-        if (route != null)
-            return route;
+        if (route != null) {
+			return route;
+		}
 
         // If we get here, there is no forced route.
         // So we need a target to compute a route.

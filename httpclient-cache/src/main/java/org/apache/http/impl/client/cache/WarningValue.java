@@ -80,7 +80,9 @@ class WarningValue {
                 offs = wv.offs;
             } catch (IllegalArgumentException e) {
                 final int nextComma = src.indexOf(',', offs);
-                if (nextComma == -1) break;
+                if (nextComma == -1) {
+					break;
+				}
                 offs = nextComma + 1;
             }
         }
@@ -149,9 +151,13 @@ class WarningValue {
      * token          = 1*<any CHAR except CTLs or separators>
      */
     protected void consumeToken() {
-        if (!isTokenChar(src.charAt(offs))) parseError();
+        if (!isTokenChar(src.charAt(offs))) {
+			parseError();
+		}
         while(offs < src.length()) {
-            if (!isTokenChar(src.charAt(offs))) break;
+            if (!isTokenChar(src.charAt(offs))) {
+				break;
+			}
             offs++;
         }
     }
@@ -171,8 +177,12 @@ class WarningValue {
 
     protected void consumeHostPort() {
         Matcher m = HOSTPORT_PATTERN.matcher(src.substring(offs));
-        if (!m.find()) parseError();
-        if (m.start() != 0) parseError();
+        if (!m.find()) {
+			parseError();
+		}
+        if (m.start() != 0) {
+			parseError();
+		}
         offs += m.end();
     }
 
@@ -201,7 +211,9 @@ class WarningValue {
      * qdtext         = <any TEXT except <">>
      */
     protected void consumeQuotedString() {
-        if (src.charAt(offs) != '\"') parseError();
+        if (src.charAt(offs) != '\"') {
+			parseError();
+		}
         offs++;
         boolean foundEnd = false;
         while(offs < src.length() && !foundEnd) {
@@ -218,7 +230,9 @@ class WarningValue {
                 parseError();
             }
         }
-        if (!foundEnd) parseError();
+        if (!foundEnd) {
+			parseError();
+		}
     }
 
     /*
@@ -250,7 +264,9 @@ class WarningValue {
     protected void consumeWarnDate() {
         int curr = offs;
         Matcher m = WARN_DATE_PATTERN.matcher(src.substring(offs));
-        if (!m.lookingAt()) parseError();
+        if (!m.lookingAt()) {
+			parseError();
+		}
         offs += m.end();
         try {
             warnDate = DateUtils.parseDate(src.substring(curr+1,offs-1));

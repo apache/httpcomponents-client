@@ -462,8 +462,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
         } catch(SocketException expected) {}
 
         abortingThread.join(5000);
-        if(throwRef.get() != null)
-            throw new RuntimeException(throwRef.get());
+        if(throwRef.get() != null) {
+			throw new RuntimeException(throwRef.get());
+		}
 
         Assert.assertFalse(conn.isOpen());
         Assert.assertEquals(0, localServer.getAcceptedConnectionCount());
@@ -516,8 +517,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
         }
 
         abortingThread.join(5000);
-        if(throwRef.get() != null)
-            throw new RuntimeException(throwRef.get());
+        if(throwRef.get() != null) {
+			throw new RuntimeException(throwRef.get());
+		}
 
         Assert.assertFalse(conn.isOpen());
         Assert.assertEquals(0, localServer.getAcceptedConnectionCount());
@@ -570,15 +572,17 @@ public class TestConnectionManagement extends LocalServerTestBase {
         }
 
         abortingThread.join(5000);
-        if(throwRef.get() != null)
-            throw new RuntimeException(throwRef.get());
+        if(throwRef.get() != null) {
+			throw new RuntimeException(throwRef.get());
+		}
 
         Assert.assertFalse(conn.isOpen());
         // Give the server a bit of time to accept the connection, but
         // ensure that it can accept it.
         for(int i = 0; i < 10; i++) {
-            if(localServer.getAcceptedConnectionCount() == 1)
-                break;
+            if(localServer.getAcceptedConnectionCount() == 1) {
+				break;
+			}
             Thread.sleep(100);
         }
         Assert.assertEquals(1, localServer.getAcceptedConnectionCount());
@@ -603,15 +607,17 @@ public class TestConnectionManagement extends LocalServerTestBase {
         }
 
         void waitForState() throws InterruptedException {
-            if(!waitLatch.await(1, TimeUnit.SECONDS))
-                throw new RuntimeException("waited too long");
+            if(!waitLatch.await(1, TimeUnit.SECONDS)) {
+				throw new RuntimeException("waited too long");
+			}
         }
 
         void latch() {
             waitLatch.countDown();
             try {
-                if (!continueLatch.await(60, TimeUnit.SECONDS))
-                    throw new RuntimeException("waited too long!");
+                if (!continueLatch.await(60, TimeUnit.SECONDS)) {
+					throw new RuntimeException("waited too long!");
+				}
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -637,21 +643,24 @@ public class TestConnectionManagement extends LocalServerTestBase {
                 final InetSocketAddress remoteAddress,
                 final InetSocketAddress localAddress,
                 final HttpContext context) throws IOException, ConnectTimeoutException {
-            if(waitPolicy == WaitPolicy.BEFORE_CONNECT)
-                latch();
+            if(waitPolicy == WaitPolicy.BEFORE_CONNECT) {
+				latch();
+			}
 
             Socket socket = delegate.connectSocket(
                     connectTimeout, sock, host, remoteAddress, localAddress, context);
 
-            if(waitPolicy == WaitPolicy.AFTER_CONNECT)
-                latch();
+            if(waitPolicy == WaitPolicy.AFTER_CONNECT) {
+				latch();
+			}
 
             return socket;
         }
 
         public Socket createSocket(final HttpContext context) throws IOException {
-            if(waitPolicy == WaitPolicy.BEFORE_CREATE)
-                latch();
+            if(waitPolicy == WaitPolicy.BEFORE_CREATE) {
+				latch();
+			}
 
             return delegate.createSocket(context);
         }

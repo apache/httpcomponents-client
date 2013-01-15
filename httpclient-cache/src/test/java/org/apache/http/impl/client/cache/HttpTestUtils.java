@@ -96,8 +96,9 @@ public class HttpTestUtils {
      */
     public static boolean isHopByHopHeader(String name) {
         for (String s : HOP_BY_HOP_HEADERS) {
-            if (s.equalsIgnoreCase(name))
-                return true;
+            if (s.equalsIgnoreCase(name)) {
+				return true;
+			}
         }
         return false;
     }
@@ -107,8 +108,9 @@ public class HttpTestUtils {
      */
     public static boolean isMultiHeader(String name) {
         for (String s : MULTI_HEADERS) {
-            if (s.equalsIgnoreCase(name))
-                return true;
+            if (s.equalsIgnoreCase(name)) {
+				return true;
+			}
         }
         return false;
     }
@@ -118,8 +120,9 @@ public class HttpTestUtils {
      */
     public static boolean isSingleHeader(String name) {
         for (String s : SINGLE_HEADERS) {
-            if (s.equalsIgnoreCase(name))
-                return true;
+            if (s.equalsIgnoreCase(name)) {
+				return true;
+			}
         }
         return false;
     }
@@ -129,14 +132,18 @@ public class HttpTestUtils {
     public static boolean equivalent(HttpEntity e1, HttpEntity e2) throws Exception {
         InputStream i1 = e1.getContent();
         InputStream i2 = e2.getContent();
-        if (i1 == null && i2 == null)
-            return true;
+        if (i1 == null && i2 == null) {
+			return true;
+		}
         if (i1 == null || i2 == null)
-            return false; // avoid possible NPEs below
+		 {
+			return false; // avoid possible NPEs below
+		}
         int b1 = -1;
         while ((b1 = i1.read()) != -1) {
-            if (b1 != i2.read())
-                return false;
+            if (b1 != i2.read()) {
+				return false;
+			}
         }
         return (-1 == i2.read());
     }
@@ -199,8 +206,9 @@ public class HttpTestUtils {
             if (!isHopByHopHeader(h.getName())) {
                 String r1val = getCanonicalHeaderValue(r1, h.getName());
                 String r2val = getCanonicalHeaderValue(r2, h.getName());
-                if (!r1val.equals(r2val))
-                    return false;
+                if (!r1val.equals(r2val)) {
+					return false;
+				}
             }
         }
         return true;
@@ -218,9 +226,13 @@ public class HttpTestUtils {
     public static boolean semanticallyTransparent(HttpResponse r1, HttpResponse r2)
     throws Exception {
         final boolean entitiesEquivalent = equivalent(r1.getEntity(), r2.getEntity());
-        if (!entitiesEquivalent) return false;
+        if (!entitiesEquivalent) {
+			return false;
+		}
         final boolean statusLinesEquivalent = semanticallyTransparent(r1.getStatusLine(), r2.getStatusLine());
-        if (!statusLinesEquivalent) return false;
+        if (!statusLinesEquivalent) {
+			return false;
+		}
         final boolean e2eHeadersEquivalentSubset = isEndToEndHeaderSubset(
                 r1, r2);
         return e2eHeadersEquivalentSubset;

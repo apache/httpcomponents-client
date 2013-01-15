@@ -161,7 +161,9 @@ class BasicHttpCache implements HttpCache {
             return false;
         }
         Header hdr = resp.getFirstHeader(HTTP.CONTENT_LEN);
-        if (hdr == null) return false;
+        if (hdr == null) {
+			return false;
+		}
         int contentLength;
         try {
             contentLength = Integer.parseInt(hdr.getValue());
@@ -281,10 +283,16 @@ class BasicHttpCache implements HttpCache {
 
     public HttpCacheEntry getCacheEntry(HttpHost host, HttpRequest request) throws IOException {
         HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
-        if (root == null) return null;
-        if (!root.hasVariants()) return root;
+        if (root == null) {
+			return null;
+		}
+        if (!root.hasVariants()) {
+			return root;
+		}
         String variantCacheKey = root.getVariantMap().get(uriExtractor.getVariantKey(request, root));
-        if (variantCacheKey == null) return null;
+        if (variantCacheKey == null) {
+			return null;
+		}
         return storage.getEntry(variantCacheKey);
     }
 
@@ -297,7 +305,9 @@ class BasicHttpCache implements HttpCache {
             throws IOException {
         Map<String,Variant> variants = new HashMap<String,Variant>();
         HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
-        if (root == null || !root.hasVariants()) return variants;
+        if (root == null || !root.hasVariants()) {
+			return variants;
+		}
         for(Map.Entry<String, String> variant : root.getVariantMap().entrySet()) {
             String variantKey = variant.getKey();
             String variantCacheKey = variant.getValue();
@@ -310,9 +320,13 @@ class BasicHttpCache implements HttpCache {
             String variantCacheKey, Map<String, Variant> variants)
             throws IOException {
         HttpCacheEntry entry = storage.getEntry(variantCacheKey);
-        if (entry == null) return;
+        if (entry == null) {
+			return;
+		}
         Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
-        if (etagHeader == null) return;
+        if (etagHeader == null) {
+			return;
+		}
         variants.put(etagHeader.getValue(), new Variant(variantKey, variantCacheKey, entry));
     }
 

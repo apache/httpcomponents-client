@@ -73,19 +73,30 @@ class CachedResponseSuitabilityChecker {
     }
 
     private boolean isFreshEnough(HttpCacheEntry entry, HttpRequest request, Date now) {
-        if (validityStrategy.isResponseFresh(entry, now)) return true;
+        if (validityStrategy.isResponseFresh(entry, now)) {
+			return true;
+		}
         if (useHeuristicCaching &&
-                validityStrategy.isResponseHeuristicallyFresh(entry, now, heuristicCoefficient, heuristicDefaultLifetime))
-            return true;
-        if (originInsistsOnFreshness(entry)) return false;
+                validityStrategy.isResponseHeuristicallyFresh(entry, now, heuristicCoefficient, heuristicDefaultLifetime)) {
+			return true;
+		}
+        if (originInsistsOnFreshness(entry)) {
+			return false;
+		}
         long maxstale = getMaxStale(request);
-        if (maxstale == -1) return false;
+        if (maxstale == -1) {
+			return false;
+		}
         return (maxstale > validityStrategy.getStalenessSecs(entry, now));
     }
 
     private boolean originInsistsOnFreshness(HttpCacheEntry entry) {
-        if (validityStrategy.mustRevalidate(entry)) return true;
-        if (!sharedCache) return false;
+        if (validityStrategy.mustRevalidate(entry)) {
+			return true;
+		}
+        if (!sharedCache) {
+			return false;
+		}
         return validityStrategy.proxyRevalidate(entry) ||
             validityStrategy.hasCacheControlDirective(entry, "s-maxage");
     }
@@ -101,7 +112,9 @@ class CachedResponseSuitabilityChecker {
                     } else {
                         try {
                             long val = Long.parseLong(elt.getValue());
-                            if (val < 0) val = 0;
+                            if (val < 0) {
+								val = 0;
+							}
                             if (maxstale == -1 || val < maxstale) {
                                 maxstale = val;
                             }
@@ -198,7 +211,9 @@ class CachedResponseSuitabilityChecker {
                 if (HeaderConstants.CACHE_CONTROL_MIN_FRESH.equals(elt.getName())) {
                     try {
                         long minfresh = Long.parseLong(elt.getValue());
-                        if (minfresh < 0L) return false;
+                        if (minfresh < 0L) {
+							return false;
+						}
                         long age = validityStrategy.getCurrentAgeSecs(entry, now);
                         long freshness = validityStrategy.getFreshnessLifetimeSecs(entry);
                         if (freshness - age < minfresh) {

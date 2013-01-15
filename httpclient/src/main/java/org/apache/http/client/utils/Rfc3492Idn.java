@@ -48,8 +48,11 @@ public class Rfc3492Idn implements Idn {
     private static final String ACE_PREFIX = "xn--";
 
     private int adapt(int delta, int numpoints, boolean firsttime) {
-        if (firsttime) delta = delta / damp;
-        else delta = delta / 2;
+        if (firsttime) {
+			delta = delta / damp;
+		} else {
+			delta = delta / 2;
+		}
         delta = delta + (delta / numpoints);
         int k = 0;
         while (delta > ((base - tmin) * tmax) / 2) {
@@ -60,9 +63,15 @@ public class Rfc3492Idn implements Idn {
     }
 
     private int digit(char c) {
-        if ((c >= 'A') && (c <= 'Z')) return (c - 'A');
-        if ((c >= 'a') && (c <= 'z')) return (c - 'a');
-        if ((c >= '0') && (c <= '9')) return (c - '0') + 26;
+        if ((c >= 'A') && (c <= 'Z')) {
+			return (c - 'A');
+		}
+        if ((c >= 'a') && (c <= 'z')) {
+			return (c - 'a');
+		}
+        if ((c >= '0') && (c <= '9')) {
+			return (c - '0') + 26;
+		}
         throw new IllegalArgumentException("illegal digit: "+ c);
     }
 
@@ -71,8 +80,12 @@ public class Rfc3492Idn implements Idn {
         StringTokenizer tok = new StringTokenizer(punycode, ".");
         while (tok.hasMoreTokens()) {
             String t = tok.nextToken();
-            if (unicode.length() > 0) unicode.append('.');
-            if (t.startsWith(ACE_PREFIX)) t = decode(t.substring(4));
+            if (unicode.length() > 0) {
+				unicode.append('.');
+			}
+            if (t.startsWith(ACE_PREFIX)) {
+				t = decode(t.substring(4));
+			}
             unicode.append(t);
         }
         return unicode.toString();
@@ -93,7 +106,9 @@ public class Rfc3492Idn implements Idn {
             int oldi = i;
             int w = 1;
             for (int k = base;; k += base) {
-                if (input.length() == 0) break;
+                if (input.length() == 0) {
+					break;
+				}
                 char c = input.charAt(0);
                 input = input.substring(1);
                 int digit = digit(c);
@@ -106,7 +121,9 @@ public class Rfc3492Idn implements Idn {
                 } else {
                     t = k - bias;
                 }
-                if (digit < t) break;
+                if (digit < t) {
+					break;
+				}
                 w = w * (base - t); // FIXME fail on overflow
             }
             bias = adapt(i - oldi, output.length() + 1, (oldi == 0));

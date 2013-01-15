@@ -125,7 +125,9 @@ class RequestProtocolCompliance {
                 }
             }
         }
-        if (!shouldStrip) return;
+        if (!shouldStrip) {
+			return;
+		}
         request.removeHeaders(HeaderConstants.CACHE_CONTROL);
         request.setHeader(HeaderConstants.CACHE_CONTROL, buildHeaderFromElements(outElts));
     }
@@ -301,12 +303,14 @@ class RequestProtocolCompliance {
         }
 
         Header range = request.getFirstHeader(HeaderConstants.RANGE);
-        if (range == null)
-            return null;
+        if (range == null) {
+			return null;
+		}
 
         Header ifRange = request.getFirstHeader(HeaderConstants.IF_RANGE);
-        if (ifRange == null)
-            return null;
+        if (ifRange == null) {
+			return null;
+		}
 
         String val = ifRange.getValue();
         if (val.startsWith("W/")) {
@@ -333,8 +337,9 @@ class RequestProtocolCompliance {
             }
         } else {
             Header ifNoneMatch = request.getFirstHeader(HeaderConstants.IF_NONE_MATCH);
-            if (ifNoneMatch == null)
-                return null;
+            if (ifNoneMatch == null) {
+				return null;
+			}
 
             String val2 = ifNoneMatch.getValue();
             if (val2.startsWith("W/")) {

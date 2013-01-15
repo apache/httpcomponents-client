@@ -151,8 +151,9 @@ class CachedHttpResponseGenerator {
     }
 
     private void addMissingContentLengthHeader(HttpResponse response, HttpEntity entity) {
-        if (transferEncodingIsPresent(response))
-            return;
+        if (transferEncodingIsPresent(response)) {
+			return;
+		}
 
         Header contentLength = response.getFirstHeader(HTTP.CONTENT_LEN);
         if (contentLength == null) {

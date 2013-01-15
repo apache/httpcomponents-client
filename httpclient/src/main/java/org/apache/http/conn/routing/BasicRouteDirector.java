@@ -55,12 +55,13 @@ public class BasicRouteDirector implements HttpRouteDirector {
 
         int step = UNREACHABLE;
 
-        if ((fact == null) || (fact.getHopCount() < 1))
-            step = firstStep(plan);
-        else if (plan.getHopCount() > 1)
-            step = proxiedStep(plan, fact);
-        else
-            step = directStep(plan, fact);
+        if ((fact == null) || (fact.getHopCount() < 1)) {
+			step = firstStep(plan);
+		} else if (plan.getHopCount() > 1) {
+			step = proxiedStep(plan, fact);
+		} else {
+			step = directStep(plan, fact);
+		}
 
         return step;
 
@@ -92,25 +93,30 @@ public class BasicRouteDirector implements HttpRouteDirector {
      */
     protected int directStep(RouteInfo plan, RouteInfo fact) {
 
-        if (fact.getHopCount() > 1)
-            return UNREACHABLE;
+        if (fact.getHopCount() > 1) {
+			return UNREACHABLE;
+		}
         if (!plan.getTargetHost().equals(fact.getTargetHost()))
-            return UNREACHABLE;
+		 {
+			return UNREACHABLE;
         // If the security is too low, we could now suggest to layer
         // a secure protocol on the direct connection. Layering on direct
         // connections has not been supported in HttpClient 3.x, we don't
         // consider it here until there is a real-life use case for it.
+		}
 
         // Should we tolerate if security is better than planned?
         // (plan.isSecure() && !fact.isSecure())
-        if (plan.isSecure() != fact.isSecure())
-            return UNREACHABLE;
+        if (plan.isSecure() != fact.isSecure()) {
+			return UNREACHABLE;
+		}
 
         // Local address has to match only if the plan specifies one.
         if ((plan.getLocalAddress() != null) &&
             !plan.getLocalAddress().equals(fact.getLocalAddress())
-            )
-            return UNREACHABLE;
+            ) {
+			return UNREACHABLE;
+		}
 
         return COMPLETE;
     }
@@ -127,38 +133,48 @@ public class BasicRouteDirector implements HttpRouteDirector {
      */
     protected int proxiedStep(RouteInfo plan, RouteInfo fact) {
 
-        if (fact.getHopCount() <= 1)
-            return UNREACHABLE;
-        if (!plan.getTargetHost().equals(fact.getTargetHost()))
-            return UNREACHABLE;
+        if (fact.getHopCount() <= 1) {
+			return UNREACHABLE;
+		}
+        if (!plan.getTargetHost().equals(fact.getTargetHost())) {
+			return UNREACHABLE;
+		}
         final int phc = plan.getHopCount();
         final int fhc = fact.getHopCount();
-        if (phc < fhc)
-            return UNREACHABLE;
+        if (phc < fhc) {
+			return UNREACHABLE;
+		}
 
         for (int i=0; i<fhc-1; i++) {
-            if (!plan.getHopTarget(i).equals(fact.getHopTarget(i)))
-                return UNREACHABLE;
+            if (!plan.getHopTarget(i).equals(fact.getHopTarget(i))) {
+				return UNREACHABLE;
+			}
         }
         // now we know that the target matches and proxies so far are the same
         if (phc > fhc)
-            return TUNNEL_PROXY; // need to extend the proxy chain
+		 {
+			return TUNNEL_PROXY; // need to extend the proxy chain
+		}
 
         // proxy chain and target are the same, check tunnelling and layering
         if ((fact.isTunnelled() && !plan.isTunnelled()) ||
-            (fact.isLayered()   && !plan.isLayered()))
-            return UNREACHABLE;
+            (fact.isLayered()   && !plan.isLayered())) {
+			return UNREACHABLE;
+		}
 
-        if (plan.isTunnelled() && !fact.isTunnelled())
-            return TUNNEL_TARGET;
-        if (plan.isLayered() && !fact.isLayered())
-            return LAYER_PROTOCOL;
+        if (plan.isTunnelled() && !fact.isTunnelled()) {
+			return TUNNEL_TARGET;
+		}
+        if (plan.isLayered() && !fact.isLayered()) {
+			return LAYER_PROTOCOL;
+		}
 
         // tunnel and layering are the same, remains to check the security
         // Should we tolerate if security is better than planned?
         // (plan.isSecure() && !fact.isSecure())
-        if (plan.isSecure() != fact.isSecure())
-            return UNREACHABLE;
+        if (plan.isSecure() != fact.isSecure()) {
+			return UNREACHABLE;
+		}
 
         return COMPLETE;
     }

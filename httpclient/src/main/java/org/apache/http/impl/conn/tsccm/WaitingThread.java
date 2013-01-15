@@ -145,8 +145,9 @@ public class WaitingThread {
                  "\nwaiter: " + this.waiter);
         }
 
-        if (aborted)
-            throw new InterruptedException("Operation interrupted");
+        if (aborted) {
+			throw new InterruptedException("Operation interrupted");
+		}
 
         this.waiter = Thread.currentThread();
 
@@ -158,8 +159,9 @@ public class WaitingThread {
                 this.cond.await();
                 success = true;
             }
-            if (aborted)
-                throw new InterruptedException("Operation interrupted");
+            if (aborted) {
+				throw new InterruptedException("Operation interrupted");
+			}
         } finally {
             this.waiter = null;
         }

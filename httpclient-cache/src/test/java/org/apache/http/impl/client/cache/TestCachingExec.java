@@ -1413,8 +1413,9 @@ public class TestCachingExec {
 
             @Override
             public int read() throws IOException {
-                if (closed)
-                    throw new SocketException("Socket closed");
+                if (closed) {
+					throw new SocketException("Socket closed");
+				}
                 throw new SocketTimeoutException("Read timed out");
             }
         }, 128));

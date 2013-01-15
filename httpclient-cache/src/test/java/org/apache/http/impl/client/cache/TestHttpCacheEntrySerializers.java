@@ -102,29 +102,36 @@ public class TestHttpCacheEntrySerializers {
     private boolean areEqual(HttpCacheEntry one, HttpCacheEntry two) throws IOException {
         // dates are only stored with second precision, so scrub milliseconds
         if (!((one.getRequestDate().getTime() / 1000) == (two.getRequestDate()
-                .getTime() / 1000)))
-            return false;
+                .getTime() / 1000))) {
+			return false;
+		}
         if (!((one.getResponseDate().getTime() / 1000) == (two
-                .getResponseDate().getTime() / 1000)))
-            return false;
-        if (!one.getProtocolVersion().equals(two.getProtocolVersion()))
-            return false;
+                .getResponseDate().getTime() / 1000))) {
+			return false;
+		}
+        if (!one.getProtocolVersion().equals(two.getProtocolVersion())) {
+			return false;
+		}
 
         byte[] onesByteArray = resourceToBytes(one.getResource());
         byte[] twosByteArray = resourceToBytes(two.getResource());
 
-        if (!Arrays.equals(onesByteArray,twosByteArray))
-            return false;
+        if (!Arrays.equals(onesByteArray,twosByteArray)) {
+			return false;
+		}
 
         Header[] oneHeaders = one.getAllHeaders();
         Header[] twoHeaders = two.getAllHeaders();
-        if (!(oneHeaders.length == twoHeaders.length))
-            return false;
+        if (!(oneHeaders.length == twoHeaders.length)) {
+			return false;
+		}
         for (int i = 0; i < oneHeaders.length; i++) {
-            if (!oneHeaders[i].getName().equals(twoHeaders[i].getName()))
-                return false;
-            if (!oneHeaders[i].getValue().equals(twoHeaders[i].getValue()))
-                return false;
+            if (!oneHeaders[i].getName().equals(twoHeaders[i].getName())) {
+				return false;
+			}
+            if (!oneHeaders[i].getValue().equals(twoHeaders[i].getValue())) {
+				return false;
+			}
         }
 
         return true;

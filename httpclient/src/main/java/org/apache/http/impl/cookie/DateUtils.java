@@ -156,8 +156,9 @@ public final class DateUtils {
             dateParser.set2DigitYearStart(startDate);
             ParsePosition pos = new ParsePosition(0);
             Date result = dateParser.parse(dateValue, pos);
-            if (pos.getIndex() != 0)
-                return result;
+            if (pos.getIndex() != 0) {
+				return result;
+			}
         }
 
         // we were unable to parse the date

@@ -156,8 +156,9 @@ public class DefaultClientConnection extends SocketHttpClientConnection
                 log.debug("Connection " + this + " shut down");
             }
             Socket sock = this.socket; // copy volatile attribute
-            if (sock != null)
-                sock.close();
+            if (sock != null) {
+				sock.close();
+			}
         } catch (IOException ex) {
             log.debug("I/O error shutting down connection", ex);
         }

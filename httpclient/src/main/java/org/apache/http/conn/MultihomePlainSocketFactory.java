@@ -110,14 +110,17 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
         Args.notNull(host, "Target host");
         Args.notNull(params, "HTTP parameters");
 
-        if (sock == null)
-            sock = createSocket();
+        if (sock == null) {
+			sock = createSocket();
+		}
 
         if ((localAddress != null) || (localPort > 0)) {
 
             // we need to bind explicitly
             if (localPort < 0)
-                localPort = 0; // indicates "any"
+			 {
+				localPort = 0; // indicates "any"
+			}
 
             InetSocketAddress isa =
                 new InetSocketAddress(localAddress, localPort);

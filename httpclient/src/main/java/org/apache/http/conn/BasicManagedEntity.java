@@ -88,8 +88,9 @@ public class BasicManagedEntity extends HttpEntityWrapper
     }
 
     private void ensureConsumed() throws IOException {
-        if (managedConn == null)
-            return;
+        if (managedConn == null) {
+			return;
+		}
 
         try {
             if (attemptReuse) {

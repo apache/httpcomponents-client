@@ -242,8 +242,9 @@ public class RouteSpecificPool {
     public boolean deleteEntry(BasicPoolEntry entry) {
 
         final boolean found = freeEntries.remove(entry);
-        if (found)
-            numEntries--;
+        if (found) {
+			numEntries--;
+		}
         return found;
     }
 
@@ -301,8 +302,9 @@ public class RouteSpecificPool {
      * @param wt        the waiting thread
      */
     public void removeThread(WaitingThread wt) {
-        if (wt == null)
-            return;
+        if (wt == null) {
+			return;
+		}
 
         this.waitingThreads.remove(wt);
     }

@@ -196,10 +196,11 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     public final int getHopCount() {
         int hops = 0;
         if (this.connected) {
-            if (proxyChain == null)
-                hops = 1;
-            else
-                hops = proxyChain.length + 1;
+            if (proxyChain == null) {
+				hops = 1;
+			} else {
+				hops = proxyChain.length + 1;
+			}
         }
         return hops;
     }
@@ -209,10 +210,11 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         final int hopcount = getHopCount();
         Args.check(hop < hopcount, "Hop index exceeds tracked route length");
         HttpHost result = null;
-        if (hop < hopcount-1)
-            result = this.proxyChain[hop];
-        else
-            result = this.targetHost;
+        if (hop < hopcount-1) {
+			result = this.proxyChain[hop];
+		} else {
+			result = this.targetHost;
+		}
 
         return result;
     }
@@ -270,10 +272,12 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      */
     @Override
     public final boolean equals(Object o) {
-        if (o == this)
-            return true;
-        if (!(o instanceof RouteTracker))
-            return false;
+        if (o == this) {
+			return true;
+		}
+        if (!(o instanceof RouteTracker)) {
+			return false;
+		}
 
         RouteTracker that = (RouteTracker) o;
         return
@@ -327,14 +331,18 @@ public final class RouteTracker implements RouteInfo, Cloneable {
             cab.append("->");
         }
         cab.append('{');
-        if (this.connected)
-            cab.append('c');
-        if (this.tunnelled == TunnelType.TUNNELLED)
-            cab.append('t');
-        if (this.layered == LayerType.LAYERED)
-            cab.append('l');
-        if (this.secure)
-            cab.append('s');
+        if (this.connected) {
+			cab.append('c');
+		}
+        if (this.tunnelled == TunnelType.TUNNELLED) {
+			cab.append('t');
+		}
+        if (this.layered == LayerType.LAYERED) {
+			cab.append('l');
+		}
+        if (this.secure) {
+			cab.append('s');
+		}
         cab.append("}->");
         if (this.proxyChain != null) {
             for (HttpHost element : this.proxyChain) {

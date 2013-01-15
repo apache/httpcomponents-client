@@ -137,12 +137,13 @@ public class TestScheme {
         boolean flaghttps = false;
         String name = names.get(0);
 
-        if ("http".equals(name))
-            flaghttp = true;
-        else if ("https".equals(name))
-            flaghttps = true;
-        else
-            Assert.fail("unexpected name in iterator: " + name);
+        if ("http".equals(name)) {
+			flaghttp = true;
+		} else if ("https".equals(name)) {
+			flaghttps = true;
+		} else {
+			Assert.fail("unexpected name in iterator: " + name);
+		}
 
         Assert.assertNotNull(schmreg.get(name));
         schmreg.unregister(name);
@@ -151,9 +152,13 @@ public class TestScheme {
         name = names.get(1);
 
         if ("http".equals(name)) {
-            if (flaghttp) Assert.fail("name 'http' found twice");
+            if (flaghttp) {
+				Assert.fail("name 'http' found twice");
+			}
         } else if ("https".equals(name)) {
-            if (flaghttps) Assert.fail("name 'https' found twice");
+            if (flaghttps) {
+				Assert.fail("name 'https' found twice");
+			}
         } else {
             Assert.fail("unexpected name in iterator: " + name);
         }

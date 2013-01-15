@@ -94,7 +94,9 @@ class ResponseProtocolCompliance {
 
     private void consumeBody(HttpResponse response) throws IOException {
         HttpEntity body = response.getEntity();
-        if (body != null) EntityUtils.consume(body);
+        if (body != null) {
+			EntityUtils.consume(body);
+		}
     }
 
     private void warningsWithNonMatchingWarnDatesAreRemoved(
@@ -106,11 +108,15 @@ class ResponseProtocolCompliance {
             //Empty On Purpose
         }
 
-        if (responseDate == null) return;
+        if (responseDate == null) {
+			return;
+		}
 
         Header[] warningHeaders = response.getHeaders(HeaderConstants.WARNING);
 
-        if (warningHeaders == null || warningHeaders.length == 0) return;
+        if (warningHeaders == null || warningHeaders.length == 0) {
+			return;
+		}
 
         List<Header> newWarningHeaders = new ArrayList<Header>();
         boolean modified = false;
@@ -134,7 +140,9 @@ class ResponseProtocolCompliance {
 
     private void identityIsNotUsedInContentEncoding(HttpResponse response) {
         Header[] hdrs = response.getHeaders(HTTP.CONTENT_ENCODING);
-        if (hdrs == null || hdrs.length == 0) return;
+        if (hdrs == null || hdrs.length == 0) {
+			return;
+		}
         List<Header> newHeaders = new ArrayList<Header>();
         boolean modified = false;
         for (Header h : hdrs) {
@@ -144,7 +152,9 @@ class ResponseProtocolCompliance {
                 if ("identity".equalsIgnoreCase(elt.getName())) {
                     modified = true;
                 } else {
-                    if (!first) buf.append(",");
+                    if (!first) {
+						buf.append(",");
+					}
                     buf.append(elt.toString());
                     first = false;
                 }
@@ -154,7 +164,9 @@ class ResponseProtocolCompliance {
                 newHeaders.add(new BasicHeader(HTTP.CONTENT_ENCODING, newHeaderValue));
             }
         }
-        if (!modified) return;
+        if (!modified) {
+			return;
+		}
         response.removeHeaders(HTTP.CONTENT_ENCODING);
         for (Header h : newHeaders) {
             response.addHeader(h);
@@ -171,8 +183,9 @@ class ResponseProtocolCompliance {
     private void ensurePartialContentIsNotSentToAClientThatDidNotRequestIt(HttpRequest request,
             HttpResponse response) throws IOException {
         if (request.getFirstHeader(HeaderConstants.RANGE) != null
-                || response.getStatusLine().getStatusCode() != HttpStatus.SC_PARTIAL_CONTENT)
-            return;
+                || response.getStatusLine().getStatusCode() != HttpStatus.SC_PARTIAL_CONTENT) {
+			return;
+		}
 
         consumeBody(response);
         throw new ClientProtocolException(UNEXPECTED_PARTIAL_CONTENT);
@@ -220,7 +233,9 @@ class ResponseProtocolCompliance {
 
         HttpRequest originalRequest = request.getOriginal();
         if (originalRequest instanceof HttpEntityEnclosingRequest) {
-            if (((HttpEntityEnclosingRequest)originalRequest).expectContinue()) return;
+            if (((HttpEntityEnclosingRequest)originalRequest).expectContinue()) {
+				return;
+			}
         }
         consumeBody(response);
         throw new ClientProtocolException(UNEXPECTED_100_CONTINUE);

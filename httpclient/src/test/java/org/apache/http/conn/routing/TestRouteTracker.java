@@ -691,8 +691,9 @@ public class TestRouteTracker {
      * @return  the result of <code>rt.toString()</code>
      */
     public final static String checkToString(RouteTracker rt) {
-        if (rt == null)
-            return null;
+        if (rt == null) {
+			return null;
+		}
 
         final String rts = rt.toString();
 

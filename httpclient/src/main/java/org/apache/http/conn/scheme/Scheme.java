@@ -237,7 +237,9 @@ public final class Scheme {
 
     @Override
     public final boolean equals(Object obj) {
-        if (this == obj) return true;
+        if (this == obj) {
+			return true;
+		}
         if (obj instanceof Scheme) {
             Scheme that = (Scheme) obj;
             return this.name.equals(that.name)
