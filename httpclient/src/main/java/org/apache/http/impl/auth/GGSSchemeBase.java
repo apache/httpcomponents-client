@@ -162,16 +162,16 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                 state = State.FAILED;
                 if (gsse.getMajor() == GSSException.DEFECTIVE_CREDENTIAL
                         || gsse.getMajor() == GSSException.CREDENTIALS_EXPIRED) {
-					throw new InvalidCredentialsException(gsse.getMessage(), gsse);
-				}
+                    throw new InvalidCredentialsException(gsse.getMessage(), gsse);
+                }
                 if (gsse.getMajor() == GSSException.NO_CRED ) {
-					throw new InvalidCredentialsException(gsse.getMessage(), gsse);
-				}
+                    throw new InvalidCredentialsException(gsse.getMessage(), gsse);
+                }
                 if (gsse.getMajor() == GSSException.DEFECTIVE_TOKEN
                         || gsse.getMajor() == GSSException.DUPLICATE_TOKEN
                         || gsse.getMajor() == GSSException.OLD_TOKEN) {
-					throw new AuthenticationException(gsse.getMessage(), gsse);
-				}
+                    throw new AuthenticationException(gsse.getMessage(), gsse);
+                }
                 // other error
                 throw new AuthenticationException(gsse.getMessage());
             }

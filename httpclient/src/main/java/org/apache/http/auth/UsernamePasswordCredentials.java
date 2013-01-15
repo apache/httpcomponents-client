@@ -100,8 +100,8 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
-			return true;
-		}
+            return true;
+        }
         if (o instanceof UsernamePasswordCredentials) {
             UsernamePasswordCredentials that = (UsernamePasswordCredentials) o;
             if (LangUtils.equals(this.principal, that.principal)) {

@@ -80,8 +80,8 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
      */
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         if (isForPublicSuffix(cookie)) {
-			return false;
-		}
+            return false;
+        }
         return wrapped.match(cookie, origin);
     }
 
@@ -96,34 +96,34 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
     private boolean isForPublicSuffix(final Cookie cookie) {
         String domain = cookie.getDomain();
         if (domain.startsWith(".")) {
-			domain = domain.substring(1);
-		}
+            domain = domain.substring(1);
+        }
         domain = Punycode.toUnicode(domain);
 
         // An exception rule takes priority over any other matching rule.
         if (this.exceptions != null) {
             if (this.exceptions.contains(domain)) {
-				return false;
-			}
+                return false;
+            }
         }
 
 
         if (this.suffixes == null) {
-			return false;
-		}
+            return false;
+        }
 
         do {
             if (this.suffixes.contains(domain)) {
-				return true;
-			}
+                return true;
+            }
             // patterns
             if (domain.startsWith("*.")) {
-				domain = domain.substring(2);
-			}
+                domain = domain.substring(2);
+            }
             int nextdot = domain.indexOf('.');
             if (nextdot == -1) {
-				break;
-			}
+                break;
+            }
             domain = "*" + domain.substring(nextdot);
         } while (domain.length() > 0);
 

@@ -197,10 +197,10 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         int hops = 0;
         if (this.connected) {
             if (proxyChain == null) {
-				hops = 1;
-			} else {
-				hops = proxyChain.length + 1;
-			}
+                hops = 1;
+            } else {
+                hops = proxyChain.length + 1;
+            }
         }
         return hops;
     }
@@ -211,10 +211,10 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         Args.check(hop < hopcount, "Hop index exceeds tracked route length");
         HttpHost result = null;
         if (hop < hopcount-1) {
-			result = this.proxyChain[hop];
-		} else {
-			result = this.targetHost;
-		}
+            result = this.proxyChain[hop];
+        } else {
+            result = this.targetHost;
+        }
 
         return result;
     }
@@ -273,11 +273,11 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     @Override
     public final boolean equals(final Object o) {
         if (o == this) {
-			return true;
-		}
+            return true;
+        }
         if (!(o instanceof RouteTracker)) {
-			return false;
-		}
+            return false;
+        }
 
         RouteTracker that = (RouteTracker) o;
         return
@@ -332,17 +332,17 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         }
         cab.append('{');
         if (this.connected) {
-			cab.append('c');
-		}
+            cab.append('c');
+        }
         if (this.tunnelled == TunnelType.TUNNELLED) {
-			cab.append('t');
-		}
+            cab.append('t');
+        }
         if (this.layered == LayerType.LAYERED) {
-			cab.append('l');
-		}
+            cab.append('l');
+        }
         if (this.secure) {
-			cab.append('s');
-		}
+            cab.append('s');
+        }
         cab.append("}->");
         if (this.proxyChain != null) {
             for (HttpHost element : this.proxyChain) {

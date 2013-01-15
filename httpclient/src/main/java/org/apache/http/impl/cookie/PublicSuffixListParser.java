@@ -67,21 +67,21 @@ public class PublicSuffixListParser {
             more = readLine(r, sb);
             String line = sb.toString();
             if (line.length() == 0) {
-				continue;
-			}
+                continue;
+            }
             if (line.startsWith("//"))
-			 {
-				continue; //entire lines can also be commented using //
-			}
+             {
+                continue; //entire lines can also be commented using //
+            }
             if (line.startsWith("."))
-			 {
-				line = line.substring(1); // A leading dot is optional
-			}
+             {
+                line = line.substring(1); // A leading dot is optional
+            }
             // An exclamation mark (!) at the start of a rule marks an exception to a previous wildcard rule
             boolean isException = line.startsWith("!");
             if (isException) {
-				line = line.substring(1);
-			}
+                line = line.substring(1);
+            }
 
             if (isException) {
                 exceptions.add(line);
@@ -108,19 +108,19 @@ public class PublicSuffixListParser {
         while ((b = r.read()) != -1) {
             char c = (char) b;
             if (c == '\n') {
-				break;
-			}
+                break;
+            }
             // Each line is only read up to the first whitespace
             if (Character.isWhitespace(c)) {
-				hitWhitespace = true;
-			}
+                hitWhitespace = true;
+            }
             if (!hitWhitespace) {
-				sb.append(c);
-			}
+                sb.append(c);
+            }
             if (sb.length() > MAX_LINE_LEN)
-			 {
-				throw new IOException("Line too long"); // prevent excess memory usage
-			}
+             {
+                throw new IOException("Line too long"); // prevent excess memory usage
+            }
         }
         return (b != -1);
     }

@@ -156,11 +156,11 @@ public class TestDecompressingHttpClient {
         for(Header h : captured.getHeaders("Accept-Encoding")) {
             for(HeaderElement elt : h.getElements()) {
                 if ("gzip".equals(elt.getName())) {
-					foundGzip = true;
-				}
+                    foundGzip = true;
+                }
                 if ("deflate".equals(elt.getName())) {
-					foundDeflate = true;
-				}
+                    foundDeflate = true;
+                }
             }
         }
         assertTrue(foundGzip);

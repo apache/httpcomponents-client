@@ -82,8 +82,8 @@ public class TestDefaultBackoffStrategy {
     public void doesNotBackOffForNon503StatusCodes() {
         for(int i = 100; i <= 599; i++) {
             if (i == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-				continue;
-			}
+                continue;
+            }
             HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                     i, "Foo");
             assertFalse(impl.shouldBackoff(resp));

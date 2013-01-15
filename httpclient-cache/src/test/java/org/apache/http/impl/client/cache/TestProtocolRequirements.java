@@ -1652,11 +1652,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         boolean found2 = false;
         while ((b = i.read()) != -1) {
             if (b == 1) {
-				found1 = true;
-			}
+                found1 = true;
+            }
             if (b == 2) {
-				found2 = true;
-			}
+                found2 = true;
+            }
         }
         i.close();
         Assert.assertFalse(found1 && found2); // mixture of content
@@ -1746,11 +1746,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         boolean found2 = false;
         while ((b = i.read()) != -1) {
             if (b == 1) {
-				found1 = true;
-			}
+                found1 = true;
+            }
             if (b == 2) {
-				found2 = true;
-			}
+                found2 = true;
+            }
         }
         i.close();
         Assert.assertFalse(found1 && found2); // mixture of content
@@ -2614,8 +2614,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             boolean foundWarning = false;
             for (Header h : result.getHeaders("Warning")) {
                 if (h.getValue().split(" ")[0].equals("111")) {
-					foundWarning = true;
-				}
+                    foundWarning = true;
+                }
             }
             Assert.assertTrue(foundWarning);
         } else {
@@ -2692,15 +2692,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         for (Header h : result1.getHeaders("Warning")) {
             for (HeaderElement elt : h.getElements()) {
                 if (elt.getName().startsWith("1")) {
-					found1xxWarning = true;
-				}
+                    found1xxWarning = true;
+                }
             }
         }
         for (Header h : result2.getHeaders("Warning")) {
             for (HeaderElement elt : h.getElements()) {
                 if (elt.getName().startsWith("1")) {
-					found1xxWarning = true;
-				}
+                    found1xxWarning = true;
+                }
             }
         }
         Assert.assertFalse(found1xxWarning);
@@ -2765,8 +2765,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             for (HeaderElement elt : h.getElements()) {
                 String[] parts = elt.getName().split(" ");
                 if ("214".equals(parts[0])) {
-					found214Warning = true;
-				}
+                    found214Warning = true;
+                }
             }
         }
         Assert.assertTrue(found214Warning);
@@ -2776,8 +2776,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             for (HeaderElement elt : h.getElements()) {
                 String[] parts = elt.getName().split(" ");
                 if ("214".equals(parts[0])) {
-					found214Warning = true;
-				}
+                    found214Warning = true;
+                }
             }
         }
         Assert.assertTrue(found214Warning);
@@ -3170,15 +3170,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             for (Header h : validation.getHeaders("If-Match")) {
                 for (HeaderElement elt : h.getElements()) {
                     if ("W/\"etag\"".equals(elt.getName())) {
-						foundETag = true;
-					}
+                        foundETag = true;
+                    }
                 }
             }
             for (Header h : validation.getHeaders("If-None-Match")) {
                 for (HeaderElement elt : h.getElements()) {
                     if ("W/\"etag\"".equals(elt.getName())) {
-						foundETag = true;
-					}
+                        foundETag = true;
+                    }
                 }
             }
             Assert.assertTrue(foundETag);
@@ -6062,16 +6062,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         final String nestedSuffix = "\\)([^\\p{Cntrl}()]|\\\\\\p{ASCII})*\\)$";
 
         if (Pattern.matches(leafComment,s)) {
-			return true;
-		}
+            return true;
+        }
         Matcher pref = Pattern.compile(nestedPrefix).matcher(s);
         Matcher suff = Pattern.compile(nestedSuffix).matcher(s);
         if (!pref.find()) {
-			return false;
-		}
+            return false;
+        }
         if (!suff.find()) {
-			return false;
-		}
+            return false;
+        }
         return isValidComment(s.substring(pref.end() - 1, suff.start() + 1));
     }
 

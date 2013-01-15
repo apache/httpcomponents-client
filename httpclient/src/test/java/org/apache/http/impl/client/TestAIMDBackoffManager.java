@@ -160,11 +160,11 @@ public class TestAIMDBackoffManager {
     public void coolDownPeriodIsConfigurable() {
         long cd = new Random().nextLong() / 2;
         if (cd < 0) {
-			cd *= -1;
-		}
+            cd *= -1;
+        }
         if (cd < 1) {
-			cd++;
-		}
+            cd++;
+        }
         long now = System.currentTimeMillis();
         impl.setCooldownMillis(cd);
         clock.setCurrentTime(now);

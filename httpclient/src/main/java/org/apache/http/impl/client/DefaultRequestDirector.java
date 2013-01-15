@@ -563,8 +563,8 @@ public class DefaultRequestDirector implements RequestDirector {
                 !response.getEntity().isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
                 if (reuse) {
-					managedConn.markReusable();
-				}
+                    managedConn.markReusable();
+                }
                 releaseConnection();
             } else {
                 // install an auto-release entity

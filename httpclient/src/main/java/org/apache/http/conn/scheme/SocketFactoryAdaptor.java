@@ -84,11 +84,11 @@ class SocketFactoryAdaptor implements SocketFactory {
     @Override
     public boolean equals(final Object obj) {
         if (obj == null) {
-			return false;
-		}
+            return false;
+        }
         if (this == obj) {
-			return true;
-		}
+            return true;
+        }
         if (obj instanceof SocketFactoryAdaptor) {
             return this.factory.equals(((SocketFactoryAdaptor)obj).factory);
         } else {

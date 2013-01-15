@@ -103,35 +103,35 @@ public class TestHttpCacheEntrySerializers {
         // dates are only stored with second precision, so scrub milliseconds
         if (!((one.getRequestDate().getTime() / 1000) == (two.getRequestDate()
                 .getTime() / 1000))) {
-			return false;
-		}
+            return false;
+        }
         if (!((one.getResponseDate().getTime() / 1000) == (two
                 .getResponseDate().getTime() / 1000))) {
-			return false;
-		}
+            return false;
+        }
         if (!one.getProtocolVersion().equals(two.getProtocolVersion())) {
-			return false;
-		}
+            return false;
+        }
 
         byte[] onesByteArray = resourceToBytes(one.getResource());
         byte[] twosByteArray = resourceToBytes(two.getResource());
 
         if (!Arrays.equals(onesByteArray,twosByteArray)) {
-			return false;
-		}
+            return false;
+        }
 
         Header[] oneHeaders = one.getAllHeaders();
         Header[] twoHeaders = two.getAllHeaders();
         if (!(oneHeaders.length == twoHeaders.length)) {
-			return false;
-		}
+            return false;
+        }
         for (int i = 0; i < oneHeaders.length; i++) {
             if (!oneHeaders[i].getName().equals(twoHeaders[i].getName())) {
-				return false;
-			}
+                return false;
+            }
             if (!oneHeaders[i].getValue().equals(twoHeaders[i].getValue())) {
-				return false;
-			}
+                return false;
+            }
         }
 
         return true;

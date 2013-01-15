@@ -238,8 +238,8 @@ public final class Scheme {
     @Override
     public final boolean equals(final Object obj) {
         if (this == obj) {
-			return true;
-		}
+            return true;
+        }
         if (obj instanceof Scheme) {
             Scheme that = (Scheme) obj;
             return this.name.equals(that.name)

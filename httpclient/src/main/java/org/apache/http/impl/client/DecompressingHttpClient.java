@@ -148,8 +148,8 @@ public class DecompressingHttpClient implements HttpClient {
             HttpContext context) throws IOException, ClientProtocolException {
         try {
             if (context == null) {
-				context = new BasicHttpContext();
-			}
+                context = new BasicHttpContext();
+            }
             HttpRequest wrapped;
             if (request instanceof HttpEntityEnclosingRequest) {
                 wrapped = new EntityEnclosingRequestWrapper((HttpEntityEnclosingRequest) request);
@@ -208,8 +208,8 @@ public class DecompressingHttpClient implements HttpClient {
         } finally {
             HttpEntity entity = response.getEntity();
             if (entity != null) {
-				EntityUtils.consume(entity);
-			}
+                EntityUtils.consume(entity);
+            }
         }
     }
 

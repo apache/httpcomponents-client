@@ -80,11 +80,11 @@ class SchemeSocketFactoryAdaptor implements SchemeSocketFactory {
     @Override
     public boolean equals(final Object obj) {
         if (obj == null) {
-			return false;
-		}
+            return false;
+        }
         if (this == obj) {
-			return true;
-		}
+            return true;
+        }
         if (obj instanceof SchemeSocketFactoryAdaptor) {
             return this.factory.equals(((SchemeSocketFactoryAdaptor)obj).factory);
         } else {

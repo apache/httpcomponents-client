@@ -271,9 +271,9 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
                 }
             } catch (IOException iox) {
                 if (log.isDebugEnabled()) {
-					log.debug("Exception shutting down released connection.",
+                    log.debug("Exception shutting down released connection.",
                               iox);
-				}
+                }
             } finally {
                 boolean reusable = hca.isMarkedReusable();
                 if (log.isDebugEnabled()) {

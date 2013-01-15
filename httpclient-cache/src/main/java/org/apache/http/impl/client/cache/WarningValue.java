@@ -81,8 +81,8 @@ class WarningValue {
             } catch (IllegalArgumentException e) {
                 final int nextComma = src.indexOf(',', offs);
                 if (nextComma == -1) {
-					break;
-				}
+                    break;
+                }
                 offs = nextComma + 1;
             }
         }
@@ -152,12 +152,12 @@ class WarningValue {
      */
     protected void consumeToken() {
         if (!isTokenChar(src.charAt(offs))) {
-			parseError();
-		}
+            parseError();
+        }
         while(offs < src.length()) {
             if (!isTokenChar(src.charAt(offs))) {
-				break;
-			}
+                break;
+            }
             offs++;
         }
     }
@@ -178,11 +178,11 @@ class WarningValue {
     protected void consumeHostPort() {
         Matcher m = HOSTPORT_PATTERN.matcher(src.substring(offs));
         if (!m.find()) {
-			parseError();
-		}
+            parseError();
+        }
         if (m.start() != 0) {
-			parseError();
-		}
+            parseError();
+        }
         offs += m.end();
     }
 
@@ -212,8 +212,8 @@ class WarningValue {
      */
     protected void consumeQuotedString() {
         if (src.charAt(offs) != '\"') {
-			parseError();
-		}
+            parseError();
+        }
         offs++;
         boolean foundEnd = false;
         while(offs < src.length() && !foundEnd) {
@@ -231,8 +231,8 @@ class WarningValue {
             }
         }
         if (!foundEnd) {
-			parseError();
-		}
+            parseError();
+        }
     }
 
     /*
@@ -265,8 +265,8 @@ class WarningValue {
         int curr = offs;
         Matcher m = WARN_DATE_PATTERN.matcher(src.substring(offs));
         if (!m.lookingAt()) {
-			parseError();
-		}
+            parseError();
+        }
         offs += m.end();
         try {
             warnDate = DateUtils.parseDate(src.substring(curr+1,offs-1));

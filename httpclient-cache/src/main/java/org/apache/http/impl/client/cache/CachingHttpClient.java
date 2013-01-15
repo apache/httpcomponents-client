@@ -433,8 +433,8 @@ public class CachingHttpClient implements HttpClient {
         HttpResponse fatalErrorResponse = getFatallyNoncompliantResponse(
                 request, context);
         if (fatalErrorResponse != null) {
-			return fatalErrorResponse;
-		}
+            return fatalErrorResponse;
+        }
 
         requestCompliance.makeRequestCompliant(request);
         request.addHeader("Via",via);
@@ -654,8 +654,8 @@ public class CachingHttpClient implements HttpClient {
                         long age = validityPolicy.getCurrentAgeSecs(entry, now);
                         long lifetime = validityPolicy.getFreshnessLifetimeSecs(entry);
                         if (age - lifetime > maxstale) {
-							return true;
-						}
+                            return true;
+                        }
                     } catch (NumberFormatException nfe) {
                         return true;
                     }
@@ -673,8 +673,8 @@ public class CachingHttpClient implements HttpClient {
         final ProtocolVersion pv = msg.getProtocolVersion();
         String existingEntry = viaHeaders.get(pv);
         if (existingEntry != null) {
-			return existingEntry;
-		}
+            return existingEntry;
+        }
 
         final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client", getClass().getClassLoader());
         final String release = (vi != null) ? vi.getRelease() : VersionInfo.UNAVAILABLE;
@@ -727,16 +727,16 @@ public class CachingHttpClient implements HttpClient {
         RequestLine line = request.getRequestLine();
 
         if (!HeaderConstants.OPTIONS_METHOD.equals(line.getMethod())) {
-			return false;
-		}
+            return false;
+        }
 
         if (!"*".equals(line.getUri())) {
-			return false;
-		}
+            return false;
+        }
 
         if (!"0".equals(request.getFirstHeader(HeaderConstants.MAX_FORWARDS).getValue())) {
-			return false;
-		}
+            return false;
+        }
 
         return true;
     }
@@ -763,8 +763,8 @@ public class CachingHttpClient implements HttpClient {
                 Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
                 Date respDate = DateUtils.parseDate(responseDateHeader.getValue());
                 if (respDate.before(entryDate)) {
-					return true;
-				}
+                    return true;
+                }
             } catch (DateParseException e) {
                 // either backend response or cached entry did not have a valid
                 // Date header, so we can't tell if they are out of order
@@ -910,8 +910,8 @@ public class CachingHttpClient implements HttpClient {
             cachedResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
             HttpEntity errorBody = backendResponse.getEntity();
             if (errorBody != null) {
-				EntityUtils.consume(errorBody);
-			}
+                EntityUtils.consume(errorBody);
+            }
             return cachedResponse;
         }
 
@@ -985,16 +985,16 @@ public class CachingHttpClient implements HttpClient {
             // nop
         }
         if (existing == null) {
-			return false;
-		}
+            return false;
+        }
         Header entryDateHeader = existing.getFirstHeader(HTTP.DATE_HEADER);
         if (entryDateHeader == null) {
-			return false;
-		}
+            return false;
+        }
         Header responseDateHeader = backendResponse.getFirstHeader(HTTP.DATE_HEADER);
         if (responseDateHeader == null) {
-			return false;
-		}
+            return false;
+        }
         try {
             Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
             Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());

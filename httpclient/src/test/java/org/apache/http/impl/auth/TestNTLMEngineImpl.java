@@ -48,8 +48,8 @@ public class TestNTLMEngineImpl {
     /* Test suite helper */
     static byte toNibble(final char c) {
         if (c >= 'a' && c <= 'f') {
-			return (byte) (c - 'a' + 0x0a);
-		}
+            return (byte) (c - 'a' + 0x0a);
+        }
         return (byte) (c - '0');
     }
 
@@ -73,14 +73,14 @@ public class TestNTLMEngineImpl {
         byte[] answer = md4.getOutput();
         byte[] correctAnswer = toBytes(hexOutput);
         if (answer.length != correctAnswer.length) {
-			throw new Exception("Answer length disagrees for MD4('" + input + "')");
-		}
+            throw new Exception("Answer length disagrees for MD4('" + input + "')");
+        }
         int i = 0;
         while (i < answer.length) {
             if (answer[i] != correctAnswer[i]) {
-				throw new Exception("Answer value for MD4('" + input + "') disagrees at position "
+                throw new Exception("Answer value for MD4('" + input + "') disagrees at position "
                         + Integer.toString(i));
-			}
+            }
             i++;
         }
     }

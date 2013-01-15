@@ -157,8 +157,8 @@ public final class DateUtils {
             ParsePosition pos = new ParsePosition(0);
             Date result = dateParser.parse(dateValue, pos);
             if (pos.getIndex() != 0) {
-				return result;
-			}
+                return result;
+            }
         }
 
         // we were unable to parse the date

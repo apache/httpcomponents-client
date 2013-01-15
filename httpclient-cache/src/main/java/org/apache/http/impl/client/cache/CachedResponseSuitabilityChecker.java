@@ -74,29 +74,29 @@ class CachedResponseSuitabilityChecker {
 
     private boolean isFreshEnough(final HttpCacheEntry entry, final HttpRequest request, final Date now) {
         if (validityStrategy.isResponseFresh(entry, now)) {
-			return true;
-		}
+            return true;
+        }
         if (useHeuristicCaching &&
                 validityStrategy.isResponseHeuristicallyFresh(entry, now, heuristicCoefficient, heuristicDefaultLifetime)) {
-			return true;
-		}
+            return true;
+        }
         if (originInsistsOnFreshness(entry)) {
-			return false;
-		}
+            return false;
+        }
         long maxstale = getMaxStale(request);
         if (maxstale == -1) {
-			return false;
-		}
+            return false;
+        }
         return (maxstale > validityStrategy.getStalenessSecs(entry, now));
     }
 
     private boolean originInsistsOnFreshness(final HttpCacheEntry entry) {
         if (validityStrategy.mustRevalidate(entry)) {
-			return true;
-		}
+            return true;
+        }
         if (!sharedCache) {
-			return false;
-		}
+            return false;
+        }
         return validityStrategy.proxyRevalidate(entry) ||
             validityStrategy.hasCacheControlDirective(entry, "s-maxage");
     }
@@ -113,8 +113,8 @@ class CachedResponseSuitabilityChecker {
                         try {
                             long val = Long.parseLong(elt.getValue());
                             if (val < 0) {
-								val = 0;
-							}
+                                val = 0;
+                            }
                             if (maxstale == -1 || val < maxstale) {
                                 maxstale = val;
                             }
@@ -212,8 +212,8 @@ class CachedResponseSuitabilityChecker {
                     try {
                         long minfresh = Long.parseLong(elt.getValue());
                         if (minfresh < 0L) {
-							return false;
-						}
+                            return false;
+                        }
                         long age = validityStrategy.getCurrentAgeSecs(entry, now);
                         long freshness = validityStrategy.getFreshnessLifetimeSecs(entry);
                         if (freshness - age < minfresh) {

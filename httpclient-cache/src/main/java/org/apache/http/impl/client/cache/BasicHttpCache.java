@@ -162,8 +162,8 @@ class BasicHttpCache implements HttpCache {
         }
         Header hdr = resp.getFirstHeader(HTTP.CONTENT_LEN);
         if (hdr == null) {
-			return false;
-		}
+            return false;
+        }
         int contentLength;
         try {
             contentLength = Integer.parseInt(hdr.getValue());
@@ -284,15 +284,15 @@ class BasicHttpCache implements HttpCache {
     public HttpCacheEntry getCacheEntry(final HttpHost host, final HttpRequest request) throws IOException {
         HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
         if (root == null) {
-			return null;
-		}
+            return null;
+        }
         if (!root.hasVariants()) {
-			return root;
-		}
+            return root;
+        }
         String variantCacheKey = root.getVariantMap().get(uriExtractor.getVariantKey(request, root));
         if (variantCacheKey == null) {
-			return null;
-		}
+            return null;
+        }
         return storage.getEntry(variantCacheKey);
     }
 
@@ -306,8 +306,8 @@ class BasicHttpCache implements HttpCache {
         Map<String,Variant> variants = new HashMap<String,Variant>();
         HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
         if (root == null || !root.hasVariants()) {
-			return variants;
-		}
+            return variants;
+        }
         for(Map.Entry<String, String> variant : root.getVariantMap().entrySet()) {
             String variantKey = variant.getKey();
             String variantCacheKey = variant.getValue();
@@ -321,12 +321,12 @@ class BasicHttpCache implements HttpCache {
             throws IOException {
         HttpCacheEntry entry = storage.getEntry(variantCacheKey);
         if (entry == null) {
-			return;
-		}
+            return;
+        }
         Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
         if (etagHeader == null) {
-			return;
-		}
+            return;
+        }
         variants.put(etagHeader.getValue(), new Variant(variantKey, variantCacheKey, entry));
     }
 

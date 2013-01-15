@@ -841,11 +841,11 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
                         backoffManager.backOff(route);
                     }
                     if (e instanceof HttpException) {
-						throw (HttpException)e;
-					}
+                        throw (HttpException)e;
+                    }
                     if (e instanceof IOException) {
-						throw (IOException)e;
-					}
+                        throw (IOException)e;
+                    }
                     throw new UndeclaredThrowableException(e);
                 }
                 if (connectionBackoffStrategy.shouldBackoff(out)) {

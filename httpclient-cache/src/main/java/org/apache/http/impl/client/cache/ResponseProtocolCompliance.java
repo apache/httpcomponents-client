@@ -95,8 +95,8 @@ class ResponseProtocolCompliance {
     private void consumeBody(final HttpResponse response) throws IOException {
         HttpEntity body = response.getEntity();
         if (body != null) {
-			EntityUtils.consume(body);
-		}
+            EntityUtils.consume(body);
+        }
     }
 
     private void warningsWithNonMatchingWarnDatesAreRemoved(
@@ -109,14 +109,14 @@ class ResponseProtocolCompliance {
         }
 
         if (responseDate == null) {
-			return;
-		}
+            return;
+        }
 
         Header[] warningHeaders = response.getHeaders(HeaderConstants.WARNING);
 
         if (warningHeaders == null || warningHeaders.length == 0) {
-			return;
-		}
+            return;
+        }
 
         List<Header> newWarningHeaders = new ArrayList<Header>();
         boolean modified = false;
@@ -141,8 +141,8 @@ class ResponseProtocolCompliance {
     private void identityIsNotUsedInContentEncoding(final HttpResponse response) {
         Header[] hdrs = response.getHeaders(HTTP.CONTENT_ENCODING);
         if (hdrs == null || hdrs.length == 0) {
-			return;
-		}
+            return;
+        }
         List<Header> newHeaders = new ArrayList<Header>();
         boolean modified = false;
         for (Header h : hdrs) {
@@ -153,8 +153,8 @@ class ResponseProtocolCompliance {
                     modified = true;
                 } else {
                     if (!first) {
-						buf.append(",");
-					}
+                        buf.append(",");
+                    }
                     buf.append(elt.toString());
                     first = false;
                 }
@@ -165,8 +165,8 @@ class ResponseProtocolCompliance {
             }
         }
         if (!modified) {
-			return;
-		}
+            return;
+        }
         response.removeHeaders(HTTP.CONTENT_ENCODING);
         for (Header h : newHeaders) {
             response.addHeader(h);
@@ -184,8 +184,8 @@ class ResponseProtocolCompliance {
             final HttpResponse response) throws IOException {
         if (request.getFirstHeader(HeaderConstants.RANGE) != null
                 || response.getStatusLine().getStatusCode() != HttpStatus.SC_PARTIAL_CONTENT) {
-			return;
-		}
+            return;
+        }
 
         consumeBody(response);
         throw new ClientProtocolException(UNEXPECTED_PARTIAL_CONTENT);
@@ -234,8 +234,8 @@ class ResponseProtocolCompliance {
         HttpRequest originalRequest = request.getOriginal();
         if (originalRequest instanceof HttpEntityEnclosingRequest) {
             if (((HttpEntityEnclosingRequest)originalRequest).expectContinue()) {
-				return;
-			}
+                return;
+            }
         }
         consumeBody(response);
         throw new ClientProtocolException(UNEXPECTED_100_CONTINUE);

@@ -125,8 +125,8 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         HttpRoute route =
             ConnRouteParams.getForcedRoute(request.getParams());
         if (route != null) {
-			return route;
-		}
+            return route;
+        }
 
         // If we get here, there is no forced route.
         // So we need a target to compute a route.
@@ -171,11 +171,11 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         // the proxy selector can be 'unset', so we better deal with null here
         ProxySelector psel = this.proxySelector;
         if (psel == null) {
-			psel = ProxySelector.getDefault();
-		}
+            psel = ProxySelector.getDefault();
+        }
         if (psel == null) {
-			return null;
-		}
+            return null;
+        }
 
         URI targetURI = null;
         try {

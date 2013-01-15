@@ -57,18 +57,18 @@ class CacheValidityPolicy {
     public long getFreshnessLifetimeSecs(final HttpCacheEntry entry) {
         long maxage = getMaxAge(entry);
         if (maxage > -1) {
-			return maxage;
-		}
+            return maxage;
+        }
 
         Date dateValue = getDateValue(entry);
         if (dateValue == null) {
-			return 0L;
-		}
+            return 0L;
+        }
 
         Date expiry = getExpirationDate(entry);
         if (expiry == null) {
-			return 0;
-		}
+            return 0;
+        }
         long diff = expiry.getTime() - dateValue.getTime();
         return (diff / 1000);
     }
@@ -103,8 +103,8 @@ class CacheValidityPolicy {
         if (dateValue != null && lastModifiedValue != null) {
             long diff = dateValue.getTime() - lastModifiedValue.getTime();
             if (diff < 0) {
-				return 0;
-			}
+                return 0;
+            }
             return (long)(coefficient * (diff / 1000));
         }
 
@@ -175,8 +175,8 @@ class CacheValidityPolicy {
     protected Date getDateValue(final HttpCacheEntry entry) {
         Header dateHdr = entry.getFirstHeader(HTTP.DATE_HEADER);
         if (dateHdr == null) {
-			return null;
-		}
+            return null;
+        }
         try {
             return DateUtils.parseDate(dateHdr.getValue());
         } catch (DateParseException dpe) {
@@ -188,8 +188,8 @@ class CacheValidityPolicy {
     protected Date getLastModifiedValue(final HttpCacheEntry entry) {
         Header dateHdr = entry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
         if (dateHdr == null) {
-			return null;
-		}
+            return null;
+        }
         try {
             return DateUtils.parseDate(dateHdr.getValue());
         } catch (DateParseException dpe) {
@@ -201,8 +201,8 @@ class CacheValidityPolicy {
     protected long getContentLengthValue(final HttpCacheEntry entry) {
         Header cl = entry.getFirstHeader(HTTP.CONTENT_LEN);
         if (cl == null) {
-			return -1;
-		}
+            return -1;
+        }
 
         try {
             return Long.parseLong(cl.getValue());
@@ -229,12 +229,12 @@ class CacheValidityPolicy {
     protected long getApparentAgeSecs(final HttpCacheEntry entry) {
         Date dateValue = getDateValue(entry);
         if (dateValue == null) {
-			return MAX_AGE;
-		}
+            return MAX_AGE;
+        }
         long diff = entry.getResponseDate().getTime() - dateValue.getTime();
         if (diff < 0L) {
-			return 0;
-		}
+            return 0;
+        }
         return (diff / 1000);
     }
 
@@ -299,8 +299,8 @@ class CacheValidityPolicy {
     protected Date getExpirationDate(final HttpCacheEntry entry) {
         Header expiresHeader = entry.getFirstHeader(HeaderConstants.EXPIRES);
         if (expiresHeader == null) {
-			return null;
-		}
+            return null;
+        }
         try {
             return DateUtils.parseDate(expiresHeader.getValue());
         } catch (DateParseException dpe) {
@@ -325,8 +325,8 @@ class CacheValidityPolicy {
         long age = getCurrentAgeSecs(entry, now);
         long freshness = getFreshnessLifetimeSecs(entry);
         if (age <= freshness) {
-			return 0L;
-		}
+            return 0L;
+        }
         return (age - freshness);
     }
 

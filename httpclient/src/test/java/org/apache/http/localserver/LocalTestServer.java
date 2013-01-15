@@ -273,10 +273,10 @@ public class LocalTestServer {
         StringBuilder sb = new StringBuilder(80);
         sb.append("LocalTestServer/");
         if (ssock == null) {
-			sb.append("stopped");
-		} else {
-			sb.append(ssock.getLocalSocketAddress());
-		}
+            sb.append("stopped");
+        } else {
+            sb.append(ssock.getLocalSocketAddress());
+        }
         return sb.toString();
     }
 

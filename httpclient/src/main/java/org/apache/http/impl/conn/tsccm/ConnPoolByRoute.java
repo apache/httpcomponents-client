@@ -500,9 +500,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
                         // If the free entry isn't valid anymore, get rid of it
                         // and loop to find another one that might be valid.
                         if (log.isDebugEnabled()) {
-							log.debug("Closing expired free connection"
+                            log.debug("Closing expired free connection"
                                     + " [" + rospl.getRoute() + "][" + state + "]");
-						}
+                        }
                         closeConnection(entry);
                         // We use dropEntry instead of deleteEntry because the entry
                         // is no longer "free" (we just allocated it), and deleteEntry

@@ -49,10 +49,10 @@ public class Rfc3492Idn implements Idn {
 
     private int adapt(int delta, final int numpoints, final boolean firsttime) {
         if (firsttime) {
-			delta = delta / damp;
-		} else {
-			delta = delta / 2;
-		}
+            delta = delta / damp;
+        } else {
+            delta = delta / 2;
+        }
         delta = delta + (delta / numpoints);
         int k = 0;
         while (delta > ((base - tmin) * tmax) / 2) {
@@ -64,14 +64,14 @@ public class Rfc3492Idn implements Idn {
 
     private int digit(final char c) {
         if ((c >= 'A') && (c <= 'Z')) {
-			return (c - 'A');
-		}
+            return (c - 'A');
+        }
         if ((c >= 'a') && (c <= 'z')) {
-			return (c - 'a');
-		}
+            return (c - 'a');
+        }
         if ((c >= '0') && (c <= '9')) {
-			return (c - '0') + 26;
-		}
+            return (c - '0') + 26;
+        }
         throw new IllegalArgumentException("illegal digit: "+ c);
     }
 
@@ -81,11 +81,11 @@ public class Rfc3492Idn implements Idn {
         while (tok.hasMoreTokens()) {
             String t = tok.nextToken();
             if (unicode.length() > 0) {
-				unicode.append('.');
-			}
+                unicode.append('.');
+            }
             if (t.startsWith(ACE_PREFIX)) {
-				t = decode(t.substring(4));
-			}
+                t = decode(t.substring(4));
+            }
             unicode.append(t);
         }
         return unicode.toString();
@@ -107,8 +107,8 @@ public class Rfc3492Idn implements Idn {
             int w = 1;
             for (int k = base;; k += base) {
                 if (input.length() == 0) {
-					break;
-				}
+                    break;
+                }
                 char c = input.charAt(0);
                 input = input.substring(1);
                 int digit = digit(c);
@@ -122,8 +122,8 @@ public class Rfc3492Idn implements Idn {
                     t = k - bias;
                 }
                 if (digit < t) {
-					break;
-				}
+                    break;
+                }
                 w = w * (base - t); // FIXME fail on overflow
             }
             bias = adapt(i - oldi, output.length() + 1, (oldi == 0));

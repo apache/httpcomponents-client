@@ -216,8 +216,8 @@ public class TestAbortHandling extends IntegrationTestBase {
                 try {
                     try {
                         if(!startLatch.await(1, TimeUnit.SECONDS)) {
-							throw new RuntimeException("Took too long to start!");
-						}
+                            throw new RuntimeException("Took too long to start!");
+                        }
                     } catch(InterruptedException interrupted) {
                         throw new RuntimeException("Never started!", interrupted);
                     }
@@ -376,12 +376,12 @@ public class TestAbortHandling extends IntegrationTestBase {
 
                         // zero usually means sleep forever, but CountDownLatch doesn't interpret it that way.
                         if(timeout == 0) {
-							timeout = Integer.MAX_VALUE;
-						}
+                            timeout = Integer.MAX_VALUE;
+                        }
 
                         if(!awaitLatch.await(timeout, tunit)) {
-							throw new ConnectionPoolTimeoutException();
-						}
+                            throw new ConnectionPoolTimeoutException();
+                        }
 
                         return Mockito.mock(HttpClientConnection.class);
                     }
@@ -436,12 +436,12 @@ public class TestAbortHandling extends IntegrationTestBase {
 
                     // zero usually means sleep forever, but CountDownLatch doesn't interpret it that way.
                     if(timeout == 0) {
-						timeout = Integer.MAX_VALUE;
-					}
+                        timeout = Integer.MAX_VALUE;
+                    }
 
                     if(!awaitLatch.await(timeout, tunit)) {
-						throw new ConnectionPoolTimeoutException();
-					}
+                        throw new ConnectionPoolTimeoutException();
+                    }
 
                     return Mockito.mock(HttpClientConnection.class);
                 }
@@ -491,8 +491,8 @@ public class TestAbortHandling extends IntegrationTestBase {
         public void setCancellable(final Cancellable cancellable) {
             try {
                 if(!releaseTriggerLatch.await(1, TimeUnit.SECONDS)) {
-					throw new RuntimeException("Waited too long...");
-				}
+                    throw new RuntimeException("Waited too long...");
+                }
             } catch(InterruptedException ie) {
                 throw new RuntimeException(ie);
             }

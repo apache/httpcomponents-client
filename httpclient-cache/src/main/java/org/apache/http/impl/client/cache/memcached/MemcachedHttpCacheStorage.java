@@ -162,8 +162,8 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         byte[] bytes = serializeEntry(url, entry);
         String key = getCacheKey(url);
         if (key == null) {
-			return;
-		}
+            return;
+        }
         try {
             client.set(key, 0, bytes);
         } catch (OperationTimeoutException ex) {
@@ -192,8 +192,8 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
 
     private byte[] convertToByteArray(final Object o) {
         if (o == null) {
-			return null;
-		}
+            return null;
+        }
         if (!(o instanceof byte[])) {
             log.warn("got a non-bytearray back from memcached: " + o);
             return null;
@@ -204,8 +204,8 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     private MemcachedCacheEntry reconstituteEntry(final Object o) throws IOException {
         byte[] bytes = convertToByteArray(o);
         if (bytes == null) {
-			return null;
-		}
+            return null;
+        }
         MemcachedCacheEntry mce = memcachedCacheEntryFactory.getUnsetCacheEntry();
         try {
             mce.set(bytes);
@@ -218,13 +218,13 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     public HttpCacheEntry getEntry(final String url) throws IOException {
         String key = getCacheKey(url);
         if (key == null) {
-			return null;
-		}
+            return null;
+        }
         try {
             MemcachedCacheEntry mce = reconstituteEntry(client.get(key));
             if (mce == null || !url.equals(mce.getStorageKey())) {
-				return null;
-			}
+                return null;
+            }
             return mce.getHttpCacheEntry();
         } catch (OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
@@ -234,8 +234,8 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     public void removeEntry(final String url) throws IOException {
         String key = getCacheKey(url);
         if (key == null) {
-			return;
-		}
+            return;
+        }
         try {
             client.delete(key);
         } catch (OperationTimeoutException ex) {
@@ -273,8 +273,8 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
                     if (casResult != CASResponse.OK) {
                         numRetries++;
                     } else {
-						return;
-					}
+                        return;
+                    }
                 }
             } catch (OperationTimeoutException ex) {
                 throw new MemcachedOperationTimeoutException(ex);

@@ -116,27 +116,27 @@ class ResponseCachingPolicy {
         if (contentLength != null) {
             int contentLengthValue = Integer.parseInt(contentLength.getValue());
             if (contentLengthValue > this.maxObjectSizeBytes) {
-				return false;
-			}
+                return false;
+            }
         }
 
         Header[] ageHeaders = response.getHeaders(HeaderConstants.AGE);
 
         if (ageHeaders.length > 1) {
-			return false;
-		}
+            return false;
+        }
 
         Header[] expiresHeaders = response.getHeaders(HeaderConstants.EXPIRES);
 
         if (expiresHeaders.length > 1) {
-			return false;
-		}
+            return false;
+        }
 
         Header[] dateHeaders = response.getHeaders(HTTP.DATE_HEADER);
 
         if (dateHeaders.length != 1) {
-			return false;
-		}
+            return false;
+        }
 
         try {
             DateUtils.parseDate(dateHeaders[0].getValue());
@@ -153,28 +153,28 @@ class ResponseCachingPolicy {
         }
 
         if (isExplicitlyNonCacheable(response)) {
-			return false;
-		}
+            return false;
+        }
 
         return (cacheable || isExplicitlyCacheable(response));
     }
 
     private boolean unknownStatusCode(final int status) {
         if (status >= 100 && status <= 101) {
-			return false;
-		}
+            return false;
+        }
         if (status >= 200 && status <= 206) {
-			return false;
-		}
+            return false;
+        }
         if (status >= 300 && status <= 307) {
-			return false;
-		}
+            return false;
+        }
         if (status >= 400 && status <= 417) {
-			return false;
-		}
+            return false;
+        }
         if (status >= 500 && status <= 505) {
-			return false;
-		}
+            return false;
+        }
         return true;
     }
 
@@ -208,8 +208,8 @@ class ResponseCachingPolicy {
 
     protected boolean isExplicitlyCacheable(final HttpResponse response) {
         if (response.getFirstHeader(HeaderConstants.EXPIRES) != null) {
-			return true;
-		}
+            return true;
+        }
         String[] cacheableParams = { HeaderConstants.CACHE_CONTROL_MAX_AGE, "s-maxage",
                 HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE,
                 HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE,
@@ -268,13 +268,13 @@ class ResponseCachingPolicy {
     private boolean expiresHeaderLessOrEqualToDateHeaderAndNoCacheControl(
             final HttpResponse response) {
         if (response.getFirstHeader(HeaderConstants.CACHE_CONTROL) != null) {
-			return false;
-		}
+            return false;
+        }
         Header expiresHdr = response.getFirstHeader(HeaderConstants.EXPIRES);
         Header dateHdr = response.getFirstHeader(HTTP.DATE_HEADER);
         if (expiresHdr == null || dateHdr == null) {
-			return false;
-		}
+            return false;
+        }
         try {
             Date expires = DateUtils.parseDate(expiresHdr.getValue());
             Date date = DateUtils.parseDate(dateHdr.getValue());

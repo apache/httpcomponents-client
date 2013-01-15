@@ -75,8 +75,8 @@ class CacheKeyGenerator {
             int port = canonicalizePort(u.getPort(), protocol);
             String path = canonicalizePath(u.getPath());
             if ("".equals(path)) {
-				path = "/";
-			}
+                path = "/";
+            }
             String query = u.getQuery();
             String file = (query != null) ? (path + "?" + query) : path;
             URL out = new URL(protocol, hostname, port, file);
@@ -112,8 +112,8 @@ class CacheKeyGenerator {
 
     protected String getFullHeaderValue(final Header[] headers) {
         if (headers == null) {
-			return "";
-		}
+            return "";
+        }
 
         StringBuilder buf = new StringBuilder("");
         boolean first = true;
@@ -140,8 +140,8 @@ class CacheKeyGenerator {
      */
     public String getVariantURI(final HttpHost host, final HttpRequest req, final HttpCacheEntry entry) {
         if (!entry.hasVariants()) {
-			return getURI(host, req);
-		}
+            return getURI(host, req);
+        }
         return getVariantKey(req, entry) + getURI(host, req);
     }
 
