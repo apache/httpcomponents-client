@@ -56,16 +56,14 @@ HttpClient Quick Start
 
 -------------    
 
-DefaultHttpClient httpclient = new DefaultHttpClient();
+CloseableHttpClient httpclient = HttpClients.createDefault();
 HttpGet httpGet = new HttpGet("http://targethost/homepage");
-
-    HttpResponse response1 = httpclient.execute(httpGet);
-
-// The underlying HTTP connection is still held by the response object 
-// to allow the response content to be streamed directly from the network socket. 
-// In order to ensure correct deallocation of system resources 
-// the user MUST either fully consume the response content  or abort request 
-// execution by calling HttpGet#releaseConnection().
+CloseableHttpResponse response1 = httpclient.execute(httpGet);
+// The underlying HTTP connection is still held by the response object
+// to allow the response content to be streamed directly from the network socket.
+// In order to ensure correct deallocation of system resources
+// the user MUST either fully consume the response content  or abort request
+// execution by calling CloseableHttpResponse#close().
 
 try {
     System.out.println(response1.getStatusLine());
@@ -74,7 +72,7 @@ try {
     // and ensure it is fully consumed
     EntityUtils.consume(entity1);
 } finally {
-    httpGet.releaseConnection();
+    response1.close();
 }
 
 HttpPost httpPost = new HttpPost("http://targethost/login");
@@ -82,7 +80,7 @@ List <NameValuePair> nvps = new ArrayList <NameValuePair>();
 nvps.add(new BasicNameValuePair("username", "vip"));
 nvps.add(new BasicNameValuePair("password", "secret"));
 httpPost.setEntity(new UrlEncodedFormEntity(nvps));
-HttpResponse response2 = httpclient.execute(httpPost);
+CloseableHttpResponse response2 = httpclient.execute(httpPost);
 
 try {
     System.out.println(response2.getStatusLine());
@@ -91,9 +89,8 @@ try {
     // and ensure it is fully consumed
     EntityUtils.consume(entity2);
 } finally {
-    httpPost.releaseConnection();
+    response2.close();
 }
-
 -------------    
 
     Source can be downloaded 

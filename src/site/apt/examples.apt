@@ -44,6 +44,11 @@ HttpClient Examples
     This example demonstrates how to ensure the release of the underlying HTTP connection back to 
     the connection manager in case of a manual processing of HTTP responses.
 
+    * {{{./httpclient/examples/org/apache/http/examples/client/ClientConfiguration.java}HttpClient configuration}}
+    
+    This example demonstrates how to customize and configure the most common aspects of HTTP request execution 
+    and connection management.
+
     * {{{./httpclient/examples/org/apache/http/examples/client/ClientAbortMethod.java}Abort method}}
     
     This example demonstrates how to abort an HTTP request before its normal completion.
@@ -105,6 +110,11 @@ HttpClient Examples
     This example shows how HttpClient can be customized to authenticate preemptively using DIGEST 
     scheme. Generally, preemptive authentication can be considered less secure than a response to 
     an authentication challenge and therefore discouraged.
+    
+    * {{{./httpclient/examples/org/apache/http/examples/client/ProxyTunnelDemo.java}Proxy tunnel}}
+    
+    This example shows how to use ProxyClient in order to establish a tunnel through an HTTP proxy 
+    for an arbitrary protocol.
     
     * {{{./httpmime/examples/org/apache/http/examples/entity/mime/ClientMultipartFormPost.java}Multipart encoded request entity}}
     
