@@ -54,8 +54,6 @@ public class ConnectTimeoutException extends InterruptedIOException {
 
     /**
      * Creates a ConnectTimeoutException with the specified detail message.
-     *
-     * @param message The exception detail message
      */
     public ConnectTimeoutException(final String message) {
         super(message);
@@ -63,8 +61,6 @@ public class ConnectTimeoutException extends InterruptedIOException {
 
     /**
      * Creates a ConnectTimeoutException with the specified detail message.
-     *
-     * @param message The exception detail message
      *
      * @since 4.3
      */

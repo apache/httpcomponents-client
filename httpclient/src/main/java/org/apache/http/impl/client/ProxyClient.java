@@ -129,6 +129,13 @@ public class ProxyClient {
                 HttpClientParamConfig.getRequestConfig(params));
     }
 
+    /**
+     * @since 4.3
+     */
+    public ProxyClient(final RequestConfig requestConfig) {
+        this(null, null, requestConfig);
+    }
+
     public ProxyClient() {
         this(null, null, null);
     }

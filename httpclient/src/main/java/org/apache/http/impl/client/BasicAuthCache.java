@@ -50,8 +50,6 @@ public class BasicAuthCache implements AuthCache {
     /**
      * Default constructor.
      *
-     * @param schemeRegistry the scheme registry to resolve default port by scheme name.
-     *
      * @since 4.3
      */
     public BasicAuthCache(final SchemePortResolver schemePortResolver) {

@@ -75,12 +75,12 @@ import org.apache.http.util.Args;
  * <a href="http://tools.ietf.org/html/rfc5861">RFC5861</a>, which allows
  * certain cache entry revalidations to happen in the background. You may
  * want to tweak the settings for the {@link
- * CacheConfig#setAsynchronousWorkersCore() minimum} and {@link
- * CacheConfig#setAsynchronousWorkersMax() maximum} number of background
+ * CacheConfig#getAsynchronousWorkersCore() minimum} and {@link
+ * CacheConfig#getAsynchronousWorkersMax() maximum} number of background
  * worker threads, as well as the {@link
- * CacheConfig#setAsynchronousWorkerIdleLifetimeSecs() maximum time they
+ * CacheConfig#getAsynchronousWorkerIdleLifetimeSecs() maximum time they
  * can be idle before being reclaimed}. You can also control the {@link
- * CacheConfig#setRevalidationQueueSize() size of the queue} used for
+ * CacheConfig#getRevalidationQueueSize() size of the queue} used for
  * revalidations when there aren't enough workers to keep up with demand.</b>
  */
 public class CacheConfig implements Cloneable {
@@ -571,7 +571,7 @@ public class CacheConfig implements Cloneable {
          * either the request or origin response will override this, as will
          * the heuristic {@code Last-Modified} freshness calculation if it is
          * available.
-         * @param heuristicDefaultLifetimeSecs is the number of seconds to
+         * @param heuristicDefaultLifetime is the number of seconds to
          *   consider a cache-eligible response fresh in the absence of other
          *   information. Set this to {@code 0} to disable this style of
          *   heuristic caching.
@@ -595,7 +595,7 @@ public class CacheConfig implements Cloneable {
         /**
          * Sets the maximum number of threads to allow for background
          * revalidations due to the {@code stale-while-revalidate} directive.
-         * @param max number of threads; a value of 0 disables background
+         * @param asynchronousWorkersMax number of threads; a value of 0 disables background
          * revalidations.
          */
         public Builder setAsynchronousWorkersMax(final int asynchronousWorkersMax) {
@@ -606,7 +606,7 @@ public class CacheConfig implements Cloneable {
         /**
          * Sets the minimum number of threads to keep alive for background
          * revalidations due to the {@code stale-while-revalidate} directive.
-         * @param min should be greater than zero and less than or equal
+         * @param asynchronousWorkersCore should be greater than zero and less than or equal
          *   to <code>getAsynchronousWorkersMax()</code>
          */
         public Builder setAsynchronousWorkersCore(final int asynchronousWorkersCore) {
@@ -619,7 +619,7 @@ public class CacheConfig implements Cloneable {
          * background revalidation worker thread. If a worker thread is idle
          * for this long, and there are more than the core number of worker
          * threads alive, the worker will be reclaimed.
-         * @param secs idle lifetime in seconds
+         * @param asynchronousWorkerIdleLifetimeSecs idle lifetime in seconds
          */
         public Builder setAsynchronousWorkerIdleLifetimeSecs(final int asynchronousWorkerIdleLifetimeSecs) {
             this.asynchronousWorkerIdleLifetimeSecs = asynchronousWorkerIdleLifetimeSecs;
@@ -636,13 +636,14 @@ public class CacheConfig implements Cloneable {
 
         /**
          * Sets whether the cache should never cache HTTP 1.0 responses with a query string or not.
-         * @param neverCache1_0ResponsesWithQueryString true to never cache responses with a query
+         * @param neverCacheHTTP10ResponsesWithQuery true to never cache responses with a query
          * string, false to cache if explicit cache headers are found.  Set this to {@code true}
          * to better emulate IE, which also never caches responses, regardless of what caching
          * headers may be present.
          */
-        public Builder setNeverCacheHTTP10ResponsesWithQueryString(final boolean b) {
-            this.neverCacheHTTP10ResponsesWithQuery = b;
+        public Builder setNeverCacheHTTP10ResponsesWithQueryString(
+                final boolean neverCacheHTTP10ResponsesWithQuery) {
+            this.neverCacheHTTP10ResponsesWithQuery = neverCacheHTTP10ResponsesWithQuery;
             return this;
         }
 

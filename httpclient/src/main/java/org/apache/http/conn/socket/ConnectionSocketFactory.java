@@ -44,8 +44,8 @@ public interface ConnectionSocketFactory {
 
     /**
      * Creates new, unconnected socket. The socket should subsequently be passed to
-     * {@link #connectSocket(Socket, SocketConfig, HttpHost, InetSocketAddress, InetSocketAddress,
-     *   HttpContext))}.
+     * {@link #connectSocket(int, Socket, HttpHost, InetSocketAddress, InetSocketAddress,
+     *    HttpContext)}.
      *
      * @return  a new socket
      *

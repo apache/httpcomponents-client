@@ -54,7 +54,6 @@ import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpInetSocketAddress;
 import org.apache.http.conn.scheme.HostNameResolver;
@@ -525,8 +524,8 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     /**
      * @since 4.1
      *
-     * @deprecated (4.3) use {@link #connectSocket(Socket, SocketConfig, HttpHost,
-     *   InetSocketAddress, InetSocketAddress, HttpContext)}
+     * @deprecated (4.3) use {@link #connectSocket(int, Socket, HttpHost, InetSocketAddress,
+     *  InetSocketAddress, HttpContext)}
      */
     @Deprecated
     public Socket connectSocket(
