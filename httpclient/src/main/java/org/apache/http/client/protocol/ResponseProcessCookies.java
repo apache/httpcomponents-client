@@ -67,22 +67,22 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         Args.notNull(response, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
 
         // Obtain actual CookieSpec instance
-        CookieSpec cookieSpec = clientContext.getCookieSpec();
+        final CookieSpec cookieSpec = clientContext.getCookieSpec();
         if (cookieSpec == null) {
             this.log.debug("Cookie spec not specified in HTTP context");
             return;
         }
         // Obtain cookie store
-        CookieStore cookieStore = clientContext.getCookieStore();
+        final CookieStore cookieStore = clientContext.getCookieStore();
         if (cookieStore == null) {
             this.log.debug("Cookie store not specified in HTTP context");
             return;
         }
         // Obtain actual CookieOrigin instance
-        CookieOrigin cookieOrigin = clientContext.getCookieOrigin();
+        final CookieOrigin cookieOrigin = clientContext.getCookieOrigin();
         if (cookieOrigin == null) {
             this.log.debug("Cookie origin not specified in HTTP context");
             return;
@@ -105,10 +105,10 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             final CookieOrigin cookieOrigin,
             final CookieStore cookieStore) {
         while (iterator.hasNext()) {
-            Header header = iterator.nextHeader();
+            final Header header = iterator.nextHeader();
             try {
-                List<Cookie> cookies = cookieSpec.parse(header, cookieOrigin);
-                for (Cookie cookie : cookies) {
+                final List<Cookie> cookies = cookieSpec.parse(header, cookieOrigin);
+                for (final Cookie cookie : cookies) {
                     try {
                         cookieSpec.validate(cookie, cookieOrigin);
                         cookieStore.addCookie(cookie);
@@ -117,14 +117,14 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
                             this.log.debug("Cookie accepted: \""
                                     + cookie + "\". ");
                         }
-                    } catch (MalformedCookieException ex) {
+                    } catch (final MalformedCookieException ex) {
                         if (this.log.isWarnEnabled()) {
                             this.log.warn("Cookie rejected: \""
                                     + cookie + "\". " + ex.getMessage());
                         }
                     }
                 }
-            } catch (MalformedCookieException ex) {
+            } catch (final MalformedCookieException ex) {
                 if (this.log.isWarnEnabled()) {
                     this.log.warn("Invalid cookie header: \""
                             + header + "\". " + ex.getMessage());

@@ -62,16 +62,16 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
             throws HttpException, IOException {
         Args.notNull(request, "HTTP request");
 
-        String method = request.getRequestLine().getMethod();
+        final String method = request.getRequestLine().getMethod();
         if (method.equalsIgnoreCase("CONNECT")) {
             request.setHeader(PROXY_CONN_DIRECTIVE, HTTP.CONN_KEEP_ALIVE);
             return;
         }
 
-        HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
 
         // Obtain the client connection (required)
-        RouteInfo route = clientContext.getHttpRoute();
+        final RouteInfo route = clientContext.getHttpRoute();
         if (route == null) {
             this.log.debug("Connection route not set in the context");
             return;

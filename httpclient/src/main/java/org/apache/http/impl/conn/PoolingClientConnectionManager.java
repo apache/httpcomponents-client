@@ -144,7 +144,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
     }
 
     private String format(final HttpRoute route, final Object state) {
-        StringBuilder buf = new StringBuilder();
+        final StringBuilder buf = new StringBuilder();
         buf.append("[route: ").append(route).append("]");
         if (state != null) {
             buf.append("[state: ").append(state).append("]");
@@ -153,9 +153,9 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
     }
 
     private String formatStats(final HttpRoute route) {
-        StringBuilder buf = new StringBuilder();
-        PoolStats totals = this.pool.getTotalStats();
-        PoolStats stats = this.pool.getStats(route);
+        final StringBuilder buf = new StringBuilder();
+        final PoolStats totals = this.pool.getTotalStats();
+        final PoolStats stats = this.pool.getStats(route);
         buf.append("[total kept alive: ").append(totals.getAvailable()).append("; ");
         buf.append("route allocated: ").append(stats.getLeased() + stats.getAvailable());
         buf.append(" of ").append(stats.getMax()).append("; ");
@@ -165,10 +165,10 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
     }
 
     private String format(final HttpPoolEntry entry) {
-        StringBuilder buf = new StringBuilder();
+        final StringBuilder buf = new StringBuilder();
         buf.append("[id: ").append(entry.getId()).append("]");
         buf.append("[route: ").append(entry.getRoute()).append("]");
-        Object state = entry.getState();
+        final Object state = entry.getState();
         if (state != null) {
             buf.append("[state: ").append(state).append("]");
         }
@@ -215,7 +215,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
                 this.log.debug("Connection leased: " + format(entry) + formatStats(entry.getRoute()));
             }
             return new ManagedClientConnectionImpl(this, this.operator, entry);
-        } catch (ExecutionException ex) {
+        } catch (final ExecutionException ex) {
             Throwable cause = ex.getCause();
             if (cause == null) {
                 cause = ex;
@@ -223,7 +223,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
             this.log.error("Unexpected exception leasing connection from pool", cause);
             // Should never happen
             throw new InterruptedException();
-        } catch (TimeoutException ex) {
+        } catch (final TimeoutException ex) {
             throw new ConnectionPoolTimeoutException("Timeout waiting for connection from pool");
         }
     }
@@ -233,10 +233,10 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
 
         Args.check(conn instanceof ManagedClientConnectionImpl, "Connection class mismatch, " +
             "connection not obtained from this manager");
-        ManagedClientConnectionImpl managedConn = (ManagedClientConnectionImpl) conn;
+        final ManagedClientConnectionImpl managedConn = (ManagedClientConnectionImpl) conn;
         Asserts.check(managedConn.getManager() == this, "Connection not obtained from this manager");
         synchronized (managedConn) {
-            HttpPoolEntry entry = managedConn.detach();
+            final HttpPoolEntry entry = managedConn.detach();
             if (entry == null) {
                 return;
             }
@@ -244,7 +244,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
                 if (managedConn.isOpen() && !managedConn.isMarkedReusable()) {
                     try {
                         managedConn.shutdown();
-                    } catch (IOException iox) {
+                    } catch (final IOException iox) {
                         if (this.log.isDebugEnabled()) {
                             this.log.debug("I/O exception shutting down released connection", iox);
                         }
@@ -276,7 +276,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         this.log.debug("Connection manager is shutting down");
         try {
             this.pool.shutdown();
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             this.log.debug("I/O exception shutting down connection manager", ex);
         }
         this.log.debug("Connection manager shut down");

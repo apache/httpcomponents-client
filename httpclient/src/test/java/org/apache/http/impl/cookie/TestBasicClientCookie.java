@@ -42,24 +42,24 @@ public class TestBasicClientCookie {
 
     @Test
     public void testConstructor() {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         Assert.assertEquals("name", cookie.getName());
         Assert.assertEquals("value", cookie.getValue());
         try {
             new BasicClientCookie(null, null);
             Assert.fail("IllegalArgumentException should have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             //expected
         }
     }
 
     @Test
     public void testCloning() throws Exception {
-        BasicClientCookie orig = new BasicClientCookie("name", "value");
+        final BasicClientCookie orig = new BasicClientCookie("name", "value");
         orig.setDomain("domain");
         orig.setPath("/");
         orig.setAttribute("attrib", "stuff");
-        BasicClientCookie clone = (BasicClientCookie) orig.clone();
+        final BasicClientCookie clone = (BasicClientCookie) orig.clone();
         Assert.assertEquals(orig.getName(), clone.getName());
         Assert.assertEquals(orig.getValue(), clone.getValue());
         Assert.assertEquals(orig.getDomain(), clone.getDomain());
@@ -69,18 +69,18 @@ public class TestBasicClientCookie {
 
     @Test
     public void testSerialization() throws Exception {
-        BasicClientCookie orig = new BasicClientCookie("name", "value");
+        final BasicClientCookie orig = new BasicClientCookie("name", "value");
         orig.setDomain("domain");
         orig.setPath("/");
         orig.setAttribute("attrib", "stuff");
-        ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
-        ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
+        final ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
+        final ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
         outstream.writeObject(orig);
         outstream.close();
-        byte[] raw = outbuffer.toByteArray();
-        ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
-        ObjectInputStream instream = new ObjectInputStream(inbuffer);
-        BasicClientCookie clone = (BasicClientCookie) instream.readObject();
+        final byte[] raw = outbuffer.toByteArray();
+        final ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
+        final ObjectInputStream instream = new ObjectInputStream(inbuffer);
+        final BasicClientCookie clone = (BasicClientCookie) instream.readObject();
         Assert.assertEquals(orig.getName(), clone.getName());
         Assert.assertEquals(orig.getValue(), clone.getValue());
         Assert.assertEquals(orig.getDomain(), clone.getDomain());

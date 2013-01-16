@@ -39,21 +39,21 @@ public class TestCredentials {
 
     @Test
     public void testUsernamePasswordCredentialsBasics() {
-        UsernamePasswordCredentials creds1 = new UsernamePasswordCredentials(
+        final UsernamePasswordCredentials creds1 = new UsernamePasswordCredentials(
                 "name", "pwd");
         Assert.assertEquals("name", creds1.getUserName());
         Assert.assertEquals(new BasicUserPrincipal("name"),
                 creds1.getUserPrincipal());
         Assert.assertEquals("pwd", creds1.getPassword());
         Assert.assertEquals("[principal: name]", creds1.toString());
-        UsernamePasswordCredentials creds2 = new UsernamePasswordCredentials(
+        final UsernamePasswordCredentials creds2 = new UsernamePasswordCredentials(
                 "name:pwd");
         Assert.assertEquals("name", creds2.getUserName());
         Assert.assertEquals(new BasicUserPrincipal("name"),
                 creds2.getUserPrincipal());
         Assert.assertEquals("pwd", creds2.getPassword());
         Assert.assertEquals("[principal: name]", creds2.toString());
-        UsernamePasswordCredentials creds3 = new UsernamePasswordCredentials(
+        final UsernamePasswordCredentials creds3 = new UsernamePasswordCredentials(
             "name");
         Assert.assertEquals("name", creds3.getUserName());
         Assert.assertEquals(new BasicUserPrincipal("name"),
@@ -64,7 +64,7 @@ public class TestCredentials {
 
     @Test
     public void testNTCredentialsBasics() {
-        NTCredentials creds1 = new NTCredentials(
+        final NTCredentials creds1 = new NTCredentials(
                 "name", "pwd", "localhost", "domain");
         Assert.assertEquals("name", creds1.getUserName());
         Assert.assertEquals(new NTUserPrincipal("DOMAIN", "name"),
@@ -72,7 +72,7 @@ public class TestCredentials {
         Assert.assertEquals("pwd", creds1.getPassword());
         Assert.assertEquals("[principal: DOMAIN/name][workstation: LOCALHOST]",
                 creds1.toString());
-        NTCredentials creds2 = new NTCredentials(
+        final NTCredentials creds2 = new NTCredentials(
                 "name", null, null, null);
         Assert.assertEquals("name", creds2.getUserName());
         Assert.assertEquals(new NTUserPrincipal(null, "name"),
@@ -80,7 +80,7 @@ public class TestCredentials {
         Assert.assertEquals(null, creds2.getPassword());
         Assert.assertEquals("[principal: name][workstation: null]",
                 creds2.toString());
-        NTCredentials creds3 = new NTCredentials(
+        final NTCredentials creds3 = new NTCredentials(
                 "domain/name:pwd");
         Assert.assertEquals("name", creds3.getUserName());
         Assert.assertEquals(new NTUserPrincipal("DOMAIN", "name"),
@@ -88,7 +88,7 @@ public class TestCredentials {
         Assert.assertEquals("pwd", creds3.getPassword());
         Assert.assertEquals("[principal: DOMAIN/name][workstation: null]",
                 creds3.toString());
-        NTCredentials creds4 = new NTCredentials(
+        final NTCredentials creds4 = new NTCredentials(
             "domain/name");
         Assert.assertEquals("name", creds4.getUserName());
         Assert.assertEquals(new NTUserPrincipal("DOMAIN", "name"),
@@ -96,7 +96,7 @@ public class TestCredentials {
         Assert.assertEquals(null, creds4.getPassword());
         Assert.assertEquals("[principal: DOMAIN/name][workstation: null]",
                 creds4.toString());
-        NTCredentials creds5 = new NTCredentials(
+        final NTCredentials creds5 = new NTCredentials(
             "name");
         Assert.assertEquals("name", creds5.getUserName());
         Assert.assertEquals(new NTUserPrincipal(null, "name"),
@@ -108,11 +108,11 @@ public class TestCredentials {
 
     @Test
     public void testUsernamePasswordCredentialsHashCode() {
-        UsernamePasswordCredentials creds1 = new UsernamePasswordCredentials(
+        final UsernamePasswordCredentials creds1 = new UsernamePasswordCredentials(
                 "name", "pwd");
-        UsernamePasswordCredentials creds2 = new UsernamePasswordCredentials(
+        final UsernamePasswordCredentials creds2 = new UsernamePasswordCredentials(
                 "othername", "pwd");
-        UsernamePasswordCredentials creds3 = new UsernamePasswordCredentials(
+        final UsernamePasswordCredentials creds3 = new UsernamePasswordCredentials(
                 "name", "otherpwd");
 
         Assert.assertTrue(creds1.hashCode() == creds1.hashCode());
@@ -122,11 +122,11 @@ public class TestCredentials {
 
     @Test
     public void testUsernamePasswordCredentialsEquals() {
-        UsernamePasswordCredentials creds1 = new UsernamePasswordCredentials(
+        final UsernamePasswordCredentials creds1 = new UsernamePasswordCredentials(
                 "name", "pwd");
-        UsernamePasswordCredentials creds2 = new UsernamePasswordCredentials(
+        final UsernamePasswordCredentials creds2 = new UsernamePasswordCredentials(
                 "othername", "pwd");
-        UsernamePasswordCredentials creds3 = new UsernamePasswordCredentials(
+        final UsernamePasswordCredentials creds3 = new UsernamePasswordCredentials(
                 "name", "otherpwd");
 
         Assert.assertTrue(creds1.equals(creds1));
@@ -136,23 +136,23 @@ public class TestCredentials {
 
     @Test
     public void testNTCredentialsHashCode() {
-        NTCredentials creds1 = new NTCredentials(
+        final NTCredentials creds1 = new NTCredentials(
                 "name", "pwd", "somehost", "domain");
-        NTCredentials creds2 = new NTCredentials(
+        final NTCredentials creds2 = new NTCredentials(
                 "othername", "pwd", "somehost", "domain");
-        NTCredentials creds3 = new NTCredentials(
+        final NTCredentials creds3 = new NTCredentials(
                 "name", "otherpwd", "SomeHost", "Domain");
-        NTCredentials creds4 = new NTCredentials(
+        final NTCredentials creds4 = new NTCredentials(
                 "name", "pwd", "otherhost", "domain");
-        NTCredentials creds5 = new NTCredentials(
+        final NTCredentials creds5 = new NTCredentials(
                 "name", "pwd", null, "domain");
-        NTCredentials creds6 = new NTCredentials(
+        final NTCredentials creds6 = new NTCredentials(
                 "name", "pwd", "somehost", "ms");
-        NTCredentials creds7 = new NTCredentials(
+        final NTCredentials creds7 = new NTCredentials(
                 "name", "pwd", "somehost", null);
-        NTCredentials creds8 = new NTCredentials(
+        final NTCredentials creds8 = new NTCredentials(
                 "name", "pwd", null, "domain");
-        NTCredentials creds9 = new NTCredentials(
+        final NTCredentials creds9 = new NTCredentials(
                 "name", "pwd", "somehost", null);
 
         Assert.assertTrue(creds1.hashCode() == creds1.hashCode());
@@ -168,23 +168,23 @@ public class TestCredentials {
 
     @Test
     public void testNTCredentialsEquals() {
-        NTCredentials creds1 = new NTCredentials(
+        final NTCredentials creds1 = new NTCredentials(
                 "name", "pwd", "somehost", "domain");
-        NTCredentials creds2 = new NTCredentials(
+        final NTCredentials creds2 = new NTCredentials(
                 "othername", "pwd", "somehost", "domain");
-        NTCredentials creds3 = new NTCredentials(
+        final NTCredentials creds3 = new NTCredentials(
                 "name", "otherpwd", "SomeHost", "Domain");
-        NTCredentials creds4 = new NTCredentials(
+        final NTCredentials creds4 = new NTCredentials(
                 "name", "pwd", "otherhost", "domain");
-        NTCredentials creds5 = new NTCredentials(
+        final NTCredentials creds5 = new NTCredentials(
                 "name", "pwd", null, "domain");
-        NTCredentials creds6 = new NTCredentials(
+        final NTCredentials creds6 = new NTCredentials(
                 "name", "pwd", "somehost", "ms");
-        NTCredentials creds7 = new NTCredentials(
+        final NTCredentials creds7 = new NTCredentials(
                 "name", "pwd", "somehost", null);
-        NTCredentials creds8 = new NTCredentials(
+        final NTCredentials creds8 = new NTCredentials(
                 "name", "pwd", null, "domain");
-        NTCredentials creds9 = new NTCredentials(
+        final NTCredentials creds9 = new NTCredentials(
                 "name", "pwd", "somehost", null);
 
         Assert.assertTrue(creds1.equals(creds1));
@@ -201,29 +201,29 @@ public class TestCredentials {
 
     @Test
     public void testUsernamePasswordCredentialsSerialization() throws Exception {
-        UsernamePasswordCredentials orig = new UsernamePasswordCredentials("name", "pwd");
-        ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
-        ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
+        final UsernamePasswordCredentials orig = new UsernamePasswordCredentials("name", "pwd");
+        final ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
+        final ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
         outstream.writeObject(orig);
         outstream.close();
-        byte[] raw = outbuffer.toByteArray();
-        ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
-        ObjectInputStream instream = new ObjectInputStream(inbuffer);
-        UsernamePasswordCredentials clone = (UsernamePasswordCredentials) instream.readObject();
+        final byte[] raw = outbuffer.toByteArray();
+        final ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
+        final ObjectInputStream instream = new ObjectInputStream(inbuffer);
+        final UsernamePasswordCredentials clone = (UsernamePasswordCredentials) instream.readObject();
         Assert.assertEquals(orig, clone);
     }
 
     @Test
     public void testNTCredentialsSerialization() throws Exception {
-        NTCredentials orig = new NTCredentials("name", "pwd", "somehost", "domain");
-        ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
-        ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
+        final NTCredentials orig = new NTCredentials("name", "pwd", "somehost", "domain");
+        final ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
+        final ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
         outstream.writeObject(orig);
         outstream.close();
-        byte[] raw = outbuffer.toByteArray();
-        ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
-        ObjectInputStream instream = new ObjectInputStream(inbuffer);
-        NTCredentials clone = (NTCredentials) instream.readObject();
+        final byte[] raw = outbuffer.toByteArray();
+        final ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
+        final ObjectInputStream instream = new ObjectInputStream(inbuffer);
+        final NTCredentials clone = (NTCredentials) instream.readObject();
         Assert.assertEquals(orig, clone);
     }
 

@@ -62,7 +62,7 @@ public class BrowserCompatSpecFactory implements CookieSpecFactory, CookieSpecPr
         if (params != null) {
 
             String[] patterns = null;
-            Collection<?> param = (Collection<?>) params.getParameter(
+            final Collection<?> param = (Collection<?>) params.getParameter(
                     CookieSpecPNames.DATE_PATTERNS);
             if (param != null) {
                 patterns = new String[param.size()];

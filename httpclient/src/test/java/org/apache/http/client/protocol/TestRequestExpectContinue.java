@@ -43,82 +43,82 @@ public class TestRequestExpectContinue {
 
     @Test
     public void testRequestExpectContinueGenerated() throws Exception {
-        HttpContext context = new BasicHttpContext();
-        RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
+        final HttpContext context = new BasicHttpContext();
+        final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
         context.setAttribute(ClientContext.REQUEST_CONFIG, config);
-        BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("POST", "/");
-        String s = "whatever";
-        StringEntity entity = new StringEntity(s, "US-ASCII");
+        final BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("POST", "/");
+        final String s = "whatever";
+        final StringEntity entity = new StringEntity(s, "US-ASCII");
         request.setEntity(entity);
-        RequestExpectContinue interceptor = new RequestExpectContinue();
+        final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, context);
-        Header header = request.getFirstHeader(HTTP.EXPECT_DIRECTIVE);
+        final Header header = request.getFirstHeader(HTTP.EXPECT_DIRECTIVE);
         Assert.assertNotNull(header);
         Assert.assertEquals(HTTP.EXPECT_CONTINUE, header.getValue());
     }
 
     @Test
     public void testRequestExpectContinueNotGenerated() throws Exception {
-        HttpContext context = new BasicHttpContext(null);
-        RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(false).build();
+        final HttpContext context = new BasicHttpContext(null);
+        final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(false).build();
         context.setAttribute(ClientContext.REQUEST_CONFIG, config);
-        BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("POST", "/");
-        String s = "whatever";
-        StringEntity entity = new StringEntity(s, "US-ASCII");
+        final BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("POST", "/");
+        final String s = "whatever";
+        final StringEntity entity = new StringEntity(s, "US-ASCII");
         request.setEntity(entity);
-        RequestExpectContinue interceptor = new RequestExpectContinue();
+        final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, context);
-        Header header = request.getFirstHeader(HTTP.EXPECT_DIRECTIVE);
+        final Header header = request.getFirstHeader(HTTP.EXPECT_DIRECTIVE);
         Assert.assertNull(header);
     }
 
     @Test
     public void testRequestExpectContinueHTTP10() throws Exception {
-        HttpContext context = new BasicHttpContext(null);
-        RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
+        final HttpContext context = new BasicHttpContext(null);
+        final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
         context.setAttribute(ClientContext.REQUEST_CONFIG, config);
-        BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest(
+        final BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest(
                 "POST", "/", HttpVersion.HTTP_1_0);
-        String s = "whatever";
-        StringEntity entity = new StringEntity(s, "US-ASCII");
+        final String s = "whatever";
+        final StringEntity entity = new StringEntity(s, "US-ASCII");
         request.setEntity(entity);
-        RequestExpectContinue interceptor = new RequestExpectContinue();
+        final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, context);
-        Header header = request.getFirstHeader(HTTP.EXPECT_DIRECTIVE);
+        final Header header = request.getFirstHeader(HTTP.EXPECT_DIRECTIVE);
         Assert.assertNull(header);
     }
 
     @Test
     public void testRequestExpectContinueZeroContent() throws Exception {
-        HttpContext context = new BasicHttpContext(null);
-        RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
+        final HttpContext context = new BasicHttpContext(null);
+        final RequestConfig config = RequestConfig.custom().setExpectContinueEnabled(true).build();
         context.setAttribute(ClientContext.REQUEST_CONFIG, config);
-        BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("POST", "/");
-        String s = "";
-        StringEntity entity = new StringEntity(s, "US-ASCII");
+        final BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("POST", "/");
+        final String s = "";
+        final StringEntity entity = new StringEntity(s, "US-ASCII");
         request.setEntity(entity);
-        RequestExpectContinue interceptor = new RequestExpectContinue();
+        final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, context);
-        Header header = request.getFirstHeader(HTTP.EXPECT_DIRECTIVE);
+        final Header header = request.getFirstHeader(HTTP.EXPECT_DIRECTIVE);
         Assert.assertNull(header);
     }
 
     @Test
     public void testRequestExpectContinueInvalidInput() throws Exception {
-        RequestExpectContinue interceptor = new RequestExpectContinue();
+        final RequestExpectContinue interceptor = new RequestExpectContinue();
         try {
             interceptor.process(null, null);
             Assert.fail("IllegalArgumentException should have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
     }
 
     @Test
     public void testRequestExpectContinueIgnoreNonenclosingRequests() throws Exception {
-        HttpContext context = new BasicHttpContext(null);
-        BasicHttpRequest request = new BasicHttpRequest("POST", "/");
-        RequestExpectContinue interceptor = new RequestExpectContinue();
+        final HttpContext context = new BasicHttpContext(null);
+        final BasicHttpRequest request = new BasicHttpRequest("POST", "/");
+        final RequestExpectContinue interceptor = new RequestExpectContinue();
         interceptor.process(request, context);
         Assert.assertEquals(0, request.getAllHeaders().length);
     }

@@ -72,7 +72,7 @@ public class IdleConnectionHandler {
      */
     public void add(final HttpConnection connection, final long validDuration, final TimeUnit unit) {
 
-        long timeAdded = System.currentTimeMillis();
+        final long timeAdded = System.currentTimeMillis();
 
         if (log.isDebugEnabled()) {
             log.debug("Adding connection at: " + timeAdded);
@@ -90,7 +90,7 @@ public class IdleConnectionHandler {
      * @return True if the connection is still valid.
      */
     public boolean remove(final HttpConnection connection) {
-        TimeValues times = connectionToTimes.remove(connection);
+        final TimeValues times = connectionToTimes.remove(connection);
         if(times == null) {
             log.warn("Removing a connection that never existed!");
             return true;
@@ -114,23 +114,23 @@ public class IdleConnectionHandler {
     public void closeIdleConnections(final long idleTime) {
 
         // the latest time for which connections will be closed
-        long idleTimeout = System.currentTimeMillis() - idleTime;
+        final long idleTimeout = System.currentTimeMillis() - idleTime;
 
         if (log.isDebugEnabled()) {
             log.debug("Checking for connections, idle timeout: "  + idleTimeout);
         }
 
-        for (Entry<HttpConnection, TimeValues> entry : connectionToTimes.entrySet()) {
-            HttpConnection conn = entry.getKey();
-            TimeValues times = entry.getValue();
-            long connectionTime = times.timeAdded;
+        for (final Entry<HttpConnection, TimeValues> entry : connectionToTimes.entrySet()) {
+            final HttpConnection conn = entry.getKey();
+            final TimeValues times = entry.getValue();
+            final long connectionTime = times.timeAdded;
             if (connectionTime <= idleTimeout) {
                 if (log.isDebugEnabled()) {
                     log.debug("Closing idle connection, connection time: "  + connectionTime);
                 }
                 try {
                     conn.close();
-                } catch (IOException ex) {
+                } catch (final IOException ex) {
                     log.debug("I/O error closing connection", ex);
                 }
             }
@@ -139,21 +139,21 @@ public class IdleConnectionHandler {
 
 
     public void closeExpiredConnections() {
-        long now = System.currentTimeMillis();
+        final long now = System.currentTimeMillis();
         if (log.isDebugEnabled()) {
             log.debug("Checking for expired connections, now: "  + now);
         }
 
-        for (Entry<HttpConnection, TimeValues> entry : connectionToTimes.entrySet()) {
-            HttpConnection conn = entry.getKey();
-            TimeValues times = entry.getValue();
+        for (final Entry<HttpConnection, TimeValues> entry : connectionToTimes.entrySet()) {
+            final HttpConnection conn = entry.getKey();
+            final TimeValues times = entry.getValue();
             if(times.timeExpires <= now) {
                 if (log.isDebugEnabled()) {
                     log.debug("Closing connection, expired @: "  + times.timeExpires);
                 }
                 try {
                     conn.close();
-                } catch (IOException ex) {
+                } catch (final IOException ex) {
                     log.debug("I/O error closing connection", ex);
                 }
             }

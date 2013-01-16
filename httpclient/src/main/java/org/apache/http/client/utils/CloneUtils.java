@@ -48,23 +48,23 @@ public class CloneUtils {
             return null;
         }
         if (obj instanceof Cloneable) {
-            Class<?> clazz = obj.getClass ();
+            final Class<?> clazz = obj.getClass ();
             Method m;
             try {
                 m = clazz.getMethod("clone", (Class[]) null);
-            } catch (NoSuchMethodException ex) {
+            } catch (final NoSuchMethodException ex) {
                 throw new NoSuchMethodError(ex.getMessage());
             }
             try {
                 return (T) m.invoke(obj, (Object []) null);
-            } catch (InvocationTargetException ex) {
-                Throwable cause = ex.getCause();
+            } catch (final InvocationTargetException ex) {
+                final Throwable cause = ex.getCause();
                 if (cause instanceof CloneNotSupportedException) {
                     throw ((CloneNotSupportedException) cause);
                 } else {
                     throw new Error("Unexpected exception", cause);
                 }
-            } catch (IllegalAccessException ex) {
+            } catch (final IllegalAccessException ex) {
                 throw new IllegalAccessError(ex.getMessage());
             }
         } else {

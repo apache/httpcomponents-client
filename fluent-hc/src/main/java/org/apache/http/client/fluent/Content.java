@@ -62,7 +62,7 @@ public class Content {
         }
         try {
             return new String(this.raw, charset.name());
-        } catch (UnsupportedEncodingException ex) {
+        } catch (final UnsupportedEncodingException ex) {
             return new String(this.raw);
         }
     }

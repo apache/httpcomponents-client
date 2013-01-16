@@ -99,7 +99,7 @@ public abstract class AbstractProtocolTest {
     }
 
     protected IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequest() throws Exception {
-        CloseableHttpResponse resp = mockBackend.execute(
+        final CloseableHttpResponse resp = mockBackend.execute(
                 EasyMock.isA(HttpRoute.class),
                 EasyMock.isA(HttpRequestWrapper.class),
                 EasyMock.isA(HttpClientContext.class),
@@ -109,7 +109,7 @@ public abstract class AbstractProtocolTest {
 
     protected IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndReturn(
             final HttpResponse reponse) throws Exception {
-        CloseableHttpResponse resp = mockBackend.execute(
+        final CloseableHttpResponse resp = mockBackend.execute(
                 EasyMock.isA(HttpRoute.class),
                 EasyMock.isA(HttpRequestWrapper.class),
                 EasyMock.isA(HttpClientContext.class),

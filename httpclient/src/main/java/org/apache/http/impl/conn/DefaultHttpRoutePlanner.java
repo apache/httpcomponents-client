@@ -105,7 +105,7 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         final Scheme schm;
         try {
             schm = this.schemeRegistry.getScheme(target.getSchemeName());
-        } catch (IllegalStateException ex) {
+        } catch (final IllegalStateException ex) {
             throw new HttpException(ex.getMessage());
         }
         // as it is typically used for TLS/SSL, we assume that

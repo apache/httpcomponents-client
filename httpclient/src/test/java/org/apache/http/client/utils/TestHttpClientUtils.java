@@ -40,21 +40,21 @@ public class TestHttpClientUtils {
 
     @Test
     public void testCloseQuietlyResponseNull() throws Exception {
-        HttpResponse response = null;
+        final HttpResponse response = null;
         HttpClientUtils.closeQuietly(response);
     }
 
     @Test
     public void testCloseQuietlyResponseEntityNull() throws Exception {
-        HttpResponse response = Mockito.mock(HttpResponse.class);
+        final HttpResponse response = Mockito.mock(HttpResponse.class);
         HttpClientUtils.closeQuietly(response);
         Mockito.verify(response).getEntity();
     }
 
     @Test
     public void testCloseQuietlyResponseEntityNonStreaming() throws Exception {
-        HttpResponse response = Mockito.mock(HttpResponse.class);
-        HttpEntity entity = Mockito.mock(HttpEntity.class);
+        final HttpResponse response = Mockito.mock(HttpResponse.class);
+        final HttpEntity entity = Mockito.mock(HttpEntity.class);
         Mockito.when(response.getEntity()).thenReturn(entity);
         Mockito.when(entity.isStreaming()).thenReturn(Boolean.FALSE);
         HttpClientUtils.closeQuietly(response);
@@ -63,9 +63,9 @@ public class TestHttpClientUtils {
 
     @Test
     public void testCloseQuietlyResponseEntity() throws Exception {
-        HttpResponse response = Mockito.mock(HttpResponse.class);
-        HttpEntity entity = Mockito.mock(HttpEntity.class);
-        InputStream instream = Mockito.mock(InputStream.class);
+        final HttpResponse response = Mockito.mock(HttpResponse.class);
+        final HttpEntity entity = Mockito.mock(HttpEntity.class);
+        final InputStream instream = Mockito.mock(InputStream.class);
         Mockito.when(response.getEntity()).thenReturn(entity);
         Mockito.when(entity.isStreaming()).thenReturn(Boolean.TRUE);
         Mockito.when(entity.getContent()).thenReturn(instream);
@@ -75,9 +75,9 @@ public class TestHttpClientUtils {
 
     @Test
     public void testCloseQuietlyResponseIgnoreIOError() throws Exception {
-        HttpResponse response = Mockito.mock(HttpResponse.class);
-        HttpEntity entity = Mockito.mock(HttpEntity.class);
-        InputStream instream = Mockito.mock(InputStream.class);
+        final HttpResponse response = Mockito.mock(HttpResponse.class);
+        final HttpEntity entity = Mockito.mock(HttpEntity.class);
+        final InputStream instream = Mockito.mock(InputStream.class);
         Mockito.when(response.getEntity()).thenReturn(entity);
         Mockito.when(entity.getContent()).thenReturn(instream);
         Mockito.doThrow(new IOException()).when(instream).close();
@@ -86,13 +86,13 @@ public class TestHttpClientUtils {
 
     @Test
     public void testCloseQuietlyCloseableResponseNull() throws Exception {
-        CloseableHttpResponse response = null;
+        final CloseableHttpResponse response = null;
         HttpClientUtils.closeQuietly(response);
     }
 
     @Test
     public void testCloseQuietlyCloseableResponseEntityNull() throws Exception {
-        CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
+        final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
         HttpClientUtils.closeQuietly(response);
         Mockito.verify(response).getEntity();
         Mockito.verify(response).close();
@@ -100,8 +100,8 @@ public class TestHttpClientUtils {
 
     @Test
     public void testCloseQuietlyCloseableResponseEntityNonStreaming() throws Exception {
-        CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
-        HttpEntity entity = Mockito.mock(HttpEntity.class);
+        final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
+        final HttpEntity entity = Mockito.mock(HttpEntity.class);
         Mockito.when(response.getEntity()).thenReturn(entity);
         Mockito.when(entity.isStreaming()).thenReturn(Boolean.FALSE);
         HttpClientUtils.closeQuietly(response);
@@ -111,9 +111,9 @@ public class TestHttpClientUtils {
 
     @Test
     public void testCloseQuietlyCloseableResponseEntity() throws Exception {
-        CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
-        HttpEntity entity = Mockito.mock(HttpEntity.class);
-        InputStream instream = Mockito.mock(InputStream.class);
+        final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
+        final HttpEntity entity = Mockito.mock(HttpEntity.class);
+        final InputStream instream = Mockito.mock(InputStream.class);
         Mockito.when(response.getEntity()).thenReturn(entity);
         Mockito.when(entity.isStreaming()).thenReturn(Boolean.TRUE);
         Mockito.when(entity.getContent()).thenReturn(instream);
@@ -124,9 +124,9 @@ public class TestHttpClientUtils {
 
     @Test
     public void testCloseQuietlyCloseableResponseIgnoreIOError() throws Exception {
-        CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
-        HttpEntity entity = Mockito.mock(HttpEntity.class);
-        InputStream instream = Mockito.mock(InputStream.class);
+        final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
+        final HttpEntity entity = Mockito.mock(HttpEntity.class);
+        final InputStream instream = Mockito.mock(InputStream.class);
         Mockito.when(response.getEntity()).thenReturn(entity);
         Mockito.when(entity.getContent()).thenReturn(instream);
         Mockito.doThrow(new IOException()).when(instream).close();
@@ -135,20 +135,20 @@ public class TestHttpClientUtils {
 
     @Test
     public void testCloseQuietlyHttpClientNull() throws Exception {
-        CloseableHttpClient httpclient = null;
+        final CloseableHttpClient httpclient = null;
         HttpClientUtils.closeQuietly(httpclient);
     }
 
     @Test
     public void testCloseQuietlyHttpClient() throws Exception {
-        CloseableHttpClient httpclient = Mockito.mock(CloseableHttpClient.class);
+        final CloseableHttpClient httpclient = Mockito.mock(CloseableHttpClient.class);
         HttpClientUtils.closeQuietly(httpclient);
         Mockito.verify(httpclient).close();
     }
 
     @Test
     public void testCloseQuietlyCloseableHttpClientIgnoreIOError() throws Exception {
-        CloseableHttpClient httpclient = Mockito.mock(CloseableHttpClient.class);
+        final CloseableHttpClient httpclient = Mockito.mock(CloseableHttpClient.class);
         Mockito.doThrow(new IOException()).when(httpclient).close();
         HttpClientUtils.closeQuietly(httpclient);
     }

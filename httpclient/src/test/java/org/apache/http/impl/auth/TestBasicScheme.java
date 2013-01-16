@@ -49,44 +49,44 @@ public class TestBasicScheme {
 
     @Test(expected=MalformedChallengeException.class)
     public void testBasicAuthenticationWithNoRealm() throws Exception {
-        String challenge = "Basic";
-        Header header = new BasicHeader(AUTH.WWW_AUTH, challenge);
-        AuthScheme authscheme = new BasicScheme();
+        final String challenge = "Basic";
+        final Header header = new BasicHeader(AUTH.WWW_AUTH, challenge);
+        final AuthScheme authscheme = new BasicScheme();
         authscheme.processChallenge(header);
     }
 
     @Test
     public void testBasicAuthenticationWith88591Chars() throws Exception {
-        int[] germanChars = { 0xE4, 0x2D, 0xF6, 0x2D, 0xFc };
-        StringBuilder buffer = new StringBuilder();
-        for (int germanChar : germanChars) {
+        final int[] germanChars = { 0xE4, 0x2D, 0xF6, 0x2D, 0xFc };
+        final StringBuilder buffer = new StringBuilder();
+        for (final int germanChar : germanChars) {
             buffer.append((char)germanChar);
         }
 
-        UsernamePasswordCredentials creds = new UsernamePasswordCredentials("dh", buffer.toString());
-        BasicScheme authscheme = new BasicScheme(Consts.ISO_8859_1);
+        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("dh", buffer.toString());
+        final BasicScheme authscheme = new BasicScheme(Consts.ISO_8859_1);
 
-        HttpRequest request = new BasicHttpRequest("GET", "/");
-        HttpContext context = new BasicHttpContext();
-        Header header = authscheme.authenticate(creds, request, context);
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpContext context = new BasicHttpContext();
+        final Header header = authscheme.authenticate(creds, request, context);
         Assert.assertEquals("Basic ZGg65C32Lfw=", header.getValue());
     }
 
     @Test
     public void testBasicAuthentication() throws Exception {
-        UsernamePasswordCredentials creds =
+        final UsernamePasswordCredentials creds =
             new UsernamePasswordCredentials("testuser", "testpass");
 
-        Header challenge = new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\"");
+        final Header challenge = new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\"");
 
-        BasicScheme authscheme = new BasicScheme();
+        final BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(challenge);
 
-        HttpRequest request = new BasicHttpRequest("GET", "/");
-        HttpContext context = new BasicHttpContext();
-        Header authResponse = authscheme.authenticate(creds, request, context);
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpContext context = new BasicHttpContext();
+        final Header authResponse = authscheme.authenticate(creds, request, context);
 
-        String expected = "Basic " + EncodingUtils.getAsciiString(
+        final String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
         Assert.assertEquals(AUTH.WWW_AUTH_RESP, authResponse.getName());
         Assert.assertEquals(expected, authResponse.getValue());
@@ -97,19 +97,19 @@ public class TestBasicScheme {
 
     @Test
     public void testBasicProxyAuthentication() throws Exception {
-        UsernamePasswordCredentials creds =
+        final UsernamePasswordCredentials creds =
             new UsernamePasswordCredentials("testuser", "testpass");
 
-        Header challenge = new BasicHeader(AUTH.PROXY_AUTH, "Basic realm=\"test\"");
+        final Header challenge = new BasicHeader(AUTH.PROXY_AUTH, "Basic realm=\"test\"");
 
-        BasicScheme authscheme = new BasicScheme();
+        final BasicScheme authscheme = new BasicScheme();
         authscheme.processChallenge(challenge);
 
-        HttpRequest request = new BasicHttpRequest("GET", "/");
-        HttpContext context = new BasicHttpContext();
-        Header authResponse = authscheme.authenticate(creds, request, context);
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpContext context = new BasicHttpContext();
+        final Header authResponse = authscheme.authenticate(creds, request, context);
 
-        String expected = "Basic " + EncodingUtils.getAsciiString(
+        final String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
         Assert.assertEquals(AUTH.PROXY_AUTH_RESP, authResponse.getName());
         Assert.assertEquals(expected, authResponse.getValue());

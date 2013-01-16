@@ -101,7 +101,7 @@ public class RFC2109Spec extends CookieSpecBase {
             throw new MalformedCookieException("Unrecognized cookie header '"
                     + header.toString() + "'");
         }
-        HeaderElement[] elems = header.getElements();
+        final HeaderElement[] elems = header.getElements();
         return parse(elems, origin);
     }
 
@@ -109,7 +109,7 @@ public class RFC2109Spec extends CookieSpecBase {
     public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
-        String name = cookie.getName();
+        final String name = cookie.getName();
         if (name.indexOf(' ') != -1) {
             throw new CookieRestrictionViolationException("Cookie name may not contain blanks");
         }
@@ -136,31 +136,31 @@ public class RFC2109Spec extends CookieSpecBase {
     private List<Header> doFormatOneHeader(final List<Cookie> cookies) {
         int version = Integer.MAX_VALUE;
         // Pick the lowest common denominator
-        for (Cookie cookie : cookies) {
+        for (final Cookie cookie : cookies) {
             if (cookie.getVersion() < version) {
                 version = cookie.getVersion();
             }
         }
-        CharArrayBuffer buffer = new CharArrayBuffer(40 * cookies.size());
+        final CharArrayBuffer buffer = new CharArrayBuffer(40 * cookies.size());
         buffer.append(SM.COOKIE);
         buffer.append(": ");
         buffer.append("$Version=");
         buffer.append(Integer.toString(version));
-        for (Cookie cooky : cookies) {
+        for (final Cookie cooky : cookies) {
             buffer.append("; ");
-            Cookie cookie = cooky;
+            final Cookie cookie = cooky;
             formatCookieAsVer(buffer, cookie, version);
         }
-        List<Header> headers = new ArrayList<Header>(1);
+        final List<Header> headers = new ArrayList<Header>(1);
         headers.add(new BufferedHeader(buffer));
         return headers;
     }
 
     private List<Header> doFormatManyHeaders(final List<Cookie> cookies) {
-        List<Header> headers = new ArrayList<Header>(cookies.size());
-        for (Cookie cookie : cookies) {
-            int version = cookie.getVersion();
-            CharArrayBuffer buffer = new CharArrayBuffer(40);
+        final List<Header> headers = new ArrayList<Header>(cookies.size());
+        for (final Cookie cookie : cookies) {
+            final int version = cookie.getVersion();
+            final CharArrayBuffer buffer = new CharArrayBuffer(40);
             buffer.append("Cookie: ");
             buffer.append("$Version=");
             buffer.append(Integer.toString(version));

@@ -77,7 +77,7 @@ public class TestHttpRoute {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2
             });
 
-        } catch (Exception x) {
+        } catch (final Exception x) {
             throw new ExceptionInInitializerError(x);
         }
     }
@@ -85,9 +85,9 @@ public class TestHttpRoute {
     @Test
     public void testCstrFullRoute() {
         // create a route with all arguments and check the details
-        HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
+        final HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
 
-        HttpRoute route = new HttpRoute(TARGET1, LOCAL41, chain3, false,
+        final HttpRoute route = new HttpRoute(TARGET1, LOCAL41, chain3, false,
                                         TunnelType.PLAIN, LayerType.PLAIN);
         Assert.assertEquals("wrong target",
                      TARGET1, route.getTargetHost());
@@ -109,7 +109,7 @@ public class TestHttpRoute {
         Assert.assertFalse("wrong flag: tunnelled", route.isTunnelled());
         Assert.assertFalse("wrong flag: layered", route.isLayered());
 
-        String routestr = route.toString();
+        final String routestr = route.toString();
         Assert.assertTrue("missing target in toString",
                    routestr.indexOf(TARGET1.getHostName()) >= 0);
         Assert.assertTrue("missing local address in toString",
@@ -126,30 +126,30 @@ public class TestHttpRoute {
     public void testCstrFullFlags() {
         // tests the flag parameters in the full-blown constructor
 
-        HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
+        final HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
 
-        HttpRoute routefff = new HttpRoute
+        final HttpRoute routefff = new HttpRoute
             (TARGET1, LOCAL41, chain3, false,
              TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute routefft = new HttpRoute
+        final HttpRoute routefft = new HttpRoute
             (TARGET1, LOCAL41, chain3, false,
              TunnelType.PLAIN, LayerType.LAYERED);
-        HttpRoute routeftf = new HttpRoute
+        final HttpRoute routeftf = new HttpRoute
             (TARGET1, LOCAL41, chain3, false,
              TunnelType.TUNNELLED, LayerType.PLAIN);
-        HttpRoute routeftt = new HttpRoute
+        final HttpRoute routeftt = new HttpRoute
             (TARGET1, LOCAL41, chain3, false,
              TunnelType.TUNNELLED, LayerType.LAYERED);
-        HttpRoute routetff = new HttpRoute
+        final HttpRoute routetff = new HttpRoute
             (TARGET1, LOCAL41, chain3, true,
              TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute routetft = new HttpRoute
+        final HttpRoute routetft = new HttpRoute
             (TARGET1, LOCAL41, chain3, true,
              TunnelType.PLAIN, LayerType.LAYERED);
-        HttpRoute routettf = new HttpRoute
+        final HttpRoute routettf = new HttpRoute
             (TARGET1, LOCAL41, chain3, true,
              TunnelType.TUNNELLED, LayerType.PLAIN);
-        HttpRoute routettt = new HttpRoute
+        final HttpRoute routettt = new HttpRoute
             (TARGET1, LOCAL41, chain3, true,
              TunnelType.TUNNELLED, LayerType.LAYERED);
 
@@ -186,7 +186,7 @@ public class TestHttpRoute {
         Assert.assertTrue ("routettt.layer" , routettt.isLayered());
 
 
-        Set<HttpRoute> routes = new HashSet<HttpRoute>();
+        final Set<HttpRoute> routes = new HashSet<HttpRoute>();
         routes.add(routefff);
         routes.add(routefft);
         routes.add(routeftf);
@@ -199,7 +199,7 @@ public class TestHttpRoute {
 
         // we can't test hashCode in general due to its dependency
         // on InetAddress and HttpHost, but we can check for the flags
-        Set<Integer> routecodes = new HashSet<Integer>();
+        final Set<Integer> routecodes = new HashSet<Integer>();
         routecodes.add(Integer.valueOf(routefff.hashCode()));
         routecodes.add(Integer.valueOf(routefft.hashCode()));
         routecodes.add(Integer.valueOf(routeftf.hashCode()));
@@ -211,7 +211,7 @@ public class TestHttpRoute {
         Assert.assertEquals("some flagged routes have same hashCode",
                      8, routecodes.size());
 
-        Set<String> routestrings = new HashSet<String>();
+        final Set<String> routestrings = new HashSet<String>();
         routestrings.add(routefff.toString());
         routestrings.add(routefft.toString());
         routestrings.add(routeftf.toString());
@@ -226,9 +226,9 @@ public class TestHttpRoute {
 
     @Test
     public void testInvalidArguments() {
-        HttpHost[] chain0 = { null };
-        HttpHost[] chain1 = { PROXY1 };
-        HttpHost[] chain4 = { PROXY1, PROXY2, null, PROXY3 };
+        final HttpHost[] chain0 = { null };
+        final HttpHost[] chain1 = { PROXY1 };
+        final HttpHost[] chain4 = { PROXY1, PROXY2, null, PROXY3 };
 
         // for reference: this one should succeed
         HttpRoute route = new HttpRoute(TARGET1, null, chain1, false,
@@ -239,7 +239,7 @@ public class TestHttpRoute {
             route = new HttpRoute(null, null, chain1, false,
                                   TunnelType.TUNNELLED, LayerType.PLAIN);
             Assert.fail("missing target not detected");
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
 
@@ -247,7 +247,7 @@ public class TestHttpRoute {
             route = new HttpRoute(TARGET1, null, (HttpHost[]) null, false,
                                   TunnelType.TUNNELLED, LayerType.PLAIN);
             Assert.fail("missing proxy for tunnel not detected");
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
 
@@ -256,7 +256,7 @@ public class TestHttpRoute {
             new HttpRoute(TARGET1, null, chain0, false,
                                   TunnelType.PLAIN, LayerType.PLAIN);
             Assert.fail("invalid proxy chain (0) not detected");
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
 
@@ -264,7 +264,7 @@ public class TestHttpRoute {
             new HttpRoute(TARGET1, null, chain4, false,
                                   TunnelType.PLAIN, LayerType.PLAIN);
             Assert.fail("invalid proxy chain (4) not detected");
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
     }
@@ -275,7 +275,7 @@ public class TestHttpRoute {
         // tests the default values for the enum parameters
         // also covers the accessors for the enum attributes
 
-        HttpRoute route = new HttpRoute(TARGET1, null, PROXY1, false,
+        final HttpRoute route = new HttpRoute(TARGET1, null, PROXY1, false,
                                         null, null); // here are defaults
 
         Assert.assertFalse("default tunnelling", route.isTunnelled());
@@ -287,17 +287,17 @@ public class TestHttpRoute {
 
     @Test
     public void testEqualsHashcodeClone() throws CloneNotSupportedException {
-        HttpHost[] chain0 = { };
-        HttpHost[] chain1 = { PROXY1 };
-        HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
-        HttpHost[] chain4 = { PROXY1, PROXY3, PROXY2 };
+        final HttpHost[] chain0 = { };
+        final HttpHost[] chain1 = { PROXY1 };
+        final HttpHost[] chain3 = { PROXY1, PROXY2, PROXY3 };
+        final HttpHost[] chain4 = { PROXY1, PROXY3, PROXY2 };
 
         // create some identical routes
-        HttpRoute route1a = new HttpRoute(TARGET1, LOCAL41, chain3, false,
+        final HttpRoute route1a = new HttpRoute(TARGET1, LOCAL41, chain3, false,
                                           TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route1b = new HttpRoute(TARGET1, LOCAL41, chain3, false,
+        final HttpRoute route1b = new HttpRoute(TARGET1, LOCAL41, chain3, false,
                                           TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route1c = (HttpRoute) route1a.clone();
+        final HttpRoute route1c = (HttpRoute) route1a.clone();
 
         Assert.assertEquals("1a 1a", route1a, route1a);
         Assert.assertEquals("1a 1b", route1a, route1b);
@@ -312,28 +312,28 @@ public class TestHttpRoute {
         Assert.assertEquals("toString 1c", route1a.toString(), route1c.toString());
 
         // now create some differing routes
-        HttpRoute route2a = new HttpRoute(TARGET2, LOCAL41, chain3, false,
+        final HttpRoute route2a = new HttpRoute(TARGET2, LOCAL41, chain3, false,
                                           TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route2b = new HttpRoute(TARGET1, LOCAL42, chain3, false,
+        final HttpRoute route2b = new HttpRoute(TARGET1, LOCAL42, chain3, false,
                                           TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route2c = new HttpRoute(TARGET1, LOCAL61, chain3, false,
+        final HttpRoute route2c = new HttpRoute(TARGET1, LOCAL61, chain3, false,
                                           TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route2d = new HttpRoute(TARGET1, null, chain3, false,
+        final HttpRoute route2d = new HttpRoute(TARGET1, null, chain3, false,
                                           TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route2e = new HttpRoute(TARGET1, LOCAL41, (HttpHost[]) null,
+        final HttpRoute route2e = new HttpRoute(TARGET1, LOCAL41, (HttpHost[]) null,
                                           false,
                                           TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route2f = new HttpRoute(TARGET1, LOCAL41, chain0, false,
+        final HttpRoute route2f = new HttpRoute(TARGET1, LOCAL41, chain0, false,
                                           TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route2g = new HttpRoute(TARGET1, LOCAL41, chain1, false,
+        final HttpRoute route2g = new HttpRoute(TARGET1, LOCAL41, chain1, false,
                                           TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route2h = new HttpRoute(TARGET1, LOCAL41, chain4, false,
+        final HttpRoute route2h = new HttpRoute(TARGET1, LOCAL41, chain4, false,
                                           TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route2i = new HttpRoute(TARGET1, LOCAL41, chain3, true,
+        final HttpRoute route2i = new HttpRoute(TARGET1, LOCAL41, chain3, true,
                                           TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route2j = new HttpRoute(TARGET1, LOCAL41, chain3, false,
+        final HttpRoute route2j = new HttpRoute(TARGET1, LOCAL41, chain3, false,
                                         TunnelType.TUNNELLED, LayerType.PLAIN);
-        HttpRoute route2k = new HttpRoute(TARGET1, LOCAL41, chain3, false,
+        final HttpRoute route2k = new HttpRoute(TARGET1, LOCAL41, chain3, false,
                                           TunnelType.PLAIN, LayerType.LAYERED);
 
         // check a special case first: 2f should be the same as 2e
@@ -395,7 +395,7 @@ public class TestHttpRoute {
 
         // now check that all of the routes are different from eachother
         // except for those that aren't :-)
-        Set<HttpRoute> routes = new HashSet<HttpRoute>();
+        final Set<HttpRoute> routes = new HashSet<HttpRoute>();
         routes.add(route1a);
         routes.add(route2a);
         routes.add(route2b);
@@ -411,16 +411,16 @@ public class TestHttpRoute {
         Assert.assertEquals("some routes are equal", 11, routes.size());
 
         // and a run of cloning over the set
-        Iterator<HttpRoute> iter = routes.iterator();
+        final Iterator<HttpRoute> iter = routes.iterator();
         while (iter.hasNext()) {
-            HttpRoute origin = iter.next();
-            HttpRoute cloned = (HttpRoute) origin.clone();
+            final HttpRoute origin = iter.next();
+            final HttpRoute cloned = (HttpRoute) origin.clone();
             Assert.assertEquals("clone of " + origin, origin, cloned);
             Assert.assertTrue("clone of " + origin, routes.contains(cloned));
         }
 
         // and don't forget toString
-        Set<String> routestrings = new HashSet<String>();
+        final Set<String> routestrings = new HashSet<String>();
         routestrings.add(route1a.toString());
         routestrings.add(route2a.toString());
         routestrings.add(route2b.toString());
@@ -450,15 +450,15 @@ public class TestHttpRoute {
         Assert.assertEquals("A: hop count", 1, route.getHopCount());
         Assert.assertEquals("A: hop 0", TARGET1, route.getHopTarget(0));
         try {
-            HttpHost beyond = route.getHopTarget(1);
+            final HttpHost beyond = route.getHopTarget(1);
             Assert.fail("A: hop 1 is " + beyond);
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
         try {
-            HttpHost before = route.getHopTarget(-1);
+            final HttpHost before = route.getHopTarget(-1);
             Assert.fail("A: hop -1 is " + before);
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
 
@@ -470,15 +470,15 @@ public class TestHttpRoute {
         Assert.assertEquals("B: hop 0", PROXY3, route.getHopTarget(0));
         Assert.assertEquals("B: hop 1", TARGET1, route.getHopTarget(1));
         try {
-            HttpHost beyond = route.getHopTarget(2);
+            final HttpHost beyond = route.getHopTarget(2);
             Assert.fail("B: hop 2 is " + beyond);
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
         try {
-            HttpHost before = route.getHopTarget(-2);
+            final HttpHost before = route.getHopTarget(-2);
             Assert.fail("B: hop -2 is " + before);
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
 
@@ -492,23 +492,23 @@ public class TestHttpRoute {
         Assert.assertEquals("C: hop 2", PROXY2 , route.getHopTarget(2));
         Assert.assertEquals("C: hop 3", TARGET1, route.getHopTarget(3));
         try {
-            HttpHost beyond = route.getHopTarget(4);
+            final HttpHost beyond = route.getHopTarget(4);
             Assert.fail("C: hop 4 is " + beyond);
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
         try {
-            HttpHost before = route.getHopTarget(Integer.MIN_VALUE);
+            final HttpHost before = route.getHopTarget(Integer.MIN_VALUE);
             Assert.fail("C: hop -<min> is " + before);
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
     }
 
     @Test
     public void testCstr1() {
-        HttpRoute route = new HttpRoute(TARGET2);
-        HttpRoute should = new HttpRoute
+        final HttpRoute route = new HttpRoute(TARGET2);
+        final HttpRoute should = new HttpRoute
             (TARGET2, null, (HttpHost[]) null, false,
              TunnelType.PLAIN, LayerType.PLAIN);
         Assert.assertEquals("bad convenience route", route, should);
@@ -548,7 +548,7 @@ public class TestHttpRoute {
         try {
             new HttpRoute(TARGET1, LOCAL61, null, false);
             Assert.fail("missing proxy not detected");
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
     }
@@ -578,11 +578,11 @@ public class TestHttpRoute {
     @Test
     public void testImmutable() throws CloneNotSupportedException {
 
-        HttpHost[] proxies = new HttpHost[]{ PROXY1, PROXY2, PROXY3 };
-        HttpRoute route1 = new HttpRoute(TARGET1, null, proxies, false,
+        final HttpHost[] proxies = new HttpHost[]{ PROXY1, PROXY2, PROXY3 };
+        final HttpRoute route1 = new HttpRoute(TARGET1, null, proxies, false,
                                          TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route2 = (HttpRoute) route1.clone();
-        HttpRoute route3 = new HttpRoute(TARGET1, null,
+        final HttpRoute route2 = (HttpRoute) route1.clone();
+        final HttpRoute route3 = new HttpRoute(TARGET1, null,
                                          proxies.clone(), false,
                                          TunnelType.PLAIN, LayerType.PLAIN);
 

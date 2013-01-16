@@ -46,15 +46,15 @@ public class TestMultipartForm {
 
     @Test
     public void testMultipartFormStringParts() throws Exception {
-        HttpMultipart multipart = new HttpMultipart("form-data", "foo");
-        FormBodyPart p1 = new FormBodyPart(
+        final HttpMultipart multipart = new HttpMultipart("form-data", "foo");
+        final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new StringBody("this stuff", ContentType.DEFAULT_TEXT));
-        FormBodyPart p2 = new FormBodyPart(
+        final FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new StringBody("that stuff", ContentType.create(
                         ContentType.TEXT_PLAIN.getMimeType(), Consts.UTF_8)));
-        FormBodyPart p3 = new FormBodyPart(
+        final FormBodyPart p3 = new FormBodyPart(
                 "field3",
                 new StringBody("all kind of stuff", ContentType.DEFAULT_TEXT));
 
@@ -62,11 +62,11 @@ public class TestMultipartForm {
         multipart.addBodyPart(p2);
         multipart.addBodyPart(p3);
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
         out.close();
 
-        String expected =
+        final String expected =
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"\r\n" +
             "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
@@ -86,38 +86,38 @@ public class TestMultipartForm {
             "\r\n" +
             "all kind of stuff\r\n" +
             "--foo--\r\n";
-        String s = out.toString("US-ASCII");
+        final String s = out.toString("US-ASCII");
         Assert.assertEquals(expected, s);
         Assert.assertEquals(s.length(), multipart.getTotalLength());
     }
 
     @Test
     public void testMultipartFormBinaryParts() throws Exception {
-        File tmpfile = File.createTempFile("tmp", ".bin");
+        final File tmpfile = File.createTempFile("tmp", ".bin");
         tmpfile.deleteOnExit();
-        Writer writer = new FileWriter(tmpfile);
+        final Writer writer = new FileWriter(tmpfile);
         try {
             writer.append("some random whatever");
         } finally {
             writer.close();
         }
 
-        HttpMultipart multipart = new HttpMultipart("form-data", "foo");
-        FormBodyPart p1 = new FormBodyPart(
+        final HttpMultipart multipart = new HttpMultipart("form-data", "foo");
+        final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new FileBody(tmpfile));
-        FormBodyPart p2 = new FormBodyPart(
+        final FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
 
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
         out.close();
 
-        String expected =
+        final String expected =
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"; " +
                 "filename=\"" + tmpfile.getName() + "\"\r\n" +
@@ -133,7 +133,7 @@ public class TestMultipartForm {
             "\r\n" +
             "some random whatever\r\n" +
             "--foo--\r\n";
-        String s = out.toString("US-ASCII");
+        final String s = out.toString("US-ASCII");
         Assert.assertEquals(expected, s);
         Assert.assertEquals(-1, multipart.getTotalLength());
 
@@ -142,23 +142,23 @@ public class TestMultipartForm {
 
     @Test
     public void testMultipartFormBrowserCompatible() throws Exception {
-        File tmpfile = File.createTempFile("tmp", ".bin");
+        final File tmpfile = File.createTempFile("tmp", ".bin");
         tmpfile.deleteOnExit();
-        Writer writer = new FileWriter(tmpfile);
+        final Writer writer = new FileWriter(tmpfile);
         try {
             writer.append("some random whatever");
         } finally {
             writer.close();
         }
 
-        HttpMultipart multipart = new HttpMultipart("form-data", null, "foo", HttpMultipartMode.STRICT);
-        FormBodyPart p1 = new FormBodyPart(
+        final HttpMultipart multipart = new HttpMultipart("form-data", null, "foo", HttpMultipartMode.STRICT);
+        final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new FileBody(tmpfile));
-        FormBodyPart p2 = new FormBodyPart(
+        final FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new FileBody(tmpfile, ContentType.create("text/plain", "ANSI_X3.4-1968"), "test-file"));
-        FormBodyPart p3 = new FormBodyPart(
+        final FormBodyPart p3 = new FormBodyPart(
                 "field3",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
 
@@ -166,11 +166,11 @@ public class TestMultipartForm {
         multipart.addBodyPart(p2);
         multipart.addBodyPart(p3);
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
         out.close();
 
-        String expected =
+        final String expected =
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"; " +
                 "filename=\"" + tmpfile.getName() + "\"\r\n" +
@@ -193,7 +193,7 @@ public class TestMultipartForm {
             "\r\n" +
             "some random whatever\r\n" +
             "--foo--\r\n";
-        String s = out.toString("US-ASCII");
+        final String s = out.toString("US-ASCII");
         Assert.assertEquals(expected, s);
         Assert.assertEquals(-1, multipart.getTotalLength());
 
@@ -210,9 +210,9 @@ public class TestMultipartForm {
     };
 
     private static String constructString(final int [] unicodeChars) {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         if (unicodeChars != null) {
-            for (int unicodeChar : unicodeChars) {
+            for (final int unicodeChar : unicodeChars) {
                 buffer.append((char)unicodeChar);
             }
         }
@@ -221,34 +221,34 @@ public class TestMultipartForm {
 
     @Test
     public void testMultipartFormBrowserCompatibleNonASCIIHeaders() throws Exception {
-        String s1 = constructString(SWISS_GERMAN_HELLO);
-        String s2 = constructString(RUSSIAN_HELLO);
+        final String s1 = constructString(SWISS_GERMAN_HELLO);
+        final String s2 = constructString(RUSSIAN_HELLO);
 
-        File tmpfile = File.createTempFile("tmp", ".bin");
+        final File tmpfile = File.createTempFile("tmp", ".bin");
         tmpfile.deleteOnExit();
-        Writer writer = new FileWriter(tmpfile);
+        final Writer writer = new FileWriter(tmpfile);
         try {
             writer.append("some random whatever");
         } finally {
             writer.close();
         }
 
-        HttpMultipart multipart = new HttpMultipart("form-data", Charset.forName("UTF-8"), "foo", HttpMultipartMode.BROWSER_COMPATIBLE);
-        FormBodyPart p1 = new FormBodyPart(
+        final HttpMultipart multipart = new HttpMultipart("form-data", Charset.forName("UTF-8"), "foo", HttpMultipartMode.BROWSER_COMPATIBLE);
+        final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new InputStreamBody(new FileInputStream(tmpfile), s1 + ".tmp"));
-        FormBodyPart p2 = new FormBodyPart(
+        final FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new InputStreamBody(new FileInputStream(tmpfile), s2 + ".tmp"));
 
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
         out.close();
 
-        String expected =
+        final String expected =
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field1\"; " +
                 "filename=\"" + s1 + ".tmp\"\r\n" +
@@ -262,7 +262,7 @@ public class TestMultipartForm {
             "\r\n" +
             "some random whatever\r\n" +
             "--foo--\r\n";
-        String s = out.toString("UTF-8");
+        final String s = out.toString("UTF-8");
         Assert.assertEquals(expected, s);
         Assert.assertEquals(-1, multipart.getTotalLength());
 
@@ -271,25 +271,25 @@ public class TestMultipartForm {
 
     @Test
     public void testMultipartFormStringPartsMultiCharsets() throws Exception {
-        String s1 = constructString(SWISS_GERMAN_HELLO);
-        String s2 = constructString(RUSSIAN_HELLO);
+        final String s1 = constructString(SWISS_GERMAN_HELLO);
+        final String s2 = constructString(RUSSIAN_HELLO);
 
-        HttpMultipart multipart = new HttpMultipart("form-data", "foo");
-        FormBodyPart p1 = new FormBodyPart(
+        final HttpMultipart multipart = new HttpMultipart("form-data", "foo");
+        final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new StringBody(s1, ContentType.create("text/plain", Charset.forName("ISO-8859-1"))));
-        FormBodyPart p2 = new FormBodyPart(
+        final FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new StringBody(s2, ContentType.create("text/plain", Charset.forName("KOI8-R"))));
 
         multipart.addBodyPart(p1);
         multipart.addBodyPart(p2);
 
-        ByteArrayOutputStream out1 = new ByteArrayOutputStream();
+        final ByteArrayOutputStream out1 = new ByteArrayOutputStream();
         multipart.writeTo(out1);
         out1.close();
 
-        ByteArrayOutputStream out2 = new ByteArrayOutputStream();
+        final ByteArrayOutputStream out2 = new ByteArrayOutputStream();
 
         out2.write((
             "--foo\r\n" +
@@ -309,8 +309,8 @@ public class TestMultipartForm {
             "--foo--\r\n").getBytes("US-ASCII"));
         out2.close();
 
-        byte[] actual = out1.toByteArray();
-        byte[] expected = out2.toByteArray();
+        final byte[] actual = out1.toByteArray();
+        final byte[] expected = out2.toByteArray();
 
         Assert.assertEquals(expected.length, actual.length);
         for (int i = 0; i < actual.length; i++) {

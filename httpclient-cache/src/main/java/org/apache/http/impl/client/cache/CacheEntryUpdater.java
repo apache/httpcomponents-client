@@ -87,8 +87,8 @@ class CacheEntryUpdater {
             final HttpResponse response) throws IOException {
         Args.check(response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED,
                 "Response must have 304 status code");
-        Header[] mergedHeaders = mergeHeaders(entry, response);
-        Resource oldResource = entry.getResource();
+        final Header[] mergedHeaders = mergeHeaders(entry, response);
+        final Resource oldResource = entry.getResource();
         Resource resource = null;
         if (oldResource != null) {
             resource = resourceFactory.copy(requestId, entry.getResource());
@@ -110,7 +110,7 @@ class CacheEntryUpdater {
             return entry.getAllHeaders();
         }
 
-        List<Header> cacheEntryHeaderList = new ArrayList<Header>(Arrays.asList(entry
+        final List<Header> cacheEntryHeaderList = new ArrayList<Header>(Arrays.asList(entry
                 .getAllHeaders()));
         removeCacheHeadersThatMatchResponse(cacheEntryHeaderList, response);
         removeCacheEntry1xxWarnings(cacheEntryHeaderList, entry);
@@ -121,11 +121,11 @@ class CacheEntryUpdater {
 
     private void removeCacheHeadersThatMatchResponse(final List<Header> cacheEntryHeaderList,
             final HttpResponse response) {
-        for (Header responseHeader : response.getAllHeaders()) {
-            ListIterator<Header> cacheEntryHeaderListIter = cacheEntryHeaderList.listIterator();
+        for (final Header responseHeader : response.getAllHeaders()) {
+            final ListIterator<Header> cacheEntryHeaderListIter = cacheEntryHeaderList.listIterator();
 
             while (cacheEntryHeaderListIter.hasNext()) {
-                String cacheEntryHeaderName = cacheEntryHeaderListIter.next().getName();
+                final String cacheEntryHeaderName = cacheEntryHeaderListIter.next().getName();
 
                 if (cacheEntryHeaderName.equals(responseHeader.getName())) {
                     cacheEntryHeaderListIter.remove();
@@ -135,13 +135,13 @@ class CacheEntryUpdater {
     }
 
     private void removeCacheEntry1xxWarnings(final List<Header> cacheEntryHeaderList, final HttpCacheEntry entry) {
-        ListIterator<Header> cacheEntryHeaderListIter = cacheEntryHeaderList.listIterator();
+        final ListIterator<Header> cacheEntryHeaderListIter = cacheEntryHeaderList.listIterator();
 
         while (cacheEntryHeaderListIter.hasNext()) {
-            String cacheEntryHeaderName = cacheEntryHeaderListIter.next().getName();
+            final String cacheEntryHeaderName = cacheEntryHeaderListIter.next().getName();
 
             if (HeaderConstants.WARNING.equals(cacheEntryHeaderName)) {
-                for (Header cacheEntryWarning : entry.getHeaders(HeaderConstants.WARNING)) {
+                for (final Header cacheEntryWarning : entry.getHeaders(HeaderConstants.WARNING)) {
                     if (cacheEntryWarning.getValue().startsWith("1")) {
                         cacheEntryHeaderListIter.remove();
                     }
@@ -152,15 +152,15 @@ class CacheEntryUpdater {
 
     private boolean entryDateHeaderNewerThenResponse(final HttpCacheEntry entry, final HttpResponse response) {
         try {
-            Date entryDate = DateUtils.parseDate(entry.getFirstHeader(HTTP.DATE_HEADER)
+            final Date entryDate = DateUtils.parseDate(entry.getFirstHeader(HTTP.DATE_HEADER)
                     .getValue());
-            Date responseDate = DateUtils.parseDate(response.getFirstHeader(HTTP.DATE_HEADER)
+            final Date responseDate = DateUtils.parseDate(response.getFirstHeader(HTTP.DATE_HEADER)
                     .getValue());
 
             if (!entryDate.after(responseDate)) {
                 return false;
             }
-        } catch (DateParseException e) {
+        } catch (final DateParseException e) {
             return false;
         }
 

@@ -666,7 +666,7 @@ public class CacheConfig implements Cloneable {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
         builder.append("[maxObjectSize=").append(this.maxObjectSize)
                 .append(", maxCacheEntries=").append(this.maxCacheEntries)
                 .append(", maxUpdateRetries=").append(this.heuristicCachingEnabled)

@@ -103,7 +103,7 @@ public class TestDecompressingHttpClient {
 
     @Test
     public void usesParamsFromBackend() {
-        HttpParams params = new BasicHttpParams();
+        final HttpParams params = new BasicHttpParams();
         backend.setParams(params);
         assertSame(params, impl.getParams());
     }
@@ -153,8 +153,8 @@ public class TestDecompressingHttpClient {
     private void assertAcceptEncodingGzipAndDeflateWereAddedToRequest(final HttpRequest captured) {
         boolean foundGzip = false;
         boolean foundDeflate = false;
-        for(Header h : captured.getHeaders("Accept-Encoding")) {
-            for(HeaderElement elt : h.getElements()) {
+        for(final Header h : captured.getHeaders("Accept-Encoding")) {
+            for(final HeaderElement elt : h.getElements()) {
                 if ("gzip".equals(elt.getName())) {
                     foundGzip = true;
                 }
@@ -291,12 +291,12 @@ public class TestDecompressingHttpClient {
     @Test
     public void successfullyUncompressesContent() throws Exception {
         final String plainText = "hello\n";
-        HttpResponse response = getGzippedResponse(plainText);
+        final HttpResponse response = getGzippedResponse(plainText);
         backend.setResponse(response);
 
-        HttpResponse result = impl.execute(request);
-        ByteArrayOutputStream resultBuf = new ByteArrayOutputStream();
-        InputStream is = result.getEntity().getContent();
+        final HttpResponse result = impl.execute(request);
+        final ByteArrayOutputStream resultBuf = new ByteArrayOutputStream();
+        final InputStream is = result.getEntity().getContent();
         int b;
         while((b = is.read()) != -1) {
             resultBuf.write(b);
@@ -308,11 +308,11 @@ public class TestDecompressingHttpClient {
     @Test
     public void uncompressedResponseHasUnknownLength() throws Exception {
         final String plainText = "hello\n";
-        HttpResponse response = getGzippedResponse(plainText);
+        final HttpResponse response = getGzippedResponse(plainText);
         backend.setResponse(response);
 
-        HttpResponse result = impl.execute(request);
-        HttpEntity entity = result.getEntity();
+        final HttpResponse result = impl.execute(request);
+        final HttpEntity entity = result.getEntity();
         assertEquals(-1, entity.getContentLength());
         EntityUtils.consume(entity);
         assertNull(result.getFirstHeader("Content-Length"));
@@ -321,40 +321,40 @@ public class TestDecompressingHttpClient {
     @Test
     public void uncompressedResponseIsNotEncoded() throws Exception {
         final String plainText = "hello\n";
-        HttpResponse response = getGzippedResponse(plainText);
+        final HttpResponse response = getGzippedResponse(plainText);
         backend.setResponse(response);
 
-        HttpResponse result = impl.execute(request);
+        final HttpResponse result = impl.execute(request);
         assertNull(result.getFirstHeader("Content-Encoding"));
     }
 
     @Test
     public void uncompressedResponseHasContentMD5Removed() throws Exception {
         final String plainText = "hello\n";
-        HttpResponse response = getGzippedResponse(plainText);
+        final HttpResponse response = getGzippedResponse(plainText);
         response.setHeader("Content-MD5","a checksum");
         backend.setResponse(response);
 
-        HttpResponse result = impl.execute(request);
+        final HttpResponse result = impl.execute(request);
         assertNull(result.getFirstHeader("Content-MD5"));
     }
 
     @Test
     public void unencodedResponseRetainsContentMD5() throws Exception {
         final String plainText = "hello\n";
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         response.setHeader("Content-MD5","a checksum");
         response.setEntity(new ByteArrayEntity(plainText.getBytes()));
         backend.setResponse(response);
 
-        HttpResponse result = impl.execute(request);
+        final HttpResponse result = impl.execute(request);
         assertNotNull(result.getFirstHeader("Content-MD5"));
     }
 
     @Test
     public void passesThroughTheBodyOfAPOST() throws Exception {
         when(mockHandler.handleResponse(isA(HttpResponse.class))).thenReturn(new Object());
-        HttpPost post = new HttpPost("http://localhost:8080/");
+        final HttpPost post = new HttpPost("http://localhost:8080/");
         post.setEntity(new ByteArrayEntity("hello".getBytes()));
         impl.execute(host, post, mockHandler, ctx);
         assertNotNull(((HttpEntityEnclosingRequest)backend.getCapturedRequest()).getEntity());
@@ -362,14 +362,14 @@ public class TestDecompressingHttpClient {
 
     private HttpResponse getGzippedResponse(final String plainText)
             throws IOException {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         response.setHeader("Content-Encoding","gzip");
         response.setHeader("Content-Type","text/plain");
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        GZIPOutputStream gos = new GZIPOutputStream(buf);
+        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        final GZIPOutputStream gos = new GZIPOutputStream(buf);
         gos.write(plainText.getBytes());
         gos.close();
-        ByteArrayEntity body = new ByteArrayEntity(buf.toByteArray());
+        final ByteArrayEntity body = new ByteArrayEntity(buf.toByteArray());
         body.setContentEncoding("gzip");
         body.setContentType("text/plain");
         response.setHeader("Content-Length", "" + (int)body.getContentLength());

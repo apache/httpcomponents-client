@@ -61,35 +61,35 @@ public class TestResponseProcessCookies {
 
     @Test(expected=IllegalArgumentException.class)
     public void testResponseParameterCheck() throws Exception {
-        HttpContext context = new BasicHttpContext();
-        HttpResponseInterceptor interceptor = new ResponseProcessCookies();
+        final HttpContext context = new BasicHttpContext();
+        final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(null, context);
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testContextParameterCheck() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        HttpResponseInterceptor interceptor = new ResponseProcessCookies();
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, null);
     }
 
     @Test
     public void testParseCookies() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE, "name1=value1");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_ORIGIN, this.cookieOrigin);
         context.setAttribute(ClientContext.COOKIE_SPEC, this.cookieSpec);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
 
-        HttpResponseInterceptor interceptor = new ResponseProcessCookies();
+        final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
 
-        List<Cookie> cookies = this.cookieStore.getCookies();
+        final List<Cookie> cookies = this.cookieStore.getCookies();
         Assert.assertNotNull(cookies);
         Assert.assertEquals(1, cookies.size());
-        Cookie cookie = cookies.get(0);
+        final Cookie cookie = cookies.get(0);
         Assert.assertEquals(0, cookie.getVersion());
         Assert.assertEquals("name1", cookie.getName());
         Assert.assertEquals("value1", cookie.getValue());
@@ -99,76 +99,76 @@ public class TestResponseProcessCookies {
 
     @Test
     public void testNoCookieOrigin() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE, "name1=value1");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_ORIGIN, null);
         context.setAttribute(ClientContext.COOKIE_SPEC, this.cookieSpec);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
 
-        HttpResponseInterceptor interceptor = new ResponseProcessCookies();
+        final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
 
-        List<Cookie> cookies = this.cookieStore.getCookies();
+        final List<Cookie> cookies = this.cookieStore.getCookies();
         Assert.assertNotNull(cookies);
         Assert.assertEquals(0, cookies.size());
     }
 
     @Test
     public void testNoCookieSpec() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE, "name1=value1");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_ORIGIN, this.cookieOrigin);
         context.setAttribute(ClientContext.COOKIE_SPEC, null);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
 
-        HttpResponseInterceptor interceptor = new ResponseProcessCookies();
+        final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
 
-        List<Cookie> cookies = this.cookieStore.getCookies();
+        final List<Cookie> cookies = this.cookieStore.getCookies();
         Assert.assertNotNull(cookies);
         Assert.assertEquals(0, cookies.size());
     }
 
     @Test
     public void testNoCookieStore() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE, "name1=value1");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_ORIGIN, this.cookieOrigin);
         context.setAttribute(ClientContext.COOKIE_SPEC, this.cookieSpec);
         context.setAttribute(ClientContext.COOKIE_STORE, null);
 
-        HttpResponseInterceptor interceptor = new ResponseProcessCookies();
+        final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
 
-        List<Cookie> cookies = this.cookieStore.getCookies();
+        final List<Cookie> cookies = this.cookieStore.getCookies();
         Assert.assertNotNull(cookies);
         Assert.assertEquals(0, cookies.size());
     }
 
     @Test
     public void testSetCookie2OverrideSetCookie() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE, "name1=value1");
         response.addHeader(SM.SET_COOKIE2, "name1=value2; Version=1");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_ORIGIN, this.cookieOrigin);
         context.setAttribute(ClientContext.COOKIE_SPEC, this.cookieSpec);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
 
-        HttpResponseInterceptor interceptor = new ResponseProcessCookies();
+        final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
 
-        List<Cookie> cookies = this.cookieStore.getCookies();
+        final List<Cookie> cookies = this.cookieStore.getCookies();
         Assert.assertNotNull(cookies);
         Assert.assertEquals(1, cookies.size());
-        Cookie cookie = cookies.get(0);
+        final Cookie cookie = cookies.get(0);
         Assert.assertEquals(1, cookie.getVersion());
         Assert.assertEquals("name1", cookie.getName());
         Assert.assertEquals("value2", cookie.getValue());
@@ -178,36 +178,36 @@ public class TestResponseProcessCookies {
 
     @Test
     public void testInvalidHeader() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE2, "name=value; Version=crap");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_ORIGIN, this.cookieOrigin);
         context.setAttribute(ClientContext.COOKIE_SPEC, this.cookieSpec);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
 
-        HttpResponseInterceptor interceptor = new ResponseProcessCookies();
+        final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
 
-        List<Cookie> cookies = this.cookieStore.getCookies();
+        final List<Cookie> cookies = this.cookieStore.getCookies();
         Assert.assertNotNull(cookies);
         Assert.assertTrue(cookies.isEmpty());
     }
 
     @Test
     public void testCookieRejected() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE2, "name=value; Domain=www.somedomain.com; Version=1");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_ORIGIN, this.cookieOrigin);
         context.setAttribute(ClientContext.COOKIE_SPEC, this.cookieSpec);
         context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
 
-        HttpResponseInterceptor interceptor = new ResponseProcessCookies();
+        final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
 
-        List<Cookie> cookies = this.cookieStore.getCookies();
+        final List<Cookie> cookies = this.cookieStore.getCookies();
         Assert.assertNotNull(cookies);
         Assert.assertTrue(cookies.isEmpty());
     }

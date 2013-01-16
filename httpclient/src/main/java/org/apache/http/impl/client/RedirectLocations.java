@@ -72,11 +72,11 @@ public class RedirectLocations {
      * Removes a URI from the collection.
      */
     public boolean remove(final URI uri) {
-        boolean removed = this.unique.remove(uri);
+        final boolean removed = this.unique.remove(uri);
         if (removed) {
-            Iterator<URI> it = this.all.iterator();
+            final Iterator<URI> it = this.all.iterator();
             while (it.hasNext()) {
-                URI current = it.next();
+                final URI current = it.next();
                 if (current.equals(uri)) {
                     it.remove();
                 }

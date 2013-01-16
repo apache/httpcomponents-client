@@ -75,7 +75,7 @@ public class TestClientAuthenticationFallBack extends IntegrationTestBase {
 
     @Before
     public void setUp() throws Exception {
-        HttpProcessor httpproc = HttpProcessorBuilder.create()
+        final HttpProcessor httpproc = HttpProcessorBuilder.create()
             .add(new ResponseDate())
             .add(new ResponseServer(LocalTestServer.ORIGIN))
             .add(new ResponseContent())
@@ -92,12 +92,12 @@ public class TestClientAuthenticationFallBack extends IntegrationTestBase {
                 final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            String creds = (String) context.getAttribute("creds");
+            final String creds = (String) context.getAttribute("creds");
             if (creds == null || !creds.equals("test:test")) {
                 response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
             } else {
                 response.setStatusCode(HttpStatus.SC_OK);
-                StringEntity entity = new StringEntity("success", Consts.ASCII);
+                final StringEntity entity = new StringEntity("success", Consts.ASCII);
                 response.setEntity(entity);
             }
         }
@@ -135,19 +135,19 @@ public class TestClientAuthenticationFallBack extends IntegrationTestBase {
     public void testBasicAuthenticationSuccess() throws Exception {
         this.localServer.register("*", new AuthHandler());
 
-        TestCredentialsProvider credsProvider = new TestCredentialsProvider(
+        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
         this.httpclient = HttpClients.custom().setDefaultCredentialsProvider(credsProvider).build();
 
-        HttpGet httpget = new HttpGet("/");
+        final HttpGet httpget = new HttpGet("/");
 
-        HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
-        HttpEntity entity = response.getEntity();
+        final HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
+        final HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity);
         EntityUtils.consume(entity);
-        AuthScope authscope = credsProvider.getAuthScope();
+        final AuthScope authscope = credsProvider.getAuthScope();
         Assert.assertNotNull(authscope);
         Assert.assertEquals("test realm", authscope.getRealm());
     }

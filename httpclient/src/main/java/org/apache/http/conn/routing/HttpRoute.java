@@ -94,7 +94,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
                       TunnelType tunnelled, LayerType layered) {
         Args.notNull(target, "Target host");
         Args.notNull(proxies, "Array of proxy hosts");
-        for (HttpHost proxy: proxies) {
+        for (final HttpHost proxy: proxies) {
             Args.notNull(proxy, "Proxy host");
         }
         if (tunnelled == TunnelType.TUNNELLED) {
@@ -235,7 +235,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
             return EMPTY_HTTP_HOST_ARRAY;
         }
         // copy the proxy chain, the traditional way
-        HttpHost[] result = new HttpHost[proxies.length];
+        final HttpHost[] result = new HttpHost[proxies.length];
         System.arraycopy(proxies, 0, result, 0, proxies.length);
 
         return result;
@@ -320,7 +320,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
             return true;
         }
         if (obj instanceof HttpRoute) {
-            HttpRoute that = (HttpRoute) obj;
+            final HttpRoute that = (HttpRoute) obj;
             return
                 // Do the cheapest tests first
                 (this.secure    == that.secure) &&
@@ -345,7 +345,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         int hash = LangUtils.HASH_SEED;
         hash = LangUtils.hashCode(hash, this.targetHost);
         hash = LangUtils.hashCode(hash, this.localAddress);
-        for (HttpHost element : this.proxyChain) {
+        for (final HttpHost element : this.proxyChain) {
             hash = LangUtils.hashCode(hash, element);
         }
         hash = LangUtils.hashCode(hash, this.secure);
@@ -362,7 +362,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      */
     @Override
     public final String toString() {
-        StringBuilder cab = new StringBuilder(50 + getHopCount()*30);
+        final StringBuilder cab = new StringBuilder(50 + getHopCount()*30);
         if (this.localAddress != null) {
             cab.append(this.localAddress);
             cab.append("->");
@@ -378,7 +378,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
             cab.append('s');
         }
         cab.append("}->");
-        for (HttpHost aProxyChain : this.proxyChain) {
+        for (final HttpHost aProxyChain : this.proxyChain) {
             cab.append(aProxyChain);
             cab.append("->");
         }

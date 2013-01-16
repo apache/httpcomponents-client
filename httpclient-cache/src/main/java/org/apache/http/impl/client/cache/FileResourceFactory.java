@@ -54,12 +54,12 @@ public class FileResourceFactory implements ResourceFactory {
     }
 
     private File generateUniqueCacheFile(final String requestId) {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         this.idgen.generate(buffer);
         buffer.append('.');
-        int len = Math.min(requestId.length(), 100);
+        final int len = Math.min(requestId.length(), 100);
         for (int i = 0; i < len; i++) {
-            char ch = requestId.charAt(i);
+            final char ch = requestId.charAt(i);
             if (Character.isLetterOrDigit(ch) || ch == '.') {
                 buffer.append(ch);
             } else {
@@ -73,10 +73,10 @@ public class FileResourceFactory implements ResourceFactory {
             final String requestId,
             final InputStream instream,
             final InputLimit limit) throws IOException {
-        File file = generateUniqueCacheFile(requestId);
-        FileOutputStream outstream = new FileOutputStream(file);
+        final File file = generateUniqueCacheFile(requestId);
+        final FileOutputStream outstream = new FileOutputStream(file);
         try {
-            byte[] buf = new byte[2048];
+            final byte[] buf = new byte[2048];
             long total = 0;
             int l;
             while ((l = instream.read(buf)) != -1) {
@@ -96,13 +96,13 @@ public class FileResourceFactory implements ResourceFactory {
     public Resource copy(
             final String requestId,
             final Resource resource) throws IOException {
-        File file = generateUniqueCacheFile(requestId);
+        final File file = generateUniqueCacheFile(requestId);
 
         if (resource instanceof FileResource) {
-            File src = ((FileResource) resource).getFile();
+            final File src = ((FileResource) resource).getFile();
             IOUtils.copyFile(src, file);
         } else {
-            FileOutputStream out = new FileOutputStream(file);
+            final FileOutputStream out = new FileOutputStream(file);
             IOUtils.copyAndClose(resource.getInputStream(), out);
         }
         return new FileResource(file);

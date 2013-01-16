@@ -56,28 +56,28 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
 
     @Test
     public void testIdleConnectionEviction() throws Exception {
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setDefaultMaxPerRoute(10);
         cm.setMaxTotal(50);
 
-        HttpClient httpclient = HttpClients.custom().setConnectionManager(cm).build();
+        final HttpClient httpclient = HttpClients.custom().setConnectionManager(cm).build();
 
-        IdleConnectionMonitor idleConnectionMonitor = new IdleConnectionMonitor(cm);
+        final IdleConnectionMonitor idleConnectionMonitor = new IdleConnectionMonitor(cm);
         idleConnectionMonitor.start();
 
-        InetSocketAddress address = this.localServer.getServiceAddress();
-        HttpHost target = new HttpHost(address.getHostName(), address.getPort());
-        HttpGet httpget = new HttpGet("/random/1024");
-        WorkerThread[] workers = new WorkerThread[5];
+        final InetSocketAddress address = this.localServer.getServiceAddress();
+        final HttpHost target = new HttpHost(address.getHostName(), address.getPort());
+        final HttpGet httpget = new HttpGet("/random/1024");
+        final WorkerThread[] workers = new WorkerThread[5];
         for (int i = 0; i < workers.length; i++) {
             workers[i] = new WorkerThread(httpclient, target, httpget, 200);
         }
-        for (WorkerThread worker : workers) {
+        for (final WorkerThread worker : workers) {
             worker.start();
         }
-        for (WorkerThread worker : workers) {
+        for (final WorkerThread worker : workers) {
             worker.join();
-            Exception ex = worker.getException();
+            final Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;
             }
@@ -110,8 +110,8 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
         public void run() {
             try {
                 for (int i = 0; i < this.count; i++) {
-                    HttpResponse response = this.httpclient.execute(this.target, this.request);
-                    int status = response.getStatusLine().getStatusCode();
+                    final HttpResponse response = this.httpclient.execute(this.target, this.request);
+                    final int status = response.getStatusLine().getStatusCode();
                     if (status != 200) {
                         this.request.abort();
                         throw new ClientProtocolException("Unexpected status code: " + status);
@@ -119,7 +119,7 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
                     EntityUtils.consume(response.getEntity());
                     Thread.sleep(10);
                 }
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 this.ex = ex;
             }
         }
@@ -150,7 +150,7 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
                         this.cm.closeIdleConnections(1, TimeUnit.MILLISECONDS);
                     }
                 }
-            } catch (InterruptedException ex) {
+            } catch (final InterruptedException ex) {
                 // terminate
             }
         }

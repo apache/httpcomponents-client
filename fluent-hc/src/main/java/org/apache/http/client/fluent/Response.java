@@ -62,7 +62,7 @@ public class Response {
         }
         try {
             EntityUtils.consume(this.response.getEntity());
-        } catch (Exception ignore) {
+        } catch (final Exception ignore) {
         } finally {
             this.consumed = true;
         }
@@ -95,7 +95,7 @@ public class Response {
     public HttpResponse returnResponse() throws IOException {
         assertNotConsumed();
         try {
-            HttpEntity entity = this.response.getEntity();
+            final HttpEntity entity = this.response.getEntity();
             if (entity != null) {
                 this.response.setEntity(new ByteArrayEntity(EntityUtils.toByteArray(entity),
                                 ContentType.getOrDefault(entity)));
@@ -108,14 +108,14 @@ public class Response {
 
     public void saveContent(final File file) throws IOException {
         assertNotConsumed();
-        StatusLine statusLine = response.getStatusLine();
+        final StatusLine statusLine = response.getStatusLine();
         if (statusLine.getStatusCode() >= 300) {
             throw new HttpResponseException(statusLine.getStatusCode(),
                     statusLine.getReasonPhrase());
         }
-        FileOutputStream out = new FileOutputStream(file);
+        final FileOutputStream out = new FileOutputStream(file);
         try {
-            HttpEntity entity = this.response.getEntity();
+            final HttpEntity entity = this.response.getEntity();
             if (entity != null) {
                 entity.writeTo(out);
             }

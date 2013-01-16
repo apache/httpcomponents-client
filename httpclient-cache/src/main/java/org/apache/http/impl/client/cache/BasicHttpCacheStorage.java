@@ -90,7 +90,7 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
     public synchronized void updateEntry(
             final String url,
             final HttpCacheUpdateCallback callback) throws IOException {
-        HttpCacheEntry existingEntry = entries.get(url);
+        final HttpCacheEntry existingEntry = entries.get(url);
         entries.put(url, callback.update(existingEntry));
     }
 

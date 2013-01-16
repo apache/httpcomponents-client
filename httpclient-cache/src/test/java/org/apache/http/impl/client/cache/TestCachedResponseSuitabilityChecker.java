@@ -83,7 +83,7 @@ public class TestCachedResponseSuitabilityChecker {
 
     @Test
     public void testNotSuitableIfContentLengthHeaderIsWrong() {
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","1")
@@ -94,7 +94,7 @@ public class TestCachedResponseSuitabilityChecker {
 
     @Test
     public void testSuitableIfCacheEntryIsFresh() {
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
@@ -105,7 +105,7 @@ public class TestCachedResponseSuitabilityChecker {
 
     @Test
     public void testNotSuitableIfCacheEntryIsNotFresh() {
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=5"),
                 new BasicHeader("Content-Length","128")
@@ -117,7 +117,7 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testNotSuitableIfRequestHasNoCache() {
         request.addHeader("Cache-Control", "no-cache");
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
@@ -129,7 +129,7 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testNotSuitableIfAgeExceedsRequestMaxAge() {
         request.addHeader("Cache-Control", "max-age=10");
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
@@ -141,7 +141,7 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testSuitableIfFreshAndAgeIsUnderRequestMaxAge() {
         request.addHeader("Cache-Control", "max-age=15");
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
@@ -153,7 +153,7 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testSuitableIfFreshAndFreshnessLifetimeGreaterThanRequestMinFresh() {
         request.addHeader("Cache-Control", "min-fresh=10");
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
@@ -165,7 +165,7 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testNotSuitableIfFreshnessLifetimeLessThanRequestMinFresh() {
         request.addHeader("Cache-Control", "min-fresh=10");
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=15"),
                 new BasicHeader("Content-Length","128")
@@ -177,7 +177,7 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testSuitableEvenIfStaleButPermittedByRequestMaxStale() {
         request.addHeader("Cache-Control", "max-stale=10");
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=5"),
                 new BasicHeader("Content-Length","128")
@@ -189,7 +189,7 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testNotSuitableIfStaleButTooStaleForRequestMaxStale() {
         request.addHeader("Cache-Control", "max-stale=2");
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=5"),
                 new BasicHeader("Content-Length","128")
@@ -202,7 +202,7 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testMalformedCacheControlMaxAgeRequestHeaderCausesUnsuitableEntry() {
         request.addHeader(new BasicHeader("Cache-Control", "max-age=foo"));
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
@@ -214,7 +214,7 @@ public class TestCachedResponseSuitabilityChecker {
     @Test
     public void testMalformedCacheControlMinFreshRequestHeaderCausesUnsuitableEntry() {
         request.addHeader(new BasicHeader("Cache-Control", "min-fresh=foo"));
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length","128")
@@ -225,10 +225,10 @@ public class TestCachedResponseSuitabilityChecker {
 
     @Test
     public void testSuitableIfCacheEntryIsHeuristicallyFreshEnough() {
-        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        Date twentyOneSecondsAgo = new Date(now.getTime() - 21 * 1000L);
+        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        final Date twentyOneSecondsAgo = new Date(now.getTime() - 21 * 1000L);
 
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(oneSecondAgo)),
                 new BasicHeader("Last-Modified", DateUtils.formatDate(twentyOneSecondsAgo)),
                 new BasicHeader("Content-Length", "128")
@@ -236,7 +236,7 @@ public class TestCachedResponseSuitabilityChecker {
 
         entry = HttpTestUtils.makeCacheEntry(oneSecondAgo, oneSecondAgo, headers);
 
-        CacheConfig config = CacheConfig.custom()
+        final CacheConfig config = CacheConfig.custom()
             .setHeuristicCachingEnabled(true)
             .setHeuristicCoefficient(0.1f).build();
         impl = new CachedResponseSuitabilityChecker(config);
@@ -246,14 +246,14 @@ public class TestCachedResponseSuitabilityChecker {
 
     @Test
     public void testSuitableIfCacheEntryIsHeuristicallyFreshEnoughByDefault() {
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Content-Length", "128")
         };
 
         entry = getEntry(headers);
 
-        CacheConfig config = CacheConfig.custom()
+        final CacheConfig config = CacheConfig.custom()
             .setHeuristicCachingEnabled(true)
             .setHeuristicDefaultLifetime(20)
             .build();

@@ -64,13 +64,13 @@ public class RFC2109SpecFactory implements CookieSpecFactory, CookieSpecProvider
         if (params != null) {
 
             String[] patterns = null;
-            Collection<?> param = (Collection<?>) params.getParameter(
+            final Collection<?> param = (Collection<?>) params.getParameter(
                     CookieSpecPNames.DATE_PATTERNS);
             if (param != null) {
                 patterns = new String[param.size()];
                 patterns = param.toArray(patterns);
             }
-            boolean singleHeader = params.getBooleanParameter(
+            final boolean singleHeader = params.getBooleanParameter(
                     CookieSpecPNames.SINGLE_COOKIE_HEADER, false);
 
             return new RFC2109Spec(patterns, singleHeader);

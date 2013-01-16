@@ -222,7 +222,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
             closeExpiredConnections();
 
             if (uniquePoolEntry.connection.isOpen()) {
-                RouteTracker tracker = uniquePoolEntry.tracker;
+                final RouteTracker tracker = uniquePoolEntry.tracker;
                 shutdown = (tracker == null || // can happen if method is aborted
                             !tracker.toRoute().equals(route));
             } else {
@@ -238,7 +238,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 recreate = true;
                 try {
                     uniquePoolEntry.shutdown();
-                } catch (IOException iox) {
+                } catch (final IOException iox) {
                     log.debug("Problem shutting down connection.", iox);
                 }
             }
@@ -264,13 +264,13 @@ public class SingleClientConnManager implements ClientConnectionManager {
             log.debug("Releasing connection " + conn);
         }
 
-        ConnAdapter sca = (ConnAdapter) conn;
+        final ConnAdapter sca = (ConnAdapter) conn;
         synchronized (sca) {
             if (sca.poolEntry == null)
              {
                 return; // already released
             }
-            ClientConnectionManager manager = sca.getManager();
+            final ClientConnectionManager manager = sca.getManager();
             Asserts.check(manager == this, "Connection not obtained from this manager");
             try {
                 // make sure that the response has been read completely
@@ -287,7 +287,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
                     // shutdown of the adapter also clears the tracked route
                     sca.shutdown();
                 }
-            } catch (IOException iox) {
+            } catch (final IOException iox) {
                 if (log.isDebugEnabled()) {
                     log.debug("Exception shutting down released connection.",
                               iox);
@@ -308,7 +308,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
     }
 
     public void closeExpiredConnections() {
-        long time = connectionExpiresTime;
+        final long time = connectionExpiresTime;
         if (System.currentTimeMillis() >= time) {
             closeIdleConnections(0, TimeUnit.MILLISECONDS);
         }
@@ -327,7 +327,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 if (lastReleaseTime <= cutoff) {
                     try {
                         uniquePoolEntry.close();
-                    } catch (IOException iox) {
+                    } catch (final IOException iox) {
                         // ignore
                         log.debug("Problem closing idle connection.", iox);
                     }
@@ -343,7 +343,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
                 if (uniquePoolEntry != null) {
                     uniquePoolEntry.shutdown();
                 }
-            } catch (IOException iox) {
+            } catch (final IOException iox) {
                 // ignore
                 log.debug("Problem while shutting down manager.", iox);
             } finally {
@@ -354,7 +354,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
     }
 
     protected void revokeConnection() {
-        ConnAdapter conn = managedConn;
+        final ConnAdapter conn = managedConn;
         if (conn == null) {
             return;
         }
@@ -363,7 +363,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         synchronized (this) {
             try {
                 uniquePoolEntry.shutdown();
-            } catch (IOException iox) {
+            } catch (final IOException iox) {
                 // ignore
                 log.debug("Problem while shutting down connection.", iox);
             }

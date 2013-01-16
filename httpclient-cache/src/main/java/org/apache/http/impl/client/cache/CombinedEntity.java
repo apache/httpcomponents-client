@@ -68,10 +68,10 @@ class CombinedEntity extends AbstractHttpEntity {
 
     public void writeTo(final OutputStream outstream) throws IOException {
         Args.notNull(outstream, "Output stream");
-        InputStream instream = getContent();
+        final InputStream instream = getContent();
         try {
             int l;
-            byte[] tmp = new byte[2048];
+            final byte[] tmp = new byte[2048];
             while ((l = instream.read(tmp)) != -1) {
                 outstream.write(tmp, 0, l);
             }

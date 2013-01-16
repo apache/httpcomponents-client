@@ -60,19 +60,19 @@ import org.junit.Test;
 public class TestSSLSocketFactory extends LocalServerTestBase {
 
     private KeyManagerFactory createKeyManagerFactory() throws NoSuchAlgorithmException {
-        String algo = KeyManagerFactory.getDefaultAlgorithm();
+        final String algo = KeyManagerFactory.getDefaultAlgorithm();
         try {
             return KeyManagerFactory.getInstance(algo);
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
             return KeyManagerFactory.getInstance("SunX509");
         }
     }
 
     private TrustManagerFactory createTrustManagerFactory() throws NoSuchAlgorithmException {
-        String algo = TrustManagerFactory.getDefaultAlgorithm();
+        final String algo = TrustManagerFactory.getDefaultAlgorithm();
         try {
             return TrustManagerFactory.getInstance(algo);
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
             return TrustManagerFactory.getInstance("SunX509");
         }
     }
@@ -82,19 +82,19 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
 
     @Before
     public void setUp() throws Exception {
-        ClassLoader cl = getClass().getClassLoader();
-        URL url = cl.getResource("test.keystore");
-        KeyStore keystore  = KeyStore.getInstance("jks");
-        char[] pwd = "nopassword".toCharArray();
+        final ClassLoader cl = getClass().getClassLoader();
+        final URL url = cl.getResource("test.keystore");
+        final KeyStore keystore  = KeyStore.getInstance("jks");
+        final char[] pwd = "nopassword".toCharArray();
         keystore.load(url.openStream(), pwd);
 
-        TrustManagerFactory tmf = createTrustManagerFactory();
+        final TrustManagerFactory tmf = createTrustManagerFactory();
         tmf.init(keystore);
-        TrustManager[] tm = tmf.getTrustManagers();
+        final TrustManager[] tm = tmf.getTrustManagers();
 
-        KeyManagerFactory kmfactory = createKeyManagerFactory();
+        final KeyManagerFactory kmfactory = createKeyManagerFactory();
         kmfactory.init(keystore, pwd);
-        KeyManager[] km = kmfactory.getKeyManagers();
+        final KeyManager[] km = kmfactory.getKeyManagers();
 
         this.serverSSLContext = SSLContext.getInstance("TLS");
         this.serverSSLContext.init(km, tm, null);
@@ -110,7 +110,7 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
 
     @Override
     protected HttpHost getServerHttp() {
-        InetSocketAddress address = this.localServer.getServiceAddress();
+        final InetSocketAddress address = this.localServer.getServiceAddress();
         return new HttpHost(
                 address.getHostName(),
                 address.getPort(),
@@ -143,14 +143,14 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
 
     @Test
     public void testBasicSSL() throws Exception {
-        HttpHost host = new HttpHost("localhost", 443, "https");
-        HttpContext context = new BasicHttpContext();
-        TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
-        SSLSocketFactory socketFactory = new SSLSocketFactory(this.clientSSLContext, hostVerifier);
+        final HttpHost host = new HttpHost("localhost", 443, "https");
+        final HttpContext context = new BasicHttpContext();
+        final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
+        final SSLSocketFactory socketFactory = new SSLSocketFactory(this.clientSSLContext, hostVerifier);
         SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
-        InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
+        final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
         socket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
-        SSLSession sslsession = socket.getSession();
+        final SSLSession sslsession = socket.getSession();
 
         Assert.assertNotNull(sslsession);
         Assert.assertTrue(hostVerifier.isFired());
@@ -158,29 +158,29 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
 
     @Test(expected=SSLPeerUnverifiedException.class)
     public void testSSLTrustVerification() throws Exception {
-        HttpHost host = new HttpHost("localhost", 443, "https");
-        HttpContext context = new BasicHttpContext();
+        final HttpHost host = new HttpHost("localhost", 443, "https");
+        final HttpContext context = new BasicHttpContext();
         // Use default SSL context
-        SSLContext defaultsslcontext = SSLContext.getInstance("TLS");
+        final SSLContext defaultsslcontext = SSLContext.getInstance("TLS");
         defaultsslcontext.init(null, null, null);
 
-        SSLSocketFactory socketFactory = new SSLSocketFactory(defaultsslcontext,
+        final SSLSocketFactory socketFactory = new SSLSocketFactory(defaultsslcontext,
                 SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
-        SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
-        InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
+        final SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
+        final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
         socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
     }
 
     @Test
     public void testSSLTrustVerificationOverride() throws Exception {
-        HttpHost host = new HttpHost("localhost", 443, "https");
-        HttpContext context = new BasicHttpContext();
+        final HttpHost host = new HttpHost("localhost", 443, "https");
+        final HttpContext context = new BasicHttpContext();
         // Use default SSL context
-        SSLContext defaultsslcontext = SSLContext.getInstance("TLS");
+        final SSLContext defaultsslcontext = SSLContext.getInstance("TLS");
         defaultsslcontext.init(null, null, null);
 
-        SSLSocketFactory socketFactory = new SSLSocketFactory(new TrustStrategy() {
+        final SSLSocketFactory socketFactory = new SSLSocketFactory(new TrustStrategy() {
 
             public boolean isTrusted(
                     final X509Certificate[] chain, final String authType) throws CertificateException {
@@ -189,8 +189,8 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
 
         }, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
-        SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
-        InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
+        final SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
+        final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
         socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
     }
 

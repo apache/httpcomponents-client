@@ -88,7 +88,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     HttpPoolEntry detach() {
-        HttpPoolEntry local = this.poolEntry;
+        final HttpPoolEntry local = this.poolEntry;
         this.poolEntry = null;
         return local;
     }
@@ -98,7 +98,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     private OperatedClientConnection getConnection() {
-        HttpPoolEntry local = this.poolEntry;
+        final HttpPoolEntry local = this.poolEntry;
         if (local == null) {
             return null;
         }
@@ -106,7 +106,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     private OperatedClientConnection ensureConnection() {
-        HttpPoolEntry local = this.poolEntry;
+        final HttpPoolEntry local = this.poolEntry;
         if (local == null) {
             throw new ConnectionShutdownException();
         }
@@ -114,7 +114,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     private HttpPoolEntry ensurePoolEntry() {
-        HttpPoolEntry local = this.poolEntry;
+        final HttpPoolEntry local = this.poolEntry;
         if (local == null) {
             throw new ConnectionShutdownException();
         }
@@ -122,25 +122,25 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public void close() throws IOException {
-        HttpPoolEntry local = this.poolEntry;
+        final HttpPoolEntry local = this.poolEntry;
         if (local != null) {
-            OperatedClientConnection conn = local.getConnection();
+            final OperatedClientConnection conn = local.getConnection();
             local.getTracker().reset();
             conn.close();
         }
     }
 
     public void shutdown() throws IOException {
-        HttpPoolEntry local = this.poolEntry;
+        final HttpPoolEntry local = this.poolEntry;
         if (local != null) {
-            OperatedClientConnection conn = local.getConnection();
+            final OperatedClientConnection conn = local.getConnection();
             local.getTracker().reset();
             conn.shutdown();
         }
     }
 
     public boolean isOpen() {
-        OperatedClientConnection conn = getConnection();
+        final OperatedClientConnection conn = getConnection();
         if (conn != null) {
             return conn.isOpen();
         } else {
@@ -149,7 +149,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public boolean isStale() {
-        OperatedClientConnection conn = getConnection();
+        final OperatedClientConnection conn = getConnection();
         if (conn != null) {
             return conn.isStale();
         } else {
@@ -158,75 +158,75 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public void setSocketTimeout(final int timeout) {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         conn.setSocketTimeout(timeout);
     }
 
     public int getSocketTimeout() {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         return conn.getSocketTimeout();
     }
 
     public HttpConnectionMetrics getMetrics() {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         return conn.getMetrics();
     }
 
     public void flush() throws IOException {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         conn.flush();
     }
 
     public boolean isResponseAvailable(final int timeout) throws IOException {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         return conn.isResponseAvailable(timeout);
     }
 
     public void receiveResponseEntity(
             final HttpResponse response) throws HttpException, IOException {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         conn.receiveResponseEntity(response);
     }
 
     public HttpResponse receiveResponseHeader() throws HttpException, IOException {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         return conn.receiveResponseHeader();
     }
 
     public void sendRequestEntity(
             final HttpEntityEnclosingRequest request) throws HttpException, IOException {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         conn.sendRequestEntity(request);
     }
 
     public void sendRequestHeader(
             final HttpRequest request) throws HttpException, IOException {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         conn.sendRequestHeader(request);
     }
 
     public InetAddress getLocalAddress() {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         return conn.getLocalAddress();
     }
 
     public int getLocalPort() {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         return conn.getLocalPort();
     }
 
     public InetAddress getRemoteAddress() {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         return conn.getRemoteAddress();
     }
 
     public int getRemotePort() {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         return conn.getRemotePort();
     }
 
     public boolean isSecure() {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         return conn.isSecure();
     }
 
@@ -235,14 +235,14 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public Socket getSocket() {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         return conn.getSocket();
     }
 
     public SSLSession getSSLSession() {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         SSLSession result = null;
-        Socket sock = conn.getSocket();
+        final Socket sock = conn.getSocket();
         if (sock instanceof SSLSocket) {
             result = ((SSLSocket)sock).getSession();
         }
@@ -250,7 +250,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public Object getAttribute(final String id) {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         if (conn instanceof HttpContext) {
             return ((HttpContext) conn).getAttribute(id);
         } else {
@@ -259,7 +259,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public Object removeAttribute(final String id) {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         if (conn instanceof HttpContext) {
             return ((HttpContext) conn).removeAttribute(id);
         } else {
@@ -268,14 +268,14 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     }
 
     public void setAttribute(final String id, final Object obj) {
-        OperatedClientConnection conn = ensureConnection();
+        final OperatedClientConnection conn = ensureConnection();
         if (conn instanceof HttpContext) {
             ((HttpContext) conn).setAttribute(id, obj);
         }
     }
 
     public HttpRoute getRoute() {
-        HttpPoolEntry local = ensurePoolEntry();
+        final HttpPoolEntry local = ensurePoolEntry();
         return local.getEffectiveRoute();
     }
 
@@ -290,13 +290,13 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
             }
-            RouteTracker tracker = this.poolEntry.getTracker();
+            final RouteTracker tracker = this.poolEntry.getTracker();
             Asserts.notNull(tracker, "Route tracker");
             Asserts.check(!tracker.isConnected(), "Connection already open");
             conn = this.poolEntry.getConnection();
         }
 
-        HttpHost proxy  = route.getProxyHost();
+        final HttpHost proxy  = route.getProxyHost();
         this.operator.openConnection(
                 conn,
                 (proxy != null) ? proxy : route.getTargetHost(),
@@ -307,7 +307,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             if (this.poolEntry == null) {
                 throw new InterruptedIOException();
             }
-            RouteTracker tracker = this.poolEntry.getTracker();
+            final RouteTracker tracker = this.poolEntry.getTracker();
             if (proxy == null) {
                 tracker.connectTarget(conn.isSecure());
             } else {
@@ -325,7 +325,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
             }
-            RouteTracker tracker = this.poolEntry.getTracker();
+            final RouteTracker tracker = this.poolEntry.getTracker();
             Asserts.notNull(tracker, "Route tracker");
             Asserts.check(tracker.isConnected(), "Connection not open");
             Asserts.check(!tracker.isTunnelled(), "Connection is already tunnelled");
@@ -339,7 +339,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             if (this.poolEntry == null) {
                 throw new InterruptedIOException();
             }
-            RouteTracker tracker = this.poolEntry.getTracker();
+            final RouteTracker tracker = this.poolEntry.getTracker();
             tracker.tunnelTarget(secure);
         }
     }
@@ -353,7 +353,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
             }
-            RouteTracker tracker = this.poolEntry.getTracker();
+            final RouteTracker tracker = this.poolEntry.getTracker();
             Asserts.notNull(tracker, "Route tracker");
             Asserts.check(tracker.isConnected(), "Connection not open");
             conn = this.poolEntry.getConnection();
@@ -365,7 +365,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             if (this.poolEntry == null) {
                 throw new InterruptedIOException();
             }
-            RouteTracker tracker = this.poolEntry.getTracker();
+            final RouteTracker tracker = this.poolEntry.getTracker();
             tracker.tunnelProxy(next, secure);
         }
     }
@@ -379,7 +379,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
             }
-            RouteTracker tracker = this.poolEntry.getTracker();
+            final RouteTracker tracker = this.poolEntry.getTracker();
             Asserts.notNull(tracker, "Route tracker");
             Asserts.check(tracker.isConnected(), "Connection not open");
             Asserts.check(tracker.isTunnelled(), "Protocol layering without a tunnel not supported");
@@ -393,18 +393,18 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             if (this.poolEntry == null) {
                 throw new InterruptedIOException();
             }
-            RouteTracker tracker = this.poolEntry.getTracker();
+            final RouteTracker tracker = this.poolEntry.getTracker();
             tracker.layerProtocol(conn.isSecure());
         }
     }
 
     public Object getState() {
-        HttpPoolEntry local = ensurePoolEntry();
+        final HttpPoolEntry local = ensurePoolEntry();
         return local.getState();
     }
 
     public void setState(final Object state) {
-        HttpPoolEntry local = ensurePoolEntry();
+        final HttpPoolEntry local = ensurePoolEntry();
         local.setState(state);
     }
 
@@ -444,10 +444,10 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
                 return;
             }
             this.reusable = false;
-            OperatedClientConnection conn = this.poolEntry.getConnection();
+            final OperatedClientConnection conn = this.poolEntry.getConnection();
             try {
                 conn.shutdown();
-            } catch (IOException ignore) {
+            } catch (final IOException ignore) {
             }
             this.manager.releaseConnection(this, this.duration, TimeUnit.MILLISECONDS);
             this.poolEntry = null;

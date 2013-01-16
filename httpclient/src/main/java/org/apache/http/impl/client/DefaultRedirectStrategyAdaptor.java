@@ -65,8 +65,8 @@ class DefaultRedirectStrategyAdaptor implements RedirectStrategy {
             final HttpRequest request,
             final HttpResponse response,
             final HttpContext context) throws ProtocolException {
-        URI uri = this.handler.getLocationURI(response, context);
-        String method = request.getRequestLine().getMethod();
+        final URI uri = this.handler.getLocationURI(response, context);
+        final String method = request.getRequestLine().getMethod();
         if (method.equalsIgnoreCase(HttpHead.METHOD_NAME)) {
             return new HttpHead(uri);
         } else {

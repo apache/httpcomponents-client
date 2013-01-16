@@ -45,98 +45,98 @@ public class TestResponseContentEncoding {
 
     @Test
     public void testContentEncodingNoEntity() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        HttpContext context = new BasicHttpContext();
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpContext context = new BasicHttpContext();
 
-        HttpResponseInterceptor interceptor = new ResponseContentEncoding();
+        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
         interceptor.process(response, context);
-        HttpEntity entity = response.getEntity();
+        final HttpEntity entity = response.getEntity();
         Assert.assertNull(entity);
     }
 
     @Test
     public void testNoContentEncoding() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        StringEntity original = new StringEntity("plain stuff");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final StringEntity original = new StringEntity("plain stuff");
         response.setEntity(original);
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
 
-        HttpResponseInterceptor interceptor = new ResponseContentEncoding();
+        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
         interceptor.process(response, context);
-        HttpEntity entity = response.getEntity();
+        final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity instanceof StringEntity);
     }
 
     @Test
     public void testGzipContentEncoding() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        StringEntity original = new StringEntity("encoded stuff");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final StringEntity original = new StringEntity("encoded stuff");
         original.setContentEncoding("GZip");
         response.setEntity(original);
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
 
-        HttpResponseInterceptor interceptor = new ResponseContentEncoding();
+        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
         interceptor.process(response, context);
-        HttpEntity entity = response.getEntity();
+        final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity instanceof GzipDecompressingEntity);
     }
 
     @Test
     public void testXGzipContentEncoding() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        StringEntity original = new StringEntity("encoded stuff");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final StringEntity original = new StringEntity("encoded stuff");
         original.setContentEncoding("x-gzip");
         response.setEntity(original);
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
 
-        HttpResponseInterceptor interceptor = new ResponseContentEncoding();
+        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
         interceptor.process(response, context);
-        HttpEntity entity = response.getEntity();
+        final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity instanceof GzipDecompressingEntity);
     }
 
     @Test
     public void testDeflateContentEncoding() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        StringEntity original = new StringEntity("encoded stuff");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final StringEntity original = new StringEntity("encoded stuff");
         original.setContentEncoding("deFlaTe");
         response.setEntity(original);
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
 
-        HttpResponseInterceptor interceptor = new ResponseContentEncoding();
+        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
         interceptor.process(response, context);
-        HttpEntity entity = response.getEntity();
+        final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity instanceof DeflateDecompressingEntity);
     }
 
     @Test
     public void testIdentityContentEncoding() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        StringEntity original = new StringEntity("encoded stuff");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final StringEntity original = new StringEntity("encoded stuff");
         original.setContentEncoding("identity");
         response.setEntity(original);
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
 
-        HttpResponseInterceptor interceptor = new ResponseContentEncoding();
+        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
         interceptor.process(response, context);
-        HttpEntity entity = response.getEntity();
+        final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity instanceof StringEntity);
     }
 
     @Test(expected=HttpException.class)
     public void testUnknownContentEncoding() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        StringEntity original = new StringEntity("encoded stuff");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final StringEntity original = new StringEntity("encoded stuff");
         original.setContentEncoding("whatever");
         response.setEntity(original);
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
 
-        HttpResponseInterceptor interceptor = new ResponseContentEncoding();
+        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
         interceptor.process(response, context);
     }
 

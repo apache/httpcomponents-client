@@ -52,16 +52,16 @@ public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveSt
 
     public long getKeepAliveDuration(final HttpResponse response, final HttpContext context) {
         Args.notNull(response, "HTTP response");
-        HeaderElementIterator it = new BasicHeaderElementIterator(
+        final HeaderElementIterator it = new BasicHeaderElementIterator(
                 response.headerIterator(HTTP.CONN_KEEP_ALIVE));
         while (it.hasNext()) {
-            HeaderElement he = it.nextElement();
-            String param = he.getName();
-            String value = he.getValue();
+            final HeaderElement he = it.nextElement();
+            final String param = he.getName();
+            final String value = he.getValue();
             if (value != null && param.equalsIgnoreCase("timeout")) {
                 try {
                     return Long.parseLong(value) * 1000;
-                } catch(NumberFormatException ignore) {
+                } catch(final NumberFormatException ignore) {
                 }
             }
         }

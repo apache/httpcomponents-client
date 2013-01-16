@@ -61,7 +61,7 @@ public class TestMemcachedCacheEntryImpl {
 
     @Test
     public void canBeSerialized() {
-        byte[] bytes = impl.toByteArray();
+        final byte[] bytes = impl.toByteArray();
         assertNotNull(bytes);
         assertTrue(bytes.length > 0);
     }
@@ -78,9 +78,9 @@ public class TestMemcachedCacheEntryImpl {
 
     @Test
     public void canBeReconstitutedFromByteArray() throws Exception {
-        String key = impl.getStorageKey();
-        HttpCacheEntry entry = impl.getHttpCacheEntry();
-        byte[] bytes = impl.toByteArray();
+        final String key = impl.getStorageKey();
+        final HttpCacheEntry entry = impl.getHttpCacheEntry();
+        final byte[] bytes = impl.toByteArray();
         impl = new MemcachedCacheEntryImpl();
         impl.set(bytes);
 
@@ -91,7 +91,7 @@ public class TestMemcachedCacheEntryImpl {
     @Test(expected=MemcachedSerializationException.class)
     public void cannotReconstituteFromGarbage() {
         impl = new MemcachedCacheEntryImpl();
-        byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
         impl.set(bytes);
     }
 
@@ -105,13 +105,13 @@ public class TestMemcachedCacheEntryImpl {
          * least we encapsulate it off here in its own method so
          * the test that uses it remains clear.
          */
-        DefaultHttpCacheEntrySerializer ser = new DefaultHttpCacheEntrySerializer();
-        ByteArrayOutputStream bos1 = new ByteArrayOutputStream();
+        final DefaultHttpCacheEntrySerializer ser = new DefaultHttpCacheEntrySerializer();
+        final ByteArrayOutputStream bos1 = new ByteArrayOutputStream();
         ser.writeTo(entry, bos1);
-        byte[] bytes1 = bos1.toByteArray();
-        ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
+        final byte[] bytes1 = bos1.toByteArray();
+        final ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
         ser.writeTo(resultEntry, bos2);
-        byte[] bytes2 = bos2.toByteArray();
+        final byte[] bytes2 = bos2.toByteArray();
         assertEquals(bytes1.length, bytes2.length);
         for(int i = 0; i < bytes1.length; i++) {
             assertEquals(bytes1[i], bytes2[i]);

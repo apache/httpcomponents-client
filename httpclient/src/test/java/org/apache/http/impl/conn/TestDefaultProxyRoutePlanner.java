@@ -61,11 +61,11 @@ public class TestDefaultProxyRoutePlanner {
 
     @Test
     public void testDefaultProxyDirect() throws Exception {
-        HttpHost target = new HttpHost("somehost", 80, "http");
-        HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpHost target = new HttpHost("somehost", 80, "http");
+        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpContext context = new BasicHttpContext();
-        HttpRoute route = routePlanner.determineRoute(target, request, context);
+        final HttpContext context = new BasicHttpContext();
+        final HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assert.assertEquals(target, route.getTargetHost());
         Assert.assertEquals(defaultProxy, route.getProxyHost());
@@ -75,13 +75,13 @@ public class TestDefaultProxyRoutePlanner {
 
     @Test
     public void testViaProxy() throws Exception {
-        HttpHost target = new HttpHost("somehost", 80, "http");
-        HttpHost proxy = new HttpHost("custom.proxy.host", 8080);
-        HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpHost target = new HttpHost("somehost", 80, "http");
+        final HttpHost proxy = new HttpHost("custom.proxy.host", 8080);
+        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpClientContext context = HttpClientContext.create();
+        final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig(RequestConfig.custom().setProxy(proxy).build());
-        HttpRoute route = routePlanner.determineRoute(target, request, context);
+        final HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assert.assertEquals(target, route.getTargetHost());
         Assert.assertEquals(proxy, route.getProxyHost());

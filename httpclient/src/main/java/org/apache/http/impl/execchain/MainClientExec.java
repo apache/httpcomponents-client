@@ -160,13 +160,13 @@ public class MainClientExec implements ClientExecChain {
             }
         }
 
-        RequestConfig config = context.getRequestConfig();
+        final RequestConfig config = context.getRequestConfig();
 
         HttpClientConnection managedConn;
         try {
-            int timeout = config.getConnectionRequestTimeout();
+            final int timeout = config.getConnectionRequestTimeout();
             managedConn = connRequest.get(timeout > 0 ? timeout : 0, TimeUnit.MILLISECONDS);
-        } catch(InterruptedException interrupted) {
+        } catch(final InterruptedException interrupted) {
             throw new RequestAbortedException("Request aborted", interrupted);
         }
 
@@ -183,7 +183,7 @@ public class MainClientExec implements ClientExecChain {
             }
         }
 
-        ConnectionHolder connHolder = new ConnectionHolder(this.log, this.connManager, managedConn);
+        final ConnectionHolder connHolder = new ConnectionHolder(this.log, this.connManager, managedConn);
         try {
             if (execAware != null) {
                 if (execAware.isAborted()) {
@@ -210,7 +210,7 @@ public class MainClientExec implements ClientExecChain {
                     this.log.debug("Opening connection " + route);
                     try {
                         establishRoute(proxyAuthState, managedConn, route, request, context);
-                    } catch (TunnelRefusedException ex) {
+                    } catch (final TunnelRefusedException ex) {
                         if (this.log.isDebugEnabled()) {
                             this.log.debug(ex.getMessage());
                         }
@@ -218,7 +218,7 @@ public class MainClientExec implements ClientExecChain {
                         break;
                     }
                 } else {
-                    int timeout = config.getSocketTimeout();
+                    final int timeout = config.getSocketTimeout();
                     if (timeout >= 0) {
                         managedConn.setSocketTimeout(timeout);
                     }
@@ -250,7 +250,7 @@ public class MainClientExec implements ClientExecChain {
                 // The connection is in or can be brought to a re-usable state.
                 if (reuseStrategy.keepAlive(response, context)) {
                     // Set the idle duration of this connection
-                    long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
+                    final long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
                     if (this.log.isDebugEnabled()) {
                         String s;
                         if (duration > 0) {
@@ -270,7 +270,7 @@ public class MainClientExec implements ClientExecChain {
                         targetAuthState, proxyAuthState, route, request, response, context)) {
                     if (connHolder.isReusable()) {
                         // Make sure the response body is fully consumed, if present
-                        HttpEntity entity = response.getEntity();
+                        final HttpEntity entity = response.getEntity();
                         EntityUtils.consume(entity);
                         // entity consumed above is not an auto-release entity,
                         // need to mark the connection re-usable explicitly
@@ -306,7 +306,7 @@ public class MainClientExec implements ClientExecChain {
             }
 
             // check for entity, release connection if possible
-            HttpEntity entity = response.getEntity();
+            final HttpEntity entity = response.getEntity();
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
                 connHolder.releaseConnection();
@@ -314,18 +314,18 @@ public class MainClientExec implements ClientExecChain {
             } else {
                 return Proxies.enhanceResponse(response, connHolder);
             }
-        } catch (ConnectionShutdownException ex) {
-            InterruptedIOException ioex = new InterruptedIOException(
+        } catch (final ConnectionShutdownException ex) {
+            final InterruptedIOException ioex = new InterruptedIOException(
                     "Connection has been shut down");
             ioex.initCause(ex);
             throw ioex;
-        } catch (HttpException ex) {
+        } catch (final HttpException ex) {
             connHolder.abortConnection();
             throw ex;
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             connHolder.abortConnection();
             throw ex;
-        } catch (RuntimeException ex) {
+        } catch (final RuntimeException ex) {
             connHolder.abortConnection();
             throw ex;
         }
@@ -340,12 +340,12 @@ public class MainClientExec implements ClientExecChain {
             final HttpRoute route,
             final HttpRequest request,
             final HttpClientContext context) throws HttpException, IOException {
-        RequestConfig config = context.getRequestConfig();
-        int timeout = config.getConnectTimeout();
-        RouteTracker tracker = new RouteTracker(route);
+        final RequestConfig config = context.getRequestConfig();
+        final int timeout = config.getConnectTimeout();
+        final RouteTracker tracker = new RouteTracker(route);
         int step;
         do {
-            HttpRoute fact = tracker.toRoute();
+            final HttpRoute fact = tracker.toRoute();
             step = this.routeDirector.nextStep(route, fact);
 
             switch (step) {
@@ -364,11 +364,11 @@ public class MainClientExec implements ClientExecChain {
                         route.getProxyHost(), route.getLocalAddress(),
                         timeout > 0 ? timeout : 0,
                         context);
-                HttpHost proxy  = route.getProxyHost();
+                final HttpHost proxy  = route.getProxyHost();
                 tracker.connectProxy(proxy, false);
                 break;
             case HttpRouteDirector.TUNNEL_TARGET: {
-                boolean secure = createTunnelToTarget(
+                final boolean secure = createTunnelToTarget(
                         proxyAuthState, managedConn, route, request, context);
                 this.log.debug("Tunnel to target created.");
                 tracker.tunnelTarget(secure);
@@ -380,7 +380,7 @@ public class MainClientExec implements ClientExecChain {
                 // route: Source -> P1 -> P2 -> Target (3 hops)
                 // fact:  Source -> P1 -> Target       (2 hops)
                 final int hop = fact.getHopCount()-1; // the hop to establish
-                boolean secure = createTunnelToProxy(route, hop, context);
+                final boolean secure = createTunnelToProxy(route, hop, context);
                 this.log.debug("Tunnel to proxy created.");
                 tracker.tunnelProxy(route.getHopTarget(hop), secure);
             }   break;
@@ -418,15 +418,15 @@ public class MainClientExec implements ClientExecChain {
             final HttpRequest request,
             final HttpClientContext context) throws HttpException, IOException {
 
-        RequestConfig config = context.getRequestConfig();
-        int timeout = config.getConnectTimeout();
+        final RequestConfig config = context.getRequestConfig();
+        final int timeout = config.getConnectTimeout();
 
-        HttpHost target = route.getTargetHost();
-        HttpHost proxy = route.getProxyHost();
+        final HttpHost target = route.getTargetHost();
+        final HttpHost proxy = route.getProxyHost();
         HttpResponse response = null;
 
-        String authority = target.toHostString();
-        HttpRequest connect = new BasicHttpRequest("CONNECT", authority, request.getProtocolVersion());
+        final String authority = target.toHostString();
+        final HttpRequest connect = new BasicHttpRequest("CONNECT", authority, request.getProtocolVersion());
 
         this.requestExecutor.preProcess(connect, this.proxyHttpProcessor, context);
 
@@ -444,7 +444,7 @@ public class MainClientExec implements ClientExecChain {
 
             response = this.requestExecutor.execute(connect, managedConn, context);
 
-            int status = response.getStatusLine().getStatusCode();
+            final int status = response.getStatusLine().getStatusCode();
             if (status < 200) {
                 throw new HttpException("Unexpected response to CONNECT request: " +
                         response.getStatusLine());
@@ -459,7 +459,7 @@ public class MainClientExec implements ClientExecChain {
                         if (this.reuseStrategy.keepAlive(response, context)) {
                             this.log.debug("Connection kept alive");
                             // Consume response content
-                            HttpEntity entity = response.getEntity();
+                            final HttpEntity entity = response.getEntity();
                             EntityUtils.consume(entity);
                         } else {
                             managedConn.close();
@@ -473,12 +473,12 @@ public class MainClientExec implements ClientExecChain {
             }
         }
 
-        int status = response.getStatusLine().getStatusCode();
+        final int status = response.getStatusLine().getStatusCode();
 
         if (status > 299) {
 
             // Buffer response content
-            HttpEntity entity = response.getEntity();
+            final HttpEntity entity = response.getEntity();
             if (entity != null) {
                 response.setEntity(new BufferedHttpEntity(entity));
             }
@@ -524,7 +524,7 @@ public class MainClientExec implements ClientExecChain {
             final HttpRequestWrapper request,
             final HttpResponse response,
             final HttpClientContext context) throws HttpException, IOException {
-        RequestConfig config = context.getRequestConfig();
+        final RequestConfig config = context.getRequestConfig();
         if (config.isAuthenticationEnabled()) {
             HttpHost target = context.getTargetHost();
             if (target == null) {

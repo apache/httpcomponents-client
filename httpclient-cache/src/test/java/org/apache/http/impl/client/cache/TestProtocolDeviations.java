@@ -100,12 +100,12 @@ public class TestProtocolDeviations {
 
         originResponse = Proxies.enhanceResponse(make200Response());
 
-        CacheConfig config = CacheConfig.custom()
+        final CacheConfig config = CacheConfig.custom()
                 .setMaxCacheEntries(MAX_ENTRIES)
                 .setMaxObjectSize(MAX_BYTES)
                 .build();
 
-        HttpCache cache = new BasicHttpCache(config);
+        final HttpCache cache = new BasicHttpCache(config);
         mockBackend = EasyMock.createNiceMock(ClientExecChain.class);
         mockEntity = EasyMock.createNiceMock(HttpEntity.class);
         mockCache = EasyMock.createNiceMock(HttpCache.class);
@@ -114,7 +114,7 @@ public class TestProtocolDeviations {
     }
 
     private HttpResponse make200Response() {
-        HttpResponse out = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse out = new BasicHttpResponse(HTTP_1_1, HttpStatus.SC_OK, "OK");
         out.setHeader("Date", DateUtils.formatDate(new Date()));
         out.setHeader("Server", "MockOrigin/1.0");
         out.setEntity(makeBody(128));
@@ -134,7 +134,7 @@ public class TestProtocolDeviations {
     }
 
     private HttpEntity makeBody(final int nbytes) {
-        byte[] bytes = new byte[nbytes];
+        final byte[] bytes = new byte[nbytes];
         (new Random()).nextBytes(bytes);
         return new ByteArrayEntity(bytes);
     }
@@ -163,13 +163,13 @@ public class TestProtocolDeviations {
      */
     @Ignore
     public void testHTTP1_1RequestsWithBodiesOfKnownLengthMustHaveContentLength() throws Exception {
-        BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
+        final BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
                 HTTP_1_1);
         post.setEntity(mockEntity);
 
         replayMocks();
 
-        HttpResponse response = impl.execute(route, HttpRequestWrapper.wrap(post));
+        final HttpResponse response = impl.execute(route, HttpRequestWrapper.wrap(post));
 
         verifyMocks();
 
@@ -204,18 +204,18 @@ public class TestProtocolDeviations {
     @Ignore
     public void testHTTP1_1RequestsWithUnknownBodyLengthAreRejectedOrHaveContentLengthAdded()
             throws Exception {
-        BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
+        final BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
                 HTTP_1_1);
 
-        byte[] bytes = new byte[128];
+        final byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        HttpEntity mockBody = EasyMock.createMockBuilder(ByteArrayEntity.class).withConstructor(
+        final HttpEntity mockBody = EasyMock.createMockBuilder(ByteArrayEntity.class).withConstructor(
                 new Object[] { bytes }).addMockedMethods("getContentLength").createNiceMock();
         org.easymock.EasyMock.expect(mockBody.getContentLength()).andReturn(-1L).anyTimes();
         post.setEntity(mockBody);
 
-        Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -227,17 +227,17 @@ public class TestProtocolDeviations {
         replayMocks();
         EasyMock.replay(mockBody);
 
-        HttpResponse result = impl.execute(route, HttpRequestWrapper.wrap(post));
+        final HttpResponse result = impl.execute(route, HttpRequestWrapper.wrap(post));
 
         verifyMocks();
         EasyMock.verify(mockBody);
 
         if (reqCap.hasCaptured()) {
             // backend request was made
-            HttpRequest forwarded = reqCap.getValue();
+            final HttpRequest forwarded = reqCap.getValue();
             Assert.assertNotNull(forwarded.getFirstHeader("Content-Length"));
         } else {
-            int status = result.getStatusLine().getStatusCode();
+            final int status = result.getStatusLine().getStatusCode();
             Assert.assertTrue(HttpStatus.SC_LENGTH_REQUIRED == status
                     || HttpStatus.SC_BAD_REQUEST == status);
         }
@@ -252,12 +252,12 @@ public class TestProtocolDeviations {
      */
     @Test
     public void testOPTIONSRequestsWithBodiesAndNoContentTypeHaveOneSupplied() throws Exception {
-        BasicHttpEntityEnclosingRequest options = new BasicHttpEntityEnclosingRequest("OPTIONS",
+        final BasicHttpEntityEnclosingRequest options = new BasicHttpEntityEnclosingRequest("OPTIONS",
                 "/", HTTP_1_1);
         options.setEntity(body);
         options.setHeader("Content-Length", "1");
 
-        Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -270,10 +270,10 @@ public class TestProtocolDeviations {
 
         verifyMocks();
 
-        HttpRequest forwarded = reqCap.getValue();
+        final HttpRequest forwarded = reqCap.getValue();
         Assert.assertTrue(forwarded instanceof HttpEntityEnclosingRequest);
-        HttpEntityEnclosingRequest reqWithBody = (HttpEntityEnclosingRequest) forwarded;
-        HttpEntity reqBody = reqWithBody.getEntity();
+        final HttpEntityEnclosingRequest reqWithBody = (HttpEntityEnclosingRequest) forwarded;
+        final HttpEntity reqBody = reqWithBody.getEntity();
         Assert.assertNotNull(reqBody);
         Assert.assertNotNull(reqBody.getContentType());
     }
@@ -308,10 +308,10 @@ public class TestProtocolDeviations {
 
         replayMocks();
         try {
-            HttpResponse result = impl.execute(route, HttpRequestWrapper.wrap(request));
+            final HttpResponse result = impl.execute(route, HttpRequestWrapper.wrap(request));
             Assert.assertTrue(HttpStatus.SC_PARTIAL_CONTENT != result.getStatusLine()
                     .getStatusCode());
-        } catch (ClientProtocolException acceptableBehavior) {
+        } catch (final ClientProtocolException acceptableBehavior) {
             // this is probably ok
         }
     }
@@ -336,7 +336,7 @@ public class TestProtocolDeviations {
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
-        HttpResponse result = impl.execute(route, HttpRequestWrapper.wrap(request));
+        final HttpResponse result = impl.execute(route, HttpRequestWrapper.wrap(request));
         verifyMocks();
         Assert.assertSame(originResponse, result);
     }
@@ -359,7 +359,7 @@ public class TestProtocolDeviations {
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
-        HttpResponse result = impl.execute(route, HttpRequestWrapper.wrap(request));
+        final HttpResponse result = impl.execute(route, HttpRequestWrapper.wrap(request));
         verifyMocks();
         Assert.assertSame(originResponse, result);
     }
@@ -383,7 +383,7 @@ public class TestProtocolDeviations {
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
-        HttpResponse result = impl.execute(route, HttpRequestWrapper.wrap(request));
+        final HttpResponse result = impl.execute(route, HttpRequestWrapper.wrap(request));
         verifyMocks();
         Assert.assertSame(originResponse, result);
     }

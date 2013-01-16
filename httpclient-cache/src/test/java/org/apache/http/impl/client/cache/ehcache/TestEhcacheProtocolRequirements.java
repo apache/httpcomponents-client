@@ -51,7 +51,7 @@ public class TestEhcacheProtocolRequirements extends TestProtocolRequirements{
 
     @BeforeClass
     public static void setUpGlobal() {
-        Configuration config = new Configuration();
+        final Configuration config = new Configuration();
         config.addDefaultCache(
                 new CacheConfiguration("default", Integer.MAX_VALUE)
                     .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LFU)
@@ -69,7 +69,7 @@ public class TestEhcacheProtocolRequirements extends TestProtocolRequirements{
             CACHE_MANAGER.removeCache(TEST_EHCACHE_NAME);
         }
         CACHE_MANAGER.addCache(TEST_EHCACHE_NAME);
-        HttpCacheStorage storage = new EhcacheHttpCacheStorage(CACHE_MANAGER.getCache(TEST_EHCACHE_NAME));
+        final HttpCacheStorage storage = new EhcacheHttpCacheStorage(CACHE_MANAGER.getCache(TEST_EHCACHE_NAME));
         mockBackend = EasyMock.createNiceMock(ClientExecChain.class);
 
         impl = new CachingExec(mockBackend, new HeapResourceFactory(), storage, config);

@@ -71,11 +71,11 @@ public class RetryExec implements ClientExecChain {
         Args.notNull(route, "HTTP route");
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
-        Header[] origheaders = request.getAllHeaders();
+        final Header[] origheaders = request.getAllHeaders();
         for (int execCount = 1;; execCount++) {
             try {
                 return this.requestExecutor.execute(route, request, context, execAware);
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 if (execAware != null && execAware.isAborted()) {
                     this.log.debug("Request has been aborted");
                     throw ex;

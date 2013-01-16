@@ -79,7 +79,7 @@ public final class DateUtils {
     public static final TimeZone GMT = TimeZone.getTimeZone("GMT");
 
     static {
-        Calendar calendar = Calendar.getInstance();
+        final Calendar calendar = Calendar.getInstance();
         calendar.setTimeZone(GMT);
         calendar.set(2000, Calendar.JANUARY, 1, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
@@ -151,11 +151,11 @@ public final class DateUtils {
             dateValue = dateValue.substring (1, dateValue.length() - 1);
         }
 
-        for (String dateFormat : dateFormats) {
-            SimpleDateFormat dateParser = DateFormatHolder.formatFor(dateFormat);
+        for (final String dateFormat : dateFormats) {
+            final SimpleDateFormat dateParser = DateFormatHolder.formatFor(dateFormat);
             dateParser.set2DigitYearStart(startDate);
-            ParsePosition pos = new ParsePosition(0);
-            Date result = dateParser.parse(dateValue, pos);
+            final ParsePosition pos = new ParsePosition(0);
+            final Date result = dateParser.parse(dateValue, pos);
             if (pos.getIndex() != 0) {
                 return result;
             }
@@ -193,7 +193,7 @@ public final class DateUtils {
     public static String formatDate(final Date date, final String pattern) {
         Args.notNull(date, "Date");
         Args.notNull(pattern, "Pattern");
-        SimpleDateFormat formatter = DateFormatHolder.formatFor(pattern);
+        final SimpleDateFormat formatter = DateFormatHolder.formatFor(pattern);
         return formatter.format(date);
     }
 
@@ -242,7 +242,7 @@ public final class DateUtils {
          *         different pattern.
          */
         public static SimpleDateFormat formatFor(final String pattern) {
-            SoftReference<Map<String, SimpleDateFormat>> ref = THREADLOCAL_FORMATS.get();
+            final SoftReference<Map<String, SimpleDateFormat>> ref = THREADLOCAL_FORMATS.get();
             Map<String, SimpleDateFormat> formats = ref.get();
             if (formats == null) {
                 formats = new HashMap<String, SimpleDateFormat>();

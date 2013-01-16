@@ -76,8 +76,8 @@ public class Rfc3492Idn implements Idn {
     }
 
     public String toUnicode(final String punycode) {
-        StringBuilder unicode = new StringBuilder(punycode.length());
-        StringTokenizer tok = new StringTokenizer(punycode, ".");
+        final StringBuilder unicode = new StringBuilder(punycode.length());
+        final StringTokenizer tok = new StringTokenizer(punycode, ".");
         while (tok.hasMoreTokens()) {
             String t = tok.nextToken();
             if (unicode.length() > 0) {
@@ -95,23 +95,23 @@ public class Rfc3492Idn implements Idn {
         int n = initial_n;
         int i = 0;
         int bias = initial_bias;
-        StringBuilder output = new StringBuilder(input.length());
-        int lastdelim = input.lastIndexOf(delimiter);
+        final StringBuilder output = new StringBuilder(input.length());
+        final int lastdelim = input.lastIndexOf(delimiter);
         if (lastdelim != -1) {
             output.append(input.subSequence(0, lastdelim));
             input = input.substring(lastdelim + 1);
         }
 
         while (input.length() > 0) {
-            int oldi = i;
+            final int oldi = i;
             int w = 1;
             for (int k = base;; k += base) {
                 if (input.length() == 0) {
                     break;
                 }
-                char c = input.charAt(0);
+                final char c = input.charAt(0);
                 input = input.substring(1);
-                int digit = digit(c);
+                final int digit = digit(c);
                 i = i + digit * w; // FIXME fail on overflow
                 int t;
                 if (k <= bias + tmin) {

@@ -180,13 +180,13 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         URI targetURI = null;
         try {
             targetURI = new URI(target.toURI());
-        } catch (URISyntaxException usx) {
+        } catch (final URISyntaxException usx) {
             throw new HttpException
                 ("Cannot convert host to URI: " + target, usx);
         }
-        List<Proxy> proxies = psel.select(targetURI);
+        final List<Proxy> proxies = psel.select(targetURI);
 
-        Proxy p = chooseProxy(proxies, target, request, context);
+        final Proxy p = chooseProxy(proxies, target, request, context);
 
         HttpHost result = null;
         if (p.type() == Proxy.Type.HTTP) {
@@ -250,7 +250,7 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         // check the list for one we can use
         for (int i=0; (result == null) && (i < proxies.size()); i++) {
 
-            Proxy p = proxies.get(i);
+            final Proxy p = proxies.get(i);
             switch (p.type()) {
 
             case DIRECT:

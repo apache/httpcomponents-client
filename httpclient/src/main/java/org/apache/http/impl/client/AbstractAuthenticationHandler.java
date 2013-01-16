@@ -82,15 +82,15 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
     protected Map<String, Header> parseChallenges(
             final Header[] headers) throws MalformedChallengeException {
 
-        Map<String, Header> map = new HashMap<String, Header>(headers.length);
-        for (Header header : headers) {
+        final Map<String, Header> map = new HashMap<String, Header>(headers.length);
+        for (final Header header : headers) {
             CharArrayBuffer buffer;
             int pos;
             if (header instanceof FormattedHeader) {
                 buffer = ((FormattedHeader) header).getBuffer();
                 pos = ((FormattedHeader) header).getValuePos();
             } else {
-                String s = header.getValue();
+                final String s = header.getValue();
                 if (s == null) {
                     throw new MalformedChallengeException("Header value is null");
                 }
@@ -101,12 +101,12 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
             while (pos < buffer.length() && HTTP.isWhitespace(buffer.charAt(pos))) {
                 pos++;
             }
-            int beginIndex = pos;
+            final int beginIndex = pos;
             while (pos < buffer.length() && !HTTP.isWhitespace(buffer.charAt(pos))) {
                 pos++;
             }
-            int endIndex = pos;
-            String s = buffer.substring(beginIndex, endIndex);
+            final int endIndex = pos;
+            final String s = buffer.substring(beginIndex, endIndex);
             map.put(s.toLowerCase(Locale.US), header);
         }
         return map;
@@ -141,7 +141,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
             final HttpResponse response,
             final HttpContext context) throws AuthenticationException {
 
-        AuthSchemeRegistry registry = (AuthSchemeRegistry) context.getAttribute(
+        final AuthSchemeRegistry registry = (AuthSchemeRegistry) context.getAttribute(
                 ClientContext.AUTHSCHEME_REGISTRY);
         Asserts.notNull(registry, "AuthScheme registry");
         Collection<String> authPrefs = getAuthPreferences(response, context);
@@ -155,8 +155,8 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         }
 
         AuthScheme authScheme = null;
-        for (String id: authPrefs) {
-            Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH));
+        for (final String id: authPrefs) {
+            final Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH));
 
             if (challenge != null) {
                 if (this.log.isDebugEnabled()) {
@@ -165,7 +165,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
                 try {
                     authScheme = registry.getAuthScheme(id, response.getParams());
                     break;
-                } catch (IllegalStateException e) {
+                } catch (final IllegalStateException e) {
                     if (this.log.isWarnEnabled()) {
                         this.log.warn("Authentication scheme " + id + " not supported");
                         // Try again

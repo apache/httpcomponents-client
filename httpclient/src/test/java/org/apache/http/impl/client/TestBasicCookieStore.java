@@ -46,7 +46,7 @@ public class TestBasicCookieStore {
 
     @Test
     public void testBasics() throws Exception {
-        BasicCookieStore store = new BasicCookieStore();
+        final BasicCookieStore store = new BasicCookieStore();
         store.addCookie(new BasicClientCookie("name1", "value1"));
         store.addCookies(new BasicClientCookie[] {new BasicClientCookie("name2", "value2")});
         List<Cookie> l = store.getCookies();
@@ -62,33 +62,33 @@ public class TestBasicCookieStore {
 
     @Test
     public void testExpiredCookie() throws Exception {
-        BasicCookieStore store = new BasicCookieStore();
-        BasicClientCookie cookie = new BasicClientCookie("name1", "value1");
+        final BasicCookieStore store = new BasicCookieStore();
+        final BasicClientCookie cookie = new BasicClientCookie("name1", "value1");
 
-        Calendar c = Calendar.getInstance();
+        final Calendar c = Calendar.getInstance();
         c.add(Calendar.DAY_OF_YEAR, -10);
         cookie.setExpiryDate(c.getTime());
         store.addCookie(cookie);
-        List<Cookie> l = store.getCookies();
+        final List<Cookie> l = store.getCookies();
         Assert.assertNotNull(l);
         Assert.assertEquals(0, l.size());
     }
 
     @Test
     public void testSerialization() throws Exception {
-        BasicCookieStore orig = new BasicCookieStore();
+        final BasicCookieStore orig = new BasicCookieStore();
         orig.addCookie(new BasicClientCookie("name1", "value1"));
         orig.addCookie(new BasicClientCookie("name2", "value2"));
-        ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
-        ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
+        final ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
+        final ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
         outstream.writeObject(orig);
         outstream.close();
-        byte[] raw = outbuffer.toByteArray();
-        ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
-        ObjectInputStream instream = new ObjectInputStream(inbuffer);
-        BasicCookieStore clone = (BasicCookieStore) instream.readObject();
-        List<Cookie> expected = orig.getCookies();
-        List<Cookie> clones = clone.getCookies();
+        final byte[] raw = outbuffer.toByteArray();
+        final ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
+        final ObjectInputStream instream = new ObjectInputStream(inbuffer);
+        final BasicCookieStore clone = (BasicCookieStore) instream.readObject();
+        final List<Cookie> expected = orig.getCookies();
+        final List<Cookie> clones = clone.getCookies();
         Assert.assertNotNull(expected);
         Assert.assertNotNull(clones);
         Assert.assertEquals(expected.size(), clones.size());

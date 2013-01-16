@@ -51,7 +51,7 @@ public class TestCookiePolicy {
 
     @Test
     public void testRegisterUnregisterCookieSpecFactory() {
-        CookieSpecRegistry registry  = new CookieSpecRegistry();
+        final CookieSpecRegistry registry  = new CookieSpecRegistry();
         List<String> names = registry.getSpecNames();
         Assert.assertNotNull(names);
         Assert.assertEquals(0, names.size());
@@ -70,7 +70,7 @@ public class TestCookiePolicy {
         names = registry.getSpecNames();
         Assert.assertNotNull(names);
         Assert.assertEquals(3, names.size());
-        HashSet<String> m = new HashSet<String>(names);
+        final HashSet<String> m = new HashSet<String>(names);
         Assert.assertTrue(m.contains(BROWSER_COMPATIBILITY.toLowerCase(Locale.ENGLISH)));
         Assert.assertTrue(m.contains(NETSCAPE.toLowerCase(Locale.ENGLISH)));
         Assert.assertTrue(m.contains(RFC_2109.toLowerCase(Locale.ENGLISH)));
@@ -88,7 +88,7 @@ public class TestCookiePolicy {
 
     @Test
     public void testGetNewCookieSpec() {
-        CookieSpecRegistry registry  = new CookieSpecRegistry();
+        final CookieSpecRegistry registry  = new CookieSpecRegistry();
         registry.register(BROWSER_COMPATIBILITY,
                 new BrowserCompatSpecFactory());
         registry.register(NETSCAPE,
@@ -102,46 +102,46 @@ public class TestCookiePolicy {
         try {
             registry.getCookieSpec("whatever");
             Assert.fail("IllegalStateException should have been thrown");
-        } catch (IllegalStateException ex) {
+        } catch (final IllegalStateException ex) {
             // expected
         }
-        HttpParams params = new BasicHttpParams();
+        final HttpParams params = new BasicHttpParams();
         Assert.assertNotNull(registry.getCookieSpec(NETSCAPE, params));
         Assert.assertNotNull(registry.getCookieSpec(RFC_2109, params));
         Assert.assertNotNull(registry.getCookieSpec(BROWSER_COMPATIBILITY, params));
         try {
             registry.getCookieSpec("whatever", params);
             Assert.fail("IllegalStateException should have been thrown");
-        } catch (IllegalStateException ex) {
+        } catch (final IllegalStateException ex) {
             // expected
         }
     }
 
     @Test
     public void testInvalidInput() {
-        CookieSpecRegistry registry  = new CookieSpecRegistry();
+        final CookieSpecRegistry registry  = new CookieSpecRegistry();
         try {
             registry.register(null, null);
             Assert.fail("IllegalArgumentException should have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             registry.register("whatever", null);
             Assert.fail("IllegalArgumentException should have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             registry.unregister(null);
             Assert.fail("IllegalArgumentException should have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             registry.getCookieSpec((String)null);
             Assert.fail("IllegalArgumentException should have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
     }

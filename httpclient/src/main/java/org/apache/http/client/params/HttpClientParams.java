@@ -73,7 +73,7 @@ public class HttpClientParams {
 
     public static String getCookiePolicy(final HttpParams params) {
         Args.notNull(params, "HTTP parameters");
-        String cookiePolicy = (String)
+        final String cookiePolicy = (String)
             params.getParameter(ClientPNames.COOKIE_POLICY);
         if (cookiePolicy == null) {
             return CookiePolicy.BEST_MATCH;
@@ -107,7 +107,7 @@ public class HttpClientParams {
      */
     public static long getConnectionManagerTimeout(final HttpParams params) {
         Args.notNull(params, "HTTP parameters");
-        Long timeout = (Long) params.getParameter(ClientPNames.CONN_MANAGER_TIMEOUT);
+        final Long timeout = (Long) params.getParameter(ClientPNames.CONN_MANAGER_TIMEOUT);
         if (timeout != null) {
             return timeout.longValue();
         }

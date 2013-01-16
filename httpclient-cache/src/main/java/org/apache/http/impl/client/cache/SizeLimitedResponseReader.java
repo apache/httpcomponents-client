@@ -94,11 +94,11 @@ class SizeLimitedResponseReader {
 
         limit = new InputLimit(maxResponseSizeBytes);
 
-        HttpEntity entity = response.getEntity();
+        final HttpEntity entity = response.getEntity();
         if (entity == null) {
             return;
         }
-        String uri = request.getRequestLine().getUri();
+        final String uri = request.getRequestLine().getUri();
         instream = entity.getContent();
         try {
             resource = resourceFactory.generate(uri, instream, limit);
@@ -121,11 +121,11 @@ class SizeLimitedResponseReader {
 
     HttpResponse getReconstructedResponse() throws IOException {
         ensureConsumed();
-        HttpResponse reconstructed = new BasicHttpResponse(response.getStatusLine());
+        final HttpResponse reconstructed = new BasicHttpResponse(response.getStatusLine());
         reconstructed.setHeaders(response.getAllHeaders());
 
-        CombinedEntity combinedEntity = new CombinedEntity(resource, instream);
-        HttpEntity entity = response.getEntity();
+        final CombinedEntity combinedEntity = new CombinedEntity(resource, instream);
+        final HttpEntity entity = response.getEntity();
         if (entity != null) {
             combinedEntity.setContentType(entity.getContentType());
             combinedEntity.setContentEncoding(entity.getContentEncoding());

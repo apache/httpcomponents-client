@@ -113,7 +113,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
             throw new MalformedCookieException("Unrecognized cookie header '"
                     + header.toString() + "'");
         }
-        NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
+        final NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
         CharArrayBuffer buffer;
         ParserCursor cursor;
         if (header instanceof FormattedHeader) {
@@ -122,7 +122,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
                     ((FormattedHeader) header).getValuePos(),
                     buffer.length());
         } else {
-            String s = header.getValue();
+            final String s = header.getValue();
             if (s == null) {
                 throw new MalformedCookieException("Header value is null");
             }
@@ -135,22 +135,22 @@ public class NetscapeDraftSpec extends CookieSpecBase {
 
     public List<Header> formatCookies(final List<Cookie> cookies) {
         Args.notEmpty(cookies, "List of cookies");
-        CharArrayBuffer buffer = new CharArrayBuffer(20 * cookies.size());
+        final CharArrayBuffer buffer = new CharArrayBuffer(20 * cookies.size());
         buffer.append(SM.COOKIE);
         buffer.append(": ");
         for (int i = 0; i < cookies.size(); i++) {
-            Cookie cookie = cookies.get(i);
+            final Cookie cookie = cookies.get(i);
             if (i > 0) {
                 buffer.append("; ");
             }
             buffer.append(cookie.getName());
-            String s = cookie.getValue();
+            final String s = cookie.getValue();
             if (s != null) {
                 buffer.append("=");
                 buffer.append(s);
             }
         }
-        List<Header> headers = new ArrayList<Header>(1);
+        final List<Header> headers = new ArrayList<Header>(1);
         headers.add(new BufferedHeader(buffer));
         return headers;
     }

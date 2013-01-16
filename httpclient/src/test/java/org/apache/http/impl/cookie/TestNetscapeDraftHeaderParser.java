@@ -41,7 +41,7 @@ public class TestNetscapeDraftHeaderParser {
 
     @Test
     public void testNetscapeCookieParsing() throws Exception {
-        NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
+        final NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
 
         String s = "name  = value; test; test1 =  stuff,with,commas   ;" +
                 " test2 =  \"stuff, stuff\"; test3=\"stuff";
@@ -52,7 +52,7 @@ public class TestNetscapeDraftHeaderParser {
         HeaderElement he = parser.parseHeader(buffer, cursor);
         Assert.assertEquals("name", he.getName());
         Assert.assertEquals("value", he.getValue());
-        NameValuePair[] params = he.getParameters();
+        final NameValuePair[] params = he.getParameters();
         Assert.assertEquals("test", params[0].getName());
         Assert.assertEquals(null, params[0].getValue());
         Assert.assertEquals("test1", params[1].getName());

@@ -44,63 +44,63 @@ public class TestMultipartFormHttpEntity {
 
     @Test
     public void testExplictContractorParams() throws Exception {
-        MultipartEntity entity = new MultipartEntity(
+        final MultipartEntity entity = new MultipartEntity(
                 HttpMultipartMode.BROWSER_COMPATIBLE,
                 "whatever",
                 Charset.forName("UTF-8"));
 
         Assert.assertNull(entity.getContentEncoding());
         Assert.assertNotNull(entity.getContentType());
-        Header header = entity.getContentType();
-        HeaderElement[] elems = header.getElements();
+        final Header header = entity.getContentType();
+        final HeaderElement[] elems = header.getElements();
         Assert.assertNotNull(elems);
         Assert.assertEquals(1, elems.length);
 
-        HeaderElement elem = elems[0];
+        final HeaderElement elem = elems[0];
         Assert.assertEquals("multipart/form-data", elem.getName());
-        NameValuePair p1 = elem.getParameterByName("boundary");
+        final NameValuePair p1 = elem.getParameterByName("boundary");
         Assert.assertNotNull(p1);
         Assert.assertEquals("whatever", p1.getValue());
-        NameValuePair p2 = elem.getParameterByName("charset");
+        final NameValuePair p2 = elem.getParameterByName("charset");
         Assert.assertNotNull(p2);
         Assert.assertEquals("UTF-8", p2.getValue());
     }
 
     @Test
     public void testImplictContractorParams() throws Exception {
-        MultipartEntity entity = new MultipartEntity();
+        final MultipartEntity entity = new MultipartEntity();
         Assert.assertNull(entity.getContentEncoding());
         Assert.assertNotNull(entity.getContentType());
-        Header header = entity.getContentType();
-        HeaderElement[] elems = header.getElements();
+        final Header header = entity.getContentType();
+        final HeaderElement[] elems = header.getElements();
         Assert.assertNotNull(elems);
         Assert.assertEquals(1, elems.length);
 
-        HeaderElement elem = elems[0];
+        final HeaderElement elem = elems[0];
         Assert.assertEquals("multipart/form-data", elem.getName());
-        NameValuePair p1 = elem.getParameterByName("boundary");
+        final NameValuePair p1 = elem.getParameterByName("boundary");
         Assert.assertNotNull(p1);
 
-        String boundary = p1.getValue();
+        final String boundary = p1.getValue();
         Assert.assertNotNull(boundary);
 
         Assert.assertTrue(boundary.length() >= 30);
         Assert.assertTrue(boundary.length() <= 40);
 
-        NameValuePair p2 = elem.getParameterByName("charset");
+        final NameValuePair p2 = elem.getParameterByName("charset");
         Assert.assertNull(p2);
     }
 
     @Test
     public void testRepeatable() throws Exception {
-        MultipartEntity entity = new MultipartEntity();
+        final MultipartEntity entity = new MultipartEntity();
         entity.addPart("p1", new StringBody("blah blah", ContentType.DEFAULT_TEXT));
         entity.addPart("p2", new StringBody("yada yada", ContentType.DEFAULT_TEXT));
         Assert.assertTrue(entity.isRepeatable());
         Assert.assertFalse(entity.isChunked());
         Assert.assertFalse(entity.isStreaming());
 
-        long len = entity.getContentLength();
+        final long len = entity.getContentLength();
         Assert.assertTrue(len == entity.getContentLength());
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -124,7 +124,7 @@ public class TestMultipartFormHttpEntity {
 
     @Test
     public void testNonRepeatable() throws Exception {
-        MultipartEntity entity = new MultipartEntity();
+        final MultipartEntity entity = new MultipartEntity();
         entity.addPart("p1", new InputStreamBody(
                 new ByteArrayInputStream("blah blah".getBytes()), ContentType.DEFAULT_BINARY));
         entity.addPart("p2", new InputStreamBody(

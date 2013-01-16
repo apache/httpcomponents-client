@@ -85,12 +85,12 @@ public class HttpOptions extends HttpRequestBase {
     public Set<String> getAllowedMethods(final HttpResponse response) {
         Args.notNull(response, "HTTP response");
 
-        HeaderIterator it = response.headerIterator("Allow");
-        Set<String> methods = new HashSet<String>();
+        final HeaderIterator it = response.headerIterator("Allow");
+        final Set<String> methods = new HashSet<String>();
         while (it.hasNext()) {
-            Header header = it.nextHeader();
-            HeaderElement[] elements = header.getElements();
-            for (HeaderElement element : elements) {
+            final Header header = it.nextHeader();
+            final HeaderElement[] elements = header.getElements();
+            for (final HeaderElement element : elements) {
                 methods.add(element.getName());
             }
         }

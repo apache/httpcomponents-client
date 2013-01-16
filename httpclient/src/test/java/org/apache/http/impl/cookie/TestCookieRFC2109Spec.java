@@ -54,11 +54,11 @@ public class TestCookieRFC2109Spec {
 
     @Test
     public void testParseVersion() throws Exception {
-        Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; version=1");
+        final Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; version=1");
 
-        CookieSpec cookiespec = new RFC2109Spec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new RFC2109Spec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -73,12 +73,12 @@ public class TestCookieRFC2109Spec {
      */
     @Test
     public void testCookiesomainEqualsHost() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=www.b.com; version=1");
 
-        CookieSpec cookiespec = new RFC2109Spec();
-        CookieOrigin origin = new CookieOrigin("www.b.com", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new RFC2109Spec();
+        final CookieOrigin origin = new CookieOrigin("www.b.com", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -92,18 +92,18 @@ public class TestCookieRFC2109Spec {
      */
     @Test
     public void testParseWithIllegalDomain1() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=a.b.com; version=1");
 
-        CookieSpec cookiespec = new RFC2109Spec();
-        CookieOrigin origin = new CookieOrigin("www.a.b.com", 80, "/", false);
+        final CookieSpec cookiespec = new RFC2109Spec();
+        final CookieOrigin origin = new CookieOrigin("www.a.b.com", 80, "/", false);
         try {
-            List<Cookie> cookies = cookiespec.parse(header, origin);
+            final List<Cookie> cookies = cookiespec.parse(header, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException e) {
+        } catch (final MalformedCookieException e) {
             // expected
         }
     }
@@ -113,18 +113,18 @@ public class TestCookieRFC2109Spec {
      */
     @Test
     public void testParseWithIllegalDomain2() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=.com; version=1");
 
-        CookieSpec cookiespec = new RFC2109Spec();
-        CookieOrigin origin = new CookieOrigin("b.com", 80, "/", false);
+        final CookieSpec cookiespec = new RFC2109Spec();
+        final CookieOrigin origin = new CookieOrigin("b.com", 80, "/", false);
         try {
-            List<Cookie> cookies = cookiespec.parse(header, origin);
+            final List<Cookie> cookies = cookiespec.parse(header, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException e) {
+        } catch (final MalformedCookieException e) {
             // expected
         }
     }
@@ -134,18 +134,18 @@ public class TestCookieRFC2109Spec {
      */
     @Test
     public void testParseWithIllegalDomain4() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=.c.com; version=1");
 
-        CookieSpec cookiespec = new RFC2109Spec();
-        CookieOrigin origin = new CookieOrigin("a.b.c.com", 80, "/", false);
+        final CookieSpec cookiespec = new RFC2109Spec();
+        final CookieOrigin origin = new CookieOrigin("a.b.c.com", 80, "/", false);
         try {
-            List<Cookie> cookies = cookiespec.parse(header, origin);
+            final List<Cookie> cookies = cookiespec.parse(header, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException e) {
+        } catch (final MalformedCookieException e) {
             // expected
         }
     }
@@ -157,49 +157,49 @@ public class TestCookieRFC2109Spec {
      */
     @Test
     public void testSecondDomainLevelCookie() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", null);
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        CookieSpec cookiespec = new RFC2109Spec();
-        CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
+        final CookieSpec cookiespec = new RFC2109Spec();
+        final CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
         try {
             cookiespec.validate(cookie, origin);
             Assert.fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException e) {
+        } catch (final MalformedCookieException e) {
             // Expected
         }
     }
 
     @Test
     public void testSecondDomainLevelCookieMatch() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", null);
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        CookieSpec cookiespec = new RFC2109Spec();
-        CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
+        final CookieSpec cookiespec = new RFC2109Spec();
+        final CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
         Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testParseWithWrongPath() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=127.0.0.1; path=/not/just/root");
 
-        CookieSpec cookiespec = new RFC2109Spec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
+        final CookieSpec cookiespec = new RFC2109Spec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
         try {
-            List<Cookie> cookies = cookiespec.parse(header, origin);
+            final List<Cookie> cookies = cookiespec.parse(header, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException exception should have been thrown");
-        } catch (MalformedCookieException e) {
+        } catch (final MalformedCookieException e) {
             // expected
         }
     }
@@ -209,16 +209,16 @@ public class TestCookieRFC2109Spec {
      */
     @Test
     public void testCookieNameWithBlanks() throws Exception {
-        Header setcookie = new BasicHeader("Set-Cookie", "invalid name=");
-        CookieSpec cookiespec = new RFC2109Spec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
+        final Header setcookie = new BasicHeader("Set-Cookie", "invalid name=");
+        final CookieSpec cookiespec = new RFC2109Spec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
         try {
-            List<Cookie> cookies = cookiespec.parse(setcookie, origin);
+            final List<Cookie> cookies = cookiespec.parse(setcookie, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException exception should have been thrown");
-        } catch (MalformedCookieException e) {
+        } catch (final MalformedCookieException e) {
             // expected
         }
     }
@@ -228,16 +228,16 @@ public class TestCookieRFC2109Spec {
      */
     @Test
     public void testCookieNameStartingWithDollarSign() throws Exception {
-        Header setcookie = new BasicHeader("Set-Cookie", "$invalid_name=");
-        CookieSpec cookiespec = new RFC2109Spec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
+        final Header setcookie = new BasicHeader("Set-Cookie", "$invalid_name=");
+        final CookieSpec cookiespec = new RFC2109Spec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
         try {
-            List<Cookie> cookies = cookiespec.parse(setcookie, origin);
+            final List<Cookie> cookies = cookiespec.parse(setcookie, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException exception should have been thrown");
-        } catch (MalformedCookieException e) {
+        } catch (final MalformedCookieException e) {
             // expected
         }
     }
@@ -248,18 +248,18 @@ public class TestCookieRFC2109Spec {
      */
     @Test
     public void testInvalidDomainWithSimpleHostName() throws Exception {
-        CookieSpec cookiespec = new RFC2109Spec();
+        final CookieSpec cookiespec = new RFC2109Spec();
         Header header = new BasicHeader("Set-Cookie",
             "name=\"value\"; version=\"1\"; path=\"/\"; domain=\".mydomain.com\"");
-        CookieOrigin origin1 = new CookieOrigin("host", 80, "/", false);
+        final CookieOrigin origin1 = new CookieOrigin("host", 80, "/", false);
         List<Cookie> cookies = cookiespec.parse(header, origin1);
         try {
             cookiespec.validate(cookies.get(0), origin1);
             Assert.fail("MalformedCookieException must have thrown");
         }
-        catch(MalformedCookieException expected) {
+        catch(final MalformedCookieException expected) {
         }
-        CookieOrigin origin2 = new CookieOrigin("host2", 80, "/", false);
+        final CookieOrigin origin2 = new CookieOrigin("host2", 80, "/", false);
         header = new BasicHeader("Set-Cookie",
             "name=\"value\"; version=\"1\"; path=\"/\"; domain=\"host1\"");
         cookies = cookiespec.parse(header, origin2);
@@ -267,7 +267,7 @@ public class TestCookieRFC2109Spec {
             cookiespec.validate(cookies.get(0), origin2);
             Assert.fail("MalformedCookieException must have thrown");
         }
-        catch(MalformedCookieException expected) {
+        catch(final MalformedCookieException expected) {
         }
     }
 
@@ -276,11 +276,11 @@ public class TestCookieRFC2109Spec {
      */
     @Test
     public void testCookieWithComma() throws Exception {
-        Header header = new BasicHeader("Set-Cookie", "a=b,c");
+        final Header header = new BasicHeader("Set-Cookie", "a=b,c");
 
-        CookieSpec cookiespec = new RFC2109Spec();
-        CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new RFC2109Spec();
+        final CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         Assert.assertEquals("number of cookies", 2, cookies.size());
         Assert.assertEquals("a", cookies.get(0).getName());
         Assert.assertEquals("b", cookies.get(0).getValue());
@@ -293,10 +293,10 @@ public class TestCookieRFC2109Spec {
      */
     @Test
     public void testRFC2109CookieFormatting() throws Exception {
-        CookieSpec cookiespec = new RFC2109Spec(null, false);
+        final CookieSpec cookiespec = new RFC2109Spec(null, false);
         Header header = new BasicHeader("Set-Cookie",
             "name=\"value\"; version=1; path=\"/\"; domain=\".mydomain.com\"");
-        CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
+        final CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
         List<Cookie> cookies  = cookiespec.parse(header, origin);
         cookiespec.validate(cookies.get(0), origin);
         List<Header> headers = cookiespec.formatCookies(cookies);
@@ -318,11 +318,11 @@ public class TestCookieRFC2109Spec {
 
     @Test
     public void testRFC2109CookiesFormatting() throws Exception {
-        CookieSpec cookiespec = new RFC2109Spec(null, true);
+        final CookieSpec cookiespec = new RFC2109Spec(null, true);
         Header header = new BasicHeader("Set-Cookie",
             "name1=value1; path=/; domain=.mydomain.com, " +
             "name2=\"value2\"; version=\"1\"; path=\"/\"; domain=\".mydomain.com\"");
-        CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
+        final CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
         List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
@@ -358,13 +358,13 @@ public class TestCookieRFC2109Spec {
      */
     @Test
     public void testNullCookieValueFormatting() {
-        BasicClientCookie cookie = new BasicClientCookie("name", null);
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".whatever.com");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        CookieSpec cookiespec = new RFC2109Spec();
+        final CookieSpec cookiespec = new RFC2109Spec();
         List<Cookie> cookies = new ArrayList<Cookie>();
         cookies.add(cookie);
         List<Header> headers = cookiespec.formatCookies(cookies);
@@ -385,11 +385,11 @@ public class TestCookieRFC2109Spec {
 
     @Test
     public void testCookieNullDomainNullPathFormatting() {
-        BasicClientCookie cookie = new BasicClientCookie("name", null);
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        CookieSpec cookiespec = new RFC2109Spec();
+        final CookieSpec cookiespec = new RFC2109Spec();
         List<Cookie> cookies = new ArrayList<Cookie>();
         cookies.add(cookie);
         List<Header> headers = cookiespec.formatCookies(cookies);
@@ -409,26 +409,26 @@ public class TestCookieRFC2109Spec {
 
     @Test
     public void testCookieOrderingByPath() {
-        BasicClientCookie c1 = new BasicClientCookie("name1", "value1");
+        final BasicClientCookie c1 = new BasicClientCookie("name1", "value1");
         c1.setPath("/a/b/c");
         c1.setAttribute(ClientCookie.PATH_ATTR, c1.getPath());
-        BasicClientCookie c2 = new BasicClientCookie("name2", "value2");
+        final BasicClientCookie c2 = new BasicClientCookie("name2", "value2");
         c2.setPath("/a/b");
         c2.setAttribute(ClientCookie.PATH_ATTR, c2.getPath());
-        BasicClientCookie c3 = new BasicClientCookie("name3", "value3");
+        final BasicClientCookie c3 = new BasicClientCookie("name3", "value3");
         c3.setPath("/a");
         c3.setAttribute(ClientCookie.PATH_ATTR, c3.getPath());
-        BasicClientCookie c4 = new BasicClientCookie("name4", "value4");
+        final BasicClientCookie c4 = new BasicClientCookie("name4", "value4");
         c4.setPath("/");
         c4.setAttribute(ClientCookie.PATH_ATTR, c4.getPath());
 
-        CookieSpec cookiespec = new RFC2109Spec(null, true);
-        List<Cookie> cookies = new ArrayList<Cookie>();
+        final CookieSpec cookiespec = new RFC2109Spec(null, true);
+        final List<Cookie> cookies = new ArrayList<Cookie>();
         cookies.add(c2);
         cookies.add(c4);
         cookies.add(c1);
         cookies.add(c3);
-        List<Header> headers = cookiespec.formatCookies(cookies);
+        final List<Header> headers = cookiespec.formatCookies(cookies);
         Assert.assertNotNull(headers);
         Assert.assertEquals(1, headers.size());
         Assert.assertEquals("$Version=0; name1=value1; $Path=/a/b/c; " +
@@ -439,36 +439,36 @@ public class TestCookieRFC2109Spec {
 
     @Test
     public void testInvalidInput() throws Exception {
-        CookieSpec cookiespec = new RFC2109Spec();
+        final CookieSpec cookiespec = new RFC2109Spec();
         try {
             cookiespec.parse(null, null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.parse(new BasicHeader("Set-Cookie", "name=value"), null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.validate(null, null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.formatCookies(null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
-            List<Cookie> cookies = new ArrayList<Cookie>();
+            final List<Cookie> cookies = new ArrayList<Cookie>();
             cookiespec.formatCookies(cookies);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
     }

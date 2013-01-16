@@ -51,7 +51,7 @@ class SocketFactoryAdaptor implements SocketFactory {
     }
 
     public Socket createSocket() throws IOException {
-        HttpParams params = new BasicHttpParams();
+        final HttpParams params = new BasicHttpParams();
         return this.factory.createSocket(params);
     }
 
@@ -68,8 +68,8 @@ class SocketFactoryAdaptor implements SocketFactory {
             }
             local = new InetSocketAddress(localAddress, localPort);
         }
-        InetAddress remoteAddress = InetAddress.getByName(host);
-        InetSocketAddress remote = new InetSocketAddress(remoteAddress, port);
+        final InetAddress remoteAddress = InetAddress.getByName(host);
+        final InetSocketAddress remote = new InetSocketAddress(remoteAddress, port);
         return this.factory.connectSocket(socket, remote, local, params);
     }
 

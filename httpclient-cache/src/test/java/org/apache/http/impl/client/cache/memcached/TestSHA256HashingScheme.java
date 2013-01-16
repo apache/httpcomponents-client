@@ -35,8 +35,8 @@ public class TestSHA256HashingScheme {
 
     @Test
     public void canHash() {
-        SHA256KeyHashingScheme impl = new SHA256KeyHashingScheme();
-        String result = impl.hash("hello, hashing world");
+        final SHA256KeyHashingScheme impl = new SHA256KeyHashingScheme();
+        final String result = impl.hash("hello, hashing world");
         assertTrue(result != null && result.length() > 0);
     }
 

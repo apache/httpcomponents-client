@@ -38,7 +38,7 @@ public class TestExceptions {
 
     @Test
     public void testCTX() {
-        String msg = "sample exception message";
+        final String msg = "sample exception message";
         ConnectTimeoutException ctx =
             new ConnectTimeoutException(msg);
         Assert.assertFalse(ctx.toString().indexOf(msg) < 0);
@@ -50,7 +50,7 @@ public class TestExceptions {
 
     @Test
     public void testCPTX() {
-        String msg = "sample exception message";
+        final String msg = "sample exception message";
         ConnectionPoolTimeoutException cptx =
             new ConnectionPoolTimeoutException(msg);
         Assert.assertFalse(cptx.toString().indexOf(msg) < 0);

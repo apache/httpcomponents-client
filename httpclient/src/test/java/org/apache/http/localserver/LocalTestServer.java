@@ -228,7 +228,7 @@ public class LocalTestServer {
         Asserts.check(servicedSocket == null, "Already running");
         ServerSocket ssock;
         if (sslcontext != null) {
-            SSLServerSocketFactory sf = sslcontext.getServerSocketFactory();
+            final SSLServerSocketFactory sf = sslcontext.getServerSocketFactory();
             ssock = sf.createServerSocket();
         } else {
             ssock = new ServerSocket();
@@ -250,12 +250,12 @@ public class LocalTestServer {
         if (servicedSocket == null) {
             return; // not running
         }
-        ListenerThread t = listenerThread;
+        final ListenerThread t = listenerThread;
         if (t != null) {
             t.shutdown();
         }
         synchronized (workers) {
-            for (Worker worker : workers) {
+            for (final Worker worker : workers) {
                 worker.shutdown();
             }
         }
@@ -269,8 +269,8 @@ public class LocalTestServer {
 
     @Override
     public String toString() {
-        ServerSocket ssock = servicedSocket; // avoid synchronization
-        StringBuilder sb = new StringBuilder(80);
+        final ServerSocket ssock = servicedSocket; // avoid synchronization
+        final StringBuilder sb = new StringBuilder(80);
         sb.append("LocalTestServer/");
         if (ssock == null) {
             sb.append("stopped");
@@ -286,7 +286,7 @@ public class LocalTestServer {
      * @return the service address
      */
     public InetSocketAddress getServiceAddress() {
-        ServerSocket ssock = servicedSocket; // avoid synchronization
+        final ServerSocket ssock = servicedSocket; // avoid synchronization
         Asserts.check(ssock != null, "Not running");
         return (InetSocketAddress) ssock.getLocalSocketAddress();
     }
@@ -320,23 +320,23 @@ public class LocalTestServer {
         public void run() {
             try {
                 while (!interrupted()) {
-                    Socket socket = servicedSocket.accept();
+                    final Socket socket = servicedSocket.accept();
                     acceptedConnections.incrementAndGet();
-                    DefaultBHttpServerConnection conn = createHttpServerConnection();
+                    final DefaultBHttpServerConnection conn = createHttpServerConnection();
                     conn.bind(socket);
                     conn.setSocketTimeout(timeout);
                     // Start worker thread
-                    Worker worker = new Worker(conn);
+                    final Worker worker = new Worker(conn);
                     workers.add(worker);
                     worker.setDaemon(true);
                     worker.start();
                 }
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 this.exception = ex;
             } finally {
                 try {
                     servicedSocket.close();
-                } catch (IOException ignore) {
+                } catch (final IOException ignore) {
                 }
             }
         }
@@ -345,7 +345,7 @@ public class LocalTestServer {
             interrupt();
             try {
                 servicedSocket.close();
-            } catch (IOException ignore) {
+            } catch (final IOException ignore) {
             }
         }
 
@@ -367,18 +367,18 @@ public class LocalTestServer {
 
         @Override
         public void run() {
-            HttpContext context = new BasicHttpContext();
+            final HttpContext context = new BasicHttpContext();
             try {
                 while (this.conn.isOpen() && !Thread.interrupted()) {
                     httpservice.handleRequest(this.conn, context);
                 }
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 this.exception = ex;
             } finally {
                 workers.remove(this);
                 try {
                     this.conn.shutdown();
-                } catch (IOException ignore) {
+                } catch (final IOException ignore) {
                 }
             }
         }
@@ -387,7 +387,7 @@ public class LocalTestServer {
             interrupt();
             try {
                 this.conn.shutdown();
-            } catch (IOException ignore) {
+            } catch (final IOException ignore) {
             }
         }
 

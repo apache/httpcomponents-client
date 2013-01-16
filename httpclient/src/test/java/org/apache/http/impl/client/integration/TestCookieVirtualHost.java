@@ -72,7 +72,7 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
                     final HttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
 
-                int n = Integer.parseInt(request.getFirstHeader("X-Request").getValue());
+                final int n = Integer.parseInt(request.getFirstHeader("X-Request").getValue());
                 switch (n) {
                 case 1:
                     // Assert Host is forwarded from URI
@@ -114,21 +114,21 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
 
         this.httpclient = HttpClients.createDefault();
 
-        CookieStore cookieStore = new BasicCookieStore();
-        HttpContext context = new BasicHttpContext();
+        final CookieStore cookieStore = new BasicCookieStore();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
 
         // First request : retrieve a domain cookie from remote server.
         URI uri = new URI("http://app.mydomain.fr");
         HttpRequest httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "1");
-        HttpResponse response1 = this.httpclient.execute(getServerHttp(),
+        final HttpResponse response1 = this.httpclient.execute(getServerHttp(),
                 httpRequest, context);
-        HttpEntity e1 = response1.getEntity();
+        final HttpEntity e1 = response1.getEntity();
         EntityUtils.consume(e1);
 
         // We should have one cookie set on domain.
-        List<Cookie> cookies = cookieStore.getCookies();
+        final List<Cookie> cookies = cookieStore.getCookies();
         Assert.assertNotNull(cookies);
         Assert.assertEquals(1, cookies.size());
         Assert.assertEquals("name1", cookies.get(0).getName());
@@ -137,18 +137,18 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
         uri = new URI("http://app.mydomain.fr");
         httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "2");
-        HttpResponse response2 = this.httpclient.execute(getServerHttp(),
+        final HttpResponse response2 = this.httpclient.execute(getServerHttp(),
                 httpRequest, context);
-        HttpEntity e2 = response2.getEntity();
+        final HttpEntity e2 = response2.getEntity();
         EntityUtils.consume(e2);
 
         // Third request : Host header
         uri = new URI("http://app.mydomain.fr");
         httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "3");
-        HttpResponse response3 = this.httpclient.execute(getServerHttp(),
+        final HttpResponse response3 = this.httpclient.execute(getServerHttp(),
                 httpRequest, context);
-        HttpEntity e3 = response3.getEntity();
+        final HttpEntity e3 = response3.getEntity();
         EntityUtils.consume(e3);
     }
 

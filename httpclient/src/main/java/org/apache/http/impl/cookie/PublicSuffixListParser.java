@@ -58,10 +58,10 @@ public class PublicSuffixListParser {
      * @throws IOException on error while reading from list
      */
     public void parse(final Reader list) throws IOException {
-        Collection<String> rules = new ArrayList<String>();
-        Collection<String> exceptions = new ArrayList<String>();
-        BufferedReader r = new BufferedReader(list);
-        StringBuilder sb = new StringBuilder(256);
+        final Collection<String> rules = new ArrayList<String>();
+        final Collection<String> exceptions = new ArrayList<String>();
+        final BufferedReader r = new BufferedReader(list);
+        final StringBuilder sb = new StringBuilder(256);
         boolean more = true;
         while (more) {
             more = readLine(r, sb);
@@ -78,7 +78,7 @@ public class PublicSuffixListParser {
                 line = line.substring(1); // A leading dot is optional
             }
             // An exclamation mark (!) at the start of a rule marks an exception to a previous wildcard rule
-            boolean isException = line.startsWith("!");
+            final boolean isException = line.startsWith("!");
             if (isException) {
                 line = line.substring(1);
             }
@@ -106,7 +106,7 @@ public class PublicSuffixListParser {
         int b;
         boolean hitWhitespace = false;
         while ((b = r.read()) != -1) {
-            char c = (char) b;
+            final char c = (char) b;
             if (c == '\n') {
                 break;
             }

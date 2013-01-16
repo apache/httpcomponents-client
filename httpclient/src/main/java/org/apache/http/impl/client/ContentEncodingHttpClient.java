@@ -83,7 +83,7 @@ public class ContentEncodingHttpClient extends DefaultHttpClient {
      */
     @Override
     protected BasicHttpProcessor createHttpProcessor() {
-        BasicHttpProcessor result = super.createHttpProcessor();
+        final BasicHttpProcessor result = super.createHttpProcessor();
 
         result.addRequestInterceptor(new RequestAcceptEncoding());
         result.addResponseInterceptor(new ResponseContentEncoding());

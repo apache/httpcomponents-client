@@ -56,7 +56,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
     public UsernamePasswordCredentials(final String usernamePassword) {
         super();
         Args.notNull(usernamePassword, "Username:password string");
-        int atColon = usernamePassword.indexOf(':');
+        final int atColon = usernamePassword.indexOf(':');
         if (atColon >= 0) {
             this.principal = new BasicUserPrincipal(usernamePassword.substring(0, atColon));
             this.password = usernamePassword.substring(atColon + 1);
@@ -103,7 +103,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
             return true;
         }
         if (o instanceof UsernamePasswordCredentials) {
-            UsernamePasswordCredentials that = (UsernamePasswordCredentials) o;
+            final UsernamePasswordCredentials that = (UsernamePasswordCredentials) o;
             if (LangUtils.equals(this.principal, that.principal)) {
                 return true;
             }

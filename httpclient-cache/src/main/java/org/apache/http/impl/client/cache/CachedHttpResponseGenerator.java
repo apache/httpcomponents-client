@@ -71,19 +71,19 @@ class CachedHttpResponseGenerator {
      */
     HttpResponse generateResponse(final HttpCacheEntry entry) {
 
-        Date now = new Date();
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, entry
+        final Date now = new Date();
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, entry
                 .getStatusCode(), entry.getReasonPhrase());
 
         response.setHeaders(entry.getAllHeaders());
 
         if (entry.getResource() != null) {
-            HttpEntity entity = new CacheEntity(entry);
+            final HttpEntity entity = new CacheEntity(entry);
             addMissingContentLengthHeader(response, entity);
             response.setEntity(entity);
         }
 
-        long age = this.validityStrategy.getCurrentAgeSecs(entry, now);
+        final long age = this.validityStrategy.getCurrentAgeSecs(entry, now);
         if (age > 0) {
             if (age >= Integer.MAX_VALUE) {
                 response.setHeader(HeaderConstants.AGE, "2147483648");
@@ -104,7 +104,7 @@ class CachedHttpResponseGenerator {
      */
     HttpResponse generateNotModifiedResponse(final HttpCacheEntry entry) {
 
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_NOT_MODIFIED, "Not Modified");
 
         // The response MUST include the following headers
@@ -119,12 +119,12 @@ class CachedHttpResponseGenerator {
 
         // - ETag and/or Content-Location, if the header would have been sent
         //   in a 200 response to the same request
-        Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
+        final Header etagHeader = entry.getFirstHeader(HeaderConstants.ETAG);
         if (etagHeader != null) {
             response.addHeader(etagHeader);
         }
 
-        Header contentLocationHeader = entry.getFirstHeader("Content-Location");
+        final Header contentLocationHeader = entry.getFirstHeader("Content-Location");
         if (contentLocationHeader != null) {
             response.addHeader(contentLocationHeader);
         }
@@ -132,17 +132,17 @@ class CachedHttpResponseGenerator {
         // - Expires, Cache-Control, and/or Vary, if the field-value might
         //   differ from that sent in any previous response for the same
         //   variant
-        Header expiresHeader = entry.getFirstHeader(HeaderConstants.EXPIRES);
+        final Header expiresHeader = entry.getFirstHeader(HeaderConstants.EXPIRES);
         if (expiresHeader != null) {
             response.addHeader(expiresHeader);
         }
 
-        Header cacheControlHeader = entry.getFirstHeader(HeaderConstants.CACHE_CONTROL);
+        final Header cacheControlHeader = entry.getFirstHeader(HeaderConstants.CACHE_CONTROL);
         if (cacheControlHeader != null) {
             response.addHeader(cacheControlHeader);
         }
 
-        Header varyHeader = entry.getFirstHeader(HeaderConstants.VARY);
+        final Header varyHeader = entry.getFirstHeader(HeaderConstants.VARY);
         if (varyHeader != null) {
             response.addHeader(varyHeader);
         }
@@ -164,7 +164,7 @@ class CachedHttpResponseGenerator {
     }
 
     private boolean transferEncodingIsPresent(final HttpResponse response) {
-        Header hdr = response.getFirstHeader(HTTP.TRANSFER_ENCODING);
+        final Header hdr = response.getFirstHeader(HTTP.TRANSFER_ENCODING);
         return hdr != null;
     }
 }

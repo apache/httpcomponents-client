@@ -47,10 +47,10 @@ public class TestGZip {
 
     @Test
     public void testBasic() throws Exception {
-        String s = "some kind of text";
-        StringEntity e = new StringEntity(s, ContentType.TEXT_PLAIN);
+        final String s = "some kind of text";
+        final StringEntity e = new StringEntity(s, ContentType.TEXT_PLAIN);
         e.setChunked(false);
-        GzipCompressingEntity gzipe = new GzipCompressingEntity(e);
+        final GzipCompressingEntity gzipe = new GzipCompressingEntity(e);
         Assert.assertTrue(gzipe.isChunked());
         Assert.assertEquals(-1, gzipe.getContentLength());
         Assert.assertNotNull(gzipe.getContentEncoding());
@@ -59,12 +59,12 @@ public class TestGZip {
 
     @Test
     public void testCompressionDecompression() throws Exception {
-        StringEntity in = new StringEntity("some kind of text", ContentType.TEXT_PLAIN);
-        GzipCompressingEntity gzipe = new GzipCompressingEntity(in);
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        final StringEntity in = new StringEntity("some kind of text", ContentType.TEXT_PLAIN);
+        final GzipCompressingEntity gzipe = new GzipCompressingEntity(in);
+        final ByteArrayOutputStream buf = new ByteArrayOutputStream();
         gzipe.writeTo(buf);
-        ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray());
-        GzipDecompressingEntity gunzipe = new GzipDecompressingEntity(out);
+        final ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray());
+        final GzipDecompressingEntity gunzipe = new GzipDecompressingEntity(out);
         Assert.assertEquals("some kind of text", EntityUtils.toString(gunzipe, Consts.ASCII));
     }
 
@@ -72,7 +72,7 @@ public class TestGZip {
     public void testGzipDecompressingEntityDoesNotCrashInConstructorAndLeaveInputStreamOpen()
             throws Exception {
         final AtomicBoolean inputStreamIsClosed = new AtomicBoolean(false);
-        HttpEntity in = new InputStreamEntity(new InputStream() {
+        final HttpEntity in = new InputStreamEntity(new InputStream() {
             @Override
             public int read() throws IOException {
                 throw new IOException("An exception occurred");
@@ -84,10 +84,10 @@ public class TestGZip {
             }
 
         }, 123);
-        GzipDecompressingEntity gunzipe = new GzipDecompressingEntity(in);
+        final GzipDecompressingEntity gunzipe = new GzipDecompressingEntity(in);
         try {
             gunzipe.getContent();
-        } catch (IOException e) {
+        } catch (final IOException e) {
             // As I cannot get the content, GzipDecompressingEntity is supposed
             // to have released everything
             Assert.assertTrue(inputStreamIsClosed.get());

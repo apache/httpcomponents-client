@@ -299,14 +299,14 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
     @Override
     public Object clone() throws CloneNotSupportedException {
-        BasicClientCookie clone = (BasicClientCookie) super.clone();
+        final BasicClientCookie clone = (BasicClientCookie) super.clone();
         clone.attribs = new HashMap<String, String>(this.attribs);
         return clone;
     }
 
     @Override
     public String toString() {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         buffer.append("[version: ");
         buffer.append(Integer.toString(this.cookieVersion));
         buffer.append("]");

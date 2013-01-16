@@ -55,7 +55,7 @@ public class BasicExpiresHandler extends AbstractCookieAttributeHandler {
         }
         try {
             cookie.setExpiryDate(DateUtils.parseDate(value, this.datepatterns));
-        } catch (DateParseException dpe) {
+        } catch (final DateParseException dpe) {
             throw new MalformedCookieException("Unable to parse expires attribute: "
                 + value);
         }

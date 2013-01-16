@@ -51,7 +51,7 @@ class ResponseProxyHandler implements InvocationHandler {
     static {
         try {
             CLOSE_METHOD = Closeable.class.getMethod("close");
-        } catch (NoSuchMethodException ex) {
+        } catch (final NoSuchMethodException ex) {
             throw new Error(ex);
         }
     }
@@ -65,7 +65,7 @@ class ResponseProxyHandler implements InvocationHandler {
         super();
         this.original = original;
         this.connHolder = connHolder;
-        HttpEntity entity = original.getEntity();
+        final HttpEntity entity = original.getEntity();
         if (entity != null && entity.isStreaming() && connHolder != null) {
             this.original.setEntity(new ResponseEntityWrapper(entity, connHolder));
         }
@@ -85,8 +85,8 @@ class ResponseProxyHandler implements InvocationHandler {
         } else {
             try {
                 return method.invoke(original, args);
-            } catch (InvocationTargetException ex) {
-                Throwable cause = ex.getCause();
+            } catch (final InvocationTargetException ex) {
+                final Throwable cause = ex.getCause();
                 if (cause != null) {
                     throw cause;
                 } else {

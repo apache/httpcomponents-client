@@ -41,14 +41,14 @@ public class TestDefaultClientConnectOperator {
 
     @Test
     public void testCustomDnsResolver() throws Exception {
-        DnsResolver dnsResolver = mock(DnsResolver.class);
-        InetAddress[] firstAddress = translateIp("192.168.1.1");
+        final DnsResolver dnsResolver = mock(DnsResolver.class);
+        final InetAddress[] firstAddress = translateIp("192.168.1.1");
         when(dnsResolver.resolve("somehost.example.com")).thenReturn(firstAddress);
 
-        InetAddress[] secondAddress = translateIp("192.168.12.16");
+        final InetAddress[] secondAddress = translateIp("192.168.12.16");
         when(dnsResolver.resolve("otherhost.example.com")).thenReturn(secondAddress);
 
-        DefaultClientConnectionOperator operator = new DefaultClientConnectionOperator(
+        final DefaultClientConnectionOperator operator = new DefaultClientConnectionOperator(
                 SchemeRegistryFactory.createDefault(), dnsResolver);
 
         Assert.assertArrayEquals(firstAddress, operator.resolveHostname("somehost.example.com"));
@@ -57,25 +57,25 @@ public class TestDefaultClientConnectOperator {
 
     @Test(expected=UnknownHostException.class)
     public void testDnsResolverUnknownHost() throws Exception {
-        DnsResolver dnsResolver = mock(DnsResolver.class);
+        final DnsResolver dnsResolver = mock(DnsResolver.class);
         when(dnsResolver.resolve("unknown.example.com")).thenThrow(new UnknownHostException());
 
-        DefaultClientConnectionOperator operator = new DefaultClientConnectionOperator(
+        final DefaultClientConnectionOperator operator = new DefaultClientConnectionOperator(
                 SchemeRegistryFactory.createDefault(), dnsResolver);
         operator.resolveHostname("unknown.example.com");
     }
 
     @Test
     public void testDefaultLocalHost() throws Exception {
-        DefaultClientConnectionOperator operator = new DefaultClientConnectionOperator(
+        final DefaultClientConnectionOperator operator = new DefaultClientConnectionOperator(
                 SchemeRegistryFactory.createDefault());
         operator.resolveHostname("localhost");
     }
 
     private InetAddress[] translateIp(final String ip) throws UnknownHostException {
-        String[] ipParts = ip.split("\\.");
+        final String[] ipParts = ip.split("\\.");
 
-        byte[] byteIpAddress = new byte[4];
+        final byte[] byteIpAddress = new byte[4];
         for (int i = 0; i < 4; i++) {
             byteIpAddress[i] = Integer.decode(ipParts[i]).byteValue();
         }

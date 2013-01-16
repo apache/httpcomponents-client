@@ -68,7 +68,7 @@ public class TestConnectionReuse {
 
     @Test
     public void testReuseOfPersistentConnections() throws Exception {
-        HttpProcessor httpproc = HttpProcessorBuilder.create()
+        final HttpProcessor httpproc = HttpProcessorBuilder.create()
             .add(new ResponseDate())
             .add(new ResponseServer())
             .add(new ResponseContent())
@@ -78,16 +78,16 @@ public class TestConnectionReuse {
         this.localServer.register("/random/*", new RandomHandler());
         this.localServer.start();
 
-        InetSocketAddress saddress = this.localServer.getServiceAddress();
+        final InetSocketAddress saddress = this.localServer.getServiceAddress();
 
-        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
+        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
-        HttpClient client = HttpClients.custom().setConnectionManager(mgr).build();
-        HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
+        final HttpClient client = HttpClients.custom().setConnectionManager(mgr).build();
+        final HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 
-        WorkerThread[] workers = new WorkerThread[10];
+        final WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
             workers[i] = new WorkerThread(
                     client,
@@ -96,12 +96,12 @@ public class TestConnectionReuse {
                     10, false);
         }
 
-        for (WorkerThread worker : workers) {
+        for (final WorkerThread worker : workers) {
             worker.start();
         }
-        for (WorkerThread worker : workers) {
+        for (final WorkerThread worker : workers) {
             worker.join(10000);
-            Exception ex = worker.getException();
+            final Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;
             }
@@ -125,7 +125,7 @@ public class TestConnectionReuse {
 
     @Test
     public void testReuseOfClosedConnections() throws Exception {
-        HttpProcessor httpproc = HttpProcessorBuilder.create()
+        final HttpProcessor httpproc = HttpProcessorBuilder.create()
             .add(new ResponseDate())
             .add(new ResponseServer())
             .add(new ResponseContent())
@@ -135,17 +135,17 @@ public class TestConnectionReuse {
         this.localServer.register("/random/*", new RandomHandler());
         this.localServer.start();
 
-        InetSocketAddress saddress = this.localServer.getServiceAddress();
+        final InetSocketAddress saddress = this.localServer.getServiceAddress();
 
-        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
+        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
-        HttpClient client = HttpClients.custom().setConnectionManager(mgr).build();
+        final HttpClient client = HttpClients.custom().setConnectionManager(mgr).build();
 
-        HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
+        final HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 
-        WorkerThread[] workers = new WorkerThread[10];
+        final WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
             workers[i] = new WorkerThread(
                     client,
@@ -154,12 +154,12 @@ public class TestConnectionReuse {
                     10, false);
         }
 
-        for (WorkerThread worker : workers) {
+        for (final WorkerThread worker : workers) {
             worker.start();
         }
-        for (WorkerThread worker : workers) {
+        for (final WorkerThread worker : workers) {
             worker.join(10000);
-            Exception ex = worker.getException();
+            final Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;
             }
@@ -173,7 +173,7 @@ public class TestConnectionReuse {
 
     @Test
     public void testReuseOfAbortedConnections() throws Exception {
-        HttpProcessor httpproc = HttpProcessorBuilder.create()
+        final HttpProcessor httpproc = HttpProcessorBuilder.create()
             .add(new ResponseDate())
             .add(new ResponseServer())
             .add(new ResponseContent())
@@ -183,17 +183,17 @@ public class TestConnectionReuse {
         this.localServer.register("/random/*", new RandomHandler());
         this.localServer.start();
 
-        InetSocketAddress saddress = this.localServer.getServiceAddress();
+        final InetSocketAddress saddress = this.localServer.getServiceAddress();
 
-        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
+        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(5);
         mgr.setDefaultMaxPerRoute(5);
 
-        HttpClient client = HttpClients.custom().setConnectionManager(mgr).build();
+        final HttpClient client = HttpClients.custom().setConnectionManager(mgr).build();
 
-        HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
+        final HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 
-        WorkerThread[] workers = new WorkerThread[10];
+        final WorkerThread[] workers = new WorkerThread[10];
         for (int i = 0; i < workers.length; i++) {
             workers[i] = new WorkerThread(
                     client,
@@ -202,12 +202,12 @@ public class TestConnectionReuse {
                     10, true);
         }
 
-        for (WorkerThread worker : workers) {
+        for (final WorkerThread worker : workers) {
             worker.start();
         }
-        for (WorkerThread worker : workers) {
+        for (final WorkerThread worker : workers) {
             worker.join(10000);
-            Exception ex = worker.getException();
+            final Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;
             }
@@ -221,7 +221,7 @@ public class TestConnectionReuse {
 
     @Test
     public void testKeepAliveHeaderRespected() throws Exception {
-        HttpProcessor httpproc = HttpProcessorBuilder.create()
+        final HttpProcessor httpproc = HttpProcessorBuilder.create()
             .add(new ResponseDate())
             .add(new ResponseServer())
             .add(new ResponseContent())
@@ -232,15 +232,15 @@ public class TestConnectionReuse {
         this.localServer.register("/random/*", new RandomHandler());
         this.localServer.start();
 
-        InetSocketAddress saddress = this.localServer.getServiceAddress();
+        final InetSocketAddress saddress = this.localServer.getServiceAddress();
 
-        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
+        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(1);
         mgr.setDefaultMaxPerRoute(1);
 
-        HttpClient client = HttpClients.custom().setConnectionManager(mgr).build();
+        final HttpClient client = HttpClients.custom().setConnectionManager(mgr).build();
 
-        HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
+        final HttpHost target = new HttpHost(saddress.getHostName(), saddress.getPort(), "http");
 
         HttpResponse response = client.execute(target, new HttpGet("/random/2000"));
         EntityUtils.consume(response.getEntity());
@@ -303,8 +303,8 @@ public class TestConnectionReuse {
         public void run() {
             try {
                 for (int i = 0; i < this.repetitions; i++) {
-                    HttpGet httpget = new HttpGet(this.requestURI);
-                    HttpResponse response = this.httpclient.execute(
+                    final HttpGet httpget = new HttpGet(this.requestURI);
+                    final HttpResponse response = this.httpclient.execute(
                             this.target,
                             httpget);
                     if (this.forceClose) {
@@ -313,7 +313,7 @@ public class TestConnectionReuse {
                         EntityUtils.consume(response.getEntity());
                     }
                 }
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 this.exception = ex;
             }
         }
@@ -329,7 +329,7 @@ public class TestConnectionReuse {
     private static class ResponseKeepAlive implements HttpResponseInterceptor {
         public void process(final HttpResponse response, final HttpContext context)
                 throws HttpException, IOException {
-            Header connection = response.getFirstHeader(HTTP.CONN_DIRECTIVE);
+            final Header connection = response.getFirstHeader(HTTP.CONN_DIRECTIVE);
             if(connection != null) {
                 if(!connection.getValue().equalsIgnoreCase("Close")) {
                     response.addHeader(HTTP.CONN_KEEP_ALIVE, "timeout=1");

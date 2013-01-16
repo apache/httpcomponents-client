@@ -56,8 +56,8 @@ public class TestHttpCacheJiraNumber1147 {
 
     private void removeCache() {
         if (this.cacheDir != null) {
-            File[] files = this.cacheDir.listFiles();
-            for (File cacheFile : files) {
+            final File[] files = this.cacheDir.listFiles();
+            for (final File cacheFile : files) {
                 cacheFile.delete();
             }
             this.cacheDir.delete();
@@ -81,24 +81,24 @@ public class TestHttpCacheJiraNumber1147 {
 
     @Test
     public void testIssue1147() throws Exception {
-        CacheConfig cacheConfig = CacheConfig.custom()
+        final CacheConfig cacheConfig = CacheConfig.custom()
             .setSharedCache(true)
             .setMaxObjectSize(262144) //256kb
             .build();
 
-        ResourceFactory resourceFactory = new FileResourceFactory(cacheDir);
-        HttpCacheStorage httpCacheStorage = new ManagedHttpCacheStorage(cacheConfig);
+        final ResourceFactory resourceFactory = new FileResourceFactory(cacheDir);
+        final HttpCacheStorage httpCacheStorage = new ManagedHttpCacheStorage(cacheConfig);
 
-        ClientExecChain backend = EasyMock.createNiceMock(ClientExecChain.class);
-        HttpRequestWrapper get = HttpRequestWrapper.wrap(new HttpGet("http://somehost/"));
-        HttpClientContext context = HttpClientContext.create();
-        HttpHost target = new HttpHost("somehost");
-        HttpRoute route = new HttpRoute(target);
+        final ClientExecChain backend = EasyMock.createNiceMock(ClientExecChain.class);
+        final HttpRequestWrapper get = HttpRequestWrapper.wrap(new HttpGet("http://somehost/"));
+        final HttpClientContext context = HttpClientContext.create();
+        final HttpHost target = new HttpHost("somehost");
+        final HttpRoute route = new HttpRoute(target);
 
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.setEntity(HttpTestUtils.makeBody(128));
         response.setHeader("Content-Length", "128");
         response.setHeader("ETag", "\"etag\"");
@@ -112,10 +112,10 @@ public class TestHttpCacheJiraNumber1147 {
                 EasyMock.<HttpExecutionAware>isNull())).andReturn(Proxies.enhanceResponse(response));
         EasyMock.replay(backend);
 
-        BasicHttpCache cache = new BasicHttpCache(resourceFactory, httpCacheStorage, cacheConfig);
-        CachingExec t = new CachingExec(backend, cache, cacheConfig);
+        final BasicHttpCache cache = new BasicHttpCache(resourceFactory, httpCacheStorage, cacheConfig);
+        final CachingExec t = new CachingExec(backend, cache, cacheConfig);
 
-        HttpResponse response1 = t.execute(route, get, context, null);
+        final HttpResponse response1 = t.execute(route, get, context, null);
         Assert.assertEquals(200, response1.getStatusLine().getStatusCode());
         EntityUtils.consume(response1.getEntity());
 
@@ -131,7 +131,7 @@ public class TestHttpCacheJiraNumber1147 {
                 EasyMock.<HttpExecutionAware>isNull())).andReturn(Proxies.enhanceResponse(response));
         EasyMock.replay(backend);
 
-        HttpResponse response2 = t.execute(route, get, context, null);
+        final HttpResponse response2 = t.execute(route, get, context, null);
         Assert.assertEquals(200, response2.getStatusLine().getStatusCode());
         EntityUtils.consume(response2.getEntity());
 

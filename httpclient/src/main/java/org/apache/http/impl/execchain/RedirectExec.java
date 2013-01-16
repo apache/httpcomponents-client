@@ -87,12 +87,12 @@ public class RedirectExec implements ClientExecChain {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        RequestConfig config = context.getRequestConfig();
-        int maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;
+        final RequestConfig config = context.getRequestConfig();
+        final int maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;
         HttpRoute currentRoute = route;
         HttpRequestWrapper currentRequest = request;
         for (int redirectCount = 0;;) {
-            CloseableHttpResponse response = requestExecutor.execute(
+            final CloseableHttpResponse response = requestExecutor.execute(
                     currentRoute, currentRequest, context, execAware);
             try {
                 if (config.isRedirectsEnabled() &&
@@ -103,16 +103,16 @@ public class RedirectExec implements ClientExecChain {
                     }
                     redirectCount++;
 
-                    HttpRequest redirect = this.redirectStrategy.getRedirect(currentRequest, response, context);
-                    HttpRequest original = currentRequest.getOriginal();
+                    final HttpRequest redirect = this.redirectStrategy.getRedirect(currentRequest, response, context);
+                    final HttpRequest original = currentRequest.getOriginal();
                     currentRequest = HttpRequestWrapper.wrap(redirect);
                     currentRequest.setHeaders(original.getAllHeaders());
                     if (original instanceof HttpEntityEnclosingRequest) {
                         Proxies.enhanceEntity((HttpEntityEnclosingRequest) request);
                     }
 
-                    URI uri = currentRequest.getURI();
-                    HttpHost newTarget = URIUtils.extractHost(uri);
+                    final URI uri = currentRequest.getURI();
+                    final HttpHost newTarget = URIUtils.extractHost(uri);
                     if (uri.getHost() == null) {
                         throw new ProtocolException("Redirect URI does not specify a valid host name: " +
                                 uri);
@@ -120,14 +120,14 @@ public class RedirectExec implements ClientExecChain {
 
                     // Reset virtual host and auth states if redirecting to another host
                     if (!currentRoute.getTargetHost().equals(newTarget)) {
-                        AuthState targetAuthState = context.getTargetAuthState();
+                        final AuthState targetAuthState = context.getTargetAuthState();
                         if (targetAuthState != null) {
                             this.log.debug("Resetting target auth state");
                             targetAuthState.reset();
                         }
-                        AuthState proxyAuthState = context.getProxyAuthState();
+                        final AuthState proxyAuthState = context.getProxyAuthState();
                         if (proxyAuthState != null) {
-                            AuthScheme authScheme = proxyAuthState.getAuthScheme();
+                            final AuthScheme authScheme = proxyAuthState.getAuthScheme();
                             if (authScheme != null && authScheme.isConnectionBased()) {
                                 this.log.debug("Resetting proxy auth state");
                                 proxyAuthState.reset();
@@ -144,18 +144,18 @@ public class RedirectExec implements ClientExecChain {
                 } else {
                     return response;
                 }
-            } catch (RuntimeException ex) {
+            } catch (final RuntimeException ex) {
                 response.close();
                 throw ex;
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 response.close();
                 throw ex;
-            } catch (HttpException ex) {
+            } catch (final HttpException ex) {
                 // Protocol exception related to a direct.
                 // The underlying connection may still be salvaged.
                 try {
                     EntityUtils.consume(response.getEntity());
-                } catch (IOException ioex) {
+                } catch (final IOException ioex) {
                     this.log.debug("I/O error while releasing connection", ioex);
                 } finally {
                     response.close();

@@ -51,8 +51,8 @@ public class HttpMultipart {
 
     private static ByteArrayBuffer encode(
             final Charset charset, final String string) {
-        ByteBuffer encoded = charset.encode(CharBuffer.wrap(string));
-        ByteArrayBuffer bab = new ByteArrayBuffer(encoded.remaining());
+        final ByteBuffer encoded = charset.encode(CharBuffer.wrap(string));
+        final ByteArrayBuffer bab = new ByteArrayBuffer(encoded.remaining());
         bab.append(encoded.array(), encoded.position(), encoded.remaining());
         return bab;
     }
@@ -64,13 +64,13 @@ public class HttpMultipart {
 
     private static void writeBytes(
             final String s, final Charset charset, final OutputStream out) throws IOException {
-        ByteArrayBuffer b = encode(charset, s);
+        final ByteArrayBuffer b = encode(charset, s);
         writeBytes(b, out);
     }
 
     private static void writeBytes(
             final String s, final OutputStream out) throws IOException {
-        ByteArrayBuffer b = encode(MIME.DEFAULT_CHARSET, s);
+        final ByteArrayBuffer b = encode(MIME.DEFAULT_CHARSET, s);
         writeBytes(b, out);
     }
 
@@ -171,28 +171,28 @@ public class HttpMultipart {
         final OutputStream out,
         final boolean writeContent) throws IOException {
 
-        ByteArrayBuffer boundary = encode(this.charset, getBoundary());
-        for (FormBodyPart part: this.parts) {
+        final ByteArrayBuffer boundary = encode(this.charset, getBoundary());
+        for (final FormBodyPart part: this.parts) {
             writeBytes(TWO_DASHES, out);
             writeBytes(boundary, out);
             writeBytes(CR_LF, out);
 
-            Header header = part.getHeader();
+            final Header header = part.getHeader();
 
             switch (mode) {
             case STRICT:
-                for (MinimalField field: header) {
+                for (final MinimalField field: header) {
                     writeField(field, out);
                 }
                 break;
             case BROWSER_COMPATIBLE:
                 // Only write Content-Disposition
                 // Use content charset
-                MinimalField cd = part.getHeader().getField(MIME.CONTENT_DISPOSITION);
+                final MinimalField cd = part.getHeader().getField(MIME.CONTENT_DISPOSITION);
                 writeField(cd, this.charset, out);
-                String filename = part.getBody().getFilename();
+                final String filename = part.getBody().getFilename();
                 if (filename != null) {
-                    MinimalField ct = part.getHeader().getField(MIME.CONTENT_TYPE);
+                    final MinimalField ct = part.getHeader().getField(MIME.CONTENT_TYPE);
                     writeField(ct, this.charset, out);
                 }
                 break;
@@ -236,21 +236,21 @@ public class HttpMultipart {
      */
     public long getTotalLength() {
         long contentLen = 0;
-        for (FormBodyPart part: this.parts) {
-            ContentBody body = part.getBody();
-            long len = body.getContentLength();
+        for (final FormBodyPart part: this.parts) {
+            final ContentBody body = part.getBody();
+            final long len = body.getContentLength();
             if (len >= 0) {
                 contentLen += len;
             } else {
                 return -1;
             }
         }
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             doWriteTo(this.mode, out, false);
-            byte[] extra = out.toByteArray();
+            final byte[] extra = out.toByteArray();
             return contentLen + extra.length;
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             // Should never happen
             return -1;
         }

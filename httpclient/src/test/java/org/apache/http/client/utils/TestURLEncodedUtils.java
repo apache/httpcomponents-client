@@ -192,9 +192,9 @@ public class TestURLEncodedUtils {
     };
 
     private static String constructString(final int [] unicodeChars) {
-        StringBuffer buffer = new StringBuffer();
+        final StringBuffer buffer = new StringBuffer();
         if (unicodeChars != null) {
-            for (int unicodeChar : unicodeChars) {
+            for (final int unicodeChar : unicodeChars) {
                 buffer.append((char)unicodeChar);
             }
         }
@@ -203,20 +203,20 @@ public class TestURLEncodedUtils {
 
     @Test
     public void testParseUTF8Entity () throws Exception {
-        String ru_hello = constructString(RUSSIAN_HELLO);
-        String ch_hello = constructString(SWISS_GERMAN_HELLO);
-        List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+        final String ru_hello = constructString(RUSSIAN_HELLO);
+        final String ch_hello = constructString(SWISS_GERMAN_HELLO);
+        final List <NameValuePair> parameters = new ArrayList<NameValuePair>();
         parameters.add(new BasicNameValuePair("russian", ru_hello));
         parameters.add(new BasicNameValuePair("swiss", ch_hello));
 
-        String s = URLEncodedUtils.format(parameters, Consts.UTF_8);
+        final String s = URLEncodedUtils.format(parameters, Consts.UTF_8);
 
         Assert.assertEquals("russian=%D0%92%D1%81%D0%B5%D0%BC_%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82" +
                 "&swiss=Gr%C3%BCezi_z%C3%A4m%C3%A4", s);
 
-        StringEntity entity = new StringEntity(s, ContentType.create(
+        final StringEntity entity = new StringEntity(s, ContentType.create(
                 URLEncodedUtils.CONTENT_TYPE, Consts.UTF_8));
-        List <NameValuePair> result = URLEncodedUtils.parse(entity);
+        final List <NameValuePair> result = URLEncodedUtils.parse(entity);
         Assert.assertEquals(2, result.size());
         assertNameValuePair(result.get(0), "russian", ru_hello);
         assertNameValuePair(result.get(1), "swiss", ch_hello);
@@ -224,15 +224,15 @@ public class TestURLEncodedUtils {
 
     @Test
     public void testParseUTF8String () throws Exception {
-        String ru_hello = constructString(RUSSIAN_HELLO);
-        String ch_hello = constructString(SWISS_GERMAN_HELLO);
-        List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+        final String ru_hello = constructString(RUSSIAN_HELLO);
+        final String ch_hello = constructString(SWISS_GERMAN_HELLO);
+        final List <NameValuePair> parameters = new ArrayList<NameValuePair>();
         parameters.add(new BasicNameValuePair("russian", ru_hello));
         parameters.add(new BasicNameValuePair("swiss", ch_hello));
 
-        String s = URLEncodedUtils.format(parameters, Consts.UTF_8);
+        final String s = URLEncodedUtils.format(parameters, Consts.UTF_8);
 
-        List <NameValuePair> result = URLEncodedUtils.parse(s, Consts.UTF_8);
+        final List <NameValuePair> result = URLEncodedUtils.parse(s, Consts.UTF_8);
         Assert.assertEquals(2, result.size());
         assertNameValuePair(result.get(0), "russian", ru_hello);
         assertNameValuePair(result.get(1), "swiss", ch_hello);
@@ -240,19 +240,19 @@ public class TestURLEncodedUtils {
 
     @Test
     public void testParseEntityDefaultContentType () throws Exception {
-        String ch_hello = constructString(SWISS_GERMAN_HELLO);
-        String us_hello = "hi there";
-        List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+        final String ch_hello = constructString(SWISS_GERMAN_HELLO);
+        final String us_hello = "hi there";
+        final List <NameValuePair> parameters = new ArrayList<NameValuePair>();
         parameters.add(new BasicNameValuePair("english", us_hello));
         parameters.add(new BasicNameValuePair("swiss", ch_hello));
 
-        String s = URLEncodedUtils.format(parameters, HTTP.DEF_CONTENT_CHARSET);
+        final String s = URLEncodedUtils.format(parameters, HTTP.DEF_CONTENT_CHARSET);
 
         Assert.assertEquals("english=hi+there&swiss=Gr%FCezi_z%E4m%E4", s);
 
-        StringEntity entity = new StringEntity(s, ContentType.create(
+        final StringEntity entity = new StringEntity(s, ContentType.create(
                 URLEncodedUtils.CONTENT_TYPE, HTTP.DEF_CONTENT_CHARSET));
-        List <NameValuePair> result = URLEncodedUtils.parse(entity);
+        final List <NameValuePair> result = URLEncodedUtils.parse(entity);
         Assert.assertEquals(2, result.size());
         assertNameValuePair(result.get(0), "english", us_hello);
         assertNameValuePair(result.get(1), "swiss", ch_hello);

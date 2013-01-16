@@ -69,30 +69,30 @@ public class TestHttpCacheEntrySerializers {
 
     public void readWriteVerify(final HttpCacheEntry writeEntry) throws IOException {
         // write the entry
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         impl.writeTo(writeEntry, out);
 
         // read the entry
-        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-        HttpCacheEntry readEntry = impl.readFrom(in);
+        final ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        final HttpCacheEntry readEntry = impl.readFrom(in);
 
         // compare
         assertTrue(areEqual(readEntry, writeEntry));
     }
 
     private HttpCacheEntry makeCacheEntryWithVariantMap() throws UnsupportedEncodingException {
-        Header[] headers = new Header[5];
+        final Header[] headers = new Header[5];
         for (int i = 0; i < headers.length; i++) {
             headers[i] = new BasicHeader("header" + i, "value" + i);
         }
-        String body = "Lorem ipsum dolor sit amet";
+        final String body = "Lorem ipsum dolor sit amet";
 
-        ProtocolVersion pvObj = new ProtocolVersion("HTTP", 1, 1);
-        StatusLine slObj = new BasicStatusLine(pvObj, 200, "ok");
-        Map<String,String> variantMap = new HashMap<String,String>();
+        final ProtocolVersion pvObj = new ProtocolVersion("HTTP", 1, 1);
+        final StatusLine slObj = new BasicStatusLine(pvObj, 200, "ok");
+        final Map<String,String> variantMap = new HashMap<String,String>();
         variantMap.put("test variant 1","true");
         variantMap.put("test variant 2","true");
-        HttpCacheEntry cacheEntry = new HttpCacheEntry(new Date(), new Date(),
+        final HttpCacheEntry cacheEntry = new HttpCacheEntry(new Date(), new Date(),
                 slObj, headers, new HeapResource(Base64.decodeBase64(body
                         .getBytes(UTF8.name()))), variantMap);
 
@@ -113,15 +113,15 @@ public class TestHttpCacheEntrySerializers {
             return false;
         }
 
-        byte[] onesByteArray = resourceToBytes(one.getResource());
-        byte[] twosByteArray = resourceToBytes(two.getResource());
+        final byte[] onesByteArray = resourceToBytes(one.getResource());
+        final byte[] twosByteArray = resourceToBytes(two.getResource());
 
         if (!Arrays.equals(onesByteArray,twosByteArray)) {
             return false;
         }
 
-        Header[] oneHeaders = one.getAllHeaders();
-        Header[] twoHeaders = two.getAllHeaders();
+        final Header[] oneHeaders = one.getAllHeaders();
+        final Header[] twoHeaders = two.getAllHeaders();
         if (!(oneHeaders.length == twoHeaders.length)) {
             return false;
         }
@@ -138,16 +138,16 @@ public class TestHttpCacheEntrySerializers {
     }
 
     private byte[] resourceToBytes(final Resource res) throws IOException {
-        InputStream inputStream = res.getInputStream();
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        final InputStream inputStream = res.getInputStream();
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         int readBytes;
-        byte[] bytes = new byte[8096];
+        final byte[] bytes = new byte[8096];
         while ((readBytes = inputStream.read(bytes)) > 0) {
             outputStream.write(bytes, 0, readBytes);
         }
 
-        byte[] byteData = outputStream.toByteArray();
+        final byte[] byteData = outputStream.toByteArray();
 
         inputStream.close();
         outputStream.close();

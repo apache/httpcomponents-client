@@ -93,8 +93,8 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
         Args.notNull(response, "HTTP response");
         Args.notNull(context, "HTTP context");
 
-        Queue<AuthOption> options = new LinkedList<AuthOption>();
-        CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(
+        final Queue<AuthOption> options = new LinkedList<AuthOption>();
+        final CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(
                 ClientContext.CREDS_PROVIDER);
         if (credsProvider == null) {
             this.log.debug("Credentials provider not set in the context");
@@ -104,23 +104,23 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
         AuthScheme authScheme;
         try {
             authScheme = this.handler.selectScheme(challenges, response, context);
-        } catch (AuthenticationException ex) {
+        } catch (final AuthenticationException ex) {
             if (this.log.isWarnEnabled()) {
                 this.log.warn(ex.getMessage(), ex);
             }
             return options;
         }
-        String id = authScheme.getSchemeName();
-        Header challenge = challenges.get(id.toLowerCase(Locale.US));
+        final String id = authScheme.getSchemeName();
+        final Header challenge = challenges.get(id.toLowerCase(Locale.US));
         authScheme.processChallenge(challenge);
 
-        AuthScope authScope = new AuthScope(
+        final AuthScope authScope = new AuthScope(
                 authhost.getHostName(),
                 authhost.getPort(),
                 authScheme.getRealm(),
                 authScheme.getSchemeName());
 
-        Credentials credentials = credsProvider.getCredentials(authScope);
+        final Credentials credentials = credsProvider.getCredentials(authScope);
         if (credentials != null) {
             options.add(new AuthOption(authScheme, credentials));
         }
@@ -145,7 +145,7 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
 
     public void authFailed(
             final HttpHost authhost, final AuthScheme authScheme, final HttpContext context) {
-        AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+        final AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
         if (authCache == null) {
             return;
         }
@@ -160,7 +160,7 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
         if (authScheme == null || !authScheme.isComplete()) {
             return false;
         }
-        String schemeName = authScheme.getSchemeName();
+        final String schemeName = authScheme.getSchemeName();
         return schemeName.equalsIgnoreCase(AuthPolicy.BASIC) ||
                 schemeName.equalsIgnoreCase(AuthPolicy.DIGEST);
     }

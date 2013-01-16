@@ -104,14 +104,14 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
     @Override
     protected void parseChallenge(
             final CharArrayBuffer buffer, final int pos, final int len) throws MalformedChallengeException {
-        HeaderValueParser parser = BasicHeaderValueParser.INSTANCE;
-        ParserCursor cursor = new ParserCursor(pos, buffer.length());
-        HeaderElement[] elements = parser.parseElements(buffer, cursor);
+        final HeaderValueParser parser = BasicHeaderValueParser.INSTANCE;
+        final ParserCursor cursor = new ParserCursor(pos, buffer.length());
+        final HeaderElement[] elements = parser.parseElements(buffer, cursor);
         if (elements.length == 0) {
             throw new MalformedChallengeException("Authentication challenge is empty");
         }
         this.params.clear();
-        for (HeaderElement element : elements) {
+        for (final HeaderElement element : elements) {
             this.params.put(element.getName(), element.getValue());
         }
     }

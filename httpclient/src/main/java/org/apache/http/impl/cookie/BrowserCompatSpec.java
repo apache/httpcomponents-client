@@ -103,7 +103,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
             throws MalformedCookieException {
         Args.notNull(header, "Header");
         Args.notNull(origin, "Cookie origin");
-        String headername = header.getName();
+        final String headername = header.getName();
         if (!headername.equalsIgnoreCase(SM.SET_COOKIE)) {
             throw new MalformedCookieException("Unrecognized cookie header '"
                     + header.toString() + "'");
@@ -111,7 +111,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
         HeaderElement[] helems = header.getElements();
         boolean versioned = false;
         boolean netscape = false;
-        for (HeaderElement helem: helems) {
+        for (final HeaderElement helem: helems) {
             if (helem.getParameterByName("version") != null) {
                 versioned = true;
             }
@@ -122,7 +122,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
         if (netscape || !versioned) {
             // Need to parse the header again, because Netscape style cookies do not correctly
             // support multiple header elements (comma cannot be treated as an element separator)
-            NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
+            final NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
             CharArrayBuffer buffer;
             ParserCursor cursor;
             if (header instanceof FormattedHeader) {
@@ -131,7 +131,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
                         ((FormattedHeader) header).getValuePos(),
                         buffer.length());
             } else {
-                String s = header.getValue();
+                final String s = header.getValue();
                 if (s == null) {
                     throw new MalformedCookieException("Header value is null");
                 }
@@ -146,11 +146,11 @@ public class BrowserCompatSpec extends CookieSpecBase {
 
     public List<Header> formatCookies(final List<Cookie> cookies) {
         Args.notEmpty(cookies, "List of cookies");
-        CharArrayBuffer buffer = new CharArrayBuffer(20 * cookies.size());
+        final CharArrayBuffer buffer = new CharArrayBuffer(20 * cookies.size());
         buffer.append(SM.COOKIE);
         buffer.append(": ");
         for (int i = 0; i < cookies.size(); i++) {
-            Cookie cookie = cookies.get(i);
+            final Cookie cookie = cookies.get(i);
             if (i > 0) {
                 buffer.append("; ");
             }
@@ -163,13 +163,13 @@ public class BrowserCompatSpec extends CookieSpecBase {
                 // Netscape style cookies do not support quoted values
                 buffer.append(cookie.getName());
                 buffer.append("=");
-                String s = cookie.getValue();
+                final String s = cookie.getValue();
                 if (s != null) {
                     buffer.append(s);
                 }
             }
         }
-        List<Header> headers = new ArrayList<Header>(1);
+        final List<Header> headers = new ArrayList<Header>(1);
         headers.add(new BufferedHeader(buffer));
         return headers;
     }

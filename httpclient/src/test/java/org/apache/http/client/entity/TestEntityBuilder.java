@@ -41,14 +41,14 @@ public class TestEntityBuilder {
 
     @Test(expected=IllegalStateException.class)
     public void testBuildEmptyEntity() throws Exception {
-        HttpEntity entity = EntityBuilder.create().build();
+        final HttpEntity entity = EntityBuilder.create().build();
         Assert.assertNotNull(entity);
         entity.getContent();
     }
 
     @Test
     public void testBuildTextEntity() throws Exception {
-        HttpEntity entity = EntityBuilder.create().setText("stuff").build();
+        final HttpEntity entity = EntityBuilder.create().setText("stuff").build();
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContent());
         Assert.assertNotNull(entity.getContentType());
@@ -57,7 +57,7 @@ public class TestEntityBuilder {
 
     @Test
     public void testBuildBinaryEntity() throws Exception {
-        HttpEntity entity = EntityBuilder.create().setBinary(new byte[] {0, 1, 2}).build();
+        final HttpEntity entity = EntityBuilder.create().setBinary(new byte[] {0, 1, 2}).build();
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContent());
         Assert.assertNotNull(entity.getContentType());
@@ -66,8 +66,8 @@ public class TestEntityBuilder {
 
     @Test
     public void testBuildStreamEntity() throws Exception {
-        InputStream in = Mockito.mock(InputStream.class);
-        HttpEntity entity = EntityBuilder.create().setStream(in).build();
+        final InputStream in = Mockito.mock(InputStream.class);
+        final HttpEntity entity = EntityBuilder.create().setStream(in).build();
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContent());
         Assert.assertNotNull(entity.getContentType());
@@ -76,7 +76,7 @@ public class TestEntityBuilder {
 
     @Test
     public void testBuildSerializableEntity() throws Exception {
-        HttpEntity entity = EntityBuilder.create().setSerializable(Boolean.TRUE).build();
+        final HttpEntity entity = EntityBuilder.create().setSerializable(Boolean.TRUE).build();
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContent());
         Assert.assertNotNull(entity.getContentType());
@@ -85,8 +85,8 @@ public class TestEntityBuilder {
 
     @Test
     public void testBuildFileEntity() throws Exception {
-        File file = new File("stuff");
-        HttpEntity entity = EntityBuilder.create().setFile(file).build();
+        final File file = new File("stuff");
+        final HttpEntity entity = EntityBuilder.create().setFile(file).build();
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContentType());
         Assert.assertEquals("application/octet-stream", entity.getContentType().getValue());
@@ -94,7 +94,7 @@ public class TestEntityBuilder {
 
     @Test
     public void testExplicitContentProperties() throws Exception {
-        HttpEntity entity = EntityBuilder.create()
+        final HttpEntity entity = EntityBuilder.create()
             .setContentType(ContentType.APPLICATION_JSON)
             .setContentEncoding("identity")
             .setBinary(new byte[] {0, 1, 2})
@@ -109,14 +109,14 @@ public class TestEntityBuilder {
 
     @Test
     public void testBuildChunked() throws Exception {
-        HttpEntity entity = EntityBuilder.create().setText("stuff").chunked().build();
+        final HttpEntity entity = EntityBuilder.create().setText("stuff").chunked().build();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity.isChunked());
     }
 
     @Test
     public void testBuildGZipped() throws Exception {
-        HttpEntity entity = EntityBuilder.create().setText("stuff").gzipCompress().build();
+        final HttpEntity entity = EntityBuilder.create().setText("stuff").gzipCompress().build();
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContentType());
         Assert.assertEquals("text/plain; charset=ISO-8859-1", entity.getContentType().getValue());

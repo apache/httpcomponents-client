@@ -90,7 +90,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
      */
     public synchronized void addCookies(final Cookie[] cookies) {
         if (cookies != null) {
-            for (Cookie cooky : cookies) {
+            for (final Cookie cooky : cookies) {
                 this.addCookie(cooky);
             }
         }
@@ -120,7 +120,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
             return false;
         }
         boolean removed = false;
-        for (Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
+        for (final Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
             if (it.next().isExpired(date)) {
                 it.remove();
                 removed = true;

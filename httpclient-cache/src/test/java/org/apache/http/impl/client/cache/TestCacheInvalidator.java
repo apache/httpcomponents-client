@@ -99,7 +99,7 @@ public class TestCacheInvalidator {
     public void testInvalidatesRequestsThatArentGETorHEAD() throws Exception {
         request = new BasicHttpRequest("POST","/path", HTTP_1_1);
         final String theUri = "http://foo.example.com:80/path";
-        Map<String,String> variantMap = new HashMap<String,String>();
+        final Map<String,String> variantMap = new HashMap<String,String>();
         cacheEntryHasVariantMap(variantMap);
 
         cacheReturnsEntryForUri(theUri);
@@ -113,11 +113,11 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesUrisInContentLocationHeadersOnPUTs() throws Exception {
-        HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
         request.setEntity(HttpTestUtils.makeBody(128));
         request.setHeader("Content-Length","128");
 
-        String contentLocation = "http://foo.example.com/content";
+        final String contentLocation = "http://foo.example.com/content";
         request.setHeader("Content-Location", contentLocation);
 
         final String theUri = "http://foo.example.com:80/";
@@ -136,11 +136,11 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesUrisInLocationHeadersOnPUTs() throws Exception {
-        HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
         request.setEntity(HttpTestUtils.makeBody(128));
         request.setHeader("Content-Length","128");
 
-        String contentLocation = "http://foo.example.com/content";
+        final String contentLocation = "http://foo.example.com/content";
         request.setHeader("Location",contentLocation);
 
         final String theUri = "http://foo.example.com:80/";
@@ -159,11 +159,11 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesRelativeUrisInContentLocationHeadersOnPUTs() throws Exception {
-        HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
         request.setEntity(HttpTestUtils.makeBody(128));
         request.setHeader("Content-Length","128");
 
-        String relativePath = "/content";
+        final String relativePath = "/content";
         request.setHeader("Content-Location",relativePath);
 
         final String theUri = "http://foo.example.com:80/";
@@ -182,11 +182,11 @@ public class TestCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateUrisInContentLocationHeadersOnPUTsToDifferentHosts() throws Exception {
-        HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
         request.setEntity(HttpTestUtils.makeBody(128));
         request.setHeader("Content-Length","128");
 
-        String contentLocation = "http://bar.example.com/content";
+        final String contentLocation = "http://bar.example.com/content";
         request.setHeader("Content-Location",contentLocation);
 
         final String theUri = "http://foo.example.com:80/";
@@ -242,7 +242,7 @@ public class TestCacheInvalidator {
         final String theUri = "http://foo.example.com:80/";
         final String variantUri = "theVariantURI";
 
-        Map<String,String> mapOfURIs = new HashMap<String,String>();
+        final Map<String,String> mapOfURIs = new HashMap<String,String>();
         mapOfURIs.put(variantUri,variantUri);
 
         cacheReturnsEntryForUri(theUri);
@@ -259,7 +259,7 @@ public class TestCacheInvalidator {
     @Test
     public void testCacheFlushException() throws Exception {
         request = new BasicHttpRequest("POST","/",HTTP_1_1);
-        String theURI = "http://foo.example.com:80/";
+        final String theURI = "http://foo.example.com:80/";
 
         cacheReturnsExceptionForUri(theURI);
 
@@ -281,10 +281,10 @@ public class TestCacheInvalidator {
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", formatDate(now));
-        String theURI = "http://foo.example.com:80/bar";
+        final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
            new BasicHeader("Date", formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
@@ -303,10 +303,10 @@ public class TestCacheInvalidator {
         response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_REQUEST, "Bad Request");
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", formatDate(now));
-        String theURI = "http://foo.example.com:80/bar";
+        final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
            new BasicHeader("Date", formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
@@ -323,10 +323,10 @@ public class TestCacheInvalidator {
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", formatDate(now));
-        String cacheKey = "http://foo.example.com:80/bar";
+        final String cacheKey = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", "http://foo.example.com/bar");
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
            new BasicHeader("Date", formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
@@ -344,10 +344,10 @@ public class TestCacheInvalidator {
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", formatDate(now));
-        String cacheKey = "http://foo.example.com:80/bar";
+        final String cacheKey = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", "/bar");
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
            new BasicHeader("Date", formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
@@ -365,10 +365,10 @@ public class TestCacheInvalidator {
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", formatDate(now));
-        String cacheKey = "http://baz.example.com:80/bar";
+        final String cacheKey = "http://baz.example.com:80/bar";
         response.setHeader("Content-Location", cacheKey);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
            new BasicHeader("Date", formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
@@ -387,10 +387,10 @@ public class TestCacheInvalidator {
             throws Exception {
         response.setHeader("ETag","\"same-etag\"");
         response.setHeader("Date", formatDate(now));
-        String theURI = "http://foo.example.com:80/bar";
+        final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
            new BasicHeader("Date", formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"same-etag\"")
         });
@@ -407,10 +407,10 @@ public class TestCacheInvalidator {
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", formatDate(tenSecondsAgo));
-        String theURI = "http://foo.example.com:80/bar";
+        final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
            new BasicHeader("Date", formatDate(now)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
@@ -427,7 +427,7 @@ public class TestCacheInvalidator {
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", formatDate(now));
-        String theURI = "http://foo.example.com:80/bar";
+        final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
         expect(mockStorage.getEntry(theURI)).andReturn(null).anyTimes();
@@ -442,10 +442,10 @@ public class TestCacheInvalidator {
             throws Exception {
         response.removeHeaders("ETag");
         response.setHeader("Date", formatDate(now));
-        String theURI = "http://foo.example.com:80/bar";
+        final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
            new BasicHeader("Date", formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
@@ -462,10 +462,10 @@ public class TestCacheInvalidator {
             throws Exception {
         response.setHeader("ETag", "\"some-etag\"");
         response.setHeader("Date", formatDate(now));
-        String theURI = "http://foo.example.com:80/bar";
+        final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
            new BasicHeader("Date", formatDate(tenSecondsAgo)),
         });
 
@@ -481,10 +481,10 @@ public class TestCacheInvalidator {
             throws Exception {
         response.setHeader("ETag", "\"new-etag\"");
         response.removeHeaders("Date");
-        String theURI = "http://foo.example.com:80/bar";
+        final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
                 new BasicHeader("ETag", "\"old-etag\""),
                 new BasicHeader("Date", formatDate(tenSecondsAgo)),
         });
@@ -502,10 +502,10 @@ public class TestCacheInvalidator {
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", formatDate(now));
-        String theURI = "http://foo.example.com:80/bar";
+        final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -522,10 +522,10 @@ public class TestCacheInvalidator {
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", "blarg");
-        String theURI = "http://foo.example.com:80/bar";
+        final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
                 new BasicHeader("ETag", "\"old-etag\""),
                 new BasicHeader("Date", formatDate(tenSecondsAgo))
         });
@@ -543,10 +543,10 @@ public class TestCacheInvalidator {
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", formatDate(now));
-        String theURI = "http://foo.example.com:80/bar";
+        final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
                 new BasicHeader("ETag", "\"old-etag\""),
                 new BasicHeader("Date", "foo")
         });

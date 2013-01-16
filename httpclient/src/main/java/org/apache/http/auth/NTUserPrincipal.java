@@ -60,7 +60,7 @@ public class NTUserPrincipal implements Principal, Serializable {
             this.domain = null;
         }
         if (this.domain != null && this.domain.length() > 0) {
-            StringBuilder buffer = new StringBuilder();
+            final StringBuilder buffer = new StringBuilder();
             buffer.append(this.domain);
             buffer.append('/');
             buffer.append(this.username);
@@ -96,7 +96,7 @@ public class NTUserPrincipal implements Principal, Serializable {
             return true;
         }
         if (o instanceof NTUserPrincipal) {
-            NTUserPrincipal that = (NTUserPrincipal) o;
+            final NTUserPrincipal that = (NTUserPrincipal) o;
             if (LangUtils.equals(this.username, that.username)
                     && LangUtils.equals(this.domain, that.domain)) {
                 return true;

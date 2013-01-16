@@ -72,25 +72,25 @@ public class ServiceUnavailableRetryExec implements ClientExecChain {
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
         for (int c = 1;; c++) {
-            CloseableHttpResponse response = this.requestExecutor.execute(
+            final CloseableHttpResponse response = this.requestExecutor.execute(
                     route, request, context, execAware);
             try {
                 if (this.retryStrategy.retryRequest(response, c, context)) {
                     response.close();
-                    long nextInterval = this.retryStrategy.getRetryInterval();
+                    final long nextInterval = this.retryStrategy.getRetryInterval();
                     try {
                         this.log.trace("Wait for " + nextInterval);
                         Thread.sleep(nextInterval);
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         throw new InterruptedIOException(e.getMessage());
                     }
                 } else {
                     return response;
                 }
-            } catch (RuntimeException ex) {
+            } catch (final RuntimeException ex) {
                 response.close();
                 throw ex;
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 response.close();
                 throw ex;
             }

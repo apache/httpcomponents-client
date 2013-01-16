@@ -66,11 +66,11 @@ public class TestSystemDefaultRoutePlanner {
 
     @Test
     public void testDirect() throws Exception {
-        HttpHost target = new HttpHost("somehost", 80, "http");
-        HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpHost target = new HttpHost("somehost", 80, "http");
+        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpContext context = new BasicHttpContext();
-        HttpRoute route = routePlanner.determineRoute(target, request, context);
+        final HttpContext context = new BasicHttpContext();
+        final HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assert.assertEquals(target, route.getTargetHost());
         Assert.assertEquals(1, route.getHopCount());
@@ -80,12 +80,12 @@ public class TestSystemDefaultRoutePlanner {
 
     @Test
     public void testDirectDefaultPort() throws Exception {
-        HttpHost target = new HttpHost("somehost", -1, "https");
+        final HttpHost target = new HttpHost("somehost", -1, "https");
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(443);
-        HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpContext context = new BasicHttpContext();
-        HttpRoute route = routePlanner.determineRoute(target, request, context);
+        final HttpContext context = new BasicHttpContext();
+        final HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assert.assertEquals(new HttpHost("somehost", 443, "https"), route.getTargetHost());
         Assert.assertEquals(1, route.getHopCount());
@@ -95,24 +95,24 @@ public class TestSystemDefaultRoutePlanner {
     @Test
     public void testProxy() throws Exception {
 
-        InetAddress ia = InetAddress.getByAddress(new byte[] {
+        final InetAddress ia = InetAddress.getByAddress(new byte[] {
             (byte)127, (byte)0, (byte)0, (byte)1
         });
-        InetSocketAddress isa1 = new InetSocketAddress(ia, 11111);
-        InetSocketAddress isa2 = new InetSocketAddress(ia, 22222);
+        final InetSocketAddress isa1 = new InetSocketAddress(ia, 11111);
+        final InetSocketAddress isa2 = new InetSocketAddress(ia, 22222);
 
-        List<Proxy> proxies = new ArrayList<Proxy>(2);
+        final List<Proxy> proxies = new ArrayList<Proxy>(2);
         proxies.add(new Proxy(Proxy.Type.HTTP, isa1));
         proxies.add(new Proxy(Proxy.Type.HTTP, isa2));
 
         Mockito.when(proxySelector.select(new URI("http://somehost:80"))).thenReturn(proxies);
 
-        HttpHost target = new HttpHost("somehost", 80, "http");
-        HttpRequest request =
+        final HttpHost target = new HttpHost("somehost", 80, "http");
+        final HttpRequest request =
             new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpContext context = new BasicHttpContext();
-        HttpRoute route = routePlanner.determineRoute(target, request, context);
+        final HttpContext context = new BasicHttpContext();
+        final HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assert.assertEquals(target, route.getTargetHost());
         Assert.assertEquals(2, route.getHopCount());

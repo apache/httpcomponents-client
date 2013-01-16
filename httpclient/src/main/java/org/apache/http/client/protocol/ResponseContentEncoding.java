@@ -71,16 +71,16 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
     public void process(
             final HttpResponse response,
             final HttpContext context) throws HttpException, IOException {
-        HttpEntity entity = response.getEntity();
+        final HttpEntity entity = response.getEntity();
 
         // It wasn't a 304 Not Modified response, 204 No Content or similar
         if (entity != null) {
-            Header ceheader = entity.getContentEncoding();
+            final Header ceheader = entity.getContentEncoding();
             if (ceheader != null) {
-                HeaderElement[] codecs = ceheader.getElements();
+                final HeaderElement[] codecs = ceheader.getElements();
                 boolean uncompressed = false;
-                for (HeaderElement codec : codecs) {
-                    String codecname = codec.getName().toLowerCase(Locale.US);
+                for (final HeaderElement codec : codecs) {
+                    final String codecname = codec.getName().toLowerCase(Locale.US);
                     if ("gzip".equals(codecname) || "x-gzip".equals(codecname)) {
                         response.setEntity(new GzipDecompressingEntity(response.getEntity()));
                         uncompressed = true;

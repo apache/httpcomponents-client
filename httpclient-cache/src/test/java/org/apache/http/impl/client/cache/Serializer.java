@@ -34,17 +34,17 @@ import java.io.ObjectOutputStream;
 public class Serializer<T> {
 
     public byte[] serialize(final T object) throws Exception {
-        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-        ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
+        final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        final ObjectOutputStream objectStream = new ObjectOutputStream(byteStream);
         objectStream.writeObject(object);
         return byteStream.toByteArray();
     }
 
     @SuppressWarnings("unchecked")
     public T deserialize(final byte[] serialized) throws Exception {
-        ByteArrayInputStream byteStream = new ByteArrayInputStream(serialized);
-        ObjectInputStream objectStream = new ObjectInputStream(byteStream);
-        T object = (T) objectStream.readObject();
+        final ByteArrayInputStream byteStream = new ByteArrayInputStream(serialized);
+        final ObjectInputStream objectStream = new ObjectInputStream(byteStream);
+        final T object = (T) objectStream.readObject();
         return object;
     }
 

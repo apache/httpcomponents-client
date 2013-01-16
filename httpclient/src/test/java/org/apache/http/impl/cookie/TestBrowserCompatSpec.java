@@ -59,12 +59,12 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testDomainCaseInsensitivity() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "name=value; path=/; domain=.whatever.com");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("www.WhatEver.com", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("www.WhatEver.com", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -78,14 +78,14 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testParse1() throws Exception {
-        String headerValue = "custno = 12345; comment=test; version=1," +
+        final String headerValue = "custno = 12345; comment=test; version=1," +
             " name=John; version=1; max-age=600; secure; domain=.apache.org";
 
-        Header header = new BasicHeader("set-cookie", headerValue);
+        final Header header = new BasicHeader("set-cookie", headerValue);
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -113,14 +113,14 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testParse2() throws Exception {
-        String headerValue = "custno=12345;comment=test; version=1," +
+        final String headerValue = "custno=12345;comment=test; version=1," +
             "name=John;version=1;max-age=600;secure;domain=.apache.org";
 
-        Header header = new BasicHeader("set-cookie", headerValue);
+        final Header header = new BasicHeader("set-cookie", headerValue);
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -150,13 +150,13 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testParse3() throws Exception {
-        String headerValue =
+        final String headerValue =
             "name=\"Doe, John\";version=1;max-age=600;secure;domain=.apache.org";
-        Header header = new BasicHeader("set-cookie", headerValue);
+        final Header header = new BasicHeader("set-cookie", headerValue);
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -176,13 +176,13 @@ public class TestBrowserCompatSpec {
     // see issue #5279
     @Test
     public void testQuotedExpiresAttribute() throws Exception {
-        String headerValue = "custno=12345;Expires='Thu, 01-Jan-2070 00:00:10 GMT'";
+        final String headerValue = "custno=12345;Expires='Thu, 01-Jan-2070 00:00:10 GMT'";
 
-        Header header = new BasicHeader("set-cookie", headerValue);
+        final Header header = new BasicHeader("set-cookie", headerValue);
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", true);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", true);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -193,30 +193,30 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testSecurityError() throws Exception {
-        String headerValue = "custno=12345;comment=test; version=1," +
+        final String headerValue = "custno=12345;comment=test; version=1," +
             "name=John;version=1;max-age=600;secure;domain=jakarta.apache.org";
-        Header header = new BasicHeader("set-cookie", headerValue);
+        final Header header = new BasicHeader("set-cookie", headerValue);
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", true);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", true);
         try {
-            List<Cookie> cookies = cookiespec.parse(header, origin);
+            final List<Cookie> cookies = cookiespec.parse(header, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException exception should have been thrown");
-        } catch (MalformedCookieException ex) {
+        } catch (final MalformedCookieException ex) {
             // expected
         }
     }
 
     @Test
     public void testParseSimple() throws Exception {
-        Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value");
+        final Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/path/path", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/path/path", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -235,11 +235,11 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseSimple2() throws Exception {
-        Header header = new BasicHeader("Set-Cookie", "cookie-name=cookie-value");
+        final Header header = new BasicHeader("Set-Cookie", "cookie-name=cookie-value");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/path", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/path", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -258,28 +258,28 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseNoName() throws Exception {
-        Header header = new BasicHeader("Set-Cookie","=stuff; path=/");
+        final Header header = new BasicHeader("Set-Cookie","=stuff; path=/");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
         try {
-            List<Cookie> cookies = cookiespec.parse(header, origin);
+            final List<Cookie> cookies = cookiespec.parse(header, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException ex) {
+        } catch (final MalformedCookieException ex) {
             // expected
         }
     }
 
     @Test
     public void testParseNoValue() throws Exception {
-        Header header = new BasicHeader("Set-Cookie","cookie-name=");
+        final Header header = new BasicHeader("Set-Cookie","cookie-name=");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -298,11 +298,11 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseWithWhiteSpace() throws Exception {
-        Header header = new BasicHeader("Set-Cookie"," cookie-name  =    cookie-value  ");
+        final Header header = new BasicHeader("Set-Cookie"," cookie-name  =    cookie-value  ");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -318,11 +318,11 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseWithQuotes() throws Exception {
-        Header header = new BasicHeader("Set-Cookie"," cookie-name  =  \" cookie-value \" ;path=/");
+        final Header header = new BasicHeader("Set-Cookie"," cookie-name  =  \" cookie-value \" ;path=/");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1",80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1",80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -338,11 +338,11 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseWithPath() throws Exception {
-        Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; Path=/path/");
+        final Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; Path=/path/");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/path/path", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/path/path", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -358,11 +358,11 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseWithDomain() throws Exception {
-        Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; Domain=127.0.0.1");
+        final Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; Domain=127.0.0.1");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -378,11 +378,11 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseWithSecure() throws Exception {
-        Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; secure");
+        final Header header = new BasicHeader("Set-Cookie","cookie-name=cookie-value; secure");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", true);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", true);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -398,12 +398,12 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseWithComment() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; comment=\"This is a comment.\"");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", true);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", true);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -419,12 +419,12 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseWithExpires() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value;Expires=Thu, 01-Jan-1970 00:00:10 GMT");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", true);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", true);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -440,13 +440,13 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseWithAll() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value;Version=1;Path=/commons;Domain=.apache.org;" +
             "Comment=This is a comment.;secure;Expires=Thu, 01-Jan-1970 00:00:10 GMT");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/commons/httpclient", true);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/commons/httpclient", true);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -463,13 +463,13 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseMultipleDifferentPaths() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "name1=value1;Version=1;Path=/commons,name1=value2;Version=1;" +
             "Path=/commons/httpclient;Version=1");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/commons/httpclient", true);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/commons/httpclient", true);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -482,11 +482,11 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseRelativePath() throws Exception {
-        Header header = new BasicHeader("Set-Cookie", "name1=value1;Path=whatever");
+        final Header header = new BasicHeader("Set-Cookie", "name1=value1;Path=whatever");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "whatever", true);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "whatever", true);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -498,54 +498,54 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testParseWithWrongDomain() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; domain=127.0.0.1; version=1");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.2", 80, "/", false);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.2", 80, "/", false);
         try {
-            List<Cookie> cookies = cookiespec.parse(header, origin);
+            final List<Cookie> cookies = cookiespec.parse(header, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException exception should have been thrown");
-        } catch (MalformedCookieException ex) {
+        } catch (final MalformedCookieException ex) {
             // expected
         }
     }
 
     @Test
     public void testParseWithPathMismatch() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; path=/path/path/path");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/path", false);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/path", false);
         try {
-            List<Cookie> cookies = cookiespec.parse(header, origin);
+            final List<Cookie> cookies = cookiespec.parse(header, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException should have been thrown.");
-        } catch (MalformedCookieException e) {
+        } catch (final MalformedCookieException e) {
             // expected
         }
     }
 
     @Test
     public void testParseWithPathMismatch2() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "cookie-name=cookie-value; path=/foobar");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/foo", false);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/foo", false);
         try {
-            List<Cookie> cookies = cookiespec.parse(header, origin);
+            final List<Cookie> cookies = cookiespec.parse(header, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException should have been thrown.");
-        } catch (MalformedCookieException e) {
+        } catch (final MalformedCookieException e) {
             // expected
         }
     }
@@ -555,10 +555,10 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testCookieNameWithBlanks() throws Exception {
-        Header header = new BasicHeader("Set-Cookie", "invalid name=");
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final Header header = new BasicHeader("Set-Cookie", "invalid name=");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -571,16 +571,16 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testCookieNameBlank() throws Exception {
-        Header header = new BasicHeader("Set-Cookie", "=stuff");
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
+        final Header header = new BasicHeader("Set-Cookie", "=stuff");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
         try {
-            List<Cookie> cookies = cookiespec.parse(header, origin);
+            final List<Cookie> cookies = cookiespec.parse(header, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException expected) {
+        } catch (final MalformedCookieException expected) {
         }
     }
 
@@ -589,10 +589,10 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testCookieNameStartingWithDollarSign() throws Exception {
-        Header header = new BasicHeader("Set-Cookie", "$invalid_name=");
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final Header header = new BasicHeader("Set-Cookie", "$invalid_name=");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("127.0.0.1", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -606,17 +606,17 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testCookieWithComma() throws Exception {
-        Header header = new BasicHeader("Set-Cookie", "name=value; expires=\"Thu, 01-Jan-1970 00:00:00 GMT");
+        final Header header = new BasicHeader("Set-Cookie", "name=value; expires=\"Thu, 01-Jan-1970 00:00:00 GMT");
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
         try {
-            List<Cookie> cookies = cookiespec.parse(header, origin);
+            final List<Cookie> cookies = cookiespec.parse(header, origin);
             for (int i = 0; i < cookies.size(); i++) {
                 cookiespec.validate(cookies.get(i), origin);
             }
             Assert.fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException expected) {
+        } catch (final MalformedCookieException expected) {
         }
     }
 
@@ -645,15 +645,15 @@ public class TestBrowserCompatSpec {
         try {
             checkDate("this aint a date");
             Assert.fail("Date check is bogus");
-        } catch(Exception e) {
+        } catch(final Exception e) {
         }
     }
 
     private void checkDate(final String date) throws Exception {
-        Header header = new BasicHeader("Set-Cookie", "custno=12345;Expires='"+date+"';");
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final Header header = new BasicHeader("Set-Cookie", "custno=12345;Expires='"+date+"';");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         for (int i = 0; i < cookies.size(); i++) {
             cookiespec.validate(cookies.get(i), origin);
         }
@@ -665,221 +665,221 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testSecondDomainLevelCookie() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", null);
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
         cookiespec.validate(cookie, origin);
     }
 
     @Test
     public void testSecondDomainLevelCookieMatch1() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", null);
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("sourceforge.net", 80, "/", false);
         Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testSecondDomainLevelCookieMatch2() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", null);
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain("sourceforge.net");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("www.sourceforge.net", 80, "/", false);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("www.sourceforge.net", 80, "/", false);
         Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testSecondDomainLevelCookieMatch3() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", null);
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-         CookieSpec cookiespec = new BrowserCompatSpec();
-         CookieOrigin origin = new CookieOrigin("www.sourceforge.net", 80, "/", false);
+         final CookieSpec cookiespec = new BrowserCompatSpec();
+         final CookieOrigin origin = new CookieOrigin("www.sourceforge.net", 80, "/", false);
          Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testInvalidSecondDomainLevelCookieMatch1() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", null);
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".sourceforge.net");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("antisourceforge.net", 80, "/", false);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("antisourceforge.net", 80, "/", false);
         Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testInvalidSecondDomainLevelCookieMatch2() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", null);
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain("sourceforge.net");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("antisourceforge.net", 80, "/", false);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("antisourceforge.net", 80, "/", false);
         Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testMatchBlankPath() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/");
-        CookieOrigin origin = new CookieOrigin("host", 80, "  ", false);
+        final CookieOrigin origin = new CookieOrigin("host", 80, "  ", false);
         Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testMatchNullCookieDomain() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setPath("/");
-        CookieOrigin origin = new CookieOrigin("host", 80, "/", false);
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/", false);
         Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testMatchNullCookiePath() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
-        CookieOrigin origin = new CookieOrigin("host", 80, "/", false);
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/", false);
         Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testCookieMatch1() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/");
-        CookieOrigin origin = new CookieOrigin("host", 80, "/", false);
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/", false);
         Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testCookieMatch2() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain(".whatever.com");
         cookie.setPath("/");
-        CookieOrigin origin = new CookieOrigin(".whatever.com", 80, "/", false);
+        final CookieOrigin origin = new CookieOrigin(".whatever.com", 80, "/", false);
         Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testCookieMatch3() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain(".whatever.com");
         cookie.setPath("/");
-        CookieOrigin origin = new CookieOrigin(".really.whatever.com", 80, "/", false);
+        final CookieOrigin origin = new CookieOrigin(".really.whatever.com", 80, "/", false);
         Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testCookieMatch4() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/");
-        CookieOrigin origin = new CookieOrigin("host", 80, "/foobar", false);
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/foobar", false);
         Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testCookieMismatch1() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host1");
         cookie.setPath("/");
-        CookieOrigin origin = new CookieOrigin("host2", 80, "/", false);
+        final CookieOrigin origin = new CookieOrigin("host2", 80, "/", false);
         Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testCookieMismatch2() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain(".aaaaaaaaa.com");
         cookie.setPath("/");
-        CookieOrigin origin = new CookieOrigin(".bbbbbbbb.com", 80, "/", false);
+        final CookieOrigin origin = new CookieOrigin(".bbbbbbbb.com", 80, "/", false);
         Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testCookieMismatch3() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/foobar");
-        CookieOrigin origin = new CookieOrigin("host", 80, "/foo", false);
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/foo", false);
         Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testCookieMismatch4() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/foobar");
-        CookieOrigin origin = new CookieOrigin("host", 80, "/foobar/", false);
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/foobar/", false);
         Assert.assertTrue(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testCookieMatch5() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/foobar/r");
-        CookieOrigin origin = new CookieOrigin("host", 80, "/foobar/", false);
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/foobar/", false);
         Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testCookieMismatch6() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain("host");
         cookie.setPath("/foobar");
         cookie.setSecure(true);
-        CookieOrigin origin = new CookieOrigin("host", 80, "/foobar", false);
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/foobar", false);
         Assert.assertFalse(cookiespec.match(cookie, origin));
     }
 
     @Test
     public void testInvalidMatchDomain() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", null);
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain("beta.gamma.com");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("alpha.beta.gamma.com", 80, "/", false);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("alpha.beta.gamma.com", 80, "/", false);
         cookiespec.validate(cookie, origin);
         Assert.assertTrue(cookiespec.match(cookie, origin));
     }
@@ -889,13 +889,13 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testGenericCookieFormatting() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "name=value; path=/; domain=.mydomain.com");
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
         cookiespec.validate(cookies.get(0), origin);
-        List<Header> headers = cookiespec.formatCookies(cookies);
+        final List<Header> headers = cookiespec.formatCookies(cookies);
         Assert.assertNotNull(headers);
         Assert.assertEquals(1, headers.size());
         Assert.assertEquals("name=value", headers.get(0).getValue());
@@ -906,16 +906,16 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testNullCookieValueFormatting() {
-        BasicClientCookie cookie = new BasicClientCookie("name", null);
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
         cookie.setDomain(".whatever.com");
         cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
         cookie.setPath("/");
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        List<Cookie> cookies = new ArrayList<Cookie>(1);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final List<Cookie> cookies = new ArrayList<Cookie>(1);
         cookies.add(cookie);
-        List<Header> headers = cookiespec.formatCookies(cookies);
+        final List<Header> headers = cookiespec.formatCookies(cookies);
         Assert.assertNotNull(headers);
         Assert.assertEquals(1, headers.size());
         Assert.assertEquals("name=", headers.get(0).getValue());
@@ -926,12 +926,12 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testFormatSeveralCookies() throws Exception {
-        Header header = new BasicHeader("Set-Cookie",
+        final Header header = new BasicHeader("Set-Cookie",
             "name1=value1; path=/; domain=.mydomain.com, name2 = value2 ; path=/; domain=.mydomain.com; version=0");
-        CookieSpec cookiespec = new BrowserCompatSpec();
-        CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
-        List<Cookie> cookies = cookiespec.parse(header, origin);
-        List<Header> headers = cookiespec.formatCookies(cookies);
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        final List<Header> headers = cookiespec.formatCookies(cookies);
         Assert.assertNotNull(headers);
         Assert.assertEquals(1, headers.size());
         Assert.assertEquals("name1=value1; name2=value2", headers.get(0).getValue());
@@ -946,54 +946,54 @@ public class TestBrowserCompatSpec {
 
     @Test
     public void testInvalidInput() throws Exception {
-        CookieSpec cookiespec = new BrowserCompatSpec();
+        final CookieSpec cookiespec = new BrowserCompatSpec();
         try {
             cookiespec.parse(null, null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.parse(new BasicHeader("Set-Cookie", "name=value"), null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.validate(null, null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.validate(new BasicClientCookie("name", null), null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.match(null, null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.match(new BasicClientCookie("name", null), null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             cookiespec.formatCookies(null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
-            List<Cookie> cookies = new ArrayList<Cookie>();
+            final List<Cookie> cookies = new ArrayList<Cookie>();
             cookiespec.formatCookies(cookies);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
     }
@@ -1003,13 +1003,13 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testFormatCookieWithSpaceInValue() throws Exception {
-        CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
-        CookieSpec cookieSpec = new BrowserCompatSpec();
-        Header setCookieHeader = new BasicHeader("Set-Cookie", "test=\"value 1\"; Version=1");
-        Cookie cookie = cookieSpec.parse(setCookieHeader, origin).get(0);
-        List<Cookie> cookies = new ArrayList<Cookie>();
+        final CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
+        final CookieSpec cookieSpec = new BrowserCompatSpec();
+        final Header setCookieHeader = new BasicHeader("Set-Cookie", "test=\"value 1\"; Version=1");
+        final Cookie cookie = cookieSpec.parse(setCookieHeader, origin).get(0);
+        final List<Cookie> cookies = new ArrayList<Cookie>();
         cookies.add(cookie);
-        List<Header> headers = cookieSpec.formatCookies(cookies);
+        final List<Header> headers = cookieSpec.formatCookies(cookies);
         Assert.assertNotNull(headers);
         Assert.assertEquals(1, headers.size());
         Assert.assertEquals("test=\"value 1\"", headers.get(0).getValue());
@@ -1020,13 +1020,13 @@ public class TestBrowserCompatSpec {
      */
     @Test
     public void testFormatCookieVersion0WithSpaceInValue() throws Exception {
-        CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
-        CookieSpec cookieSpec = new BrowserCompatSpec();
-        Header setCookieHeader = new BasicHeader("Set-Cookie", "test=value 1");
-        Cookie cookie = cookieSpec.parse(setCookieHeader, origin).get(0);
-        List<Cookie> cookies = new ArrayList<Cookie>();
+        final CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
+        final CookieSpec cookieSpec = new BrowserCompatSpec();
+        final Header setCookieHeader = new BasicHeader("Set-Cookie", "test=value 1");
+        final Cookie cookie = cookieSpec.parse(setCookieHeader, origin).get(0);
+        final List<Cookie> cookies = new ArrayList<Cookie>();
         cookies.add(cookie);
-        List<Header> headers = cookieSpec.formatCookies(cookies);
+        final List<Header> headers = cookieSpec.formatCookies(cookies);
         Assert.assertNotNull(headers);
         Assert.assertEquals(1, headers.size());
         Assert.assertEquals("test=value 1", headers.get(0).getValue());

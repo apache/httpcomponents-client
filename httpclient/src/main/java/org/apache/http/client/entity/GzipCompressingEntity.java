@@ -103,7 +103,7 @@ public class GzipCompressingEntity extends HttpEntityWrapper {
     @Override
     public void writeTo(final OutputStream outstream) throws IOException {
         Args.notNull(outstream, "Output stream");
-        GZIPOutputStream gzip = new GZIPOutputStream(outstream);
+        final GZIPOutputStream gzip = new GZIPOutputStream(outstream);
         try {
             wrappedEntity.writeTo(gzip);
         } finally {

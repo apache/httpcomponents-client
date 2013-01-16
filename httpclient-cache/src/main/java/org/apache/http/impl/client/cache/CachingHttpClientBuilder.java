@@ -77,7 +77,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
 
     @Override
     protected ClientExecChain decorateMainExec(final ClientExecChain mainExec) {
-        CacheConfig config = this.cacheConfig != null ? this.cacheConfig : CacheConfig.DEFAULT;
+        final CacheConfig config = this.cacheConfig != null ? this.cacheConfig : CacheConfig.DEFAULT;
         ResourceFactory resourceFactory = this.resourceFactory;
         if (resourceFactory == null) {
             if (this.cacheDir == null) {
@@ -91,7 +91,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
             if (this.cacheDir == null) {
                 storage = new BasicHttpCacheStorage(cacheConfig);
             } else {
-                ManagedHttpCacheStorage managedStorage = new ManagedHttpCacheStorage(cacheConfig);
+                final ManagedHttpCacheStorage managedStorage = new ManagedHttpCacheStorage(cacheConfig);
                 addCloseable(managedStorage);
                 storage = managedStorage;
             }

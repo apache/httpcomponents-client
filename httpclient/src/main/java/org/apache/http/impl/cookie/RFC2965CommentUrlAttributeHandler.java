@@ -50,7 +50,7 @@ public class RFC2965CommentUrlAttributeHandler implements CookieAttributeHandler
       public void parse(final SetCookie cookie, final String commenturl)
               throws MalformedCookieException {
           if (cookie instanceof SetCookie2) {
-              SetCookie2 cookie2 = (SetCookie2) cookie;
+              final SetCookie2 cookie2 = (SetCookie2) cookie;
               cookie2.setCommentURL(commenturl);
           }
       }

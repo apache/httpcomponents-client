@@ -92,7 +92,7 @@ public class NTLMScheme extends AuthSchemeBase {
     protected void parseChallenge(
             final CharArrayBuffer buffer,
             final int beginIndex, final int endIndex) throws MalformedChallengeException {
-        String challenge = buffer.substringTrimmed(beginIndex, endIndex);
+        final String challenge = buffer.substringTrimmed(beginIndex, endIndex);
         if (challenge.length() == 0) {
             if (this.state == State.UNINITIATED) {
                 this.state = State.CHALLENGE_RECEIVED;
@@ -112,7 +112,7 @@ public class NTLMScheme extends AuthSchemeBase {
         NTCredentials ntcredentials = null;
         try {
             ntcredentials = (NTCredentials) credentials;
-        } catch (ClassCastException e) {
+        } catch (final ClassCastException e) {
             throw new InvalidCredentialsException(
              "Credentials cannot be used for NTLM authentication: "
               + credentials.getClass().getName());
@@ -134,7 +134,7 @@ public class NTLMScheme extends AuthSchemeBase {
         } else {
             throw new AuthenticationException("Unexpected state: " + this.state);
         }
-        CharArrayBuffer buffer = new CharArrayBuffer(32);
+        final CharArrayBuffer buffer = new CharArrayBuffer(32);
         if (isProxy()) {
             buffer.append(AUTH.PROXY_AUTH_RESP);
         } else {

@@ -77,19 +77,19 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
         Assert.assertEquals(0, stats.getAvailable());
 
         // Get some random data
-        HttpGet httpget = new HttpGet("/random/20000");
-        HttpHost target = getServerHttp();
+        final HttpGet httpget = new HttpGet("/random/20000");
+        final HttpHost target = getServerHttp();
 
-        HttpResponse response = this.httpclient.execute(target, httpget);
+        final HttpResponse response = this.httpclient.execute(target, httpget);
 
         ConnectionRequest connreq = this.mgr.requestConnection(new HttpRoute(target), null);
         try {
             connreq.get(250, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (ConnectionPoolTimeoutException expected) {
+        } catch (final ConnectionPoolTimeoutException expected) {
         }
 
-        HttpEntity e = response.getEntity();
+        final HttpEntity e = response.getEntity();
         Assert.assertNotNull(e);
         EntityUtils.consume(e);
 
@@ -99,7 +99,7 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
         // Make sure one connection is available
         connreq = this.mgr.requestConnection(new HttpRoute(target), null);
-        HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
+        final HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
 
         this.mgr.releaseConnection(conn, null, -1, null);
     }
@@ -114,21 +114,21 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
         Assert.assertEquals(0, stats.getAvailable());
 
         // Get some random data
-        HttpGet httpget = new HttpGet("/random/20000");
-        HttpHost target = getServerHttp();
+        final HttpGet httpget = new HttpGet("/random/20000");
+        final HttpHost target = getServerHttp();
 
-        HttpResponse response = this.httpclient.execute(target, httpget);
+        final HttpResponse response = this.httpclient.execute(target, httpget);
 
         ConnectionRequest connreq = this.mgr.requestConnection(new HttpRoute(target), null);
         try {
             connreq.get(250, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (ConnectionPoolTimeoutException expected) {
+        } catch (final ConnectionPoolTimeoutException expected) {
         }
 
-        HttpEntity e = response.getEntity();
+        final HttpEntity e = response.getEntity();
         Assert.assertNotNull(e);
-        ByteArrayOutputStream outsteam = new ByteArrayOutputStream();
+        final ByteArrayOutputStream outsteam = new ByteArrayOutputStream();
         e.writeTo(outsteam);
 
         // Expect one connection in the pool
@@ -137,7 +137,7 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
         // Make sure one connection is available
         connreq = this.mgr.requestConnection(new HttpRoute(target), null);
-        HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
+        final HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
 
         this.mgr.releaseConnection(conn, null, -1, null);
     }
@@ -148,23 +148,23 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
         this.mgr.setMaxTotal(1);
 
         // Zero connections in the pool
-        PoolStats stats = this.mgr.getTotalStats();
+        final PoolStats stats = this.mgr.getTotalStats();
         Assert.assertEquals(0, stats.getAvailable());
 
         // Get some random data
-        HttpGet httpget = new HttpGet("/random/20000");
-        HttpHost target = getServerHttp();
+        final HttpGet httpget = new HttpGet("/random/20000");
+        final HttpHost target = getServerHttp();
 
-        HttpResponse response = this.httpclient.execute(target, httpget);
+        final HttpResponse response = this.httpclient.execute(target, httpget);
 
         ConnectionRequest connreq = this.mgr.requestConnection(new HttpRoute(target), null);
         try {
             connreq.get(250, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (ConnectionPoolTimeoutException expected) {
+        } catch (final ConnectionPoolTimeoutException expected) {
         }
 
-        HttpEntity e = response.getEntity();
+        final HttpEntity e = response.getEntity();
         Assert.assertNotNull(e);
         httpget.abort();
 
@@ -173,7 +173,7 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
         // Make sure one connection is available
         connreq = this.mgr.requestConnection(new HttpRoute(target), null);
-        HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
+        final HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
 
         this.mgr.releaseConnection(conn, null, -1, null);
     }
@@ -186,22 +186,22 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
                     final HttpRequest request,
                     final HttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
-                BasicHttpEntity entity = new BasicHttpEntity() {
+                final BasicHttpEntity entity = new BasicHttpEntity() {
 
                     @Override
                     public void writeTo(
                             final OutputStream outstream) throws IOException {
-                        byte[] tmp = new byte[5];
+                        final byte[] tmp = new byte[5];
                         outstream.write(tmp);
                         outstream.flush();
 
                         // do something comletely ugly in order to trigger
                         // MalformedChunkCodingException
-                        DefaultBHttpServerConnection conn = (DefaultBHttpServerConnection)
+                        final DefaultBHttpServerConnection conn = (DefaultBHttpServerConnection)
                             context.getAttribute(ExecutionContext.HTTP_CONNECTION);
                         try {
                             conn.sendResponseHeader(response);
-                        } catch (HttpException ignore) {
+                        } catch (final HttpException ignore) {
                         }
                     }
 
@@ -219,25 +219,25 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
         Assert.assertEquals(0, this.mgr.getTotalStats().getAvailable());
 
         // Get some random data
-        HttpGet httpget = new HttpGet("/dropdead");
-        HttpHost target = getServerHttp();
+        final HttpGet httpget = new HttpGet("/dropdead");
+        final HttpHost target = getServerHttp();
 
-        HttpResponse response = this.httpclient.execute(target, httpget);
+        final HttpResponse response = this.httpclient.execute(target, httpget);
 
         ConnectionRequest connreq = this.mgr.requestConnection(new HttpRoute(target), null);
         try {
             connreq.get(250, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (ConnectionPoolTimeoutException expected) {
+        } catch (final ConnectionPoolTimeoutException expected) {
         }
 
-        HttpEntity e = response.getEntity();
+        final HttpEntity e = response.getEntity();
         Assert.assertNotNull(e);
         // Read the content
         try {
             EntityUtils.toByteArray(e);
             Assert.fail("MalformedChunkCodingException should have been thrown");
-        } catch (MalformedChunkCodingException expected) {
+        } catch (final MalformedChunkCodingException expected) {
 
         }
 
@@ -246,7 +246,7 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
 
         // Make sure one connection is available
         connreq = this.mgr.requestConnection(new HttpRoute(target), null);
-        HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
+        final HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
 
         this.mgr.releaseConnection(conn, null, -1, null);
     }

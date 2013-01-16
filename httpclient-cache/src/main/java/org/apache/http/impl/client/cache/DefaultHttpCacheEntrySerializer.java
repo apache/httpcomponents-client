@@ -49,7 +49,7 @@ import org.apache.http.client.cache.HttpCacheEntrySerializer;
 public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer {
 
     public void writeTo(final HttpCacheEntry cacheEntry, final OutputStream os) throws IOException {
-        ObjectOutputStream oos = new ObjectOutputStream(os);
+        final ObjectOutputStream oos = new ObjectOutputStream(os);
         try {
             oos.writeObject(cacheEntry);
         } finally {
@@ -58,10 +58,10 @@ public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer
     }
 
     public HttpCacheEntry readFrom(final InputStream is) throws IOException {
-        ObjectInputStream ois = new ObjectInputStream(is);
+        final ObjectInputStream ois = new ObjectInputStream(is);
         try {
             return (HttpCacheEntry) ois.readObject();
-        } catch (ClassNotFoundException ex) {
+        } catch (final ClassNotFoundException ex) {
             throw new HttpCacheEntrySerializationException("Class not found: " + ex.getMessage(), ex);
         } finally {
             ois.close();

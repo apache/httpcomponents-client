@@ -72,7 +72,7 @@ public class EchoHandler
                        final HttpContext context)
         throws HttpException, IOException {
 
-        String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
+        final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
         if (!"GET".equals(method) &&
             !"POST".equals(method) &&
             !"PUT".equals(method)
@@ -95,7 +95,7 @@ public class EchoHandler
             data = EntityUtils.toByteArray(entity);
         }
 
-        ByteArrayEntity bae = new ByteArrayEntity(data);
+        final ByteArrayEntity bae = new ByteArrayEntity(data);
         if (entity != null) {
             bae.setContentType(entity.getContentType());
         }

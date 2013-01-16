@@ -111,7 +111,7 @@ public class MinimalClientExec implements ClientExecChain {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        ConnectionRequest connRequest = connManager.requestConnection(route, null);
+        final ConnectionRequest connRequest = connManager.requestConnection(route, null);
         if (execAware != null) {
             if (execAware.isAborted()) {
                 connRequest.cancel();
@@ -121,17 +121,17 @@ public class MinimalClientExec implements ClientExecChain {
             }
         }
 
-        RequestConfig config = context.getRequestConfig();
+        final RequestConfig config = context.getRequestConfig();
 
         HttpClientConnection managedConn;
         try {
-            int timeout = config.getConnectionRequestTimeout();
+            final int timeout = config.getConnectionRequestTimeout();
             managedConn = connRequest.get(timeout > 0 ? timeout : 0, TimeUnit.MILLISECONDS);
-        } catch(InterruptedException interrupted) {
+        } catch(final InterruptedException interrupted) {
             throw new RequestAbortedException("Request aborted", interrupted);
         }
 
-        ConnectionHolder releaseTrigger = new ConnectionHolder(log, connManager, managedConn);
+        final ConnectionHolder releaseTrigger = new ConnectionHolder(log, connManager, managedConn);
         try {
             if (execAware != null) {
                 if (execAware.isAborted()) {
@@ -143,23 +143,23 @@ public class MinimalClientExec implements ClientExecChain {
             }
 
             if (!managedConn.isOpen()) {
-                int timeout = config.getConnectTimeout();
+                final int timeout = config.getConnectTimeout();
                 this.connManager.connect(
                     managedConn,
                     route.getTargetHost(), route.getLocalAddress(),
                     timeout > 0 ? timeout : 0,
                     context);
             } else {
-                int timeout = config.getSocketTimeout();
+                final int timeout = config.getSocketTimeout();
                 if (timeout >= 0) {
                     managedConn.setSocketTimeout(timeout);
                 }
             }
 
             HttpHost target = null;
-            HttpRequest original = request.getOriginal();
+            final HttpRequest original = request.getOriginal();
             if (original instanceof HttpUriRequest) {
-                URI uri = ((HttpUriRequest) original).getURI();
+                final URI uri = ((HttpUriRequest) original).getURI();
                 if (uri.isAbsolute()) {
                     target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
                 }
@@ -174,13 +174,13 @@ public class MinimalClientExec implements ClientExecChain {
             context.setAttribute(ClientContext.ROUTE, route);
 
             httpProcessor.process(request, context);
-            HttpResponse response = requestExecutor.execute(request, managedConn, context);
+            final HttpResponse response = requestExecutor.execute(request, managedConn, context);
             httpProcessor.process(response, context);
 
             // The connection is in or can be brought to a re-usable state.
             if (reuseStrategy.keepAlive(response, context)) {
                 // Set the idle duration of this connection
-                long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
+                final long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
                 releaseTrigger.setValidFor(duration, TimeUnit.MILLISECONDS);
                 releaseTrigger.markReusable();
             } else {
@@ -188,7 +188,7 @@ public class MinimalClientExec implements ClientExecChain {
             }
 
             // check for entity, release connection if possible
-            HttpEntity entity = response.getEntity();
+            final HttpEntity entity = response.getEntity();
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
                 releaseTrigger.releaseConnection();
@@ -196,18 +196,18 @@ public class MinimalClientExec implements ClientExecChain {
             } else {
                 return Proxies.enhanceResponse(response, releaseTrigger);
             }
-        } catch (ConnectionShutdownException ex) {
-            InterruptedIOException ioex = new InterruptedIOException(
+        } catch (final ConnectionShutdownException ex) {
+            final InterruptedIOException ioex = new InterruptedIOException(
                     "Connection has been shut down");
             ioex.initCause(ex);
             throw ioex;
-        } catch (HttpException ex) {
+        } catch (final HttpException ex) {
             releaseTrigger.abortConnection();
             throw ex;
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             releaseTrigger.abortConnection();
             throw ex;
-        } catch (RuntimeException ex) {
+        } catch (final RuntimeException ex) {
             releaseTrigger.abortConnection();
             throw ex;
         }

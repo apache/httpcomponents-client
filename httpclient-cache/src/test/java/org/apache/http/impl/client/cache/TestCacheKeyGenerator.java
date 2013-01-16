@@ -70,8 +70,8 @@ public class TestCacheKeyGenerator {
 
     @Test
     public void testExtractsUriFromAbsoluteUriInRequest() {
-        HttpHost host = new HttpHost("bar.example.com");
-        HttpRequest req = new HttpGet("http://foo.example.com/");
+        final HttpHost host = new HttpHost("bar.example.com");
+        final HttpRequest req = new HttpGet("http://foo.example.com/");
         Assert.assertEquals("http://foo.example.com:80/", extractor.getURI(host, req));
     }
 
@@ -134,7 +134,7 @@ public class TestCacheKeyGenerator {
         };
 
         replayMocks();
-        String result = extractor.getVariantURI(host, mockRequest, mockEntry);
+        final String result = extractor.getVariantURI(host, mockRequest, mockEntry);
         verifyMocks();
         Assert.assertSame(theURI, result);
     }
@@ -142,8 +142,8 @@ public class TestCacheKeyGenerator {
     @Test
     public void testGetVariantURIWithSingleValueVaryHeaderPrepends() {
         final String theURI = "theURI";
-        Header[] varyHeaders = { new BasicHeader("Vary", "Accept-Encoding") };
-        Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
+        final Header[] varyHeaders = { new BasicHeader("Vary", "Accept-Encoding") };
+        final Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
 
         extractor = new CacheKeyGenerator() {
             @Override
@@ -159,7 +159,7 @@ public class TestCacheKeyGenerator {
                 encHeaders);
         replayMocks();
 
-        String result = extractor.getVariantURI(host, mockRequest, mockEntry);
+        final String result = extractor.getVariantURI(host, mockRequest, mockEntry);
 
         verifyMocks();
         Assert.assertEquals("{Accept-Encoding=gzip}" + theURI, result);
@@ -168,8 +168,8 @@ public class TestCacheKeyGenerator {
     @Test
     public void testGetVariantURIWithMissingRequestHeader() {
         final String theURI = "theURI";
-        Header[] noHeaders = new Header[0];
-        Header[] varyHeaders = { new BasicHeader("Vary", "Accept-Encoding") };
+        final Header[] noHeaders = new Header[0];
+        final Header[] varyHeaders = { new BasicHeader("Vary", "Accept-Encoding") };
         extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(final HttpHost h, final HttpRequest req) {
@@ -184,7 +184,7 @@ public class TestCacheKeyGenerator {
                 .andReturn(noHeaders);
         replayMocks();
 
-        String result = extractor.getVariantURI(host, mockRequest, mockEntry);
+        final String result = extractor.getVariantURI(host, mockRequest, mockEntry);
 
         verifyMocks();
         Assert.assertEquals("{Accept-Encoding=}" + theURI, result);
@@ -193,9 +193,9 @@ public class TestCacheKeyGenerator {
     @Test
     public void testGetVariantURIAlphabetizesWithMultipleVaryingHeaders() {
         final String theURI = "theURI";
-        Header[] varyHeaders = { new BasicHeader("Vary", "User-Agent, Accept-Encoding") };
-        Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
-        Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
+        final Header[] varyHeaders = { new BasicHeader("Vary", "User-Agent, Accept-Encoding") };
+        final Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
+        final Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
         extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(final HttpHost h, final HttpRequest req) {
@@ -211,7 +211,7 @@ public class TestCacheKeyGenerator {
         EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
         replayMocks();
 
-        String result = extractor.getVariantURI(host, mockRequest, mockEntry);
+        final String result = extractor.getVariantURI(host, mockRequest, mockEntry);
 
         verifyMocks();
         Assert.assertEquals("{Accept-Encoding=gzip&User-Agent=browser}" + theURI, result);
@@ -220,10 +220,10 @@ public class TestCacheKeyGenerator {
     @Test
     public void testGetVariantURIHandlesMultipleVaryHeaders() {
         final String theURI = "theURI";
-        Header[] varyHeaders = { new BasicHeader("Vary", "User-Agent"),
+        final Header[] varyHeaders = { new BasicHeader("Vary", "User-Agent"),
                 new BasicHeader("Vary", "Accept-Encoding") };
-        Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
-        Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
+        final Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip") };
+        final Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
         extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(final HttpHost h, final HttpRequest req) {
@@ -238,7 +238,7 @@ public class TestCacheKeyGenerator {
         EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
         replayMocks();
 
-        String result = extractor.getVariantURI(host, mockRequest, mockEntry);
+        final String result = extractor.getVariantURI(host, mockRequest, mockEntry);
 
         verifyMocks();
         Assert.assertEquals("{Accept-Encoding=gzip&User-Agent=browser}" + theURI, result);
@@ -247,10 +247,10 @@ public class TestCacheKeyGenerator {
     @Test
     public void testGetVariantURIHandlesMultipleLineRequestHeaders() {
         final String theURI = "theURI";
-        Header[] varyHeaders = { new BasicHeader("Vary", "User-Agent, Accept-Encoding") };
-        Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip"),
+        final Header[] varyHeaders = { new BasicHeader("Vary", "User-Agent, Accept-Encoding") };
+        final Header[] encHeaders = { new BasicHeader("Accept-Encoding", "gzip"),
                 new BasicHeader("Accept-Encoding", "deflate") };
-        Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
+        final Header[] uaHeaders = { new BasicHeader("User-Agent", "browser") };
         extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(final HttpHost h, final HttpRequest req) {
@@ -265,7 +265,7 @@ public class TestCacheKeyGenerator {
         EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
         replayMocks();
 
-        String result = extractor.getVariantURI(host, mockRequest, mockEntry);
+        final String result = extractor.getVariantURI(host, mockRequest, mockEntry);
 
         verifyMocks();
         Assert
@@ -289,17 +289,17 @@ public class TestCacheKeyGenerator {
      */
     @Test
     public void testEmptyPortEquivalentToDefaultPortForHttp() {
-        HttpHost host1 = new HttpHost("foo.example.com:");
-        HttpHost host2 = new HttpHost("foo.example.com:80");
-        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpHost host1 = new HttpHost("foo.example.com:");
+        final HttpHost host2 = new HttpHost("foo.example.com:80");
+        final HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         Assert.assertEquals(extractor.getURI(host1, req), extractor.getURI(host2, req));
     }
 
     @Test
     public void testEmptyPortEquivalentToDefaultPortForHttps() {
-        HttpHost host1 = new HttpHost("foo.example.com", -1, "https");
-        HttpHost host2 = new HttpHost("foo.example.com", 443, "https");
-        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpHost host1 = new HttpHost("foo.example.com", -1, "https");
+        final HttpHost host2 = new HttpHost("foo.example.com", 443, "https");
+        final HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         final String uri1 = extractor.getURI(host1, req);
         final String uri2 = extractor.getURI(host2, req);
         Assert.assertEquals(uri1, uri2);
@@ -307,9 +307,9 @@ public class TestCacheKeyGenerator {
 
     @Test
     public void testEmptyPortEquivalentToDefaultPortForHttpsAbsoluteURI() {
-        HttpHost host = new HttpHost("foo.example.com", -1, "https");
-        HttpGet get1 = new HttpGet("https://bar.example.com:/");
-        HttpGet get2 = new HttpGet("https://bar.example.com:443/");
+        final HttpHost host = new HttpHost("foo.example.com", -1, "https");
+        final HttpGet get1 = new HttpGet("https://bar.example.com:/");
+        final HttpGet get2 = new HttpGet("https://bar.example.com:443/");
         final String uri1 = extractor.getURI(host, get1);
         final String uri2 = extractor.getURI(host, get2);
         Assert.assertEquals(uri1, uri2);
@@ -317,9 +317,9 @@ public class TestCacheKeyGenerator {
 
     @Test
     public void testNotProvidedPortEquivalentToDefaultPortForHttpsAbsoluteURI() {
-        HttpHost host = new HttpHost("foo.example.com", -1, "https");
-        HttpGet get1 = new HttpGet("https://bar.example.com/");
-        HttpGet get2 = new HttpGet("https://bar.example.com:443/");
+        final HttpHost host = new HttpHost("foo.example.com", -1, "https");
+        final HttpGet get1 = new HttpGet("https://bar.example.com/");
+        final HttpGet get2 = new HttpGet("https://bar.example.com:443/");
         final String uri1 = extractor.getURI(host, get1);
         final String uri2 = extractor.getURI(host, get2);
         Assert.assertEquals(uri1, uri2);
@@ -327,49 +327,49 @@ public class TestCacheKeyGenerator {
 
     @Test
     public void testNotProvidedPortEquivalentToDefaultPortForHttp() {
-        HttpHost host1 = new HttpHost("foo.example.com");
-        HttpHost host2 = new HttpHost("foo.example.com:80");
-        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpHost host1 = new HttpHost("foo.example.com");
+        final HttpHost host2 = new HttpHost("foo.example.com:80");
+        final HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         Assert.assertEquals(extractor.getURI(host1, req), extractor.getURI(host2, req));
     }
 
     @Test
     public void testHostNameComparisonsAreCaseInsensitive() {
-        HttpHost host1 = new HttpHost("foo.example.com");
-        HttpHost host2 = new HttpHost("FOO.EXAMPLE.COM");
-        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpHost host1 = new HttpHost("foo.example.com");
+        final HttpHost host2 = new HttpHost("FOO.EXAMPLE.COM");
+        final HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         Assert.assertEquals(extractor.getURI(host1, req), extractor.getURI(host2, req));
     }
 
     @Test
     public void testSchemeNameComparisonsAreCaseInsensitive() {
-        HttpHost host1 = new HttpHost("foo.example.com", -1, "http");
-        HttpHost host2 = new HttpHost("foo.example.com", -1, "HTTP");
-        HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpHost host1 = new HttpHost("foo.example.com", -1, "http");
+        final HttpHost host2 = new HttpHost("foo.example.com", -1, "HTTP");
+        final HttpRequest req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
         Assert.assertEquals(extractor.getURI(host1, req), extractor.getURI(host2, req));
     }
 
     @Test
     public void testEmptyAbsPathIsEquivalentToSlash() {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
-        HttpRequest req2 = new HttpGet("http://foo.example.com");
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpRequest req2 = new HttpGet("http://foo.example.com");
         Assert.assertEquals(extractor.getURI(host, req1), extractor.getURI(host, req2));
     }
 
     @Test
     public void testEquivalentPathEncodingsAreEquivalent() {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html", HttpVersion.HTTP_1_1);
-        HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/home.html", HttpVersion.HTTP_1_1);
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html", HttpVersion.HTTP_1_1);
+        final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/home.html", HttpVersion.HTTP_1_1);
         Assert.assertEquals(extractor.getURI(host, req1), extractor.getURI(host, req2));
     }
 
     @Test
     public void testEquivalentExtraPathEncodingsAreEquivalent() {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html", HttpVersion.HTTP_1_1);
-        HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith%2Fhome.html", HttpVersion.HTTP_1_1);
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html", HttpVersion.HTTP_1_1);
+        final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith%2Fhome.html", HttpVersion.HTTP_1_1);
         Assert.assertEquals(extractor.getURI(host, req1), extractor.getURI(host, req2));
     }
 }

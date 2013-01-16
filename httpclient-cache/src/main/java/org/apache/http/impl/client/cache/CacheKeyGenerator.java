@@ -69,29 +69,29 @@ class CacheKeyGenerator {
 
     public String canonicalizeUri(final String uri) {
         try {
-            URL u = new URL(uri);
-            String protocol = u.getProtocol().toLowerCase();
-            String hostname = u.getHost().toLowerCase();
-            int port = canonicalizePort(u.getPort(), protocol);
+            final URL u = new URL(uri);
+            final String protocol = u.getProtocol().toLowerCase();
+            final String hostname = u.getHost().toLowerCase();
+            final int port = canonicalizePort(u.getPort(), protocol);
             String path = canonicalizePath(u.getPath());
             if ("".equals(path)) {
                 path = "/";
             }
-            String query = u.getQuery();
-            String file = (query != null) ? (path + "?" + query) : path;
-            URL out = new URL(protocol, hostname, port, file);
+            final String query = u.getQuery();
+            final String file = (query != null) ? (path + "?" + query) : path;
+            final URL out = new URL(protocol, hostname, port, file);
             return out.toString();
-        } catch (MalformedURLException e) {
+        } catch (final MalformedURLException e) {
             return uri;
         }
     }
 
     private String canonicalizePath(final String path) {
         try {
-            String decoded = URLDecoder.decode(path, "UTF-8");
+            final String decoded = URLDecoder.decode(path, "UTF-8");
             return (new URI(decoded)).getPath();
-        } catch (UnsupportedEncodingException e) {
-        } catch (URISyntaxException e) {
+        } catch (final UnsupportedEncodingException e) {
+        } catch (final URISyntaxException e) {
         }
         return path;
     }
@@ -106,7 +106,7 @@ class CacheKeyGenerator {
     }
 
     private boolean isRelativeRequest(final HttpRequest req) {
-        String requestUri = req.getRequestLine().getUri();
+        final String requestUri = req.getRequestLine().getUri();
         return ("*".equals(requestUri) || requestUri.startsWith("/"));
     }
 
@@ -115,9 +115,9 @@ class CacheKeyGenerator {
             return "";
         }
 
-        StringBuilder buf = new StringBuilder("");
+        final StringBuilder buf = new StringBuilder("");
         boolean first = true;
-        for (Header hdr : headers) {
+        for (final Header hdr : headers) {
             if (!first) {
                 buf.append(", ");
             }
@@ -155,9 +155,9 @@ class CacheKeyGenerator {
      * @return a <code>String</code> variant key
      */
     public String getVariantKey(final HttpRequest req, final HttpCacheEntry entry) {
-        List<String> variantHeaderNames = new ArrayList<String>();
-        for (Header varyHdr : entry.getHeaders(HeaderConstants.VARY)) {
-            for (HeaderElement elt : varyHdr.getElements()) {
+        final List<String> variantHeaderNames = new ArrayList<String>();
+        for (final Header varyHdr : entry.getHeaders(HeaderConstants.VARY)) {
+            for (final HeaderElement elt : varyHdr.getElements()) {
                 variantHeaderNames.add(elt.getName());
             }
         }
@@ -167,7 +167,7 @@ class CacheKeyGenerator {
         try {
             buf = new StringBuilder("{");
             boolean first = true;
-            for (String headerName : variantHeaderNames) {
+            for (final String headerName : variantHeaderNames) {
                 if (!first) {
                     buf.append("&");
                 }
@@ -178,7 +178,7 @@ class CacheKeyGenerator {
                 first = false;
             }
             buf.append("}");
-        } catch (UnsupportedEncodingException uee) {
+        } catch (final UnsupportedEncodingException uee) {
             throw new RuntimeException("couldn't encode to UTF-8", uee);
         }
         return buf.toString();

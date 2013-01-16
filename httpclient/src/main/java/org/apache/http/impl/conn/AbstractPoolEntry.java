@@ -146,7 +146,7 @@ public abstract class AbstractPoolEntry {
              route.getLocalAddress(),
              context, params);
 
-        RouteTracker localTracker = tracker; // capture volatile
+        final RouteTracker localTracker = tracker; // capture volatile
 
         // If this tracker was reset while connecting,
         // fail early.

@@ -69,7 +69,7 @@ public class HttpClientUtils {
      */
     public static void closeQuietly(final HttpResponse response) {
         if (response != null) {
-            HttpEntity entity = response.getEntity();
+            final HttpEntity entity = response.getEntity();
             if (entity != null) {
                 try {
                     EntityUtils.consume(entity);

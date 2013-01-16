@@ -98,7 +98,7 @@ public class DefaultResponseParser extends AbstractMessageParser<HttpMessage> {
         do {
             // clear the buffer
             this.lineBuf.clear();
-            int i = sessionBuffer.readLine(this.lineBuf);
+            final int i = sessionBuffer.readLine(this.lineBuf);
             if (i == -1 && count == 0) {
                 // The server just dropped connection on us
                 throw new NoHttpResponseException("The target server failed to respond");
@@ -118,7 +118,7 @@ public class DefaultResponseParser extends AbstractMessageParser<HttpMessage> {
             count++;
         } while(true);
         //create the status line from the status string
-        StatusLine statusline = lineParser.parseStatusLine(this.lineBuf, cursor);
+        final StatusLine statusline = lineParser.parseStatusLine(this.lineBuf, cursor);
         return this.responseFactory.newHttpResponse(statusline, null);
     }
 

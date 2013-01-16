@@ -90,7 +90,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             // In our experience this only happens under IBM 1.4.x when
             // spurious (unrelated) certificates show up in the server'
             // chain.  Hopefully this will unearth the real problem:
-            InputStream in = ssl.getInputStream();
+            final InputStream in = ssl.getInputStream();
             in.available();
             /*
               If you're looking at the 2 lines of code above because
@@ -122,27 +122,27 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             }
         }
 
-        Certificate[] certs = session.getPeerCertificates();
-        X509Certificate x509 = (X509Certificate) certs[0];
+        final Certificate[] certs = session.getPeerCertificates();
+        final X509Certificate x509 = (X509Certificate) certs[0];
         verify(host, x509);
     }
 
     public final boolean verify(final String host, final SSLSession session) {
         try {
-            Certificate[] certs = session.getPeerCertificates();
-            X509Certificate x509 = (X509Certificate) certs[0];
+            final Certificate[] certs = session.getPeerCertificates();
+            final X509Certificate x509 = (X509Certificate) certs[0];
             verify(host, x509);
             return true;
         }
-        catch(SSLException e) {
+        catch(final SSLException e) {
             return false;
         }
     }
 
     public final void verify(final String host, final X509Certificate cert)
           throws SSLException {
-        String[] cns = getCNs(cert);
-        String[] subjectAlts = getSubjectAlts(cert, host);
+        final String[] cns = getCNs(cert);
+        final String[] subjectAlts = getSubjectAlts(cert, host);
         verify(host, cns, subjectAlts);
     }
 
@@ -155,12 +155,12 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         // STRICT implementations of the HostnameVerifier only use the
         // first CN provided.  All other CNs are ignored.
         // (Firefox, wget, curl, Sun Java 1.4, 5, 6 all work this way).
-        LinkedList<String> names = new LinkedList<String>();
+        final LinkedList<String> names = new LinkedList<String>();
         if(cns != null && cns.length > 0 && cns[0] != null) {
             names.add(cns[0]);
         }
         if(subjectAlts != null) {
-            for (String subjectAlt : subjectAlts) {
+            for (final String subjectAlt : subjectAlts) {
                 if (subjectAlt != null) {
                     names.add(subjectAlt);
                 }
@@ -168,18 +168,18 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         }
 
         if(names.isEmpty()) {
-            String msg = "Certificate for <" + host + "> doesn't contain CN or DNS subjectAlt";
+            final String msg = "Certificate for <" + host + "> doesn't contain CN or DNS subjectAlt";
             throw new SSLException(msg);
         }
 
         // StringBuilder for building the error message.
-        StringBuilder buf = new StringBuilder();
+        final StringBuilder buf = new StringBuilder();
 
         // We're can be case-insensitive when comparing the host we used to
         // establish the socket to the hostname in the certificate.
-        String hostName = host.trim().toLowerCase(Locale.US);
+        final String hostName = host.trim().toLowerCase(Locale.US);
         boolean match = false;
-        for(Iterator<String> it = names.iterator(); it.hasNext();) {
+        for(final Iterator<String> it = names.iterator(); it.hasNext();) {
             // Don't trim the CN, though!
             String cn = it.next();
             cn = cn.toLowerCase(Locale.US);
@@ -194,18 +194,18 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             // The CN better have at least two dots if it wants wildcard
             // action.  It also can't be [*.co.uk] or [*.co.jp] or
             // [*.org.uk], etc...
-            String parts[] = cn.split("\\.");
-            boolean doWildcard = parts.length >= 3 &&
+            final String parts[] = cn.split("\\.");
+            final boolean doWildcard = parts.length >= 3 &&
                                  parts[0].endsWith("*") &&
                                  acceptableCountryWildcard(cn) &&
                                  !isIPAddress(host);
 
             if(doWildcard) {
-                String firstpart = parts[0];
+                final String firstpart = parts[0];
                 if (firstpart.length() > 1) { // e.g. server*
-                    String prefix = firstpart.substring(0, firstpart.length() - 1); // e.g. server
-                    String suffix = cn.substring(firstpart.length()); // skip wildcard part from cn
-                    String hostSuffix = hostName.substring(prefix.length()); // skip wildcard part from host
+                    final String prefix = firstpart.substring(0, firstpart.length() - 1); // e.g. server
+                    final String suffix = cn.substring(firstpart.length()); // skip wildcard part from cn
+                    final String hostSuffix = hostName.substring(prefix.length()); // skip wildcard part from host
                     match = hostName.startsWith(prefix) && hostSuffix.endsWith(suffix);
                 } else {
                     match = hostName.endsWith(cn.substring(1));
@@ -228,7 +228,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
     }
 
     public static boolean acceptableCountryWildcard(final String cn) {
-        String parts[] = cn.split("\\.");
+        final String parts[] = cn.split("\\.");
         if (parts.length != 3 || parts[2].length() != 2) {
             return true; // it's not an attempt to wildcard a 2TLD within a country code
         }
@@ -236,7 +236,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
     }
 
     public static String[] getCNs(final X509Certificate cert) {
-        LinkedList<String> cnList = new LinkedList<String>();
+        final LinkedList<String> cnList = new LinkedList<String>();
         /*
           Sebastian Hauer's original StrictSSLProtocolSocketFactory used
           getName() and had the following comment:
@@ -260,10 +260,10 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
            I tested it with "&#x82b1;&#x5b50;.co.jp" and it worked fine.
         */
 
-        String subjectPrincipal = cert.getSubjectX500Principal().toString();
-        StringTokenizer st = new StringTokenizer(subjectPrincipal, ",");
+        final String subjectPrincipal = cert.getSubjectX500Principal().toString();
+        final StringTokenizer st = new StringTokenizer(subjectPrincipal, ",");
         while(st.hasMoreTokens()) {
-            String tok = st.nextToken().trim();
+            final String tok = st.nextToken().trim();
             if (tok.length() > 3) {
                 if (tok.substring(0, 3).equalsIgnoreCase("CN=")) {
                     cnList.add(tok.substring(3));
@@ -271,7 +271,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             }
         }
         if(!cnList.isEmpty()) {
-            String[] cns = new String[cnList.size()];
+            final String[] cns = new String[cnList.size()];
             cnList.toArray(cns);
             return cns;
         } else {
@@ -296,25 +296,25 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             subjectType = 2;
         }
 
-        LinkedList<String> subjectAltList = new LinkedList<String>();
+        final LinkedList<String> subjectAltList = new LinkedList<String>();
         Collection<List<?>> c = null;
         try {
             c = cert.getSubjectAlternativeNames();
         }
-        catch(CertificateParsingException cpe) {
+        catch(final CertificateParsingException cpe) {
         }
         if(c != null) {
-            for (List<?> aC : c) {
-                List<?> list = aC;
-                int type = ((Integer) list.get(0)).intValue();
+            for (final List<?> aC : c) {
+                final List<?> list = aC;
+                final int type = ((Integer) list.get(0)).intValue();
                 if (type == subjectType) {
-                    String s = (String) list.get(1);
+                    final String s = (String) list.get(1);
                     subjectAltList.add(s);
                 }
             }
         }
         if(!subjectAltList.isEmpty()) {
-            String[] subjectAlts = new String[subjectAltList.size()];
+            final String[] subjectAlts = new String[subjectAltList.size()];
             subjectAltList.toArray(subjectAlts);
             return subjectAlts;
         } else {

@@ -160,19 +160,19 @@ public class ProxyClient {
         if (host.getPort() <= 0) {
             host = new HttpHost(host.getHostName(), 80, host.getSchemeName());
         }
-        HttpRoute route = new HttpRoute(
+        final HttpRoute route = new HttpRoute(
                 host,
                 this.requestConfig.getLocalAddress(),
                 proxy, false, TunnelType.TUNNELLED, LayerType.PLAIN);
 
-        SocketClientConnection conn = this.connFactory.create(this.connectionConfig);
-        HttpContext context = new BasicHttpContext();
+        final SocketClientConnection conn = this.connFactory.create(this.connectionConfig);
+        final HttpContext context = new BasicHttpContext();
         HttpResponse response = null;
 
-        HttpRequest connect = new BasicHttpRequest(
+        final HttpRequest connect = new BasicHttpRequest(
                 "CONNECT", host.toHostString(), HttpVersion.HTTP_1_1);
 
-        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(new AuthScope(proxy), credentials);
 
         // Populate the execution context
@@ -189,7 +189,7 @@ public class ProxyClient {
 
         for (;;) {
             if (!conn.isOpen()) {
-                Socket socket = new Socket(proxy.getHostName(), proxy.getPort());
+                final Socket socket = new Socket(proxy.getHostName(), proxy.getPort());
                 conn.bind(socket);
             }
 
@@ -197,7 +197,7 @@ public class ProxyClient {
 
             response = this.requestExec.execute(connect, conn, context);
 
-            int status = response.getStatusLine().getStatusCode();
+            final int status = response.getStatusLine().getStatusCode();
             if (status < 200) {
                 throw new HttpException("Unexpected response to CONNECT request: " +
                         response.getStatusLine());
@@ -209,7 +209,7 @@ public class ProxyClient {
                     // Retry request
                     if (this.reuseStrategy.keepAlive(response, context)) {
                         // Consume response content
-                        HttpEntity entity = response.getEntity();
+                        final HttpEntity entity = response.getEntity();
                         EntityUtils.consume(entity);
                     } else {
                         conn.close();
@@ -224,12 +224,12 @@ public class ProxyClient {
             }
         }
 
-        int status = response.getStatusLine().getStatusCode();
+        final int status = response.getStatusLine().getStatusCode();
 
         if (status > 299) {
 
             // Buffer response content
-            HttpEntity entity = response.getEntity();
+            final HttpEntity entity = response.getEntity();
             if (entity != null) {
                 response.setEntity(new BufferedHttpEntity(entity));
             }

@@ -97,8 +97,8 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
     public void writeLine(final CharArrayBuffer buffer) throws IOException {
         this.out.writeLine(buffer);
         if (this.wire.enabled()) {
-            String s = new String(buffer.buffer(), 0, buffer.length());
-            String tmp = s + "\r\n";
+            final String s = new String(buffer.buffer(), 0, buffer.length());
+            final String tmp = s + "\r\n";
             this.wire.output(tmp.getBytes(this.charset));
         }
     }
@@ -106,7 +106,7 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
     public void writeLine(final String s) throws IOException {
         this.out.writeLine(s);
         if (this.wire.enabled()) {
-            String tmp = s + "\r\n";
+            final String tmp = s + "\r\n";
             this.wire.output(tmp.getBytes(this.charset));
         }
     }

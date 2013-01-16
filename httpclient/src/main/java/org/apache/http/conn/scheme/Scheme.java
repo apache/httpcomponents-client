@@ -226,7 +226,7 @@ public final class Scheme {
     @Override
     public final String toString() {
         if (stringRep == null) {
-            StringBuilder buffer = new StringBuilder();
+            final StringBuilder buffer = new StringBuilder();
             buffer.append(this.name);
             buffer.append(':');
             buffer.append(Integer.toString(this.defaultPort));
@@ -241,7 +241,7 @@ public final class Scheme {
             return true;
         }
         if (obj instanceof Scheme) {
-            Scheme that = (Scheme) obj;
+            final Scheme that = (Scheme) obj;
             return this.name.equals(that.name)
                 && this.defaultPort == that.defaultPort
                 && this.layered == that.layered;

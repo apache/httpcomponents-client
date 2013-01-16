@@ -199,9 +199,9 @@ public abstract class AbstractConnPool {
             }
 
             // close all connections that are issued to an application
-            Iterator<BasicPoolEntry> iter = leasedConnections.iterator();
+            final Iterator<BasicPoolEntry> iter = leasedConnections.iterator();
             while (iter.hasNext()) {
-                BasicPoolEntry entry = iter.next();
+                final BasicPoolEntry entry = iter.next();
                 iter.remove();
                 closeConnection(entry.getConnection());
             }
@@ -224,7 +224,7 @@ public abstract class AbstractConnPool {
         if (conn != null) {
             try {
                 conn.close();
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 log.debug("I/O error closing connection", ex);
             }
         }

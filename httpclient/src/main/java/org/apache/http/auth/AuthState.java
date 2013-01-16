@@ -221,7 +221,7 @@ public class AuthState {
 
     @Override
     public String toString() {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         buffer.append("state:").append(this.state).append(";");
         if (this.authScheme != null) {
             buffer.append("auth scheme:").append(this.authScheme.getSchemeName()).append(";");

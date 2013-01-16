@@ -213,11 +213,11 @@ public class ConnPoolByRoute extends AbstractConnPool {
     }
 
     private void closeConnection(final BasicPoolEntry entry) {
-        OperatedClientConnection conn = entry.getConnection();
+        final OperatedClientConnection conn = entry.getConnection();
         if (conn != null) {
             try {
                 conn.close();
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 log.debug("I/O error closing connection", ex);
             }
         }
@@ -256,7 +256,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
         poolLock.lock();
         try {
             // don't allow a pool to be created here!
-            RouteSpecificPool rospl = getRoutePool(route, false);
+            final RouteSpecificPool rospl = getRoutePool(route, false);
             return (rospl != null) ? rospl.getEntryCount() : 0;
 
         } finally {
@@ -358,7 +358,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                     break;
                 }
 
-                boolean hasCapacity = rospl.getCapacity() > 0;
+                final boolean hasCapacity = rospl.getCapacity() > 0;
 
                 if (log.isDebugEnabled()) {
                     log.debug("Available capacity: " + rospl.getCapacity()
@@ -424,7 +424,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
     @Override
     public void freeEntry(final BasicPoolEntry entry, final boolean reusable, final long validDuration, final TimeUnit timeUnit) {
 
-        HttpRoute route = entry.getPlannedRoute();
+        final HttpRoute route = entry.getPlannedRoute();
         if (log.isDebugEnabled()) {
             log.debug("Releasing connection" +
                     " [" + route + "][" + entry.getState() + "]");
@@ -442,7 +442,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
             // no longer issued, we keep a hard reference now
             leasedConnections.remove(entry);
 
-            RouteSpecificPool rospl = getRoutePool(route, true);
+            final RouteSpecificPool rospl = getRoutePool(route, true);
 
             if (reusable && rospl.getCapacity() >= 0) {
                 if (log.isDebugEnabled()) {
@@ -547,7 +547,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
         }
 
         // the entry will create the connection when needed
-        BasicPoolEntry entry = new BasicPoolEntry(op, rospl.getRoute(), connTTL, connTTLTimeUnit);
+        final BasicPoolEntry entry = new BasicPoolEntry(op, rospl.getRoute(), connTTL, connTTLTimeUnit);
 
         poolLock.lock();
         try {
@@ -575,7 +575,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      */
     protected void deleteEntry(final BasicPoolEntry entry) {
 
-        HttpRoute route = entry.getPlannedRoute();
+        final HttpRoute route = entry.getPlannedRoute();
 
         if (log.isDebugEnabled()) {
             log.debug("Deleting connection"
@@ -587,7 +587,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
             closeConnection(entry);
 
-            RouteSpecificPool rospl = getRoutePool(route, true);
+            final RouteSpecificPool rospl = getRoutePool(route, true);
             rospl.deleteEntry(entry);
             numConnections--;
             if (rospl.isUnused()) {
@@ -608,7 +608,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
         poolLock.lock();
         try {
 
-            BasicPoolEntry entry = freeConnections.remove();
+            final BasicPoolEntry entry = freeConnections.remove();
 
             if (entry != null) {
                 deleteEntry(entry);
@@ -627,7 +627,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
         poolLock.lock();
         try {
 
-            RouteSpecificPool rospl = getRoutePool(route, true);
+            final RouteSpecificPool rospl = getRoutePool(route, true);
             rospl.dropEntry();
             if (rospl.isUnused()) {
                 routeToPool.remove(route);
@@ -690,9 +690,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
     public void deleteClosedConnections() {
         poolLock.lock();
         try {
-            Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
+            final Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
             while (iter.hasNext()) {
-                BasicPoolEntry entry = iter.next();
+                final BasicPoolEntry entry = iter.next();
                 if (!entry.getConnection().isOpen()) {
                     iter.remove();
                     deleteEntry(entry);
@@ -720,12 +720,12 @@ public class ConnPoolByRoute extends AbstractConnPool {
             log.debug("Closing connections idle longer than "  + idletime + " " + tunit);
         }
         // the latest time for which connections will be closed
-        long deadline = System.currentTimeMillis() - tunit.toMillis(idletime);
+        final long deadline = System.currentTimeMillis() - tunit.toMillis(idletime);
         poolLock.lock();
         try {
-            Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
+            final Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
             while (iter.hasNext()) {
-                BasicPoolEntry entry = iter.next();
+                final BasicPoolEntry entry = iter.next();
                 if (entry.getUpdated() <= deadline) {
                     if (log.isDebugEnabled()) {
                         log.debug("Closing connection last used @ " + new Date(entry.getUpdated()));
@@ -742,13 +742,13 @@ public class ConnPoolByRoute extends AbstractConnPool {
     @Override
     public void closeExpiredConnections() {
         log.debug("Closing expired connections");
-        long now = System.currentTimeMillis();
+        final long now = System.currentTimeMillis();
 
         poolLock.lock();
         try {
-            Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
+            final Iterator<BasicPoolEntry>  iter = freeConnections.iterator();
             while (iter.hasNext()) {
-                BasicPoolEntry entry = iter.next();
+                final BasicPoolEntry entry = iter.next();
                 if (entry.isExpired(now)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Closing connection expired @ " + new Date(entry.getExpiry()));
@@ -772,17 +772,17 @@ public class ConnPoolByRoute extends AbstractConnPool {
             shutdown = true;
 
             // close all connections that are issued to an application
-            Iterator<BasicPoolEntry> iter1 = leasedConnections.iterator();
+            final Iterator<BasicPoolEntry> iter1 = leasedConnections.iterator();
             while (iter1.hasNext()) {
-                BasicPoolEntry entry = iter1.next();
+                final BasicPoolEntry entry = iter1.next();
                 iter1.remove();
                 closeConnection(entry);
             }
 
             // close all free connections
-            Iterator<BasicPoolEntry> iter2 = freeConnections.iterator();
+            final Iterator<BasicPoolEntry> iter2 = freeConnections.iterator();
             while (iter2.hasNext()) {
-                BasicPoolEntry entry = iter2.next();
+                final BasicPoolEntry entry = iter2.next();
                 iter2.remove();
 
                 if (log.isDebugEnabled()) {
@@ -793,9 +793,9 @@ public class ConnPoolByRoute extends AbstractConnPool {
             }
 
             // wake up all waiting threads
-            Iterator<WaitingThread> iwth = waitingThreads.iterator();
+            final Iterator<WaitingThread> iwth = waitingThreads.iterator();
             while (iwth.hasNext()) {
-                WaitingThread waiter = iwth.next();
+                final WaitingThread waiter = iwth.next();
                 iwth.remove();
                 waiter.wakeup();
             }

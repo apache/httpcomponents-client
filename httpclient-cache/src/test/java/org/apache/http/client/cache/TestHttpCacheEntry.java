@@ -74,7 +74,7 @@ public class TestHttpCacheEntry {
 
     @Test
     public void testGetHeadersReturnsCorrectHeaders() {
-        Header[] headers = { new BasicHeader("foo", "fooValue"),
+        final Header[] headers = { new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"),
                 new BasicHeader("bar", "barValue2")
         };
@@ -84,7 +84,7 @@ public class TestHttpCacheEntry {
 
     @Test
     public void testGetFirstHeaderReturnsCorrectHeader() {
-        Header[] headers = { new BasicHeader("foo", "fooValue"),
+        final Header[] headers = { new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"),
                 new BasicHeader("bar", "barValue2")
         };
@@ -94,7 +94,7 @@ public class TestHttpCacheEntry {
 
     @Test
     public void testGetHeadersReturnsEmptyArrayIfNoneMatch() {
-        Header[] headers = { new BasicHeader("foo", "fooValue"),
+        final Header[] headers = { new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"),
                 new BasicHeader("bar", "barValue2")
         };
@@ -104,7 +104,7 @@ public class TestHttpCacheEntry {
 
     @Test
     public void testGetFirstHeaderReturnsNullIfNoneMatch() {
-        Header[] headers = { new BasicHeader("foo", "fooValue"),
+        final Header[] headers = { new BasicHeader("foo", "fooValue"),
                 new BasicHeader("bar", "barValue1"),
                 new BasicHeader("bar", "barValue2")
         };
@@ -114,21 +114,21 @@ public class TestHttpCacheEntry {
 
     @Test
     public void testCacheEntryWithNoVaryHeaderDoesNotHaveVariants() {
-        Header[] headers = new Header[0];
+        final Header[] headers = new Header[0];
         entry = makeEntry(headers);
         assertFalse(entry.hasVariants());
     }
 
     @Test
     public void testCacheEntryWithOneVaryHeaderHasVariants() {
-        Header[] headers = { new BasicHeader("Vary", "User-Agent") };
+        final Header[] headers = { new BasicHeader("Vary", "User-Agent") };
         entry = makeEntry(headers);
         assertTrue(entry.hasVariants());
     }
 
     @Test
     public void testCacheEntryWithMultipleVaryHeadersHasVariants() {
-        Header[] headers = { new BasicHeader("Vary", "User-Agent"),
+        final Header[] headers = { new BasicHeader("Vary", "User-Agent"),
                 new BasicHeader("Vary", "Accept-Encoding")
         };
         entry = makeEntry(headers);
@@ -137,7 +137,7 @@ public class TestHttpCacheEntry {
 
     @Test
     public void testCacheEntryWithVaryStarHasVariants(){
-        Header[] headers = { new BasicHeader("Vary", "*") };
+        final Header[] headers = { new BasicHeader("Vary", "*") };
         entry = makeEntry(headers);
         assertTrue(entry.hasVariants());
     }
@@ -148,7 +148,7 @@ public class TestHttpCacheEntry {
             new HttpCacheEntry(null, new Date(), statusLine,
                     new Header[]{}, mockResource);
             fail("Should have thrown exception");
-        } catch (IllegalArgumentException expected) {
+        } catch (final IllegalArgumentException expected) {
         }
     }
 
@@ -158,7 +158,7 @@ public class TestHttpCacheEntry {
             new HttpCacheEntry(new Date(), null, statusLine,
                     new Header[]{}, mockResource);
             fail("Should have thrown exception");
-        } catch (IllegalArgumentException expected) {
+        } catch (final IllegalArgumentException expected) {
         }
     }
 
@@ -168,7 +168,7 @@ public class TestHttpCacheEntry {
             new HttpCacheEntry(new Date(), new Date(), null,
                     new Header[]{}, mockResource);
             fail("Should have thrown exception");
-        } catch (IllegalArgumentException expected) {
+        } catch (final IllegalArgumentException expected) {
         }
     }
 
@@ -178,7 +178,7 @@ public class TestHttpCacheEntry {
             new HttpCacheEntry(new Date(), new Date(), statusLine,
                     null, mockResource);
             fail("Should have thrown exception");
-        } catch (IllegalArgumentException expected) {
+        } catch (final IllegalArgumentException expected) {
         }
     }
 
@@ -236,13 +236,13 @@ public class TestHttpCacheEntry {
 
     @Test
     public void canGetOriginalHeaders() {
-        Header[] headers = {
+        final Header[] headers = {
                 new BasicHeader("Server", "MockServer/1.0"),
                 new BasicHeader("Date", DateUtils.formatDate(now))
         };
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
                 headers, mockResource);
-        Header[] result = entry.getAllHeaders();
+        final Header[] result = entry.getAllHeaders();
         assertEquals(headers.length, result.length);
         for(int i=0; i<headers.length; i++) {
             assertEquals(headers[i], result[i]);
@@ -264,13 +264,13 @@ public class TestHttpCacheEntry {
 
     @Test
     public void canRetrieveOriginalVariantMap() {
-        Map<String,String> variantMap = new HashMap<String,String>();
+        final Map<String,String> variantMap = new HashMap<String,String>();
         variantMap.put("A","B");
         variantMap.put("C","D");
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
                 new Header[]{}, mockResource,
                 variantMap);
-        Map<String,String> result = entry.getVariantMap();
+        final Map<String,String> result = entry.getVariantMap();
         assertEquals(2, result.size());
         assertEquals("B", result.get("A"));
         assertEquals("D", result.get("C"));
@@ -278,22 +278,22 @@ public class TestHttpCacheEntry {
 
     @Test
     public void retrievedVariantMapIsNotModifiable() {
-        Map<String,String> variantMap = new HashMap<String,String>();
+        final Map<String,String> variantMap = new HashMap<String,String>();
         variantMap.put("A","B");
         variantMap.put("C","D");
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
                 new Header[]{}, mockResource,
                 variantMap);
-        Map<String,String> result = entry.getVariantMap();
+        final Map<String,String> result = entry.getVariantMap();
         try {
             result.remove("A");
             fail("Should have thrown exception");
-        } catch (UnsupportedOperationException expected) {
+        } catch (final UnsupportedOperationException expected) {
         }
         try {
             result.put("E","F");
             fail("Should have thrown exception");
-        } catch (UnsupportedOperationException expected) {
+        } catch (final UnsupportedOperationException expected) {
         }
     }
 

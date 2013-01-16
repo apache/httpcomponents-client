@@ -63,9 +63,9 @@ public class TestAsynchronousValidationRequest {
 
     @Test
     public void testRunCallsCachingClientAndRemovesIdentifier() throws Exception {
-        String identifier = "foo";
+        final String identifier = "foo";
 
-        AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
+        final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
                 mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
                 identifier);
 
@@ -82,9 +82,9 @@ public class TestAsynchronousValidationRequest {
 
     @Test
     public void testRunGracefullyHandlesProtocolException() throws Exception {
-        String identifier = "foo";
+        final String identifier = "foo";
 
-        AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
+        final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
                 mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
                 identifier);
 
@@ -102,9 +102,9 @@ public class TestAsynchronousValidationRequest {
 
     @Test
     public void testRunGracefullyHandlesIOException() throws Exception {
-        String identifier = "foo";
+        final String identifier = "foo";
 
-        AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
+        final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
                 mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
                 identifier);
 

@@ -76,10 +76,10 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
             this.method = ((HttpUriRequest) request).getMethod();
             this.version = null;
         } else {
-            RequestLine requestLine = request.getRequestLine();
+            final RequestLine requestLine = request.getRequestLine();
             try {
                 this.uri = new URI(requestLine.getUri());
-            } catch (URISyntaxException ex) {
+            } catch (final URISyntaxException ex) {
                 throw new ProtocolException("Invalid request URI: "
                         + requestLine.getUri(), ex);
             }
@@ -125,8 +125,8 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
     }
 
     public RequestLine getRequestLine() {
-        String method = getMethod();
-        ProtocolVersion ver = getProtocolVersion();
+        final String method = getMethod();
+        final ProtocolVersion ver = getProtocolVersion();
         String uritext = null;
         if (uri != null) {
             uritext = uri.toASCIIString();

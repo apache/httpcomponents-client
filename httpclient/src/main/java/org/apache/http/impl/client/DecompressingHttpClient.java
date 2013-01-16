@@ -130,7 +130,7 @@ public class DecompressingHttpClient implements HttpClient {
     }
 
     HttpHost getHttpHost(final HttpUriRequest request) {
-        URI uri = request.getURI();
+        final URI uri = request.getURI();
         return URIUtils.extractHost(uri);
     }
 
@@ -157,7 +157,7 @@ public class DecompressingHttpClient implements HttpClient {
                 wrapped = new RequestWrapper(request);
             }
             acceptEncodingInterceptor.process(wrapped, context);
-            HttpResponse response = backend.execute(target, wrapped, context);
+            final HttpResponse response = backend.execute(target, wrapped, context);
             try {
                 contentEncodingInterceptor.process(response, context);
                 if (Boolean.TRUE.equals(context.getAttribute(ResponseContentEncoding.UNCOMPRESSED))) {
@@ -166,17 +166,17 @@ public class DecompressingHttpClient implements HttpClient {
                     response.removeHeaders("Content-MD5");
                 }
                 return response;
-            } catch (HttpException ex) {
+            } catch (final HttpException ex) {
                 EntityUtils.consume(response.getEntity());
                 throw ex;
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 EntityUtils.consume(response.getEntity());
                 throw ex;
-            } catch (RuntimeException ex) {
+            } catch (final RuntimeException ex) {
                 EntityUtils.consume(response.getEntity());
                 throw ex;
             }
-        } catch (HttpException e) {
+        } catch (final HttpException e) {
             throw new ClientProtocolException(e);
         }
     }
@@ -202,11 +202,11 @@ public class DecompressingHttpClient implements HttpClient {
     public <T> T execute(final HttpHost target, final HttpRequest request,
             final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException, ClientProtocolException {
-        HttpResponse response = execute(target, request, context);
+        final HttpResponse response = execute(target, request, context);
         try {
             return responseHandler.handleResponse(response);
         } finally {
-            HttpEntity entity = response.getEntity();
+            final HttpEntity entity = response.getEntity();
             if (entity != null) {
                 EntityUtils.consume(entity);
             }

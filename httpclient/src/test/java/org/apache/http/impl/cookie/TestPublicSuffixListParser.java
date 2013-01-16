@@ -42,15 +42,15 @@ public class TestPublicSuffixListParser {
 
     @Before
     public void setUp() throws Exception {
-        Reader r = new InputStreamReader(getClass().getResourceAsStream(LIST_FILE), "UTF-8");
+        final Reader r = new InputStreamReader(getClass().getResourceAsStream(LIST_FILE), "UTF-8");
         filter = new PublicSuffixFilter(new RFC2109DomainHandler());
-        PublicSuffixListParser parser = new PublicSuffixListParser(filter);
+        final PublicSuffixListParser parser = new PublicSuffixListParser(filter);
         parser.parse(r);
     }
 
     @Test
     public void testParse() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
 
         cookie.setDomain(".jp");
         Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.jp", 80, "/stuff", false)));
@@ -68,7 +68,7 @@ public class TestPublicSuffixListParser {
 
     @Test
     public void testUnicode() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
 
         cookie.setDomain(".h\u00E5.no"); // \u00E5 is <aring>
         Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.h\u00E5.no", 80, "/stuff", false)));
@@ -85,7 +85,7 @@ public class TestPublicSuffixListParser {
 
     @Test
     public void testWhitespace() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
         cookie.setDomain(".xx");
         Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.xx", 80, "/stuff", false)));
 

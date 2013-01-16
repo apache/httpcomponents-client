@@ -54,9 +54,9 @@ class CacheableRequestPolicy {
      * @return boolean Is it possible to serve this request from cache
      */
     public boolean isServableFromCache(final HttpRequest request) {
-        String method = request.getRequestLine().getMethod();
+        final String method = request.getRequestLine().getMethod();
 
-        ProtocolVersion pv = request.getRequestLine().getProtocolVersion();
+        final ProtocolVersion pv = request.getRequestLine().getProtocolVersion();
         if (HttpVersion.HTTP_1_1.compareToVersion(pv) != 0) {
             log.trace("non-HTTP/1.1 request was not serveable from cache");
             return false;
@@ -72,9 +72,9 @@ class CacheableRequestPolicy {
             return false;
         }
 
-        Header[] cacheControlHeaders = request.getHeaders(HeaderConstants.CACHE_CONTROL);
-        for (Header cacheControl : cacheControlHeaders) {
-            for (HeaderElement cacheControlElement : cacheControl.getElements()) {
+        final Header[] cacheControlHeaders = request.getHeaders(HeaderConstants.CACHE_CONTROL);
+        for (final Header cacheControl : cacheControlHeaders) {
+            for (final HeaderElement cacheControlElement : cacheControl.getElements()) {
                 if (HeaderConstants.CACHE_CONTROL_NO_STORE.equalsIgnoreCase(cacheControlElement
                         .getName())) {
                     log.trace("Request with no-store was not serveable from cache");

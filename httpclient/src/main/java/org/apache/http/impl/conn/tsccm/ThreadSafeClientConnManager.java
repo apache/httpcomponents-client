@@ -237,7 +237,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
                     log.debug("Get connection: " + route + ", timeout = " + timeout);
                 }
 
-                BasicPoolEntry entry = poolRequest.getPoolEntry(timeout, tunit);
+                final BasicPoolEntry entry = poolRequest.getPoolEntry(timeout, tunit);
                 return new BasicPooledConnAdapter(ThreadSafeClientConnManager.this, entry);
             }
 
@@ -248,11 +248,11 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     public void releaseConnection(final ManagedClientConnection conn, final long validDuration, final TimeUnit timeUnit) {
         Args.check(conn instanceof BasicPooledConnAdapter, "Connection class mismatch, " +
                 "connection not obtained from this manager");
-        BasicPooledConnAdapter hca = (BasicPooledConnAdapter) conn;
+        final BasicPooledConnAdapter hca = (BasicPooledConnAdapter) conn;
         Asserts.check(hca.getPoolEntry() == null, "Connection not obtained from this manager");
         Asserts.check(hca.getManager() == this, "Connection not obtained from this manager");
         synchronized (hca) {
-            BasicPoolEntry entry = (BasicPoolEntry) hca.getPoolEntry();
+            final BasicPoolEntry entry = (BasicPoolEntry) hca.getPoolEntry();
             if (entry == null) {
                 return;
             }
@@ -269,13 +269,13 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
                     // Shutdown of the adapter also clears the tracked route.
                     hca.shutdown();
                 }
-            } catch (IOException iox) {
+            } catch (final IOException iox) {
                 if (log.isDebugEnabled()) {
                     log.debug("Exception shutting down released connection.",
                               iox);
                 }
             } finally {
-                boolean reusable = hca.isMarkedReusable();
+                final boolean reusable = hca.isMarkedReusable();
                 if (log.isDebugEnabled()) {
                     if (reusable) {
                         log.debug("Released connection is reusable.");

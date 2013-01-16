@@ -67,7 +67,7 @@ public class BasicAuthCache implements AuthCache {
 
     protected HttpHost getKey(final HttpHost host) {
         if (host.getPort() <= 0) {
-            int port = schemePortResolver.resolve(host);
+            final int port = schemePortResolver.resolve(host);
             return new HttpHost(host.getHostName(), port, host.getSchemeName());
         } else {
             return host;

@@ -147,7 +147,7 @@ public class DigestScheme extends RFC2617Scheme {
      *   <tt>false</tt> otherwise.
      */
     public boolean isComplete() {
-        String s = getParameter("stale");
+        final String s = getParameter("stale");
         if ("true".equalsIgnoreCase(s)) {
             return false;
         } else {
@@ -217,7 +217,7 @@ public class DigestScheme extends RFC2617Scheme {
         // Add method name and request-URI to the parameter map
         getParameters().put("methodname", request.getRequestLine().getMethod());
         getParameters().put("uri", request.getRequestLine().getUri());
-        String charset = getParameter("charset");
+        final String charset = getParameter("charset");
         if (charset == null) {
             getParameters().put("charset", getCredentialsCharset(request));
         }
@@ -228,7 +228,7 @@ public class DigestScheme extends RFC2617Scheme {
             final String digAlg) throws UnsupportedDigestAlgorithmException {
         try {
             return MessageDigest.getInstance(digAlg);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new UnsupportedDigestAlgorithmException(
               "Unsupported algorithm in HTTP Digest authentication: "
                + digAlg);
@@ -245,24 +245,24 @@ public class DigestScheme extends RFC2617Scheme {
     private Header createDigestHeader(
             final Credentials credentials,
             final HttpRequest request) throws AuthenticationException {
-        String uri = getParameter("uri");
-        String realm = getParameter("realm");
-        String nonce = getParameter("nonce");
-        String opaque = getParameter("opaque");
-        String method = getParameter("methodname");
+        final String uri = getParameter("uri");
+        final String realm = getParameter("realm");
+        final String nonce = getParameter("nonce");
+        final String opaque = getParameter("opaque");
+        final String method = getParameter("methodname");
         String algorithm = getParameter("algorithm");
         // If an algorithm is not specified, default to MD5.
         if (algorithm == null) {
             algorithm = "MD5";
         }
 
-        Set<String> qopset = new HashSet<String>(8);
+        final Set<String> qopset = new HashSet<String>(8);
         int qop = QOP_UNKNOWN;
-        String qoplist = getParameter("qop");
+        final String qoplist = getParameter("qop");
         if (qoplist != null) {
-            StringTokenizer tok = new StringTokenizer(qoplist, ",");
+            final StringTokenizer tok = new StringTokenizer(qoplist, ",");
             while (tok.hasMoreTokens()) {
-                String variant = tok.nextToken().trim();
+                final String variant = tok.nextToken().trim();
                 qopset.add(variant.toLowerCase(Locale.US));
             }
             if (request instanceof HttpEntityEnclosingRequest && qopset.contains("auth-int")) {
@@ -291,12 +291,12 @@ public class DigestScheme extends RFC2617Scheme {
         MessageDigest digester;
         try {
             digester = createMessageDigest(digAlg);
-        } catch (UnsupportedDigestAlgorithmException ex) {
+        } catch (final UnsupportedDigestAlgorithmException ex) {
             throw new AuthenticationException("Unsuppported digest algorithm: " + digAlg);
         }
 
-        String uname = credentials.getUserPrincipal().getName();
-        String pwd = credentials.getPassword();
+        final String uname = credentials.getUserPrincipal().getName();
+        final String pwd = credentials.getPassword();
 
         if (nonce.equals(this.lastNonce)) {
             nounceCount++;
@@ -305,11 +305,11 @@ public class DigestScheme extends RFC2617Scheme {
             cnonce = null;
             lastNonce = nonce;
         }
-        StringBuilder sb = new StringBuilder(256);
-        Formatter formatter = new Formatter(sb, Locale.US);
+        final StringBuilder sb = new StringBuilder(256);
+        final Formatter formatter = new Formatter(sb, Locale.US);
         formatter.format("%08x", nounceCount);
         formatter.close();
-        String nc = sb.toString();
+        final String nc = sb.toString();
 
         if (cnonce == null) {
             cnonce = createCnonce();
@@ -326,7 +326,7 @@ public class DigestScheme extends RFC2617Scheme {
             // calculated one per session
             sb.setLength(0);
             sb.append(uname).append(':').append(realm).append(':').append(pwd);
-            String checksum = encode(digester.digest(EncodingUtils.getBytes(sb.toString(), charset)));
+            final String checksum = encode(digester.digest(EncodingUtils.getBytes(sb.toString(), charset)));
             sb.setLength(0);
             sb.append(checksum).append(':').append(nonce).append(':').append(cnonce);
             a1 = sb.toString();
@@ -337,7 +337,7 @@ public class DigestScheme extends RFC2617Scheme {
             a1 = sb.toString();
         }
 
-        String hasha1 = encode(digester.digest(EncodingUtils.getBytes(a1, charset)));
+        final String hasha1 = encode(digester.digest(EncodingUtils.getBytes(a1, charset)));
 
         if (qop == QOP_AUTH) {
             // Method ":" digest-uri-value
@@ -358,13 +358,13 @@ public class DigestScheme extends RFC2617Scheme {
                             "a non-repeatable entity");
                 }
             } else {
-                HttpEntityDigester entityDigester = new HttpEntityDigester(digester);
+                final HttpEntityDigester entityDigester = new HttpEntityDigester(digester);
                 try {
                     if (entity != null) {
                         entity.writeTo(entityDigester);
                     }
                     entityDigester.close();
-                } catch (IOException ex) {
+                } catch (final IOException ex) {
                     throw new AuthenticationException("I/O error reading entity content", ex);
                 }
                 a2 = method + ':' + uri + ':' + encode(entityDigester.getDigest());
@@ -373,7 +373,7 @@ public class DigestScheme extends RFC2617Scheme {
             a2 = method + ':' + uri;
         }
 
-        String hasha2 = encode(digester.digest(EncodingUtils.getBytes(a2, charset)));
+        final String hasha2 = encode(digester.digest(EncodingUtils.getBytes(a2, charset)));
 
         // 3.2.2.1
 
@@ -390,9 +390,9 @@ public class DigestScheme extends RFC2617Scheme {
             digestValue = sb.toString();
         }
 
-        String digest = encode(digester.digest(EncodingUtils.getAsciiBytes(digestValue)));
+        final String digest = encode(digester.digest(EncodingUtils.getAsciiBytes(digestValue)));
 
-        CharArrayBuffer buffer = new CharArrayBuffer(128);
+        final CharArrayBuffer buffer = new CharArrayBuffer(128);
         if (isProxy()) {
             buffer.append(AUTH.PROXY_AUTH_RESP);
         } else {
@@ -400,7 +400,7 @@ public class DigestScheme extends RFC2617Scheme {
         }
         buffer.append(": Digest ");
 
-        List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>(20);
+        final List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>(20);
         params.add(new BasicNameValuePair("username", uname));
         params.add(new BasicNameValuePair("realm", realm));
         params.add(new BasicNameValuePair("nonce", nonce));
@@ -419,11 +419,11 @@ public class DigestScheme extends RFC2617Scheme {
         }
 
         for (int i = 0; i < params.size(); i++) {
-            BasicNameValuePair param = params.get(i);
+            final BasicNameValuePair param = params.get(i);
             if (i > 0) {
                 buffer.append(", ");
             }
-            boolean noQuotes = "nc".equals(param.getName()) || "qop".equals(param.getName());
+            final boolean noQuotes = "nc".equals(param.getName()) || "qop".equals(param.getName());
             BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(buffer, param, !noQuotes);
         }
         return new BufferedHeader(buffer);
@@ -449,11 +449,11 @@ public class DigestScheme extends RFC2617Scheme {
      * @return encoded MD5, or <CODE>null</CODE> if encoding failed
      */
     static String encode(final byte[] binaryData) {
-        int n = binaryData.length;
-        char[] buffer = new char[n * 2];
+        final int n = binaryData.length;
+        final char[] buffer = new char[n * 2];
         for (int i = 0; i < n; i++) {
-            int low = (binaryData[i] & 0x0f);
-            int high = ((binaryData[i] & 0xf0) >> 4);
+            final int low = (binaryData[i] & 0x0f);
+            final int high = ((binaryData[i] & 0xf0) >> 4);
             buffer[i * 2] = HEXADECIMAL[high];
             buffer[(i * 2) + 1] = HEXADECIMAL[low];
         }
@@ -468,8 +468,8 @@ public class DigestScheme extends RFC2617Scheme {
      * @return The cnonce value as String.
      */
     public static String createCnonce() {
-        SecureRandom rnd = new SecureRandom();
-        byte[] tmp = new byte[8];
+        final SecureRandom rnd = new SecureRandom();
+        final byte[] tmp = new byte[8];
         rnd.nextBytes(tmp);
         return encode(tmp);
     }

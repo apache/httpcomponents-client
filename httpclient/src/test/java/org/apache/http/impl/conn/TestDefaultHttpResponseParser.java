@@ -46,7 +46,7 @@ public class TestDefaultHttpResponseParser {
 
     @Test
     public void testResponseParsingWithSomeGarbage() throws Exception {
-        String s =
+        final String s =
             "garbage\r\n" +
             "garbage\r\n" +
             "more garbage\r\n" +
@@ -55,15 +55,15 @@ public class TestDefaultHttpResponseParser {
             "header2: value2\r\n" +
             "\r\n";
 
-        SessionInputBuffer inbuffer = new SessionInputBufferMock(s, Consts.ASCII);
-        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer);
+        final SessionInputBuffer inbuffer = new SessionInputBufferMock(s, Consts.ASCII);
+        final HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer);
 
-        HttpResponse response = parser.parse();
+        final HttpResponse response = parser.parse();
         Assert.assertNotNull(response);
         Assert.assertEquals(HttpVersion.HTTP_1_1, response.getProtocolVersion());
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());
 
-        Header[] headers = response.getAllHeaders();
+        final Header[] headers = response.getAllHeaders();
         Assert.assertNotNull(headers);
         Assert.assertEquals(2, headers.length);
         Assert.assertEquals("header1", headers[0].getName());
@@ -72,7 +72,7 @@ public class TestDefaultHttpResponseParser {
 
     @Test(expected=ProtocolException.class)
     public void testResponseParsingWithTooMuchGarbage() throws Exception {
-        String s =
+        final String s =
             "garbage\r\n" +
             "garbage\r\n" +
             "more garbage\r\n" +
@@ -81,8 +81,8 @@ public class TestDefaultHttpResponseParser {
             "header2: value2\r\n" +
             "\r\n";
 
-        SessionInputBuffer inbuffer = new SessionInputBufferMock(s, Consts.ASCII);
-        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer) {
+        final SessionInputBuffer inbuffer = new SessionInputBufferMock(s, Consts.ASCII);
+        final HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer) {
 
             @Override
             protected boolean reject(final CharArrayBuffer line, final int count) {
@@ -95,20 +95,20 @@ public class TestDefaultHttpResponseParser {
 
     @Test(expected=NoHttpResponseException.class)
     public void testResponseParsingNoResponse() throws Exception {
-        SessionInputBuffer inbuffer = new SessionInputBufferMock("", Consts.ASCII);
-        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer);
+        final SessionInputBuffer inbuffer = new SessionInputBufferMock("", Consts.ASCII);
+        final HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer);
         parser.parse();
     }
 
     @Test(expected=ProtocolException.class)
     public void testResponseParsingOnlyGarbage() throws Exception {
-        String s =
+        final String s =
             "garbage\r\n" +
             "garbage\r\n" +
             "more garbage\r\n" +
             "a lot more garbage\r\n";
-        SessionInputBuffer inbuffer = new SessionInputBufferMock(s, Consts.ASCII);
-        HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer);
+        final SessionInputBuffer inbuffer = new SessionInputBufferMock(s, Consts.ASCII);
+        final HttpMessageParser<HttpResponse> parser = new DefaultHttpResponseParser(inbuffer);
         parser.parse();
     }
 

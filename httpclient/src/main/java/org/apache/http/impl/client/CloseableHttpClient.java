@@ -81,7 +81,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
         // Otherwise, the null target is detected in the director.
         HttpHost target = null;
 
-        URI requestURI = request.getURI();
+        final URI requestURI = request.getURI();
         if (requestURI.isAbsolute()) {
             target = URIUtils.extractHost(requestURI);
             if (target == null) {
@@ -112,7 +112,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     public <T> T execute(final HttpUriRequest request,
             final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException, ClientProtocolException {
-        HttpHost target = determineTarget(request);
+        final HttpHost target = determineTarget(request);
         return execute(target, request, responseHandler, context);
     }
 
@@ -127,16 +127,16 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
             throws IOException, ClientProtocolException {
         Args.notNull(responseHandler, "Response handler");
 
-        HttpResponse response = execute(target, request, context);
+        final HttpResponse response = execute(target, request, context);
 
         T result;
         try {
             result = responseHandler.handleResponse(response);
-        } catch (Exception t) {
-            HttpEntity entity = response.getEntity();
+        } catch (final Exception t) {
+            final HttpEntity entity = response.getEntity();
             try {
                 EntityUtils.consume(entity);
-            } catch (Exception t2) {
+            } catch (final Exception t2) {
                 // Log this exception. The original exception is more
                 // important and will be thrown to the caller.
                 this.log.warn("Error consuming content after an exception.", t2);
@@ -152,7 +152,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
 
         // Handling the response was successful. Ensure that the content has
         // been fully consumed.
-        HttpEntity entity = response.getEntity();
+        final HttpEntity entity = response.getEntity();
         EntityUtils.consume(entity);
         return result;
     }

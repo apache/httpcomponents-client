@@ -113,13 +113,13 @@ class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatche
 
     public boolean streamClosed(final InputStream wrapped) throws IOException {
         try {
-            boolean open = connReleaseTrigger != null && !connReleaseTrigger.isReleased();
+            final boolean open = connReleaseTrigger != null && !connReleaseTrigger.isReleased();
             // this assumes that closing the stream will
             // consume the remainder of the response body:
             try {
                 wrapped.close();
                 releaseConnection();
-            } catch (SocketException ex) {
+            } catch (final SocketException ex) {
                 if (open) {
                     throw ex;
                 }

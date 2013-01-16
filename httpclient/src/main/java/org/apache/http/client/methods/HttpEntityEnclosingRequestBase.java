@@ -59,13 +59,13 @@ public abstract class HttpEntityEnclosingRequestBase
     }
 
     public boolean expectContinue() {
-        Header expect = getFirstHeader(HTTP.EXPECT_DIRECTIVE);
+        final Header expect = getFirstHeader(HTTP.EXPECT_DIRECTIVE);
         return expect != null && HTTP.EXPECT_CONTINUE.equalsIgnoreCase(expect.getValue());
     }
 
     @Override
     public Object clone() throws CloneNotSupportedException {
-        HttpEntityEnclosingRequestBase clone =
+        final HttpEntityEnclosingRequestBase clone =
             (HttpEntityEnclosingRequestBase) super.clone();
         if (this.entity != null) {
             clone.entity = CloneUtils.cloneObject(this.entity);

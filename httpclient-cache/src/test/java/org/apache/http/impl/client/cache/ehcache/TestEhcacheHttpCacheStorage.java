@@ -52,7 +52,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
     @Override
     public void setUp() {
         mockCache = EasyMock.createNiceMock(Ehcache.class);
-        CacheConfig config = CacheConfig.custom().setMaxUpdateRetries(1).build();
+        final CacheConfig config = CacheConfig.custom().setMaxUpdateRetries(1).build();
         mockSerializer = EasyMock.createNiceMock(HttpCacheEntrySerializer.class);
         impl = new EhcacheHttpCacheStorage(mockCache, config, mockSerializer);
     }
@@ -72,7 +72,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         final String key = "foo";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
 
-        Element e = new Element(key, new byte[]{});
+        final Element e = new Element(key, new byte[]{});
 
         mockSerializer.writeTo(EasyMock.same(value), EasyMock.isA(OutputStream.class));
         mockCache.put(e);
@@ -89,7 +89,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         EasyMock.expect(mockCache.get(key)).andReturn(null);
 
         replayMocks();
-        HttpCacheEntry resultingEntry = impl.getEntry(key);
+        final HttpCacheEntry resultingEntry = impl.getEntry(key);
         verifyMocks();
 
         assertNull(resultingEntry);
@@ -100,7 +100,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         final String key = "foo";
         final HttpCacheEntry cachedValue = HttpTestUtils.makeCacheEntry();
 
-        Element element = new Element(key, new byte[]{});
+        final Element element = new Element(key, new byte[]{});
 
         EasyMock.expect(mockCache.get(key))
                 .andReturn(element);
@@ -108,7 +108,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
                 .andReturn(cachedValue);
 
         replayMocks();
-        HttpCacheEntry resultingEntry = impl.getEntry(key);
+        final HttpCacheEntry resultingEntry = impl.getEntry(key);
         verifyMocks();
 
         assertSame(cachedValue, resultingEntry);
@@ -130,9 +130,9 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         final String key = "foo";
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
-        Element element = new Element(key, new byte[]{});
+        final Element element = new Element(key, new byte[]{});
 
-        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
+        final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
             public HttpCacheEntry update(final HttpCacheEntry old){
                 assertNull(old);
                 return updatedValue;
@@ -157,9 +157,9 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
-        Element existingElement = new Element(key, new byte[]{});
+        final Element existingElement = new Element(key, new byte[]{});
 
-        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
+        final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
             public HttpCacheEntry update(final HttpCacheEntry old){
                 assertEquals(existingValue, old);
                 return updatedValue;
@@ -185,9 +185,9 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
-        Element existingElement = new Element(key, new byte[]{});
+        final Element existingElement = new Element(key, new byte[]{});
 
-        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
+        final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
             public HttpCacheEntry update(final HttpCacheEntry old){
                 assertEquals(existingValue, old);
                 return updatedValue;
@@ -217,9 +217,9 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
-        Element existingElement = new Element(key, new byte[]{});
+        final Element existingElement = new Element(key, new byte[]{});
 
-        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
+        final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
             public HttpCacheEntry update(final HttpCacheEntry old){
                 assertEquals(existingValue, old);
                 return updatedValue;
@@ -239,7 +239,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         try{
             impl.updateEntry(key, callback);
             fail("Expected HttpCacheUpdateException");
-        } catch (HttpCacheUpdateException e) { }
+        } catch (final HttpCacheUpdateException e) { }
         verifyMocks();
     }
 }

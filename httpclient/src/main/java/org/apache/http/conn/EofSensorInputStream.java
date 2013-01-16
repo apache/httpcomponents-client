@@ -119,7 +119,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
             try {
                 l = wrappedStream.read();
                 checkEOF(l);
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 checkAbort();
                 throw ex;
             }
@@ -136,7 +136,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
             try {
                 l = wrappedStream.read(b,  off,  len);
                 checkEOF(l);
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 checkAbort();
                 throw ex;
             }
@@ -158,7 +158,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
             try {
                 a = wrappedStream.available();
                 // no checkEOF() here, available() can't trigger EOF
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 checkAbort();
                 throw ex;
             }

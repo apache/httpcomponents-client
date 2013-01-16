@@ -70,10 +70,10 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
             }
             break;
         case CHALLENGED:
-            Queue<AuthOption> authOptions = authState.getAuthOptions();
+            final Queue<AuthOption> authOptions = authState.getAuthOptions();
             if (authOptions != null) {
                 while (!authOptions.isEmpty()) {
-                    AuthOption authOption = authOptions.remove();
+                    final AuthOption authOption = authOptions.remove();
                     authScheme = authOption.getAuthScheme();
                     creds = authOption.getCredentials();
                     authState.update(authScheme, creds);
@@ -82,10 +82,10 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
                                 + authScheme.getSchemeName() + " scheme");
                     }
                     try {
-                        Header header = authenticate(authScheme, creds, request, context);
+                        final Header header = authenticate(authScheme, creds, request, context);
                         request.addHeader(header);
                         break;
-                    } catch (AuthenticationException ex) {
+                    } catch (final AuthenticationException ex) {
                         if (this.log.isWarnEnabled()) {
                             this.log.warn(authScheme + " authentication error: " + ex.getMessage());
                         }
@@ -98,9 +98,9 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
         }
         if (authScheme != null) {
             try {
-                Header header = authenticate(authScheme, creds, request, context);
+                final Header header = authenticate(authScheme, creds, request, context);
                 request.addHeader(header);
-            } catch (AuthenticationException ex) {
+            } catch (final AuthenticationException ex) {
                 if (this.log.isErrorEnabled()) {
                     this.log.error(authScheme + " authentication error: " + ex.getMessage());
                 }

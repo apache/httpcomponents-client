@@ -98,20 +98,20 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
          */
 
         /* We read a small buffer to sniff the content. */
-        byte[] peeked = new byte[6];
+        final byte[] peeked = new byte[6];
 
-        PushbackInputStream pushback = new PushbackInputStream(wrapped, peeked.length);
+        final PushbackInputStream pushback = new PushbackInputStream(wrapped, peeked.length);
 
-        int headerLength = pushback.read(peeked);
+        final int headerLength = pushback.read(peeked);
 
         if (headerLength == -1) {
             throw new IOException("Unable to read the response");
         }
 
         /* We try to read the first uncompressed byte. */
-        byte[] dummy = new byte[1];
+        final byte[] dummy = new byte[1];
 
-        Inflater inf = new Inflater();
+        final Inflater inf = new Inflater();
 
         try {
             int n;
@@ -143,7 +143,7 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
              */
             pushback.unread(peeked, 0, headerLength);
             return new InflaterInputStream(pushback);
-        } catch (DataFormatException e) {
+        } catch (final DataFormatException e) {
 
             /* Presume that it's an RFC1951 deflate stream rather than RFC1950 zlib stream and try
              * again. */

@@ -84,36 +84,36 @@ public class TestRequestAuthCache {
 
     @Test(expected=IllegalArgumentException.class)
     public void testRequestParameterCheck() throws Exception {
-        HttpContext context = new BasicHttpContext();
-        HttpRequestInterceptor interceptor = new RequestAuthCache();
+        final HttpContext context = new BasicHttpContext();
+        final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(null, context);
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testContextParameterCheck() throws Exception {
-        HttpRequest request = new BasicHttpRequest("GET", "/");
-        HttpRequestInterceptor interceptor = new RequestAuthCache();
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, null);
     }
 
     @Test
     public void testPreemptiveTargetAndProxyAuth() throws Exception {
-        HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.CREDS_PROVIDER, this.credProvider);
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ClientContext.ROUTE, new HttpRoute(this.target, null, this.proxy, false));
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyState);
 
-        AuthCache authCache = new BasicAuthCache();
+        final AuthCache authCache = new BasicAuthCache();
         authCache.put(this.target, this.authscheme1);
         authCache.put(this.proxy, this.authscheme2);
 
         context.setAttribute(ClientContext.AUTH_CACHE, authCache);
 
-        HttpRequestInterceptor interceptor = new RequestAuthCache();
+        final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
         Assert.assertSame(this.authscheme1, this.targetState.getAuthScheme());
         Assert.assertSame(this.creds1, this.targetState.getCredentials());
@@ -123,22 +123,22 @@ public class TestRequestAuthCache {
 
     @Test
     public void testCredentialsProviderNotSet() throws Exception {
-        HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.CREDS_PROVIDER, null);
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ClientContext.ROUTE, new HttpRoute(this.target, null, this.proxy, false));
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyState);
 
-        AuthCache authCache = new BasicAuthCache();
+        final AuthCache authCache = new BasicAuthCache();
         authCache.put(this.target, this.authscheme1);
         authCache.put(this.proxy, this.authscheme2);
 
         context.setAttribute(ClientContext.AUTH_CACHE, authCache);
 
-        HttpRequestInterceptor interceptor = new RequestAuthCache();
+        final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
         Assert.assertNull(this.targetState.getAuthScheme());
         Assert.assertNull(this.targetState.getCredentials());
@@ -148,9 +148,9 @@ public class TestRequestAuthCache {
 
     @Test
     public void testAuthCacheNotSet() throws Exception {
-        HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.CREDS_PROVIDER, this.credProvider);
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ClientContext.ROUTE, new HttpRoute(this.target, null, this.proxy, false));
@@ -158,7 +158,7 @@ public class TestRequestAuthCache {
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyState);
         context.setAttribute(ClientContext.AUTH_CACHE, null);
 
-        HttpRequestInterceptor interceptor = new RequestAuthCache();
+        final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
         Assert.assertNull(this.targetState.getAuthScheme());
         Assert.assertNull(this.targetState.getCredentials());
@@ -168,19 +168,19 @@ public class TestRequestAuthCache {
 
     @Test
     public void testAuthCacheEmpty() throws Exception {
-        HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.CREDS_PROVIDER, this.credProvider);
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ClientContext.ROUTE, new HttpRoute(this.target, null, this.proxy, false));
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyState);
 
-        AuthCache authCache = new BasicAuthCache();
+        final AuthCache authCache = new BasicAuthCache();
         context.setAttribute(ClientContext.AUTH_CACHE, authCache);
 
-        HttpRequestInterceptor interceptor = new RequestAuthCache();
+        final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
         Assert.assertNull(this.targetState.getAuthScheme());
         Assert.assertNull(this.targetState.getCredentials());
@@ -190,24 +190,24 @@ public class TestRequestAuthCache {
 
     @Test
     public void testNoMatchingCredentials() throws Exception {
-        HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         this.credProvider.clear();
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.CREDS_PROVIDER, this.credProvider);
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ClientContext.ROUTE, new HttpRoute(this.target, null, this.proxy, false));
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyState);
 
-        AuthCache authCache = new BasicAuthCache();
+        final AuthCache authCache = new BasicAuthCache();
         authCache.put(this.target, this.authscheme1);
         authCache.put(this.proxy, this.authscheme2);
 
         context.setAttribute(ClientContext.AUTH_CACHE, authCache);
 
-        HttpRequestInterceptor interceptor = new RequestAuthCache();
+        final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
         Assert.assertNull(this.targetState.getAuthScheme());
         Assert.assertNull(this.targetState.getCredentials());
@@ -217,16 +217,16 @@ public class TestRequestAuthCache {
 
     @Test
     public void testAuthSchemeAlreadySet() throws Exception {
-        HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ClientContext.CREDS_PROVIDER, this.credProvider);
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ClientContext.ROUTE, new HttpRoute(this.target, null, this.proxy, false));
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyState);
 
-        AuthCache authCache = new BasicAuthCache();
+        final AuthCache authCache = new BasicAuthCache();
         authCache.put(this.target, this.authscheme1);
         authCache.put(this.proxy, this.authscheme2);
 
@@ -237,7 +237,7 @@ public class TestRequestAuthCache {
         this.proxyState.setState(AuthProtocolState.CHALLENGED);
         this.proxyState.update(new BasicScheme(), new UsernamePasswordCredentials("user4", "secret4"));
 
-        HttpRequestInterceptor interceptor = new RequestAuthCache();
+        final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
         Assert.assertNotSame(this.authscheme1, this.targetState.getAuthScheme());
         Assert.assertNotSame(this.creds1, this.targetState.getCredentials());

@@ -105,7 +105,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             return false;
         }
 
-        HttpRequest request = (HttpRequest)
+        final HttpRequest request = (HttpRequest)
             context.getAttribute(ExecutionContext.HTTP_REQUEST);
 
         if(requestIsAborted(request)){
@@ -117,9 +117,9 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             return true;
         }
 
-        Boolean b = (Boolean)
+        final Boolean b = (Boolean)
             context.getAttribute(ExecutionContext.HTTP_REQ_SENT);
-        boolean sent = (b != null && b.booleanValue());
+        final boolean sent = (b != null && b.booleanValue());
 
         if (!sent || this.requestSentRetryEnabled) {
             // Retry if the request has not been sent fully or

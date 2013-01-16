@@ -57,7 +57,7 @@ class CPoolEntry extends PoolEntry<HttpRoute, SocketClientConnection> {
 
     @Override
     public boolean isExpired(final long now) {
-        boolean expired = super.isExpired(now);
+        final boolean expired = super.isExpired(now);
         if (expired && this.log.isDebugEnabled()) {
             this.log.debug("Connection " + this + " expired @ " + new Date(getExpiry()));
         }
@@ -66,16 +66,16 @@ class CPoolEntry extends PoolEntry<HttpRoute, SocketClientConnection> {
 
     @Override
     public boolean isClosed() {
-        HttpClientConnection conn = getConnection();
+        final HttpClientConnection conn = getConnection();
         return !conn.isOpen();
     }
 
     @Override
     public void close() {
-        HttpClientConnection conn = getConnection();
+        final HttpClientConnection conn = getConnection();
         try {
             conn.close();
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             this.log.debug("I/O error closing connection", ex);
         }
     }

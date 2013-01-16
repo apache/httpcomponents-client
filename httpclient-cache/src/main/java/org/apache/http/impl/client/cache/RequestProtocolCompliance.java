@@ -66,7 +66,7 @@ class RequestProtocolCompliance {
      * @return list of {@link RequestProtocolError}
      */
     public List<RequestProtocolError> requestIsFatallyNonCompliant(final HttpRequest request) {
-        List<RequestProtocolError> theErrors = new ArrayList<RequestProtocolError>();
+        final List<RequestProtocolError> theErrors = new ArrayList<RequestProtocolError>();
 
         RequestProtocolError anError = requestHasWeakETagAndRange(request);
         if (anError != null) {
@@ -113,10 +113,10 @@ class RequestProtocolCompliance {
     }
 
     private void stripOtherFreshnessDirectivesWithNoCache(final HttpRequest request) {
-        List<HeaderElement> outElts = new ArrayList<HeaderElement>();
+        final List<HeaderElement> outElts = new ArrayList<HeaderElement>();
         boolean shouldStrip = false;
-        for(Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for(HeaderElement elt : h.getElements()) {
+        for(final Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
+            for(final HeaderElement elt : h.getElements()) {
                 if (!disallowedWithNoCache.contains(elt.getName())) {
                     outElts.add(elt);
                 }
@@ -133,9 +133,9 @@ class RequestProtocolCompliance {
     }
 
     private String buildHeaderFromElements(final List<HeaderElement> outElts) {
-        StringBuilder newHdr = new StringBuilder("");
+        final StringBuilder newHdr = new StringBuilder("");
         boolean first = true;
-        for(HeaderElement elt : outElts) {
+        for(final HeaderElement elt : outElts) {
             if (!first) {
                 newHdr.append(",");
             } else {
@@ -156,13 +156,13 @@ class RequestProtocolCompliance {
             return;
         }
 
-        Header maxForwards = request.getFirstHeader(HeaderConstants.MAX_FORWARDS);
+        final Header maxForwards = request.getFirstHeader(HeaderConstants.MAX_FORWARDS);
         if (maxForwards == null) {
             return;
         }
 
         request.removeHeaders(HeaderConstants.MAX_FORWARDS);
-        int currentMaxForwards = Integer.parseInt(maxForwards.getValue());
+        final int currentMaxForwards = Integer.parseInt(maxForwards.getValue());
 
         request.setHeader(HeaderConstants.MAX_FORWARDS, Integer.toString(currentMaxForwards - 1));
     }
@@ -203,11 +203,11 @@ class RequestProtocolCompliance {
     private void remove100ContinueHeaderIfExists(final HttpRequest request) {
         boolean hasHeader = false;
 
-        Header[] expectHeaders = request.getHeaders(HTTP.EXPECT_DIRECTIVE);
+        final Header[] expectHeaders = request.getHeaders(HTTP.EXPECT_DIRECTIVE);
         List<HeaderElement> expectElementsThatAreNot100Continue = new ArrayList<HeaderElement>();
 
-        for (Header h : expectHeaders) {
-            for (HeaderElement elt : h.getElements()) {
+        for (final Header h : expectHeaders) {
+            for (final HeaderElement elt : h.getElements()) {
                 if (!(HTTP.EXPECT_CONTINUE.equalsIgnoreCase(elt.getName()))) {
                     expectElementsThatAreNot100Continue.add(elt);
                 } else {
@@ -217,8 +217,8 @@ class RequestProtocolCompliance {
 
             if (hasHeader) {
                 request.removeHeader(h);
-                for (HeaderElement elt : expectElementsThatAreNot100Continue) {
-                    BasicHeader newHeader = new BasicHeader(HTTP.EXPECT_DIRECTIVE, elt.getName());
+                for (final HeaderElement elt : expectElementsThatAreNot100Continue) {
+                    final BasicHeader newHeader = new BasicHeader(HTTP.EXPECT_DIRECTIVE, elt.getName());
                     request.addHeader(newHeader);
                 }
                 return;
@@ -231,8 +231,8 @@ class RequestProtocolCompliance {
     private void add100ContinueHeaderIfMissing(final HttpRequest request) {
         boolean hasHeader = false;
 
-        for (Header h : request.getHeaders(HTTP.EXPECT_DIRECTIVE)) {
-            for (HeaderElement elt : h.getElements()) {
+        for (final Header h : request.getHeaders(HTTP.EXPECT_DIRECTIVE)) {
+            for (final HeaderElement elt : h.getElements()) {
                 if (HTTP.EXPECT_CONTINUE.equalsIgnoreCase(elt.getName())) {
                     hasHeader = true;
                 }
@@ -245,7 +245,7 @@ class RequestProtocolCompliance {
     }
 
     protected boolean requestMinorVersionIsTooHighMajorVersionsMatch(final HttpRequest request) {
-        ProtocolVersion requestProtocol = request.getProtocolVersion();
+        final ProtocolVersion requestProtocol = request.getProtocolVersion();
         if (requestProtocol.getMajor() != HttpVersion.HTTP_1_1.getMajor()) {
             return false;
         }
@@ -297,22 +297,22 @@ class RequestProtocolCompliance {
 
     private RequestProtocolError requestHasWeakETagAndRange(final HttpRequest request) {
         // TODO: Should these be looking at all the headers marked as Range?
-        String method = request.getRequestLine().getMethod();
+        final String method = request.getRequestLine().getMethod();
         if (!(HeaderConstants.GET_METHOD.equals(method))) {
             return null;
         }
 
-        Header range = request.getFirstHeader(HeaderConstants.RANGE);
+        final Header range = request.getFirstHeader(HeaderConstants.RANGE);
         if (range == null) {
             return null;
         }
 
-        Header ifRange = request.getFirstHeader(HeaderConstants.IF_RANGE);
+        final Header ifRange = request.getFirstHeader(HeaderConstants.IF_RANGE);
         if (ifRange == null) {
             return null;
         }
 
-        String val = ifRange.getValue();
+        final String val = ifRange.getValue();
         if (val.startsWith("W/")) {
             return RequestProtocolError.WEAK_ETAG_AND_RANGE_ERROR;
         }
@@ -323,25 +323,25 @@ class RequestProtocolCompliance {
     private RequestProtocolError requestHasWeekETagForPUTOrDELETEIfMatch(final HttpRequest request) {
         // TODO: Should these be looking at all the headers marked as If-Match/If-None-Match?
 
-        String method = request.getRequestLine().getMethod();
+        final String method = request.getRequestLine().getMethod();
         if (!(HeaderConstants.PUT_METHOD.equals(method) || HeaderConstants.DELETE_METHOD
                 .equals(method))) {
             return null;
         }
 
-        Header ifMatch = request.getFirstHeader(HeaderConstants.IF_MATCH);
+        final Header ifMatch = request.getFirstHeader(HeaderConstants.IF_MATCH);
         if (ifMatch != null) {
-            String val = ifMatch.getValue();
+            final String val = ifMatch.getValue();
             if (val.startsWith("W/")) {
                 return RequestProtocolError.WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR;
             }
         } else {
-            Header ifNoneMatch = request.getFirstHeader(HeaderConstants.IF_NONE_MATCH);
+            final Header ifNoneMatch = request.getFirstHeader(HeaderConstants.IF_NONE_MATCH);
             if (ifNoneMatch == null) {
                 return null;
             }
 
-            String val2 = ifNoneMatch.getValue();
+            final String val2 = ifNoneMatch.getValue();
             if (val2.startsWith("W/")) {
                 return RequestProtocolError.WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR;
             }
@@ -351,8 +351,8 @@ class RequestProtocolCompliance {
     }
 
     private RequestProtocolError requestContainsNoCacheDirectiveWithFieldName(final HttpRequest request) {
-        for(Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for(HeaderElement elt : h.getElements()) {
+        for(final Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
+            for(final HeaderElement elt : h.getElements()) {
                 if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equalsIgnoreCase(elt.getName())
                     && elt.getValue() != null) {
                     return RequestProtocolError.NO_CACHE_DIRECTIVE_WITH_FIELD_NAME;

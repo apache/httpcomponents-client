@@ -56,8 +56,8 @@ class SimpleHttpCacheStorage implements HttpCacheStorage {
 
     public void updateEntry(final String key, final HttpCacheUpdateCallback callback)
             throws IOException {
-        HttpCacheEntry v1 = map.get(key);
-        HttpCacheEntry v2 = callback.update(v1);
+        final HttpCacheEntry v1 = map.get(key);
+        final HttpCacheEntry v2 = callback.update(v1);
         map.put(key,v2);
     }
 

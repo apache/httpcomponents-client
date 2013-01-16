@@ -74,25 +74,25 @@ public class TestRouteDirector {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2
             });
 
-        } catch (Exception x) {
+        } catch (final Exception x) {
             throw new ExceptionInInitializerError(x);
         }
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testIllegal() {
-        HttpRouteDirector rowdy = new BasicRouteDirector();
-        HttpRoute route = new HttpRoute(TARGET1);
+        final HttpRouteDirector rowdy = new BasicRouteDirector();
+        final HttpRoute route = new HttpRoute(TARGET1);
         rowdy.nextStep(null, route);
     }
 
     @Test
     public void testDirect() {
 
-        HttpRouteDirector rowdy = new BasicRouteDirector();
-        HttpRoute route1   = new HttpRoute(TARGET1);
-        HttpRoute route2   = new HttpRoute(TARGET2);
-        HttpRoute route1p1 = new HttpRoute(TARGET1, null, PROXY1, false);
+        final HttpRouteDirector rowdy = new BasicRouteDirector();
+        final HttpRoute route1   = new HttpRoute(TARGET1);
+        final HttpRoute route2   = new HttpRoute(TARGET2);
+        final HttpRoute route1p1 = new HttpRoute(TARGET1, null, PROXY1, false);
 
         int step = rowdy.nextStep(route1, null);
         Assert.assertEquals("wrong step to route1",
@@ -122,12 +122,12 @@ public class TestRouteDirector {
     @Test
     public void testProxy() {
 
-        HttpRouteDirector rowdy = new BasicRouteDirector();
-        HttpRoute route1p1 = new HttpRoute(TARGET1, null, PROXY1, false);
-        HttpRoute route1p2 = new HttpRoute(TARGET1, null, PROXY2, false);
-        HttpRoute route2p1 = new HttpRoute(TARGET2, null, PROXY1, false);
-        HttpRoute route0   = new HttpRoute(PROXY1);
-        HttpRoute route1   = new HttpRoute(TARGET1);
+        final HttpRouteDirector rowdy = new BasicRouteDirector();
+        final HttpRoute route1p1 = new HttpRoute(TARGET1, null, PROXY1, false);
+        final HttpRoute route1p2 = new HttpRoute(TARGET1, null, PROXY2, false);
+        final HttpRoute route2p1 = new HttpRoute(TARGET2, null, PROXY1, false);
+        final HttpRoute route0   = new HttpRoute(PROXY1);
+        final HttpRoute route1   = new HttpRoute(TARGET1);
 
         int step = rowdy.nextStep(route1p1, null);
         Assert.assertEquals("wrong step to route1p1",
@@ -168,18 +168,18 @@ public class TestRouteDirector {
 
     @Test
     public void testProxyChain() {
-        HttpHost[] chainA = { PROXY1 };
-        HttpHost[] chainB = { PROXY1, PROXY2 };
-        HttpHost[] chainC = { PROXY2, PROXY1 };
+        final HttpHost[] chainA = { PROXY1 };
+        final HttpHost[] chainB = { PROXY1, PROXY2 };
+        final HttpHost[] chainC = { PROXY2, PROXY1 };
 
-        HttpRouteDirector rowdy = new BasicRouteDirector();
-        HttpRoute route1cA  = new HttpRoute(TARGET1, null, chainA, false,
+        final HttpRouteDirector rowdy = new BasicRouteDirector();
+        final HttpRoute route1cA  = new HttpRoute(TARGET1, null, chainA, false,
                                             TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route1cB  = new HttpRoute(TARGET1, null, chainB, false,
+        final HttpRoute route1cB  = new HttpRoute(TARGET1, null, chainB, false,
                                             TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route1cC  = new HttpRoute(TARGET1, null, chainC, false,
+        final HttpRoute route1cC  = new HttpRoute(TARGET1, null, chainC, false,
                                             TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route1cD  = new HttpRoute(TARGET1, null, chainC, false,
+        final HttpRoute route1cD  = new HttpRoute(TARGET1, null, chainC, false,
                                             TunnelType.PLAIN, LayerType.PLAIN);
 
         int step = rowdy.nextStep(route1cA, null);
@@ -224,11 +224,11 @@ public class TestRouteDirector {
     @Test
     public void testLocalDirect() {
 
-        HttpRouteDirector rowdy = new BasicRouteDirector();
-        HttpRoute route1l41 = new HttpRoute(TARGET1, LOCAL41, false);
-        HttpRoute route1l42 = new HttpRoute(TARGET1, LOCAL42, false);
-        HttpRoute route1l61 = new HttpRoute(TARGET1, LOCAL61, false);
-        HttpRoute route1l00 = new HttpRoute(TARGET1, null, false);
+        final HttpRouteDirector rowdy = new BasicRouteDirector();
+        final HttpRoute route1l41 = new HttpRoute(TARGET1, LOCAL41, false);
+        final HttpRoute route1l42 = new HttpRoute(TARGET1, LOCAL42, false);
+        final HttpRoute route1l61 = new HttpRoute(TARGET1, LOCAL61, false);
+        final HttpRoute route1l00 = new HttpRoute(TARGET1, null, false);
 
         int step = rowdy.nextStep(route1l41, null);
         Assert.assertEquals("wrong step to route1l41",
@@ -292,11 +292,11 @@ public class TestRouteDirector {
     @Test
     public void testDirectSecure() {
 
-        HttpRouteDirector rowdy = new BasicRouteDirector();
-        HttpRoute route1u   = new HttpRoute(TARGET1, null, false);
-        HttpRoute route1s   = new HttpRoute(TARGET1, null, true);
-        HttpRoute route1p1u = new HttpRoute(TARGET1, null, PROXY1, false);
-        HttpRoute route1p1s = new HttpRoute(TARGET1, null, PROXY1, true);
+        final HttpRouteDirector rowdy = new BasicRouteDirector();
+        final HttpRoute route1u   = new HttpRoute(TARGET1, null, false);
+        final HttpRoute route1s   = new HttpRoute(TARGET1, null, true);
+        final HttpRoute route1p1u = new HttpRoute(TARGET1, null, PROXY1, false);
+        final HttpRoute route1p1s = new HttpRoute(TARGET1, null, PROXY1, true);
 
         int step = rowdy.nextStep(route1u, null);
         Assert.assertEquals("wrong step to route1u",
@@ -330,23 +330,23 @@ public class TestRouteDirector {
     @Test
     public void testProxyTLS() {
 
-        HttpRouteDirector rowdy = new BasicRouteDirector();
-        HttpRoute route1    = new HttpRoute
+        final HttpRouteDirector rowdy = new BasicRouteDirector();
+        final HttpRoute route1    = new HttpRoute
             (TARGET1, null, PROXY1, false,
              TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route1t   = new HttpRoute
+        final HttpRoute route1t   = new HttpRoute
             (TARGET1, null, PROXY1, false,
              TunnelType.TUNNELLED, LayerType.PLAIN);
-        HttpRoute route1tl  = new HttpRoute
+        final HttpRoute route1tl  = new HttpRoute
             (TARGET1, null, PROXY1, false,
              TunnelType.TUNNELLED, LayerType.LAYERED);
-        HttpRoute route1s   = new HttpRoute
+        final HttpRoute route1s   = new HttpRoute
             (TARGET1, null, PROXY1, true,
              TunnelType.PLAIN, LayerType.PLAIN);
-        HttpRoute route1ts  = new HttpRoute
+        final HttpRoute route1ts  = new HttpRoute
             (TARGET1, null, PROXY1, true,
              TunnelType.TUNNELLED, LayerType.PLAIN);
-        HttpRoute route1tls = new HttpRoute
+        final HttpRoute route1tls = new HttpRoute
             (TARGET1, null, PROXY1, true,
              TunnelType.TUNNELLED, LayerType.LAYERED);
 

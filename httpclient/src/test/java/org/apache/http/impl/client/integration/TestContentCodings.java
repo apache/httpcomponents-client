@@ -96,8 +96,8 @@ public class TestContentCodings extends IntegrationTestBase {
         });
 
         this.httpclient = HttpClients.custom().build();
-        HttpGet request = new HttpGet("/some-resource");
-        HttpResponse response = this.httpclient.execute(getServerHttp(), request);
+        final HttpGet request = new HttpGet("/some-resource");
+        final HttpResponse response = this.httpclient.execute(getServerHttp(), request);
         Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response.getStatusLine().getStatusCode());
         Assert.assertNull(response.getEntity());
     }
@@ -117,8 +117,8 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.httpclient = HttpClients.custom().build();
 
-        HttpGet request = new HttpGet("/some-resource");
-        HttpResponse response = this.httpclient.execute(getServerHttp(), request);
+        final HttpGet request = new HttpGet("/some-resource");
+        final HttpResponse response = this.httpclient.execute(getServerHttp(), request);
         Assert.assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
     }
@@ -138,8 +138,8 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.httpclient = HttpClients.custom().build();
 
-        HttpGet request = new HttpGet("/some-resource");
-        HttpResponse response = this.httpclient.execute(getServerHttp(), request);
+        final HttpGet request = new HttpGet("/some-resource");
+        final HttpResponse response = this.httpclient.execute(getServerHttp(), request);
         Assert.assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
     }
@@ -157,8 +157,8 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.httpclient = HttpClients.custom().build();
 
-        HttpGet request = new HttpGet("/some-resource");
-        HttpResponse response = this.httpclient.execute(getServerHttp(), request);
+        final HttpGet request = new HttpGet("/some-resource");
+        final HttpResponse response = this.httpclient.execute(getServerHttp(), request);
         Assert.assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
     }
@@ -179,25 +179,25 @@ public class TestContentCodings extends IntegrationTestBase {
          * Create a load of workers which will access the resource. Half will use the default
          * gzip behaviour; half will require identity entity.
          */
-        int clients = 100;
+        final int clients = 100;
 
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(clients);
 
         this.httpclient = HttpClients.custom().setConnectionManager(cm).build();
 
-        ExecutorService executor = Executors.newFixedThreadPool(clients);
+        final ExecutorService executor = Executors.newFixedThreadPool(clients);
 
-        CountDownLatch startGate = new CountDownLatch(1);
-        CountDownLatch endGate = new CountDownLatch(clients);
+        final CountDownLatch startGate = new CountDownLatch(1);
+        final CountDownLatch endGate = new CountDownLatch(clients);
 
-        List<WorkerTask> workers = new ArrayList<WorkerTask>();
+        final List<WorkerTask> workers = new ArrayList<WorkerTask>();
 
         for (int i = 0; i < clients; ++i) {
             workers.add(new WorkerTask(this.httpclient, i % 2 == 0, startGate, endGate));
         }
 
-        for (WorkerTask workerTask : workers) {
+        for (final WorkerTask workerTask : workers) {
 
             /* Set them all in motion, but they will block until we call startGate.countDown(). */
             executor.execute(workerTask);
@@ -208,7 +208,7 @@ public class TestContentCodings extends IntegrationTestBase {
         /* Wait for the workers to complete. */
         endGate.await();
 
-        for (WorkerTask workerTask : workers) {
+        for (final WorkerTask workerTask : workers) {
             if (workerTask.isFailed()) {
                 Assert.fail("A worker failed");
             }
@@ -230,9 +230,9 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.httpclient = HttpClients.custom().build();
 
-        HttpGet request = new HttpGet("/some-resource");
-        HttpResponse response = this.httpclient.execute(getServerHttp(), request);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final HttpGet request = new HttpGet("/some-resource");
+        final HttpResponse response = this.httpclient.execute(getServerHttp(), request);
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         response.getEntity().writeTo(out);
 
@@ -253,9 +253,9 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.httpclient = HttpClients.custom().build();
 
-        HttpGet request = new HttpGet("/some-resource");
-        HttpResponse response = this.httpclient.execute(getServerHttp(), request);
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final HttpGet request = new HttpGet("/some-resource");
+        final HttpResponse response = this.httpclient.execute(getServerHttp(), request);
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         response.getEntity().writeTo(out);
 
@@ -270,8 +270,8 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.httpclient = HttpClients.custom().build();
 
-        HttpGet request = new HttpGet("/some-resource");
-        String response = this.httpclient.execute(getServerHttp(), request, new BasicResponseHandler());
+        final HttpGet request = new HttpGet("/some-resource");
+        final String response = this.httpclient.execute(getServerHttp(), request, new BasicResponseHandler());
         Assert.assertEquals("The entity text is correctly transported", entityText, response);
     }
 
@@ -283,8 +283,8 @@ public class TestContentCodings extends IntegrationTestBase {
 
         this.httpclient = HttpClients.custom().build();
 
-        HttpGet request = new HttpGet("/some-resource");
-        String response = this.httpclient.execute(getServerHttp(), request, new BasicResponseHandler());
+        final HttpGet request = new HttpGet("/some-resource");
+        final String response = this.httpclient.execute(getServerHttp(), request, new BasicResponseHandler());
         Assert.assertEquals("The entity text is correctly transported", entityText, response);
     }
 
@@ -313,10 +313,10 @@ public class TestContentCodings extends IntegrationTestBase {
                     final HttpContext context) throws HttpException, IOException {
                 response.setEntity(new StringEntity(entityText));
                 response.addHeader("Content-Type", "text/plain");
-                Header[] acceptEncodings = request.getHeaders("Accept-Encoding");
+                final Header[] acceptEncodings = request.getHeaders("Accept-Encoding");
 
-                for (Header header : acceptEncodings) {
-                    for (HeaderElement element : header.getElements()) {
+                for (final Header header : acceptEncodings) {
+                    for (final HeaderElement element : header.getElements()) {
                         if ("deflate".equalsIgnoreCase(element.getName())) {
                             response.addHeader("Content-Encoding", "deflate");
 
@@ -324,13 +324,13 @@ public class TestContentCodings extends IntegrationTestBase {
                             // response.setEntity(new InputStreamEntity(new DeflaterInputStream(new
                             // ByteArrayInputStream(
                             // entityText.getBytes("utf-8"))), -1));
-                            byte[] uncompressed = entityText.getBytes("utf-8");
-                            Deflater compressor = new Deflater(Deflater.DEFAULT_COMPRESSION, rfc1951);
+                            final byte[] uncompressed = entityText.getBytes("utf-8");
+                            final Deflater compressor = new Deflater(Deflater.DEFAULT_COMPRESSION, rfc1951);
                             compressor.setInput(uncompressed);
                             compressor.finish();
-                            byte[] output = new byte[100];
-                            int compressedLength = compressor.deflate(output);
-                            byte[] compressed = new byte[compressedLength];
+                            final byte[] output = new byte[100];
+                            final int compressedLength = compressor.deflate(output);
+                            final byte[] compressed = new byte[compressedLength];
                             System.arraycopy(output, 0, compressed, 0, compressedLength);
                             response.setEntity(new InputStreamEntity(
                                     new ByteArrayInputStream(compressed), compressedLength));
@@ -362,10 +362,10 @@ public class TestContentCodings extends IntegrationTestBase {
                     final HttpContext context) throws HttpException, IOException {
                 response.setEntity(new StringEntity(entityText));
                 response.addHeader("Content-Type", "text/plain");
-                Header[] acceptEncodings = request.getHeaders("Accept-Encoding");
+                final Header[] acceptEncodings = request.getHeaders("Accept-Encoding");
 
-                for (Header header : acceptEncodings) {
-                    for (HeaderElement element : header.getElements()) {
+                for (final Header header : acceptEncodings) {
+                    for (final HeaderElement element : header.getElements()) {
                         if ("gzip".equalsIgnoreCase(element.getName())) {
                             response.addHeader("Content-Encoding", "gzip");
 
@@ -377,13 +377,13 @@ public class TestContentCodings extends IntegrationTestBase {
                              * UPDATE: DeflaterInputStream is Java 6 anyway, so we have to do a bit
                              * of work there too!
                              */
-                            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                            OutputStream out = new GZIPOutputStream(bytes);
+                            final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                            final OutputStream out = new GZIPOutputStream(bytes);
 
-                            ByteArrayInputStream uncompressed = new ByteArrayInputStream(
+                            final ByteArrayInputStream uncompressed = new ByteArrayInputStream(
                                     entityText.getBytes("utf-8"));
 
-                            byte[] buf = new byte[60];
+                            final byte[] buf = new byte[60];
 
                             int n;
                             while ((n = uncompressed.read(buf)) != -1) {
@@ -392,7 +392,7 @@ public class TestContentCodings extends IntegrationTestBase {
 
                             out.close();
 
-                            byte[] arr = bytes.toByteArray();
+                            final byte[] arr = bytes.toByteArray();
                             response.setEntity(new InputStreamEntity(new ByteArrayInputStream(arr),
                                     arr.length));
 
@@ -468,14 +468,14 @@ public class TestContentCodings extends IntegrationTestBase {
             try {
                 startGate.await();
                 try {
-                    HttpResponse response = client.execute(TestContentCodings.this.getServerHttp(), request);
+                    final HttpResponse response = client.execute(TestContentCodings.this.getServerHttp(), request);
                     text = EntityUtils.toString(response.getEntity());
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     failed = true;
                 } finally {
                     endGate.countDown();
                 }
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
 
             }
         }

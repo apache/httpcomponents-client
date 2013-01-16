@@ -41,8 +41,8 @@ public class TestBasicAuthCache {
 
     @Test
     public void testBasics() throws Exception {
-        BasicAuthCache cache = new BasicAuthCache();
-        AuthScheme authScheme = Mockito.mock(AuthScheme.class);
+        final BasicAuthCache cache = new BasicAuthCache();
+        final AuthScheme authScheme = Mockito.mock(AuthScheme.class);
         cache.put(new HttpHost("localhost", 80), authScheme);
         Assert.assertSame(authScheme, cache.get(new HttpHost("localhost", 80)));
         cache.remove(new HttpHost("localhost", 80));
@@ -54,18 +54,18 @@ public class TestBasicAuthCache {
 
     @Test
     public void testGetKey() throws Exception {
-        BasicAuthCache cache = new BasicAuthCache();
-        HttpHost target = new HttpHost("localhost", 443, "https");
+        final BasicAuthCache cache = new BasicAuthCache();
+        final HttpHost target = new HttpHost("localhost", 443, "https");
         Assert.assertSame(target, cache.getKey(target));
         Assert.assertEquals(target, cache.getKey(new HttpHost("localhost", -1, "https")));
     }
 
     @Test
     public void testGetKeyWithSchemeRegistry() throws Exception {
-        SchemePortResolver schemePortResolver = Mockito.mock(SchemePortResolver.class);
-        BasicAuthCache cache = new BasicAuthCache(schemePortResolver);
+        final SchemePortResolver schemePortResolver = Mockito.mock(SchemePortResolver.class);
+        final BasicAuthCache cache = new BasicAuthCache(schemePortResolver);
         Mockito.when(schemePortResolver.resolve(new HttpHost("localhost", -1, "https"))).thenReturn(443);
-        HttpHost target = new HttpHost("localhost", 443, "https");
+        final HttpHost target = new HttpHost("localhost", 443, "https");
         Assert.assertSame(target, cache.getKey(target));
         Assert.assertEquals(target, cache.getKey(new HttpHost("localhost", -1, "https")));
     }

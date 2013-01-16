@@ -77,10 +77,10 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
     }
 
     private void keepResourceReference(final HttpCacheEntry entry) {
-        Resource resource = entry.getResource();
+        final Resource resource = entry.getResource();
         if (resource != null) {
             // Must deallocate the resource when the entry is no longer in used
-            ResourceReference ref = new ResourceReference(entry, this.morque);
+            final ResourceReference ref = new ResourceReference(entry, this.morque);
             this.resources.add(ref);
         }
     }
@@ -120,8 +120,8 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         Args.notNull(callback, "Callback");
         ensureValidState();
         synchronized (this) {
-            HttpCacheEntry existing = this.entries.get(url);
-            HttpCacheEntry updated = callback.update(existing);
+            final HttpCacheEntry existing = this.entries.get(url);
+            final HttpCacheEntry updated = callback.update(existing);
             this.entries.put(url, updated);
             if (existing != updated) {
                 keepResourceReference(updated);
@@ -149,7 +149,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         this.shutdown = true;
         synchronized (this) {
             this.entries.clear();
-            for (ResourceReference ref: this.resources) {
+            for (final ResourceReference ref: this.resources) {
                 ref.getResource().dispose();
             }
             this.resources.clear();

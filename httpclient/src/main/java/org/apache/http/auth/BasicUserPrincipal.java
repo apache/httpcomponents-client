@@ -68,7 +68,7 @@ public final class BasicUserPrincipal implements Principal, Serializable {
             return true;
         }
         if (o instanceof BasicUserPrincipal) {
-            BasicUserPrincipal that = (BasicUserPrincipal) o;
+            final BasicUserPrincipal that = (BasicUserPrincipal) o;
             if (LangUtils.equals(this.username, that.username)) {
                 return true;
             }
@@ -78,7 +78,7 @@ public final class BasicUserPrincipal implements Principal, Serializable {
 
     @Override
     public String toString() {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         buffer.append("[principal: ");
         buffer.append(this.username);
         buffer.append("]");

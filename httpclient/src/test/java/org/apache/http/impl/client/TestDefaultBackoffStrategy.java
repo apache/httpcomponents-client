@@ -73,7 +73,7 @@ public class TestDefaultBackoffStrategy {
 
     @Test
     public void backsOffForServiceUnavailable() {
-        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_SERVICE_UNAVAILABLE, "Service Unavailable");
         assertTrue(impl.shouldBackoff(resp));
     }
@@ -84,7 +84,7 @@ public class TestDefaultBackoffStrategy {
             if (i == HttpStatus.SC_SERVICE_UNAVAILABLE) {
                 continue;
             }
-            HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+            final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                     i, "Foo");
             assertFalse(impl.shouldBackoff(resp));
         }

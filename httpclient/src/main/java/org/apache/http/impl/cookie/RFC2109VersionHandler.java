@@ -56,7 +56,7 @@ public class RFC2109VersionHandler extends AbstractCookieAttributeHandler {
         }
         try {
            cookie.setVersion(Integer.parseInt(value));
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             throw new MalformedCookieException("Invalid version: "
                 + e.getMessage());
         }

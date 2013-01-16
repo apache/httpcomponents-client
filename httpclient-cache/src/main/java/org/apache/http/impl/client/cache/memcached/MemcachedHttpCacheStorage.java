@@ -159,14 +159,14 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     }
 
     public void putEntry(final String url, final HttpCacheEntry entry) throws IOException  {
-        byte[] bytes = serializeEntry(url, entry);
-        String key = getCacheKey(url);
+        final byte[] bytes = serializeEntry(url, entry);
+        final String key = getCacheKey(url);
         if (key == null) {
             return;
         }
         try {
             client.set(key, 0, bytes);
-        } catch (OperationTimeoutException ex) {
+        } catch (final OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
         }
     }
@@ -174,17 +174,17 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     private String getCacheKey(final String url) {
         try {
             return keyHashingScheme.hash(url);
-        } catch (MemcachedKeyHashingException mkhe) {
+        } catch (final MemcachedKeyHashingException mkhe) {
             return null;
         }
     }
 
     private byte[] serializeEntry(final String url, final HttpCacheEntry hce) throws IOException {
-        MemcachedCacheEntry mce = memcachedCacheEntryFactory.getMemcachedCacheEntry(url, hce);
+        final MemcachedCacheEntry mce = memcachedCacheEntryFactory.getMemcachedCacheEntry(url, hce);
         try {
             return mce.toByteArray();
-        } catch (MemcachedSerializationException mse) {
-            IOException ioe = new IOException();
+        } catch (final MemcachedSerializationException mse) {
+            final IOException ioe = new IOException();
             ioe.initCause(mse);
             throw ioe;
         }
@@ -202,43 +202,43 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     }
 
     private MemcachedCacheEntry reconstituteEntry(final Object o) throws IOException {
-        byte[] bytes = convertToByteArray(o);
+        final byte[] bytes = convertToByteArray(o);
         if (bytes == null) {
             return null;
         }
-        MemcachedCacheEntry mce = memcachedCacheEntryFactory.getUnsetCacheEntry();
+        final MemcachedCacheEntry mce = memcachedCacheEntryFactory.getUnsetCacheEntry();
         try {
             mce.set(bytes);
-        } catch (MemcachedSerializationException mse) {
+        } catch (final MemcachedSerializationException mse) {
             return null;
         }
         return mce;
     }
 
     public HttpCacheEntry getEntry(final String url) throws IOException {
-        String key = getCacheKey(url);
+        final String key = getCacheKey(url);
         if (key == null) {
             return null;
         }
         try {
-            MemcachedCacheEntry mce = reconstituteEntry(client.get(key));
+            final MemcachedCacheEntry mce = reconstituteEntry(client.get(key));
             if (mce == null || !url.equals(mce.getStorageKey())) {
                 return null;
             }
             return mce.getHttpCacheEntry();
-        } catch (OperationTimeoutException ex) {
+        } catch (final OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
         }
     }
 
     public void removeEntry(final String url) throws IOException {
-        String key = getCacheKey(url);
+        final String key = getCacheKey(url);
         if (key == null) {
             return;
         }
         try {
             client.delete(key);
-        } catch (OperationTimeoutException ex) {
+        } catch (final OperationTimeoutException ex) {
             throw new MemcachedOperationTimeoutException(ex);
         }
     }
@@ -246,29 +246,29 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
     public void updateEntry(final String url, final HttpCacheUpdateCallback callback)
             throws HttpCacheUpdateException, IOException {
         int numRetries = 0;
-        String key = getCacheKey(url);
+        final String key = getCacheKey(url);
         if (key == null) {
             throw new HttpCacheUpdateException("couldn't generate cache key");
         }
         do {
             try {
-                CASValue<Object> v = client.gets(key);
+                final CASValue<Object> v = client.gets(key);
                 MemcachedCacheEntry mce = (v == null) ? null
                         : reconstituteEntry(v.getValue());
                 if (mce != null && (!url.equals(mce.getStorageKey()))) {
                     mce = null;
                 }
-                HttpCacheEntry existingEntry = (mce == null) ? null
+                final HttpCacheEntry existingEntry = (mce == null) ? null
                         : mce.getHttpCacheEntry();
-                HttpCacheEntry updatedEntry = callback.update(existingEntry);
+                final HttpCacheEntry updatedEntry = callback.update(existingEntry);
 
                 if (existingEntry == null) {
                     putEntry(url, updatedEntry);
                     return;
 
                 } else {
-                    byte[] updatedBytes = serializeEntry(url, updatedEntry);
-                    CASResponse casResult = client.cas(key, v.getCas(),
+                    final byte[] updatedBytes = serializeEntry(url, updatedEntry);
+                    final CASResponse casResult = client.cas(key, v.getCas(),
                             updatedBytes);
                     if (casResult != CASResponse.OK) {
                         numRetries++;
@@ -276,7 +276,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
                         return;
                     }
                 }
-            } catch (OperationTimeoutException ex) {
+            } catch (final OperationTimeoutException ex) {
                 throw new MemcachedOperationTimeoutException(ex);
             }
         } while (numRetries <= maxUpdateRetries);

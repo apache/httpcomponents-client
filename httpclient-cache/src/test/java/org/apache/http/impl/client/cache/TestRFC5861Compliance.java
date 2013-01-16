@@ -69,21 +69,21 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     @Test
     public void testStaleIfErrorInResponseIsTrueReturnsStaleEntryWithWarning()
             throws Exception{
-        Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp2 = HttpTestUtils.make500Response();
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp2 = HttpTestUtils.make500Response();
 
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
         impl.execute(route,req1);
-        HttpResponse result = impl.execute(route,req2);
+        final HttpResponse result = impl.execute(route,req2);
         verifyMocks();
 
         HttpTestUtils.assert110WarningFound(result);
@@ -92,19 +92,19 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     @Test
     public void testConsumesErrorResponseWhenServingStale()
             throws Exception{
-        Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp2 = HttpTestUtils.make500Response();
-        byte[] body = HttpTestUtils.getRandomBytes(101);
-        ByteArrayInputStream buf = new ByteArrayInputStream(body);
-        ConsumableInputStream cis = new ConsumableInputStream(buf);
-        HttpEntity entity = new InputStreamEntity(cis, 101);
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp2 = HttpTestUtils.make500Response();
+        final byte[] body = HttpTestUtils.getRandomBytes(101);
+        final ByteArrayInputStream buf = new ByteArrayInputStream(body);
+        final ConsumableInputStream cis = new ConsumableInputStream(buf);
+        final HttpEntity entity = new InputStreamEntity(cis, 101);
         resp2.setEntity(entity);
 
         backendExpectsAnyRequestAndReturn(resp2);
@@ -120,21 +120,21 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     @Test
     public void testStaleIfErrorInResponseYieldsToMustRevalidate()
             throws Exception{
-        Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60, must-revalidate");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp2 = HttpTestUtils.make500Response();
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp2 = HttpTestUtils.make500Response();
 
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
         impl.execute(route,req1);
-        HttpResponse result = impl.execute(route,req2);
+        final HttpResponse result = impl.execute(route,req2);
         verifyMocks();
 
         assertTrue(HttpStatus.SC_OK != result.getStatusLine().getStatusCode());
@@ -144,21 +144,21 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     public void testStaleIfErrorInResponseYieldsToProxyRevalidateForSharedCache()
             throws Exception{
         assertTrue(config.isSharedCache());
-        Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60, proxy-revalidate");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp2 = HttpTestUtils.make500Response();
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp2 = HttpTestUtils.make500Response();
 
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
         impl.execute(route,req1);
-        HttpResponse result = impl.execute(route,req2);
+        final HttpResponse result = impl.execute(route,req2);
         verifyMocks();
 
         assertTrue(HttpStatus.SC_OK != result.getStatusLine().getStatusCode());
@@ -167,25 +167,25 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     @Test
     public void testStaleIfErrorInResponseNeedNotYieldToProxyRevalidateForPrivateCache()
             throws Exception{
-        CacheConfig config = CacheConfig.custom()
+        final CacheConfig config = CacheConfig.custom()
                 .setSharedCache(false).build();
         impl = new CachingExec(mockBackend, new BasicHttpCache(config), config);
 
-        Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60, proxy-revalidate");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp2 = HttpTestUtils.make500Response();
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp2 = HttpTestUtils.make500Response();
 
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
         impl.execute(route,req1);
-        HttpResponse result = impl.execute(route,req2);
+        final HttpResponse result = impl.execute(route,req2);
         verifyMocks();
 
         HttpTestUtils.assert110WarningFound(result);
@@ -194,22 +194,22 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     @Test
     public void testStaleIfErrorInResponseYieldsToExplicitFreshnessRequest()
             throws Exception{
-        Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=60");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         req2.setHeader("Cache-Control","min-fresh=2");
-        HttpResponse resp2 = HttpTestUtils.make500Response();
+        final HttpResponse resp2 = HttpTestUtils.make500Response();
 
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
         impl.execute(route,req1);
-        HttpResponse result = impl.execute(route,req2);
+        final HttpResponse result = impl.execute(route,req2);
         verifyMocks();
 
         assertTrue(HttpStatus.SC_OK != result.getStatusLine().getStatusCode());
@@ -218,22 +218,22 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     @Test
     public void testStaleIfErrorInRequestIsTrueReturnsStaleEntryWithWarning()
             throws Exception{
-        Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         req2.setHeader("Cache-Control","public, stale-if-error=60");
-        HttpResponse resp2 = HttpTestUtils.make500Response();
+        final HttpResponse resp2 = HttpTestUtils.make500Response();
 
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
         impl.execute(route,req1);
-        HttpResponse result = impl.execute(route,req2);
+        final HttpResponse result = impl.execute(route,req2);
         verifyMocks();
 
         HttpTestUtils.assert110WarningFound(result);
@@ -242,22 +242,22 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     @Test
     public void testStaleIfErrorInResponseIsFalseReturnsError()
             throws Exception{
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5, stale-if-error=2");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp2 = HttpTestUtils.make500Response();
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp2 = HttpTestUtils.make500Response();
 
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
         impl.execute(route,req1);
-        HttpResponse result = impl.execute(route,req2);
+        final HttpResponse result = impl.execute(route,req2);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR,
@@ -267,23 +267,23 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     @Test
     public void testStaleIfErrorInRequestIsFalseReturnsError()
             throws Exception{
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp1 = HttpTestUtils.make200Response(tenSecondsAgo,
                 "public, max-age=5");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         req2.setHeader("Cache-Control","stale-if-error=2");
-        HttpResponse resp2 = HttpTestUtils.make500Response();
+        final HttpResponse resp2 = HttpTestUtils.make500Response();
 
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
         impl.execute(route,req1);
-        HttpResponse result = impl.execute(route,req2);
+        final HttpResponse result = impl.execute(route,req2);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR,
@@ -309,29 +309,29 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
 
         impl = new CachingExec(mockBackend, cache, config);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
 
         backendExpectsAnyRequestAndReturn(resp1).times(1,2);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
         boolean warning110Found = false;
-        for(Header h : result.getHeaders("Warning")) {
-            for(WarningValue wv : WarningValue.getWarningValues(h)) {
+        for(final Header h : result.getHeaders("Warning")) {
+            for(final WarningValue wv : WarningValue.getWarningValues(h)) {
                 if (wv.getWarnCode() == 110) {
                     warning110Found = true;
                     break;
@@ -353,30 +353,30 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
                 .build();
         impl = new CachingExec(mockBackend, cache, config);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         resp1.setHeader("Cache-Control", "private, stale-while-revalidate=15");
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
 
         backendExpectsAnyRequestAndReturn(resp1).times(1,2);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("If-None-Match","\"etag\"");
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
         boolean warning110Found = false;
-        for(Header h : result.getHeaders("Warning")) {
-            for(WarningValue wv : WarningValue.getWarningValues(h)) {
+        for(final Header h : result.getHeaders("Warning")) {
+            for(final WarningValue wv : WarningValue.getWarningValues(h)) {
                 if (wv.getWarnCode() == 110) {
                     warning110Found = true;
                     break;
@@ -391,8 +391,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     public void testStaleWhileRevalidateYieldsToMustRevalidate()
         throws Exception {
 
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
         config = CacheConfig.custom()
                 .setMaxCacheEntries(MAX_ENTRIES)
@@ -401,18 +401,18 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
                 .build();
         impl = new CachingExec(mockBackend, cache, config);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, must-revalidate");
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, must-revalidate");
         resp2.setHeader("ETag","\"etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(now));
@@ -421,13 +421,13 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
         boolean warning110Found = false;
-        for(Header h : result.getHeaders("Warning")) {
-            for(WarningValue wv : WarningValue.getWarningValues(h)) {
+        for(final Header h : result.getHeaders("Warning")) {
+            for(final WarningValue wv : WarningValue.getWarningValues(h)) {
                 if (wv.getWarnCode() == 110) {
                     warning110Found = true;
                     break;
@@ -441,8 +441,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     public void testStaleWhileRevalidateYieldsToProxyRevalidateForSharedCache()
         throws Exception {
 
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
         config = CacheConfig.custom()
                 .setMaxCacheEntries(MAX_ENTRIES)
@@ -452,18 +452,18 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
                 .build();
         impl = new CachingExec(mockBackend, cache, config);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, proxy-revalidate");
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15, proxy-revalidate");
         resp2.setHeader("ETag","\"etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(now));
@@ -472,13 +472,13 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
         boolean warning110Found = false;
-        for(Header h : result.getHeaders("Warning")) {
-            for(WarningValue wv : WarningValue.getWarningValues(h)) {
+        for(final Header h : result.getHeaders("Warning")) {
+            for(final WarningValue wv : WarningValue.getWarningValues(h)) {
                 if (wv.getWarnCode() == 110) {
                     warning110Found = true;
                     break;
@@ -492,8 +492,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     public void testStaleWhileRevalidateYieldsToExplicitFreshnessRequest()
         throws Exception {
 
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
         config = CacheConfig.custom()
                 .setMaxCacheEntries(MAX_ENTRIES)
@@ -503,19 +503,19 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
                 .build();
         impl = new CachingExec(mockBackend, cache, config);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control","min-fresh=2");
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
         resp2.setHeader("ETag","\"etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(now));
@@ -524,13 +524,13 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
         boolean warning110Found = false;
-        for(Header h : result.getHeaders("Warning")) {
-            for(WarningValue wv : WarningValue.getWarningValues(h)) {
+        for(final Header h : result.getHeaders("Warning")) {
+            for(final WarningValue wv : WarningValue.getWarningValues(h)) {
                 if (wv.getWarnCode() == 110) {
                     warning110Found = true;
                     break;

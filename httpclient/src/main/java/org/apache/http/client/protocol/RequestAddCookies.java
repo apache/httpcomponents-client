@@ -77,42 +77,42 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        String method = request.getRequestLine().getMethod();
+        final String method = request.getRequestLine().getMethod();
         if (method.equalsIgnoreCase("CONNECT")) {
             return;
         }
 
-        HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
 
         // Obtain cookie store
-        CookieStore cookieStore = clientContext.getCookieStore();
+        final CookieStore cookieStore = clientContext.getCookieStore();
         if (cookieStore == null) {
             this.log.debug("Cookie store not specified in HTTP context");
             return;
         }
 
         // Obtain the registry of cookie specs
-        Lookup<CookieSpecProvider> registry = clientContext.getCookieSpecRegistry();
+        final Lookup<CookieSpecProvider> registry = clientContext.getCookieSpecRegistry();
         if (registry == null) {
             this.log.debug("CookieSpec registry not specified in HTTP context");
             return;
         }
 
         // Obtain the target host, possibly virtual (required)
-        HttpHost targetHost = clientContext.getTargetHost();
+        final HttpHost targetHost = clientContext.getTargetHost();
         if (targetHost == null) {
             this.log.debug("Target host not set in the context");
             return;
         }
 
         // Obtain the route (required)
-        RouteInfo route = clientContext.getHttpRoute();
+        final RouteInfo route = clientContext.getHttpRoute();
         if (route == null) {
             this.log.debug("Connection route not set in the context");
             return;
         }
 
-        RequestConfig config = clientContext.getRequestConfig();
+        final RequestConfig config = clientContext.getRequestConfig();
         String policy = config.getCookieSpec();
         if (policy == null) {
             policy = CookieSpecs.BEST_MATCH;
@@ -124,33 +124,33 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         URI requestURI = null;
         try {
             requestURI = new URI(request.getRequestLine().getUri());
-        } catch (URISyntaxException ignore) {
+        } catch (final URISyntaxException ignore) {
         }
-        String path = requestURI != null ? requestURI.getPath() : null;
-        String hostName = targetHost.getHostName();
+        final String path = requestURI != null ? requestURI.getPath() : null;
+        final String hostName = targetHost.getHostName();
         int port = targetHost.getPort();
         if (port < 0) {
             port = route.getTargetHost().getPort();
         }
 
-        CookieOrigin cookieOrigin = new CookieOrigin(
+        final CookieOrigin cookieOrigin = new CookieOrigin(
                 hostName,
                 port >= 0 ? port : 0,
                 !TextUtils.isEmpty(path) ? path : "/",
                 route.isSecure());
 
         // Get an instance of the selected cookie policy
-        CookieSpecProvider provider = registry.lookup(policy);
+        final CookieSpecProvider provider = registry.lookup(policy);
         if (provider == null) {
             throw new HttpException("Unsupported cookie policy: " + policy);
         }
-        CookieSpec cookieSpec = provider.create(clientContext);
+        final CookieSpec cookieSpec = provider.create(clientContext);
         // Get all cookies available in the HTTP state
-        List<Cookie> cookies = new ArrayList<Cookie>(cookieStore.getCookies());
+        final List<Cookie> cookies = new ArrayList<Cookie>(cookieStore.getCookies());
         // Find cookies matching the given origin
-        List<Cookie> matchedCookies = new ArrayList<Cookie>();
-        Date now = new Date();
-        for (Cookie cookie : cookies) {
+        final List<Cookie> matchedCookies = new ArrayList<Cookie>();
+        final Date now = new Date();
+        for (final Cookie cookie : cookies) {
             if (!cookie.isExpired(now)) {
                 if (cookieSpec.match(cookie, cookieOrigin)) {
                     if (this.log.isDebugEnabled()) {
@@ -166,23 +166,23 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
         // Generate Cookie request headers
         if (!matchedCookies.isEmpty()) {
-            List<Header> headers = cookieSpec.formatCookies(matchedCookies);
-            for (Header header : headers) {
+            final List<Header> headers = cookieSpec.formatCookies(matchedCookies);
+            for (final Header header : headers) {
                 request.addHeader(header);
             }
         }
 
-        int ver = cookieSpec.getVersion();
+        final int ver = cookieSpec.getVersion();
         if (ver > 0) {
             boolean needVersionHeader = false;
-            for (Cookie cookie : matchedCookies) {
+            for (final Cookie cookie : matchedCookies) {
                 if (ver != cookie.getVersion() || !(cookie instanceof SetCookie2)) {
                     needVersionHeader = true;
                 }
             }
 
             if (needVersionHeader) {
-                Header header = cookieSpec.getVersionHeader();
+                final Header header = cookieSpec.getVersionHeader();
                 if (header != null) {
                     // Advertise cookie version support
                     request.addHeader(header);

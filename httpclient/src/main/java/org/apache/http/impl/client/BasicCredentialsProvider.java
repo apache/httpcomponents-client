@@ -78,8 +78,8 @@ public class BasicCredentialsProvider implements CredentialsProvider {
             // Do a full scan
             int bestMatchFactor  = -1;
             AuthScope bestMatch  = null;
-            for (AuthScope current: map.keySet()) {
-                int factor = authscope.match(current);
+            for (final AuthScope current: map.keySet()) {
+                final int factor = authscope.match(current);
                 if (factor > bestMatchFactor) {
                     bestMatchFactor = factor;
                     bestMatch = current;

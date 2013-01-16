@@ -52,7 +52,7 @@ public class TestNullBackoffStrategy {
 
     @Test
     public void doesNotBackoffForResponses() {
-        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_SERVICE_UNAVAILABLE, "Service Unavailable");
         assertFalse(impl.shouldBackoff(resp));
     }

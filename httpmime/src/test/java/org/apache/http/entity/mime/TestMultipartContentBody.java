@@ -39,7 +39,7 @@ public class TestMultipartContentBody {
 
     @Test
     public void testStringBody() throws Exception {
-        StringBody b1 = new StringBody("text", ContentType.DEFAULT_TEXT);
+        final StringBody b1 = new StringBody("text", ContentType.DEFAULT_TEXT);
         Assert.assertEquals(4, b1.getContentLength());
 
         Assert.assertEquals("ISO-8859-1", b1.getCharset());
@@ -51,7 +51,7 @@ public class TestMultipartContentBody {
 
         Assert.assertEquals(MIME.ENC_8BIT, b1.getTransferEncoding());
 
-        StringBody b2 = new StringBody("more text",
+        final StringBody b2 = new StringBody("more text",
                 ContentType.create("text/other", MIME.DEFAULT_CHARSET));
         Assert.assertEquals(9, b2.getContentLength());
         Assert.assertEquals(MIME.DEFAULT_CHARSET.name(), b2.getCharset());
@@ -66,8 +66,8 @@ public class TestMultipartContentBody {
 
     @Test
     public void testInputStreamBody() throws Exception {
-        byte[] stuff = "Stuff".getBytes("US-ASCII");
-        InputStreamBody b1 = new InputStreamBody(new ByteArrayInputStream(stuff), "stuff");
+        final byte[] stuff = "Stuff".getBytes("US-ASCII");
+        final InputStreamBody b1 = new InputStreamBody(new ByteArrayInputStream(stuff), "stuff");
         Assert.assertEquals(-1, b1.getContentLength());
 
         Assert.assertNull(b1.getCharset());
@@ -78,7 +78,7 @@ public class TestMultipartContentBody {
 
         Assert.assertEquals(MIME.ENC_BINARY, b1.getTransferEncoding());
 
-        InputStreamBody b2 = new InputStreamBody(
+        final InputStreamBody b2 = new InputStreamBody(
                 new ByteArrayInputStream(stuff), ContentType.create("some/stuff"), "stuff");
         Assert.assertEquals(-1, b2.getContentLength());
         Assert.assertNull(b2.getCharset());

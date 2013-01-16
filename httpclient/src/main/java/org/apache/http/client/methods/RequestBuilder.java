@@ -208,8 +208,8 @@ public class RequestBuilder {
         if (name == null || headergroup == null) {
             return this;
         }
-        for (HeaderIterator i = headergroup.iterator(); i.hasNext(); ) {
-            Header header = i.nextHeader();
+        for (final HeaderIterator i = headergroup.iterator(); i.hasNext(); ) {
+            final Header header = i.nextHeader();
             if (name.equalsIgnoreCase(header.getName())) {
                 i.remove();
             }
@@ -261,7 +261,7 @@ public class RequestBuilder {
     }
 
     public RequestBuilder addParameters(final NameValuePair... nvps) {
-        for (NameValuePair nvp: nvps) {
+        for (final NameValuePair nvp: nvps) {
             addParameter(nvp);
         }
         return this;
@@ -287,16 +287,16 @@ public class RequestBuilder {
             } else {
                 try {
                     uri = new URIBuilder(uri).addParameters(parameters).build();
-                } catch (URISyntaxException ex) {
+                } catch (final URISyntaxException ex) {
                     // should never happen
                 }
             }
         }
         if (entity == null) {
-            InternalRequest request = new InternalRequest(method);
+            final InternalRequest request = new InternalRequest(method);
             result = request;
         } else {
-            InternalEntityEclosingRequest request = new InternalEntityEclosingRequest(method);
+            final InternalEntityEclosingRequest request = new InternalEntityEclosingRequest(method);
             request.setEntity(entity);
             result = request;
         }

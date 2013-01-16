@@ -154,20 +154,20 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         Args.notNull(params, "HTTP parameters");
         Asserts.check(!conn.isOpen(), "Connection must not be open");
 
-        SchemeRegistry registry = getSchemeRegistry(context);
-        Scheme schm = registry.getScheme(target.getSchemeName());
-        SchemeSocketFactory sf = schm.getSchemeSocketFactory();
+        final SchemeRegistry registry = getSchemeRegistry(context);
+        final Scheme schm = registry.getScheme(target.getSchemeName());
+        final SchemeSocketFactory sf = schm.getSchemeSocketFactory();
 
-        InetAddress[] addresses = resolveHostname(target.getHostName());
-        int port = schm.resolvePort(target.getPort());
+        final InetAddress[] addresses = resolveHostname(target.getHostName());
+        final int port = schm.resolvePort(target.getPort());
         for (int i = 0; i < addresses.length; i++) {
-            InetAddress address = addresses[i];
-            boolean last = i == addresses.length - 1;
+            final InetAddress address = addresses[i];
+            final boolean last = i == addresses.length - 1;
 
             Socket sock = sf.createSocket(params);
             conn.opening(sock, target);
 
-            InetSocketAddress remoteAddress = new HttpInetSocketAddress(target, address, port);
+            final InetSocketAddress remoteAddress = new HttpInetSocketAddress(target, address, port);
             InetSocketAddress localAddress = null;
             if (local != null) {
                 localAddress = new InetSocketAddress(local, 0);
@@ -176,7 +176,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
                 this.log.debug("Connecting to " + remoteAddress);
             }
             try {
-                Socket connsock = sf.connectSocket(sock, remoteAddress, localAddress, params);
+                final Socket connsock = sf.connectSocket(sock, remoteAddress, localAddress, params);
                 if (sock != connsock) {
                     sock = connsock;
                     conn.opening(sock, target);
@@ -184,11 +184,11 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
                 prepareSocket(sock, context, params);
                 conn.openCompleted(sf.isSecure(sock), params);
                 return;
-            } catch (ConnectException ex) {
+            } catch (final ConnectException ex) {
                 if (last) {
                     throw new HttpHostConnectException(target, ex);
                 }
-            } catch (ConnectTimeoutException ex) {
+            } catch (final ConnectTimeoutException ex) {
                 if (last) {
                     throw ex;
                 }
@@ -210,16 +210,16 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         Args.notNull(params, "Parameters");
         Asserts.check(conn.isOpen(), "Connection must be open");
 
-        SchemeRegistry registry = getSchemeRegistry(context);
-        Scheme schm = registry.getScheme(target.getSchemeName());
+        final SchemeRegistry registry = getSchemeRegistry(context);
+        final Scheme schm = registry.getScheme(target.getSchemeName());
         Asserts.check(schm.getSchemeSocketFactory() instanceof LayeredConnectionSocketFactory,
             "Socket factory must implement SchemeLayeredSocketFactory");
-        SchemeLayeredSocketFactory lsf = (SchemeLayeredSocketFactory) schm.getSchemeSocketFactory();
+        final SchemeLayeredSocketFactory lsf = (SchemeLayeredSocketFactory) schm.getSchemeSocketFactory();
         Socket sock;
         try {
             sock = lsf.createLayeredSocket(
                     conn.getSocket(), target.getHostName(), target.getPort(), params);
-        } catch (ConnectException ex) {
+        } catch (final ConnectException ex) {
             throw new HttpHostConnectException(target, ex);
         }
         prepareSocket(sock, context, params);
@@ -242,7 +242,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         sock.setTcpNoDelay(HttpConnectionParams.getTcpNoDelay(params));
         sock.setSoTimeout(HttpConnectionParams.getSoTimeout(params));
 
-        int linger = HttpConnectionParams.getLinger(params);
+        final int linger = HttpConnectionParams.getLinger(params);
         if (linger >= 0) {
             sock.setSoLinger(linger > 0, linger);
         }

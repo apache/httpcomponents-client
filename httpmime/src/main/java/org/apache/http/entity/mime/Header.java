@@ -54,7 +54,7 @@ public class Header implements Iterable<MinimalField> {
         if (field == null) {
             return;
         }
-        String key = field.getName().toLowerCase(Locale.US);
+        final String key = field.getName().toLowerCase(Locale.US);
         List<MinimalField> values = this.fieldMap.get(key);
         if (values == null) {
             values = new LinkedList<MinimalField>();
@@ -72,8 +72,8 @@ public class Header implements Iterable<MinimalField> {
         if (name == null) {
             return null;
         }
-        String key = name.toLowerCase(Locale.US);
-        List<MinimalField> list = this.fieldMap.get(key);
+        final String key = name.toLowerCase(Locale.US);
+        final List<MinimalField> list = this.fieldMap.get(key);
         if (list != null && !list.isEmpty()) {
             return list.get(0);
         }
@@ -84,8 +84,8 @@ public class Header implements Iterable<MinimalField> {
         if (name == null) {
             return null;
         }
-        String key = name.toLowerCase(Locale.US);
-        List<MinimalField> list = this.fieldMap.get(key);
+        final String key = name.toLowerCase(Locale.US);
+        final List<MinimalField> list = this.fieldMap.get(key);
         if (list == null || list.isEmpty()) {
             return Collections.emptyList();
         } else {
@@ -97,8 +97,8 @@ public class Header implements Iterable<MinimalField> {
         if (name == null) {
             return 0;
         }
-        String key = name.toLowerCase(Locale.US);
-        List<MinimalField> removed = fieldMap.remove(key);
+        final String key = name.toLowerCase(Locale.US);
+        final List<MinimalField> removed = fieldMap.remove(key);
         if (removed == null || removed.isEmpty()) {
             return 0;
         }
@@ -110,8 +110,8 @@ public class Header implements Iterable<MinimalField> {
         if (field == null) {
             return;
         }
-        String key = field.getName().toLowerCase(Locale.US);
-        List<MinimalField> list = fieldMap.get(key);
+        final String key = field.getName().toLowerCase(Locale.US);
+        final List<MinimalField> list = fieldMap.get(key);
         if (list == null || list.isEmpty()) {
             addField(field);
             return;
@@ -120,8 +120,8 @@ public class Header implements Iterable<MinimalField> {
         list.add(field);
         int firstOccurrence = -1;
         int index = 0;
-        for (Iterator<MinimalField> it = this.fields.iterator(); it.hasNext(); index++) {
-            MinimalField f = it.next();
+        for (final Iterator<MinimalField> it = this.fields.iterator(); it.hasNext(); index++) {
+            final MinimalField f = it.next();
             if (f.getName().equalsIgnoreCase(field.getName())) {
                 it.remove();
                 if (firstOccurrence == -1) {

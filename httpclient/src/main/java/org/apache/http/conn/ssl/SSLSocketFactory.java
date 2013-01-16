@@ -216,17 +216,17 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         if (algorithm == null) {
             algorithm = TLS;
         }
-        KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(
+        final KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(
                 KeyManagerFactory.getDefaultAlgorithm());
         kmfactory.init(keystore, keystorePassword != null ? keystorePassword.toCharArray(): null);
-        KeyManager[] keymanagers =  kmfactory.getKeyManagers();
-        TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(
+        final KeyManager[] keymanagers =  kmfactory.getKeyManagers();
+        final TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(
                 TrustManagerFactory.getDefaultAlgorithm());
         tmfactory.init(truststore);
-        TrustManager[] trustmanagers = tmfactory.getTrustManagers();
+        final TrustManager[] trustmanagers = tmfactory.getTrustManagers();
         if (trustmanagers != null && trustStrategy != null) {
             for (int i = 0; i < trustmanagers.length; i++) {
-                TrustManager tm = trustmanagers[i];
+                final TrustManager tm = trustmanagers[i];
                 if (tm instanceof X509TrustManager) {
                     trustmanagers[i] = new TrustManagerDecorator(
                             (X509TrustManager) tm, trustStrategy);
@@ -234,7 +234,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             }
         }
 
-        SSLContext sslcontext = SSLContext.getInstance(algorithm);
+        final SSLContext sslcontext = SSLContext.getInstance(algorithm);
         sslcontext.init(keymanagers, trustmanagers, random);
         return sslcontext;
     }
@@ -260,19 +260,19 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             tmfactory = TrustManagerFactory.getInstance(trustAlgorithm);
         } else {
             File trustStoreFile = null;
-            String s = System.getProperty("javax.net.ssl.trustStore");
+            final String s = System.getProperty("javax.net.ssl.trustStore");
             if (s != null) {
                 trustStoreFile = new File(s);
                 tmfactory = TrustManagerFactory.getInstance(trustAlgorithm);
-                String trustStoreProvider = System.getProperty("javax.net.ssl.trustStoreProvider");
+                final String trustStoreProvider = System.getProperty("javax.net.ssl.trustStoreProvider");
                 KeyStore trustStore;
                 if (trustStoreProvider != null) {
                     trustStore = KeyStore.getInstance(trustStoreType, trustStoreProvider);
                 } else {
                     trustStore = KeyStore.getInstance(trustStoreType);
                 }
-                String trustStorePassword = System.getProperty("javax.net.ssl.trustStorePassword");
-                FileInputStream instream = new FileInputStream(trustStoreFile);
+                final String trustStorePassword = System.getProperty("javax.net.ssl.trustStorePassword");
+                final FileInputStream instream = new FileInputStream(trustStoreFile);
                 try {
                     trustStore.load(instream, trustStorePassword != null ?
                             trustStorePassword.toCharArray() : EMPTY_PASSWORD);
@@ -281,7 +281,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
                 }
                 tmfactory.init(trustStore);
             } else {
-                File javaHome = new File(System.getProperty("java.home"));
+                final File javaHome = new File(System.getProperty("java.home"));
                 File file = new File(javaHome, "lib/security/jssecacerts");
                 if (!file.exists()) {
                     file = new File(javaHome, "lib/security/cacerts");
@@ -290,9 +290,9 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
                     trustStoreFile = file;
                 }
                 tmfactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-                String trustStorePassword = System.getProperty("javax.net.ssl.trustStorePassword");
-                FileInputStream instream = new FileInputStream(trustStoreFile);
+                final KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                final String trustStorePassword = System.getProperty("javax.net.ssl.trustStorePassword");
+                final FileInputStream instream = new FileInputStream(trustStoreFile);
                 try {
                     trustStore.load(instream, trustStorePassword != null ? trustStorePassword.toCharArray() : null);
                 } finally {
@@ -315,21 +315,21 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             kmfactory = KeyManagerFactory.getInstance(keyAlgorithm);
         } else {
             File keyStoreFile = null;
-            String s = System.getProperty("javax.net.ssl.keyStore");
+            final String s = System.getProperty("javax.net.ssl.keyStore");
             if (s != null) {
                 keyStoreFile = new File(s);
             }
             if (keyStoreFile != null) {
                 kmfactory = KeyManagerFactory.getInstance(keyAlgorithm);
-                String keyStoreProvider = System.getProperty("javax.net.ssl.keyStoreProvider");
+                final String keyStoreProvider = System.getProperty("javax.net.ssl.keyStoreProvider");
                 KeyStore keyStore;
                 if (keyStoreProvider != null) {
                     keyStore = KeyStore.getInstance(keyStoreType, keyStoreProvider);
                 } else {
                     keyStore = KeyStore.getInstance(keyStoreType);
                 }
-                String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword");
-                FileInputStream instream = new FileInputStream(keyStoreFile);
+                final String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword");
+                final FileInputStream instream = new FileInputStream(keyStoreFile);
                 try {
                     keyStore.load(instream, keyStorePassword != null ?
                             keyStorePassword.toCharArray() : EMPTY_PASSWORD);
@@ -341,7 +341,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             }
         }
 
-        SSLContext sslcontext = SSLContext.getInstance(algorithm);
+        final SSLContext sslcontext = SSLContext.getInstance(algorithm);
         sslcontext.init(
                 kmfactory != null ? kmfactory.getKeyManagers() : null,
                 tmfactory != null ? tmfactory.getTrustManagers() : null,
@@ -355,7 +355,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     public static SSLContext createDefaultSSLContext() throws SSLInitializationException {
         try {
             return createSSLContext(TLS, null, null, null, null, null);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             throw new SSLInitializationException("Failure initializing default SSL context", ex);
         }
     }
@@ -366,7 +366,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     public static SSLContext createSystemSSLContext() throws SSLInitializationException {
         try {
             return createSystemSSLContext(TLS, null);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             throw new SSLInitializationException("Failure initializing default system SSL context", ex);
         }
     }
@@ -542,7 +542,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         } else {
             host = new HttpHost(remoteAddress.getHostName(), remoteAddress.getPort(), "https");
         }
-        int connectTimeout = HttpConnectionParams.getConnectionTimeout(params);
+        final int connectTimeout = HttpConnectionParams.getConnectionTimeout(params);
         return connectSocket(connectTimeout, socket, host, remoteAddress, localAddress, null);
     }
 
@@ -633,7 +633,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             }
             localAddress = new InetSocketAddress(local, localPort);
         }
-        InetSocketAddress remoteAddress = new HttpInetSocketAddress(
+        final InetSocketAddress remoteAddress = new HttpInetSocketAddress(
                 new HttpHost(host, port), remote, port);
         return connectSocket(socket, remoteAddress, localAddress, params);
     }
@@ -667,7 +667,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      * @since 4.3
      */
     public Socket createSocket(final HttpContext context) throws IOException {
-        SSLSocket sock = (SSLSocket) this.socketfactory.createSocket();
+        final SSLSocket sock = (SSLSocket) this.socketfactory.createSocket();
         prepareSocket(sock);
         return sock;
     }
@@ -692,7 +692,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         }
         try {
             sock.connect(remoteAddress, connectTimeout);
-        } catch (SocketTimeoutException ex) {
+        } catch (final SocketTimeoutException ex) {
             throw new ConnectTimeoutException(host, remoteAddress);
         }
         // Setup SSL layering if necessary
@@ -709,7 +709,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final String target,
             final int port,
             final HttpContext context) throws IOException, UnknownHostException {
-        SSLSocket sslSocket = (SSLSocket) this.socketfactory.createSocket(
+        final SSLSocket sslSocket = (SSLSocket) this.socketfactory.createSocket(
                 socket,
                 target,
                 port,
@@ -724,9 +724,9 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             try {
                 this.hostnameVerifier.verify(hostname, sslsock);
                 // verifyHostName() didn't blowup - good!
-            } catch (IOException iox) {
+            } catch (final IOException iox) {
                 // close the socket before re-throwing the exception
-                try { sslsock.close(); } catch (Exception x) { /*ignore*/ }
+                try { sslsock.close(); } catch (final Exception x) { /*ignore*/ }
                 throw iox;
             }
         }

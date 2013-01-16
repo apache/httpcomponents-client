@@ -75,7 +75,7 @@ public class FormBodyPart {
     }
 
     protected void generateContentDisp(final ContentBody body) {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         buffer.append("form-data; name=\"");
         buffer.append(getName());
         buffer.append("\"");
@@ -88,7 +88,7 @@ public class FormBodyPart {
     }
 
     protected void generateContentType(final ContentBody body) {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         buffer.append(body.getMimeType()); // MimeType cannot be null
         if (body.getCharset() != null) { // charset may legitimately be null
             buffer.append("; charset=");

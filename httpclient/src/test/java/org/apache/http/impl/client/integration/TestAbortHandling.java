@@ -73,7 +73,7 @@ public class TestAbortHandling extends IntegrationTestBase {
 
     @Test
     public void testAbortRetry_HTTPCLIENT_1120() throws Exception {
-        int port = this.localServer.getServiceAddress().getPort();
+        final int port = this.localServer.getServiceAddress().getPort();
         final CountDownLatch wait = new CountDownLatch(1);
 
         this.localServer.register("*", new HttpRequestHandler(){
@@ -83,22 +83,22 @@ public class TestAbortHandling extends IntegrationTestBase {
                     wait.countDown(); // trigger abort
                     Thread.sleep(2000); // allow time for abort to happen
                     response.setStatusCode(HttpStatus.SC_OK);
-                    StringEntity entity = new StringEntity("Whatever");
+                    final StringEntity entity = new StringEntity("Whatever");
                     response.setEntity(entity);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     response.setStatusCode(HttpStatus.SC_REQUEST_TIMEOUT);
                 }
             }});
 
-        String s = "http://localhost:" + port + "/path";
+        final String s = "http://localhost:" + port + "/path";
         final HttpGet httpget = new HttpGet(s);
 
-        Thread t = new Thread() {
+        final Thread t = new Thread() {
              @Override
             public void run(){
                  try {
                     wait.await();
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                 }
                  httpget.abort();
              }
@@ -108,21 +108,21 @@ public class TestAbortHandling extends IntegrationTestBase {
 
         this.httpclient = HttpClients.createDefault();
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         try {
             this.httpclient.execute(getServerHttp(), httpget, context);
-        } catch (IllegalStateException e) {
-        } catch (IOException e) {
+        } catch (final IllegalStateException e) {
+        } catch (final IOException e) {
         }
 
-        HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
+        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
         Assert.assertNotNull("Request should exist",reqWrapper);
     }
 
     @Test
     public void testAbortInAllocate() throws Exception {
-        CountDownLatch connLatch = new CountDownLatch(1);
-        CountDownLatch awaitLatch = new CountDownLatch(1);
+        final CountDownLatch connLatch = new CountDownLatch(1);
+        final CountDownLatch awaitLatch = new CountDownLatch(1);
         final ConMan conMan = new ConMan(connLatch, awaitLatch);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
@@ -135,7 +135,7 @@ public class TestAbortHandling extends IntegrationTestBase {
             public void run() {
                 try {
                     client.execute(httpget, context);
-                } catch(Throwable t) {
+                } catch(final Throwable t) {
                     throwableRef.set(t);
                 } finally {
                     getLatch.countDown();
@@ -175,7 +175,7 @@ public class TestAbortHandling extends IntegrationTestBase {
             public void run() {
                 try {
                     client.execute(getServerHttp(), httpget, context);
-                } catch(Throwable t) {
+                } catch(final Throwable t) {
                     throwableRef.set(t);
                 } finally {
                     getLatch.countDown();
@@ -218,11 +218,11 @@ public class TestAbortHandling extends IntegrationTestBase {
                         if(!startLatch.await(1, TimeUnit.SECONDS)) {
                             throw new RuntimeException("Took too long to start!");
                         }
-                    } catch(InterruptedException interrupted) {
+                    } catch(final InterruptedException interrupted) {
                         throw new RuntimeException("Never started!", interrupted);
                     }
                     client.execute(getServerHttp(), httpget, context);
-                } catch(Throwable t) {
+                } catch(final Throwable t) {
                     throwableRef.set(t);
                 } finally {
                     getLatch.countDown();
@@ -261,9 +261,9 @@ public class TestAbortHandling extends IntegrationTestBase {
         new Thread(new Runnable() {
             public void run() {
                 try {
-                    HttpHost host = new HttpHost("127.0.0.1", port);
+                    final HttpHost host = new HttpHost("127.0.0.1", port);
                     client.execute(host, httpget, context);
-                } catch(Throwable t) {
+                } catch(final Throwable t) {
                     throwableRef.set(t);
                 } finally {
                     getLatch.countDown();
@@ -289,11 +289,11 @@ public class TestAbortHandling extends IntegrationTestBase {
      */
     @Test
     public void testSocketConnectFailureReleasesConnection() throws Exception {
-        HttpClientConnection conn = Mockito.mock(HttpClientConnection.class);
-        ConnectionRequest connrequest = Mockito.mock(ConnectionRequest.class);
+        final HttpClientConnection conn = Mockito.mock(HttpClientConnection.class);
+        final ConnectionRequest connrequest = Mockito.mock(ConnectionRequest.class);
         Mockito.when(connrequest.get(
                 Mockito.anyInt(), Mockito.any(TimeUnit.class))).thenReturn(conn);
-        HttpClientConnectionManager connmgr = Mockito.mock(HttpClientConnectionManager.class);
+        final HttpClientConnectionManager connmgr = Mockito.mock(HttpClientConnectionManager.class);
         Mockito.doThrow(new ConnectException()).when(connmgr).connect(
                 Mockito.any(HttpClientConnection.class),
                 Mockito.any(HttpHost.class),
@@ -311,7 +311,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         try {
             client.execute(httpget, context);
             Assert.fail("expected IOException");
-        } catch(IOException expected) {}
+        } catch(final IOException expected) {}
 
         Mockito.verify(connmgr).releaseConnection(conn, null, 0, TimeUnit.MILLISECONDS);
     }
@@ -336,7 +336,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         public void handle(final HttpRequest request,
                 final HttpResponse response, final HttpContext context)
                 throws HttpException, IOException {
-            ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
+            final ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
             response.setStatusLine(ver, this.statuscode);
             response.addHeader(new BasicHeader("Location", "http://localhost:"
                     + this.port + "/newlocation/"));
@@ -493,7 +493,7 @@ public class TestAbortHandling extends IntegrationTestBase {
                 if(!releaseTriggerLatch.await(1, TimeUnit.SECONDS)) {
                     throw new RuntimeException("Waited too long...");
                 }
-            } catch(InterruptedException ie) {
+            } catch(final InterruptedException ie) {
                 throw new RuntimeException(ie);
             }
 

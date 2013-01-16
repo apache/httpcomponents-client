@@ -91,10 +91,10 @@ public class TestAIMDBackoffManager {
     @Test
     public void backoffDoesNotAdjustDuringCoolDownPeriod() {
         connPerRoute.setMaxPerRoute(route, 4);
-        long now = System.currentTimeMillis();
+        final long now = System.currentTimeMillis();
         clock.setCurrentTime(now);
         impl.backOff(route);
-        long max = connPerRoute.getMaxPerRoute(route);
+        final long max = connPerRoute.getMaxPerRoute(route);
         clock.setCurrentTime(now + 1);
         impl.backOff(route);
         assertEquals(max, connPerRoute.getMaxPerRoute(route));
@@ -103,10 +103,10 @@ public class TestAIMDBackoffManager {
     @Test
     public void backoffStillAdjustsAfterCoolDownPeriod() {
         connPerRoute.setMaxPerRoute(route, 8);
-        long now = System.currentTimeMillis();
+        final long now = System.currentTimeMillis();
         clock.setCurrentTime(now);
         impl.backOff(route);
-        long max = connPerRoute.getMaxPerRoute(route);
+        final long max = connPerRoute.getMaxPerRoute(route);
         clock.setCurrentTime(now + 10 * 1000L);
         impl.backOff(route);
         assertTrue(max == 1 || max > connPerRoute.getMaxPerRoute(route));
@@ -115,10 +115,10 @@ public class TestAIMDBackoffManager {
     @Test
     public void probeDoesNotAdjustDuringCooldownPeriod() {
         connPerRoute.setMaxPerRoute(route, 4);
-        long now = System.currentTimeMillis();
+        final long now = System.currentTimeMillis();
         clock.setCurrentTime(now);
         impl.probe(route);
-        long max = connPerRoute.getMaxPerRoute(route);
+        final long max = connPerRoute.getMaxPerRoute(route);
         clock.setCurrentTime(now + 1);
         impl.probe(route);
         assertEquals(max, connPerRoute.getMaxPerRoute(route));
@@ -127,10 +127,10 @@ public class TestAIMDBackoffManager {
     @Test
     public void probeStillAdjustsAfterCoolDownPeriod() {
         connPerRoute.setMaxPerRoute(route, 8);
-        long now = System.currentTimeMillis();
+        final long now = System.currentTimeMillis();
         clock.setCurrentTime(now);
         impl.probe(route);
-        long max = connPerRoute.getMaxPerRoute(route);
+        final long max = connPerRoute.getMaxPerRoute(route);
         clock.setCurrentTime(now + 10 * 1000L);
         impl.probe(route);
         assertTrue(max < connPerRoute.getMaxPerRoute(route));
@@ -139,10 +139,10 @@ public class TestAIMDBackoffManager {
     @Test
     public void willBackoffImmediatelyEvenAfterAProbe() {
         connPerRoute.setMaxPerRoute(route, 8);
-        long now = System.currentTimeMillis();
+        final long now = System.currentTimeMillis();
         clock.setCurrentTime(now);
         impl.probe(route);
-        long max = connPerRoute.getMaxPerRoute(route);
+        final long max = connPerRoute.getMaxPerRoute(route);
         clock.setCurrentTime(now + 1);
         impl.backOff(route);
         assertTrue(connPerRoute.getMaxPerRoute(route) < max);
@@ -165,11 +165,11 @@ public class TestAIMDBackoffManager {
         if (cd < 1) {
             cd++;
         }
-        long now = System.currentTimeMillis();
+        final long now = System.currentTimeMillis();
         impl.setCooldownMillis(cd);
         clock.setCurrentTime(now);
         impl.probe(route);
-        int max0 = connPerRoute.getMaxPerRoute(route);
+        final int max0 = connPerRoute.getMaxPerRoute(route);
         clock.setCurrentTime(now);
         impl.probe(route);
         assertEquals(max0, connPerRoute.getMaxPerRoute(route));

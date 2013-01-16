@@ -122,26 +122,26 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
                 localPort = 0; // indicates "any"
             }
 
-            InetSocketAddress isa =
+            final InetSocketAddress isa =
                 new InetSocketAddress(localAddress, localPort);
             sock.bind(isa);
         }
 
-        int timeout = HttpConnectionParams.getConnectionTimeout(params);
+        final int timeout = HttpConnectionParams.getConnectionTimeout(params);
 
-        InetAddress[] inetadrs = InetAddress.getAllByName(host);
-        List<InetAddress> addresses = new ArrayList<InetAddress>(inetadrs.length);
+        final InetAddress[] inetadrs = InetAddress.getAllByName(host);
+        final List<InetAddress> addresses = new ArrayList<InetAddress>(inetadrs.length);
         addresses.addAll(Arrays.asList(inetadrs));
         Collections.shuffle(addresses);
 
         IOException lastEx = null;
-        for (InetAddress remoteAddress: addresses) {
+        for (final InetAddress remoteAddress: addresses) {
             try {
                 sock.connect(new InetSocketAddress(remoteAddress, port), timeout);
                 break;
-            } catch (SocketTimeoutException ex) {
+            } catch (final SocketTimeoutException ex) {
                 throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 // create new socket
                 sock = new Socket();
                 // keep the last exception and retry

@@ -41,7 +41,7 @@ public class Punycode {
         Idn _impl;
         try {
             _impl = new JdkIdn();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             _impl = new Rfc3492Idn();
         }
         impl = _impl;

@@ -160,7 +160,7 @@ public class HttpClientContext extends HttpCoreContext implements ClientContext 
     }
 
     public RequestConfig getRequestConfig() {
-        RequestConfig config = getAttribute(REQUEST_CONFIG, RequestConfig.class);
+        final RequestConfig config = getAttribute(REQUEST_CONFIG, RequestConfig.class);
         return config != null ? config : RequestConfig.DEFAULT;
     }
 

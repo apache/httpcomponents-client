@@ -85,7 +85,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
@@ -118,7 +118,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
         Assert.assertSame(originResponse, result);
@@ -130,7 +130,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         request = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/foo", new ProtocolVersion("HTTP", 1, 2)));
 
-        HttpRequestWrapper downgraded = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper downgraded = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1));
 
         EasyMock.expect(
@@ -141,7 +141,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
@@ -161,7 +161,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         request = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/foo", new ProtocolVersion("HTTP", 1, 0)));
-        HttpRequestWrapper upgraded = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper upgraded = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1));
 
         EasyMock.expect(
@@ -172,7 +172,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
@@ -204,7 +204,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
         Assert.assertEquals(HttpVersion.HTTP_1_1, result.getProtocolVersion());
@@ -223,7 +223,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
         Assert.assertEquals(HttpVersion.HTTP_1_1, result.getProtocolVersion());
@@ -240,7 +240,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         request.removeHeaders("Connection");
         request.addHeader("X-Unknown-Header", "some-value");
 
-        HttpRequestWrapper downgraded = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper downgraded = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1));
         downgraded.removeHeaders("Connection");
         downgraded.addHeader("X-Unknown-Header", "some-value");
@@ -278,7 +278,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
 
@@ -301,7 +301,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     private void testOrderOfMultipleHeadersIsPreservedOnRequests(final String h, final HttpRequestWrapper request)
             throws Exception {
-        Capture<HttpRequestWrapper> reqCapture = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> reqCapture = new Capture<HttpRequestWrapper>();
 
         EasyMock.expect(
                 mockBackend.execute(
@@ -315,7 +315,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         verifyMocks();
 
-        HttpRequest forwarded = reqCapture.getValue();
+        final HttpRequest forwarded = reqCapture.getValue();
         Assert.assertNotNull(forwarded);
         Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(request, h), HttpTestUtils
                 .getCanonicalHeaderValue(forwarded, h));
@@ -352,7 +352,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testOrderOfMultipleAllowHeadersIsPreservedOnRequests() throws Exception {
-        BasicHttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/",
+        final BasicHttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/",
                 HttpVersion.HTTP_1_1);
         put.setEntity(body);
         put.addHeader("Allow", "GET, HEAD");
@@ -370,7 +370,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testOrderOfMultipleContentEncodingHeadersIsPreservedOnRequests() throws Exception {
-        BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
+        final BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
                 HttpVersion.HTTP_1_1);
         post.setEntity(body);
         post.addHeader("Content-Encoding", "gzip");
@@ -381,7 +381,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testOrderOfMultipleContentLanguageHeadersIsPreservedOnRequests() throws Exception {
-        BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
+        final BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
                 HttpVersion.HTTP_1_1);
         post.setEntity(body);
         post.addHeader("Content-Language", "mi");
@@ -392,7 +392,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testOrderOfMultipleExpectHeadersIsPreservedOnRequests() throws Exception {
-        BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
+        final BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
                 HttpVersion.HTTP_1_1);
         post.setEntity(body);
         post.addHeader("Expect", "100-continue");
@@ -431,7 +431,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
 
@@ -554,7 +554,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testUnknownHeadersOnRequestsAreForwarded() throws Exception {
         request.addHeader("X-Unknown-Header", "blahblah");
-        Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.isA(HttpRoute.class),
@@ -567,8 +567,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl.execute(route, request);
 
         verifyMocks();
-        HttpRequest forwarded = reqCap.getValue();
-        Header[] hdrs = forwarded.getHeaders("X-Unknown-Header");
+        final HttpRequest forwarded = reqCap.getValue();
+        final Header[] hdrs = forwarded.getHeaders("X-Unknown-Header");
         Assert.assertEquals(1, hdrs.length);
         Assert.assertEquals("blahblah", hdrs[0].getValue());
     }
@@ -585,10 +585,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
-        Header[] hdrs = result.getHeaders("X-Unknown-Header");
+        final Header[] hdrs = result.getHeaders("X-Unknown-Header");
         Assert.assertEquals(1, hdrs.length);
         Assert.assertEquals("blahblah", hdrs[0].getValue());
     }
@@ -602,13 +602,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testRequestsExpecting100ContinueBehaviorShouldSetExpectHeader() throws Exception {
-        BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest(
+        final BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest(
                 "POST", "/", HttpVersion.HTTP_1_1);
         post.setHeader(HTTP.EXPECT_DIRECTIVE, HTTP.EXPECT_CONTINUE);
         post.setHeader("Content-Length", "128");
         post.setEntity(new BasicHttpEntity());
 
-        Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
 
         EasyMock.expect(
                 mockBackend.execute(
@@ -623,10 +623,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         verifyMocks();
 
-        HttpRequestWrapper forwarded = reqCap.getValue();
+        final HttpRequestWrapper forwarded = reqCap.getValue();
         boolean foundExpect = false;
-        for (Header h : forwarded.getHeaders("Expect")) {
-            for (HeaderElement elt : h.getElements()) {
+        for (final Header h : forwarded.getHeaders("Expect")) {
+            for (final HeaderElement elt : h.getElements()) {
                 if ("100-continue".equalsIgnoreCase(elt.getName())) {
                     foundExpect = true;
                     break;
@@ -646,12 +646,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testRequestsNotExpecting100ContinueBehaviorShouldNotSetExpectContinueHeader()
             throws Exception {
-        BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest(
+        final BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest(
                 "POST", "/", HttpVersion.HTTP_1_1);
         post.setHeader("Content-Length", "128");
         post.setEntity(new BasicHttpEntity());
 
-        Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
 
         EasyMock.expect(
                 mockBackend.execute(
@@ -666,10 +666,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         verifyMocks();
 
-        HttpRequestWrapper forwarded = reqCap.getValue();
+        final HttpRequestWrapper forwarded = reqCap.getValue();
         boolean foundExpect = false;
-        for (Header h : forwarded.getHeaders("Expect")) {
-            for (HeaderElement elt : h.getElements()) {
+        for (final Header h : forwarded.getHeaders("Expect")) {
+            for (final HeaderElement elt : h.getElements()) {
                 if ("100-continue".equalsIgnoreCase(elt.getName())) {
                     foundExpect = true;
                     break;
@@ -689,7 +689,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testExpect100ContinueIsNotSentIfThereIsNoRequestBody() throws Exception {
         request.addHeader("Expect", "100-continue");
-        Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -700,11 +700,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         replayMocks();
         impl.execute(route, request);
         verifyMocks();
-        HttpRequest forwarded = reqCap.getValue();
+        final HttpRequest forwarded = reqCap.getValue();
         boolean foundExpectContinue = false;
 
-        for (Header h : forwarded.getHeaders("Expect")) {
-            for (HeaderElement elt : h.getElements()) {
+        for (final Header h : forwarded.getHeaders("Expect")) {
+            for (final HeaderElement elt : h.getElements()) {
                 if ("100-continue".equalsIgnoreCase(elt.getName())) {
                     foundExpectContinue = true;
                     break;
@@ -747,7 +747,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void test100ContinueResponsesAreNotForwardedTo1_0ClientsWhoDidNotAskForThem()
             throws Exception {
 
-        BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
+        final BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
                 new ProtocolVersion("HTTP", 1, 0));
         post.setEntity(body);
         post.setHeader("Content-Length", "128");
@@ -767,7 +767,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             // backend, we can't really handle it at that point
             impl.execute(route, HttpRequestWrapper.wrap(post));
             Assert.fail("should have thrown an exception");
-        } catch (ClientProtocolException expected) {
+        } catch (final ClientProtocolException expected) {
         }
 
         verifyMocks();
@@ -819,10 +819,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
-        Header contentLength = result.getFirstHeader("Content-Length");
+        final Header contentLength = result.getFirstHeader("Content-Length");
         Assert.assertNotNull(contentLength);
         Assert.assertEquals("0", contentLength.getValue());
     }
@@ -859,7 +859,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("OPTIONS", "*", HttpVersion.HTTP_1_1));
         request.setHeader("Max-Forwards", "7");
 
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
 
         EasyMock.expect(
                 mockBackend.execute(
@@ -872,7 +872,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl.execute(route, request);
         verifyMocks();
 
-        HttpRequest captured = cap.getValue();
+        final HttpRequest captured = cap.getValue();
         Assert.assertEquals("6", captured.getFirstHeader("Max-Forwards").getValue());
     }
 
@@ -885,7 +885,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testDoesNotAddAMaxForwardsHeaderToForwardedOPTIONSRequests() throws Exception {
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("OPTIONS", "/", HttpVersion.HTTP_1_1));
-        Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -897,7 +897,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl.execute(route, request);
         verifyMocks();
 
-        HttpRequest forwarded = reqCap.getValue();
+        final HttpRequest forwarded = reqCap.getValue();
         Assert.assertNull(forwarded.getFirstHeader("Max-Forwards"));
     }
 
@@ -919,7 +919,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
 
@@ -938,25 +938,25 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             final String oldVal, final String newVal) throws Exception {
 
         // put something cacheable in the cache
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.addHeader("Cache-Control", "max-age=3600");
         resp1.setHeader(eHeader, oldVal);
 
         // get a head that penetrates the cache
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("HEAD", "/", HttpVersion.HTTP_1_1));
         req2.addHeader("Cache-Control", "no-cache");
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setEntity(null);
         resp2.setHeader(eHeader, newVal);
 
         // next request doesn't tolerate stale entry
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req3.addHeader("Cache-Control", "max-stale=0");
-        HttpResponse resp3 = HttpTestUtils.make200Response();
+        final HttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader(eHeader, newVal);
 
         EasyMock.expect(
@@ -1009,9 +1009,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testHEADResponseWithUpdatedLastModifiedFieldMakeACacheEntryStale() throws Exception {
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
         testHEADResponseWithUpdatedEntityFieldsMakeACacheEntryStale("Last-Modified", DateUtils
                 .formatDate(tenSecondsAgo), DateUtils.formatDate(sixSecondsAgo));
     }
@@ -1026,7 +1026,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testResponsesToPOSTWithoutCacheControlOrExpiresAreNotCached() throws Exception {
         emptyMockCacheExpectsNoPuts();
 
-        BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
+        final BasicHttpEntityEnclosingRequest post = new BasicHttpEntityEnclosingRequest("POST", "/",
                 HttpVersion.HTTP_1_1);
         post.setHeader("Content-Length", "128");
         post.setEntity(HttpTestUtils.makeBody(128));
@@ -1057,7 +1057,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testResponsesToPUTsAreNotCached() throws Exception {
         emptyMockCacheExpectsNoPuts();
 
-        BasicHttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/",
+        final BasicHttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/",
                 HttpVersion.HTTP_1_1);
         put.setEntity(HttpTestUtils.makeBody(128));
         put.addHeader("Content-Length", "128");
@@ -1111,12 +1111,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testForwardedTRACERequestsDoNotIncludeAnEntity() throws Exception {
-        BasicHttpEntityEnclosingRequest trace = new BasicHttpEntityEnclosingRequest("TRACE", "/",
+        final BasicHttpEntityEnclosingRequest trace = new BasicHttpEntityEnclosingRequest("TRACE", "/",
                 HttpVersion.HTTP_1_1);
         trace.setEntity(HttpTestUtils.makeBody(entityLength));
         trace.setHeader("Content-Length", Integer.toString(entityLength));
 
-        Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
 
         EasyMock.expect(
                 mockBackend.execute(
@@ -1129,9 +1129,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl.execute(route, HttpRequestWrapper.wrap(trace));
         verifyMocks();
 
-        HttpRequest forwarded = reqCap.getValue();
+        final HttpRequest forwarded = reqCap.getValue();
         if (forwarded instanceof HttpEntityEnclosingRequest) {
-            HttpEntityEnclosingRequest bodyReq = (HttpEntityEnclosingRequest) forwarded;
+            final HttpEntityEnclosingRequest bodyReq = (HttpEntityEnclosingRequest) forwarded;
             Assert.assertTrue(bodyReq.getEntity() == null
                     || bodyReq.getEntity().getContentLength() == 0);
         } else {
@@ -1186,7 +1186,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
 
@@ -1213,7 +1213,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
 
@@ -1243,13 +1243,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void test206ResponseGeneratedFromCacheMustHaveContentRangeOrMultipartByteRangesContentType()
             throws Exception {
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Range", "bytes=0-50");
 
@@ -1257,12 +1257,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         if (HttpStatus.SC_PARTIAL_CONTENT == result.getStatusLine().getStatusCode()) {
             if (result.getFirstHeader("Content-Range") == null) {
-                HeaderElement elt = result.getFirstHeader("Content-Type").getElements()[0];
+                final HeaderElement elt = result.getFirstHeader("Content-Type").getElements()[0];
                 Assert.assertTrue("multipart/byteranges".equalsIgnoreCase(elt.getName()));
                 Assert.assertNotNull(elt.getParameterByName("boundary"));
                 Assert.assertNotNull(elt.getParameterByName("boundary").getValue());
@@ -1275,13 +1275,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void test206ResponseGeneratedFromCacheMustHaveABodyThatMatchesContentLengthHeaderIfPresent()
             throws Exception {
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Range", "bytes=0-50");
 
@@ -1289,15 +1289,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         if (HttpStatus.SC_PARTIAL_CONTENT == result.getStatusLine().getStatusCode()) {
-            Header h = result.getFirstHeader("Content-Length");
+            final Header h = result.getFirstHeader("Content-Length");
             if (h != null) {
-                int contentLength = Integer.parseInt(h.getValue());
+                final int contentLength = Integer.parseInt(h.getValue());
                 int bytesRead = 0;
-                InputStream i = result.getEntity().getContent();
+                final InputStream i = result.getEntity().getContent();
                 while ((i.read()) != -1) {
                     bytesRead++;
                 }
@@ -1309,13 +1309,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void test206ResponseGeneratedFromCacheMustHaveDateHeader() throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Range", "bytes=0-50");
 
@@ -1323,7 +1323,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         if (HttpStatus.SC_PARTIAL_CONTENT == result.getStatusLine().getStatusCode()) {
@@ -1351,7 +1351,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         Assert.assertTrue(result.getStatusLine().getStatusCode() != HttpStatus.SC_PARTIAL_CONTENT
                 || result.getFirstHeader("Date") != null);
 
@@ -1360,13 +1360,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void test206ContainsETagIfA200ResponseWouldHaveIncludedIt() throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.addHeader("ETag", "\"etag1\"");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.addHeader("Range", "bytes=0-50");
 
@@ -1375,7 +1375,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         replayMocks();
 
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
 
         verifyMocks();
 
@@ -1386,13 +1386,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void test206ContainsContentLocationIfA200ResponseWouldHaveIncludedIt() throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.addHeader("Content-Location", "http://foo.example.com/other/url");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.addHeader("Range", "bytes=0-50");
 
@@ -1401,7 +1401,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         replayMocks();
 
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
 
         verifyMocks();
 
@@ -1413,30 +1413,30 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void test206ResponseIncludesVariantHeadersIfValueMightDiffer() throws Exception {
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.addHeader("Accept-Encoding", "gzip");
 
-        Date now = new Date();
-        Date inOneHour = new Date(now.getTime() + 3600 * 1000L);
+        final Date now = new Date();
+        final Date inOneHour = new Date(now.getTime() + 3600 * 1000L);
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.addHeader("Expires", DateUtils.formatDate(inOneHour));
         originResponse.addHeader("Vary", "Accept-Encoding");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.addHeader("Cache-Control", "no-cache");
         req2.addHeader("Accept-Encoding", "gzip");
-        Date nextSecond = new Date(now.getTime() + 1000L);
-        Date inTwoHoursPlusASec = new Date(now.getTime() + 2 * 3600 * 1000L + 1000L);
+        final Date nextSecond = new Date(now.getTime() + 1000L);
+        final Date inTwoHoursPlusASec = new Date(now.getTime() + 2 * 3600 * 1000L + 1000L);
 
-        HttpResponse originResponse2 = HttpTestUtils.make200Response();
+        final HttpResponse originResponse2 = HttpTestUtils.make200Response();
         originResponse2.setHeader("Date", DateUtils.formatDate(nextSecond));
         originResponse2.setHeader("Cache-Control", "max-age=7200");
         originResponse2.setHeader("Expires", DateUtils.formatDate(inTwoHoursPlusASec));
         originResponse2.setHeader("Vary", "Accept-Encoding");
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req3.addHeader("Range", "bytes=0-50");
         req3.addHeader("Accept-Encoding", "gzip");
@@ -1448,7 +1448,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         impl.execute(route, req1);
         impl.execute(route, req2);
-        HttpResponse result = impl.execute(route, req3);
+        final HttpResponse result = impl.execute(route, req3);
 
         verifyMocks();
 
@@ -1471,11 +1471,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void test206ResponseToConditionalRangeRequestDoesNotIncludeOtherEntityHeaders()
             throws Exception {
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        Date now = new Date();
-        Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
+        final Date now = new Date();
+        final Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
         originResponse = Proxies.enhanceResponse(HttpTestUtils.make200Response());
         originResponse.addHeader("Allow", "GET,HEAD");
         originResponse.addHeader("Cache-Control", "max-age=3600");
@@ -1487,7 +1487,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.addHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
         originResponse.addHeader("ETag", "W/\"weak-tag\"");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.addHeader("If-Range", "W/\"weak-tag\"");
         req2.addHeader("Range", "bytes=0-50");
@@ -1497,7 +1497,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         replayMocks();
 
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
 
         verifyMocks();
 
@@ -1521,11 +1521,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void test206ResponseToIfRangeWithStrongValidatorReturnsAllEntityHeaders()
             throws Exception {
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        Date now = new Date();
-        Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
+        final Date now = new Date();
+        final Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
         originResponse.addHeader("Allow", "GET,HEAD");
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.addHeader("Content-Language", "en");
@@ -1536,7 +1536,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.addHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
         originResponse.addHeader("ETag", "\"strong-tag\"");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.addHeader("If-Range", "\"strong-tag\"");
         req2.addHeader("Range", "bytes=0-50");
@@ -1546,7 +1546,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         replayMocks();
 
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
 
         verifyMocks();
 
@@ -1573,45 +1573,45 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void test206ResponseIsNotCombinedWithPreviousContentIfETagDoesNotMatch()
             throws Exception {
 
-        Date now = new Date();
+        final Date now = new Date();
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("ETag", "\"etag1\"");
-        byte[] bytes1 = new byte[128];
+        final byte[] bytes1 = new byte[128];
         for (int i = 0; i < bytes1.length; i++) {
             bytes1[i] = (byte) 1;
         }
         resp1.setEntity(new ByteArrayEntity(bytes1));
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control", "no-cache");
         req2.setHeader("Range", "bytes=0-50");
 
-        Date inOneSecond = new Date(now.getTime() + 1000L);
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT,
+        final Date inOneSecond = new Date(now.getTime() + 1000L);
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT,
                 "Partial Content");
         resp2.setHeader("Date", DateUtils.formatDate(inOneSecond));
         resp2.setHeader("Server", resp1.getFirstHeader("Server").getValue());
         resp2.setHeader("ETag", "\"etag2\"");
         resp2.setHeader("Content-Range", "bytes 0-50/128");
-        byte[] bytes2 = new byte[51];
+        final byte[] bytes2 = new byte[51];
         for (int i = 0; i < bytes2.length; i++) {
             bytes2[i] = (byte) 2;
         }
         resp2.setEntity(new ByteArrayEntity(bytes2));
 
-        Date inTwoSeconds = new Date(now.getTime() + 2000L);
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final Date inTwoSeconds = new Date(now.getTime() + 2000L);
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp3 = HttpTestUtils.make200Response();
+        final HttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader("Date", DateUtils.formatDate(inTwoSeconds));
         resp3.setHeader("Cache-Control", "max-age=3600");
         resp3.setHeader("ETag", "\"etag2\"");
-        byte[] bytes3 = new byte[128];
+        final byte[] bytes3 = new byte[128];
         for (int i = 0; i < bytes3.length; i++) {
             bytes3[i] = (byte) 2;
         }
@@ -1642,11 +1642,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         impl.execute(route, req1);
         impl.execute(route, req2);
-        HttpResponse result = impl.execute(route, req3);
+        final HttpResponse result = impl.execute(route, req3);
 
         verifyMocks();
 
-        InputStream i = result.getEntity().getContent();
+        final InputStream i = result.getEntity().getContent();
         int b;
         boolean found1 = false;
         boolean found2 = false;
@@ -1666,46 +1666,46 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void test206ResponseIsNotCombinedWithPreviousContentIfLastModifiedDoesNotMatch()
             throws Exception {
 
-        Date now = new Date();
+        final Date now = new Date();
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
-        Date oneHourAgo = new Date(now.getTime() - 3600L);
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
+        final Date oneHourAgo = new Date(now.getTime() - 3600L);
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
-        byte[] bytes1 = new byte[128];
+        final byte[] bytes1 = new byte[128];
         for (int i = 0; i < bytes1.length; i++) {
             bytes1[i] = (byte) 1;
         }
         resp1.setEntity(new ByteArrayEntity(bytes1));
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control", "no-cache");
         req2.setHeader("Range", "bytes=0-50");
 
-        Date inOneSecond = new Date(now.getTime() + 1000L);
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT,
+        final Date inOneSecond = new Date(now.getTime() + 1000L);
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT,
                 "Partial Content");
         resp2.setHeader("Date", DateUtils.formatDate(inOneSecond));
         resp2.setHeader("Server", resp1.getFirstHeader("Server").getValue());
         resp2.setHeader("Last-Modified", DateUtils.formatDate(now));
         resp2.setHeader("Content-Range", "bytes 0-50/128");
-        byte[] bytes2 = new byte[51];
+        final byte[] bytes2 = new byte[51];
         for (int i = 0; i < bytes2.length; i++) {
             bytes2[i] = (byte) 2;
         }
         resp2.setEntity(new ByteArrayEntity(bytes2));
 
-        Date inTwoSeconds = new Date(now.getTime() + 2000L);
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final Date inTwoSeconds = new Date(now.getTime() + 2000L);
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp3 = HttpTestUtils.make200Response();
+        final HttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader("Date", DateUtils.formatDate(inTwoSeconds));
         resp3.setHeader("Cache-Control", "max-age=3600");
         resp3.setHeader("ETag", "\"etag2\"");
-        byte[] bytes3 = new byte[128];
+        final byte[] bytes3 = new byte[128];
         for (int i = 0; i < bytes3.length; i++) {
             bytes3[i] = (byte) 2;
         }
@@ -1736,11 +1736,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         impl.execute(route, req1);
         impl.execute(route, req2);
-        HttpResponse result = impl.execute(route, req3);
+        final HttpResponse result = impl.execute(route, req3);
 
         verifyMocks();
 
-        InputStream i = result.getEntity().getContent();
+        final InputStream i = result.getEntity().getContent();
         int b;
         boolean found1 = false;
         boolean found2 = false;
@@ -1778,7 +1778,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                     "Partial Content"));
             originResponse.setHeader("Content-Range", "bytes 0-50/128");
             originResponse.setHeader("Cache-Control", "max-age=3600");
-            byte[] bytes = new byte[51];
+            final byte[] bytes = new byte[51];
             (new Random()).nextBytes(bytes);
             originResponse.setEntity(new ByteArrayEntity(bytes));
 
@@ -1856,7 +1856,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
 
@@ -1891,7 +1891,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Date"));
@@ -1900,12 +1900,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void test304ResponseGeneratedFromCacheIncludesDateHeader() throws Exception {
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("ETag", "\"etag\"");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("If-None-Match", "\"etag\"");
 
@@ -1918,7 +1918,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         replayMocks();
 
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
 
         verifyMocks();
         if (result.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
@@ -1935,12 +1935,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void test304ResponseGeneratedFromCacheIncludesEtagIfOriginResponseDid() throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("ETag", "\"etag\"");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("If-None-Match", "\"etag\"");
 
@@ -1953,7 +1953,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         replayMocks();
 
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
 
         verifyMocks();
         if (result.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
@@ -1964,13 +1964,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void test304ResponseGeneratedFromCacheIncludesContentLocationIfOriginResponseDid()
             throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("Content-Location", "http://foo.example.com/other");
         originResponse.setHeader("ETag", "\"etag\"");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("If-None-Match", "\"etag\"");
 
@@ -1983,7 +1983,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         replayMocks();
 
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
 
         verifyMocks();
         if (result.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
@@ -2002,33 +2002,33 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void test304ResponseGeneratedFromCacheIncludesExpiresCacheControlAndOrVaryIfResponseMightDiffer()
             throws Exception {
 
-        Date now = new Date();
-        Date inTwoHours = new Date(now.getTime() + 2 * 3600 * 1000L);
+        final Date now = new Date();
+        final Date inTwoHours = new Date(now.getTime() + 2 * 3600 * 1000L);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("Accept-Encoding", "gzip");
 
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "\"v1\"");
         resp1.setHeader("Cache-Control", "max-age=7200");
         resp1.setHeader("Expires", DateUtils.formatDate(inTwoHours));
         resp1.setHeader("Vary", "Accept-Encoding");
         resp1.setEntity(HttpTestUtils.makeBody(entityLength));
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("Accept-Encoding", "gzip");
         req1.setHeader("Cache-Control", "no-cache");
 
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag", "\"v2\"");
         resp2.setHeader("Cache-Control", "max-age=3600");
         resp2.setHeader("Expires", DateUtils.formatDate(inTwoHours));
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setEntity(HttpTestUtils.makeBody(entityLength));
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req3.setHeader("Accept-Encoding", "gzip");
         req3.setHeader("If-None-Match", "\"v2\"");
@@ -2051,7 +2051,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         impl.execute(route, req1);
         impl.execute(route, req2);
-        HttpResponse result = impl.execute(route, req3);
+        final HttpResponse result = impl.execute(route, req3);
 
         verifyMocks();
 
@@ -2073,13 +2073,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void test304GeneratedFromCacheOnWeakValidatorDoesNotIncludeOtherEntityHeaders()
             throws Exception {
 
-        Date now = new Date();
-        Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
+        final Date now = new Date();
+        final Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "W/\"v1\"");
         resp1.setHeader("Allow", "GET,HEAD");
         resp1.setHeader("Content-Encoding", "x-coding");
@@ -2090,7 +2090,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp1.setHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
         resp1.setHeader("Cache-Control", "max-age=7200");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("If-None-Match", "W/\"v1\"");
 
@@ -2104,7 +2104,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         replayMocks();
 
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
 
         verifyMocks();
 
@@ -2129,37 +2129,37 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testNotModifiedOfNonCachedEntityShouldRevalidateWithUnconditionalGET()
             throws Exception {
 
-        Date now = new Date();
+        final Date now = new Date();
 
         // load cache with cacheable entry
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "\"etag1\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
         // force a revalidation
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control", "max-age=0,max-stale=0");
 
         // updated ETag provided to a conditional revalidation
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
                 "Not Modified");
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp2.setHeader("Server", "MockServer/1.0");
         resp2.setHeader("ETag", "\"etag2\"");
 
         // conditional validation uses If-None-Match
-        HttpRequestWrapper conditionalValidation = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper conditionalValidation = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         conditionalValidation.setHeader("If-None-Match", "\"etag1\"");
 
         // unconditional validation doesn't use If-None-Match
-        HttpRequestWrapper unconditionalValidation = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper unconditionalValidation = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         // new response to unconditional validation provides new body
-        HttpResponse resp3 = HttpTestUtils.make200Response();
+        final HttpResponse resp3 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "\"etag2\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
@@ -2204,29 +2204,29 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testCacheEntryIsUpdatedWithNewFieldValuesIn304Response() throws Exception {
 
-        Date now = new Date();
-        Date inFiveSeconds = new Date(now.getTime() + 5000L);
+        final Date now = new Date();
+        final Date inFiveSeconds = new Date(now.getTime() + 5000L);
 
-        HttpRequestWrapper initialRequest = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper initialRequest = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        HttpResponse cachedResponse = HttpTestUtils.make200Response();
+        final HttpResponse cachedResponse = HttpTestUtils.make200Response();
         cachedResponse.setHeader("Cache-Control", "max-age=3600");
         cachedResponse.setHeader("ETag", "\"etag\"");
 
-        HttpRequestWrapper secondRequest = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper secondRequest = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         secondRequest.setHeader("Cache-Control", "max-age=0,max-stale=0");
 
-        HttpRequestWrapper conditionalValidationRequest = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper conditionalValidationRequest = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         conditionalValidationRequest.setHeader("If-None-Match", "\"etag\"");
 
-        HttpRequestWrapper unconditionalValidationRequest = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper unconditionalValidationRequest = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         // to be used if the cache generates a conditional validation
-        HttpResponse conditionalResponse = new BasicHttpResponse(
+        final HttpResponse conditionalResponse = new BasicHttpResponse(
                 HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         conditionalResponse.setHeader("Date", DateUtils.formatDate(inFiveSeconds));
         conditionalResponse.setHeader("Server", "MockUtils/1.0");
@@ -2234,12 +2234,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         conditionalResponse.setHeader("X-Extra", "junk");
 
         // to be used if the cache generates an unconditional validation
-        HttpResponse unconditionalResponse = HttpTestUtils.make200Response();
+        final HttpResponse unconditionalResponse = HttpTestUtils.make200Response();
         unconditionalResponse.setHeader("Date", DateUtils.formatDate(inFiveSeconds));
         unconditionalResponse.setHeader("ETag", "\"etag\"");
 
-        Capture<HttpRequestWrapper> cap1 = new Capture<HttpRequestWrapper>();
-        Capture<HttpRequestWrapper> cap2 = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap1 = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap2 = new Capture<HttpRequestWrapper>();
 
         EasyMock.expect(
                 mockBackend.execute(
@@ -2266,7 +2266,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         replayMocks();
 
         impl.execute(route, initialRequest);
-        HttpResponse result = impl.execute(route, secondRequest);
+        final HttpResponse result = impl.execute(route, secondRequest);
 
         verifyMocks();
 
@@ -2301,7 +2301,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         if (result.getStatusLine().getStatusCode() == 401) {
             Assert.assertNotNull(result.getFirstHeader("WWW-Authenticate"));
         }
@@ -2325,7 +2325,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         if (result.getStatusLine().getStatusCode() == 405) {
             Assert.assertNotNull(result.getFirstHeader("Allow"));
         }
@@ -2354,7 +2354,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         if (result.getStatusLine().getStatusCode() == 407) {
             Assert.assertNotNull(result.getFirstHeader("Proxy-Authenticate"));
         }
@@ -2381,12 +2381,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
         if (result.getStatusLine().getStatusCode() == 416) {
-            for (Header h : result.getHeaders("Content-Type")) {
-                for (HeaderElement elt : h.getElements()) {
+            for (final Header h : result.getHeaders("Content-Type")) {
+                for (final HeaderElement elt : h.getElements()) {
                     Assert.assertFalse("multipart/byteranges".equalsIgnoreCase(elt.getName()));
                 }
             }
@@ -2401,11 +2401,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setHeader("Content-Length", "128");
         originResponse.setHeader("Cache-Control", "max-age=3600");
 
-        HttpRequestWrapper rangeReq = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper rangeReq = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         rangeReq.setHeader("Range", "bytes=1000-1200");
 
-        HttpResponse orig416 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 416,
+        final HttpResponse orig416 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 416,
                 "Requested Range Not Satisfiable");
 
         EasyMock.expect(
@@ -2426,13 +2426,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, request);
-        HttpResponse result = impl.execute(route, rangeReq);
+        final HttpResponse result = impl.execute(route, rangeReq);
         verifyMocks();
 
         // might have gotten a 416 from the origin or the cache
         if (result.getStatusLine().getStatusCode() == 416) {
-            for (Header h : result.getHeaders("Content-Type")) {
-                for (HeaderElement elt : h.getElements()) {
+            for (final Header h : result.getHeaders("Content-Type")) {
+                for (final HeaderElement elt : h.getElements()) {
                     Assert.assertFalse("multipart/byteranges".equalsIgnoreCase(elt.getName()));
                 }
             }
@@ -2470,33 +2470,33 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testMustReturnACacheEntryIfItCanRevalidateIt() throws Exception {
 
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
-        Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
+        final Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
 
-        Header[] hdrs = new Header[] {
+        final Header[] hdrs = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=0"),
                 new BasicHeader("ETag", "\"etag\""),
                 new BasicHeader("Content-Length", "128")
         };
 
-        byte[] bytes = new byte[128];
+        final byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         impl = new CachingExec(mockBackend, mockCache, config);
 
         request = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1));
 
-        HttpRequestWrapper validate = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper validate = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1));
         validate.setHeader("If-None-Match", "\"etag\"");
 
-        CloseableHttpResponse notModified = Proxies.enhanceResponse(
+        final CloseableHttpResponse notModified = Proxies.enhanceResponse(
                 new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified"));
         notModified.setHeader("Date", DateUtils.formatDate(now));
         notModified.setHeader("ETag", "\"etag\"");
@@ -2526,21 +2526,21 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testMustReturnAFreshEnoughCacheEntryIfItHasIt() throws Exception {
 
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
-        Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
+        final Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
 
-        Header[] hdrs = new Header[] {
+        final Header[] hdrs = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length", "128")
         };
 
-        byte[] bytes = new byte[128];
+        final byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         impl = new CachingExec(mockBackend, mockCache, config);
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1));
@@ -2549,7 +2549,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
         Assert.assertEquals(200, result.getStatusLine().getStatusCode());
@@ -2573,22 +2573,22 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testMustServeAppropriateErrorOrWarningIfNoOriginCommunicationPossible()
             throws Exception {
 
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
-        Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
+        final Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
 
-        Header[] hdrs = new Header[] {
+        final Header[] hdrs = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=0"),
                 new BasicHeader("Content-Length", "128"),
                 new BasicHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo))
         };
 
-        byte[] bytes = new byte[128];
+        final byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         impl = new CachingExec(mockBackend, mockCache, config);
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1));
@@ -2605,14 +2605,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
 
         verifyMocks();
 
-        int status = result.getStatusLine().getStatusCode();
+        final int status = result.getStatusLine().getStatusCode();
         if (status == 200) {
             boolean foundWarning = false;
-            for (Header h : result.getHeaders("Warning")) {
+            for (final Header h : result.getHeaders("Warning")) {
                 if (h.getValue().split(" ")[0].equals("111")) {
                     foundWarning = true;
                 }
@@ -2644,23 +2644,23 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void test1xxWarningsAreDeletedAfterSuccessfulRevalidation() throws Exception {
 
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 25 * 1000L);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 25 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=5");
         resp1.setHeader("Warning", "110 squid \"stale stuff\"");
         resp1.setHeader("Via", "1.1 fred");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        HttpRequestWrapper validate = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper validate = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         validate.setHeader("If-None-Match", "\"etag\"");
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
                 "Not Modified");
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp2.setHeader("Server", "MockServer/1.0");
@@ -2676,28 +2676,28 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(
                                 Proxies.enhanceResponse(resp2));
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         replayMocks();
 
-        HttpResponse stale = impl.execute(route, req1);
+        final HttpResponse stale = impl.execute(route, req1);
         Assert.assertNotNull(stale.getFirstHeader("Warning"));
 
-        HttpResponse result1 = impl.execute(route, req2);
-        HttpResponse result2 = impl.execute(route, req3);
+        final HttpResponse result1 = impl.execute(route, req2);
+        final HttpResponse result2 = impl.execute(route, req3);
 
         verifyMocks();
 
         boolean found1xxWarning = false;
-        for (Header h : result1.getHeaders("Warning")) {
-            for (HeaderElement elt : h.getElements()) {
+        for (final Header h : result1.getHeaders("Warning")) {
+            for (final HeaderElement elt : h.getElements()) {
                 if (elt.getName().startsWith("1")) {
                     found1xxWarning = true;
                 }
             }
         }
-        for (Header h : result2.getHeaders("Warning")) {
-            for (HeaderElement elt : h.getElements()) {
+        for (final Header h : result2.getHeaders("Warning")) {
+            for (final HeaderElement elt : h.getElements()) {
                 if (elt.getName().startsWith("1")) {
                     found1xxWarning = true;
                 }
@@ -2715,30 +2715,30 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void test2xxWarningsAreNotDeletedAfterSuccessfulRevalidation() throws Exception {
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=5");
         resp1.setHeader("Via", "1.1 xproxy");
         resp1.setHeader("Warning", "214 xproxy \"transformed stuff\"");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        HttpRequestWrapper validate = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper validate = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         validate.setHeader("If-None-Match", "\"etag\"");
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED,
                 "Not Modified");
         resp2.setHeader("Date", DateUtils.formatDate(now));
         resp2.setHeader("Server", "MockServer/1.0");
         resp2.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Via", "1.1 xproxy");
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         backendExpectsAnyRequestAndReturn(resp1);
 
@@ -2752,18 +2752,18 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        HttpResponse stale = impl.execute(route, req1);
+        final HttpResponse stale = impl.execute(route, req1);
         Assert.assertNotNull(stale.getFirstHeader("Warning"));
 
-        HttpResponse result1 = impl.execute(route, req2);
-        HttpResponse result2 = impl.execute(route, req3);
+        final HttpResponse result1 = impl.execute(route, req2);
+        final HttpResponse result2 = impl.execute(route, req3);
 
         verifyMocks();
 
         boolean found214Warning = false;
-        for (Header h : result1.getHeaders("Warning")) {
-            for (HeaderElement elt : h.getElements()) {
-                String[] parts = elt.getName().split(" ");
+        for (final Header h : result1.getHeaders("Warning")) {
+            for (final HeaderElement elt : h.getElements()) {
+                final String[] parts = elt.getName().split(" ");
                 if ("214".equals(parts[0])) {
                     found214Warning = true;
                 }
@@ -2772,9 +2772,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         Assert.assertTrue(found214Warning);
 
         found214Warning = false;
-        for (Header h : result2.getHeaders("Warning")) {
-            for (HeaderElement elt : h.getElements()) {
-                String[] parts = elt.getName().split(" ");
+        for (final Header h : result2.getHeaders("Warning")) {
+            for (final HeaderElement elt : h.getElements()) {
+                final String[] parts = elt.getName().split(" ");
                 if ("214".equals(parts[0])) {
                     found214Warning = true;
                 }
@@ -2793,21 +2793,21 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testAgeHeaderPopulatedFromCacheEntryCurrentAge() throws Exception {
 
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
-        Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
+        final Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
 
-        Header[] hdrs = new Header[] {
+        final Header[] hdrs = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(nineSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
                 new BasicHeader("Content-Length", "128")
         };
 
-        byte[] bytes = new byte[128];
+        final byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
         impl = new CachingExec(mockBackend, mockCache, config);
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1));
@@ -2816,7 +2816,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
         Assert.assertEquals(200, result.getStatusLine().getStatusCode());
@@ -2842,38 +2842,38 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testHeuristicCacheOlderThan24HoursHasWarningAttached() throws Exception {
 
-        Date now = new Date();
-        Date thirtySixHoursAgo = new Date(now.getTime() - 36 * 3600 * 1000L);
-        Date oneYearAgo = new Date(now.getTime() - 365 * 24 * 3600 * 1000L);
-        Date requestTime = new Date(thirtySixHoursAgo.getTime() - 1000L);
-        Date responseTime = new Date(thirtySixHoursAgo.getTime() + 1000L);
+        final Date now = new Date();
+        final Date thirtySixHoursAgo = new Date(now.getTime() - 36 * 3600 * 1000L);
+        final Date oneYearAgo = new Date(now.getTime() - 365 * 24 * 3600 * 1000L);
+        final Date requestTime = new Date(thirtySixHoursAgo.getTime() - 1000L);
+        final Date responseTime = new Date(thirtySixHoursAgo.getTime() + 1000L);
 
-        Header[] hdrs = new Header[] {
+        final Header[] hdrs = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(thirtySixHoursAgo)),
                 new BasicHeader("Cache-Control", "public"),
                 new BasicHeader("Last-Modified", DateUtils.formatDate(oneYearAgo)),
                 new BasicHeader("Content-Length", "128")
         };
 
-        byte[] bytes = new byte[128];
+        final byte[] bytes = new byte[128];
         (new Random()).nextBytes(bytes);
 
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(requestTime, responseTime, hdrs, bytes);
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(requestTime, responseTime, hdrs, bytes);
 
         impl = new CachingExec(mockBackend, mockCache, config);
 
         request = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1));
 
-        CloseableHttpResponse validated = Proxies.enhanceResponse(HttpTestUtils.make200Response());
+        final CloseableHttpResponse validated = Proxies.enhanceResponse(HttpTestUtils.make200Response());
         validated.setHeader("Cache-Control", "public");
         validated.setHeader("Last-Modified", DateUtils.formatDate(oneYearAgo));
         validated.setHeader("Content-Length", "128");
         validated.setEntity(new ByteArrayEntity(bytes));
 
-        HttpResponse reconstructed = HttpTestUtils.make200Response();
+        final HttpResponse reconstructed = HttpTestUtils.make200Response();
 
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
 
         mockCache.flushInvalidatedCacheEntriesFor(host, request);
         mockCache.flushInvalidatedCacheEntriesFor(
@@ -2898,16 +2898,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                 EasyMock.isA(Date.class))).andReturn(reconstructed).times(0, 1);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
         Assert.assertEquals(200, result.getStatusLine().getStatusCode());
         if (!cap.hasCaptured()) {
             // heuristic cache hit
             boolean found113Warning = false;
-            for (Header h : result.getHeaders("Warning")) {
-                for (HeaderElement elt : h.getElements()) {
-                    String[] parts = elt.getName().split(" ");
+            for (final Header h : result.getHeaders("Warning")) {
+                for (final HeaderElement elt : h.getElements()) {
+                    final String[] parts = elt.getName().split(" ");
                     if ("113".equals(parts[0])) {
                         found113Warning = true;
                         break;
@@ -2928,31 +2928,31 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testKeepsMostRecentDateHeaderForFreshResponse() throws Exception {
 
-        Date now = new Date();
-        Date inFiveSecond = new Date(now.getTime() + 5 * 1000L);
+        final Date now = new Date();
+        final Date inFiveSecond = new Date(now.getTime() + 5 * 1000L);
 
         // put an entry in the cache
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(inFiveSecond));
         resp1.setHeader("ETag", "\"etag1\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Content-Length", "128");
 
         // force another origin hit
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control", "no-cache");
 
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Date", DateUtils.formatDate(now)); // older
         resp2.setHeader("ETag", "\"etag2\"");
         resp2.setHeader("Cache-Control", "max-age=3600");
         resp2.setHeader("Content-Length", "128");
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         EasyMock.expect(
@@ -2968,7 +2968,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         replayMocks();
         impl.execute(route, req1);
         impl.execute(route, req2);
-        HttpResponse result = impl.execute(route, req3);
+        final HttpResponse result = impl.execute(route, req3);
         verifyMocks();
         Assert.assertEquals("\"etag1\"", result.getFirstHeader("ETag").getValue());
     }
@@ -2989,7 +2989,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     private HttpResponse testRequestWithWeakETagValidatorIsNotAllowed(final String header)
             throws Exception {
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -2998,13 +2998,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse).times(0, 1);
 
         replayMocks();
-        HttpResponse response = impl.execute(route, request);
+        final HttpResponse response = impl.execute(route, request);
         verifyMocks();
 
         // it's probably ok to return a 400 (Bad Request) to this client
         if (cap.hasCaptured()) {
-            HttpRequest forwarded = cap.getValue();
-            Header h = forwarded.getFirstHeader(header);
+            final HttpRequest forwarded = cap.getValue();
+            final Header h = forwarded.getFirstHeader(header);
             if (h != null) {
                 Assert.assertFalse(h.getValue().startsWith("W/"));
             }
@@ -3019,13 +3019,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         request.setHeader("Range", "bytes=0-500");
         request.setHeader("If-Range", "W/\"etag\"");
 
-        HttpResponse response = testRequestWithWeakETagValidatorIsNotAllowed("If-Range");
+        final HttpResponse response = testRequestWithWeakETagValidatorIsNotAllowed("If-Range");
         Assert.assertTrue(response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST);
     }
 
     @Test
     public void testPUTWithIfMatchWeakETagIsNotAllowed() throws Exception {
-        HttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/", HttpVersion.HTTP_1_1);
+        final HttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/", HttpVersion.HTTP_1_1);
         put.setEntity(HttpTestUtils.makeBody(128));
         put.setHeader("Content-Length", "128");
         put.setHeader("If-Match", "W/\"etag\"");
@@ -3036,7 +3036,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testPUTWithIfNoneMatchWeakETagIsNotAllowed() throws Exception {
-        HttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/", HttpVersion.HTTP_1_1);
+        final HttpEntityEnclosingRequest put = new BasicHttpEntityEnclosingRequest("PUT", "/", HttpVersion.HTTP_1_1);
         put.setEntity(HttpTestUtils.makeBody(128));
         put.setHeader("Content-Length", "128");
         put.setHeader("If-None-Match", "W/\"etag\"");
@@ -3072,10 +3072,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testSubrangeGETMustUseStrongComparisonForCachedResponse() throws Exception {
-        Date now = new Date();
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final Date now = new Date();
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("ETag", "\"etag\"");
@@ -3085,7 +3085,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         // marked weak. Therefore, the If-Range must fail and we must
         // either get an error back or the full entity, but we better
         // not get the conditionally-requested Partial Content (206).
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Range", "bytes=0-50");
         req2.setHeader("If-Range", "W/\"etag\"");
@@ -3100,7 +3100,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         Assert.assertFalse(HttpStatus.SC_PARTIAL_CONTENT == result.getStatusLine().getStatusCode());
@@ -3116,22 +3116,22 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testValidationMustUseETagIfProvidedByOriginServer() throws Exception {
 
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "W/\"etag\"");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control", "max-age=0,max-stale=0");
 
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.isA(HttpRoute.class),
@@ -3153,12 +3153,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl.execute(route, req2);
         verifyMocks();
 
-        HttpRequest validation = cap.getValue();
+        final HttpRequest validation = cap.getValue();
         boolean isConditional = false;
-        String[] conditionalHeaders = { "If-Range", "If-Modified-Since", "If-Unmodified-Since",
+        final String[] conditionalHeaders = { "If-Range", "If-Modified-Since", "If-Unmodified-Since",
                 "If-Match", "If-None-Match" };
 
-        for (String ch : conditionalHeaders) {
+        for (final String ch : conditionalHeaders) {
             if (validation.getFirstHeader(ch) != null) {
                 isConditional = true;
                 break;
@@ -3167,15 +3167,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         if (isConditional) {
             boolean foundETag = false;
-            for (Header h : validation.getHeaders("If-Match")) {
-                for (HeaderElement elt : h.getElements()) {
+            for (final Header h : validation.getHeaders("If-Match")) {
+                for (final HeaderElement elt : h.getElements()) {
                     if ("W/\"etag\"".equals(elt.getName())) {
                         foundETag = true;
                     }
                 }
             }
-            for (Header h : validation.getHeaders("If-None-Match")) {
-                for (HeaderElement elt : h.getElements()) {
+            for (final Header h : validation.getHeaders("If-None-Match")) {
+                for (final HeaderElement elt : h.getElements()) {
                     if ("W/\"etag\"".equals(elt.getName())) {
                         foundETag = true;
                     }
@@ -3197,19 +3197,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testConditionalRequestWhereNotAllValidatorsMatchCannotBeServedFromCache()
             throws Exception {
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "W/\"etag\"");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("If-None-Match", "W/\"etag\"");
         req2.setHeader("If-Modified-Since", DateUtils.formatDate(twentySecondsAgo));
@@ -3225,7 +3225,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         Assert.assertFalse(HttpStatus.SC_NOT_MODIFIED == result.getStatusLine().getStatusCode());
@@ -3234,18 +3234,18 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testConditionalRequestWhereAllValidatorsMatchMayBeServedFromCache()
             throws Exception {
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "W/\"etag\"");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("If-None-Match", "W/\"etag\"");
         req2.setHeader("If-Modified-Since", DateUtils.formatDate(tenSecondsAgo));
@@ -3279,11 +3279,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         if (!impl.supportsRangeAndContentRangeHeaders()) {
             emptyMockCacheExpectsNoPuts();
 
-            HttpRequestWrapper req = HttpRequestWrapper.wrap(
+            final HttpRequestWrapper req = HttpRequestWrapper.wrap(
                     new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
             req.setHeader("Range", "bytes=0-50");
 
-            HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, 206, "Partial Content");
+            final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, 206, "Partial Content");
             resp.setHeader("Content-Range", "bytes 0-50/128");
             resp.setHeader("ETag", "\"etag\"");
             resp.setHeader("Cache-Control", "max-age=3600");
@@ -3339,7 +3339,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
         Assert.assertEquals(value, result.getFirstHeader(header).getValue());
@@ -3364,7 +3364,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testDoesNotModifyLastModifiedHeaderFromOrigin() throws Exception {
-        String lm = DateUtils.formatDate(new Date());
+        final String lm = DateUtils.formatDate(new Date());
         testDoesNotModifyHeaderFromOrigin("Last-Modified", lm);
     }
 
@@ -3374,7 +3374,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
         Assert.assertNull(result.getFirstHeader(header));
@@ -3403,9 +3403,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     private void testDoesNotModifyHeaderFromOriginOnCacheHit(final String header, final String value)
             throws Exception {
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         originResponse = Proxies.enhanceResponse(HttpTestUtils.make200Response());
@@ -3416,7 +3416,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         Assert.assertEquals(value, result.getFirstHeader(header).getValue());
@@ -3440,15 +3440,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testDoesNotModifyLastModifiedFromOriginOnCacheHit() throws Exception {
-        String lm = DateUtils.formatDate(new Date(System.currentTimeMillis() - 10 * 1000L));
+        final String lm = DateUtils.formatDate(new Date(System.currentTimeMillis() - 10 * 1000L));
         testDoesNotModifyHeaderFromOriginOnCacheHit("Last-Modified", lm);
     }
 
     private void testDoesNotAddHeaderOnCacheHit(final String header) throws Exception {
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         originResponse.addHeader("Cache-Control", "max-age=3600");
@@ -3458,7 +3458,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         Assert.assertNull(result.getFirstHeader(header));
@@ -3485,13 +3485,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     private void testDoesNotModifyHeaderOnRequest(final String header, final String value) throws Exception {
-        BasicHttpEntityEnclosingRequest req =
+        final BasicHttpEntityEnclosingRequest req =
             new BasicHttpEntityEnclosingRequest("POST","/",HttpVersion.HTTP_1_1);
         req.setEntity(HttpTestUtils.makeBody(128));
         req.setHeader("Content-Length","128");
         req.setHeader(header,value);
 
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
 
         EasyMock.expect(
                 mockBackend.execute(
@@ -3504,13 +3504,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl.execute(route, HttpRequestWrapper.wrap(req));
         verifyMocks();
 
-        HttpRequest captured = cap.getValue();
+        final HttpRequest captured = cap.getValue();
         Assert.assertEquals(value, captured.getFirstHeader(header).getValue());
     }
 
     @Test
     public void testDoesNotModifyContentLocationHeaderOnRequest() throws Exception {
-        String url = "http://foo.example.com/other";
+        final String url = "http://foo.example.com/other";
         testDoesNotModifyHeaderOnRequest("Content-Location",url);
     }
 
@@ -3526,19 +3526,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testDoesNotModifyLastModifiedHeaderOnRequest() throws Exception {
-        long tenSecondsAgo = System.currentTimeMillis() - 10 * 1000L;
-        String lm = DateUtils.formatDate(new Date(tenSecondsAgo));
+        final long tenSecondsAgo = System.currentTimeMillis() - 10 * 1000L;
+        final String lm = DateUtils.formatDate(new Date(tenSecondsAgo));
         testDoesNotModifyHeaderOnRequest("Last-Modified", lm);
     }
 
     private void testDoesNotAddHeaderToRequestIfNotPresent(final String header) throws Exception {
-        BasicHttpEntityEnclosingRequest req =
+        final BasicHttpEntityEnclosingRequest req =
             new BasicHttpEntityEnclosingRequest("POST","/",HttpVersion.HTTP_1_1);
         req.setEntity(HttpTestUtils.makeBody(128));
         req.setHeader("Content-Length","128");
         req.removeHeaders(header);
 
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
 
         EasyMock.expect(
                 mockBackend.execute(
@@ -3551,7 +3551,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl.execute(route, HttpRequestWrapper.wrap(req));
         verifyMocks();
 
-        HttpRequest captured = cap.getValue();
+        final HttpRequest captured = cap.getValue();
         Assert.assertNull(captured.getFirstHeader(header));
     }
 
@@ -3583,15 +3583,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testDoesNotModifyExpiresHeaderFromOrigin() throws Exception {
-        long inTenSeconds = System.currentTimeMillis() + 10 * 1000L;
-        String expires = DateUtils.formatDate(new Date(inTenSeconds));
+        final long inTenSeconds = System.currentTimeMillis() + 10 * 1000L;
+        final String expires = DateUtils.formatDate(new Date(inTenSeconds));
         testDoesNotModifyHeaderFromOrigin("Expires", expires);
     }
 
     @Test
     public void testDoesNotModifyExpiresHeaderFromOriginOnCacheHit() throws Exception {
-        long inTenSeconds = System.currentTimeMillis() + 10 * 1000L;
-        String expires = DateUtils.formatDate(new Date(inTenSeconds));
+        final long inTenSeconds = System.currentTimeMillis() + 10 * 1000L;
+        final String expires = DateUtils.formatDate(new Date(inTenSeconds));
         testDoesNotModifyHeaderFromOriginOnCacheHit("Expires", expires);
     }
 
@@ -3602,10 +3602,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
-        Header expHdr = result.getFirstHeader("Expires");
+        final Header expHdr = result.getFirstHeader("Expires");
         if (expHdr != null) {
             Assert.assertEquals(result.getFirstHeader("Date").getValue(),
                                 expHdr.getValue());
@@ -3614,9 +3614,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testExpiresHeaderMatchesDateIfAddedToCacheHit() throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         originResponse.setHeader("Cache-Control","max-age=3600");
@@ -3626,10 +3626,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
-        Header expHdr = result.getFirstHeader("Expires");
+        final Header expHdr = result.getFirstHeader("Expires");
         if (expHdr != null) {
             Assert.assertEquals(result.getFirstHeader("Date").getValue(),
                                 expHdr.getValue());
@@ -3649,7 +3649,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
         Assert.assertEquals(value, result.getFirstHeader(header).getValue());
@@ -3677,9 +3677,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     private void testDoesNotModifyHeaderOnCachedResponseWithNoTransform(final String header, final String value) throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         originResponse.addHeader("Cache-Control","max-age=3600, no-transform");
@@ -3689,7 +3689,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         Assert.assertEquals(value, result.getFirstHeader(header).getValue());
@@ -3707,11 +3707,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testDoesNotModifyContentRangeHeaderOnCachedResponseWithNoTransform() throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("If-Range","\"etag\"");
         req1.setHeader("Range","bytes=0-49");
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("If-Range","\"etag\"");
         req2.setHeader("Range","bytes=0-49");
@@ -3723,7 +3723,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         Assert.assertEquals("bytes 0-49/128",
@@ -3810,27 +3810,27 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.3
      */
     public void testCachedEntityBodyIsUsedForResponseAfter304Validation() throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("ETag","\"etag\"");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control","max-age=0, max-stale=0");
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
 
         backendExpectsAnyRequestAndReturn(resp1);
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
-        InputStream i1 = resp1.getEntity().getContent();
-        InputStream i2 = result.getEntity().getContent();
+        final InputStream i1 = resp1.getEntity().getContent();
+        final InputStream i2 = result.getEntity().getContent();
         int b1, b2;
         while((b1 = i1.read()) != -1) {
             b2 = i2.read();
@@ -3870,17 +3870,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testResponseIncludesCacheEntryEndToEndHeadersForResponseAfter304Validation() throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("ETag","\"etag\"");
         decorateWithEndToEndHeaders(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("Date", DateUtils.formatDate(new Date()));
         resp2.setHeader("Server", "MockServer/1.0");
 
@@ -3889,16 +3889,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
-        String[] endToEndHeaders = {
+        final String[] endToEndHeaders = {
             "Cache-Control", "ETag", "Allow", "Content-Encoding",
             "Content-Language", "Content-Length", "Content-Location",
             "Content-MD5", "Content-Type", "Expires", "Last-Modified",
             "Location", "Pragma", "Retry-After"
         };
-        for(String h : endToEndHeaders) {
+        for(final String h : endToEndHeaders) {
             Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp1, h),
                                 HttpTestUtils.getCanonicalHeaderValue(result, h));
         }
@@ -3907,17 +3907,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testUpdatedEndToEndHeadersFrom304ArePassedOnResponseAndUpdatedInCacheEntry() throws Exception {
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("ETag","\"etag\"");
         decorateWithEndToEndHeaders(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("Cache-Control", "max-age=1800");
         resp2.setHeader("Date", DateUtils.formatDate(new Date()));
         resp2.setHeader("Server", "MockServer/1.0");
@@ -3933,21 +3933,21 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp1);
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result1 = impl.execute(route, req2);
-        HttpResponse result2 = impl.execute(route, req3);
+        final HttpResponse result1 = impl.execute(route, req2);
+        final HttpResponse result2 = impl.execute(route, req3);
         verifyMocks();
 
-        String[] endToEndHeaders = {
+        final String[] endToEndHeaders = {
             "Date", "Cache-Control", "Allow", "Content-Language",
             "Content-Location", "Content-Type", "Expires", "Location",
             "Pragma", "Retry-After"
         };
-        for(String h : endToEndHeaders) {
+        for(final String h : endToEndHeaders) {
             Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
                                 HttpTestUtils.getCanonicalHeaderValue(result1, h));
             Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(resp2, h),
@@ -3961,29 +3961,29 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testMultiHeadersAreSuccessfullyReplacedOn304Validation() throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.addHeader("Cache-Control","max-age=3600");
         resp1.addHeader("Cache-Control","public");
         resp1.setHeader("ETag","\"etag\"");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("Cache-Control", "max-age=1800");
 
         backendExpectsAnyRequestAndReturn(resp1);
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result1 = impl.execute(route, req2);
-        HttpResponse result2 = impl.execute(route, req3);
+        final HttpResponse result1 = impl.execute(route, req2);
+        final HttpResponse result2 = impl.execute(route, req3);
         verifyMocks();
 
         final String h = "Cache-Control";
@@ -4016,15 +4016,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testCannotCombinePartialResponseIfIncomingResponseDoesNotHaveACacheValidator()
         throws Exception {
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("Range","bytes=0-49");
 
-        Date now = new Date();
-        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Date now = new Date();
+        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(HttpTestUtils.makeBody(50));
         resp1.setHeader("Server","MockServer/1.0");
         resp1.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
@@ -4034,11 +4034,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(HttpTestUtils.makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -4047,10 +4047,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -4068,15 +4068,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testCannotCombinePartialResponseIfCacheEntryDoesNotHaveACacheValidator()
         throws Exception {
 
-        Date now = new Date();
-        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Date now = new Date();
+        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(HttpTestUtils.makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -4085,11 +4085,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(HttpTestUtils.makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -4099,10 +4099,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -4120,15 +4120,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testCannotCombinePartialResponseIfCacheValidatorsDoNotStronglyMatch()
         throws Exception {
 
-        Date now = new Date();
-        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Date now = new Date();
+        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(HttpTestUtils.makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -4138,11 +4138,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(HttpTestUtils.makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -4152,10 +4152,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -4173,15 +4173,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testMustDiscardLeastRecentPartialResponseIfIncomingRequestDoesNotHaveCacheValidator()
         throws Exception {
 
-        Date now = new Date();
-        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Date now = new Date();
+        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(HttpTestUtils.makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -4191,11 +4191,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(HttpTestUtils.makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -4204,11 +4204,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req3.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -4227,15 +4227,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testMustDiscardLeastRecentPartialResponseIfCachedResponseDoesNotHaveCacheValidator()
         throws Exception {
 
-        Date now = new Date();
-        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Date now = new Date();
+        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(HttpTestUtils.makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -4244,11 +4244,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(HttpTestUtils.makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -4258,11 +4258,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req3.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -4281,15 +4281,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testMustDiscardLeastRecentPartialResponseIfCacheValidatorsDoNotStronglyMatch()
         throws Exception {
 
-        Date now = new Date();
-        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Date now = new Date();
+        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(HttpTestUtils.makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -4299,11 +4299,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(HttpTestUtils.makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -4313,11 +4313,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req3.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -4336,15 +4336,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testMustDiscardLeastRecentPartialResponseIfCacheValidatorsDoNotStronglyMatchEvenIfResponsesOutOfOrder()
         throws Exception {
 
-        Date now = new Date();
-        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
-        Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
+        final Date now = new Date();
+        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(HttpTestUtils.makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -4354,11 +4354,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(HttpTestUtils.makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -4368,11 +4368,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req3.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -4391,14 +4391,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testMustDiscardCachedPartialResponseIfCacheValidatorsDoNotStronglyMatchAndDateHeadersAreEqual()
         throws Exception {
 
-        Date now = new Date();
-        Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
+        final Date now = new Date();
+        final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp1.setEntity(HttpTestUtils.makeBody(50));
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Content-Range","bytes 0-49/128");
@@ -4408,11 +4408,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Range","bytes=50-127");
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
         resp2.setEntity(HttpTestUtils.makeBody(78));
         resp2.setHeader("Cache-Control","max-age=3600");
         resp2.setHeader("Content-Range","bytes 50-127/128");
@@ -4422,11 +4422,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req3.setHeader("Range","bytes=0-49");
 
-        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
         resp3.setHeader("Server","MockServer/1.0");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -4454,22 +4454,22 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testCannotUseVariantCacheEntryIfNotAllSelectingRequestHeadersMatch()
         throws Exception {
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("Accept-Encoding","gzip");
 
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag1\"");
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Vary","Accept-Encoding");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.removeHeaders("Accept-Encoding");
 
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag","\"etag1\"");
         resp2.setHeader("Cache-Control","max-age=3600");
 
@@ -4490,20 +4490,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testCannotServeFromCacheForVaryStar() throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag1\"");
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Vary","*");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag","\"etag1\"");
         resp2.setHeader("Cache-Control","max-age=3600");
 
@@ -4542,11 +4542,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testNonmatchingVariantCannotBeServedFromCacheUnlessConditionallyValidated()
         throws Exception {
 
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("User-Agent","MyBrowser/1.0");
 
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag1\"");
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("Vary","User-Agent");
@@ -4554,25 +4554,25 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("User-Agent","MyBrowser/1.5");
 
-        HttpRequestWrapper conditional = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper conditional = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         conditional.setHeader("User-Agent","MyBrowser/1.5");
         conditional.setHeader("If-None-Match","\"etag1\"");
 
-        HttpResponse resp200 = HttpTestUtils.make200Response();
+        final HttpResponse resp200 = HttpTestUtils.make200Response();
         resp200.setHeader("ETag","\"etag1\"");
         resp200.setHeader("Vary","User-Agent");
 
-        HttpResponse resp304 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        final HttpResponse resp304 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp304.setHeader("ETag","\"etag1\"");
         resp304.setHeader("Vary","User-Agent");
 
-        Capture<HttpRequestWrapper> condCap = new Capture<HttpRequestWrapper>();
-        Capture<HttpRequestWrapper> uncondCap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> condCap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> uncondCap = new Capture<HttpRequestWrapper>();
 
         EasyMock.expect(
                 mockBackend.execute(
@@ -4591,7 +4591,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         if (HttpStatus.SC_OK == result.getStatusLine().getStatusCode()) {
@@ -4623,10 +4623,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
-        int status = result.getStatusLine().getStatusCode();
+        final int status = result.getStatusLine().getStatusCode();
         Assert.assertFalse(HttpStatus.SC_OK == status);
         if (status > 200 && status <= 299
             && HttpTestUtils.equivalent(originResponse.getEntity(),
@@ -4647,20 +4647,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     protected void testUnsafeOperationInvalidatesCacheForThatUri(
             final HttpRequestWrapper unsafeReq) throws Exception, IOException {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp3 = HttpTestUtils.make200Response();
+        final HttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader("Cache-Control","public, max-age=3600");
 
         // this origin request MUST happen due to invalidation
@@ -4675,38 +4675,38 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testPutToUriInvalidatesCacheForThatUri() throws Exception {
-        HttpRequest req = makeRequestWithBody("PUT","/");
+        final HttpRequest req = makeRequestWithBody("PUT","/");
         testUnsafeOperationInvalidatesCacheForThatUri(HttpRequestWrapper.wrap(req));
     }
 
     @Test
     public void testDeleteToUriInvalidatesCacheForThatUri() throws Exception {
-        HttpRequestWrapper req = HttpRequestWrapper.wrap(new BasicHttpRequest("DELETE","/"));
+        final HttpRequestWrapper req = HttpRequestWrapper.wrap(new BasicHttpRequest("DELETE","/"));
         testUnsafeOperationInvalidatesCacheForThatUri(req);
     }
 
     @Test
     public void testPostToUriInvalidatesCacheForThatUri() throws Exception {
-        HttpRequestWrapper req = makeRequestWithBody("POST","/");
+        final HttpRequestWrapper req = makeRequestWithBody("POST","/");
         testUnsafeOperationInvalidatesCacheForThatUri(req);
     }
 
     protected void testUnsafeMethodInvalidatesCacheForHeaderUri(
             final HttpRequestWrapper unsafeReq) throws Exception, IOException {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/content", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/content", HttpVersion.HTTP_1_1));
-        HttpResponse resp3 = HttpTestUtils.make200Response();
+        final HttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader("Cache-Control","public, max-age=3600");
 
         // this origin request MUST happen due to invalidation
@@ -4739,55 +4739,55 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testPutInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
-        HttpRequestWrapper req2 = makeRequestWithBody("PUT","/");
+        final HttpRequestWrapper req2 = makeRequestWithBody("PUT","/");
         testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(req2);
     }
 
     @Test
     public void testPutInvalidatesCacheForThatUriInLocationHeader() throws Exception {
-        HttpRequestWrapper req = makeRequestWithBody("PUT","/");
+        final HttpRequestWrapper req = makeRequestWithBody("PUT","/");
         testUnsafeMethodInvalidatesCacheForUriInLocationHeader(req);
     }
 
     @Test
     public void testPutInvalidatesCacheForThatUriInRelativeContentLocationHeader() throws Exception {
-        HttpRequestWrapper req = makeRequestWithBody("PUT","/");
+        final HttpRequestWrapper req = makeRequestWithBody("PUT","/");
         testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(req);
     }
 
     @Test
     public void testDeleteInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
-        HttpRequestWrapper req = HttpRequestWrapper.wrap(new BasicHttpRequest("DELETE", "/"));
+        final HttpRequestWrapper req = HttpRequestWrapper.wrap(new BasicHttpRequest("DELETE", "/"));
         testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(req);
     }
 
     @Test
     public void testDeleteInvalidatesCacheForThatUriInRelativeContentLocationHeader() throws Exception {
-        HttpRequestWrapper req = HttpRequestWrapper.wrap(new BasicHttpRequest("DELETE", "/"));
+        final HttpRequestWrapper req = HttpRequestWrapper.wrap(new BasicHttpRequest("DELETE", "/"));
         testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(req);
     }
 
     @Test
     public void testDeleteInvalidatesCacheForThatUriInLocationHeader() throws Exception {
-        HttpRequestWrapper req = HttpRequestWrapper.wrap(new BasicHttpRequest("DELETE", "/"));
+        final HttpRequestWrapper req = HttpRequestWrapper.wrap(new BasicHttpRequest("DELETE", "/"));
         testUnsafeMethodInvalidatesCacheForUriInLocationHeader(req);
     }
 
     @Test
     public void testPostInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
-        HttpRequestWrapper req = makeRequestWithBody("POST","/");
+        final HttpRequestWrapper req = makeRequestWithBody("POST","/");
         testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(req);
     }
 
     @Test
     public void testPostInvalidatesCacheForThatUriInLocationHeader() throws Exception {
-        HttpRequestWrapper req = makeRequestWithBody("POST","/");
+        final HttpRequestWrapper req = makeRequestWithBody("POST","/");
         testUnsafeMethodInvalidatesCacheForUriInLocationHeader(req);
     }
 
     @Test
     public void testPostInvalidatesCacheForRelativeUriInContentLocationHeader() throws Exception {
-        HttpRequestWrapper req = makeRequestWithBody("POST","/");
+        final HttpRequestWrapper req = makeRequestWithBody("POST","/");
         testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(req);
     }
 
@@ -4800,20 +4800,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     protected void testUnsafeMethodDoesNotInvalidateCacheForHeaderUri(
             final HttpRequestWrapper unsafeReq) throws Exception, IOException {
 
-        HttpHost otherHost = new HttpHost("bar.example.com");
-        HttpRoute otherRoute = new HttpRoute(otherHost);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpHost otherHost = new HttpHost("bar.example.com");
+        final HttpRoute otherRoute = new HttpRoute(otherHost);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/content", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/content", HttpVersion.HTTP_1_1));
 
         replayMocks();
@@ -4836,9 +4836,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     protected HttpRequestWrapper makeRequestWithBody(final String method, final String requestUri) {
-        HttpEntityEnclosingRequest request =
+        final HttpEntityEnclosingRequest request =
             new BasicHttpEntityEnclosingRequest(method, requestUri, HttpVersion.HTTP_1_1);
-        int nbytes = 128;
+        final int nbytes = 128;
         request.setEntity(HttpTestUtils.makeBody(nbytes));
         request.setHeader("Content-Length",""+nbytes);
         return HttpRequestWrapper.wrap(request);
@@ -4846,38 +4846,38 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testPutDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts() throws Exception {
-        HttpRequestWrapper req = makeRequestWithBody("PUT","/");
+        final HttpRequestWrapper req = makeRequestWithBody("PUT","/");
         testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(req);
     }
 
     @Test
     public void testPutDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts() throws Exception {
-        HttpRequestWrapper req = makeRequestWithBody("PUT","/");
+        final HttpRequestWrapper req = makeRequestWithBody("PUT","/");
         testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(req);
     }
 
     @Test
     public void testPostDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts() throws Exception {
-        HttpRequestWrapper req = makeRequestWithBody("POST","/");
+        final HttpRequestWrapper req = makeRequestWithBody("POST","/");
         testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(req);
     }
 
     @Test
     public void testPostDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts() throws Exception {
-        HttpRequestWrapper req = makeRequestWithBody("POST","/");
+        final HttpRequestWrapper req = makeRequestWithBody("POST","/");
         testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(req);
     }
 
     @Test
     public void testDeleteDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts() throws Exception {
-        HttpRequestWrapper req = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1));
         testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(req);
     }
 
     @Test
     public void testDeleteDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts() throws Exception {
-        HttpRequestWrapper req = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1));
         testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(req);
     }
@@ -4893,8 +4893,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     private void testRequestIsWrittenThroughToOrigin(final HttpRequest req)
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
-        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "No Content");
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -4911,7 +4911,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test @Ignore
     public void testOPTIONSRequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpRequest req = HttpRequestWrapper.wrap(
+        final HttpRequest req = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("OPTIONS","*",HttpVersion.HTTP_1_1));
         testRequestIsWrittenThroughToOrigin(req);
     }
@@ -4919,7 +4919,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testPOSTRequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("POST","/",HttpVersion.HTTP_1_1);
+        final HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("POST","/",HttpVersion.HTTP_1_1);
         req.setEntity(HttpTestUtils.makeBody(128));
         req.setHeader("Content-Length","128");
         testRequestIsWrittenThroughToOrigin(req);
@@ -4928,7 +4928,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testPUTRequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("PUT","/",HttpVersion.HTTP_1_1);
+        final HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("PUT","/",HttpVersion.HTTP_1_1);
         req.setEntity(HttpTestUtils.makeBody(128));
         req.setHeader("Content-Length","128");
         testRequestIsWrittenThroughToOrigin(req);
@@ -4937,7 +4937,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testDELETERequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpRequest req = HttpRequestWrapper.wrap(
+        final HttpRequest req = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("DELETE", "/", HttpVersion.HTTP_1_1));
         testRequestIsWrittenThroughToOrigin(req);
     }
@@ -4945,7 +4945,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testTRACERequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpRequest req = HttpRequestWrapper.wrap(
+        final HttpRequest req = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("TRACE","/",HttpVersion.HTTP_1_1));
         testRequestIsWrittenThroughToOrigin(req);
     }
@@ -4953,7 +4953,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testCONNECTRequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpRequest req = HttpRequestWrapper.wrap(
+        final HttpRequest req = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("CONNECT","/",HttpVersion.HTTP_1_1));
         testRequestIsWrittenThroughToOrigin(req);
     }
@@ -4961,7 +4961,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testUnknownMethodRequestsAreWrittenThroughToOrigin()
         throws Exception {
-        HttpRequest req = HttpRequestWrapper.wrap(
+        final HttpRequest req = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("UNKNOWN","/",HttpVersion.HTTP_1_1));
         testRequestIsWrittenThroughToOrigin(req);
     }
@@ -4976,13 +4976,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testTransmitsAgeHeaderIfIncomingAgeHeaderTooBig()
         throws Exception {
-        String reallyOldAge = "1" + Long.MAX_VALUE;
+        final String reallyOldAge = "1" + Long.MAX_VALUE;
         originResponse.setHeader("Age",reallyOldAge);
 
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route,request);
+        final HttpResponse result = impl.execute(route,request);
         verifyMocks();
 
         Assert.assertEquals("2147483648",
@@ -4998,11 +4998,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testDoesNotModifyAllowHeaderWithUnknownMethods()
         throws Exception {
-        String allowHeaderValue = "GET, HEAD, FOOBAR";
+        final String allowHeaderValue = "GET, HEAD, FOOBAR";
         originResponse.setHeader("Allow",allowHeaderValue);
         backendExpectsAnyRequest().andReturn(originResponse);
         replayMocks();
-        HttpResponse result = impl.execute(route,request);
+        final HttpResponse result = impl.execute(route,request);
         verifyMocks();
         Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(originResponse,"Allow"),
                             HttpTestUtils.getCanonicalHeaderValue(result, "Allow"));
@@ -5037,16 +5037,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             final HttpResponse authorizedResponse, final int minTimes, final int maxTimes) throws Exception,
             IOException {
         if (config.isSharedCache()) {
-            String authorization = "Basic dXNlcjpwYXNzd2Q=";
-            HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+            final String authorization = "Basic dXNlcjpwYXNzd2Q=";
+            final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                     new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
             req1.setHeader("Authorization",authorization);
 
             backendExpectsAnyRequestAndReturn(authorizedResponse);
 
-            HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+            final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                     new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-            HttpResponse resp2 = HttpTestUtils.make200Response();
+            final HttpResponse resp2 = HttpTestUtils.make200Response();
             resp2.setHeader("Cache-Control","max-age=3600");
 
             if (maxTimes > 0) {
@@ -5065,7 +5065,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testSharedCacheMustNotNormallyCacheAuthorizedResponses()
         throws Exception {
-        HttpResponse resp = HttpTestUtils.make200Response();
+        final HttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","max-age=3600");
         resp.setHeader("ETag","\"etag\"");
         testSharedCacheRevalidatesAuthorizedResponse(resp, 1, 1);
@@ -5074,7 +5074,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testSharedCacheMayCacheAuthorizedResponsesWithSMaxAgeHeader()
         throws Exception {
-        HttpResponse resp = HttpTestUtils.make200Response();
+        final HttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","s-maxage=3600");
         resp.setHeader("ETag","\"etag\"");
         testSharedCacheRevalidatesAuthorizedResponse(resp, 0, 1);
@@ -5083,7 +5083,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testSharedCacheMustRevalidateAuthorizedResponsesWhenSMaxAgeIsZero()
         throws Exception {
-        HttpResponse resp = HttpTestUtils.make200Response();
+        final HttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","s-maxage=0");
         resp.setHeader("ETag","\"etag\"");
         testSharedCacheRevalidatesAuthorizedResponse(resp, 1, 1);
@@ -5092,7 +5092,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testSharedCacheMayCacheAuthorizedResponsesWithMustRevalidate()
         throws Exception {
-        HttpResponse resp = HttpTestUtils.make200Response();
+        final HttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","must-revalidate");
         resp.setHeader("ETag","\"etag\"");
         testSharedCacheRevalidatesAuthorizedResponse(resp, 0, 1);
@@ -5101,7 +5101,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testSharedCacheMayCacheAuthorizedResponsesWithCacheControlPublic()
         throws Exception {
-        HttpResponse resp = HttpTestUtils.make200Response();
+        final HttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","public");
         testSharedCacheRevalidatesAuthorizedResponse(resp, 0, 1);
     }
@@ -5110,22 +5110,22 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             final HttpResponse authorizedResponse) throws Exception, IOException,
             ClientProtocolException {
         if (config.isSharedCache()) {
-            String authorization1 = "Basic dXNlcjpwYXNzd2Q=";
-            String authorization2 = "Basic dXNlcjpwYXNzd2Qy";
+            final String authorization1 = "Basic dXNlcjpwYXNzd2Q=";
+            final String authorization2 = "Basic dXNlcjpwYXNzd2Qy";
 
-            HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+            final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                     new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
             req1.setHeader("Authorization",authorization1);
 
             backendExpectsAnyRequestAndReturn(authorizedResponse);
 
-            HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+            final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                     new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
             req2.setHeader("Authorization",authorization2);
 
-            HttpResponse resp2 = HttpTestUtils.make200Response();
+            final HttpResponse resp2 = HttpTestUtils.make200Response();
 
-            Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+            final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
             EasyMock.expect(
                     mockBackend.execute(
                             EasyMock.eq(route),
@@ -5139,7 +5139,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             impl.execute(route,req2);
             verifyMocks();
 
-            HttpRequest captured = cap.getValue();
+            final HttpRequest captured = cap.getValue();
             Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(req2, "Authorization"),
                     HttpTestUtils.getCanonicalHeaderValue(captured, "Authorization"));
         }
@@ -5148,9 +5148,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithSMaxAge()
     throws Exception {
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date",DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Cache-Control","s-maxage=5");
@@ -5161,9 +5161,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithMustRevalidate()
     throws Exception {
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date",DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Cache-Control","maxage=5, must-revalidate");
@@ -5187,23 +5187,23 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testWarning110IsAddedToStaleResponses()
         throws Exception {
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","max-age=5");
         resp1.setHeader("Etag","\"etag\"");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control","max-stale=60");
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
 
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -5214,14 +5214,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route,req1);
-        HttpResponse result = impl.execute(route,req2);
+        final HttpResponse result = impl.execute(route,req2);
         verifyMocks();
 
         if (!cap.hasCaptured()) {
             boolean found110Warning = false;
-            for(Header h : result.getHeaders("Warning")) {
-                for(HeaderElement elt : h.getElements()) {
-                    String[] parts = elt.getName().split("\\s");
+            for(final Header h : result.getHeaders("Warning")) {
+                for(final HeaderElement elt : h.getElements()) {
+                    final String[] parts = elt.getName().split("\\s");
                     if ("110".equals(parts[0])) {
                         found110Warning = true;
                         break;
@@ -5241,7 +5241,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testDoesNotTransmitNoCacheDirectivesWithFieldsDownstream()
         throws Exception {
         request.setHeader("Cache-Control","no-cache=\"X-Field\"");
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(mockBackend.execute(
                 EasyMock.eq(route),
                 EasyMock.capture(cap),
@@ -5251,14 +5251,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         replayMocks();
         try {
             impl.execute(route, request);
-        } catch (ClientProtocolException acceptable) {
+        } catch (final ClientProtocolException acceptable) {
         }
         verifyMocks();
 
         if (cap.hasCaptured()) {
-            HttpRequest captured = cap.getValue();
-            for(Header h : captured.getHeaders("Cache-Control")) {
-                for(HeaderElement elt : h.getElements()) {
+            final HttpRequest captured = cap.getValue();
+            for(final Header h : captured.getHeaders("Cache-Control")) {
+                for(final HeaderElement elt : h.getElements()) {
                     if ("no-cache".equals(elt.getName())) {
                         Assert.assertNull(elt.getValue());
                     }
@@ -5275,19 +5275,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     protected void testCacheIsNotUsedWhenRespondingToRequest(final HttpRequestWrapper req)
         throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Etag","\"etag\"");
         resp1.setHeader("Cache-Control","max-age=3600");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Etag","\"etag2\"");
         resp2.setHeader("Cache-Control","max-age=1200");
 
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(mockBackend.execute(
                 EasyMock.eq(route),
                 EasyMock.capture(cap),
@@ -5297,18 +5297,18 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route,req1);
-        HttpResponse result = impl.execute(route,req);
+        final HttpResponse result = impl.execute(route,req);
         verifyMocks();
 
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
-        HttpRequest captured = cap.getValue();
+        final HttpRequest captured = cap.getValue();
         Assert.assertTrue(HttpTestUtils.equivalent(req, captured));
     }
 
     @Test
     public void testCacheIsNotUsedWhenRespondingToRequestWithCacheControlNoCache()
         throws Exception {
-        HttpRequestWrapper req = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req.setHeader("Cache-Control","no-cache");
         testCacheIsNotUsedWhenRespondingToRequest(req);
@@ -5317,7 +5317,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testCacheIsNotUsedWhenRespondingToRequestWithPragmaNoCache()
         throws Exception {
-        HttpRequestWrapper req = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req.setHeader("Pragma","no-cache");
         testCacheIsNotUsedWhenRespondingToRequest(req);
@@ -5334,19 +5334,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     protected void testStaleCacheResponseMustBeRevalidatedWithOrigin(
             final HttpResponse staleResponse) throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         backendExpectsAnyRequestAndReturn(staleResponse);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control","max-stale=3600");
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag","\"etag2\"");
         resp2.setHeader("Cache-Control","max-age=5, must-revalidate");
 
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         // this request MUST happen
         EasyMock.expect(
                 mockBackend.execute(
@@ -5361,10 +5361,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl.execute(route,req2);
         verifyMocks();
 
-        HttpRequest reval = cap.getValue();
+        final HttpRequest reval = cap.getValue();
         boolean foundMaxAge0 = false;
-        for(Header h : reval.getHeaders("Cache-Control")) {
-            for(HeaderElement elt : h.getElements()) {
+        for(final Header h : reval.getHeaders("Cache-Control")) {
+            for(final HeaderElement elt : h.getElements()) {
                 if ("max-age".equalsIgnoreCase(elt.getName())
                     && "0".equals(elt.getValue())) {
                     foundMaxAge0 = true;
@@ -5377,9 +5377,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testStaleEntryWithMustRevalidateIsNotUsedWithoutRevalidatingWithOrigin()
         throws Exception {
-        HttpResponse response = HttpTestUtils.make200Response();
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final HttpResponse response = HttpTestUtils.make200Response();
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         response.setHeader("Date",DateUtils.formatDate(tenSecondsAgo));
         response.setHeader("ETag","\"etag1\"");
         response.setHeader("Cache-Control","max-age=5, must-revalidate");
@@ -5394,19 +5394,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     protected void testGenerates504IfCannotRevalidateStaleResponse(
             final HttpResponse staleResponse) throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         backendExpectsAnyRequestAndReturn(staleResponse);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         backendExpectsAnyRequest().andThrow(new SocketTimeoutException());
 
         replayMocks();
         impl.execute(route,req1);
-        HttpResponse result = impl.execute(route,req2);
+        final HttpResponse result = impl.execute(route,req2);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT,
@@ -5416,9 +5416,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testGenerates504IfCannotRevalidateAMustRevalidateEntry()
         throws Exception {
-        HttpResponse resp1 = HttpTestUtils.make200Response();
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","max-age=5,must-revalidate");
@@ -5436,9 +5436,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testStaleEntryWithProxyRevalidateOnSharedCacheIsNotUsedWithoutRevalidatingWithOrigin()
         throws Exception {
         if (config.isSharedCache()) {
-            HttpResponse response = HttpTestUtils.make200Response();
-            Date now = new Date();
-            Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+            final HttpResponse response = HttpTestUtils.make200Response();
+            final Date now = new Date();
+            final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
             response.setHeader("Date",DateUtils.formatDate(tenSecondsAgo));
             response.setHeader("ETag","\"etag1\"");
             response.setHeader("Cache-Control","max-age=5, proxy-revalidate");
@@ -5451,9 +5451,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testGenerates504IfSharedCacheCannotRevalidateAProxyRevalidateEntry()
         throws Exception {
         if (config.isSharedCache()) {
-            HttpResponse resp1 = HttpTestUtils.make200Response();
-            Date now = new Date();
-            Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+            final HttpResponse resp1 = HttpTestUtils.make200Response();
+            final Date now = new Date();
+            final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
             resp1.setHeader("ETag","\"etag\"");
             resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
             resp1.setHeader("Cache-Control","max-age=5,proxy-revalidate");
@@ -5472,16 +5472,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testCacheControlPrivateIsNotCacheableBySharedCache()
     throws Exception {
        if (config.isSharedCache()) {
-               HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+               final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                        new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-               HttpResponse resp1 = HttpTestUtils.make200Response();
+               final HttpResponse resp1 = HttpTestUtils.make200Response();
                resp1.setHeader("Cache-Control","private,max-age=3600");
 
                backendExpectsAnyRequestAndReturn(resp1);
 
-               HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+               final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                        new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-               HttpResponse resp2 = HttpTestUtils.make200Response();
+               final HttpResponse resp2 = HttpTestUtils.make200Response();
                // this backend request MUST happen
                backendExpectsAnyRequestAndReturn(resp2);
 
@@ -5496,24 +5496,24 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testCacheControlPrivateOnFieldIsNotReturnedBySharedCache()
     throws Exception {
        if (config.isSharedCache()) {
-               HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+               final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                        new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-               HttpResponse resp1 = HttpTestUtils.make200Response();
+               final HttpResponse resp1 = HttpTestUtils.make200Response();
                resp1.setHeader("X-Personal","stuff");
                resp1.setHeader("Cache-Control","private=\"X-Personal\",s-maxage=3600");
 
                backendExpectsAnyRequestAndReturn(resp1);
 
-               HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+               final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                        new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-               HttpResponse resp2 = HttpTestUtils.make200Response();
+               final HttpResponse resp2 = HttpTestUtils.make200Response();
 
                // this backend request MAY happen
                backendExpectsAnyRequestAndReturn(resp2).times(0,1);
 
                replayMocks();
                impl.execute(route,req1);
-               HttpResponse result = impl.execute(route,req2);
+               final HttpResponse result = impl.execute(route,req2);
                verifyMocks();
                Assert.assertNull(result.getFirstHeader("X-Personal"));
        }
@@ -5530,17 +5530,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidation()
     throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Cache-Control","no-cache");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
 
         // this MUST happen
         backendExpectsAnyRequestAndReturn(resp2);
@@ -5554,18 +5554,18 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidationEvenWithContraryIndications()
     throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Cache-Control","no-cache,s-maxage=3600");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req2.setHeader("Cache-Control","max-stale=7200");
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
 
         // this MUST happen
         backendExpectsAnyRequestAndReturn(resp2);
@@ -5585,23 +5585,23 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testNoCacheOnFieldIsNotReturnedWithoutRevalidation()
     throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("X-Stuff","things");
         resp1.setHeader("Cache-Control","no-cache=\"X-Stuff\", max-age=3600");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag","\"etag\"");
         resp2.setHeader("X-Stuff","things");
         resp2.setHeader("Cache-Control","no-cache=\"X-Stuff\",max-age=3600");
 
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -5612,7 +5612,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route,req1);
-        HttpResponse result = impl.execute(route,req2);
+        final HttpResponse result = impl.execute(route,req2);
         verifyMocks();
 
         if (!cap.hasCaptured()) {
@@ -5697,11 +5697,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route,request);
+        final HttpResponse result = impl.execute(route,request);
         verifyMocks();
         int total_encodings = 0;
-        for(Header hdr : result.getHeaders("Content-Encoding")) {
-            for(HeaderElement elt : hdr.getElements()) {
+        for(final Header hdr : result.getHeaders("Content-Encoding")) {
+            for(final HeaderElement elt : hdr.getElements()) {
                 switch(total_encodings) {
                 case 0:
                     Assert.assertEquals("gzip", elt.getName());
@@ -5725,11 +5725,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route,request);
+        final HttpResponse result = impl.execute(route,request);
         verifyMocks();
         int total_encodings = 0;
-        for(Header hdr : result.getHeaders("Content-Encoding")) {
-            for(HeaderElement elt : hdr.getElements()) {
+        for(final Header hdr : result.getHeaders("Content-Encoding")) {
+            for(final HeaderElement elt : hdr.getElements()) {
                 switch(total_encodings) {
                 case 0:
                     Assert.assertEquals("gzip", elt.getName());
@@ -5755,16 +5755,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testCacheDoesNotAssumeContentLocationHeaderIndicatesAnotherCacheableResource()
         throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public,max-age=3600");
         resp1.setHeader("Etag","\"etag\"");
         resp1.setHeader("Content-Location","http://foo.example.com/bar");
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/bar", HttpVersion.HTTP_1_1));
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Cache-Control","public,max-age=3600");
         resp2.setHeader("Etag","\"etag\"");
 
@@ -5793,7 +5793,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Date"));
     }
@@ -5807,16 +5807,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     private void testInvalidExpiresHeaderIsTreatedAsStale(
             final String expiresHeader) throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public");
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Expires", expiresHeader);
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
 
         backendExpectsAnyRequestAndReturn(resp1);
         // second request to origin MUST happen
@@ -5848,16 +5848,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testExpiresHeaderEqualToDateHeaderIsTreatedAsStale()
         throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public");
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Expires", resp1.getFirstHeader("Date").getValue());
 
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
 
         backendExpectsAnyRequestAndReturn(resp1);
         // second request to origin MUST happen
@@ -5883,7 +5883,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
         Assert.assertEquals(server, result.getFirstHeader("Server").getValue());
     }
@@ -5902,11 +5902,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
         int transfer_encodings = 0;
-        for(Header h : result.getHeaders("Transfer-Encoding")) {
-            for(HeaderElement elt : h.getElements()) {
+        for(final Header h : result.getHeaders("Transfer-Encoding")) {
+            for(final HeaderElement elt : h.getElements()) {
                 switch(transfer_encodings) {
                 case 0:
                     Assert.assertEquals("chunked",elt.getName());
@@ -5931,11 +5931,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
         int transfer_encodings = 0;
-        for(Header h : result.getHeaders("Transfer-Encoding")) {
-            for(HeaderElement elt : h.getElements()) {
+        for(final Header h : result.getHeaders("Transfer-Encoding")) {
+            for(final HeaderElement elt : h.getElements()) {
                 switch(transfer_encodings) {
                 case 0:
                     Assert.assertEquals("chunked",elt.getName());
@@ -5971,10 +5971,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
-        for(Header h : result.getHeaders("Vary")) {
-            for(HeaderElement elt : h.getElements()) {
+        for(final Header h : result.getHeaders("Vary")) {
+            for(final HeaderElement elt : h.getElements()) {
                 Assert.assertFalse("*".equals(elt.getName()));
             }
         }
@@ -5989,7 +5989,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testProperlyFormattedViaHeaderIsAddedToRequests() throws Exception {
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         request.removeHeaders("Via");
         EasyMock.expect(
                 mockBackend.execute(
@@ -6002,8 +6002,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl.execute(route, request);
         verifyMocks();
 
-        HttpRequest captured = cap.getValue();
-        String via = captured.getFirstHeader("Via").getValue();
+        final HttpRequest captured = cap.getValue();
+        final String via = captured.getFirstHeader("Via").getValue();
         assertValidViaHeader(via);
     }
 
@@ -6012,7 +6012,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.removeHeaders("Via");
         backendExpectsAnyRequest().andReturn(originResponse);
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
         assertValidViaHeader(result.getFirstHeader("Via").getValue());
     }
@@ -6026,17 +6026,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         //        received-by       = ( host [ ":" port ] ) | pseudonym
         //        pseudonym         = token
 
-        String[] parts = via.split("\\s+");
+        final String[] parts = via.split("\\s+");
         Assert.assertTrue(parts.length >= 2);
 
         // received protocol
-        String receivedProtocol = parts[0];
-        String[] protocolParts = receivedProtocol.split("/");
+        final String receivedProtocol = parts[0];
+        final String[] protocolParts = receivedProtocol.split("/");
         Assert.assertTrue(protocolParts.length >= 1);
         Assert.assertTrue(protocolParts.length <= 2);
 
         final String tokenRegexp = "[^\\p{Cntrl}()<>@,;:\\\\\"/\\[\\]?={} \\t]+";
-        for(String protocolPart : protocolParts) {
+        for(final String protocolPart : protocolParts) {
             Assert.assertTrue(Pattern.matches(tokenRegexp, protocolPart));
         }
 
@@ -6048,7 +6048,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         // comment
         if (parts.length > 2) {
-            StringBuilder buf = new StringBuilder(parts[2]);
+            final StringBuilder buf = new StringBuilder(parts[2]);
             for(int i=3; i<parts.length; i++) {
                 buf.append(" "); buf.append(parts[i]);
             }
@@ -6064,8 +6064,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         if (Pattern.matches(leafComment,s)) {
             return true;
         }
-        Matcher pref = Pattern.compile(nestedPrefix).matcher(s);
-        Matcher suff = Pattern.compile(nestedSuffix).matcher(s);
+        final Matcher pref = Pattern.compile(nestedPrefix).matcher(s);
+        final Matcher suff = Pattern.compile(nestedSuffix).matcher(s);
         if (!pref.find()) {
             return false;
         }
@@ -6091,7 +6091,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     throws Exception {
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_0));
         request.removeHeaders("Via");
-        Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.isA(HttpRoute.class),
@@ -6103,10 +6103,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl.execute(route, request);
         verifyMocks();
 
-        HttpRequest captured = cap.getValue();
-        String via = captured.getFirstHeader("Via").getValue();
-        String protocol = via.split("\\s+")[0];
-        String[] protoParts = protocol.split("/");
+        final HttpRequest captured = cap.getValue();
+        final String via = captured.getFirstHeader("Via").getValue();
+        final String protocol = via.split("\\s+")[0];
+        final String[] protoParts = protocol.split("/");
         if (protoParts.length > 1) {
             Assert.assertTrue("http".equalsIgnoreCase(protoParts[0]));
         }
@@ -6123,12 +6123,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
-        String via = result.getFirstHeader("Via").getValue();
-        String protocol = via.split("\\s+")[0];
-        String[] protoParts = protocol.split("/");
+        final String via = result.getFirstHeader("Via").getValue();
+        final String protocol = via.split("\\s+")[0];
+        final String[] protoParts = protocol.split("/");
         Assert.assertTrue(protoParts.length >= 1);
         Assert.assertTrue(protoParts.length <= 2);
         if (protoParts.length > 1) {
@@ -6151,7 +6151,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
         Assert.assertEquals(warning,
                 result.getFirstHeader("Warning").getValue());
@@ -6167,22 +6167,22 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testUpdatesWarningHeadersOnValidation()
         throws Exception {
-        HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
-        HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
-        Date now = new Date();
-        Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final Date now = new Date();
+        final Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(twentySecondsAgo));
         resp1.setHeader("Cache-Control","public,max-age=5");
         resp1.setHeader("ETag", "\"etag1\"");
         final String oldWarning = "113 wilma \"stale\"";
         resp1.setHeader("Warning", oldWarning);
 
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp2.setHeader("ETag", "\"etag1\"");
         final String newWarning = "113 betty \"stale too\"";
@@ -6193,13 +6193,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         impl.execute(route, req1);
-        HttpResponse result = impl.execute(route, req2);
+        final HttpResponse result = impl.execute(route, req2);
         verifyMocks();
 
         boolean oldWarningFound = false;
         boolean newWarningFound = false;
-        for(Header h : result.getHeaders("Warning")) {
-            for(String warnValue : h.getValue().split("\\s*,\\s*")) {
+        for(final Header h : result.getHeaders("Warning")) {
+            for(final String warnValue : h.getValue().split("\\s*,\\s*")) {
                 if (oldWarning.equals(warnValue)) {
                     oldWarningFound = true;
                 } else if (newWarning.equals(warnValue)) {
@@ -6228,7 +6228,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setHeader("Date", dateHdr);
         backendExpectsAnyRequest().andReturn(originResponse);
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
         // note that currently the implementation acts as an HTTP/1.1 proxy,
         // which means that all the responses from the caching module should
@@ -6237,9 +6237,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         if (HttpVersion.HTTP_1_0.greaterEquals(result.getProtocolVersion())) {
             Assert.assertEquals(dateHdr, result.getFirstHeader("Date").getValue());
             boolean warningFound = false;
-            String targetWarning = origWarning + " \"" + dateHdr + "\"";
-            for(Header h : result.getHeaders("Warning")) {
-                for(String warning : h.getValue().split("\\s*,\\s*")) {
+            final String targetWarning = origWarning + " \"" + dateHdr + "\"";
+            for(final Header h : result.getHeaders("Warning")) {
+                for(final String warning : h.getValue().split("\\s*,\\s*")) {
                     if (targetWarning.equals(warning)) {
                         warningFound = true;
                         break;
@@ -6263,8 +6263,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testStripsBadlyDatedWarningsFromForwardedResponses()
         throws Exception {
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         originResponse.setHeader("Date", DateUtils.formatDate(now));
         originResponse.addHeader("Warning", "110 fred \"stale\", 110 wilma \"stale\" \""
                 + DateUtils.formatDate(tenSecondsAgo) + "\"");
@@ -6272,10 +6272,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
-        for(Header h : result.getHeaders("Warning")) {
+        for(final Header h : result.getHeaders("Warning")) {
             Assert.assertFalse(h.getValue().contains("wilma"));
         }
     }
@@ -6283,8 +6283,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testStripsBadlyDatedWarningsFromStoredResponses()
         throws Exception {
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         originResponse.setHeader("Date", DateUtils.formatDate(now));
         originResponse.addHeader("Warning", "110 fred \"stale\", 110 wilma \"stale\" \""
                 + DateUtils.formatDate(tenSecondsAgo) + "\"");
@@ -6292,10 +6292,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
-        for(Header h : result.getHeaders("Warning")) {
+        for(final Header h : result.getHeaders("Warning")) {
             Assert.assertFalse(h.getValue().contains("wilma"));
         }
     }
@@ -6303,18 +6303,18 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testRemovesWarningHeaderIfAllWarnValuesAreBadlyDated()
     throws Exception {
-        Date now = new Date();
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         originResponse.setHeader("Date", DateUtils.formatDate(now));
         originResponse.addHeader("Warning", "110 wilma \"stale\" \""
                 + DateUtils.formatDate(tenSecondsAgo) + "\"");
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request);
         verifyMocks();
 
-        Header[] warningHeaders = result.getHeaders("Warning");
+        final Header[] warningHeaders = result.getHeaders("Warning");
         Assert.assertTrue(warningHeaders == null || warningHeaders.length == 0);
     }
 

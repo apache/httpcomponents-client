@@ -134,7 +134,7 @@ public class NegotiateScheme extends GGSSchemeBase {
         boolean tryKerberos = false;
         try {
             token = generateGSSToken(token, negotiationOid, authServer);
-        } catch (GSSException ex){
+        } catch (final GSSException ex){
             // BAD MECH means we are likely to be using 1.5, fall back to Kerberos MECH.
             // Rethrow any other exception.
             if (ex.getMajor() == GSSException.BAD_MECH ){
@@ -158,7 +158,7 @@ public class NegotiateScheme extends GGSSchemeBase {
             if (token != null && spengoGenerator != null) {
                 try {
                     token = spengoGenerator.generateSpnegoDERObject(token);
-                } catch (IOException ex) {
+                } catch (final IOException ex) {
                     log.error(ex.getMessage(), ex);
                 }
             }

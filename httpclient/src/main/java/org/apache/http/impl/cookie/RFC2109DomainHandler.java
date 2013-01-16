@@ -65,7 +65,7 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
         String host = origin.getHost();
-        String domain = cookie.getDomain();
+        final String domain = cookie.getDomain();
         if (domain == null) {
             throw new CookieRestrictionViolationException("Cookie domain may not be null");
         }
@@ -97,7 +97,7 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
                     + "\". Domain of origin: \"" + host + "\"");
             }
             // host minus domain may not contain any dots
-            String hostWithoutDomain = host.substring(0, host.length() - domain.length());
+            final String hostWithoutDomain = host.substring(0, host.length() - domain.length());
             if (hostWithoutDomain.indexOf('.') != -1) {
                 throw new CookieRestrictionViolationException("Domain attribute \""
                     + domain
@@ -109,8 +109,8 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
-        String host = origin.getHost();
-        String domain = cookie.getDomain();
+        final String host = origin.getHost();
+        final String domain = cookie.getDomain();
         if (domain == null) {
             return false;
         }

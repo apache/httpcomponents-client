@@ -65,30 +65,30 @@ public class TestAutoRetryHttpClient{
 
     @Test
     public void testDefaultRetryConfig(){
-        DefaultServiceUnavailableRetryStrategy retryStrategy = new DefaultServiceUnavailableRetryStrategy();
-        HttpContext context = new BasicHttpContext();
-        HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 503, "Oppsie");
+        final DefaultServiceUnavailableRetryStrategy retryStrategy = new DefaultServiceUnavailableRetryStrategy();
+        final HttpContext context = new BasicHttpContext();
+        final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 503, "Oppsie");
         assertTrue(retryStrategy.retryRequest(response1, 1, context));
-        HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 502, "Oppsie");
+        final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 502, "Oppsie");
         assertFalse(retryStrategy.retryRequest(response2, 1, context));
         assertEquals(1000, retryStrategy.getRetryInterval());
     }
 
     @Test
     public void testNoAutoRetry() throws java.io.IOException{
-        DefaultServiceUnavailableRetryStrategy retryStrategy = new DefaultServiceUnavailableRetryStrategy(2, 100);
+        final DefaultServiceUnavailableRetryStrategy retryStrategy = new DefaultServiceUnavailableRetryStrategy(2, 100);
 
         impl = new AutoRetryHttpClient(mockBackend,retryStrategy);
 
-        HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+        final HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+        final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_INTERNAL_SERVER_ERROR, "Internal Server Error");
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
 
         when(mockBackend.execute(host, req1,(HttpContext)null)).thenReturn(resp1).thenReturn(resp2);
 
-        HttpResponse result =  impl.execute(host, req1);
+        final HttpResponse result =  impl.execute(host, req1);
 
         verify(mockBackend,times(1)).execute(host, req1,(HttpContext)null);
 
@@ -98,21 +98,21 @@ public class TestAutoRetryHttpClient{
 
     @Test
     public void testMultipleAutoRetry() throws java.io.IOException{
-        DefaultServiceUnavailableRetryStrategy retryStrategy = new DefaultServiceUnavailableRetryStrategy(5, 100);
+        final DefaultServiceUnavailableRetryStrategy retryStrategy = new DefaultServiceUnavailableRetryStrategy(5, 100);
 
         impl = new AutoRetryHttpClient(mockBackend,retryStrategy);
 
-        HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
-        HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+        final HttpRequest req1 = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+        final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_SERVICE_UNAVAILABLE, "Service Unavailable");
-        HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_SERVICE_UNAVAILABLE, "Service Unavailable");
-        HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+        final HttpResponse resp3 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
 
         when(mockBackend.execute(host, req1,(HttpContext)null)).thenReturn(resp1).thenReturn(resp2).thenReturn(resp3);
 
-        HttpResponse result =  impl.execute(host, req1);
+        final HttpResponse result =  impl.execute(host, req1);
 
         verify(mockBackend,times(3)).execute(host, req1,(HttpContext)null);
 

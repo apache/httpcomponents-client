@@ -57,7 +57,7 @@ public class BrowserCompatVersionAttributeHandler extends
         int version = 0;
         try {
             version = Integer.parseInt(value);
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             // Just ignore invalid versions
         }
         cookie.setVersion(version);

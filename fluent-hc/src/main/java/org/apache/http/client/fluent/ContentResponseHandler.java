@@ -41,8 +41,8 @@ class ContentResponseHandler implements ResponseHandler<Content> {
 
     public Content handleResponse(
             final HttpResponse response) throws ClientProtocolException, IOException {
-        StatusLine statusLine = response.getStatusLine();
-        HttpEntity entity = response.getEntity();
+        final StatusLine statusLine = response.getStatusLine();
+        final HttpEntity entity = response.getEntity();
         if (statusLine.getStatusCode() >= 300) {
             throw new HttpResponseException(statusLine.getStatusCode(),
                     statusLine.getReasonPhrase());

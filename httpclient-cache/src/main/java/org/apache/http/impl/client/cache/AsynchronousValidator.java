@@ -102,17 +102,17 @@ class AsynchronousValidator {
             final HttpExecutionAware execAware,
             final HttpCacheEntry entry) {
         // getVariantURI will fall back on getURI if no variants exist
-        String uri = cacheKeyGenerator.getVariantURI(route.getTargetHost(), request, entry);
+        final String uri = cacheKeyGenerator.getVariantURI(route.getTargetHost(), request, entry);
 
         if (!queued.contains(uri)) {
-            AsynchronousValidationRequest revalidationRequest =
+            final AsynchronousValidationRequest revalidationRequest =
                 new AsynchronousValidationRequest(
                         this, cachingExec, route, request, context, execAware, entry, uri);
 
             try {
                 executor.execute(revalidationRequest);
                 queued.add(uri);
-            } catch (RejectedExecutionException ree) {
+            } catch (final RejectedExecutionException ree) {
                 log.debug("Revalidation for [" + uri + "] not scheduled: " + ree);
             }
         }

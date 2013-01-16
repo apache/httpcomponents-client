@@ -56,14 +56,14 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
      * @see org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry#toByteArray()
      */
     synchronized public byte[] toByteArray() {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos;
         try {
             oos = new ObjectOutputStream(bos);
             oos.writeObject(this.key);
             oos.writeObject(this.httpCacheEntry);
             oos.close();
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
             throw new MemcachedSerializationException(ioe);
         }
         return bos.toByteArray();
@@ -87,7 +87,7 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
      * @see org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry#set(byte[])
      */
     synchronized public void set(final byte[] bytes) {
-        ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+        final ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
         ObjectInputStream ois;
         String s;
         HttpCacheEntry entry;
@@ -97,9 +97,9 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
             entry = (HttpCacheEntry)ois.readObject();
             ois.close();
             bis.close();
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
             throw new MemcachedSerializationException(ioe);
-        } catch (ClassNotFoundException cnfe) {
+        } catch (final ClassNotFoundException cnfe) {
             throw new MemcachedSerializationException(cnfe);
         }
         this.key = s;

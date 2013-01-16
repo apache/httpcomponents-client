@@ -73,18 +73,18 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
         URI targetURI = null;
         try {
             targetURI = new URI(target.toURI());
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new HttpException("Cannot convert host to URI: " + target, ex);
         }
-        List<Proxy> proxies = this.proxySelector.select(targetURI);
-        Proxy p = chooseProxy(proxies, target, request, context);
+        final List<Proxy> proxies = this.proxySelector.select(targetURI);
+        final Proxy p = chooseProxy(proxies, target, request, context);
         HttpHost result = null;
         if (p.type() == Proxy.Type.HTTP) {
             // convert the socket address to an HttpHost
             if (!(p.address() instanceof InetSocketAddress)) {
                 throw new HttpException("Unable to handle non-Inet proxy address: " + p.address());
             }
-            InetSocketAddress isa = (InetSocketAddress) p.address();
+            final InetSocketAddress isa = (InetSocketAddress) p.address();
             // assume default scheme (http)
             result = new HttpHost(getHost(isa), isa.getPort());
         }
@@ -110,7 +110,7 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
         Proxy result = null;
         // check the list for one we can use
         for (int i=0; (result == null) && (i < proxies.size()); i++) {
-            Proxy p = proxies.get(i);
+            final Proxy p = proxies.get(i);
             switch (p.type()) {
 
             case DIRECT:

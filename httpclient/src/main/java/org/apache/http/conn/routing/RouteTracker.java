@@ -162,7 +162,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         Asserts.check(this.connected, "No tunnel unless connected");
         Asserts.notNull(this.proxyChain, "No tunnel without proxy");
         // prepare an extended proxy chain
-        HttpHost[] proxies = new HttpHost[this.proxyChain.length+1];
+        final HttpHost[] proxies = new HttpHost[this.proxyChain.length+1];
         System.arraycopy(this.proxyChain, 0,
                          proxies, 0, this.proxyChain.length);
         proxies[proxies.length-1] = proxy;
@@ -279,7 +279,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
             return false;
         }
 
-        RouteTracker that = (RouteTracker) o;
+        final RouteTracker that = (RouteTracker) o;
         return
             // Do the cheapest checks first
             (this.connected == that.connected) &&
@@ -305,7 +305,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         hash = LangUtils.hashCode(hash, this.targetHost);
         hash = LangUtils.hashCode(hash, this.localAddress);
         if (this.proxyChain != null) {
-            for (HttpHost element : this.proxyChain) {
+            for (final HttpHost element : this.proxyChain) {
                 hash = LangUtils.hashCode(hash, element);
             }
         }
@@ -323,7 +323,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      */
     @Override
     public final String toString() {
-        StringBuilder cab = new StringBuilder(50 + getHopCount()*30);
+        final StringBuilder cab = new StringBuilder(50 + getHopCount()*30);
 
         cab.append("RouteTracker[");
         if (this.localAddress != null) {
@@ -345,7 +345,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
         }
         cab.append("}->");
         if (this.proxyChain != null) {
-            for (HttpHost element : this.proxyChain) {
+            for (final HttpHost element : this.proxyChain) {
                 cab.append(element);
                 cab.append("->");
             }

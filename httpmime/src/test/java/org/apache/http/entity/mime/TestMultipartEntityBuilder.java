@@ -39,7 +39,7 @@ public class TestMultipartEntityBuilder {
 
     @Test
     public void testBasics() throws Exception {
-        MultipartEntity entity = MultipartEntityBuilder.create().build();
+        final MultipartEntity entity = MultipartEntityBuilder.create().build();
         Assert.assertNotNull(entity);
         Assert.assertEquals(HttpMultipartMode.STRICT, entity.getMultipart().getMode());
         Assert.assertEquals(0, entity.getMultipart().getBodyParts().size());
@@ -47,7 +47,7 @@ public class TestMultipartEntityBuilder {
 
     @Test
     public void testMultipartOptions() throws Exception {
-        MultipartEntity entity = MultipartEntityBuilder.create()
+        final MultipartEntity entity = MultipartEntityBuilder.create()
                 .setBoundary("blah-blah")
                 .setCharset(Consts.UTF_8)
                 .setLaxMode()
@@ -60,14 +60,14 @@ public class TestMultipartEntityBuilder {
 
     @Test
     public void testAddBodyParts() throws Exception {
-        MultipartEntity entity = MultipartEntityBuilder.create()
+        final MultipartEntity entity = MultipartEntityBuilder.create()
                 .addTextBody("p1", "stuff")
                 .addBinaryBody("p2", new File("stuff"))
                 .addBinaryBody("p3", new byte[] {})
                 .addBinaryBody("p4", new ByteArrayInputStream(new byte[] {}))
                 .build();
         Assert.assertNotNull(entity);
-        List<FormBodyPart> bodyParts = entity.getMultipart().getBodyParts();
+        final List<FormBodyPart> bodyParts = entity.getMultipart().getBodyParts();
         Assert.assertNotNull(bodyParts);
         Assert.assertEquals(4, bodyParts.size());
     }

@@ -75,7 +75,7 @@ public class BackoffStrategyExec implements ClientExecChain {
         CloseableHttpResponse out = null;
         try {
             out = this.requestExecutor.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             if (out != null) {
                 out.close();
             }

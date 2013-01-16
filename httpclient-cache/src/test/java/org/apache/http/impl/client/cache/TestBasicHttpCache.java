@@ -72,10 +72,10 @@ public class TestBasicHttpCache {
 
     @Test
     public void testCanFlushCacheEntriesAtUri() throws Exception {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest req = new HttpDelete("/bar");
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req = new HttpDelete("/bar");
         final String key = (new CacheKeyGenerator()).getURI(host, req);
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
 
         backing.map.put(key, entry);
 
@@ -87,11 +87,11 @@ public class TestBasicHttpCache {
     @Test
     public void testRecognizesComplete200Response()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","128");
-        Resource resource = new HeapResource(bytes);
+        final Resource resource = new HeapResource(bytes);
 
         assertFalse(impl.isIncompleteResponse(resp, resource));
     }
@@ -99,9 +99,9 @@ public class TestBasicHttpCache {
     @Test
     public void testRecognizesComplete206Response()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
-        byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        Resource resource = new HeapResource(bytes);
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
+        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        final Resource resource = new HeapResource(bytes);
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","128");
         resp.setHeader("Content-Range","bytes 0-127/255");
@@ -112,9 +112,9 @@ public class TestBasicHttpCache {
     @Test
     public void testRecognizesIncomplete200Response()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        Resource resource = new HeapResource(bytes);
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        final Resource resource = new HeapResource(bytes);
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","256");
 
@@ -124,9 +124,9 @@ public class TestBasicHttpCache {
     @Test
     public void testIgnoresIncompleteNon200Or206Responses()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_FORBIDDEN, "Forbidden");
-        byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        Resource resource = new HeapResource(bytes);
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_FORBIDDEN, "Forbidden");
+        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        final Resource resource = new HeapResource(bytes);
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","256");
 
@@ -136,9 +136,9 @@ public class TestBasicHttpCache {
     @Test
     public void testResponsesWithoutExplicitContentLengthAreComplete()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        Resource resource = new HeapResource(bytes);
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        final Resource resource = new HeapResource(bytes);
         resp.setEntity(new ByteArrayEntity(bytes));
 
         assertFalse(impl.isIncompleteResponse(resp, resource));
@@ -147,9 +147,9 @@ public class TestBasicHttpCache {
     @Test
     public void testResponsesWithUnparseableContentLengthHeaderAreComplete()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        Resource resource = new HeapResource(bytes);
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        final Resource resource = new HeapResource(bytes);
         resp.setHeader("Content-Length","foo");
         resp.setEntity(new ByteArrayEntity(bytes));
 
@@ -159,32 +159,32 @@ public class TestBasicHttpCache {
     @Test
     public void testIncompleteResponseErrorProvidesPlainTextErrorMessage()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        Resource resource = new HeapResource(bytes);
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        final Resource resource = new HeapResource(bytes);
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","256");
 
-        HttpResponse result = impl.generateIncompleteResponseError(resp, resource);
-        Header ctype = result.getFirstHeader("Content-Type");
+        final HttpResponse result = impl.generateIncompleteResponseError(resp, resource);
+        final Header ctype = result.getFirstHeader("Content-Type");
         assertEquals("text/plain;charset=UTF-8", ctype.getValue());
     }
 
     @Test
     public void testIncompleteResponseErrorProvidesNonEmptyErrorMessage()
         throws Exception {
-        HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        byte[] bytes = HttpTestUtils.getRandomBytes(128);
-        Resource resource = new HeapResource(bytes);
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final byte[] bytes = HttpTestUtils.getRandomBytes(128);
+        final Resource resource = new HeapResource(bytes);
         resp.setEntity(new ByteArrayEntity(bytes));
         resp.setHeader("Content-Length","256");
 
-        HttpResponse result = impl.generateIncompleteResponseError(resp, resource);
-        int clen = Integer.parseInt(result.getFirstHeader("Content-Length").getValue());
+        final HttpResponse result = impl.generateIncompleteResponseError(resp, resource);
+        final int clen = Integer.parseInt(result.getFirstHeader("Content-Length").getValue());
         assertTrue(clen > 0);
-        HttpEntity body = result.getEntity();
+        final HttpEntity body = result.getEntity();
         if (body.getContentLength() < 0) {
-            InputStream is = body.getContent();
+            final InputStream is = body.getContent();
             int bytes_read = 0;
             while((is.read()) != -1) {
                 bytes_read++;
@@ -208,8 +208,8 @@ public class TestBasicHttpCache {
         final HttpCacheEntry parent = HttpTestUtils.makeCacheEntry(existingVariants);
         final HttpCacheEntry variant = HttpTestUtils.makeCacheEntry();
 
-        HttpCacheEntry result = impl.doGetUpdatedParentEntry(parentCacheKey, parent, variant, newVariantKey, newVariantCacheKey);
-        Map<String,String> resultMap = result.getVariantMap();
+        final HttpCacheEntry result = impl.doGetUpdatedParentEntry(parentCacheKey, parent, variant, newVariantKey, newVariantCacheKey);
+        final Map<String,String> resultMap = result.getVariantMap();
         assertEquals(2, resultMap.size());
         assertEquals(variantCacheKey, resultMap.get(existingVariantKey));
         assertEquals(newVariantCacheKey, resultMap.get(newVariantKey));
@@ -217,11 +217,11 @@ public class TestBasicHttpCache {
 
     @Test
     public void testStoreInCachePutsNonVariantEntryInPlace() throws Exception {
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         assertFalse(entry.hasVariants());
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest req = new HttpGet("http://foo.example.com/bar");
-        String key = (new CacheKeyGenerator()).getURI(host, req);
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req = new HttpGet("http://foo.example.com/bar");
+        final String key = (new CacheKeyGenerator()).getURI(host, req);
 
         impl.storeInCache(host, req, entry);
         assertSame(entry, backing.map.get(key));
@@ -229,21 +229,21 @@ public class TestBasicHttpCache {
 
     @Test
     public void testTooLargeResponsesAreNotCached() throws Exception {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
 
-        Date now = new Date();
-        Date requestSent = new Date(now.getTime() - 3 * 1000L);
-        Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
-        Date responseReceived = new Date(now.getTime() - 1 * 1000L);
+        final Date now = new Date();
+        final Date requestSent = new Date(now.getTime() - 3 * 1000L);
+        final Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
+        final Date responseReceived = new Date(now.getTime() - 1 * 1000L);
 
-        HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         originResponse.setEntity(HttpTestUtils.makeBody(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES + 1));
         originResponse.setHeader("Cache-Control","public, max-age=3600");
         originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
         originResponse.setHeader("ETag", "\"etag\"");
 
-        HttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
+        final HttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
         assertEquals(0, backing.map.size());
         assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
     }
@@ -251,21 +251,21 @@ public class TestBasicHttpCache {
 
     @Test
     public void testSmallEnoughResponsesAreCached() throws Exception {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
 
-        Date now = new Date();
-        Date requestSent = new Date(now.getTime() - 3 * 1000L);
-        Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
-        Date responseReceived = new Date(now.getTime() - 1 * 1000L);
+        final Date now = new Date();
+        final Date requestSent = new Date(now.getTime() - 3 * 1000L);
+        final Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
+        final Date responseReceived = new Date(now.getTime() - 1 * 1000L);
 
-        HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         originResponse.setEntity(HttpTestUtils.makeBody(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES - 1));
         originResponse.setHeader("Cache-Control","public, max-age=3600");
         originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
         originResponse.setHeader("ETag", "\"etag\"");
 
-        HttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
+        final HttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
         assertEquals(1, backing.map.size());
         assertTrue(backing.map.containsKey((new CacheKeyGenerator()).getURI(host, request)));
         assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
@@ -273,36 +273,36 @@ public class TestBasicHttpCache {
 
     @Test
     public void testGetCacheEntryReturnsNullOnCacheMiss() throws Exception {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest request = new HttpGet("http://foo.example.com/bar");
-        HttpCacheEntry result = impl.getCacheEntry(host, request);
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final HttpCacheEntry result = impl.getCacheEntry(host, request);
         Assert.assertNull(result);
     }
 
     @Test
     public void testGetCacheEntryFetchesFromCacheOnCacheHitIfNoVariants() throws Exception {
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         assertFalse(entry.hasVariants());
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
 
-        String key = (new CacheKeyGenerator()).getURI(host, request);
+        final String key = (new CacheKeyGenerator()).getURI(host, request);
 
         backing.map.put(key,entry);
 
-        HttpCacheEntry result = impl.getCacheEntry(host, request);
+        final HttpCacheEntry result = impl.getCacheEntry(host, request);
         Assert.assertSame(entry, result);
     }
 
     @Test
     public void testGetCacheEntryReturnsNullIfNoVariantInCache() throws Exception {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
 
-        HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
+        final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding","gzip");
 
-        HttpResponse origResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse origResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         origResponse.setEntity(HttpTestUtils.makeBody(128));
         origResponse.setHeader("Date", DateUtils.formatDate(new Date()));
         origResponse.setHeader("Cache-Control", "max-age=3600, public");
@@ -311,20 +311,20 @@ public class TestBasicHttpCache {
         origResponse.setHeader("Content-Encoding","gzip");
 
         impl.cacheAndReturnResponse(host, origRequest, origResponse, new Date(), new Date());
-        HttpCacheEntry result = impl.getCacheEntry(host, request);
+        final HttpCacheEntry result = impl.getCacheEntry(host, request);
         assertNull(result);
     }
 
     @Test
     public void testGetCacheEntryReturnsVariantIfPresentInCache() throws Exception {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
         request.setHeader("Accept-Encoding","gzip");
 
-        HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
+        final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
         origRequest.setHeader("Accept-Encoding","gzip");
 
-        HttpResponse origResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse origResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         origResponse.setEntity(HttpTestUtils.makeBody(128));
         origResponse.setHeader("Date", DateUtils.formatDate(new Date()));
         origResponse.setHeader("Cache-Control", "max-age=3600, public");
@@ -333,16 +333,16 @@ public class TestBasicHttpCache {
         origResponse.setHeader("Content-Encoding","gzip");
 
         impl.cacheAndReturnResponse(host, origRequest, origResponse, new Date(), new Date());
-        HttpCacheEntry result = impl.getCacheEntry(host, request);
+        final HttpCacheEntry result = impl.getCacheEntry(host, request);
         assertNotNull(result);
     }
 
     @Test
     public void testGetVariantCacheEntriesReturnsEmptySetOnNoVariants() throws Exception {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
 
-        Map<String,Variant> variants = impl.getVariantCacheEntriesWithEtags(host, request);
+        final Map<String,Variant> variants = impl.getVariantCacheEntriesWithEtags(host, request);
 
         assertNotNull(variants);
         assertEquals(0, variants.size());
@@ -350,11 +350,11 @@ public class TestBasicHttpCache {
 
     @Test
     public void testGetVariantCacheEntriesReturnsAllVariants() throws Exception {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest req1 = new HttpGet("http://foo.example.com/bar");
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req1 = new HttpGet("http://foo.example.com/bar");
         req1.setHeader("Accept-Encoding", "gzip");
 
-        HttpResponse resp1 = HttpTestUtils.make200Response();
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(new Date()));
         resp1.setHeader("Cache-Control", "max-age=3600, public");
         resp1.setHeader("ETag", "\"etag1\"");
@@ -362,10 +362,10 @@ public class TestBasicHttpCache {
         resp1.setHeader("Content-Encoding","gzip");
         resp1.setHeader("Vary", "Accept-Encoding");
 
-        HttpRequest req2 = new HttpGet("http://foo.example.com/bar");
+        final HttpRequest req2 = new HttpGet("http://foo.example.com/bar");
         req2.setHeader("Accept-Encoding", "identity");
 
-        HttpResponse resp2 = HttpTestUtils.make200Response();
+        final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Date", DateUtils.formatDate(new Date()));
         resp2.setHeader("Cache-Control", "max-age=3600, public");
         resp2.setHeader("ETag", "\"etag2\"");
@@ -376,7 +376,7 @@ public class TestBasicHttpCache {
         impl.cacheAndReturnResponse(host, req1, resp1, new Date(), new Date());
         impl.cacheAndReturnResponse(host, req2, resp2, new Date(), new Date());
 
-        Map<String,Variant> variants = impl.getVariantCacheEntriesWithEtags(host, req1);
+        final Map<String,Variant> variants = impl.getVariantCacheEntriesWithEtags(host, req1);
 
         assertNotNull(variants);
         assertEquals(2, variants.size());
@@ -385,24 +385,24 @@ public class TestBasicHttpCache {
 
     @Test
     public void testOriginalResponseWithNoContentSizeHeaderIsReleased() throws Exception {
-        HttpHost host = new HttpHost("foo.example.com");
-        HttpRequest request = new HttpGet("http://foo.example.com/bar");
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest request = new HttpGet("http://foo.example.com/bar");
 
-        Date now = new Date();
-        Date requestSent = new Date(now.getTime() - 3 * 1000L);
-        Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
-        Date responseReceived = new Date(now.getTime() - 1 * 1000L);
+        final Date now = new Date();
+        final Date requestSent = new Date(now.getTime() - 3 * 1000L);
+        final Date responseGenerated = new Date(now.getTime() - 2 * 1000L);
+        final Date responseReceived = new Date(now.getTime() - 1 * 1000L);
 
-        HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        BasicHttpEntity entity = new BasicHttpEntity();
-        ConsumableInputStream inputStream = new ConsumableInputStream(new ByteArrayInputStream(HttpTestUtils.getRandomBytes(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES - 1)));
+        final HttpResponse originResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final BasicHttpEntity entity = new BasicHttpEntity();
+        final ConsumableInputStream inputStream = new ConsumableInputStream(new ByteArrayInputStream(HttpTestUtils.getRandomBytes(CacheConfig.DEFAULT_MAX_OBJECT_SIZE_BYTES - 1)));
         entity.setContent(inputStream);
         originResponse.setEntity(entity);
         originResponse.setHeader("Cache-Control","public, max-age=3600");
         originResponse.setHeader("Date", DateUtils.formatDate(responseGenerated));
         originResponse.setHeader("ETag", "\"etag\"");
 
-        HttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
+        final HttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
         EntityUtils.consume(result.getEntity());
         assertTrue(inputStream.wasClosed());
     }

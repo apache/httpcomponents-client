@@ -70,7 +70,7 @@ public final class SchemeRegistry {
      *          if the scheme with the given name is not registered
      */
     public final Scheme getScheme(final String name) {
-        Scheme found = get(name);
+        final Scheme found = get(name);
         if (found == null) {
             throw new IllegalStateException
                 ("Scheme '"+name+"' not registered.");
@@ -106,7 +106,7 @@ public final class SchemeRegistry {
         Args.notNull(name, "Scheme name");
         // leave it to the caller to use the correct name - all lowercase
         //name = name.toLowerCase();
-        Scheme found = registeredSchemes.get(name);
+        final Scheme found = registeredSchemes.get(name);
         return found;
     }
 
@@ -122,7 +122,7 @@ public final class SchemeRegistry {
      */
     public final Scheme register(final Scheme sch) {
         Args.notNull(sch, "Scheme");
-        Scheme old = registeredSchemes.put(sch.getName(), sch);
+        final Scheme old = registeredSchemes.put(sch.getName(), sch);
         return old;
     }
 
@@ -138,7 +138,7 @@ public final class SchemeRegistry {
         Args.notNull(name, "Scheme name");
         // leave it to the caller to use the correct name - all lowercase
         //name = name.toLowerCase();
-        Scheme gone = registeredSchemes.remove(name);
+        final Scheme gone = registeredSchemes.remove(name);
         return gone;
     }
 

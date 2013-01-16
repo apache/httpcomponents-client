@@ -55,7 +55,7 @@ public class TestNTLMEngineImpl {
 
     /* Test suite helper */
     static byte[] toBytes(final String hex) {
-        byte[] rval = new byte[hex.length() / 2];
+        final byte[] rval = new byte[hex.length() / 2];
         int i = 0;
         while (i < rval.length) {
             rval[i] = (byte) ((toNibble(hex.charAt(i * 2)) << 4) | (toNibble(hex
@@ -70,8 +70,8 @@ public class TestNTLMEngineImpl {
         NTLMEngineImpl.MD4 md4;
         md4 = new NTLMEngineImpl.MD4();
         md4.update(input.getBytes("ASCII"));
-        byte[] answer = md4.getOutput();
-        byte[] correctAnswer = toBytes(hexOutput);
+        final byte[] answer = md4.getOutput();
+        final byte[] correctAnswer = toBytes(hexOutput);
         if (answer.length != correctAnswer.length) {
             throw new Exception("Answer length disagrees for MD4('" + input + "')");
         }
@@ -87,7 +87,7 @@ public class TestNTLMEngineImpl {
 
     @Test
     public void testLMResponse() throws Exception {
-        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+        final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             null,
             null,
             "SecREt01",
@@ -103,7 +103,7 @@ public class TestNTLMEngineImpl {
 
     @Test
     public void testNTLMResponse() throws Exception {
-        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+        final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             null,
             null,
             "SecREt01",
@@ -119,7 +119,7 @@ public class TestNTLMEngineImpl {
 
     @Test
     public void testLMv2Response() throws Exception {
-        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+        final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             "DOMAIN",
             "user",
             "SecREt01",
@@ -135,7 +135,7 @@ public class TestNTLMEngineImpl {
 
     @Test
     public void testNTLMv2Response() throws Exception {
-        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+        final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             "DOMAIN",
             "user",
             "SecREt01",
@@ -153,7 +153,7 @@ public class TestNTLMEngineImpl {
 
     @Test
     public void testLM2SessionResponse() throws Exception {
-        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+        final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             "DOMAIN",
             "user",
             "SecREt01",
@@ -169,7 +169,7 @@ public class TestNTLMEngineImpl {
 
     @Test
     public void testNTLM2SessionResponse() throws Exception {
-        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+        final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             "DOMAIN",
             "user",
             "SecREt01",
@@ -185,7 +185,7 @@ public class TestNTLMEngineImpl {
 
     @Test
     public void testNTLMUserSessionKey() throws Exception {
-        NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+        final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             "DOMAIN",
             "user",
             "SecREt01",

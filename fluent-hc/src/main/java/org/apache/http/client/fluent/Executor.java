@@ -76,19 +76,19 @@ public class Executor {
         LayeredConnectionSocketFactory ssl = null;
         try {
             ssl = SSLSocketFactory.getSystemSocketFactory();
-        } catch (SSLInitializationException ex) {
+        } catch (final SSLInitializationException ex) {
             SSLContext sslcontext;
             try {
                 sslcontext = SSLContext.getInstance(SSLSocketFactory.TLS);
                 sslcontext.init(null, null, null);
                 ssl = new SSLSocketFactory(sslcontext);
-            } catch (SecurityException ignore) {
-            } catch (KeyManagementException ignore) {
-            } catch (NoSuchAlgorithmException ignore) {
+            } catch (final SecurityException ignore) {
+            } catch (final KeyManagementException ignore) {
+            } catch (final NoSuchAlgorithmException ignore) {
             }
         }
 
-        Registry<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create()
+        final Registry<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create()
             .register("http", PlainSocketFactory.getSocketFactory())
             .register("https", ssl != null ? ssl : SSLSocketFactory.getSocketFactory())
             .build();
@@ -130,25 +130,25 @@ public class Executor {
     }
 
     public Executor auth(final HttpHost host, final Credentials creds) {
-        AuthScope authScope = host != null ? new AuthScope(host) : AuthScope.ANY;
+        final AuthScope authScope = host != null ? new AuthScope(host) : AuthScope.ANY;
         return auth(authScope, creds);
     }
 
     public Executor authPreemptive(final HttpHost host) {
-        BasicScheme basicScheme = new BasicScheme();
+        final BasicScheme basicScheme = new BasicScheme();
         try {
             basicScheme.processChallenge(new BasicHeader(AUTH.WWW_AUTH, "BASIC "));
-        } catch (MalformedChallengeException ingnore) {
+        } catch (final MalformedChallengeException ingnore) {
         }
         this.authCache.put(host, basicScheme);
         return this;
     }
 
     public Executor authPreemptiveProxy(final HttpHost host) {
-        BasicScheme basicScheme = new BasicScheme();
+        final BasicScheme basicScheme = new BasicScheme();
         try {
             basicScheme.processChallenge(new BasicHeader(AUTH.PROXY_AUTH, "BASIC "));
-        } catch (MalformedChallengeException ingnore) {
+        } catch (final MalformedChallengeException ingnore) {
         }
         this.authCache.put(host, basicScheme);
         return this;
@@ -210,7 +210,7 @@ public class Executor {
         this.localContext.setAttribute(ClientContext.CREDS_PROVIDER, this.credentialsProvider);
         this.localContext.setAttribute(ClientContext.AUTH_CACHE, this.authCache);
         this.localContext.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
-        HttpRequestBase httprequest = request.getHttpRequest();
+        final HttpRequestBase httprequest = request.getHttpRequest();
         httprequest.reset();
         return new Response(this.httpclient.execute(httprequest, this.localContext));
     }

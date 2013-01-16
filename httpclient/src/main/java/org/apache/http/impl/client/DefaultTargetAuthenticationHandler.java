@@ -61,7 +61,7 @@ public class DefaultTargetAuthenticationHandler extends AbstractAuthenticationHa
             final HttpResponse response,
             final HttpContext context) {
         Args.notNull(response, "HTTP response");
-        int status = response.getStatusLine().getStatusCode();
+        final int status = response.getStatusLine().getStatusCode();
         return status == HttpStatus.SC_UNAUTHORIZED;
     }
 
@@ -69,7 +69,7 @@ public class DefaultTargetAuthenticationHandler extends AbstractAuthenticationHa
             final HttpResponse response,
             final HttpContext context) throws MalformedChallengeException {
         Args.notNull(response, "HTTP response");
-        Header[] headers = response.getHeaders(AUTH.WWW_AUTH);
+        final Header[] headers = response.getHeaders(AUTH.WWW_AUTH);
         return parseChallenges(headers);
     }
 
@@ -78,6 +78,7 @@ public class DefaultTargetAuthenticationHandler extends AbstractAuthenticationHa
             final HttpResponse response,
             final HttpContext context) {
         @SuppressWarnings("unchecked")
+        final
         List<String> authpref = (List<String>) response.getParams().getParameter(
                 AuthPNames.TARGET_AUTH_PREF);
         if (authpref != null) {

@@ -80,7 +80,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
     }
 
     public int read(final byte[] b, final int off, final int len) throws IOException {
-        int l = this.in.read(b,  off,  len);
+        final int l = this.in.read(b,  off,  len);
         if (this.wire.enabled() && l > 0) {
             this.wire.input(b, off, l);
         }
@@ -88,7 +88,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
     }
 
     public int read() throws IOException {
-        int l = this.in.read();
+        final int l = this.in.read();
         if (this.wire.enabled() && l != -1) {
             this.wire.input(l);
         }
@@ -96,7 +96,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
     }
 
     public int read(final byte[] b) throws IOException {
-        int l = this.in.read(b);
+        final int l = this.in.read(b);
         if (this.wire.enabled() && l > 0) {
             this.wire.input(b, 0, l);
         }
@@ -104,20 +104,20 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
     }
 
     public String readLine() throws IOException {
-        String s = this.in.readLine();
+        final String s = this.in.readLine();
         if (this.wire.enabled() && s != null) {
-            String tmp = s + "\r\n";
+            final String tmp = s + "\r\n";
             this.wire.input(tmp.getBytes(this.charset));
         }
         return s;
     }
 
     public int readLine(final CharArrayBuffer buffer) throws IOException {
-        int l = this.in.readLine(buffer);
+        final int l = this.in.readLine(buffer);
         if (this.wire.enabled() && l >= 0) {
-            int pos = buffer.length() - l;
-            String s = new String(buffer.buffer(), pos, l);
-            String tmp = s + "\r\n";
+            final int pos = buffer.length() - l;
+            final String s = new String(buffer.buffer(), pos, l);
+            final String tmp = s + "\r\n";
             this.wire.input(tmp.getBytes(this.charset));
         }
         return l;

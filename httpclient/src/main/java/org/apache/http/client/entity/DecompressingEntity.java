@@ -65,10 +65,10 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
     abstract InputStream decorate(final InputStream wrapped) throws IOException;
 
     private InputStream getDecompressingStream() throws IOException {
-        InputStream in = wrappedEntity.getContent();
+        final InputStream in = wrappedEntity.getContent();
         try {
             return decorate(in);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             in.close();
             throw ex;
         }
@@ -95,9 +95,9 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
     @Override
     public void writeTo(final OutputStream outstream) throws IOException {
         Args.notNull(outstream, "Output stream");
-        InputStream instream = getContent();
+        final InputStream instream = getContent();
         try {
-            byte[] buffer = new byte[BUFFER_SIZE];
+            final byte[] buffer = new byte[BUFFER_SIZE];
             int l;
             while ((l = instream.read(buffer)) != -1) {
                 outstream.write(buffer, 0, l);

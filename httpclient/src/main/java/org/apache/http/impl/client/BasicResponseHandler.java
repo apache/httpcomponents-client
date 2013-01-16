@@ -60,8 +60,8 @@ public class BasicResponseHandler implements ResponseHandler<String> {
      */
     public String handleResponse(final HttpResponse response)
             throws HttpResponseException, IOException {
-        StatusLine statusLine = response.getStatusLine();
-        HttpEntity entity = response.getEntity();
+        final StatusLine statusLine = response.getStatusLine();
+        final HttpEntity entity = response.getEntity();
         if (statusLine.getStatusCode() >= 300) {
             EntityUtils.consume(entity);
             throw new HttpResponseException(statusLine.getStatusCode(),

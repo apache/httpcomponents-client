@@ -45,10 +45,10 @@ public class TestDefaultHttpRequestRetryHandler {
 
     @Test
     public void noRetryOnConnectTimeout() throws Exception {
-        HttpContext context = mock(HttpContext.class);
-        HttpUriRequest request = mock(HttpUriRequest.class);
+        final HttpContext context = mock(HttpContext.class);
+        final HttpUriRequest request = mock(HttpUriRequest.class);
 
-        DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
+        final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
         Assert.assertEquals(3, retryHandler.getRetryCount());
 
         when(request.isAborted()).thenReturn(Boolean.FALSE);
@@ -59,10 +59,10 @@ public class TestDefaultHttpRequestRetryHandler {
 
     @Test
     public void noRetryOnUnknownHost() throws Exception {
-        HttpContext context = mock(HttpContext.class);
-        HttpUriRequest request = mock(HttpUriRequest.class);
+        final HttpContext context = mock(HttpContext.class);
+        final HttpUriRequest request = mock(HttpUriRequest.class);
 
-        DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
+        final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
         when(request.isAborted()).thenReturn(Boolean.FALSE);
         when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
@@ -72,10 +72,10 @@ public class TestDefaultHttpRequestRetryHandler {
 
     @Test
     public void noRetryOnAbortedRequests() throws Exception{
-        HttpContext context = mock(HttpContext.class);
-        HttpUriRequest request = mock(HttpUriRequest.class);
+        final HttpContext context = mock(HttpContext.class);
+        final HttpUriRequest request = mock(HttpUriRequest.class);
 
-        DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
+        final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
         when(request.isAborted()).thenReturn(Boolean.TRUE);
         when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
@@ -86,10 +86,10 @@ public class TestDefaultHttpRequestRetryHandler {
     @Test
     public void retryOnNonAbortedRequests() throws Exception{
 
-        HttpContext context = mock(HttpContext.class);
-        HttpUriRequest request = mock(HttpUriRequest.class);
+        final HttpContext context = mock(HttpContext.class);
+        final HttpUriRequest request = mock(HttpUriRequest.class);
 
-        DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
+        final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
         when(request.isAborted()).thenReturn(Boolean.FALSE);
         when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
@@ -100,10 +100,10 @@ public class TestDefaultHttpRequestRetryHandler {
     @Test
     public void noRetryOnConnectionTimeout() throws Exception{
 
-        HttpContext context = mock(HttpContext.class);
-        HttpUriRequest request = mock(HttpUriRequest.class);
+        final HttpContext context = mock(HttpContext.class);
+        final HttpUriRequest request = mock(HttpUriRequest.class);
 
-        DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
+        final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
         when(request.isAborted()).thenReturn(false);
         when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);

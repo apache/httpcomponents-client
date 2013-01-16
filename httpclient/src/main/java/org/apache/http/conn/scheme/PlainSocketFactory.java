@@ -110,13 +110,13 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
             sock.setReuseAddress(HttpConnectionParams.getSoReuseaddr(params));
             sock.bind(localAddress);
         }
-        int connTimeout = HttpConnectionParams.getConnectionTimeout(params);
-        int soTimeout = HttpConnectionParams.getSoTimeout(params);
+        final int connTimeout = HttpConnectionParams.getConnectionTimeout(params);
+        final int soTimeout = HttpConnectionParams.getSoTimeout(params);
 
         try {
             sock.setSoTimeout(soTimeout);
             sock.connect(remoteAddress, connTimeout);
-        } catch (SocketTimeoutException ex) {
+        } catch (final SocketTimeoutException ex) {
             throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
         }
         return sock;
@@ -158,7 +158,7 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
         } else {
             remoteAddress = InetAddress.getByName(host);
         }
-        InetSocketAddress remote = new InetSocketAddress(remoteAddress, port);
+        final InetSocketAddress remote = new InetSocketAddress(remoteAddress, port);
         return connectSocket(socket, remote, local, params);
     }
 

@@ -83,7 +83,7 @@ public class RFC2965Spec extends RFC2109Spec {
                     + header.toString() + "'");
         }
         origin = adjustEffectiveHost(origin);
-        HeaderElement[] elems = header.getElements();
+        final HeaderElement[] elems = header.getElements();
         return createCookies(elems, origin);
     }
 
@@ -98,36 +98,36 @@ public class RFC2965Spec extends RFC2109Spec {
     private List<Cookie> createCookies(
             final HeaderElement[] elems,
             final CookieOrigin origin) throws MalformedCookieException {
-        List<Cookie> cookies = new ArrayList<Cookie>(elems.length);
-        for (HeaderElement headerelement : elems) {
-            String name = headerelement.getName();
-            String value = headerelement.getValue();
+        final List<Cookie> cookies = new ArrayList<Cookie>(elems.length);
+        for (final HeaderElement headerelement : elems) {
+            final String name = headerelement.getName();
+            final String value = headerelement.getValue();
             if (name == null || name.length() == 0) {
                 throw new MalformedCookieException("Cookie name may not be empty");
             }
 
-            BasicClientCookie2 cookie = new BasicClientCookie2(name, value);
+            final BasicClientCookie2 cookie = new BasicClientCookie2(name, value);
             cookie.setPath(getDefaultPath(origin));
             cookie.setDomain(getDefaultDomain(origin));
             cookie.setPorts(new int [] { origin.getPort() });
             // cycle through the parameters
-            NameValuePair[] attribs = headerelement.getParameters();
+            final NameValuePair[] attribs = headerelement.getParameters();
 
             // Eliminate duplicate attributes. The first occurrence takes precedence
             // See RFC2965: 3.2  Origin Server Role
-            Map<String, NameValuePair> attribmap =
+            final Map<String, NameValuePair> attribmap =
                     new HashMap<String, NameValuePair>(attribs.length);
             for (int j = attribs.length - 1; j >= 0; j--) {
-                NameValuePair param = attribs[j];
+                final NameValuePair param = attribs[j];
                 attribmap.put(param.getName().toLowerCase(Locale.ENGLISH), param);
             }
-            for (Map.Entry<String, NameValuePair> entry : attribmap.entrySet()) {
-                NameValuePair attrib = entry.getValue();
-                String s = attrib.getName().toLowerCase(Locale.ENGLISH);
+            for (final Map.Entry<String, NameValuePair> entry : attribmap.entrySet()) {
+                final NameValuePair attrib = entry.getValue();
+                final String s = attrib.getName().toLowerCase(Locale.ENGLISH);
 
                 cookie.setAttribute(s, attrib.getValue());
 
-                CookieAttributeHandler handler = findAttribHandler(s);
+                final CookieAttributeHandler handler = findAttribHandler(s);
                 if (handler != null) {
                     handler.parse(cookie, attrib.getValue());
                 }
@@ -164,12 +164,12 @@ public class RFC2965Spec extends RFC2109Spec {
         // format port attribute
         if (cookie instanceof ClientCookie) {
             // Test if the port attribute as set by the origin server is not blank
-            String s = ((ClientCookie) cookie).getAttribute(ClientCookie.PORT_ATTR);
+            final String s = ((ClientCookie) cookie).getAttribute(ClientCookie.PORT_ATTR);
             if (s != null) {
                 buffer.append("; $Port");
                 buffer.append("=\"");
                 if (s.trim().length() > 0) {
-                    int[] ports = cookie.getPorts();
+                    final int[] ports = cookie.getPorts();
                     if (ports != null) {
                         for (int i = 0, len = ports.length; i < len; i++) {
                             if (i > 0) {
@@ -202,7 +202,7 @@ public class RFC2965Spec extends RFC2109Spec {
         // IPv4 address or IPv6 address
         boolean isLocalHost = true;
         for (int i = 0; i < host.length(); i++) {
-            char ch = host.charAt(i);
+            final char ch = host.charAt(i);
             if (ch == '.' || ch == ':') {
                 isLocalHost = false;
                 break;
@@ -227,7 +227,7 @@ public class RFC2965Spec extends RFC2109Spec {
 
     @Override
     public Header getVersionHeader() {
-        CharArrayBuffer buffer = new CharArrayBuffer(40);
+        final CharArrayBuffer buffer = new CharArrayBuffer(40);
         buffer.append(SM.COOKIE2);
         buffer.append(": ");
         buffer.append("$Version=");

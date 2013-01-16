@@ -52,10 +52,10 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
             throws MalformedCookieException {
         super.validate(cookie, origin);
         // Perform Netscape Cookie draft specific validation
-        String host = origin.getHost();
-        String domain = cookie.getDomain();
+        final String host = origin.getHost();
+        final String domain = cookie.getDomain();
         if (host.contains(".")) {
-            int domainParts = new StringTokenizer(domain, ".").countTokens();
+            final int domainParts = new StringTokenizer(domain, ".").countTokens();
 
             if (isSpecialDomain(domain)) {
                 if (domainParts < 2) {
@@ -95,8 +95,8 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
    public boolean match(final Cookie cookie, final CookieOrigin origin) {
        Args.notNull(cookie, "Cookie");
        Args.notNull(origin, "Cookie origin");
-       String host = origin.getHost();
-       String domain = cookie.getDomain();
+       final String host = origin.getHost();
+       final String domain = cookie.getDomain();
        if (domain == null) {
            return false;
        }

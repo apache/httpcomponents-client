@@ -163,11 +163,11 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
                 this.poolEntry = null;
             }
             if (this.poolEntry == null) {
-                String id = Long.toString(COUNTER.getAndIncrement());
-                OperatedClientConnection conn = this.connOperator.createConnection();
+                final String id = Long.toString(COUNTER.getAndIncrement());
+                final OperatedClientConnection conn = this.connOperator.createConnection();
                 this.poolEntry = new HttpPoolEntry(this.log, id, route, conn, 0, TimeUnit.MILLISECONDS);
             }
-            long now = System.currentTimeMillis();
+            final long now = System.currentTimeMillis();
             if (this.poolEntry.isExpired(now)) {
                 this.poolEntry.close();
                 this.poolEntry.getTracker().reset();
@@ -180,7 +180,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
     private void shutdownConnection(final HttpClientConnection conn) {
         try {
             conn.shutdown();
-        } catch (IOException iox) {
+        } catch (final IOException iox) {
             if (this.log.isDebugEnabled()) {
                 this.log.debug("I/O exception shutting down connection", iox);
             }
@@ -190,7 +190,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
     public void releaseConnection(final ManagedClientConnection conn, final long keepalive, final TimeUnit tunit) {
         Args.check(conn instanceof ManagedClientConnectionImpl, "Connection class mismatch, " +
             "connection not obtained from this manager");
-        ManagedClientConnectionImpl managedConn = (ManagedClientConnectionImpl) conn;
+        final ManagedClientConnectionImpl managedConn = (ManagedClientConnectionImpl) conn;
         synchronized (managedConn) {
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Releasing connection " + conn);
@@ -198,7 +198,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
             if (managedConn.getPoolEntry() == null) {
                 return; // already released
             }
-            ClientConnectionManager manager = managedConn.getManager();
+            final ClientConnectionManager manager = managedConn.getManager();
             Asserts.check(manager == this, "Connection not obtained from this manager");
             synchronized (this) {
                 if (this.shutdown) {
@@ -233,7 +233,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
     public void closeExpiredConnections() {
         synchronized (this) {
             assertNotShutdown();
-            long now = System.currentTimeMillis();
+            final long now = System.currentTimeMillis();
             if (this.poolEntry != null && this.poolEntry.isExpired(now)) {
                 this.poolEntry.close();
                 this.poolEntry.getTracker().reset();
@@ -249,7 +249,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
             if (time < 0) {
                 time = 0;
             }
-            long deadline = System.currentTimeMillis() - time;
+            final long deadline = System.currentTimeMillis() - time;
             if (this.poolEntry != null && this.poolEntry.getUpdated() <= deadline) {
                 this.poolEntry.close();
                 this.poolEntry.getTracker().reset();

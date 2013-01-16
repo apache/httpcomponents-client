@@ -95,9 +95,9 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         Args.notNull(request, "HTTP request");
         Args.notNull(response, "HTTP response");
 
-        int statusCode = response.getStatusLine().getStatusCode();
-        String method = request.getRequestLine().getMethod();
-        Header locationHeader = response.getFirstHeader("location");
+        final int statusCode = response.getStatusLine().getStatusCode();
+        final String method = request.getRequestLine().getMethod();
+        final Header locationHeader = response.getFirstHeader("location");
         switch (statusCode) {
         case HttpStatus.SC_MOVED_TEMPORARILY:
             return isRedirectable(method) && locationHeader != null;
@@ -119,22 +119,22 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         Args.notNull(response, "HTTP response");
         Args.notNull(context, "HTTP context");
 
-        HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
 
         //get the location header to find out where to redirect to
-        Header locationHeader = response.getFirstHeader("location");
+        final Header locationHeader = response.getFirstHeader("location");
         if (locationHeader == null) {
             // got a redirect response, but no location header
             throw new ProtocolException(
                     "Received redirect response " + response.getStatusLine()
                     + " but no location header");
         }
-        String location = locationHeader.getValue();
+        final String location = locationHeader.getValue();
         if (this.log.isDebugEnabled()) {
             this.log.debug("Redirect requested to location '" + location + "'");
         }
 
-        RequestConfig config = clientContext.getRequestConfig();
+        final RequestConfig config = clientContext.getRequestConfig();
 
         URI uri = createLocationURI(location);
 
@@ -149,13 +149,13 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
                             + uri + "' not allowed");
                 }
                 // Adjust location URI
-                HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+                final HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
                 Asserts.notNull(target, "Target host");
-                URI requestURI = new URI(request.getRequestLine().getUri());
-                URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, true);
+                final URI requestURI = new URI(request.getRequestLine().getUri());
+                final URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, true);
                 uri = URIUtils.resolve(absoluteRequestURI, uri);
             }
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new ProtocolException(ex.getMessage(), ex);
         }
 
@@ -180,7 +180,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
     protected URI createLocationURI(final String location) throws ProtocolException {
         try {
             return new URI(location).normalize();
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new ProtocolException("Invalid redirect URI: " + location, ex);
         }
     }
@@ -189,7 +189,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
      * @since 4.2
      */
     protected boolean isRedirectable(final String method) {
-        for (String m: REDIRECT_METHODS) {
+        for (final String m: REDIRECT_METHODS) {
             if (m.equalsIgnoreCase(method)) {
                 return true;
             }
@@ -201,14 +201,14 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             final HttpRequest request,
             final HttpResponse response,
             final HttpContext context) throws ProtocolException {
-        URI uri = getLocationURI(request, response, context);
-        String method = request.getRequestLine().getMethod();
+        final URI uri = getLocationURI(request, response, context);
+        final String method = request.getRequestLine().getMethod();
         if (method.equalsIgnoreCase(HttpHead.METHOD_NAME)) {
             return new HttpHead(uri);
         } else if (method.equalsIgnoreCase(HttpGet.METHOD_NAME)) {
             return new HttpGet(uri);
         } else {
-            int status = response.getStatusLine().getStatusCode();
+            final int status = response.getStatusLine().getStatusCode();
             if (status == HttpStatus.SC_TEMPORARY_REDIRECT) {
                 return RequestBuilder.copy(request).setUri(uri).build();
             } else {

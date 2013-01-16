@@ -60,7 +60,7 @@ class CPool extends AbstractConnPool<HttpRoute, SocketClientConnection, CPoolEnt
 
     @Override
     protected CPoolEntry createEntry(final HttpRoute route, final SocketClientConnection conn) {
-        String id = Long.toString(COUNTER.getAndIncrement());
+        final String id = Long.toString(COUNTER.getAndIncrement());
         return new CPoolEntry(this.log, id, route, conn, this.timeToLive, this.tunit);
     }
 

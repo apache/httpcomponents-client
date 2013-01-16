@@ -157,7 +157,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
      */
     @Override
     protected HttpParams createHttpParams() {
-        HttpParams params = new SyncBasicHttpParams();
+        final HttpParams params = new SyncBasicHttpParams();
         setDefaultHttpParams(params);
         return params;
     }
@@ -208,7 +208,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
     */
     @Override
     protected BasicHttpProcessor createHttpProcessor() {
-        BasicHttpProcessor httpproc = new BasicHttpProcessor();
+        final BasicHttpProcessor httpproc = new BasicHttpProcessor();
         httpproc.addInterceptor(new RequestDefaultHeaders());
         // Required protocol interceptors
         httpproc.addInterceptor(new RequestContent());

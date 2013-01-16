@@ -87,7 +87,7 @@ public class InputStreamBody extends AbstractContentBody {
     public void writeTo(final OutputStream out) throws IOException {
         Args.notNull(out, "Output stream");
         try {
-            byte[] tmp = new byte[4096];
+            final byte[] tmp = new byte[4096];
             int l;
             while ((l = this.in.read(tmp)) != -1) {
                 out.write(tmp, 0, l);

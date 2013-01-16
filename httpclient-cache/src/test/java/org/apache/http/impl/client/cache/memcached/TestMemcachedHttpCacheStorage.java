@@ -64,7 +64,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         mockMemcachedCacheEntry2 = EasyMock.createNiceMock(MemcachedCacheEntry.class);
         mockMemcachedCacheEntry3 = EasyMock.createNiceMock(MemcachedCacheEntry.class);
         mockMemcachedCacheEntry4 = EasyMock.createNiceMock(MemcachedCacheEntry.class);
-        CacheConfig config = CacheConfig.custom().setMaxUpdateRetries(1).build();
+        final CacheConfig config = CacheConfig.custom().setMaxUpdateRetries(1).build();
         impl = new MemcachedHttpCacheStorage(mockMemcachedClient, config,
                 mockMemcachedCacheEntryFactory, mockKeyHashingScheme);
     }
@@ -94,7 +94,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final String url = "foo";
         final String key = "key";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
-        byte[] serialized = HttpTestUtils.getRandomBytes(128);
+        final byte[] serialized = HttpTestUtils.getRandomBytes(128);
 
         EasyMock.expect(mockMemcachedCacheEntryFactory.getMemcachedCacheEntry(url, value))
             .andReturn(mockMemcachedCacheEntry);
@@ -114,7 +114,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     public void testCachePutFailsSilentlyWhenWeCannotHashAKey() throws IOException {
         final String url = "foo";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
-        byte[] serialized = HttpTestUtils.getRandomBytes(128);
+        final byte[] serialized = HttpTestUtils.getRandomBytes(128);
 
         EasyMock.expect(mockMemcachedCacheEntryFactory.getMemcachedCacheEntry(url, value))
             .andReturn(mockMemcachedCacheEntry).times(0,1);
@@ -132,7 +132,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final String url = "foo";
         final String key = "key";
         final HttpCacheEntry value = HttpTestUtils.makeCacheEntry();
-        byte[] serialized = HttpTestUtils.getRandomBytes(128);
+        final byte[] serialized = HttpTestUtils.getRandomBytes(128);
 
         EasyMock.expect(mockMemcachedCacheEntryFactory.getMemcachedCacheEntry(url, value))
             .andReturn(mockMemcachedCacheEntry);
@@ -147,7 +147,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         try {
             impl.putEntry(url, value);
             fail("should have thrown exception");
-        } catch (IOException expected) {
+        } catch (final IOException expected) {
         }
         verifyMocks();
     }
@@ -169,7 +169,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         try {
             impl.putEntry(url, value);
             fail("should have thrown exception");
-        } catch (IOException expected) {
+        } catch (final IOException expected) {
 
         }
         verifyMocks();
@@ -180,7 +180,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
             IOException {
         final String url = "foo";
         final String key = "key";
-        byte[] serialized = HttpTestUtils.getRandomBytes(128);
+        final byte[] serialized = HttpTestUtils.getRandomBytes(128);
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry();
 
         EasyMock.expect(mockKeyHashingScheme.hash(url)).andReturn(key);
@@ -192,7 +192,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         EasyMock.expect(mockMemcachedCacheEntry.getHttpCacheEntry()).andReturn(cacheEntry);
 
         replayMocks();
-        HttpCacheEntry resultingEntry = impl.getEntry(url);
+        final HttpCacheEntry resultingEntry = impl.getEntry(url);
         verifyMocks();
         assertSame(cacheEntry, resultingEntry);
     }
@@ -207,7 +207,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         EasyMock.expect(mockMemcachedClient.get(key)).andReturn(new Object());
 
         replayMocks();
-        HttpCacheEntry resultingEntry = impl.getEntry(url);
+        final HttpCacheEntry resultingEntry = impl.getEntry(url);
         verifyMocks();
         assertNull(resultingEntry);
     }
@@ -222,7 +222,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         EasyMock.expect(mockMemcachedClient.get(key)).andReturn(null);
 
         replayMocks();
-        HttpCacheEntry resultingEntry = impl.getEntry(url);
+        final HttpCacheEntry resultingEntry = impl.getEntry(url);
         verifyMocks();
         assertNull(resultingEntry);
     }
@@ -232,7 +232,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
             IOException {
         final String url = "foo";
         final String key = "key";
-        byte[] serialized = HttpTestUtils.getRandomBytes(128);
+        final byte[] serialized = HttpTestUtils.getRandomBytes(128);
 
         EasyMock.expect(mockKeyHashingScheme.hash(url)).andReturn(key);
         EasyMock.expect(mockMemcachedClient.get(key)).andReturn(serialized);
@@ -270,7 +270,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         try {
             impl.getEntry(url);
             fail("should have thrown exception");
-        } catch (IOException expected) {
+        } catch (final IOException expected) {
         }
         verifyMocks();
     }
@@ -307,7 +307,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         try {
             impl.removeEntry(url);
             fail("should have thrown exception");
-        } catch (IOException expected) {
+        } catch (final IOException expected) {
         }
         verifyMocks();
     }
@@ -320,7 +320,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
         final byte[] serialized = HttpTestUtils.getRandomBytes(128);
 
-        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+        final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
             public HttpCacheEntry update(final HttpCacheEntry old) {
                 assertNull(old);
                 return updatedValue;
@@ -352,7 +352,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final CASValue<Object> casValue = new CASValue<Object>(-1, oldBytes);
         final byte[] newBytes = HttpTestUtils.getRandomBytes(128);
 
-        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+        final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
             public HttpCacheEntry update(final HttpCacheEntry old) {
                 assertNull(old);
                 return updatedValue;
@@ -387,11 +387,11 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
         final byte[] oldBytes = HttpTestUtils.getRandomBytes(128);
-        CASValue<Object> casValue = new CASValue<Object>(1, oldBytes);
+        final CASValue<Object> casValue = new CASValue<Object>(1, oldBytes);
         final byte[] newBytes = HttpTestUtils.getRandomBytes(128);
 
 
-        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+        final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
             public HttpCacheEntry update(final HttpCacheEntry old) {
                 assertSame(existingValue, old);
                 return updatedValue;
@@ -427,14 +427,14 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final HttpCacheEntry existingValue = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
         final byte[] oldBytes = HttpTestUtils.getRandomBytes(128);
-        CASValue<Object> casValue = new CASValue<Object>(1, oldBytes);
+        final CASValue<Object> casValue = new CASValue<Object>(1, oldBytes);
         final byte[] newBytes = HttpTestUtils.getRandomBytes(128);
 
-        CacheConfig config = CacheConfig.custom().setMaxUpdateRetries(0).build();
+        final CacheConfig config = CacheConfig.custom().setMaxUpdateRetries(0).build();
         impl = new MemcachedHttpCacheStorage(mockMemcachedClient, config,
                 mockMemcachedCacheEntryFactory, mockKeyHashingScheme);
 
-        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+        final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
             public HttpCacheEntry update(final HttpCacheEntry old) {
                 assertSame(existingValue, old);
                 return updatedValue;
@@ -462,7 +462,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         try {
             impl.updateEntry(url, callback);
             fail("should have thrown exception");
-        } catch (HttpCacheUpdateException expected) {
+        } catch (final HttpCacheUpdateException expected) {
         }
         verifyMocks();
     }
@@ -479,12 +479,12 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final HttpCacheEntry updatedValue2 = HttpTestUtils.makeCacheEntry();
         final byte[] oldBytes = HttpTestUtils.getRandomBytes(128);
         final byte[] oldBytes2 = HttpTestUtils.getRandomBytes(128);
-        CASValue<Object> casValue = new CASValue<Object>(1, oldBytes);
-        CASValue<Object> casValue2 = new CASValue<Object>(2, oldBytes2);
+        final CASValue<Object> casValue = new CASValue<Object>(1, oldBytes);
+        final CASValue<Object> casValue2 = new CASValue<Object>(2, oldBytes2);
         final byte[] newBytes = HttpTestUtils.getRandomBytes(128);
         final byte[] newBytes2 = HttpTestUtils.getRandomBytes(128);
 
-        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+        final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
             public HttpCacheEntry update(final HttpCacheEntry old) {
                 if (old == existingValue) {
                     return updatedValue;
@@ -538,7 +538,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final String key = "key";
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
-        HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+        final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
             public HttpCacheEntry update(final HttpCacheEntry old) {
                 assertNull(old);
                 return updatedValue;
@@ -554,7 +554,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         try {
             impl.updateEntry(url, callback);
             fail("should have thrown exception");
-        } catch (IOException expected) {
+        } catch (final IOException expected) {
         }
         verifyMocks();
     }
@@ -571,7 +571,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         try {
             impl.updateEntry(url, null);
             fail("should have thrown exception");
-        } catch (HttpCacheUpdateException expected) {
+        } catch (final HttpCacheUpdateException expected) {
         }
         verifyMocks();
     }

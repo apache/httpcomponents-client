@@ -53,17 +53,17 @@ public class TestRequestProtocolCompliance {
 
     @Test
     public void doesNotModifyACompliantRequest() throws Exception {
-        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
         impl.makeRequestCompliant(wrapper);
         assertTrue(HttpTestUtils.equivalent(req, wrapper));
     }
 
     @Test
     public void removesEntityFromTRACERequest() throws Exception {
-        HttpEntityEnclosingRequest req =
+        final HttpEntityEnclosingRequest req =
             new BasicHttpEntityEnclosingRequest("TRACE", "/", HttpVersion.HTTP_1_1);
         req.setEntity(HttpTestUtils.makeBody(50));
-        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
         impl.makeRequestCompliant(wrapper);
         if (wrapper instanceof HttpEntityEnclosingRequest) {
             assertNull(((HttpEntityEnclosingRequest) wrapper).getEntity());
@@ -73,16 +73,16 @@ public class TestRequestProtocolCompliance {
     @Test
     public void upgrades1_0RequestTo1_1() throws Exception {
         req = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_0);
-        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
         impl.makeRequestCompliant(wrapper);
         assertEquals(HttpVersion.HTTP_1_1, wrapper.getProtocolVersion());
     }
 
     @Test
     public void downgrades1_2RequestTo1_1() throws Exception {
-        ProtocolVersion HTTP_1_2 = new ProtocolVersion("HTTP", 1, 2);
+        final ProtocolVersion HTTP_1_2 = new ProtocolVersion("HTTP", 1, 2);
         req = new BasicHttpRequest("GET", "/", HTTP_1_2);
-        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
         impl.makeRequestCompliant(wrapper);
         assertEquals(HttpVersion.HTTP_1_1, wrapper.getProtocolVersion());
     }
@@ -91,7 +91,7 @@ public class TestRequestProtocolCompliance {
     public void stripsMinFreshFromRequestIfNoCachePresent()
         throws Exception {
         req.setHeader("Cache-Control", "no-cache, min-fresh=10");
-        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
         impl.makeRequestCompliant(wrapper);
         assertEquals("no-cache",
                 wrapper.getFirstHeader("Cache-Control").getValue());
@@ -101,7 +101,7 @@ public class TestRequestProtocolCompliance {
     public void stripsMaxFreshFromRequestIfNoCachePresent()
         throws Exception {
         req.setHeader("Cache-Control", "no-cache, max-stale=10");
-        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
         impl.makeRequestCompliant(wrapper);
         assertEquals("no-cache",
                 wrapper.getFirstHeader("Cache-Control").getValue());
@@ -111,7 +111,7 @@ public class TestRequestProtocolCompliance {
     public void stripsMaxAgeFromRequestIfNoCachePresent()
         throws Exception {
         req.setHeader("Cache-Control", "no-cache, max-age=10");
-        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
         impl.makeRequestCompliant(wrapper);
         assertEquals("no-cache",
                 wrapper.getFirstHeader("Cache-Control").getValue());
@@ -121,7 +121,7 @@ public class TestRequestProtocolCompliance {
     public void doesNotStripMinFreshFromRequestWithoutNoCache()
         throws Exception {
         req.setHeader("Cache-Control", "min-fresh=10");
-        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
         impl.makeRequestCompliant(wrapper);
         assertEquals("min-fresh=10",
                 wrapper.getFirstHeader("Cache-Control").getValue());
@@ -131,7 +131,7 @@ public class TestRequestProtocolCompliance {
     public void correctlyStripsMinFreshFromMiddleIfNoCache()
         throws Exception {
         req.setHeader("Cache-Control", "no-cache,min-fresh=10,no-store");
-        HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
         impl.makeRequestCompliant(wrapper);
         assertEquals("no-cache,no-store",
                 wrapper.getFirstHeader("Cache-Control").getValue());

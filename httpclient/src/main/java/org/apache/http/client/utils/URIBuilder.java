@@ -105,7 +105,7 @@ public class URIBuilder {
     }
 
     private String buildString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         if (this.scheme != null) {
             sb.append(this.scheme).append(':');
         }
@@ -327,7 +327,7 @@ public class URIBuilder {
         } else {
             this.queryParams.clear();
         }
-        for (NameValuePair nvp: nvps) {
+        for (final NameValuePair nvp: nvps) {
             this.queryParams.add(nvp);
         }
         this.encodedQuery = null;
@@ -366,8 +366,8 @@ public class URIBuilder {
             this.queryParams = new ArrayList<NameValuePair>();
         }
         if (!this.queryParams.isEmpty()) {
-            for (Iterator<NameValuePair> it = this.queryParams.iterator(); it.hasNext(); ) {
-                NameValuePair nvp = it.next();
+            for (final Iterator<NameValuePair> it = this.queryParams.iterator(); it.hasNext(); ) {
+                final NameValuePair nvp = it.next();
                 if (nvp.getName().equals(param)) {
                     it.remove();
                 }

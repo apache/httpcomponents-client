@@ -42,25 +42,25 @@ public class TestBasicClientCookie2 {
 
     @Test
     public void testConstructor() {
-        BasicClientCookie2 cookie = new BasicClientCookie2("name", "value");
+        final BasicClientCookie2 cookie = new BasicClientCookie2("name", "value");
         Assert.assertEquals("name", cookie.getName());
         Assert.assertEquals("value", cookie.getValue());
         try {
             new BasicClientCookie2(null, null);
             Assert.fail("IllegalArgumentException should have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             //expected
         }
     }
 
     @Test
     public void testCloning() throws Exception {
-        BasicClientCookie2 orig = new BasicClientCookie2("name", "value");
+        final BasicClientCookie2 orig = new BasicClientCookie2("name", "value");
         orig.setDomain("domain");
         orig.setPath("/");
         orig.setAttribute("attrib", "stuff");
         orig.setPorts(new int[] {80, 8080});
-        BasicClientCookie2 clone = (BasicClientCookie2) orig.clone();
+        final BasicClientCookie2 clone = (BasicClientCookie2) orig.clone();
         Assert.assertEquals(orig.getName(), clone.getName());
         Assert.assertEquals(orig.getValue(), clone.getValue());
         Assert.assertEquals(orig.getDomain(), clone.getDomain());
@@ -73,11 +73,11 @@ public class TestBasicClientCookie2 {
 
     @Test
     public void testHTTPCLIENT_1031() throws Exception {
-        BasicClientCookie2 orig = new BasicClientCookie2("name", "value");
+        final BasicClientCookie2 orig = new BasicClientCookie2("name", "value");
         orig.setDomain("domain");
         orig.setPath("/");
         orig.setAttribute("attrib", "stuff");
-        BasicClientCookie2 clone = (BasicClientCookie2) orig.clone();
+        final BasicClientCookie2 clone = (BasicClientCookie2) orig.clone();
         Assert.assertEquals(orig.getName(), clone.getName());
         Assert.assertEquals(orig.getValue(), clone.getValue());
         Assert.assertEquals(orig.getDomain(), clone.getDomain());
@@ -88,26 +88,26 @@ public class TestBasicClientCookie2 {
 
     @Test
     public void testSerialization() throws Exception {
-        BasicClientCookie2 orig = new BasicClientCookie2("name", "value");
+        final BasicClientCookie2 orig = new BasicClientCookie2("name", "value");
         orig.setDomain("domain");
         orig.setPath("/");
         orig.setAttribute("attrib", "stuff");
         orig.setPorts(new int[] {80, 8080});
-        ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
-        ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
+        final ByteArrayOutputStream outbuffer = new ByteArrayOutputStream();
+        final ObjectOutputStream outstream = new ObjectOutputStream(outbuffer);
         outstream.writeObject(orig);
         outstream.close();
-        byte[] raw = outbuffer.toByteArray();
-        ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
-        ObjectInputStream instream = new ObjectInputStream(inbuffer);
-        BasicClientCookie2 clone = (BasicClientCookie2) instream.readObject();
+        final byte[] raw = outbuffer.toByteArray();
+        final ByteArrayInputStream inbuffer = new ByteArrayInputStream(raw);
+        final ObjectInputStream instream = new ObjectInputStream(inbuffer);
+        final BasicClientCookie2 clone = (BasicClientCookie2) instream.readObject();
         Assert.assertEquals(orig.getName(), clone.getName());
         Assert.assertEquals(orig.getValue(), clone.getValue());
         Assert.assertEquals(orig.getDomain(), clone.getDomain());
         Assert.assertEquals(orig.getPath(), clone.getPath());
         Assert.assertEquals(orig.getAttribute("attrib"), clone.getAttribute("attrib"));
-        int[] expected = orig.getPorts();
-        int[] clones = clone.getPorts();
+        final int[] expected = orig.getPorts();
+        final int[] clones = clone.getPorts();
         Assert.assertNotNull(expected);
         Assert.assertNotNull(clones);
         Assert.assertEquals(expected.length, clones.length);

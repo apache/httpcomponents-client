@@ -85,7 +85,7 @@ public class ProtocolExec implements ClientExecChain {
                 if (route.getProxyHost() != null && !route.isTunnelled()) {
                     // Make sure the request URI is absolute
                     if (!uri.isAbsolute()) {
-                        HttpHost target = route.getTargetHost();
+                        final HttpHost target = route.getTargetHost();
                         uri = URIUtils.rewriteURI(uri, target, true);
                     } else {
                         uri = URIUtils.rewriteURI(uri);
@@ -100,7 +100,7 @@ public class ProtocolExec implements ClientExecChain {
                 }
                 request.setURI(uri);
             }
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new ProtocolException("Invalid URI: " +
                     request.getRequestLine().getUri(), ex);
         }
@@ -116,11 +116,11 @@ public class ProtocolExec implements ClientExecChain {
         Args.notNull(context, "HTTP context");
 
         // Get user info from the URI
-        AuthState targetAuthState = context.getTargetAuthState();
+        final AuthState targetAuthState = context.getTargetAuthState();
         if (targetAuthState != null) {
-            URI uri = request.getURI();
+            final URI uri = request.getURI();
             if (uri != null) {
-                String userinfo = uri.getUserInfo();
+                final String userinfo = uri.getUserInfo();
                 if (userinfo != null) {
                     targetAuthState.update(
                             new BasicScheme(), new UsernamePasswordCredentials(userinfo));
@@ -131,11 +131,11 @@ public class ProtocolExec implements ClientExecChain {
         // Re-write request URI if needed
         rewriteRequestURI(request, route);
 
-        HttpParams params = request.getParams();
+        final HttpParams params = request.getParams();
         HttpHost virtualHost = (HttpHost) params.getParameter(ClientPNames.VIRTUAL_HOST);
         // HTTPCLIENT-1092 - add the port if necessary
         if (virtualHost != null && virtualHost.getPort() == -1) {
-            int port = route.getTargetHost().getPort();
+            final int port = route.getTargetHost().getPort();
             if (port != -1){
                 virtualHost = new HttpHost(virtualHost.getHostName(), port, virtualHost.getSchemeName());
             }
@@ -148,9 +148,9 @@ public class ProtocolExec implements ClientExecChain {
         if (virtualHost != null) {
             target = virtualHost;
         } else {
-            HttpRequest original = request.getOriginal();
+            final HttpRequest original = request.getOriginal();
             if (original instanceof HttpUriRequest) {
-                URI uri = ((HttpUriRequest) original).getURI();
+                final URI uri = ((HttpUriRequest) original).getURI();
                 if (uri.isAbsolute()) {
                     target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
                 }
@@ -167,19 +167,19 @@ public class ProtocolExec implements ClientExecChain {
 
         this.httpProcessor.process(request, context);
 
-        CloseableHttpResponse response = this.requestExecutor.execute(route, request, context, execAware);
+        final CloseableHttpResponse response = this.requestExecutor.execute(route, request, context, execAware);
         try {
             // Run response protocol interceptors
             context.setAttribute(ExecutionContext.HTTP_RESPONSE, response);
             this.httpProcessor.process(response, context);
             return response;
-        } catch (RuntimeException ex) {
+        } catch (final RuntimeException ex) {
             response.close();
             throw ex;
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             response.close();
             throw ex;
-        } catch (HttpException ex) {
+        } catch (final HttpException ex) {
             response.close();
             throw ex;
         }

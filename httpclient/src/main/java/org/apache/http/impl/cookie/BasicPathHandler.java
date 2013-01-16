@@ -67,7 +67,7 @@ public class BasicPathHandler implements CookieAttributeHandler {
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
-        String targetpath = origin.getPath();
+        final String targetpath = origin.getPath();
         String topmostPath = cookie.getPath();
         if (topmostPath == null) {
             topmostPath = "/";

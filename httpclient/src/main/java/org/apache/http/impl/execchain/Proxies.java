@@ -45,9 +45,9 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 class Proxies {
 
     static void enhanceEntity(final HttpEntityEnclosingRequest request) {
-        HttpEntity entity = request.getEntity();
+        final HttpEntity entity = request.getEntity();
         if (entity != null && !entity.isRepeatable() && !isEnhanced(entity)) {
-            HttpEntity proxy = (HttpEntity) Proxy.newProxyInstance(
+            final HttpEntity proxy = (HttpEntity) Proxy.newProxyInstance(
                     HttpEntity.class.getClassLoader(),
                     new Class<?>[] { HttpEntity.class },
                     new RequestEntityExecHandler(entity));
@@ -57,7 +57,7 @@ class Proxies {
 
     static boolean isEnhanced(final HttpEntity entity) {
         if (entity != null && Proxy.isProxyClass(entity.getClass())) {
-            InvocationHandler handler = Proxy.getInvocationHandler(entity);
+            final InvocationHandler handler = Proxy.getInvocationHandler(entity);
             return handler instanceof RequestEntityExecHandler;
         } else {
             return false;
@@ -66,10 +66,10 @@ class Proxies {
 
     static boolean isRepeatable(final HttpRequest request) {
         if (request instanceof HttpEntityEnclosingRequest) {
-            HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+            final HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
             if (entity != null) {
                 if (isEnhanced(entity)) {
-                    RequestEntityExecHandler handler = (RequestEntityExecHandler)
+                    final RequestEntityExecHandler handler = (RequestEntityExecHandler)
                             Proxy.getInvocationHandler(entity);
                     if (!handler.isConsumed()) {
                         return true;

@@ -36,7 +36,7 @@ public class TestRfc3492Idn {
      */
     @Test
     public void testDecode() throws Exception {
-        Rfc3492Idn idn = new Rfc3492Idn();
+        final Rfc3492Idn idn = new Rfc3492Idn();
         // (A) Arabic
         Assert.assertEquals("\u0644\u064A\u0647\u0645\u0627\u0628\u062A\u0643\u0644" +
                      "\u0645\u0648\u0634\u0639\u0631\u0628\u064A\u061F",
@@ -62,7 +62,7 @@ public class TestRfc3492Idn {
 
     @Test
     public void testToUnicode() throws Exception {
-        Rfc3492Idn idn = new Rfc3492Idn();
+        final Rfc3492Idn idn = new Rfc3492Idn();
         // (A) Arabic
         Assert.assertEquals("\u0644\u064A\u0647\u0645\u0627\u0628\u062A\u0643\u0644" +
                      "\u0645\u0648\u0634\u0639\u0631\u0628\u064A\u061F",

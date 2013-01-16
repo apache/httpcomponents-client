@@ -63,7 +63,7 @@ public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
         int version = -1;
         try {
             version = Integer.parseInt(value);
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             version = -1;
         }
         if (version < 0) {

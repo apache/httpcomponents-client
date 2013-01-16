@@ -251,7 +251,7 @@ public class AuthScope {
         if (!(o instanceof AuthScope)) {
             return super.equals(o);
         }
-        AuthScope that = (AuthScope) o;
+        final AuthScope that = (AuthScope) o;
         return
         LangUtils.equals(this.host, that.host)
           && this.port == that.port
@@ -264,7 +264,7 @@ public class AuthScope {
      */
     @Override
     public String toString() {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         if (this.scheme != null) {
             buffer.append(this.scheme.toUpperCase(Locale.ENGLISH));
             buffer.append(' ');

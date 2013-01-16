@@ -61,23 +61,23 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
 
     public Object getUserToken(final HttpContext context) {
 
-        HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
 
         Principal userPrincipal = null;
 
-        AuthState targetAuthState = clientContext.getTargetAuthState();
+        final AuthState targetAuthState = clientContext.getTargetAuthState();
         if (targetAuthState != null) {
             userPrincipal = getAuthPrincipal(targetAuthState);
             if (userPrincipal == null) {
-                AuthState proxyAuthState = clientContext.getProxyAuthState();
+                final AuthState proxyAuthState = clientContext.getProxyAuthState();
                 userPrincipal = getAuthPrincipal(proxyAuthState);
             }
         }
 
         if (userPrincipal == null) {
-            HttpConnection conn = clientContext.getConnection();
+            final HttpConnection conn = clientContext.getConnection();
             if (conn.isOpen() && conn instanceof SocketClientConnection) {
-                SSLSession sslsession = ((SocketClientConnection) conn).getSSLSession();
+                final SSLSession sslsession = ((SocketClientConnection) conn).getSSLSession();
                 if (sslsession != null) {
                     userPrincipal = sslsession.getLocalPrincipal();
                 }
@@ -88,9 +88,9 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
     }
 
     private static Principal getAuthPrincipal(final AuthState authState) {
-        AuthScheme scheme = authState.getAuthScheme();
+        final AuthScheme scheme = authState.getAuthScheme();
         if (scheme != null && scheme.isComplete() && scheme.isConnectionBased()) {
-            Credentials creds = authState.getCredentials();
+            final Credentials creds = authState.getCredentials();
             if (creds != null) {
                 return creds.getUserPrincipal();
             }

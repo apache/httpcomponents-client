@@ -91,10 +91,10 @@ class MinimalHttpClient extends CloseableHttpClient {
             execAware = (HttpExecutionAware) request;
         }
         try {
-            HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
-            HttpClientContext localcontext = HttpClientContext.adapt(
+            final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
+            final HttpClientContext localcontext = HttpClientContext.adapt(
                 context != null ? context : new BasicHttpContext());
-            HttpRoute route = new HttpRoute(target);
+            final HttpRoute route = new HttpRoute(target);
             RequestConfig config = null;
             if (request instanceof Configurable) {
                 config = ((Configurable) request).getConfig();
@@ -103,7 +103,7 @@ class MinimalHttpClient extends CloseableHttpClient {
                 localcontext.setRequestConfig(config);
             }
             return this.requestExecutor.execute(route, wrapper, localcontext, execAware);
-        } catch (HttpException httpException) {
+        } catch (final HttpException httpException) {
             throw new ClientProtocolException(httpException);
         }
     }

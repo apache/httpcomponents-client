@@ -47,8 +47,8 @@ public class HeapResourceFactory implements ResourceFactory {
             final String requestId,
             final InputStream instream,
             final InputLimit limit) throws IOException {
-        ByteArrayOutputStream outstream = new ByteArrayOutputStream();
-        byte[] buf = new byte[2048];
+        final ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+        final byte[] buf = new byte[2048];
         long total = 0;
         int l;
         while ((l = instream.read(buf)) != -1) {
@@ -69,7 +69,7 @@ public class HeapResourceFactory implements ResourceFactory {
         if (resource instanceof HeapResource) {
             body = ((HeapResource) resource).getByteArray();
         } else {
-            ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+            final ByteArrayOutputStream outstream = new ByteArrayOutputStream();
             IOUtils.copyAndClose(resource.getInputStream(), outstream);
             body = outstream.toByteArray();
         }

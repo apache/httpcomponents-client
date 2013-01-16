@@ -89,13 +89,13 @@ public class DefaultClientConnectionFactory implements HttpConnectionFactory<Soc
     }
 
     public SocketClientConnection create(final ConnectionConfig config) {
-        ConnectionConfig cconfig = config != null ? config : ConnectionConfig.DEFAULT;
+        final ConnectionConfig cconfig = config != null ? config : ConnectionConfig.DEFAULT;
         CharsetDecoder chardecoder = null;
         CharsetEncoder charencoder = null;
-        Charset charset = cconfig.getCharset();
-        CodingErrorAction malformedInputAction = cconfig.getMalformedInputAction() != null ?
+        final Charset charset = cconfig.getCharset();
+        final CodingErrorAction malformedInputAction = cconfig.getMalformedInputAction() != null ?
                 cconfig.getMalformedInputAction() : CodingErrorAction.REPORT;
-        CodingErrorAction unmappableInputAction = cconfig.getUnmappableInputAction() != null ?
+        final CodingErrorAction unmappableInputAction = cconfig.getUnmappableInputAction() != null ?
                 cconfig.getUnmappableInputAction() : CodingErrorAction.REPORT;
         if (charset != null) {
             chardecoder = charset.newDecoder();

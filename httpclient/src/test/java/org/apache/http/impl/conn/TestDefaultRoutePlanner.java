@@ -58,11 +58,11 @@ public class TestDefaultRoutePlanner {
 
     @Test
     public void testDirect() throws Exception {
-        HttpHost target = new HttpHost("somehost", 80, "http");
-        HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpHost target = new HttpHost("somehost", 80, "http");
+        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpContext context = new BasicHttpContext();
-        HttpRoute route = routePlanner.determineRoute(target, request, context);
+        final HttpContext context = new BasicHttpContext();
+        final HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assert.assertEquals(target, route.getTargetHost());
         Assert.assertEquals(1, route.getHopCount());
@@ -72,12 +72,12 @@ public class TestDefaultRoutePlanner {
 
     @Test
     public void testDirectDefaultPort() throws Exception {
-        HttpHost target = new HttpHost("somehost", -1, "https");
+        final HttpHost target = new HttpHost("somehost", -1, "https");
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(443);
-        HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpContext context = new BasicHttpContext();
-        HttpRoute route = routePlanner.determineRoute(target, request, context);
+        final HttpContext context = new BasicHttpContext();
+        final HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assert.assertEquals(new HttpHost("somehost", 443, "https"), route.getTargetHost());
         Assert.assertEquals(1, route.getHopCount());
@@ -86,13 +86,13 @@ public class TestDefaultRoutePlanner {
 
     @Test
     public void testViaProxy() throws Exception {
-        HttpHost target = new HttpHost("somehost", 80, "http");
-        HttpHost proxy = new HttpHost("proxy", 8080);
-        HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpHost target = new HttpHost("somehost", 80, "http");
+        final HttpHost proxy = new HttpHost("proxy", 8080);
+        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
 
-        HttpClientContext context = HttpClientContext.create();
+        final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig(RequestConfig.custom().setProxy(proxy).build());
-        HttpRoute route = routePlanner.determineRoute(target, request, context);
+        final HttpRoute route = routePlanner.determineRoute(target, request, context);
 
         Assert.assertEquals(target, route.getTargetHost());
         Assert.assertEquals(proxy, route.getProxyHost());

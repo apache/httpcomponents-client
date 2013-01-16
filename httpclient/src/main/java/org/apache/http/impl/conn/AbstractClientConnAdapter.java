@@ -157,7 +157,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
 
     public boolean isOpen() {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         if (conn == null) {
             return false;
         }
@@ -169,7 +169,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         if (isReleased()) {
             return true;
         }
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         if (conn == null) {
             return true;
         }
@@ -178,38 +178,38 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
 
     public void setSocketTimeout(final int timeout) {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         conn.setSocketTimeout(timeout);
     }
 
     public int getSocketTimeout() {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getSocketTimeout();
     }
 
     public HttpConnectionMetrics getMetrics() {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getMetrics();
     }
 
     public void flush() throws IOException {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         conn.flush();
     }
 
     public boolean isResponseAvailable(final int timeout) throws IOException {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.isResponseAvailable(timeout);
     }
 
     public void receiveResponseEntity(final HttpResponse response)
         throws HttpException, IOException {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         unmarkReusable();
         conn.receiveResponseEntity(response);
@@ -217,7 +217,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
 
     public HttpResponse receiveResponseHeader()
         throws HttpException, IOException {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         unmarkReusable();
         return conn.receiveResponseHeader();
@@ -225,7 +225,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
 
     public void sendRequestEntity(final HttpEntityEnclosingRequest request)
         throws HttpException, IOException {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         unmarkReusable();
         conn.sendRequestEntity(request);
@@ -233,38 +233,38 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
 
     public void sendRequestHeader(final HttpRequest request)
         throws HttpException, IOException {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         unmarkReusable();
         conn.sendRequestHeader(request);
     }
 
     public InetAddress getLocalAddress() {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getLocalAddress();
     }
 
     public int getLocalPort() {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getLocalPort();
     }
 
     public InetAddress getRemoteAddress() {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getRemoteAddress();
     }
 
     public int getRemotePort() {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getRemotePort();
     }
 
     public boolean isSecure() {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.isSecure();
     }
@@ -274,7 +274,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
 
     public Socket getSocket() {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         if (!isOpen()) {
             return null;
@@ -283,14 +283,14 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
 
     public SSLSession getSSLSession() {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         if (!isOpen()) {
             return null;
         }
 
         SSLSession result = null;
-        Socket    sock    = conn.getSocket();
+        final Socket    sock    = conn.getSocket();
         if (sock instanceof SSLSocket) {
             result = ((SSLSocket)sock).getSession();
         }
@@ -333,13 +333,13 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         unmarkReusable();
         try {
             shutdown();
-        } catch (IOException ignore) {
+        } catch (final IOException ignore) {
         }
         connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
     }
 
     public Object getAttribute(final String id) {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         if (conn instanceof HttpContext) {
             return ((HttpContext) conn).getAttribute(id);
@@ -349,7 +349,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
 
     public Object removeAttribute(final String id) {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         if (conn instanceof HttpContext) {
             return ((HttpContext) conn).removeAttribute(id);
@@ -359,7 +359,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
     }
 
     public void setAttribute(final String id, final Object obj) {
-        OperatedClientConnection conn = getWrappedConnection();
+        final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         if (conn instanceof HttpContext) {
             ((HttpContext) conn).setAttribute(id, obj);

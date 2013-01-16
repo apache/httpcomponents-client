@@ -109,7 +109,7 @@ public class AutoRetryHttpClient implements HttpClient {
 
     public HttpResponse execute(final HttpHost target, final HttpRequest request)
             throws IOException {
-        HttpContext defaultContext = null;
+        final HttpContext defaultContext = null;
         return execute(target, request, defaultContext);
     }
 
@@ -121,19 +121,19 @@ public class AutoRetryHttpClient implements HttpClient {
     public <T> T execute(final HttpHost target, final HttpRequest request,
             final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException {
-        HttpResponse resp = execute(target, request, context);
+        final HttpResponse resp = execute(target, request, context);
         return responseHandler.handleResponse(resp);
     }
 
     public HttpResponse execute(final HttpUriRequest request) throws IOException {
-        HttpContext context = null;
+        final HttpContext context = null;
         return execute(request, context);
     }
 
     public HttpResponse execute(final HttpUriRequest request, final HttpContext context)
             throws IOException {
-        URI uri = request.getURI();
-        HttpHost httpHost = new HttpHost(uri.getHost(), uri.getPort(),
+        final URI uri = request.getURI();
+        final HttpHost httpHost = new HttpHost(uri.getHost(), uri.getPort(),
                 uri.getScheme());
         return execute(httpHost, request, context);
     }
@@ -146,31 +146,31 @@ public class AutoRetryHttpClient implements HttpClient {
     public <T> T execute(final HttpUriRequest request,
             final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException {
-        HttpResponse resp = execute(request, context);
+        final HttpResponse resp = execute(request, context);
         return responseHandler.handleResponse(resp);
     }
 
     public HttpResponse execute(final HttpHost target, final HttpRequest request,
             final HttpContext context) throws IOException {
         for (int c = 1;; c++) {
-            HttpResponse response = backend.execute(target, request, context);
+            final HttpResponse response = backend.execute(target, request, context);
             try {
                 if (retryStrategy.retryRequest(response, c, context)) {
                     EntityUtils.consume(response.getEntity());
-                    long nextInterval = retryStrategy.getRetryInterval();
+                    final long nextInterval = retryStrategy.getRetryInterval();
                     try {
                         log.trace("Wait for " + nextInterval);
                         Thread.sleep(nextInterval);
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         throw new InterruptedIOException(e.getMessage());
                     }
                 } else {
                     return response;
                 }
-            } catch (RuntimeException ex) {
+            } catch (final RuntimeException ex) {
                 try {
                     EntityUtils.consume(response.getEntity());
-                } catch (IOException ioex) {
+                } catch (final IOException ioex) {
                     log.warn("I/O error consuming response content", ioex);
                 }
                 throw ex;

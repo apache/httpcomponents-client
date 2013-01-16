@@ -88,7 +88,7 @@ public abstract class AbstractCookieSpec implements CookieSpec {
      *          specified attribute.
      */
     protected CookieAttributeHandler getAttribHandler(final String name) {
-        CookieAttributeHandler handler = findAttribHandler(name);
+        final CookieAttributeHandler handler = findAttribHandler(name);
         if (handler == null) {
             throw new IllegalStateException("Handler not registered for " +
                                             name + " attribute.");

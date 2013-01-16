@@ -102,18 +102,18 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
     }
 
     public synchronized void putEntry(final String key, final HttpCacheEntry entry) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         serializer.writeTo(entry, bos);
         cache.put(new Element(key, bos.toByteArray()));
     }
 
     public synchronized HttpCacheEntry getEntry(final String key) throws IOException {
-        Element e = cache.get(key);
+        final Element e = cache.get(key);
         if(e == null){
             return null;
         }
 
-        byte[] data = (byte[])e.getValue();
+        final byte[] data = (byte[])e.getValue();
         return serializer.readFrom(new ByteArrayInputStream(data));
     }
 
@@ -125,15 +125,15 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
             throws IOException, HttpCacheUpdateException {
         int numRetries = 0;
         do{
-            Element oldElement = cache.get(key);
+            final Element oldElement = cache.get(key);
 
             HttpCacheEntry existingEntry = null;
             if(oldElement != null){
-                byte[] data = (byte[])oldElement.getValue();
+                final byte[] data = (byte[])oldElement.getValue();
                 existingEntry = serializer.readFrom(new ByteArrayInputStream(data));
             }
 
-            HttpCacheEntry updatedEntry = callback.update(existingEntry);
+            final HttpCacheEntry updatedEntry = callback.update(existingEntry);
 
             if (existingEntry == null) {
                 putEntry(key, updatedEntry);
@@ -142,9 +142,9 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
                 // Attempt to do a CAS replace, if we fail then retry
                 // While this operation should work fine within this instance, multiple instances
                 //  could trample each others' data
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                final ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 serializer.writeTo(updatedEntry, bos);
-                Element newElement = new Element(key, bos.toByteArray());
+                final Element newElement = new Element(key, bos.toByteArray());
                 if (cache.replace(oldElement, newElement)) {
                     return;
                 }else{

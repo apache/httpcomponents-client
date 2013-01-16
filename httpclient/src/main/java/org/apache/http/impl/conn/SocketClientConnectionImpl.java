@@ -129,8 +129,8 @@ class SocketClientConnectionImpl extends DefaultBHttpClientConnection
     protected void onResponseReceived(final HttpResponse response) {
         if (response != null && this.headerlog.isDebugEnabled()) {
             this.headerlog.debug(this.id + " << " + response.getStatusLine().toString());
-            Header[] headers = response.getAllHeaders();
-            for (Header header : headers) {
+            final Header[] headers = response.getAllHeaders();
+            for (final Header header : headers) {
                 this.headerlog.debug(this.id + " << " + header.toString());
             }
         }
@@ -140,8 +140,8 @@ class SocketClientConnectionImpl extends DefaultBHttpClientConnection
     protected void onRequestSubmitted(final HttpRequest request) {
         if (request != null && this.headerlog.isDebugEnabled()) {
             this.headerlog.debug(id + " >> " + request.getRequestLine().toString());
-            Header[] headers = request.getAllHeaders();
-            for (Header header : headers) {
+            final Header[] headers = request.getAllHeaders();
+            for (final Header header : headers) {
                 this.headerlog.debug(this.id + " >> " + header.toString());
             }
         }
@@ -175,7 +175,7 @@ class SocketClientConnectionImpl extends DefaultBHttpClientConnection
     }
 
     public SSLSession getSSLSession() {
-        Socket socket = super.getSocket();
+        final Socket socket = super.getSocket();
         if (socket instanceof SSLSocket) {
             return ((SSLSocket) socket).getSession();
         } else {

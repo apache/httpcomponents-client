@@ -47,7 +47,7 @@ public final class SchemeRegistryFactory {
      * not be taken into consideration.
      */
     public static SchemeRegistry createDefault() {
-        SchemeRegistry registry = new SchemeRegistry();
+        final SchemeRegistry registry = new SchemeRegistry();
         registry.register(
                 new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         registry.register(
@@ -80,7 +80,7 @@ public final class SchemeRegistryFactory {
      * @since 4.2
      */
     public static SchemeRegistry createSystemDefault() {
-        SchemeRegistry registry = new SchemeRegistry();
+        final SchemeRegistry registry = new SchemeRegistry();
         registry.register(
                 new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         registry.register(

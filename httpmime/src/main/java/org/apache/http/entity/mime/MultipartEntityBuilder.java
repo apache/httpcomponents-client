@@ -139,11 +139,11 @@ public class MultipartEntityBuilder {
     }
 
     public MultipartEntity build() {
-        MultipartEntity e = new MultipartEntity(
+        final MultipartEntity e = new MultipartEntity(
                 this.lax ? HttpMultipartMode.BROWSER_COMPATIBLE : HttpMultipartMode.STRICT,
                 this.boundary, this.charset);
         if (this.bodyParts != null) {
-            for (FormBodyPart bp: this.bodyParts) {
+            for (final FormBodyPart bp: this.bodyParts) {
                 e.addPart(bp);
             }
         }

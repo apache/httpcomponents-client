@@ -155,11 +155,11 @@ public class DefaultClientConnection extends SocketHttpClientConnection
             if (log.isDebugEnabled()) {
                 log.debug("Connection " + this + " shut down");
             }
-            Socket sock = this.socket; // copy volatile attribute
+            final Socket sock = this.socket; // copy volatile attribute
             if (sock != null) {
                 sock.close();
             }
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             log.debug("I/O error shutting down connection", ex);
         }
     }
@@ -171,7 +171,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
             if (log.isDebugEnabled()) {
                 log.debug("Connection " + this + " closed");
             }
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             log.debug("I/O error closing connection", ex);
         }
     }
@@ -250,14 +250,14 @@ public class DefaultClientConnection extends SocketHttpClientConnection
 
     @Override
     public HttpResponse receiveResponseHeader() throws HttpException, IOException {
-        HttpResponse response = super.receiveResponseHeader();
+        final HttpResponse response = super.receiveResponseHeader();
         if (log.isDebugEnabled()) {
             log.debug("Receiving response: " + response.getStatusLine());
         }
         if (headerLog.isDebugEnabled()) {
             headerLog.debug("<< " + response.getStatusLine().toString());
-            Header[] headers = response.getAllHeaders();
-            for (Header header : headers) {
+            final Header[] headers = response.getAllHeaders();
+            for (final Header header : headers) {
                 headerLog.debug("<< " + header.toString());
             }
         }
@@ -272,8 +272,8 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         super.sendRequestHeader(request);
         if (headerLog.isDebugEnabled()) {
             headerLog.debug(">> " + request.getRequestLine().toString());
-            Header[] headers = request.getAllHeaders();
-            for (Header header : headers) {
+            final Header[] headers = request.getAllHeaders();
+            for (final Header header : headers) {
                 headerLog.debug(">> " + header.toString());
             }
         }

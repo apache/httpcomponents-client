@@ -42,7 +42,7 @@ public class TestURIUtils {
 
     @Test
     public void testRewrite() throws Exception {
-        HttpHost target = new HttpHost("thathost", -1);
+        final HttpHost target = new HttpHost("thathost", -1);
         Assert.assertEquals("http://thathost/stuff", URIUtils.rewriteURI(
                 URI.create("http://thishost/stuff"), target).toString());
         Assert.assertEquals("/stuff", URIUtils.rewriteURI(
@@ -87,7 +87,7 @@ public class TestURIUtils {
 
     @Test
     public void testRewriteScheme() throws Exception {
-        HttpHost target = new HttpHost("thathost", -1, "file"); // scheme should be copied
+        final HttpHost target = new HttpHost("thathost", -1, "file"); // scheme should be copied
         Assert.assertEquals("file://thathost/stuff", URIUtils.rewriteURI(
                 URI.create("http://thishost:80/stuff#crap"), target, true).toString());
     }

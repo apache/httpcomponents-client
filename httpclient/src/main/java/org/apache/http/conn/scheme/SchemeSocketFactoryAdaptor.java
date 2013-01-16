@@ -54,8 +54,8 @@ class SchemeSocketFactoryAdaptor implements SchemeSocketFactory {
             final InetSocketAddress remoteAddress,
             final InetSocketAddress localAddress,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
-        String host = remoteAddress.getHostName();
-        int port = remoteAddress.getPort();
+        final String host = remoteAddress.getHostName();
+        final int port = remoteAddress.getPort();
         InetAddress local = null;
         int localPort = 0;
         if (localAddress != null) {

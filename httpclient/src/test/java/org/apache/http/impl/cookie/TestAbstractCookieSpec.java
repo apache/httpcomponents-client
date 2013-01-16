@@ -84,10 +84,10 @@ public class TestAbstractCookieSpec {
 
     @Test
     public void testSimpleRegisterAndGet() {
-        CookieAttributeHandler h1 = new DummyCookieAttribHandler();
-        CookieAttributeHandler h2 = new DummyCookieAttribHandler();
+        final CookieAttributeHandler h1 = new DummyCookieAttribHandler();
+        final CookieAttributeHandler h2 = new DummyCookieAttribHandler();
 
-        AbstractCookieSpec cookiespec = new DummyCookieSpec();
+        final AbstractCookieSpec cookiespec = new DummyCookieSpec();
         cookiespec.registerAttribHandler("this", h1);
         cookiespec.registerAttribHandler("that", h2);
         cookiespec.registerAttribHandler("thistoo", h1);
@@ -98,7 +98,7 @@ public class TestAbstractCookieSpec {
         Assert.assertTrue(h1 == cookiespec.getAttribHandler("thistoo"));
         Assert.assertTrue(h2 == cookiespec.getAttribHandler("thattoo"));
 
-        Iterator<CookieAttributeHandler> it = cookiespec.getAttribHandlers().iterator();
+        final Iterator<CookieAttributeHandler> it = cookiespec.getAttribHandlers().iterator();
         Assert.assertNotNull(it.next());
         Assert.assertNotNull(it.next());
         Assert.assertNotNull(it.next());
@@ -108,10 +108,10 @@ public class TestAbstractCookieSpec {
 
     @Test(expected=IllegalStateException.class)
     public void testInvalidHandler() {
-        CookieAttributeHandler h1 = new DummyCookieAttribHandler();
-        CookieAttributeHandler h2 = new DummyCookieAttribHandler();
+        final CookieAttributeHandler h1 = new DummyCookieAttribHandler();
+        final CookieAttributeHandler h2 = new DummyCookieAttribHandler();
 
-        AbstractCookieSpec cookiespec = new DummyCookieSpec();
+        final AbstractCookieSpec cookiespec = new DummyCookieSpec();
         cookiespec.registerAttribHandler("this", h1);
         cookiespec.registerAttribHandler("that", h2);
 
@@ -121,13 +121,13 @@ public class TestAbstractCookieSpec {
 
     @Test(expected=IllegalArgumentException.class)
     public void testBasicPathInvalidInput1() throws Exception {
-        AbstractCookieSpec cookiespec = new DummyCookieSpec();
+        final AbstractCookieSpec cookiespec = new DummyCookieSpec();
         cookiespec.registerAttribHandler(null, null);
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testBasicPathInvalidInput2() throws Exception {
-        AbstractCookieSpec cookiespec = new DummyCookieSpec();
+        final AbstractCookieSpec cookiespec = new DummyCookieSpec();
         cookiespec.registerAttribHandler("whatever", null);
     }
 

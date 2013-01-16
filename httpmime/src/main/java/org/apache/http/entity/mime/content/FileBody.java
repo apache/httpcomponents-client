@@ -113,9 +113,9 @@ public class FileBody extends AbstractContentBody {
 
     public void writeTo(final OutputStream out) throws IOException {
         Args.notNull(out, "Output stream");
-        InputStream in = new FileInputStream(this.file);
+        final InputStream in = new FileInputStream(this.file);
         try {
-            byte[] tmp = new byte[4096];
+            final byte[] tmp = new byte[4096];
             int l;
             while ((l = in.read(tmp)) != -1) {
                 out.write(tmp, 0, l);

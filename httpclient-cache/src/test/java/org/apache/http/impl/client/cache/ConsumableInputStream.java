@@ -49,7 +49,7 @@ public class ConsumableInputStream extends InputStream {
         closed = true;
         try {
             buf.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
         }
     }
 

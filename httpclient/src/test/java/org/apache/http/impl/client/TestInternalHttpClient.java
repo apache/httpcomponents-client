@@ -95,10 +95,10 @@ public class TestInternalHttpClient {
 
     @Test
     public void testExecute() throws Exception {
-        HttpGet httpget = new HttpGet("http://somehost/stuff");
-        HttpRoute route = new HttpRoute(new HttpHost("somehost"));
+        final HttpGet httpget = new HttpGet("http://somehost/stuff");
+        final HttpRoute route = new HttpRoute(new HttpHost("somehost"));
 
-        ArgumentCaptor<HttpRequestWrapper> argcap = ArgumentCaptor.forClass(HttpRequestWrapper.class);
+        final ArgumentCaptor<HttpRequestWrapper> argcap = ArgumentCaptor.forClass(HttpRequestWrapper.class);
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
                 argcap.capture(),
@@ -118,8 +118,8 @@ public class TestInternalHttpClient {
 
     @Test(expected=ClientProtocolException.class)
     public void testExecuteHttpException() throws Exception {
-        HttpGet httpget = new HttpGet("http://somehost/stuff");
-        HttpRoute route = new HttpRoute(new HttpHost("somehost"));
+        final HttpGet httpget = new HttpGet("http://somehost/stuff");
+        final HttpRoute route = new HttpRoute(new HttpHost("somehost"));
 
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
@@ -136,8 +136,8 @@ public class TestInternalHttpClient {
 
     @Test
     public void testExecuteDefaultContext() throws Exception {
-        HttpGet httpget = new HttpGet("http://somehost/stuff");
-        HttpClientContext context = HttpClientContext.create();
+        final HttpGet httpget = new HttpGet("http://somehost/stuff");
+        final HttpClientContext context = HttpClientContext.create();
         client.execute(httpget, context);
 
         Assert.assertSame(cookieSpecRegistry, context.getCookieSpecRegistry());
@@ -149,11 +149,11 @@ public class TestInternalHttpClient {
 
     @Test
     public void testExecuteRequestConfig() throws Exception {
-        HttpGet httpget = new HttpGet("http://somehost/stuff");
+        final HttpGet httpget = new HttpGet("http://somehost/stuff");
 
-        RequestConfig config = RequestConfig.custom().build();
+        final RequestConfig config = RequestConfig.custom().build();
         httpget.setConfig(config);
-        HttpClientContext context = HttpClientContext.create();
+        final HttpClientContext context = HttpClientContext.create();
         client.execute(httpget, context);
 
         Assert.assertSame(config, context.getRequestConfig());
@@ -161,13 +161,13 @@ public class TestInternalHttpClient {
 
     @Test
     public void testExecuteRequestConfigDeprecated() throws Exception {
-        HttpGet httpget = new HttpGet("http://somehost/stuff");
+        final HttpGet httpget = new HttpGet("http://somehost/stuff");
         httpget.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, new Integer(123));
 
-        HttpClientContext context = HttpClientContext.create();
+        final HttpClientContext context = HttpClientContext.create();
         client.execute(httpget, context);
 
-        RequestConfig config = context.getRequestConfig();
+        final RequestConfig config = context.getRequestConfig();
 
         Assert.assertNotSame(config, defaultConfig);
         Assert.assertEquals(123, config.getConnectionRequestTimeout());
@@ -176,14 +176,14 @@ public class TestInternalHttpClient {
     @SuppressWarnings("unchecked")
     @Test
     public void testExecuteLocalContext() throws Exception {
-        HttpGet httpget = new HttpGet("http://somehost/stuff");
-        HttpClientContext context = HttpClientContext.create();
+        final HttpGet httpget = new HttpGet("http://somehost/stuff");
+        final HttpClientContext context = HttpClientContext.create();
 
-        Lookup<CookieSpecProvider> localCookieSpecRegistry = Mockito.mock(Lookup.class);
-        Lookup<AuthSchemeProvider> localAuthSchemeRegistry = Mockito.mock(Lookup.class);
-        CookieStore localCookieStore = Mockito.mock(CookieStore.class);
-        CredentialsProvider localCredentialsProvider = Mockito.mock(CredentialsProvider.class);
-        RequestConfig localConfig = RequestConfig.custom().build();
+        final Lookup<CookieSpecProvider> localCookieSpecRegistry = Mockito.mock(Lookup.class);
+        final Lookup<AuthSchemeProvider> localAuthSchemeRegistry = Mockito.mock(Lookup.class);
+        final CookieStore localCookieStore = Mockito.mock(CookieStore.class);
+        final CredentialsProvider localCredentialsProvider = Mockito.mock(CredentialsProvider.class);
+        final RequestConfig localConfig = RequestConfig.custom().build();
 
         context.setCookieSpecRegistry(localCookieSpecRegistry);
         context.setAuthSchemeRegistry(localAuthSchemeRegistry);

@@ -64,9 +64,9 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
             final HttpContext context) throws HttpException {
         Args.notNull(host, "Target host");
         Args.notNull(request, "Request");
-        HttpClientContext clientContext = HttpClientContext.adapt(context);
-        RequestConfig config = clientContext.getRequestConfig();
-        InetAddress local = config.getLocalAddress();
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final RequestConfig config = clientContext.getRequestConfig();
+        final InetAddress local = config.getLocalAddress();
         HttpHost proxy = config.getProxy();
         if (proxy == null) {
             proxy = determineProxy(host, request, context);
@@ -81,7 +81,7 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         } else {
             target = host;
         }
-        boolean secure = target.getSchemeName().equalsIgnoreCase("https");
+        final boolean secure = target.getSchemeName().equalsIgnoreCase("https");
         if (proxy == null) {
             return new HttpRoute(target, local, secure);
         } else {

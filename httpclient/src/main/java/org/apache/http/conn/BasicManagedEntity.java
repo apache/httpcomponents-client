@@ -150,13 +150,13 @@ public class BasicManagedEntity extends HttpEntityWrapper
     public boolean streamClosed(final InputStream wrapped) throws IOException {
         try {
             if (attemptReuse && (managedConn != null)) {
-                boolean valid = managedConn.isOpen();
+                final boolean valid = managedConn.isOpen();
                 // this assumes that closing the stream will
                 // consume the remainder of the response body:
                 try {
                     wrapped.close();
                     managedConn.markReusable();
-                } catch (SocketException ex) {
+                } catch (final SocketException ex) {
                     if (valid) {
                         throw ex;
                     }

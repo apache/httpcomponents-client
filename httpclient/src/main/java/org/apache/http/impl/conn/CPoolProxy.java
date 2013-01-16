@@ -55,7 +55,7 @@ class CPoolProxy implements InvocationHandler {
             SHUTDOWN_METHOD = HttpConnection.class.getMethod("shutdown");
             IS_OPEN_METHOD = HttpConnection.class.getMethod("isOpen");
             IS_STALE_METHOD = HttpConnection.class.getMethod("isStale");
-        } catch (NoSuchMethodException ex) {
+        } catch (final NoSuchMethodException ex) {
             throw new Error(ex);
         }
     }
@@ -72,13 +72,13 @@ class CPoolProxy implements InvocationHandler {
     }
 
     CPoolEntry detach() {
-        CPoolEntry local = this.poolEntry;
+        final CPoolEntry local = this.poolEntry;
         this.poolEntry = null;
         return local;
     }
 
     HttpClientConnection getConnection() {
-        CPoolEntry local = this.poolEntry;
+        final CPoolEntry local = this.poolEntry;
         if (local == null) {
             return null;
         }
@@ -86,23 +86,23 @@ class CPoolProxy implements InvocationHandler {
     }
 
     public void close() throws IOException {
-        CPoolEntry local = this.poolEntry;
+        final CPoolEntry local = this.poolEntry;
         if (local != null) {
-            HttpClientConnection conn = local.getConnection();
+            final HttpClientConnection conn = local.getConnection();
             conn.close();
         }
     }
 
     public void shutdown() throws IOException {
-        CPoolEntry local = this.poolEntry;
+        final CPoolEntry local = this.poolEntry;
         if (local != null) {
-            HttpClientConnection conn = local.getConnection();
+            final HttpClientConnection conn = local.getConnection();
             conn.shutdown();
         }
     }
 
     public boolean isOpen() {
-        HttpClientConnection conn = getConnection();
+        final HttpClientConnection conn = getConnection();
         if (conn != null) {
             return conn.isOpen();
         } else {
@@ -111,7 +111,7 @@ class CPoolProxy implements InvocationHandler {
     }
 
     public boolean isStale() {
-        HttpClientConnection conn = getConnection();
+        final HttpClientConnection conn = getConnection();
         if (conn != null) {
             return conn.isStale();
         } else {
@@ -132,14 +132,14 @@ class CPoolProxy implements InvocationHandler {
         } else if (method.equals(IS_STALE_METHOD)) {
             return Boolean.valueOf(isStale());
         } else {
-            HttpClientConnection conn = getConnection();
+            final HttpClientConnection conn = getConnection();
             if (conn == null) {
                 throw new ConnectionShutdownException();
             }
             try {
                 return method.invoke(conn, args);
-            } catch (InvocationTargetException ex) {
-                Throwable cause = ex.getCause();
+            } catch (final InvocationTargetException ex) {
+                final Throwable cause = ex.getCause();
                 if (cause != null) {
                     throw cause;
                 } else {
@@ -159,7 +159,7 @@ class CPoolProxy implements InvocationHandler {
 
     private static CPoolProxy getHandler(
             final HttpClientConnection proxy) {
-        InvocationHandler handler = Proxy.getInvocationHandler(proxy);
+        final InvocationHandler handler = Proxy.getInvocationHandler(proxy);
         if (!CPoolProxy.class.isInstance(handler)) {
             throw new IllegalStateException("Unexpected proxy handler class: " + handler);
         }
@@ -167,7 +167,7 @@ class CPoolProxy implements InvocationHandler {
     }
 
     public static CPoolEntry getPoolEntry(final HttpClientConnection proxy) {
-        CPoolEntry entry = getHandler(proxy).getPoolEntry();
+        final CPoolEntry entry = getHandler(proxy).getPoolEntry();
         if (entry == null) {
             throw new ConnectionShutdownException();
         }

@@ -37,7 +37,7 @@ public class TestCookieOrigin {
 
     @Test
     public void testConstructor() {
-        CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", false);
+        final CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "/", false);
         Assert.assertEquals("www.apache.org", origin.getHost());
         Assert.assertEquals(80, origin.getPort());
         Assert.assertEquals("/", origin.getPath());
@@ -66,7 +66,7 @@ public class TestCookieOrigin {
 
     @Test
     public void testEmptyPath() {
-        CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "", false);
+        final CookieOrigin origin = new CookieOrigin("www.apache.org", 80, "", false);
         Assert.assertEquals("www.apache.org", origin.getHost());
         Assert.assertEquals(80, origin.getPort());
         Assert.assertEquals("/", origin.getPath());

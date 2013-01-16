@@ -280,7 +280,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
 
 
     protected HttpContext createHttpContext() {
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(
                 ClientContext.SCHEME_REGISTRY,
                 getConnectionManager().getSchemeRegistry());
@@ -301,24 +301,24 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
 
 
     protected ClientConnectionManager createClientConnectionManager() {
-        SchemeRegistry registry = SchemeRegistryFactory.createDefault();
+        final SchemeRegistry registry = SchemeRegistryFactory.createDefault();
 
         ClientConnectionManager connManager = null;
-        HttpParams params = getParams();
+        final HttpParams params = getParams();
 
         ClientConnectionManagerFactory factory = null;
 
-        String className = (String) params.getParameter(
+        final String className = (String) params.getParameter(
                 ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME);
         if (className != null) {
             try {
-                Class<?> clazz = Class.forName(className);
+                final Class<?> clazz = Class.forName(className);
                 factory = (ClientConnectionManagerFactory) clazz.newInstance();
-            } catch (ClassNotFoundException ex) {
+            } catch (final ClassNotFoundException ex) {
                 throw new IllegalStateException("Invalid class name: " + className);
-            } catch (IllegalAccessException ex) {
+            } catch (final IllegalAccessException ex) {
                 throw new IllegalAccessError(ex.getMessage());
-            } catch (InstantiationException ex) {
+            } catch (final InstantiationException ex) {
                 throw new InstantiationError(ex.getMessage());
             }
         }
@@ -333,7 +333,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
 
 
     protected AuthSchemeRegistry createAuthSchemeRegistry() {
-        AuthSchemeRegistry registry = new AuthSchemeRegistry();
+        final AuthSchemeRegistry registry = new AuthSchemeRegistry();
         registry.register(
                 AuthPolicy.BASIC,
                 new BasicSchemeFactory());
@@ -354,7 +354,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
 
 
     protected CookieSpecRegistry createCookieSpecRegistry() {
-        CookieSpecRegistry registry = new CookieSpecRegistry();
+        final CookieSpecRegistry registry = new CookieSpecRegistry();
         registry.register(
                 CookiePolicy.BEST_MATCH,
                 new BestMatchSpecFactory());
@@ -703,15 +703,15 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     private synchronized final HttpProcessor getProtocolProcessor() {
         if (protocolProcessor == null) {
             // Get mutable HTTP processor
-            BasicHttpProcessor proc = getHttpProcessor();
+            final BasicHttpProcessor proc = getHttpProcessor();
             // and create an immutable copy of it
-            int reqc = proc.getRequestInterceptorCount();
-            HttpRequestInterceptor[] reqinterceptors = new HttpRequestInterceptor[reqc];
+            final int reqc = proc.getRequestInterceptorCount();
+            final HttpRequestInterceptor[] reqinterceptors = new HttpRequestInterceptor[reqc];
             for (int i = 0; i < reqc; i++) {
                 reqinterceptors[i] = proc.getRequestInterceptor(i);
             }
-            int resc = proc.getResponseInterceptorCount();
-            HttpResponseInterceptor[] resinterceptors = new HttpResponseInterceptor[resc];
+            final int resc = proc.getResponseInterceptorCount();
+            final HttpResponseInterceptor[] resinterceptors = new HttpResponseInterceptor[resc];
             for (int i = 0; i < resc; i++) {
                 resinterceptors[i] = proc.getResponseInterceptor(i);
             }
@@ -795,7 +795,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
         // all shared objects that are potentially threading unsafe.
         synchronized (this) {
 
-            HttpContext defaultContext = createHttpContext();
+            final HttpContext defaultContext = createHttpContext();
             if (context == null) {
                 execContext = defaultContext;
             } else {
@@ -822,21 +822,21 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
 
         try {
             if (connectionBackoffStrategy != null && backoffManager != null) {
-                HttpHost targetForRoute = (target != null) ? target
+                final HttpHost targetForRoute = (target != null) ? target
                         : (HttpHost) determineParams(request).getParameter(
                                 ClientPNames.DEFAULT_HOST);
-                HttpRoute route = routePlanner.determineRoute(targetForRoute, request, execContext);
+                final HttpRoute route = routePlanner.determineRoute(targetForRoute, request, execContext);
 
                 CloseableHttpResponse out;
                 try {
                     out = CloseableHttpResponseProxy.newProxy(
                             director.execute(target, request, execContext));
-                } catch (RuntimeException re) {
+                } catch (final RuntimeException re) {
                     if (connectionBackoffStrategy.shouldBackoff(re)) {
                         backoffManager.backOff(route);
                     }
                     throw re;
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     if (connectionBackoffStrategy.shouldBackoff(e)) {
                         backoffManager.backOff(route);
                     }
@@ -858,7 +858,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
                 return CloseableHttpResponseProxy.newProxy(
                         director.execute(target, request, execContext));
             }
-        } catch(HttpException httpException) {
+        } catch(final HttpException httpException) {
             throw new ClientProtocolException(httpException);
         }
     }

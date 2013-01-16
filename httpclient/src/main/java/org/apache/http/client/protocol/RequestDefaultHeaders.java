@@ -66,7 +66,7 @@ public class RequestDefaultHeaders implements HttpRequestInterceptor {
             throws HttpException, IOException {
         Args.notNull(request, "HTTP request");
 
-        String method = request.getRequestLine().getMethod();
+        final String method = request.getRequestLine().getMethod();
         if (method.equalsIgnoreCase("CONNECT")) {
             return;
         }
@@ -80,7 +80,7 @@ public class RequestDefaultHeaders implements HttpRequestInterceptor {
         }
 
         if (defHeaders != null) {
-            for (Header defHeader : defHeaders) {
+            for (final Header defHeader : defHeaders) {
                 request.addHeader(defHeader);
             }
         }

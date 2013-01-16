@@ -85,7 +85,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
 
     @Before
     public void setUp() throws Exception {
-        HttpProcessor httpproc = HttpProcessorBuilder.create()
+        final HttpProcessor httpproc = HttpProcessorBuilder.create()
             .add(new ResponseDate())
             .add(new ResponseServer(LocalTestServer.ORIGIN))
             .add(new ResponseContent())
@@ -105,7 +105,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
                 final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            String creds = (String) context.getAttribute("creds");
+            final String creds = (String) context.getAttribute("creds");
             if (creds == null || !creds.equals("test:test")) {
                 response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
             } else {
@@ -114,7 +114,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
                     response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
                 } else {
                     response.setStatusCode(HttpStatus.SC_OK);
-                    StringEntity entity = new StringEntity("success", Consts.ASCII);
+                    final StringEntity entity = new StringEntity("success", Consts.ASCII);
                     response.setEntity(entity);
                 }
             }
@@ -153,7 +153,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
     public void testBasicAuthenticationSuccess() throws Exception {
         this.localServer.register("*", new AuthHandler());
 
-        BasicSchemeFactory myBasicAuthSchemeFactory = new BasicSchemeFactory() {
+        final BasicSchemeFactory myBasicAuthSchemeFactory = new BasicSchemeFactory() {
 
             @Override
             public AuthScheme create(final HttpContext context) {
@@ -169,7 +169,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
 
         };
 
-        TargetAuthenticationStrategy myAuthStrategy = new TargetAuthenticationStrategy() {
+        final TargetAuthenticationStrategy myAuthStrategy = new TargetAuthenticationStrategy() {
 
             @Override
             protected boolean isCachable(final AuthScheme authScheme) {
@@ -178,13 +178,13 @@ public class TestClientReauthentication extends IntegrationTestBase {
 
         };
 
-        TestCredentialsProvider credsProvider = new TestCredentialsProvider(
+        final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
-        RequestConfig config = RequestConfig.custom()
+        final RequestConfig config = RequestConfig.custom()
             .setTargetPreferredAuthSchemes(Arrays.asList("MyBasic"))
             .build();
-        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register("MyBasic", myBasicAuthSchemeFactory)
             .build();
         this.httpclient = HttpClients.custom()
@@ -193,12 +193,12 @@ public class TestClientReauthentication extends IntegrationTestBase {
             .setDefaultCredentialsProvider(credsProvider)
             .build();
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         for (int i = 0; i < 10; i++) {
-            HttpGet httpget = new HttpGet("/");
+            final HttpGet httpget = new HttpGet("/");
             httpget.setConfig(config);
-            HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
-            HttpEntity entity = response.getEntity();
+            final HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
+            final HttpEntity entity = response.getEntity();
             Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
             Assert.assertNotNull(entity);
             EntityUtils.consume(entity);

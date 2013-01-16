@@ -42,27 +42,27 @@ public class BasicAuthTokenExtractor {
     public String extract(final HttpRequest request) throws HttpException {
         String auth = null;
 
-        Header h = request.getFirstHeader(AUTH.WWW_AUTH_RESP);
+        final Header h = request.getFirstHeader(AUTH.WWW_AUTH_RESP);
         if (h != null) {
-            String s = h.getValue();
+            final String s = h.getValue();
             if (s != null) {
                 auth = s.trim();
             }
         }
 
         if (auth != null) {
-            int i = auth.indexOf(' ');
+            final int i = auth.indexOf(' ');
             if (i == -1) {
                 throw new ProtocolException("Invalid Authorization header: " + auth);
             }
-            String authscheme = auth.substring(0, i);
+            final String authscheme = auth.substring(0, i);
             if (authscheme.equalsIgnoreCase("basic")) {
-                String s = auth.substring(i + 1).trim();
+                final String s = auth.substring(i + 1).trim();
                 try {
-                    byte[] credsRaw = EncodingUtils.getAsciiBytes(s);
-                    BinaryDecoder codec = new Base64();
+                    final byte[] credsRaw = EncodingUtils.getAsciiBytes(s);
+                    final BinaryDecoder codec = new Base64();
                     auth = EncodingUtils.getAsciiString(codec.decode(credsRaw));
-                } catch (DecoderException ex) {
+                } catch (final DecoderException ex) {
                     throw new ProtocolException("Malformed BASIC credentials");
                 }
             }

@@ -177,7 +177,7 @@ public class PoolingHttpClientConnectionManager
     }
 
     private String format(final HttpRoute route, final Object state) {
-        StringBuilder buf = new StringBuilder();
+        final StringBuilder buf = new StringBuilder();
         buf.append("[route: ").append(route).append("]");
         if (state != null) {
             buf.append("[state: ").append(state).append("]");
@@ -186,9 +186,9 @@ public class PoolingHttpClientConnectionManager
     }
 
     private String formatStats(final HttpRoute route) {
-        StringBuilder buf = new StringBuilder();
-        PoolStats totals = this.pool.getTotalStats();
-        PoolStats stats = this.pool.getStats(route);
+        final StringBuilder buf = new StringBuilder();
+        final PoolStats totals = this.pool.getTotalStats();
+        final PoolStats stats = this.pool.getStats(route);
         buf.append("[total kept alive: ").append(totals.getAvailable()).append("; ");
         buf.append("route allocated: ").append(stats.getLeased() + stats.getAvailable());
         buf.append(" of ").append(stats.getMax()).append("; ");
@@ -198,10 +198,10 @@ public class PoolingHttpClientConnectionManager
     }
 
     private String format(final CPoolEntry entry) {
-        StringBuilder buf = new StringBuilder();
+        final StringBuilder buf = new StringBuilder();
         buf.append("[id: ").append(entry.getId()).append("]");
         buf.append("[route: ").append(entry.getRoute()).append("]");
-        Object state = entry.getState();
+        final Object state = entry.getState();
         if (state != null) {
             buf.append("[state: ").append(state).append("]");
         }
@@ -247,15 +247,15 @@ public class PoolingHttpClientConnectionManager
                 this.log.debug("Connection leased: " + format(entry) + formatStats(entry.getRoute()));
             }
             return CPoolProxy.newProxy(entry);
-        } catch (ExecutionException ex) {
+        } catch (final ExecutionException ex) {
             Throwable cause = ex.getCause();
             if (cause == null) {
                 cause = ex;
             }
-            InterruptedException intex = new InterruptedException();
+            final InterruptedException intex = new InterruptedException();
             intex.initCause(cause);
             throw intex;
-        } catch (TimeoutException ex) {
+        } catch (final TimeoutException ex) {
             throw new ConnectionPoolTimeoutException("Timeout waiting for connection from pool");
         }
     }
@@ -266,11 +266,11 @@ public class PoolingHttpClientConnectionManager
             final long keepalive, final TimeUnit tunit) {
         Args.notNull(managedConn, "Managed connection");
         synchronized (managedConn) {
-            CPoolEntry entry = CPoolProxy.detach(managedConn);
+            final CPoolEntry entry = CPoolProxy.detach(managedConn);
             if (entry == null) {
                 return;
             }
-            SocketClientConnection conn = entry.getConnection();
+            final SocketClientConnection conn = entry.getConnection();
             try {
                 if (conn.isOpen()) {
                     entry.setState(state);
@@ -303,7 +303,7 @@ public class PoolingHttpClientConnectionManager
         Args.notNull(managedConn, "Connection");
         SocketClientConnection conn;
         synchronized (managedConn) {
-            CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
+            final CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
             conn = entry.getConnection();
         }
         SocketConfig socketConfig = this.configData.getSocketConfig(host);
@@ -313,7 +313,7 @@ public class PoolingHttpClientConnectionManager
         if (socketConfig == null) {
             socketConfig = SocketConfig.DEFAULT;
         }
-        InetSocketAddress localAddress = local != null ? new InetSocketAddress(local, 0) : null;
+        final InetSocketAddress localAddress = local != null ? new InetSocketAddress(local, 0) : null;
         this.connectionOperator.connect(
                 conn, host, localAddress, connectTimeout, socketConfig, context);
     }
@@ -325,7 +325,7 @@ public class PoolingHttpClientConnectionManager
         Args.notNull(managedConn, "Connection");
         SocketClientConnection conn;
         synchronized (managedConn) {
-            CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
+            final CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
             conn = entry.getConnection();
         }
         this.connectionOperator.upgrade(conn, host, context);
@@ -335,7 +335,7 @@ public class PoolingHttpClientConnectionManager
         this.log.debug("Connection manager is shutting down");
         try {
             this.pool.shutdown();
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             this.log.debug("I/O exception shutting down connection manager", ex);
         }
         this.log.debug("Connection manager shut down");

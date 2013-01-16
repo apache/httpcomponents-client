@@ -60,7 +60,7 @@ public class Wire {
 
     private void wire(final String header, final InputStream instream)
       throws IOException {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         int ch;
         while ((ch = instream.read()) != -1) {
             if (ch == 13) {

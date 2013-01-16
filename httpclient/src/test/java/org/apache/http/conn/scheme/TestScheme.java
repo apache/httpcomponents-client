@@ -38,7 +38,7 @@ public class TestScheme {
 
     @Test
     public void testPortResolution() {
-        Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
+        final Scheme http = new Scheme("http", 80, PlainSocketFactory.getSocketFactory());
         Assert.assertEquals(80, http.resolvePort(0));
         Assert.assertEquals(80, http.resolvePort(-1));
         Assert.assertEquals(8080, http.resolvePort(8080));

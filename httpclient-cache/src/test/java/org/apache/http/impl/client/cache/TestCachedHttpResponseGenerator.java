@@ -48,11 +48,11 @@ public class TestCachedHttpResponseGenerator {
     @Before
     public void setUp() {
         now = new Date();
-        Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
-        Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
-        Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        Date tenSecondsFromNow = new Date(now.getTime() + 10 * 1000L);
-        Header[] hdrs = { new BasicHeader("Date", DateUtils.formatDate(eightSecondsAgo)),
+        final Date sixSecondsAgo = new Date(now.getTime() - 6 * 1000L);
+        final Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        final Date tenSecondsFromNow = new Date(now.getTime() + 10 * 1000L);
+        final Header[] hdrs = { new BasicHeader("Date", DateUtils.formatDate(eightSecondsAgo)),
                 new BasicHeader("Expires", DateUtils.formatDate(tenSecondsFromNow)),
                 new BasicHeader("Content-Length", "150") };
 
@@ -67,12 +67,12 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testResponseHasContentLength() {
-        byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(buf);
+        final byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(buf);
 
-        HttpResponse response = impl.generateResponse(entry);
+        final HttpResponse response = impl.generateResponse(entry);
 
-        Header length = response.getFirstHeader("Content-Length");
+        final Header length = response.getFirstHeader("Content-Length");
         Assert.assertNotNull("Content-Length Header is missing", length);
 
         Assert.assertEquals("Content-Length does not match buffer length", buf.length, Integer
@@ -82,20 +82,20 @@ public class TestCachedHttpResponseGenerator {
     @Test
     public void testContentLengthIsNotAddedWhenTransferEncodingIsPresent() {
 
-        Header[] hdrs = new Header[] { new BasicHeader("Transfer-Encoding", "chunked") };
-        byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(hdrs, buf);
+        final Header[] hdrs = new Header[] { new BasicHeader("Transfer-Encoding", "chunked") };
+        final byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(hdrs, buf);
 
-        HttpResponse response = impl.generateResponse(entry);
+        final HttpResponse response = impl.generateResponse(entry);
 
-        Header length = response.getFirstHeader("Content-Length");
+        final Header length = response.getFirstHeader("Content-Length");
 
         Assert.assertNull(length);
     }
 
     @Test
     public void testResponseMatchesCacheEntry() {
-        HttpResponse response = impl.generateResponse(entry);
+        final HttpResponse response = impl.generateResponse(entry);
 
         Assert.assertTrue(response.containsHeader("Content-Length"));
 
@@ -106,7 +106,7 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testResponseStatusCodeMatchesCacheEntry() {
-        HttpResponse response = impl.generateResponse(entry);
+        final HttpResponse response = impl.generateResponse(entry);
 
         Assert.assertEquals(entry.getStatusCode(), response.getStatusLine().getStatusCode());
     }
@@ -116,9 +116,9 @@ public class TestCachedHttpResponseGenerator {
         currentAge(10L);
         replayMocks();
 
-        HttpResponse response = impl.generateResponse(entry);
+        final HttpResponse response = impl.generateResponse(entry);
 
-        Header ageHdr = response.getFirstHeader("Age");
+        final Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNotNull(ageHdr);
         Assert.assertEquals(10L, Long.parseLong(ageHdr.getValue()));
     }
@@ -128,9 +128,9 @@ public class TestCachedHttpResponseGenerator {
         currentAge(0L);
         replayMocks();
 
-        HttpResponse response = impl.generateResponse(entry);
+        final HttpResponse response = impl.generateResponse(entry);
 
-        Header ageHdr = response.getFirstHeader("Age");
+        final Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNull(ageHdr);
     }
 
@@ -139,9 +139,9 @@ public class TestCachedHttpResponseGenerator {
         currentAge(CacheValidityPolicy.MAX_AGE + 1L);
         replayMocks();
 
-        HttpResponse response = impl.generateResponse(entry);
+        final HttpResponse response = impl.generateResponse(entry);
 
-        Header ageHdr = response.getFirstHeader("Age");
+        final Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNotNull(ageHdr);
         Assert.assertEquals(CacheValidityPolicy.MAX_AGE, Long.parseLong(ageHdr.getValue()));
     }

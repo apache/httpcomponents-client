@@ -59,7 +59,7 @@ public class RequestTargetAuthentication extends RequestAuthenticationBase {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        String method = request.getRequestLine().getMethod();
+        final String method = request.getRequestLine().getMethod();
         if (method.equalsIgnoreCase("CONNECT")) {
             return;
         }
@@ -69,7 +69,7 @@ public class RequestTargetAuthentication extends RequestAuthenticationBase {
         }
 
         // Obtain authentication state
-        AuthState authState = (AuthState) context.getAttribute(
+        final AuthState authState = (AuthState) context.getAttribute(
                 ClientContext.TARGET_AUTH_STATE);
         if (authState == null) {
             this.log.debug("Target auth state not set in the context");

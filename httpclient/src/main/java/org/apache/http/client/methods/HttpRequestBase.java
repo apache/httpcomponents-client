@@ -74,9 +74,9 @@ public abstract class HttpRequestBase extends AbstractExecutionAwareRequest
     }
 
     public RequestLine getRequestLine() {
-        String method = getMethod();
-        ProtocolVersion ver = getProtocolVersion();
-        URI uri = getURI();
+        final String method = getMethod();
+        final ProtocolVersion ver = getProtocolVersion();
+        final URI uri = getURI();
         String uritext = null;
         if (uri != null) {
             uritext = uri.toASCIIString();

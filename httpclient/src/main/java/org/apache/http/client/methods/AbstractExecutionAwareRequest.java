@@ -83,7 +83,7 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
                     try {
                         releaseTrigger.abortConnection();
                         return true;
-                    } catch (IOException ex) {
+                    } catch (final IOException ex) {
                         return false;
                     }
                 }
@@ -135,7 +135,7 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
 
     @Override
     public Object clone() throws CloneNotSupportedException {
-        AbstractExecutionAwareRequest clone = (AbstractExecutionAwareRequest) super.clone();
+        final AbstractExecutionAwareRequest clone = (AbstractExecutionAwareRequest) super.clone();
         clone.headergroup = CloneUtils.cloneObject(this.headergroup);
         clone.params = CloneUtils.cloneObject(this.params);
         clone.abortLock = new ReentrantLock();

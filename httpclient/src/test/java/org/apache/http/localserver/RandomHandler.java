@@ -76,14 +76,14 @@ public class RandomHandler
                        final HttpContext context)
         throws HttpException, IOException {
 
-        String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
+        final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
         if (!"GET".equals(method) && !"HEAD".equals(method)) {
             throw new MethodNotSupportedException
                 (method + " not supported by " + getClass().getName());
         }
 
-        String uri = request.getRequestLine().getUri();
-        int  slash = uri.lastIndexOf('/');
+        final String uri = request.getRequestLine().getUri();
+        final int  slash = uri.lastIndexOf('/');
         int length = -1;
         if (slash < uri.length()-1) {
             try {
@@ -94,7 +94,7 @@ public class RandomHandler
                     response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
                     response.setReasonPhrase("LENGTH " + length);
                 }
-            } catch (NumberFormatException nfx) {
+            } catch (final NumberFormatException nfx) {
                 response.setStatusCode(HttpStatus.SC_BAD_REQUEST);
                 response.setReasonPhrase(nfx.toString());
             }
@@ -108,7 +108,7 @@ public class RandomHandler
             response.setStatusCode(HttpStatus.SC_OK);
 
             if (!"HEAD".equals(method)) {
-                RandomEntity entity = new RandomEntity(length);
+                final RandomEntity entity = new RandomEntity(length);
                 entity.setContentType("text/plain; charset=US-ASCII");
                 response.setEntity(entity);
             } else {
@@ -137,7 +137,7 @@ public class RandomHandler
                 range = ("abcdefghijklmnopqrstuvwxyz" +
                          "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "0123456789"
                     ).getBytes("US-ASCII");
-            } catch (UnsupportedEncodingException uex) {
+            } catch (final UnsupportedEncodingException uex) {
                 // never, US-ASCII is guaranteed
             }
             RANGE = range;
@@ -208,7 +208,7 @@ public class RandomHandler
 
             final int blocksize = 2048;
             int       remaining = (int) length; // range checked in constructor
-            byte[]         data = new byte[Math.min(remaining, blocksize)];
+            final byte[]         data = new byte[Math.min(remaining, blocksize)];
 
             while (remaining > 0) {
                 final int end = Math.min(remaining, data.length);
@@ -220,7 +220,7 @@ public class RandomHandler
                         value = Math.random();
                     }
                     value = value * RANGE.length;
-                    int d = (int) value;
+                    final int d = (int) value;
                     value = value - d;
                     data[i] = RANGE[d];
                 }

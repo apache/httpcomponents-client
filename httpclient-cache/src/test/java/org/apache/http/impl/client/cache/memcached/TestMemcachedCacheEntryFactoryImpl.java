@@ -38,10 +38,10 @@ public class TestMemcachedCacheEntryFactoryImpl {
 
     @Test
     public void createsMemcachedCacheEntryImpls() {
-        String key = "key";
-        HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
-        MemcachedCacheEntryFactoryImpl impl = new MemcachedCacheEntryFactoryImpl();
-        MemcachedCacheEntry result = impl.getMemcachedCacheEntry(key, entry);
+        final String key = "key";
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+        final MemcachedCacheEntryFactoryImpl impl = new MemcachedCacheEntryFactoryImpl();
+        final MemcachedCacheEntry result = impl.getMemcachedCacheEntry(key, entry);
         assertNotNull(result);
         assertSame(key, result.getStorageKey());
         assertSame(entry, result.getHttpCacheEntry());

@@ -54,16 +54,16 @@ public class TestSizeLimitedResponseReader {
 
     @Test
     public void testLargeResponseIsTooLarge() throws Exception {
-        byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         response.setEntity(new ByteArrayEntity(buf));
 
         impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
 
         impl.readResponse();
-        boolean tooLarge = impl.isLimitReached();
-        HttpResponse result = impl.getReconstructedResponse();
-        byte[] body = EntityUtils.toByteArray(result.getEntity());
+        final boolean tooLarge = impl.isLimitReached();
+        final HttpResponse result = impl.getReconstructedResponse();
+        final byte[] body = EntityUtils.toByteArray(result.getEntity());
 
         Assert.assertTrue(tooLarge);
         Assert.assertArrayEquals(buf, body);
@@ -71,16 +71,16 @@ public class TestSizeLimitedResponseReader {
 
     @Test
     public void testExactSizeResponseIsNotTooLarge() throws Exception {
-        byte[] buf = new byte[] { 1, 2, 3, 4 };
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final byte[] buf = new byte[] { 1, 2, 3, 4 };
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         response.setEntity(new ByteArrayEntity(buf));
 
         impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
 
         impl.readResponse();
-        boolean tooLarge = impl.isLimitReached();
-        HttpResponse reconstructed = impl.getReconstructedResponse();
-        byte[] result = EntityUtils.toByteArray(reconstructed.getEntity());
+        final boolean tooLarge = impl.isLimitReached();
+        final HttpResponse reconstructed = impl.getReconstructedResponse();
+        final byte[] result = EntityUtils.toByteArray(reconstructed.getEntity());
 
         Assert.assertFalse(tooLarge);
         Assert.assertArrayEquals(buf, result);
@@ -88,16 +88,16 @@ public class TestSizeLimitedResponseReader {
 
     @Test
     public void testSmallResponseIsNotTooLarge() throws Exception {
-        byte[] buf = new byte[] { 1, 2, 3 };
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final byte[] buf = new byte[] { 1, 2, 3 };
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         response.setEntity(new ByteArrayEntity(buf));
 
         impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
 
         impl.readResponse();
-        boolean tooLarge = impl.isLimitReached();
-        HttpResponse reconstructed = impl.getReconstructedResponse();
-        byte[] result = EntityUtils.toByteArray(reconstructed.getEntity());
+        final boolean tooLarge = impl.isLimitReached();
+        final HttpResponse reconstructed = impl.getReconstructedResponse();
+        final byte[] result = EntityUtils.toByteArray(reconstructed.getEntity());
 
         Assert.assertFalse(tooLarge);
         Assert.assertArrayEquals(buf, result);
@@ -105,32 +105,32 @@ public class TestSizeLimitedResponseReader {
 
     @Test
     public void testResponseWithNoEntityIsNotTooLarge() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
 
         impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
 
         impl.readResponse();
-        boolean tooLarge = impl.isLimitReached();
+        final boolean tooLarge = impl.isLimitReached();
 
         Assert.assertFalse(tooLarge);
     }
 
     @Test
     public void testTooLargeEntityHasOriginalContentTypes() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        StringEntity entity = new StringEntity("large entity content");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final StringEntity entity = new StringEntity("large entity content");
         response.setEntity(entity);
 
         impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
 
         impl.readResponse();
-        boolean tooLarge = impl.isLimitReached();
-        HttpResponse result = impl.getReconstructedResponse();
-        HttpEntity reconstructedEntity = result.getEntity();
+        final boolean tooLarge = impl.isLimitReached();
+        final HttpResponse result = impl.getReconstructedResponse();
+        final HttpEntity reconstructedEntity = result.getEntity();
         Assert.assertEquals(entity.getContentEncoding(), reconstructedEntity.getContentEncoding());
         Assert.assertEquals(entity.getContentType(), reconstructedEntity.getContentType());
 
-        String content = EntityUtils.toString(reconstructedEntity);
+        final String content = EntityUtils.toString(reconstructedEntity);
 
         Assert.assertTrue(tooLarge);
         Assert.assertEquals("large entity content", content);
@@ -138,17 +138,17 @@ public class TestSizeLimitedResponseReader {
 
     @Test
     public void testResponseCopiesAllOriginalHeaders() throws Exception {
-        byte[] buf = new byte[] { 1, 2, 3 };
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final byte[] buf = new byte[] { 1, 2, 3 };
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         response.setEntity(new ByteArrayEntity(buf));
         response.setHeader("Content-Encoding", "gzip");
 
         impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
 
         impl.readResponse();
-        boolean tooLarge = impl.isLimitReached();
-        HttpResponse reconstructed = impl.getReconstructedResponse();
-        byte[] result = EntityUtils.toByteArray(reconstructed.getEntity());
+        final boolean tooLarge = impl.isLimitReached();
+        final HttpResponse reconstructed = impl.getReconstructedResponse();
+        final byte[] result = EntityUtils.toByteArray(reconstructed.getEntity());
 
         Assert.assertFalse(tooLarge);
         Assert.assertArrayEquals(buf, result);

@@ -48,33 +48,33 @@ public class TestBasicResponseHandler {
 
     @Test
     public void testSuccessfulResponse() throws Exception {
-        StatusLine sl = new BasicStatusLine(HttpVersion.HTTP_1_1, 200, "OK");
-        HttpResponse response = Mockito.mock(HttpResponse.class);
-        HttpEntity entity = new StringEntity("stuff");
+        final StatusLine sl = new BasicStatusLine(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = Mockito.mock(HttpResponse.class);
+        final HttpEntity entity = new StringEntity("stuff");
         Mockito.when(response.getStatusLine()).thenReturn(sl);
         Mockito.when(response.getEntity()).thenReturn(entity);
 
-        BasicResponseHandler handler = new BasicResponseHandler();
-        String s = handler.handleResponse(response);
+        final BasicResponseHandler handler = new BasicResponseHandler();
+        final String s = handler.handleResponse(response);
         Assert.assertEquals("stuff", s);
     }
 
     @Test
     public void testUnsuccessfulResponse() throws Exception {
-        InputStream instream = Mockito.mock(InputStream.class);
-        HttpEntity entity = Mockito.mock(HttpEntity.class);
+        final InputStream instream = Mockito.mock(InputStream.class);
+        final HttpEntity entity = Mockito.mock(HttpEntity.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(entity.getContent()).thenReturn(instream);
-        StatusLine sl = new BasicStatusLine(HttpVersion.HTTP_1_1, 404, "Not Found");
-        HttpResponse response = Mockito.mock(HttpResponse.class);
+        final StatusLine sl = new BasicStatusLine(HttpVersion.HTTP_1_1, 404, "Not Found");
+        final HttpResponse response = Mockito.mock(HttpResponse.class);
         Mockito.when(response.getStatusLine()).thenReturn(sl);
         Mockito.when(response.getEntity()).thenReturn(entity);
 
-        BasicResponseHandler handler = new BasicResponseHandler();
+        final BasicResponseHandler handler = new BasicResponseHandler();
         try {
             handler.handleResponse(response);
             Assert.fail("HttpResponseException expected");
-        } catch (HttpResponseException ex) {
+        } catch (final HttpResponseException ex) {
             Assert.assertEquals(404, ex.getStatusCode());
             Assert.assertEquals("Not Found", ex.getMessage());
         }

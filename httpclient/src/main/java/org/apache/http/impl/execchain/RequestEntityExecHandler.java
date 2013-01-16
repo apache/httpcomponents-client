@@ -47,7 +47,7 @@ class RequestEntityExecHandler implements InvocationHandler  {
     static {
         try {
             WRITE_TO_METHOD = HttpEntity.class.getMethod("writeTo", OutputStream.class);
-        } catch (NoSuchMethodException ex) {
+        } catch (final NoSuchMethodException ex) {
             throw new Error(ex);
         }
     }
@@ -75,8 +75,8 @@ class RequestEntityExecHandler implements InvocationHandler  {
                 this.consumed = true;
             }
             return method.invoke(original, args);
-        } catch (InvocationTargetException ex) {
-            Throwable cause = ex.getCause();
+        } catch (final InvocationTargetException ex) {
+            final Throwable cause = ex.getCause();
             if (cause != null) {
                 throw cause;
             } else {

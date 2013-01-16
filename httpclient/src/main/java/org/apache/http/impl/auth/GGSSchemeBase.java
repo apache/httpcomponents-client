@@ -94,9 +94,9 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
         if (token == null) {
             token = new byte[0];
         }
-        GSSManager manager = getManager();
-        GSSName serverName = manager.createName("HTTP@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
-        GSSContext gssContext = manager.createContext(
+        final GSSManager manager = getManager();
+        final GSSName serverName = manager.createName("HTTP@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
+        final GSSContext gssContext = manager.createContext(
                 serverName.canonicalize(oid), oid, null, GSSContext.DEFAULT_LIFETIME);
         gssContext.requestMutualAuth(true);
         gssContext.requestCredDeleg(true);
@@ -133,7 +133,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
             throw new AuthenticationException(getSchemeName() + " authentication has failed");
         case CHALLENGE_RECEIVED:
             try {
-                HttpRoute route = (HttpRoute) context.getAttribute(ClientContext.ROUTE);
+                final HttpRoute route = (HttpRoute) context.getAttribute(ClientContext.ROUTE);
                 if (route == null) {
                     throw new AuthenticationException("Connection route is not available");
                 }
@@ -158,7 +158,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                 }
                 token = generateToken(token, authServer);
                 state = State.TOKEN_GENERATED;
-            } catch (GSSException gsse) {
+            } catch (final GSSException gsse) {
                 state = State.FAILED;
                 if (gsse.getMajor() == GSSException.DEFECTIVE_CREDENTIAL
                         || gsse.getMajor() == GSSException.CREDENTIALS_EXPIRED) {
@@ -176,11 +176,11 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                 throw new AuthenticationException(gsse.getMessage());
             }
         case TOKEN_GENERATED:
-            String tokenstr = new String(base64codec.encode(token));
+            final String tokenstr = new String(base64codec.encode(token));
             if (log.isDebugEnabled()) {
                 log.debug("Sending response '" + tokenstr + "' back to the auth server");
             }
-            CharArrayBuffer buffer = new CharArrayBuffer(32);
+            final CharArrayBuffer buffer = new CharArrayBuffer(32);
             if (isProxy()) {
                 buffer.append(AUTH.PROXY_AUTH_RESP);
             } else {
@@ -198,7 +198,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     protected void parseChallenge(
             final CharArrayBuffer buffer,
             final int beginIndex, final int endIndex) throws MalformedChallengeException {
-        String challenge = buffer.substringTrimmed(beginIndex, endIndex);
+        final String challenge = buffer.substringTrimmed(beginIndex, endIndex);
         if (log.isDebugEnabled()) {
             log.debug("Received challenge '" + challenge + "' from the auth server");
         }

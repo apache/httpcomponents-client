@@ -208,7 +208,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             this.log.debug("Closing connection");
             try {
                 this.conn.close();
-            } catch (IOException iox) {
+            } catch (final IOException iox) {
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("I/O exception closing connection", iox);
                 }
@@ -222,7 +222,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             this.log.debug("Shutting down connection");
             try {
                 this.conn.shutdown();
-            } catch (IOException iox) {
+            } catch (final IOException iox) {
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("I/O exception shutting down connection", iox);
                 }
@@ -310,7 +310,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         Args.notNull(conn, "Connection");
         Args.notNull(host, "HTTP host");
         Asserts.check(conn == this.conn, "Connection not obtained from this manager");
-        InetSocketAddress localAddress = local != null ? new InetSocketAddress(local, 0) : null;
+        final InetSocketAddress localAddress = local != null ? new InetSocketAddress(local, 0) : null;
         this.connectionOperator.connect(this.conn, host, localAddress,
                 connectTimeout, this.socketConfig, context);
     }
@@ -344,7 +344,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             if (time < 0) {
                 time = 0;
             }
-            long deadline = System.currentTimeMillis() - time;
+            final long deadline = System.currentTimeMillis() - time;
             if (this.updated <= deadline) {
                 closeConnection();
             }

@@ -103,7 +103,7 @@ public class MultipartEntity implements HttpEntity {
     protected String generateContentType(
             final String boundary,
             final Charset charset) {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         buffer.append("multipart/form-data; boundary=");
         buffer.append(boundary);
         if (charset != null) {
@@ -114,9 +114,9 @@ public class MultipartEntity implements HttpEntity {
     }
 
     protected String generateBoundary() {
-        StringBuilder buffer = new StringBuilder();
-        Random rand = new Random();
-        int count = rand.nextInt(11) + 30; // a random size from 30 to 40
+        final StringBuilder buffer = new StringBuilder();
+        final Random rand = new Random();
+        final int count = rand.nextInt(11) + 30; // a random size from 30 to 40
         for (int i = 0; i < count; i++) {
             buffer.append(MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)]);
         }
@@ -140,8 +140,8 @@ public class MultipartEntity implements HttpEntity {
     }
 
     public boolean isRepeatable() {
-        for (FormBodyPart part: this.multipart.getBodyParts()) {
-            ContentBody body = part.getBody();
+        for (final FormBodyPart part: this.multipart.getBodyParts()) {
+            final ContentBody body = part.getBody();
             if (body.getContentLength() < 0) {
                 return false;
             }

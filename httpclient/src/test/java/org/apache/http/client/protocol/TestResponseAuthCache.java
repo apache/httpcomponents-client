@@ -74,21 +74,21 @@ public class TestResponseAuthCache {
 
     @Test(expected=IllegalArgumentException.class)
     public void testResponseParameterCheck() throws Exception {
-        HttpContext context = new BasicHttpContext();
-        HttpResponseInterceptor interceptor = new ResponseAuthCache();
+        final HttpContext context = new BasicHttpContext();
+        final HttpResponseInterceptor interceptor = new ResponseAuthCache();
         interceptor.process(null, context);
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testContextParameterCheck() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        HttpResponseInterceptor interceptor = new ResponseAuthCache();
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponseInterceptor interceptor = new ResponseAuthCache();
         interceptor.process(response, null);
     }
 
     @Test
     public void testTargetAndProxyAuthCaching() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
         this.authscheme1.processChallenge(
                 new BasicHeader(AUTH.WWW_AUTH, "BASIC realm=auth-realm"));
@@ -101,16 +101,16 @@ public class TestResponseAuthCache {
         this.proxyState.setState(AuthProtocolState.CHALLENGED);
         this.proxyState.update(this.authscheme2, this.credentials);
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, this.proxy);
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyState);
 
-        HttpResponseInterceptor interceptor = new ResponseAuthCache();
+        final HttpResponseInterceptor interceptor = new ResponseAuthCache();
         interceptor.process(response, context);
 
-        AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+        final AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
         Assert.assertNotNull(authCache);
         Assert.assertSame(this.authscheme1, authCache.get(this.target));
         Assert.assertSame(this.authscheme2, authCache.get(this.proxy));
@@ -118,39 +118,39 @@ public class TestResponseAuthCache {
 
     @Test
     public void testNoAuthStateInitialized() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, this.proxy);
 
-        HttpResponseInterceptor interceptor = new ResponseAuthCache();
+        final HttpResponseInterceptor interceptor = new ResponseAuthCache();
         interceptor.process(response, context);
 
-        AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+        final AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
         Assert.assertNull(authCache);
     }
 
     @Test
     public void testNoAuthSchemeSelected() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, this.proxy);
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyState);
 
-        HttpResponseInterceptor interceptor = new ResponseAuthCache();
+        final HttpResponseInterceptor interceptor = new ResponseAuthCache();
         interceptor.process(response, context);
 
-        AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+        final AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
         Assert.assertNull(authCache);
     }
 
     @Test
     public void testAuthSchemeNotCompleted() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
         this.targetState.setState(AuthProtocolState.CHALLENGED);
         this.targetState.update(this.authscheme1, this.credentials);
@@ -158,22 +158,22 @@ public class TestResponseAuthCache {
         this.proxyState.setState(AuthProtocolState.CHALLENGED);
         this.proxyState.update(this.authscheme2, this.credentials);
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, this.proxy);
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyState);
 
-        HttpResponseInterceptor interceptor = new ResponseAuthCache();
+        final HttpResponseInterceptor interceptor = new ResponseAuthCache();
         interceptor.process(response, context);
 
-        AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+        final AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
         Assert.assertNull(authCache);
     }
 
     @Test
     public void testNotChallenged() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
         this.authscheme1.processChallenge(
                 new BasicHeader(AUTH.WWW_AUTH, "BASIC realm=auth-realm"));
@@ -186,16 +186,16 @@ public class TestResponseAuthCache {
         this.proxyState.setState(AuthProtocolState.UNCHALLENGED);
         this.proxyState.update(this.authscheme2, this.credentials);
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, this.proxy);
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyState);
 
-        HttpResponseInterceptor interceptor = new ResponseAuthCache();
+        final HttpResponseInterceptor interceptor = new ResponseAuthCache();
         interceptor.process(response, context);
 
-        AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
+        final AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
         Assert.assertNotNull(authCache);
         Assert.assertNull(authCache.get(this.target));
         Assert.assertNull(authCache.get(this.proxy));
@@ -203,7 +203,7 @@ public class TestResponseAuthCache {
 
     @Test
     public void testInvalidateCachingOnAuthFailure() throws Exception {
-        HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
         this.authscheme1.processChallenge(
                 new BasicHeader(AUTH.WWW_AUTH, "BASIC realm=auth-realm"));
@@ -216,19 +216,19 @@ public class TestResponseAuthCache {
         this.proxyState.setState(AuthProtocolState.FAILURE);
         this.proxyState.update(this.authscheme2, this.credentials);
 
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, this.proxy);
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyState);
 
-        AuthCache authCache = new BasicAuthCache();
+        final AuthCache authCache = new BasicAuthCache();
         authCache.put(this.target, this.authscheme1);
         authCache.put(this.proxy, this.authscheme2);
 
         context.setAttribute(ClientContext.AUTH_CACHE, authCache);
 
-        HttpResponseInterceptor interceptor = new ResponseAuthCache();
+        final HttpResponseInterceptor interceptor = new ResponseAuthCache();
         interceptor.process(response, context);
 
         Assert.assertNull(authCache.get(this.target));

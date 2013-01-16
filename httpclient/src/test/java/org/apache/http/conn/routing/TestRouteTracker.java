@@ -76,7 +76,7 @@ public class TestRouteTracker {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2
             });
 
-        } catch (Exception x) {
+        } catch (final Exception x) {
             throw new ExceptionInInitializerError(x);
         }
     }
@@ -116,7 +116,7 @@ public class TestRouteTracker {
         try {
             new RouteTracker(null, LOCAL41);
             Assert.fail("null target not detected");
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
     }
@@ -172,7 +172,7 @@ public class TestRouteTracker {
         try {
             new RouteTracker(null);
             Assert.fail("null route not detected");
-        } catch (NullPointerException npx) {
+        } catch (final NullPointerException npx) {
             // expected
         }
     }
@@ -180,19 +180,19 @@ public class TestRouteTracker {
     @Test
     public void testIllegalArgs() {
 
-        RouteTracker rt = new RouteTracker(TARGET2, null);
+        final RouteTracker rt = new RouteTracker(TARGET2, null);
 
         try {
             rt.connectProxy(null, true);
             Assert.fail("missing proxy argument not detected (connect/false)");
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
 
         try {
             rt.connectProxy(null, false);
             Assert.fail("missing proxy argument not detected (connect/true)");
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
 
@@ -201,28 +201,28 @@ public class TestRouteTracker {
         try {
             rt.tunnelProxy(null, false);
             Assert.fail("missing proxy argument not detected (tunnel/false)");
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
 
         try {
             rt.tunnelProxy(null, true);
             Assert.fail("missing proxy argument not detected (tunnel/true)");
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
 
         try {
             rt.getHopTarget(-1);
             Assert.fail("negative hop index not detected");
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
 
         try {
             rt.getHopTarget(2);
             Assert.fail("excessive hop index not detected");
-        } catch (IllegalArgumentException iax) {
+        } catch (final IllegalArgumentException iax) {
             // expected
         }
     }
@@ -230,26 +230,26 @@ public class TestRouteTracker {
     @Test
     public void testIllegalStates() {
 
-        RouteTracker rt = new RouteTracker(TARGET1, null);
+        final RouteTracker rt = new RouteTracker(TARGET1, null);
 
         try {
             rt.tunnelTarget(false);
             Assert.fail("unconnectedness not detected (tunnelTarget)");
-        } catch (IllegalStateException isx) {
+        } catch (final IllegalStateException isx) {
             // expected
         }
 
         try {
             rt.tunnelProxy(PROXY1, false);
             Assert.fail("unconnectedness not detected (tunnelProxy)");
-        } catch (IllegalStateException isx) {
+        } catch (final IllegalStateException isx) {
             // expected
         }
 
         try {
             rt.layerProtocol(true);
             Assert.fail("unconnectedness not detected (layerProtocol)");
-        } catch (IllegalStateException isx) {
+        } catch (final IllegalStateException isx) {
             // expected
         }
 
@@ -260,28 +260,28 @@ public class TestRouteTracker {
         try {
             rt.connectTarget(false);
             Assert.fail("connectedness not detected (connectTarget)");
-        } catch (IllegalStateException isx) {
+        } catch (final IllegalStateException isx) {
             // expected
         }
 
         try {
             rt.connectProxy(PROXY2, false);
             Assert.fail("connectedness not detected (connectProxy)");
-        } catch (IllegalStateException isx) {
+        } catch (final IllegalStateException isx) {
             // expected
         }
 
         try {
             rt.tunnelTarget(false);
             Assert.fail("unproxiedness not detected (tunnelTarget)");
-        } catch (IllegalStateException isx) {
+        } catch (final IllegalStateException isx) {
             // expected
         }
 
         try {
             rt.tunnelProxy(PROXY1, false);
             Assert.fail("unproxiedness not detected (tunnelProxy)");
-        } catch (IllegalStateException isx) {
+        } catch (final IllegalStateException isx) {
             // expected
         }
     }
@@ -371,12 +371,12 @@ public class TestRouteTracker {
     public void testEqualsHashcodeCloneToString()
         throws CloneNotSupportedException {
 
-        RouteTracker rt0 = new RouteTracker(TARGET1, null);
-        RouteTracker rt1 = new RouteTracker(TARGET2, null);
-        RouteTracker rt2 = new RouteTracker(TARGET1, null);
-        RouteTracker rt3 = new RouteTracker(TARGET1, null);
-        RouteTracker rt4 = new RouteTracker(TARGET1, LOCAL41);
-        RouteTracker rt6 = new RouteTracker(TARGET1, LOCAL62);
+        final RouteTracker rt0 = new RouteTracker(TARGET1, null);
+        final RouteTracker rt1 = new RouteTracker(TARGET2, null);
+        final RouteTracker rt2 = new RouteTracker(TARGET1, null);
+        final RouteTracker rt3 = new RouteTracker(TARGET1, null);
+        final RouteTracker rt4 = new RouteTracker(TARGET1, LOCAL41);
+        final RouteTracker rt6 = new RouteTracker(TARGET1, LOCAL62);
 
         Assert.assertFalse("rt0", rt0.equals(null));
         Assert.assertTrue("rt0", rt0.equals(rt0));
@@ -417,14 +417,14 @@ public class TestRouteTracker {
         // rt0 -> direct connection
         // rt1 -> via single proxy
         // rt2 -> via proxy chain
-        Set<RouteTracker> hs = new HashSet<RouteTracker>();
+        final Set<RouteTracker> hs = new HashSet<RouteTracker>();
 
         // we also collect hashcodes for the different paths
         // since we can't guarantee what influence the HttpHost hashcodes have,
         // we keep separate sets here
-        Set<Integer> hc0 = new HashSet<Integer>();
-        Set<Integer> hc4 = new HashSet<Integer>();
-        Set<Integer> hc6 = new HashSet<Integer>();
+        final Set<Integer> hc0 = new HashSet<Integer>();
+        final Set<Integer> hc4 = new HashSet<Integer>();
+        final Set<Integer> hc6 = new HashSet<Integer>();
 
         RouteTracker rt = null;
 
@@ -545,8 +545,8 @@ public class TestRouteTracker {
 
 
         // check that all toString are OK and different
-        Set<String> rtstrings = new HashSet<String>();
-        for (RouteTracker current: hs) {
+        final Set<String> rtstrings = new HashSet<String>();
+        for (final RouteTracker current: hs) {
             final String rts = checkToString(current);
             Assert.assertTrue("duplicate toString: " + rts, rtstrings.add(rts));
         }
@@ -557,7 +557,7 @@ public class TestRouteTracker {
     public final static void checkCTLS(final RouteTracker rt,
                                        final boolean c, final boolean t,
                                        final boolean l, final boolean s) {
-        String rts = rt.toString();
+        final String rts = rt.toString();
         Assert.assertEquals("wrong flag connected: " + rts, c, rt.isConnected());
         Assert.assertEquals("wrong flag tunnelled: " + rts, t, rt.isTunnelled());
         Assert.assertEquals("wrong enum tunnelled: " + rts,
@@ -591,7 +591,7 @@ public class TestRouteTracker {
         boolean complete = false;
         while (!complete && (steps > 0)) {
 
-            int action = rd.nextStep(r, rt.toRoute());
+            final int action = rd.nextStep(r, rt.toRoute());
             switch (action) {
 
             case HttpRouteDirector.COMPLETE:

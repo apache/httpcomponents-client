@@ -55,21 +55,21 @@ class CacheValidityPolicy {
     }
 
     public long getFreshnessLifetimeSecs(final HttpCacheEntry entry) {
-        long maxage = getMaxAge(entry);
+        final long maxage = getMaxAge(entry);
         if (maxage > -1) {
             return maxage;
         }
 
-        Date dateValue = getDateValue(entry);
+        final Date dateValue = getDateValue(entry);
         if (dateValue == null) {
             return 0L;
         }
 
-        Date expiry = getExpirationDate(entry);
+        final Date expiry = getExpirationDate(entry);
         if (expiry == null) {
             return 0;
         }
-        long diff = expiry.getTime() - dateValue.getTime();
+        final long diff = expiry.getTime() - dateValue.getTime();
         return (diff / 1000);
     }
 
@@ -97,11 +97,11 @@ class CacheValidityPolicy {
 
     public long getHeuristicFreshnessLifetimeSecs(final HttpCacheEntry entry,
             final float coefficient, final long defaultLifetime) {
-        Date dateValue = getDateValue(entry);
-        Date lastModifiedValue = getLastModifiedValue(entry);
+        final Date dateValue = getDateValue(entry);
+        final Date lastModifiedValue = getLastModifiedValue(entry);
 
         if (dateValue != null && lastModifiedValue != null) {
-            long diff = dateValue.getTime() - lastModifiedValue.getTime();
+            final long diff = dateValue.getTime() - lastModifiedValue.getTime();
             if (diff < 0) {
                 return 0;
             }
@@ -125,15 +125,15 @@ class CacheValidityPolicy {
     }
 
     public boolean mayReturnStaleWhileRevalidating(final HttpCacheEntry entry, final Date now) {
-        for (Header h : entry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for(HeaderElement elt : h.getElements()) {
+        for (final Header h : entry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
+            for(final HeaderElement elt : h.getElements()) {
                 if (HeaderConstants.STALE_WHILE_REVALIDATE.equalsIgnoreCase(elt.getName())) {
                     try {
-                        int allowedStalenessLifetime = Integer.parseInt(elt.getValue());
+                        final int allowedStalenessLifetime = Integer.parseInt(elt.getValue());
                         if (getStalenessSecs(entry, now) <= allowedStalenessLifetime) {
                             return true;
                         }
-                    } catch (NumberFormatException nfe) {
+                    } catch (final NumberFormatException nfe) {
                         // skip malformed directive
                     }
                 }
@@ -145,7 +145,7 @@ class CacheValidityPolicy {
 
     public boolean mayReturnStaleIfError(final HttpRequest request,
             final HttpCacheEntry entry, final Date now) {
-        long stalenessSecs = getStalenessSecs(entry, now);
+        final long stalenessSecs = getStalenessSecs(entry, now);
         return mayReturnStaleIfError(request.getHeaders(HeaderConstants.CACHE_CONTROL),
                                      stalenessSecs)
                 || mayReturnStaleIfError(entry.getHeaders(HeaderConstants.CACHE_CONTROL),
@@ -154,16 +154,16 @@ class CacheValidityPolicy {
 
     private boolean mayReturnStaleIfError(final Header[] headers, final long stalenessSecs) {
         boolean result = false;
-        for(Header h : headers) {
-            for(HeaderElement elt : h.getElements()) {
+        for(final Header h : headers) {
+            for(final HeaderElement elt : h.getElements()) {
                 if (HeaderConstants.STALE_IF_ERROR.equals(elt.getName())) {
                     try {
-                        int staleIfErrorSecs = Integer.parseInt(elt.getValue());
+                        final int staleIfErrorSecs = Integer.parseInt(elt.getValue());
                         if (stalenessSecs <= staleIfErrorSecs) {
                             result = true;
                             break;
                         }
-                    } catch (NumberFormatException nfe) {
+                    } catch (final NumberFormatException nfe) {
                         // skip malformed directive
                     }
                 }
@@ -173,40 +173,40 @@ class CacheValidityPolicy {
     }
 
     protected Date getDateValue(final HttpCacheEntry entry) {
-        Header dateHdr = entry.getFirstHeader(HTTP.DATE_HEADER);
+        final Header dateHdr = entry.getFirstHeader(HTTP.DATE_HEADER);
         if (dateHdr == null) {
             return null;
         }
         try {
             return DateUtils.parseDate(dateHdr.getValue());
-        } catch (DateParseException dpe) {
+        } catch (final DateParseException dpe) {
             // ignore malformed date
         }
         return null;
     }
 
     protected Date getLastModifiedValue(final HttpCacheEntry entry) {
-        Header dateHdr = entry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
+        final Header dateHdr = entry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
         if (dateHdr == null) {
             return null;
         }
         try {
             return DateUtils.parseDate(dateHdr.getValue());
-        } catch (DateParseException dpe) {
+        } catch (final DateParseException dpe) {
             // ignore malformed date
         }
         return null;
     }
 
     protected long getContentLengthValue(final HttpCacheEntry entry) {
-        Header cl = entry.getFirstHeader(HTTP.CONTENT_LEN);
+        final Header cl = entry.getFirstHeader(HTTP.CONTENT_LEN);
         if (cl == null) {
             return -1;
         }
 
         try {
             return Long.parseLong(cl.getValue());
-        } catch (NumberFormatException ex) {
+        } catch (final NumberFormatException ex) {
             return -1;
         }
     }
@@ -227,11 +227,11 @@ class CacheValidityPolicy {
     }
 
     protected long getApparentAgeSecs(final HttpCacheEntry entry) {
-        Date dateValue = getDateValue(entry);
+        final Date dateValue = getDateValue(entry);
         if (dateValue == null) {
             return MAX_AGE;
         }
-        long diff = entry.getResponseDate().getTime() - dateValue.getTime();
+        final long diff = entry.getResponseDate().getTime() - dateValue.getTime();
         if (diff < 0L) {
             return 0;
         }
@@ -240,14 +240,14 @@ class CacheValidityPolicy {
 
     protected long getAgeValue(final HttpCacheEntry entry) {
         long ageValue = 0;
-        for (Header hdr : entry.getHeaders(HeaderConstants.AGE)) {
+        for (final Header hdr : entry.getHeaders(HeaderConstants.AGE)) {
             long hdrAge;
             try {
                 hdrAge = Long.parseLong(hdr.getValue());
                 if (hdrAge < 0) {
                     hdrAge = MAX_AGE;
                 }
-            } catch (NumberFormatException nfe) {
+            } catch (final NumberFormatException nfe) {
                 hdrAge = MAX_AGE;
             }
             ageValue = (hdrAge > ageValue) ? hdrAge : ageValue;
@@ -256,13 +256,13 @@ class CacheValidityPolicy {
     }
 
     protected long getCorrectedReceivedAgeSecs(final HttpCacheEntry entry) {
-        long apparentAge = getApparentAgeSecs(entry);
-        long ageValue = getAgeValue(entry);
+        final long apparentAge = getApparentAgeSecs(entry);
+        final long ageValue = getAgeValue(entry);
         return (apparentAge > ageValue) ? apparentAge : ageValue;
     }
 
     protected long getResponseDelaySecs(final HttpCacheEntry entry) {
-        long diff = entry.getResponseDate().getTime() - entry.getRequestDate().getTime();
+        final long diff = entry.getResponseDate().getTime() - entry.getRequestDate().getTime();
         return (diff / 1000L);
     }
 
@@ -271,22 +271,22 @@ class CacheValidityPolicy {
     }
 
     protected long getResidentTimeSecs(final HttpCacheEntry entry, final Date now) {
-        long diff = now.getTime() - entry.getResponseDate().getTime();
+        final long diff = now.getTime() - entry.getResponseDate().getTime();
         return (diff / 1000L);
     }
 
     protected long getMaxAge(final HttpCacheEntry entry) {
         long maxage = -1;
-        for (Header hdr : entry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for (HeaderElement elt : hdr.getElements()) {
+        for (final Header hdr : entry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
+            for (final HeaderElement elt : hdr.getElements()) {
                 if (HeaderConstants.CACHE_CONTROL_MAX_AGE.equals(elt.getName())
                         || "s-maxage".equals(elt.getName())) {
                     try {
-                        long currMaxAge = Long.parseLong(elt.getValue());
+                        final long currMaxAge = Long.parseLong(elt.getValue());
                         if (maxage == -1 || currMaxAge < maxage) {
                             maxage = currMaxAge;
                         }
-                    } catch (NumberFormatException nfe) {
+                    } catch (final NumberFormatException nfe) {
                         // be conservative if can't parse
                         maxage = 0;
                     }
@@ -297,13 +297,13 @@ class CacheValidityPolicy {
     }
 
     protected Date getExpirationDate(final HttpCacheEntry entry) {
-        Header expiresHeader = entry.getFirstHeader(HeaderConstants.EXPIRES);
+        final Header expiresHeader = entry.getFirstHeader(HeaderConstants.EXPIRES);
         if (expiresHeader == null) {
             return null;
         }
         try {
             return DateUtils.parseDate(expiresHeader.getValue());
-        } catch (DateParseException dpe) {
+        } catch (final DateParseException dpe) {
             // malformed expires header
         }
         return null;
@@ -311,8 +311,8 @@ class CacheValidityPolicy {
 
     public boolean hasCacheControlDirective(final HttpCacheEntry entry,
             final String directive) {
-        for (Header h : entry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for(HeaderElement elt : h.getElements()) {
+        for (final Header h : entry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
+            for(final HeaderElement elt : h.getElements()) {
                 if (directive.equalsIgnoreCase(elt.getName())) {
                     return true;
                 }
@@ -322,8 +322,8 @@ class CacheValidityPolicy {
     }
 
     public long getStalenessSecs(final HttpCacheEntry entry, final Date now) {
-        long age = getCurrentAgeSecs(entry, now);
-        long freshness = getFreshnessLifetimeSecs(entry);
+        final long age = getCurrentAgeSecs(entry, now);
+        final long freshness = getFreshnessLifetimeSecs(entry);
         if (age <= freshness) {
             return 0L;
         }

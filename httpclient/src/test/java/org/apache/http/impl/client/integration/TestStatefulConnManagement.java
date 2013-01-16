@@ -70,7 +70,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             response.setStatusCode(HttpStatus.SC_OK);
-            StringEntity entity = new StringEntity("Whatever");
+            final StringEntity entity = new StringEntity("Whatever");
             response.setEntity(entity);
         }
     }
@@ -78,22 +78,22 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
     @Test
     public void testStatefulConnections() throws Exception {
 
-        int workerCount = 5;
-        int requestCount = 5;
+        final int workerCount = 5;
+        final int requestCount = 5;
 
-        int port = this.localServer.getServiceAddress().getPort();
+        final int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
 
-        HttpHost target = new HttpHost("localhost", port);
+        final HttpHost target = new HttpHost("localhost", port);
 
-        PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
+        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
         mgr.setMaxTotal(workerCount);
         mgr.setDefaultMaxPerRoute(workerCount);
 
-        UserTokenHandler userTokenHandler = new UserTokenHandler() {
+        final UserTokenHandler userTokenHandler = new UserTokenHandler() {
 
             public Object getUserToken(final HttpContext context) {
-                String id = (String) context.getAttribute("user");
+                final String id = (String) context.getAttribute("user");
                 return id;
             }
 
@@ -104,35 +104,35 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
             .setUserTokenHandler(userTokenHandler)
             .build();
 
-        HttpContext[] contexts = new HttpContext[workerCount];
-        HttpWorker[] workers = new HttpWorker[workerCount];
+        final HttpContext[] contexts = new HttpContext[workerCount];
+        final HttpWorker[] workers = new HttpWorker[workerCount];
         for (int i = 0; i < contexts.length; i++) {
-            HttpContext context = new BasicHttpContext();
+            final HttpContext context = new BasicHttpContext();
             contexts[i] = context;
             workers[i] = new HttpWorker(
                     "user" + i,
                     context, requestCount, target, this.httpclient);
         }
 
-        for (HttpWorker worker : workers) {
+        for (final HttpWorker worker : workers) {
             worker.start();
         }
-        for (HttpWorker worker : workers) {
+        for (final HttpWorker worker : workers) {
             worker.join(10000);
         }
-        for (HttpWorker worker : workers) {
-            Exception ex = worker.getException();
+        for (final HttpWorker worker : workers) {
+            final Exception ex = worker.getException();
             if (ex != null) {
                 throw ex;
             }
             Assert.assertEquals(requestCount, worker.getCount());
         }
 
-        for (HttpContext context : contexts) {
-            String uid = (String) context.getAttribute("user");
+        for (final HttpContext context : contexts) {
+            final String uid = (String) context.getAttribute("user");
 
             for (int r = 0; r < requestCount; r++) {
-                String state = (String) context.getAttribute("r" + r);
+                final String state = (String) context.getAttribute("r" + r);
                 Assert.assertNotNull(state);
                 Assert.assertEquals(uid, state);
             }
@@ -179,16 +179,16 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
             try {
                 this.context.setAttribute("user", this.uid);
                 for (int r = 0; r < this.requestCount; r++) {
-                    HttpGet httpget = new HttpGet("/");
-                    HttpResponse response = this.httpclient.execute(
+                    final HttpGet httpget = new HttpGet("/");
+                    final HttpResponse response = this.httpclient.execute(
                             this.target,
                             httpget,
                             this.context);
                     this.count++;
 
-                    HttpClientConnection conn = (HttpClientConnection) this.context.getAttribute(
+                    final HttpClientConnection conn = (HttpClientConnection) this.context.getAttribute(
                             ExecutionContext.HTTP_CONNECTION);
-                    HttpContext connContext = (HttpContext) conn;
+                    final HttpContext connContext = (HttpContext) conn;
                     String connuid = (String) connContext.getAttribute("user");
                     if (connuid == null) {
                         connContext.setAttribute("user", this.uid);
@@ -198,7 +198,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
                     EntityUtils.consume(response.getEntity());
                 }
 
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 this.exception = ex;
             }
         }
@@ -211,17 +211,17 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
         // to kill the last idle connection to a route to build a new
         // one to the same route.
 
-        int maxConn = 2;
+        final int maxConn = 2;
 
-        int port = this.localServer.getServiceAddress().getPort();
+        final int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new SimpleService());
 
         // We build a client with 2 max active // connections, and 2 max per route.
-        PoolingHttpClientConnectionManager connMngr = new PoolingHttpClientConnectionManager();
+        final PoolingHttpClientConnectionManager connMngr = new PoolingHttpClientConnectionManager();
         connMngr.setMaxTotal(maxConn);
         connMngr.setDefaultMaxPerRoute(maxConn);
 
-        UserTokenHandler userTokenHandler = new UserTokenHandler() {
+        final UserTokenHandler userTokenHandler = new UserTokenHandler() {
 
             public Object getUserToken(final HttpContext context) {
                 return context.getAttribute("user");
@@ -235,9 +235,9 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
             .build();
 
         // Bottom of the pool : a *keep alive* connection to Route 1.
-        HttpContext context1 = new BasicHttpContext();
+        final HttpContext context1 = new BasicHttpContext();
         context1.setAttribute("user", "stuff");
-        HttpResponse response1 = this.httpclient.execute(
+        final HttpResponse response1 = this.httpclient.execute(
                 new HttpHost("localhost", port), new HttpGet("/"), context1);
         EntityUtils.consume(response1.getEntity());
 
@@ -249,8 +249,8 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
 
         // Send a very simple HTTP get (it MUST be simple, no auth, no proxy, no 302, no 401, ...)
         // Send it to another route. Must be a keepalive.
-        HttpContext context2 = new BasicHttpContext();
-        HttpResponse response2 = this.httpclient.execute(
+        final HttpContext context2 = new BasicHttpContext();
+        final HttpResponse response2 = this.httpclient.execute(
                 new HttpHost("127.0.0.1", port), new HttpGet("/"), context2);
         EntityUtils.consume(response2.getEntity());
         // ConnPoolByRoute now has 2 free connexions, out of its 2 max.
@@ -264,8 +264,8 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
         // So the ConnPoolByRoute will need to kill one connection (it is maxed out globally).
         // The killed conn is the oldest, which means the first HTTPGet ([localhost][stuff]).
         // When this happens, the RouteSpecificPool becomes empty.
-        HttpContext context3 = new BasicHttpContext();
-        HttpResponse response3 = this.httpclient.execute(
+        final HttpContext context3 = new BasicHttpContext();
+        final HttpResponse response3 = this.httpclient.execute(
                 new HttpHost("localhost", port), new HttpGet("/"), context3);
 
         // If the ConnPoolByRoute did not behave coherently with the RouteSpecificPool

@@ -156,7 +156,7 @@ public class ConnRouteParams implements ConnRoutePNames {
      */
     public static InetAddress getLocalAddress(final HttpParams params) {
         Args.notNull(params, "Parameters");
-        InetAddress local = (InetAddress)
+        final InetAddress local = (InetAddress)
             params.getParameter(LOCAL_ADDRESS);
         // no explicit unsetting
         return local;

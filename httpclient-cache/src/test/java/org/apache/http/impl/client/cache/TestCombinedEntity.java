@@ -38,19 +38,19 @@ public class TestCombinedEntity {
 
     @Test
     public void testCombinedEntityBasics() throws Exception {
-        Resource resource = EasyMock.createNiceMock(Resource.class);
+        final Resource resource = EasyMock.createNiceMock(Resource.class);
         EasyMock.expect(resource.getInputStream()).andReturn(
                 new ByteArrayInputStream(new byte[] { 1, 2, 3, 4, 5 }));
         resource.dispose();
         EasyMock.replay(resource);
 
-        ByteArrayInputStream instream = new ByteArrayInputStream(new byte[] { 6, 7, 8, 9, 10 });
-        CombinedEntity entity = new CombinedEntity(resource, instream);
+        final ByteArrayInputStream instream = new ByteArrayInputStream(new byte[] { 6, 7, 8, 9, 10 });
+        final CombinedEntity entity = new CombinedEntity(resource, instream);
         Assert.assertEquals(-1, entity.getContentLength());
         Assert.assertFalse(entity.isRepeatable());
         Assert.assertTrue(entity.isStreaming());
 
-        byte[] result = EntityUtils.toByteArray(entity);
+        final byte[] result = EntityUtils.toByteArray(entity);
         Assert.assertArrayEquals(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, result);
 
         EasyMock.verify(resource);

@@ -53,21 +53,21 @@ class CloseableHttpResponseProxy implements InvocationHandler {
     }
 
     public void close() throws IOException {
-        HttpEntity entity = this.original.getEntity();
+        final HttpEntity entity = this.original.getEntity();
         EntityUtils.consume(entity);
     }
 
     public Object invoke(
             final Object proxy, final Method method, final Object[] args) throws Throwable {
-        String mname = method.getName();
+        final String mname = method.getName();
         if (mname.equals("close")) {
             close();
             return null;
         } else {
             try {
                 return method.invoke(original, args);
-            } catch (InvocationTargetException ex) {
-                Throwable cause = ex.getCause();
+            } catch (final InvocationTargetException ex) {
+                final Throwable cause = ex.getCause();
                 if (cause != null) {
                     throw cause;
                 } else {

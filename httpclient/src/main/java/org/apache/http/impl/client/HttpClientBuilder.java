@@ -449,7 +449,7 @@ public class HttpClientBuilder {
                     sslSocketFactory = SSLSocketFactory.getSocketFactory();
                 }
             }
-            PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
+            final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
                     RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("http", PlainSocketFactory.getSocketFactory())
                         .register("https", sslSocketFactory)
@@ -464,7 +464,7 @@ public class HttpClientBuilder {
                 String s = System.getProperty("http.keepAlive", "true");
                 if ("true".equalsIgnoreCase(s)) {
                     s = System.getProperty("http.maxConnections", "5");
-                    int max = Integer.parseInt(s);
+                    final int max = Integer.parseInt(s);
                     poolingmgr.setDefaultMaxPerRoute(max);
                     poolingmgr.setMaxTotal(2 * max);
                 }
@@ -481,7 +481,7 @@ public class HttpClientBuilder {
         ConnectionReuseStrategy reuseStrategy = this.reuseStrategy;
         if (reuseStrategy == null) {
             if (systemProperties) {
-                String s = System.getProperty("http.keepAlive", "true");
+                final String s = System.getProperty("http.keepAlive", "true");
                 if ("true".equalsIgnoreCase(s)) {
                     reuseStrategy = DefaultConnectionReuseStrategy.INSTANCE;
                 } else {
@@ -535,21 +535,21 @@ public class HttpClientBuilder {
                 if (systemProperties) {
                     userAgent = System.getProperty("http.agent");
                 } else {
-                    VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client",
+                    final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client",
                             HttpClientBuilder.class.getClassLoader());
-                    String release = vi != null ? vi.getRelease() : VersionInfo.UNAVAILABLE;
+                    final String release = vi != null ? vi.getRelease() : VersionInfo.UNAVAILABLE;
                     userAgent = "Apache-HttpClient/" + release + " (java 1.5)";
                 }
             }
 
-            HttpProcessorBuilder b = HttpProcessorBuilder.create();
+            final HttpProcessorBuilder b = HttpProcessorBuilder.create();
             if (requestFirst != null) {
-                for (HttpRequestInterceptor i: requestFirst) {
+                for (final HttpRequestInterceptor i: requestFirst) {
                     b.addFirst(i);
                 }
             }
             if (responseFirst != null) {
-                for (HttpResponseInterceptor i: responseFirst) {
+                for (final HttpResponseInterceptor i: responseFirst) {
                     b.addFirst(i);
                 }
             }
@@ -576,12 +576,12 @@ public class HttpClientBuilder {
                 b.add(new ResponseContentEncoding());
             }
             if (requestLast != null) {
-                for (HttpRequestInterceptor i: requestLast) {
+                for (final HttpRequestInterceptor i: requestLast) {
                     b.addLast(i);
                 }
             }
             if (responseLast != null) {
-                for (HttpResponseInterceptor i: responseLast) {
+                for (final HttpResponseInterceptor i: responseLast) {
                     b.addLast(i);
                 }
             }
@@ -621,13 +621,13 @@ public class HttpClientBuilder {
         }
 
         // Optionally, add service unavailable retry executor
-        ServiceUnavailableRetryStrategy serviceUnavailStrategy = this.serviceUnavailStrategy;
+        final ServiceUnavailableRetryStrategy serviceUnavailStrategy = this.serviceUnavailStrategy;
         if (serviceUnavailStrategy != null) {
             execChain = new ServiceUnavailableRetryExec(execChain, serviceUnavailStrategy);
         }
         // Optionally, add connection back-off executor
-        BackoffManager backoffManager = this.backoffManager;
-        ConnectionBackoffStrategy connectionBackoffStrategy = this.connectionBackoffStrategy;
+        final BackoffManager backoffManager = this.backoffManager;
+        final ConnectionBackoffStrategy connectionBackoffStrategy = this.connectionBackoffStrategy;
         if (backoffManager != null && connectionBackoffStrategy != null) {
             execChain = new BackoffStrategyExec(execChain, connectionBackoffStrategy, backoffManager);
         }

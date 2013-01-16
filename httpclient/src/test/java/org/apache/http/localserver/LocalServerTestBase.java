@@ -64,7 +64,7 @@ public abstract class LocalServerTestBase {
      * @return  the test server host, with a scheme name of "http"
      */
     protected HttpHost getServerHttp() {
-        InetSocketAddress address = localServer.getServiceAddress();
+        final InetSocketAddress address = localServer.getServiceAddress();
         return new HttpHost(
                 address.getHostName(),
                 address.getPort(),

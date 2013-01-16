@@ -152,17 +152,17 @@ public class TestSPNegoScheme extends IntegrationTestBase {
      */
     @Test
     public void testDontTryToAuthenticateEndlessly() throws Exception {
-        int port = this.localServer.getServiceAddress().getPort();
+        final int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new PleaseNegotiateService());
 
-        HttpHost target = new HttpHost("localhost", port);
+        final HttpHost target = new HttpHost("localhost", port);
 
-        AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
-        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        Credentials use_jaas_creds = new UseJaasCredentials();
+        final AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
+        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
 
-        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register(AuthSchemes.SPNEGO, nsf)
             .build();
         this.httpclient = HttpClients.custom()
@@ -170,9 +170,9 @@ public class TestSPNegoScheme extends IntegrationTestBase {
             .setDefaultCredentialsProvider(credentialsProvider)
             .build();
 
-        String s = "/path";
-        HttpGet httpget = new HttpGet(s);
-        HttpResponse response = this.httpclient.execute(target, httpget);
+        final String s = "/path";
+        final HttpGet httpget = new HttpGet(s);
+        final HttpResponse response = this.httpclient.execute(target, httpget);
         EntityUtils.consume(response.getEntity());
 
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
@@ -184,18 +184,18 @@ public class TestSPNegoScheme extends IntegrationTestBase {
      */
     @Test
     public void testNoTokenGeneratedError() throws Exception {
-        int port = this.localServer.getServiceAddress().getPort();
+        final int port = this.localServer.getServiceAddress().getPort();
         this.localServer.register("*", new PleaseNegotiateService());
 
-        HttpHost target = new HttpHost("localhost", port);
+        final HttpHost target = new HttpHost("localhost", port);
 
-        AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
+        final AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
 
-        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        Credentials use_jaas_creds = new UseJaasCredentials();
+        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
 
-        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register(AuthSchemes.SPNEGO, nsf)
             .build();
         this.httpclient = HttpClients.custom()
@@ -203,9 +203,9 @@ public class TestSPNegoScheme extends IntegrationTestBase {
             .setDefaultCredentialsProvider(credentialsProvider)
             .build();
 
-        String s = "/path";
-        HttpGet httpget = new HttpGet(s);
-        HttpResponse response = this.httpclient.execute(target, httpget);
+        final String s = "/path";
+        final HttpGet httpget = new HttpGet(s);
+        final HttpResponse response = this.httpclient.execute(target, httpget);
         EntityUtils.consume(response.getEntity());
 
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());

@@ -44,51 +44,51 @@ public class TestDefaultConnKeepAliveStrategy {
 
     @Test(expected=IllegalArgumentException.class)
     public void testIllegalResponseArg() throws Exception {
-        HttpContext context = new BasicHttpContext(null);
-        ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
+        final HttpContext context = new BasicHttpContext(null);
+        final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         keepAliveStrat.getKeepAliveDuration(null, context);
     }
 
     @Test
     public void testNoKeepAliveHeader() throws Exception {
-        HttpContext context = new BasicHttpContext(null);
-        HttpResponse response = new BasicHttpResponse(
+        final HttpContext context = new BasicHttpContext(null);
+        final HttpResponse response = new BasicHttpResponse(
                 new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK"));
-        ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
-        long d = keepAliveStrat.getKeepAliveDuration(response, context);
+        final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
+        final long d = keepAliveStrat.getKeepAliveDuration(response, context);
         Assert.assertEquals(-1, d);
     }
 
     @Test
     public void testEmptyKeepAliveHeader() throws Exception {
-        HttpContext context = new BasicHttpContext(null);
-        HttpResponse response = new BasicHttpResponse(
+        final HttpContext context = new BasicHttpContext(null);
+        final HttpResponse response = new BasicHttpResponse(
                 new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK"));
         response.addHeader("Keep-Alive", "timeout, max=20");
-        ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
-        long d = keepAliveStrat.getKeepAliveDuration(response, context);
+        final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
+        final long d = keepAliveStrat.getKeepAliveDuration(response, context);
         Assert.assertEquals(-1, d);
     }
 
     @Test
     public void testInvalidKeepAliveHeader() throws Exception {
-        HttpContext context = new BasicHttpContext(null);
-        HttpResponse response = new BasicHttpResponse(
+        final HttpContext context = new BasicHttpContext(null);
+        final HttpResponse response = new BasicHttpResponse(
                 new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK"));
         response.addHeader("Keep-Alive", "timeout=whatever, max=20");
-        ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
-        long d = keepAliveStrat.getKeepAliveDuration(response, context);
+        final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
+        final long d = keepAliveStrat.getKeepAliveDuration(response, context);
         Assert.assertEquals(-1, d);
     }
 
     @Test
     public void testKeepAliveHeader() throws Exception {
-        HttpContext context = new BasicHttpContext(null);
-        HttpResponse response = new BasicHttpResponse(
+        final HttpContext context = new BasicHttpContext(null);
+        final HttpResponse response = new BasicHttpResponse(
                 new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK"));
         response.addHeader("Keep-Alive", "timeout=300, max=20");
-        ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
-        long d = keepAliveStrat.getKeepAliveDuration(response, context);
+        final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
+        final long d = keepAliveStrat.getKeepAliveDuration(response, context);
         Assert.assertEquals(300000, d);
     }
 

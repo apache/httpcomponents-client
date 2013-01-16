@@ -109,7 +109,7 @@ public final class AuthSchemeRegistry implements Lookup<AuthSchemeProvider> {
         throws IllegalStateException {
 
         Args.notNull(name, "Name");
-        AuthSchemeFactory factory = registeredSchemes.get(name.toLowerCase(Locale.ENGLISH));
+        final AuthSchemeFactory factory = registeredSchemes.get(name.toLowerCase(Locale.ENGLISH));
         if (factory != null) {
             return factory.newInstance(params);
         } else {
@@ -145,7 +145,7 @@ public final class AuthSchemeRegistry implements Lookup<AuthSchemeProvider> {
         return new AuthSchemeProvider() {
 
             public AuthScheme create(final HttpContext context) {
-                HttpRequest request = (HttpRequest) context.getAttribute(
+                final HttpRequest request = (HttpRequest) context.getAttribute(
                         ExecutionContext.HTTP_REQUEST);
                 return getAuthScheme(name, request.getParams());
             }

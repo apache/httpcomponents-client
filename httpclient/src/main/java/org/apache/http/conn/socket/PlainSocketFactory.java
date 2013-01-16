@@ -66,13 +66,13 @@ public class PlainSocketFactory implements ConnectionSocketFactory {
             final InetSocketAddress remoteAddress,
             final InetSocketAddress localAddress,
             final HttpContext context) throws IOException, ConnectTimeoutException {
-        Socket sock = socket != null ? socket : createSocket(context);
+        final Socket sock = socket != null ? socket : createSocket(context);
         if (localAddress != null) {
             sock.bind(localAddress);
         }
         try {
             sock.connect(remoteAddress, connectTimeout);
-        } catch (SocketTimeoutException ex) {
+        } catch (final SocketTimeoutException ex) {
             throw new ConnectTimeoutException(host, remoteAddress);
         }
         return sock;

@@ -80,8 +80,8 @@ public class URLEncodedUtils {
     public static List <NameValuePair> parse (final URI uri, final String encoding) {
         final String query = uri.getRawQuery();
         if (query != null && query.length() > 0) {
-            List<NameValuePair> result = new ArrayList<NameValuePair>();
-            Scanner scanner = new Scanner(query);
+            final List<NameValuePair> result = new ArrayList<NameValuePair>();
+            final Scanner scanner = new Scanner(query);
             parse(result, scanner, encoding);
             return result;
         } else {
@@ -103,9 +103,9 @@ public class URLEncodedUtils {
      */
     public static List <NameValuePair> parse (
             final HttpEntity entity) throws IOException {
-        ContentType contentType = ContentType.get(entity);
+        final ContentType contentType = ContentType.get(entity);
         if (contentType != null && contentType.getMimeType().equalsIgnoreCase(CONTENT_TYPE)) {
-            String content = EntityUtils.toString(entity, Consts.ASCII);
+            final String content = EntityUtils.toString(entity, Consts.ASCII);
             if (content != null && content.length() > 0) {
                 Charset charset = contentType.getCharset();
                 if (charset == null) {
@@ -122,11 +122,11 @@ public class URLEncodedUtils {
      * <code>application/x-www-form-urlencoded</code>.
      */
     public static boolean isEncoded (final HttpEntity entity) {
-        Header h = entity.getContentType();
+        final Header h = entity.getContentType();
         if (h != null) {
-            HeaderElement[] elems = h.getElements();
+            final HeaderElement[] elems = h.getElements();
             if (elems.length > 0) {
-                String contentType = elems[0].getName();
+                final String contentType = elems[0].getName();
                 return contentType.equalsIgnoreCase(CONTENT_TYPE);
             } else {
                 return false;
@@ -158,8 +158,8 @@ public class URLEncodedUtils {
         while (scanner.hasNext()) {
             String name = null;
             String value = null;
-            String token = scanner.next();
-            int i = token.indexOf(NAME_VALUE_SEPARATOR);
+            final String token = scanner.next();
+            final int i = token.indexOf(NAME_VALUE_SEPARATOR);
             if (i != -1) {
                 name = decodeFormFields(token.substring(0, i).trim(), charset);
                 value = decodeFormFields(token.substring(i + 1).trim(), charset);
@@ -187,13 +187,13 @@ public class URLEncodedUtils {
         if (s == null) {
             return Collections.emptyList();
         }
-        BasicHeaderValueParser parser = BasicHeaderValueParser.INSTANCE;
-        CharArrayBuffer buffer = new CharArrayBuffer(s.length());
+        final BasicHeaderValueParser parser = BasicHeaderValueParser.INSTANCE;
+        final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
         buffer.append(s);
-        ParserCursor cursor = new ParserCursor(0, buffer.length());
-        List<NameValuePair> list = new ArrayList<NameValuePair>();
+        final ParserCursor cursor = new ParserCursor(0, buffer.length());
+        final List<NameValuePair> list = new ArrayList<NameValuePair>();
         while (!cursor.atEnd()) {
-            NameValuePair nvp = parser.parseNameValuePair(buffer, cursor, DELIM);
+            final NameValuePair nvp = parser.parseNameValuePair(buffer, cursor, DELIM);
             if (nvp.getName().length() > 0) {
                 list.add(new BasicNameValuePair(
                         decodeFormFields(nvp.getName(), charset),
@@ -379,18 +379,18 @@ public class URLEncodedUtils {
         if (content == null) {
             return null;
         }
-        StringBuilder buf = new StringBuilder();
-        ByteBuffer bb = charset.encode(content);
+        final StringBuilder buf = new StringBuilder();
+        final ByteBuffer bb = charset.encode(content);
         while (bb.hasRemaining()) {
-            int b = bb.get() & 0xff;
+            final int b = bb.get() & 0xff;
             if (safechars.get(b)) {
                 buf.append((char) b);
             } else if (blankAsPlus && b == ' ') {
                 buf.append('+');
             } else {
                 buf.append("%");
-                char hex1 = Character.toUpperCase(Character.forDigit((b >> 4) & 0xF, RADIX));
-                char hex2 = Character.toUpperCase(Character.forDigit(b & 0xF, RADIX));
+                final char hex1 = Character.toUpperCase(Character.forDigit((b >> 4) & 0xF, RADIX));
+                final char hex2 = Character.toUpperCase(Character.forDigit(b & 0xF, RADIX));
                 buf.append(hex1);
                 buf.append(hex2);
             }
@@ -413,15 +413,15 @@ public class URLEncodedUtils {
         if (content == null) {
             return null;
         }
-        ByteBuffer bb = ByteBuffer.allocate(content.length());
-        CharBuffer cb = CharBuffer.wrap(content);
+        final ByteBuffer bb = ByteBuffer.allocate(content.length());
+        final CharBuffer cb = CharBuffer.wrap(content);
         while (cb.hasRemaining()) {
-            char c = cb.get();
+            final char c = cb.get();
             if (c == '%' && cb.remaining() >= 2) {
-                char uc = cb.get();
-                char lc = cb.get();
-                int u = Character.digit(uc, 16);
-                int l = Character.digit(lc, 16);
+                final char uc = cb.get();
+                final char lc = cb.get();
+                final int u = Character.digit(uc, 16);
+                final int l = Character.digit(lc, 16);
                 if (u != -1 && l != -1) {
                     bb.put((byte) ((u << 4) + l));
                 } else {

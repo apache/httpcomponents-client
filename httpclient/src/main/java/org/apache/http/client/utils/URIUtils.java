@@ -80,7 +80,7 @@ public class URIUtils {
             final String path,
             final String query,
             final String fragment) throws URISyntaxException {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         if (host != null) {
             if (scheme != null) {
                 buffer.append(scheme);
@@ -130,7 +130,7 @@ public class URIUtils {
             final HttpHost target,
             final boolean dropFragment) throws URISyntaxException {
         Args.notNull(uri, "URI");
-        URIBuilder uribuilder = new URIBuilder(uri);
+        final URIBuilder uribuilder = new URIBuilder(uri);
         if (target != null) {
             uribuilder.setScheme(target.getSchemeName());
             uribuilder.setHost(target.getHostName());
@@ -175,7 +175,7 @@ public class URIUtils {
         Args.notNull(uri, "URI");
         if (uri.getFragment() != null || uri.getUserInfo() != null
                 || TextUtils.isEmpty(uri.getPath())) {
-            URIBuilder uribuilder = new URIBuilder(uri);
+            final URIBuilder uribuilder = new URIBuilder(uri);
             uribuilder.setFragment(null).setUserInfo(null);
             if (TextUtils.isEmpty(uribuilder.getPath())) {
                 uribuilder.setPath("/");
@@ -209,17 +209,17 @@ public class URIUtils {
     public static URI resolve(final URI baseURI, URI reference){
         Args.notNull(baseURI, "Base URI");
         Args.notNull(reference, "Reference URI");
-        String s = reference.toString();
+        final String s = reference.toString();
         if (s.startsWith("?")) {
             return resolveReferenceStartingWithQueryString(baseURI, reference);
         }
-        boolean emptyReference = s.length() == 0;
+        final boolean emptyReference = s.length() == 0;
         if (emptyReference) {
             reference = URI.create("#");
         }
         URI resolved = baseURI.resolve(reference);
         if (emptyReference) {
-            String resolvedString = resolved.toString();
+            final String resolvedString = resolved.toString();
             resolved = URI.create(resolvedString.substring(0,
                 resolvedString.indexOf('#')));
         }
@@ -248,14 +248,14 @@ public class URIUtils {
      * @return the URI without dot segments
      */
     private static URI removeDotSegments(final URI uri) {
-        String path = uri.getPath();
+        final String path = uri.getPath();
         if ((path == null) || (path.indexOf("/.") == -1)) {
             // No dot segments to remove
             return uri;
         }
-        String[] inputSegments = path.split("/");
-        Stack<String> outputSegments = new Stack<String>();
-        for (String inputSegment : inputSegments) {
+        final String[] inputSegments = path.split("/");
+        final Stack<String> outputSegments = new Stack<String>();
+        for (final String inputSegment : inputSegments) {
             if ((inputSegment.length() == 0)
                 || (".".equals(inputSegment))) {
                 // Do nothing
@@ -267,14 +267,14 @@ public class URIUtils {
                 outputSegments.push(inputSegment);
             }
         }
-        StringBuilder outputBuffer = new StringBuilder();
-        for (String outputSegment : outputSegments) {
+        final StringBuilder outputBuffer = new StringBuilder();
+        for (final String outputSegment : outputSegments) {
             outputBuffer.append('/').append(outputSegment);
         }
         try {
             return new URI(uri.getScheme(), uri.getAuthority(),
                 outputBuffer.toString(), uri.getQuery(), uri.getFragment());
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }
     }
@@ -301,7 +301,7 @@ public class URIUtils {
                 host = uri.getAuthority();
                 if (host != null) {
                     // Strip off any leading user credentials
-                    int at = host.indexOf('@');
+                    final int at = host.indexOf('@');
                     if (at >= 0) {
                         if (host.length() > at+1 ) {
                             host = host.substring(at+1);
@@ -311,9 +311,9 @@ public class URIUtils {
                     }
                     // Extract the port suffix, if present
                     if (host != null) {
-                        int colon = host.indexOf(':');
+                        final int colon = host.indexOf(':');
                         if (colon >= 0) {
-                            int pos = colon + 1;
+                            final int pos = colon + 1;
                             int len = 0;
                             for (int i = pos; i < host.length(); i++) {
                                 if (Character.isDigit(host.charAt(i))) {
@@ -325,7 +325,7 @@ public class URIUtils {
                             if (len > 0) {
                                 try {
                                     port = Integer.parseInt(host.substring(pos, pos + len));
-                                } catch (NumberFormatException ex) {
+                                } catch (final NumberFormatException ex) {
                                 }
                             }
                             host = host.substring(0, colon);
@@ -333,7 +333,7 @@ public class URIUtils {
                     }
                 }
             }
-            String scheme = uri.getScheme();
+            final String scheme = uri.getScheme();
             if (host != null) {
                 target = new HttpHost(host, port, scheme);
             }

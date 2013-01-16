@@ -61,7 +61,7 @@ public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHan
             final HttpResponse response,
             final HttpContext context) {
         Args.notNull(response, "HTTP response");
-        int status = response.getStatusLine().getStatusCode();
+        final int status = response.getStatusLine().getStatusCode();
         return status == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED;
     }
 
@@ -69,7 +69,7 @@ public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHan
             final HttpResponse response,
             final HttpContext context) throws MalformedChallengeException {
         Args.notNull(response, "HTTP response");
-        Header[] headers = response.getHeaders(AUTH.PROXY_AUTH);
+        final Header[] headers = response.getHeaders(AUTH.PROXY_AUTH);
         return parseChallenges(headers);
     }
 
@@ -78,6 +78,7 @@ public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHan
             final HttpResponse response,
             final HttpContext context) {
         @SuppressWarnings("unchecked")
+        final
         List<String> authpref = (List<String>) response.getParams().getParameter(
                 AuthPNames.PROXY_AUTH_PREF);
         if (authpref != null) {

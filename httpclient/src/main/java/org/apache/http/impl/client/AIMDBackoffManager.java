@@ -84,9 +84,9 @@ public class AIMDBackoffManager implements BackoffManager {
 
     public void backOff(final HttpRoute route) {
         synchronized(connPerRoute) {
-            int curr = connPerRoute.getMaxPerRoute(route);
-            Long lastUpdate = getLastUpdate(lastRouteBackoffs, route);
-            long now = clock.getCurrentTime();
+            final int curr = connPerRoute.getMaxPerRoute(route);
+            final Long lastUpdate = getLastUpdate(lastRouteBackoffs, route);
+            final long now = clock.getCurrentTime();
             if (now - lastUpdate.longValue() < coolDown) {
                 return;
             }
@@ -104,11 +104,11 @@ public class AIMDBackoffManager implements BackoffManager {
 
     public void probe(final HttpRoute route) {
         synchronized(connPerRoute) {
-            int curr = connPerRoute.getMaxPerRoute(route);
-            int max = (curr >= cap) ? cap : curr + 1;
-            Long lastProbe = getLastUpdate(lastRouteProbes, route);
-            Long lastBackoff = getLastUpdate(lastRouteBackoffs, route);
-            long now = clock.getCurrentTime();
+            final int curr = connPerRoute.getMaxPerRoute(route);
+            final int max = (curr >= cap) ? cap : curr + 1;
+            final Long lastProbe = getLastUpdate(lastRouteProbes, route);
+            final Long lastBackoff = getLastUpdate(lastRouteBackoffs, route);
+            final long now = clock.getCurrentTime();
             if (now - lastProbe.longValue() < coolDown || now - lastBackoff.longValue() < coolDown) {
                 return;
             }

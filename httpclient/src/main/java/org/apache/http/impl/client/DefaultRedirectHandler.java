@@ -75,14 +75,14 @@ public class DefaultRedirectHandler implements RedirectHandler {
             final HttpContext context) {
         Args.notNull(response, "HTTP response");
 
-        int statusCode = response.getStatusLine().getStatusCode();
+        final int statusCode = response.getStatusLine().getStatusCode();
         switch (statusCode) {
         case HttpStatus.SC_MOVED_TEMPORARILY:
         case HttpStatus.SC_MOVED_PERMANENTLY:
         case HttpStatus.SC_TEMPORARY_REDIRECT:
-            HttpRequest request = (HttpRequest) context.getAttribute(
+            final HttpRequest request = (HttpRequest) context.getAttribute(
                     ExecutionContext.HTTP_REQUEST);
-            String method = request.getRequestLine().getMethod();
+            final String method = request.getRequestLine().getMethod();
             return method.equalsIgnoreCase(HttpGet.METHOD_NAME)
                 || method.equalsIgnoreCase(HttpHead.METHOD_NAME);
         case HttpStatus.SC_SEE_OTHER:
@@ -97,14 +97,14 @@ public class DefaultRedirectHandler implements RedirectHandler {
             final HttpContext context) throws ProtocolException {
         Args.notNull(response, "HTTP response");
         //get the location header to find out where to redirect to
-        Header locationHeader = response.getFirstHeader("location");
+        final Header locationHeader = response.getFirstHeader("location");
         if (locationHeader == null) {
             // got a redirect response, but no location header
             throw new ProtocolException(
                     "Received redirect response " + response.getStatusLine()
                     + " but no location header");
         }
-        String location = locationHeader.getValue();
+        final String location = locationHeader.getValue();
         if (this.log.isDebugEnabled()) {
             this.log.debug("Redirect requested to location '" + location + "'");
         }
@@ -112,11 +112,11 @@ public class DefaultRedirectHandler implements RedirectHandler {
         URI uri;
         try {
             uri = new URI(location);
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new ProtocolException("Invalid redirect URI: " + location, ex);
         }
 
-        HttpParams params = response.getParams();
+        final HttpParams params = response.getParams();
         // rfc2616 demands the location value be a complete URI
         // Location       = "Location" ":" absoluteURI
         if (!uri.isAbsolute()) {
@@ -125,18 +125,18 @@ public class DefaultRedirectHandler implements RedirectHandler {
                         + uri + "' not allowed");
             }
             // Adjust location URI
-            HttpHost target = (HttpHost) context.getAttribute(
+            final HttpHost target = (HttpHost) context.getAttribute(
                     ExecutionContext.HTTP_TARGET_HOST);
             Asserts.notNull(target, "Target host");
 
-            HttpRequest request = (HttpRequest) context.getAttribute(
+            final HttpRequest request = (HttpRequest) context.getAttribute(
                     ExecutionContext.HTTP_REQUEST);
 
             try {
-                URI requestURI = new URI(request.getRequestLine().getUri());
-                URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, true);
+                final URI requestURI = new URI(request.getRequestLine().getUri());
+                final URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, true);
                 uri = URIUtils.resolve(absoluteRequestURI, uri);
-            } catch (URISyntaxException ex) {
+            } catch (final URISyntaxException ex) {
                 throw new ProtocolException(ex.getMessage(), ex);
             }
         }
@@ -154,12 +154,12 @@ public class DefaultRedirectHandler implements RedirectHandler {
             URI redirectURI;
             if (uri.getFragment() != null) {
                 try {
-                    HttpHost target = new HttpHost(
+                    final HttpHost target = new HttpHost(
                             uri.getHost(),
                             uri.getPort(),
                             uri.getScheme());
                     redirectURI = URIUtils.rewriteURI(uri, target, true);
-                } catch (URISyntaxException ex) {
+                } catch (final URISyntaxException ex) {
                     throw new ProtocolException(ex.getMessage(), ex);
                 }
             } else {

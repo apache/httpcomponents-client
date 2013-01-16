@@ -67,7 +67,7 @@ public class BasicDomainHandler implements CookieAttributeHandler {
         // have DNS names.  Since they have no dots, to domain-match the
         // request-host and domain must be identical for the cookie to sent
         // back to the origin-server.
-        String host = origin.getHost();
+        final String host = origin.getHost();
         String domain = cookie.getDomain();
         if (domain == null) {
             throw new CookieRestrictionViolationException("Cookie domain may not be null");
@@ -99,7 +99,7 @@ public class BasicDomainHandler implements CookieAttributeHandler {
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
-        String host = origin.getHost();
+        final String host = origin.getHost();
         String domain = cookie.getDomain();
         if (domain == null) {
             return false;

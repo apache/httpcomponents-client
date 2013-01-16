@@ -92,22 +92,22 @@ class HttpClientConnectionOperator {
             final int connectTimeout,
             final SocketConfig socketConfig,
             final HttpContext context) throws IOException {
-        Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(context);
-        ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
+        final Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(context);
+        final ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
         if (sf == null) {
             throw new IOException("Unsupported scheme: " + host.getSchemeName());
         }
-        InetAddress[] addresses = this.dnsResolver.resolve(host.getHostName());
-        int port = this.schemePortResolver.resolve(host);
+        final InetAddress[] addresses = this.dnsResolver.resolve(host.getHostName());
+        final int port = this.schemePortResolver.resolve(host);
         for (int i = 0; i < addresses.length; i++) {
-            InetAddress address = addresses[i];
-            boolean last = i == addresses.length - 1;
+            final InetAddress address = addresses[i];
+            final boolean last = i == addresses.length - 1;
 
             Socket sock = sf.createSocket(context);
             sock.setReuseAddress(socketConfig.isSoReuseAddress());
             conn.bind(sock);
 
-            InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
+            final InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connecting to " + remoteAddress);
             }
@@ -117,17 +117,17 @@ class HttpClientConnectionOperator {
                         connectTimeout, sock, host, remoteAddress, localAddress, context);
                 sock.setTcpNoDelay(socketConfig.isTcpNoDelay());
                 sock.setKeepAlive(socketConfig.isSoKeepAlive());
-                int linger = socketConfig.getSoLinger();
+                final int linger = socketConfig.getSoLinger();
                 if (linger >= 0) {
                     sock.setSoLinger(linger > 0, linger);
                 }
                 conn.bind(sock);
                 return;
-            } catch (ConnectException ex) {
+            } catch (final ConnectException ex) {
                 if (last) {
                     throw new HttpHostConnectException(host, ex);
                 }
-            } catch (ConnectTimeoutException ex) {
+            } catch (final ConnectTimeoutException ex) {
                 if (last) {
                     throw ex;
                 }
@@ -143,20 +143,20 @@ class HttpClientConnectionOperator {
             final SocketClientConnection conn,
             final HttpHost host,
             final HttpContext context) throws IOException {
-        HttpClientContext clientContext = HttpClientContext.adapt(context);
-        Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(clientContext);
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(clientContext);
         ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
         if (sf == null) {
             sf = PlainSocketFactory.INSTANCE;
         }
         Asserts.check(sf instanceof LayeredConnectionSocketFactory,
             "Socket factory must implement LayeredConnectionSocketFactory");
-        LayeredConnectionSocketFactory lsf = (LayeredConnectionSocketFactory) sf;
+        final LayeredConnectionSocketFactory lsf = (LayeredConnectionSocketFactory) sf;
         Socket sock = conn.getSocket();
         try {
-            int port = this.schemePortResolver.resolve(host);
+            final int port = this.schemePortResolver.resolve(host);
             sock = lsf.createLayeredSocket(sock, host.getHostName(), port, context);
-        } catch (ConnectException ex) {
+        } catch (final ConnectException ex) {
             throw new HttpHostConnectException(host, ex);
         }
         conn.bind(sock);

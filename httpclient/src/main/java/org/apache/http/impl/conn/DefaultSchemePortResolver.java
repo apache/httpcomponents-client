@@ -41,7 +41,7 @@ public class DefaultSchemePortResolver implements SchemePortResolver {
 
     public int resolve(final HttpHost host) {
         Args.notNull(host, "HTTP host");
-        int port = host.getPort();
+        final int port = host.getPort();
         if (port > 0) {
             return port;
         } else {

@@ -45,13 +45,13 @@ public class JdkIdn implements Idn {
      * @throws ClassNotFoundException if java.net.IDN is not available
      */
     public JdkIdn() throws ClassNotFoundException {
-        Class<?> clazz = Class.forName("java.net.IDN");
+        final Class<?> clazz = Class.forName("java.net.IDN");
         try {
             toUnicode = clazz.getMethod("toUnicode", String.class);
-        } catch (SecurityException e) {
+        } catch (final SecurityException e) {
             // doesn't happen
             throw new IllegalStateException(e.getMessage(), e);
-        } catch (NoSuchMethodException e) {
+        } catch (final NoSuchMethodException e) {
             // doesn't happen
             throw new IllegalStateException(e.getMessage(), e);
         }
@@ -60,10 +60,10 @@ public class JdkIdn implements Idn {
     public String toUnicode(final String punycode) {
         try {
             return (String) toUnicode.invoke(null, punycode);
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             throw new IllegalStateException(e.getMessage(), e);
-        } catch (InvocationTargetException e) {
-            Throwable t = e.getCause();
+        } catch (final InvocationTargetException e) {
+            final Throwable t = e.getCause();
             throw new RuntimeException(t.getMessage(), t);
         }
     }

@@ -41,7 +41,7 @@ public class TestHttpRequestBase {
 
     @Test
     public void testBasicProperties() throws Exception {
-        HttpGet httpget = new HttpGet("http://host/path");
+        final HttpGet httpget = new HttpGet("http://host/path");
         Assert.assertEquals("GET", httpget.getRequestLine().getMethod());
         Assert.assertEquals("http://host/path", httpget.getRequestLine().getUri());
         Assert.assertEquals(HttpVersion.HTTP_1_1, httpget.getRequestLine().getProtocolVersion());
@@ -49,30 +49,30 @@ public class TestHttpRequestBase {
 
     @Test
     public void testEmptyURI() throws Exception {
-        HttpGet httpget = new HttpGet("");
+        final HttpGet httpget = new HttpGet("");
         Assert.assertEquals("/", httpget.getRequestLine().getUri());
     }
 
     @Test
     public void testCloneBasicRequests() throws Exception {
-        HttpGet httpget = new HttpGet("http://host/path");
+        final HttpGet httpget = new HttpGet("http://host/path");
         httpget.addHeader("h1", "this header");
         httpget.addHeader("h2", "that header");
         httpget.addHeader("h3", "all sorts of headers");
-        HttpGet clone = (HttpGet) httpget.clone();
+        final HttpGet clone = (HttpGet) httpget.clone();
 
         Assert.assertEquals(httpget.getMethod(), clone.getMethod());
         Assert.assertEquals(httpget.getURI(), clone.getURI());
 
-        Header[] headers1 = httpget.getAllHeaders();
-        Header[] headers2 = clone.getAllHeaders();
+        final Header[] headers1 = httpget.getAllHeaders();
+        final Header[] headers2 = clone.getAllHeaders();
 
         Assert.assertTrue(LangUtils.equals(headers1, headers2));
     }
 
     @Test
     public void testCloneEntityEnclosingRequests() throws Exception {
-        HttpPost httppost = new HttpPost("http://host/path");
+        final HttpPost httppost = new HttpPost("http://host/path");
         httppost.addHeader("h1", "this header");
         httppost.addHeader("h2", "that header");
         httppost.addHeader("h3", "all sorts of headers");
@@ -81,14 +81,14 @@ public class TestHttpRequestBase {
         Assert.assertEquals(httppost.getMethod(), clone.getMethod());
         Assert.assertEquals(httppost.getURI(), clone.getURI());
 
-        Header[] headers1 = httppost.getAllHeaders();
-        Header[] headers2 = clone.getAllHeaders();
+        final Header[] headers1 = httppost.getAllHeaders();
+        final Header[] headers2 = clone.getAllHeaders();
 
         Assert.assertTrue(LangUtils.equals(headers1, headers2));
 
         Assert.assertNull(clone.getEntity());
 
-        StringEntity e1 = new StringEntity("stuff");
+        final StringEntity e1 = new StringEntity("stuff");
         httppost.setEntity(e1);
         clone = (HttpPost) httppost.clone();
         Assert.assertTrue(clone.getEntity() instanceof StringEntity);
@@ -97,9 +97,9 @@ public class TestHttpRequestBase {
 
     @Test(expected=CloneNotSupportedException.class)
     public void testCloneStreamingEntityEnclosingRequests() throws Exception {
-        ByteArrayInputStream instream = new ByteArrayInputStream(new byte[] {});
-        InputStreamEntity e2 = new InputStreamEntity(instream, -1);
-        HttpPost httppost = new HttpPost("http://host/path");
+        final ByteArrayInputStream instream = new ByteArrayInputStream(new byte[] {});
+        final InputStreamEntity e2 = new InputStreamEntity(instream, -1);
+        final HttpPost httppost = new HttpPost("http://host/path");
         httppost.setEntity(e2);
         httppost.clone();
     }

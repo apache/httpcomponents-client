@@ -53,13 +53,13 @@ class BasicIdGenerator {
         String hostname;
         try {
             hostname = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException ex) {
+        } catch (final UnknownHostException ex) {
             hostname = "localhost";
         }
         this.hostname = hostname;
         try {
             this.rnd = SecureRandom.getInstance("SHA1PRNG");
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
             throw new Error(ex);
         }
         this.rnd.setSeed(System.currentTimeMillis());
@@ -67,10 +67,10 @@ class BasicIdGenerator {
 
     public synchronized void generate(final StringBuilder buffer) {
         this.count++;
-        int rndnum = this.rnd.nextInt();
+        final int rndnum = this.rnd.nextInt();
         buffer.append(System.currentTimeMillis());
         buffer.append('.');
-        Formatter formatter = new Formatter(buffer, Locale.US);
+        final Formatter formatter = new Formatter(buffer, Locale.US);
         formatter.format("%1$016x-%2$08x", this.count, rndnum);
         formatter.close();
         buffer.append('.');
@@ -78,7 +78,7 @@ class BasicIdGenerator {
     }
 
     public String generate() {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         generate(buffer);
         return buffer.toString();
     }

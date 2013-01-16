@@ -172,9 +172,9 @@ public class RouteSpecificPool {
      */
     public BasicPoolEntry allocEntry(final Object state) {
         if (!freeEntries.isEmpty()) {
-            ListIterator<BasicPoolEntry> it = freeEntries.listIterator(freeEntries.size());
+            final ListIterator<BasicPoolEntry> it = freeEntries.listIterator(freeEntries.size());
             while (it.hasPrevious()) {
-                BasicPoolEntry entry = it.previous();
+                final BasicPoolEntry entry = it.previous();
                 if (entry.getState() == null || LangUtils.equals(state, entry.getState())) {
                     it.remove();
                     return entry;
@@ -182,12 +182,12 @@ public class RouteSpecificPool {
             }
         }
         if (getCapacity() == 0 && !freeEntries.isEmpty()) {
-            BasicPoolEntry entry = freeEntries.remove();
+            final BasicPoolEntry entry = freeEntries.remove();
             entry.shutdownEntry();
-            OperatedClientConnection conn = entry.getConnection();
+            final OperatedClientConnection conn = entry.getConnection();
             try {
                 conn.close();
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 log.debug("I/O error closing connection", ex);
             }
             return entry;

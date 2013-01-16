@@ -39,11 +39,11 @@ public class TestRedirectLocation {
 
     @Test
     public void testBasics() throws Exception {
-        RedirectLocations locations = new RedirectLocations();
+        final RedirectLocations locations = new RedirectLocations();
 
-        URI uri1 = new URI("/this");
-        URI uri2 = new URI("/that");
-        URI uri3 = new URI("/this-and-that");
+        final URI uri1 = new URI("/this");
+        final URI uri2 = new URI("/that");
+        final URI uri3 = new URI("/this-and-that");
 
         locations.add(uri1);
         locations.add(uri2);

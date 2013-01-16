@@ -54,7 +54,7 @@ public class LaxRedirectStrategy extends DefaultRedirectStrategy {
 
     @Override
     protected boolean isRedirectable(final String method) {
-        for (String m: REDIRECT_METHODS) {
+        for (final String m: REDIRECT_METHODS) {
             if (m.equalsIgnoreCase(method)) {
                 return true;
             }

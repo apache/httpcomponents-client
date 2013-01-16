@@ -67,7 +67,7 @@ public class StringBody extends AbstractContentBody {
             final Charset charset) throws IllegalArgumentException {
         try {
             return new StringBody(text, mimeType, charset);
-        } catch (UnsupportedEncodingException ex) {
+        } catch (final UnsupportedEncodingException ex) {
             throw new IllegalArgumentException("Charset " + charset + " is not supported", ex);
         }
     }
@@ -154,18 +154,18 @@ public class StringBody extends AbstractContentBody {
      */
     public StringBody(final String text, final ContentType contentType) {
         super(contentType);
-        Charset charset = contentType.getCharset();
-        String csname = charset != null ? charset.name() : Consts.ASCII.name();
+        final Charset charset = contentType.getCharset();
+        final String csname = charset != null ? charset.name() : Consts.ASCII.name();
         try {
             this.content = text.getBytes(csname);
-        } catch (UnsupportedEncodingException ex) {
+        } catch (final UnsupportedEncodingException ex) {
             // Should never happen
             throw new UnsupportedCharsetException(csname);
         }
     }
 
     public Reader getReader() {
-        Charset charset = getContentType().getCharset();
+        final Charset charset = getContentType().getCharset();
         return new InputStreamReader(
                 new ByteArrayInputStream(this.content),
                 charset != null ? charset : Consts.ASCII);
@@ -173,8 +173,8 @@ public class StringBody extends AbstractContentBody {
 
     public void writeTo(final OutputStream out) throws IOException {
         Args.notNull(out, "Output stream");
-        InputStream in = new ByteArrayInputStream(this.content);
-        byte[] tmp = new byte[4096];
+        final InputStream in = new ByteArrayInputStream(this.content);
+        final byte[] tmp = new byte[4096];
         int l;
         while ((l = in.read(tmp)) != -1) {
             out.write(tmp, 0, l);

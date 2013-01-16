@@ -66,19 +66,19 @@ public class RequestProxyAuthentication extends RequestAuthenticationBase {
             return;
         }
 
-        HttpRoutedConnection conn = (HttpRoutedConnection) context.getAttribute(
+        final HttpRoutedConnection conn = (HttpRoutedConnection) context.getAttribute(
                 ExecutionContext.HTTP_CONNECTION);
         if (conn == null) {
             this.log.debug("HTTP connection not set in the context");
             return;
         }
-        HttpRoute route = conn.getRoute();
+        final HttpRoute route = conn.getRoute();
         if (route.isTunnelled()) {
             return;
         }
 
         // Obtain authentication state
-        AuthState authState = (AuthState) context.getAttribute(
+        final AuthState authState = (AuthState) context.getAttribute(
                 ClientContext.PROXY_AUTH_STATE);
         if (authState == null) {
             this.log.debug("Proxy auth state not set in the context");

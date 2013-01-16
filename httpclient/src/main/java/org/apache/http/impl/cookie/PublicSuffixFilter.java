@@ -120,7 +120,7 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
             if (domain.startsWith("*.")) {
                 domain = domain.substring(2);
             }
-            int nextdot = domain.indexOf('.');
+            final int nextdot = domain.indexOf('.');
             if (nextdot == -1) {
                 break;
             }

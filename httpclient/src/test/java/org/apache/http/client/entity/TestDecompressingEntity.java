@@ -46,30 +46,30 @@ public class TestDecompressingEntity {
 
     @Test
     public void testNonStreaming() throws Exception {
-        CRC32 crc32 = new CRC32();
-        StringEntity wrapped = new StringEntity("1234567890", "ASCII");
-        ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
+        final CRC32 crc32 = new CRC32();
+        final StringEntity wrapped = new StringEntity("1234567890", "ASCII");
+        final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
         Assert.assertFalse(entity.isStreaming());
-        String s = EntityUtils.toString(entity);
+        final String s = EntityUtils.toString(entity);
         Assert.assertEquals("1234567890", s);
         Assert.assertEquals(639479525L, crc32.getValue());
-        InputStream in1 = entity.getContent();
-        InputStream in2 = entity.getContent();
+        final InputStream in1 = entity.getContent();
+        final InputStream in2 = entity.getContent();
         Assert.assertTrue(in1 != in2);
     }
 
     @Test
     public void testStreaming() throws Exception {
-        CRC32 crc32 = new CRC32();
-        ByteArrayInputStream in = new ByteArrayInputStream("1234567890".getBytes("ASCII"));
-        InputStreamEntity wrapped = new InputStreamEntity(in, -1);
-        ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
+        final CRC32 crc32 = new CRC32();
+        final ByteArrayInputStream in = new ByteArrayInputStream("1234567890".getBytes("ASCII"));
+        final InputStreamEntity wrapped = new InputStreamEntity(in, -1);
+        final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
         Assert.assertTrue(entity.isStreaming());
-        String s = EntityUtils.toString(entity);
+        final String s = EntityUtils.toString(entity);
         Assert.assertEquals("1234567890", s);
         Assert.assertEquals(639479525L, crc32.getValue());
-        InputStream in1 = entity.getContent();
-        InputStream in2 = entity.getContent();
+        final InputStream in1 = entity.getContent();
+        final InputStream in2 = entity.getContent();
         Assert.assertTrue(in1 == in2);
         EntityUtils.consume(entity);
         EntityUtils.consume(entity);
@@ -77,15 +77,15 @@ public class TestDecompressingEntity {
 
     @Test
     public void testWriteToStream() throws Exception {
-        CRC32 crc32 = new CRC32();
-        StringEntity wrapped = new StringEntity("1234567890", "ASCII");
-        ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
+        final CRC32 crc32 = new CRC32();
+        final StringEntity wrapped = new StringEntity("1234567890", "ASCII");
+        final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
         Assert.assertFalse(entity.isStreaming());
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
         entity.writeTo(out);
 
-        String s = new String(out.toByteArray(), "ASCII");
+        final String s = new String(out.toByteArray(), "ASCII");
         Assert.assertEquals("1234567890", s);
         Assert.assertEquals(639479525L, crc32.getValue());
     }

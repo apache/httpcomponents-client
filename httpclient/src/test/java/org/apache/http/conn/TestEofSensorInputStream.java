@@ -70,7 +70,7 @@ public class TestEofSensorInputStream {
         try {
             eofstream.close();
             Assert.fail("IOException expected");
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
         }
         Assert.assertTrue(eofstream.isSelfClosed());
         Assert.assertNull(eofstream.getWrappedStream());
@@ -115,7 +115,7 @@ public class TestEofSensorInputStream {
         try {
             eofstream.abortConnection();
             Assert.fail("IOException expected");
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
         }
         Assert.assertTrue(eofstream.isSelfClosed());
         Assert.assertNull(eofstream.getWrappedStream());
@@ -154,7 +154,7 @@ public class TestEofSensorInputStream {
         try {
             eofstream.read();
             Assert.fail("IOException expected");
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
         }
         Assert.assertFalse(eofstream.isSelfClosed());
         Assert.assertNull(eofstream.getWrappedStream());
@@ -168,7 +168,7 @@ public class TestEofSensorInputStream {
         Mockito.when(instream.read(Mockito.<byte []>any(), Mockito.anyInt(), Mockito.anyInt()))
             .thenReturn(1, -1);
 
-        byte[] tmp = new byte[1];
+        final byte[] tmp = new byte[1];
 
         Assert.assertEquals(1, eofstream.read(tmp));
 
@@ -194,11 +194,11 @@ public class TestEofSensorInputStream {
         Mockito.when(instream.read(Mockito.<byte []>any(), Mockito.anyInt(), Mockito.anyInt()))
             .thenThrow(new IOException());
 
-        byte[] tmp = new byte[1];
+        final byte[] tmp = new byte[1];
         try {
             eofstream.read(tmp);
             Assert.fail("IOException expected");
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
         }
         Assert.assertFalse(eofstream.isSelfClosed());
         Assert.assertNull(eofstream.getWrappedStream());
@@ -215,13 +215,13 @@ public class TestEofSensorInputStream {
         try {
             eofstream.read();
             Assert.fail("IOException expected");
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
         }
-        byte[] tmp = new byte[1];
+        final byte[] tmp = new byte[1];
         try {
             eofstream.read(tmp);
             Assert.fail("IOException expected");
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
         }
     }
 

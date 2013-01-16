@@ -76,10 +76,10 @@ public class Async {
 
         public void run() {
             try {
-                Response response = this.executor.execute(this.request);
-                T result = response.handleResponse(this.handler);
+                final Response response = this.executor.execute(this.request);
+                final T result = response.handleResponse(this.handler);
                 this.future.completed(result);
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 this.future.failed(ex);
             }
         }
@@ -88,8 +88,8 @@ public class Async {
 
     public <T> Future<T> execute(
             final Request request, final ResponseHandler<T> handler, final FutureCallback<T> callback) {
-        BasicFuture<T> future = new BasicFuture<T>(callback);
-        ExecRunnable<T> runnable = new ExecRunnable<T>(
+        final BasicFuture<T> future = new BasicFuture<T>(callback);
+        final ExecRunnable<T> runnable = new ExecRunnable<T>(
                 future,
                 request,
                 this.executor != null ? this.executor : Executor.newInstance(),
@@ -97,7 +97,7 @@ public class Async {
         if (this.concurrentExec != null) {
             this.concurrentExec.execute(runnable);
         } else {
-            Thread t = new Thread(runnable);
+            final Thread t = new Thread(runnable);
             t.setDaemon(true);
             t.start();
         }

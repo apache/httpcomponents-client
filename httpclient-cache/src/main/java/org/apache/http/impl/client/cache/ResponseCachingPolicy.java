@@ -100,7 +100,7 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        int status = response.getStatusLine().getStatusCode();
+        final int status = response.getStatusLine().getStatusCode();
         if (cacheableStatuses.contains(status)) {
             // these response codes MAY be cached
             cacheable = true;
@@ -112,27 +112,27 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        Header contentLength = response.getFirstHeader(HTTP.CONTENT_LEN);
+        final Header contentLength = response.getFirstHeader(HTTP.CONTENT_LEN);
         if (contentLength != null) {
-            int contentLengthValue = Integer.parseInt(contentLength.getValue());
+            final int contentLengthValue = Integer.parseInt(contentLength.getValue());
             if (contentLengthValue > this.maxObjectSizeBytes) {
                 return false;
             }
         }
 
-        Header[] ageHeaders = response.getHeaders(HeaderConstants.AGE);
+        final Header[] ageHeaders = response.getHeaders(HeaderConstants.AGE);
 
         if (ageHeaders.length > 1) {
             return false;
         }
 
-        Header[] expiresHeaders = response.getHeaders(HeaderConstants.EXPIRES);
+        final Header[] expiresHeaders = response.getHeaders(HeaderConstants.EXPIRES);
 
         if (expiresHeaders.length > 1) {
             return false;
         }
 
-        Header[] dateHeaders = response.getHeaders(HTTP.DATE_HEADER);
+        final Header[] dateHeaders = response.getHeaders(HTTP.DATE_HEADER);
 
         if (dateHeaders.length != 1) {
             return false;
@@ -140,12 +140,12 @@ class ResponseCachingPolicy {
 
         try {
             DateUtils.parseDate(dateHeaders[0].getValue());
-        } catch (DateParseException dpe) {
+        } catch (final DateParseException dpe) {
             return false;
         }
 
-        for (Header varyHdr : response.getHeaders(HeaderConstants.VARY)) {
-            for (HeaderElement elem : varyHdr.getElements()) {
+        for (final Header varyHdr : response.getHeaders(HeaderConstants.VARY)) {
+            for (final HeaderElement elem : varyHdr.getElements()) {
                 if ("*".equals(elem.getName())) {
                     return false;
                 }
@@ -179,9 +179,9 @@ class ResponseCachingPolicy {
     }
 
     protected boolean isExplicitlyNonCacheable(final HttpResponse response) {
-        Header[] cacheControlHeaders = response.getHeaders(HeaderConstants.CACHE_CONTROL);
-        for (Header header : cacheControlHeaders) {
-            for (HeaderElement elem : header.getElements()) {
+        final Header[] cacheControlHeaders = response.getHeaders(HeaderConstants.CACHE_CONTROL);
+        for (final Header header : cacheControlHeaders) {
+            for (final HeaderElement elem : header.getElements()) {
                 if (HeaderConstants.CACHE_CONTROL_NO_STORE.equals(elem.getName())
                         || HeaderConstants.CACHE_CONTROL_NO_CACHE.equals(elem.getName())
                         || (sharedCache && HeaderConstants.PRIVATE.equals(elem.getName()))) {
@@ -193,10 +193,10 @@ class ResponseCachingPolicy {
     }
 
     protected boolean hasCacheControlParameterFrom(final HttpMessage msg, final String[] params) {
-        Header[] cacheControlHeaders = msg.getHeaders(HeaderConstants.CACHE_CONTROL);
-        for (Header header : cacheControlHeaders) {
-            for (HeaderElement elem : header.getElements()) {
-                for (String param : params) {
+        final Header[] cacheControlHeaders = msg.getHeaders(HeaderConstants.CACHE_CONTROL);
+        for (final Header header : cacheControlHeaders) {
+            for (final HeaderElement elem : header.getElements()) {
+                for (final String param : params) {
                     if (param.equalsIgnoreCase(elem.getName())) {
                         return true;
                     }
@@ -210,7 +210,7 @@ class ResponseCachingPolicy {
         if (response.getFirstHeader(HeaderConstants.EXPIRES) != null) {
             return true;
         }
-        String[] cacheableParams = { HeaderConstants.CACHE_CONTROL_MAX_AGE, "s-maxage",
+        final String[] cacheableParams = { HeaderConstants.CACHE_CONTROL_MAX_AGE, "s-maxage",
                 HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE,
                 HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE,
                 HeaderConstants.PUBLIC
@@ -232,7 +232,7 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        String[] uncacheableRequestDirectives = { HeaderConstants.CACHE_CONTROL_NO_STORE };
+        final String[] uncacheableRequestDirectives = { HeaderConstants.CACHE_CONTROL_NO_STORE };
         if (hasCacheControlParameterFrom(request,uncacheableRequestDirectives)) {
             return false;
         }
@@ -252,16 +252,16 @@ class ResponseCachingPolicy {
         }
 
         if (sharedCache) {
-            Header[] authNHeaders = request.getHeaders(HeaderConstants.AUTHORIZATION);
+            final Header[] authNHeaders = request.getHeaders(HeaderConstants.AUTHORIZATION);
             if (authNHeaders != null && authNHeaders.length > 0) {
-                String[] authCacheableParams = {
+                final String[] authCacheableParams = {
                         "s-maxage", HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE, HeaderConstants.PUBLIC
                 };
                 return hasCacheControlParameterFrom(response, authCacheableParams);
             }
         }
 
-        String method = request.getRequestLine().getMethod();
+        final String method = request.getRequestLine().getMethod();
         return isResponseCacheable(method, response);
     }
 
@@ -270,25 +270,25 @@ class ResponseCachingPolicy {
         if (response.getFirstHeader(HeaderConstants.CACHE_CONTROL) != null) {
             return false;
         }
-        Header expiresHdr = response.getFirstHeader(HeaderConstants.EXPIRES);
-        Header dateHdr = response.getFirstHeader(HTTP.DATE_HEADER);
+        final Header expiresHdr = response.getFirstHeader(HeaderConstants.EXPIRES);
+        final Header dateHdr = response.getFirstHeader(HTTP.DATE_HEADER);
         if (expiresHdr == null || dateHdr == null) {
             return false;
         }
         try {
-            Date expires = DateUtils.parseDate(expiresHdr.getValue());
-            Date date = DateUtils.parseDate(dateHdr.getValue());
+            final Date expires = DateUtils.parseDate(expiresHdr.getValue());
+            final Date date = DateUtils.parseDate(dateHdr.getValue());
             return expires.equals(date) || expires.before(date);
-        } catch (DateParseException dpe) {
+        } catch (final DateParseException dpe) {
             return false;
         }
     }
 
     private boolean from1_0Origin(final HttpResponse response) {
-        Header via = response.getFirstHeader(HeaderConstants.VIA);
+        final Header via = response.getFirstHeader(HeaderConstants.VIA);
         if (via != null) {
-            for(HeaderElement elt : via.getElements()) {
-                String proto = elt.toString().split("\\s")[0];
+            for(final HeaderElement elt : via.getElements()) {
+                final String proto = elt.toString().split("\\s")[0];
                 if (proto.contains("/")) {
                     return proto.equals("HTTP/1.0");
                 } else {

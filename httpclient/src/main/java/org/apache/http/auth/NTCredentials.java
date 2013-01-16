@@ -64,7 +64,7 @@ public class NTCredentials implements Credentials, Serializable {
         super();
         Args.notNull(usernamePassword, "Username:password string");
         String username;
-        int atColon = usernamePassword.indexOf(':');
+        final int atColon = usernamePassword.indexOf(':');
         if (atColon >= 0) {
             username = usernamePassword.substring(0, atColon);
             this.password = usernamePassword.substring(atColon + 1);
@@ -72,7 +72,7 @@ public class NTCredentials implements Credentials, Serializable {
             username = usernamePassword;
             this.password = null;
         }
-        int atSlash = username.indexOf('/');
+        final int atSlash = username.indexOf('/');
         if (atSlash >= 0) {
             this.principal = new NTUserPrincipal(
                     username.substring(0, atSlash).toUpperCase(Locale.ENGLISH),
@@ -154,7 +154,7 @@ public class NTCredentials implements Credentials, Serializable {
             return true;
         }
         if (o instanceof NTCredentials) {
-            NTCredentials that = (NTCredentials) o;
+            final NTCredentials that = (NTCredentials) o;
             if (LangUtils.equals(this.principal, that.principal)
                     && LangUtils.equals(this.workstation, that.workstation)) {
                 return true;
@@ -165,7 +165,7 @@ public class NTCredentials implements Credentials, Serializable {
 
     @Override
     public String toString() {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         buffer.append("[principal: ");
         buffer.append(this.principal);
         buffer.append("][workstation: ");

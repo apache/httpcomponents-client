@@ -51,7 +51,7 @@ class ResponseProxyHandler implements InvocationHandler {
     static {
         try {
             CLOSE_METHOD = Closeable.class.getMethod("close");
-        } catch (NoSuchMethodException ex) {
+        } catch (final NoSuchMethodException ex) {
             throw new Error(ex);
         }
     }
@@ -75,8 +75,8 @@ class ResponseProxyHandler implements InvocationHandler {
         } else {
             try {
                 return method.invoke(this.original, args);
-            } catch (InvocationTargetException ex) {
-                Throwable cause = ex.getCause();
+            } catch (final InvocationTargetException ex) {
+                final Throwable cause = ex.getCause();
                 if (cause != null) {
                     throw cause;
                 } else {

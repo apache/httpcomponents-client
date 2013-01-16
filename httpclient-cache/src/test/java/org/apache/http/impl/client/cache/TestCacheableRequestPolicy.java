@@ -42,7 +42,7 @@ public class TestCacheableRequestPolicy {
 
     @Test
     public void testIsGetServableFromCache() {
-        BasicHttpRequest request = new BasicHttpRequest("GET", "someUri");
+        final BasicHttpRequest request = new BasicHttpRequest("GET", "someUri");
 
         Assert.assertTrue(policy.isServableFromCache(request));
 

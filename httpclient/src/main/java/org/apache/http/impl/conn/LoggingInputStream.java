@@ -46,7 +46,7 @@ public class LoggingInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        int b = in.read();
+        final int b = in.read();
         if (b != -1) {
             wire.input(b);
         }
@@ -55,7 +55,7 @@ public class LoggingInputStream extends InputStream {
 
     @Override
     public int read(final byte[] b) throws IOException {
-        int bytesRead = in.read(b);
+        final int bytesRead = in.read(b);
         if (bytesRead != -1) {
             wire.input(b, 0, bytesRead);
         }
@@ -64,7 +64,7 @@ public class LoggingInputStream extends InputStream {
 
     @Override
     public int read(final byte[] b, final int off, final int len) throws IOException {
-        int bytesRead = in.read(b, off, len);
+        final int bytesRead = in.read(b, off, len);
         if (bytesRead != -1) {
             wire.input(b, off, bytesRead);
         }

@@ -53,7 +53,7 @@ public class MinimalField {
 
     @Override
     public String toString() {
-        StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = new StringBuilder();
         buffer.append(this.name);
         buffer.append(": ");
         buffer.append(this.value);

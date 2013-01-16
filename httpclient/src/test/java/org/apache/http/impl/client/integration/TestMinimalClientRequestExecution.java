@@ -68,7 +68,7 @@ public class TestMinimalClientRequestExecution extends IntegrationTestBase {
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             response.setStatusCode(HttpStatus.SC_OK);
-            StringEntity entity = new StringEntity("Whatever");
+            final StringEntity entity = new StringEntity("Whatever");
             response.setEntity(entity);
         }
     }
@@ -78,19 +78,19 @@ public class TestMinimalClientRequestExecution extends IntegrationTestBase {
         this.localServer.register("*", new SimpleService());
         this.httpclient = HttpClients.createMinimal();
 
-        HttpClientContext context = HttpClientContext.create();
+        final HttpClientContext context = HttpClientContext.create();
         for (int i = 0; i < 10; i++) {
-            HttpGet request = new HttpGet("/");
-            HttpResponse response = this.httpclient.execute(getServerHttp(), request, context);
+            final HttpGet request = new HttpGet("/");
+            final HttpResponse response = this.httpclient.execute(getServerHttp(), request, context);
             EntityUtils.consume(response.getEntity());
             Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-            HttpRequest reqWrapper = context.getRequest();
+            final HttpRequest reqWrapper = context.getRequest();
             Assert.assertNotNull(reqWrapper);
 
-            Header[] headers = reqWrapper.getAllHeaders();
-            Set<String> headerSet = new HashSet<String>();
-            for (Header header: headers) {
+            final Header[] headers = reqWrapper.getAllHeaders();
+            final Set<String> headerSet = new HashSet<String>();
+            for (final Header header: headers) {
                 headerSet.add(header.getName().toLowerCase(Locale.US));
             }
             Assert.assertEquals(3, headerSet.size());

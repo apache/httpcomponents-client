@@ -73,11 +73,11 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnect() throws Exception {
-        HttpContext context = new BasicHttpContext();
-        HttpHost host = new HttpHost("somehost");
-        InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
-        InetAddress ip1 = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
-        InetAddress ip2 = InetAddress.getByAddress(new byte[] {127, 0, 0, 2});
+        final HttpContext context = new BasicHttpContext();
+        final HttpHost host = new HttpHost("somehost");
+        final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
+        final InetAddress ip1 = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
+        final InetAddress ip2 = InetAddress.getByAddress(new byte[] {127, 0, 0, 2});
 
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
@@ -91,14 +91,14 @@ public class TestHttpClientConnectionOperator {
                 Mockito.<InetSocketAddress>any(),
                 Mockito.<HttpContext>any())).thenReturn(socket);
 
-        SocketConfig socketConfig = SocketConfig.custom()
+        final SocketConfig socketConfig = SocketConfig.custom()
             .setSoKeepAlive(true)
             .setSoReuseAddress(true)
             .setSoTimeout(5000)
             .setTcpNoDelay(true)
             .setSoLinger(50)
             .build();
-        InetSocketAddress localAddress = new InetSocketAddress(local, 0);
+        final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
         connectionOperator.connect(conn, host, localAddress, 1000, socketConfig, context);
 
         Mockito.verify(socket).setKeepAlive(true);
@@ -119,10 +119,10 @@ public class TestHttpClientConnectionOperator {
 
     @Test(expected=ConnectTimeoutException.class)
     public void testConnectFailure() throws Exception {
-        HttpContext context = new BasicHttpContext();
-        HttpHost host = new HttpHost("somehost");
-        InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
-        InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
+        final HttpContext context = new BasicHttpContext();
+        final HttpHost host = new HttpHost("somehost");
+        final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
+        final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
 
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
@@ -141,11 +141,11 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testConnectFailover() throws Exception {
-        HttpContext context = new BasicHttpContext();
-        HttpHost host = new HttpHost("somehost");
-        InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
-        InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
-        InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
+        final HttpContext context = new BasicHttpContext();
+        final HttpHost host = new HttpHost("somehost");
+        final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
+        final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
+        final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
 
         Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
@@ -166,7 +166,7 @@ public class TestHttpClientConnectionOperator {
                 Mockito.<InetSocketAddress>any(),
                 Mockito.<HttpContext>any())).thenReturn(socket);
 
-        InetSocketAddress localAddress = new InetSocketAddress(local, 0);
+        final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
         connectionOperator.connect(conn, host, localAddress, 1000, SocketConfig.DEFAULT, context);
 
         Mockito.verify(plainSocketFactory).connectSocket(
@@ -181,8 +181,8 @@ public class TestHttpClientConnectionOperator {
 
     @Test
     public void testUpgrade() throws Exception {
-        HttpContext context = new BasicHttpContext();
-        HttpHost host = new HttpHost("somehost", -1, "https");
+        final HttpContext context = new BasicHttpContext();
+        final HttpHost host = new HttpHost("somehost", -1, "https");
 
         Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(sslSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(443);
@@ -200,8 +200,8 @@ public class TestHttpClientConnectionOperator {
 
     @Test(expected=IllegalStateException.class)
     public void testUpgradeNonLayeringScheme() throws Exception {
-        HttpContext context = new BasicHttpContext();
-        HttpHost host = new HttpHost("somehost", -1, "http");
+        final HttpContext context = new BasicHttpContext();
+        final HttpHost host = new HttpHost("somehost", -1, "http");
 
         connectionOperator.upgrade(conn, host, context);
     }

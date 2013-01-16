@@ -86,9 +86,9 @@ class AsynchronousValidationRequest implements Runnable {
     public void run() {
         try {
             cachingExec.revalidateCacheEntry(route, request, context, execAware, cacheEntry);
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
             log.debug("Asynchronous revalidation failed due to I/O error", ioe);
-        } catch (HttpException pe) {
+        } catch (final HttpException pe) {
             log.error("HTTP protocol exception during asynchronous revalidation", pe);
         } finally {
             parent.markComplete(identifier);

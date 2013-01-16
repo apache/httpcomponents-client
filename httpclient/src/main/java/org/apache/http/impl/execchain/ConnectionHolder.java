@@ -103,7 +103,7 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
                 try {
                     this.managedConn.close();
                     log.debug("Connection discarded");
-                } catch (IOException ex) {
+                } catch (final IOException ex) {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug(ex.getMessage(), ex);
                     }
@@ -124,7 +124,7 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
             try {
                 this.managedConn.shutdown();
                 log.debug("Connection discarded");
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 if (this.log.isDebugEnabled()) {
                     this.log.debug(ex.getMessage(), ex);
                 }
@@ -136,7 +136,7 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
     }
 
     public boolean cancel() {
-        boolean alreadyReleased = this.released;
+        final boolean alreadyReleased = this.released;
         log.debug("Cancelling request execution");
         abortConnection();
         return !alreadyReleased;

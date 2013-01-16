@@ -76,7 +76,7 @@ class CacheEntity implements HttpEntity, Serializable {
 
     public void writeTo(final OutputStream outstream) throws IOException {
         Args.notNull(outstream, "Output stream");
-        InputStream instream = this.cacheEntry.getResource().getInputStream();
+        final InputStream instream = this.cacheEntry.getResource().getInputStream();
         try {
             IOUtils.copy(instream, outstream);
         } finally {

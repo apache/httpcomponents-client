@@ -40,13 +40,13 @@ public class TestDateUtils {
 
     @Test
     public void testBasicDateParse() throws Exception {
-        Calendar calendar = Calendar.getInstance();
+        final Calendar calendar = Calendar.getInstance();
         calendar.setTimeZone(DateUtils.GMT);
         calendar.set(2005, Calendar.OCTOBER, 14, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        Date date1 = calendar.getTime();
+        final Date date1 = calendar.getTime();
 
-        String[] formats = new String[] {
+        final String[] formats = new String[] {
                 DateUtils.PATTERN_RFC1123
                 };
         Date date2 = DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", formats, null);
@@ -62,38 +62,38 @@ public class TestDateUtils {
         try {
             DateUtils.parseDate(null, null, null);
             Assert.fail("IllegalArgumentException should habe been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", new String[] {}, null);
             Assert.fail("DateParseException should habe been thrown");
-        } catch (DateParseException ex) {
+        } catch (final DateParseException ex) {
             // expected
         }
         try {
             DateUtils.formatDate(null);
             Assert.fail("IllegalArgumentException should habe been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             DateUtils.formatDate(new Date(), null);
             Assert.fail("IllegalArgumentException should habe been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
     }
 
     @Test
     public void testTwoDigitYearDateParse() throws Exception {
-        Calendar calendar = Calendar.getInstance();
+        final Calendar calendar = Calendar.getInstance();
         calendar.setTimeZone(DateUtils.GMT);
         calendar.set(2005, Calendar.OCTOBER, 14, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
         Date date1 = calendar.getTime();
 
-        String[] formats = new String[] {
+        final String[] formats = new String[] {
                 DateUtils.PATTERN_RFC1036
                 };
         Date date2 = DateUtils.parseDate("Friday, 14-Oct-05 00:00:00 GMT", formats, null);
@@ -101,7 +101,7 @@ public class TestDateUtils {
 
         calendar.set(1900, Calendar.JANUARY, 0, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        Date startDate = calendar.getTime();
+        final Date startDate = calendar.getTime();
 
         calendar.set(1905, Calendar.OCTOBER, 14, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
@@ -113,26 +113,26 @@ public class TestDateUtils {
 
     @Test
     public void testParseQuotedDate() throws Exception {
-        Calendar calendar = Calendar.getInstance();
+        final Calendar calendar = Calendar.getInstance();
         calendar.setTimeZone(DateUtils.GMT);
         calendar.set(2005, Calendar.OCTOBER, 14, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        Date date1 = calendar.getTime();
+        final Date date1 = calendar.getTime();
 
-        String[] formats = new String[] {
+        final String[] formats = new String[] {
                 DateUtils.PATTERN_RFC1123
                 };
-        Date date2 = DateUtils.parseDate("'Fri, 14 Oct 2005 00:00:00 GMT'", formats);
+        final Date date2 = DateUtils.parseDate("'Fri, 14 Oct 2005 00:00:00 GMT'", formats);
         Assert.assertEquals(date1, date2);
     }
 
     @Test
     public void testBasicDateFormat() throws Exception {
-        Calendar calendar = Calendar.getInstance();
+        final Calendar calendar = Calendar.getInstance();
         calendar.setTimeZone(DateUtils.GMT);
         calendar.set(2005, Calendar.OCTOBER, 14, 0, 0, 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        Date date = calendar.getTime();
+        final Date date = calendar.getTime();
 
         Assert.assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(date));
         Assert.assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(date, DateUtils.PATTERN_RFC1123));

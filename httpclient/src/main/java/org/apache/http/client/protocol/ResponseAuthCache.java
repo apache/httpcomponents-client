@@ -75,16 +75,16 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
         AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
 
         HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
-        AuthState targetState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
+        final AuthState targetState = (AuthState) context.getAttribute(ClientContext.TARGET_AUTH_STATE);
         if (target != null && targetState != null) {
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Target auth state: " + targetState.getState());
             }
             if (isCachable(targetState)) {
-                SchemeRegistry schemeRegistry = (SchemeRegistry) context.getAttribute(
+                final SchemeRegistry schemeRegistry = (SchemeRegistry) context.getAttribute(
                         ClientContext.SCHEME_REGISTRY);
                 if (target.getPort() < 0) {
-                    Scheme scheme = schemeRegistry.getScheme(target);
+                    final Scheme scheme = schemeRegistry.getScheme(target);
                     target = new HttpHost(target.getHostName(),
                             scheme.resolvePort(target.getPort()), target.getSchemeName());
                 }
@@ -102,8 +102,8 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
             }
         }
 
-        HttpHost proxy = (HttpHost) context.getAttribute(ExecutionContext.HTTP_PROXY_HOST);
-        AuthState proxyState = (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE);
+        final HttpHost proxy = (HttpHost) context.getAttribute(ExecutionContext.HTTP_PROXY_HOST);
+        final AuthState proxyState = (AuthState) context.getAttribute(ClientContext.PROXY_AUTH_STATE);
         if (proxy != null && proxyState != null) {
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Proxy auth state: " + proxyState.getState());
@@ -125,11 +125,11 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
     }
 
     private boolean isCachable(final AuthState authState) {
-        AuthScheme authScheme = authState.getAuthScheme();
+        final AuthScheme authScheme = authState.getAuthScheme();
         if (authScheme == null || !authScheme.isComplete()) {
             return false;
         }
-        String schemeName = authScheme.getSchemeName();
+        final String schemeName = authScheme.getSchemeName();
         return schemeName.equalsIgnoreCase(AuthPolicy.BASIC) ||
                 schemeName.equalsIgnoreCase(AuthPolicy.DIGEST);
     }

@@ -104,7 +104,7 @@ public final class CookieSpecRegistry implements Lookup<CookieSpecProvider> {
         throws IllegalStateException {
 
         Args.notNull(name, "Name");
-        CookieSpecFactory factory = registeredSpecs.get(name.toLowerCase(Locale.ENGLISH));
+        final CookieSpecFactory factory = registeredSpecs.get(name.toLowerCase(Locale.ENGLISH));
         if (factory != null) {
             return factory.newInstance(params);
         } else {
@@ -157,7 +157,7 @@ public final class CookieSpecRegistry implements Lookup<CookieSpecProvider> {
         return new CookieSpecProvider() {
 
             public CookieSpec create(final HttpContext context) {
-                HttpRequest request = (HttpRequest) context.getAttribute(
+                final HttpRequest request = (HttpRequest) context.getAttribute(
                         ExecutionContext.HTTP_REQUEST);
                 return getCookieSpec(name, request.getParams());
             }

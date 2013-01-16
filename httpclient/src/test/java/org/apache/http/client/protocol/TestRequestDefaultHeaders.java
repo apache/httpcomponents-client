@@ -44,35 +44,35 @@ public class TestRequestDefaultHeaders {
 
     @Test(expected=IllegalArgumentException.class)
     public void testRequestParameterCheck() throws Exception {
-        HttpContext context = new BasicHttpContext();
-        HttpRequestInterceptor interceptor = new RequestDefaultHeaders();
+        final HttpContext context = new BasicHttpContext();
+        final HttpRequestInterceptor interceptor = new RequestDefaultHeaders();
         interceptor.process(null, context);
     }
 
     @Test
     public void testNoDefaultHeadersForConnectRequest() throws Exception {
-        HttpRequest request = new BasicHttpRequest("CONNECT", "www.somedomain.com");
-        List<Header> defheaders = new ArrayList<Header>();
+        final HttpRequest request = new BasicHttpRequest("CONNECT", "www.somedomain.com");
+        final List<Header> defheaders = new ArrayList<Header>();
         defheaders.add(new BasicHeader("custom", "stuff"));
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
 
-        HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
+        final HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
         interceptor.process(request, context);
-        Header header1 = request.getFirstHeader("custom");
+        final Header header1 = request.getFirstHeader("custom");
         Assert.assertNull(header1);
     }
 
     @Test
     public void testDefaultHeaders() throws Exception {
-        HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
         request.addHeader("custom", "stuff");
-        List<Header> defheaders = new ArrayList<Header>();
+        final List<Header> defheaders = new ArrayList<Header>();
         defheaders.add(new BasicHeader("custom", "more stuff"));
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
 
-        HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
+        final HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
         interceptor.process(request, context);
-        Header[] headers = request.getHeaders("custom");
+        final Header[] headers = request.getHeaders("custom");
         Assert.assertNotNull(headers);
         Assert.assertEquals(2, headers.length);
         Assert.assertEquals("stuff", headers[0].getValue());

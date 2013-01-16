@@ -99,7 +99,7 @@ public class BestMatchSpec implements CookieSpec {
         HeaderElement[] helems = header.getElements();
         boolean versioned = false;
         boolean netscape = false;
-        for (HeaderElement helem: helems) {
+        for (final HeaderElement helem: helems) {
             if (helem.getParameterByName("version") != null) {
                 versioned = true;
             }
@@ -110,7 +110,7 @@ public class BestMatchSpec implements CookieSpec {
         if (netscape || !versioned) {
             // Need to parse the header again, because Netscape style cookies do not correctly
             // support multiple header elements (comma cannot be treated as an element separator)
-            NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
+            final NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
             CharArrayBuffer buffer;
             ParserCursor cursor;
             if (header instanceof FormattedHeader) {
@@ -119,7 +119,7 @@ public class BestMatchSpec implements CookieSpec {
                         ((FormattedHeader) header).getValuePos(),
                         buffer.length());
             } else {
-                String s = header.getValue();
+                final String s = header.getValue();
                 if (s == null) {
                     throw new MalformedCookieException("Header value is null");
                 }
@@ -172,7 +172,7 @@ public class BestMatchSpec implements CookieSpec {
         Args.notNull(cookies, "List of cookies");
         int version = Integer.MAX_VALUE;
         boolean isSetCookie2 = true;
-        for (Cookie cookie: cookies) {
+        for (final Cookie cookie: cookies) {
             if (!(cookie instanceof SetCookie2)) {
                 isSetCookie2 = false;
             }

@@ -61,13 +61,13 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testLeaseReleaseNonReusable() throws Exception {
-        HttpHost target = new HttpHost("localhost");
-        HttpRoute route = new HttpRoute(target);
+        final HttpHost target = new HttpHost("localhost");
+        final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
-        ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
-        HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
+        final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
         Assert.assertFalse(conn1.isOpen());
 
@@ -76,8 +76,8 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertNull(mgr.getRoute());
         Assert.assertNull(mgr.getState());
 
-        ConnectionRequest connRequest2 = mgr.requestConnection(route, null);
-        HttpClientConnection conn2 = connRequest2.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest2 = mgr.requestConnection(route, null);
+        final HttpClientConnection conn2 = connRequest2.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn2);
         Assert.assertFalse(conn2.isOpen());
 
@@ -86,13 +86,13 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testLeaseReleaseReusable() throws Exception {
-        HttpHost target = new HttpHost("somehost");
-        HttpRoute route = new HttpRoute(target);
+        final HttpHost target = new HttpHost("somehost");
+        final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
-        ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
-        HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
+        final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
         Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
@@ -104,8 +104,8 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertEquals(route, mgr.getRoute());
         Assert.assertEquals(null, mgr.getState());
 
-        ConnectionRequest connRequest2 = mgr.requestConnection(route, null);
-        HttpClientConnection conn2 = connRequest2.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest2 = mgr.requestConnection(route, null);
+        final HttpClientConnection conn2 = connRequest2.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn2);
         Assert.assertTrue(conn2.isOpen());
 
@@ -114,13 +114,13 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testLeaseReleaseReusableWithState() throws Exception {
-        HttpHost target = new HttpHost("somehost");
-        HttpRoute route = new HttpRoute(target);
+        final HttpHost target = new HttpHost("somehost");
+        final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
-        ConnectionRequest connRequest1 = mgr.requestConnection(route, "some state");
-        HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest1 = mgr.requestConnection(route, "some state");
+        final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
         Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
@@ -132,8 +132,8 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertEquals(route, mgr.getRoute());
         Assert.assertEquals("some other state", mgr.getState());
 
-        ConnectionRequest connRequest2 = mgr.requestConnection(route, "some other state");
-        HttpClientConnection conn2 = connRequest2.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest2 = mgr.requestConnection(route, "some other state");
+        final HttpClientConnection conn2 = connRequest2.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn2);
         Assert.assertTrue(conn2.isOpen());
 
@@ -142,13 +142,13 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testLeaseDifferentRoute() throws Exception {
-        HttpHost target1 = new HttpHost("somehost");
-        HttpRoute route1 = new HttpRoute(target1);
+        final HttpHost target1 = new HttpHost("somehost");
+        final HttpRoute route1 = new HttpRoute(target1);
 
         Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
-        ConnectionRequest connRequest1 = mgr.requestConnection(route1, null);
-        HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest1 = mgr.requestConnection(route1, null);
+        final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
         Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
@@ -160,10 +160,10 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertEquals(route1, mgr.getRoute());
         Assert.assertEquals(null, mgr.getState());
 
-        HttpHost target2 = new HttpHost("otherhost");
-        HttpRoute route2 = new HttpRoute(target2);
-        ConnectionRequest connRequest2 = mgr.requestConnection(route2, null);
-        HttpClientConnection conn2 = connRequest2.get(0, TimeUnit.MILLISECONDS);
+        final HttpHost target2 = new HttpHost("otherhost");
+        final HttpRoute route2 = new HttpRoute(target2);
+        final ConnectionRequest connRequest2 = mgr.requestConnection(route2, null);
+        final HttpClientConnection conn2 = connRequest2.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn2);
         Assert.assertFalse(conn2.isOpen());
 
@@ -173,13 +173,13 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testLeaseExpired() throws Exception {
-        HttpHost target = new HttpHost("somehost");
-        HttpRoute route = new HttpRoute(target);
+        final HttpHost target = new HttpHost("somehost");
+        final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
-        ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
-        HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
+        final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
         Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
@@ -193,8 +193,8 @@ public class TestBasicHttpClientConnectionManager {
 
         Thread.sleep(50);
 
-        ConnectionRequest connRequest2 = mgr.requestConnection(route, null);
-        HttpClientConnection conn2 = connRequest2.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest2 = mgr.requestConnection(route, null);
+        final HttpClientConnection conn2 = connRequest2.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn2);
         Assert.assertFalse(conn2.isOpen());
 
@@ -214,19 +214,19 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test(expected=IllegalStateException.class)
     public void testReleaseAnotherConnection() throws Exception {
-        HttpClientConnection wrongCon = Mockito.mock(HttpClientConnection.class);
+        final HttpClientConnection wrongCon = Mockito.mock(HttpClientConnection.class);
         mgr.releaseConnection(wrongCon, null, 0, TimeUnit.MILLISECONDS);
     }
 
     @Test
     public void testShutdown() throws Exception {
-        HttpHost target = new HttpHost("somehost");
-        HttpRoute route = new HttpRoute(target);
+        final HttpHost target = new HttpHost("somehost");
+        final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
-        ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
-        HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
+        final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
         Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
@@ -240,22 +240,22 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.verify(conn, Mockito.times(1)).shutdown();
 
         try {
-            ConnectionRequest connRequest2 = mgr.requestConnection(route, null);
+            final ConnectionRequest connRequest2 = mgr.requestConnection(route, null);
             connRequest2.get(0, TimeUnit.MILLISECONDS);
             Assert.fail("IllegalStateException expected");
-        } catch (IllegalStateException ex) {
+        } catch (final IllegalStateException ex) {
         }
     }
 
     @Test
     public void testCloseExpired() throws Exception {
-        HttpHost target = new HttpHost("somehost");
-        HttpRoute route = new HttpRoute(target);
+        final HttpHost target = new HttpHost("somehost");
+        final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
-        ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
-        HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
+        final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
         Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
@@ -276,13 +276,13 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testCloseIdle() throws Exception {
-        HttpHost target = new HttpHost("somehost");
-        HttpRoute route = new HttpRoute(target);
+        final HttpHost target = new HttpHost("somehost");
+        final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
-        ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
-        HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
+        final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
         Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
@@ -303,13 +303,13 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test(expected=IllegalStateException.class)
     public void testAlreadyLeased() throws Exception {
-        HttpHost target = new HttpHost("somehost");
-        HttpRoute route = new HttpRoute(target);
+        final HttpHost target = new HttpHost("somehost");
+        final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
-        ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
-        HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
+        final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
+        final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
         mgr.releaseConnection(conn1, null, 100, TimeUnit.MILLISECONDS);
 

@@ -61,7 +61,7 @@ class HttpConnPool extends AbstractConnPool<HttpRoute, OperatedClientConnection,
 
     @Override
     protected HttpPoolEntry createEntry(final HttpRoute route, final OperatedClientConnection conn) {
-        String id = Long.toString(COUNTER.getAndIncrement());
+        final String id = Long.toString(COUNTER.getAndIncrement());
         return new HttpPoolEntry(this.log, id, route, conn, this.timeToLive, this.tunit);
     }
 

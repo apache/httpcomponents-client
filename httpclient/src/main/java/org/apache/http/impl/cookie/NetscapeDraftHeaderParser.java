@@ -59,10 +59,10 @@ public class NetscapeDraftHeaderParser {
             final ParserCursor cursor) throws ParseException {
         Args.notNull(buffer, "Char array buffer");
         Args.notNull(cursor, "Parser cursor");
-        NameValuePair nvp = parseNameValuePair(buffer, cursor);
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        final NameValuePair nvp = parseNameValuePair(buffer, cursor);
+        final List<NameValuePair> params = new ArrayList<NameValuePair>();
         while (!cursor.atEnd()) {
-            NameValuePair param = parseNameValuePair(buffer, cursor);
+            final NameValuePair param = parseNameValuePair(buffer, cursor);
             params.add(param);
         }
         return new BasicHeaderElement(
@@ -75,13 +75,13 @@ public class NetscapeDraftHeaderParser {
         boolean terminated = false;
 
         int pos = cursor.getPos();
-        int indexFrom = cursor.getPos();
-        int indexTo = cursor.getUpperBound();
+        final int indexFrom = cursor.getPos();
+        final int indexTo = cursor.getUpperBound();
 
         // Find name
         String name = null;
         while (pos < indexTo) {
-            char ch = buffer.charAt(pos);
+            final char ch = buffer.charAt(pos);
             if (ch == '=') {
                 break;
             }
@@ -110,7 +110,7 @@ public class NetscapeDraftHeaderParser {
         int i1 = pos;
 
         while (pos < indexTo) {
-            char ch = buffer.charAt(pos);
+            final char ch = buffer.charAt(pos);
             if (ch == ';') {
                 terminated = true;
                 break;

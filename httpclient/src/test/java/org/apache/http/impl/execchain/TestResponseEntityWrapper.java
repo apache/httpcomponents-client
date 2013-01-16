@@ -73,7 +73,7 @@ public class TestResponseEntityWrapper {
         try {
             EntityUtils.consume(wrapper);
             Assert.fail("IOException expected");
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
         }
         Mockito.verify(connHolder).abortConnection();
     }
@@ -90,7 +90,7 @@ public class TestResponseEntityWrapper {
 
     @Test
     public void testReusableEntityWriteTo() throws Exception {
-        OutputStream outstream = Mockito.mock(OutputStream.class);
+        final OutputStream outstream = Mockito.mock(OutputStream.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(connHolder.isReusable()).thenReturn(true);
         wrapper.writeTo(outstream);
@@ -99,14 +99,14 @@ public class TestResponseEntityWrapper {
 
     @Test
     public void testReusableEntityWriteToIOError() throws Exception {
-        OutputStream outstream = Mockito.mock(OutputStream.class);
+        final OutputStream outstream = Mockito.mock(OutputStream.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(connHolder.isReusable()).thenReturn(true);
         Mockito.doThrow(new IOException()).when(entity).writeTo(outstream);
         try {
             wrapper.writeTo(outstream);
             Assert.fail("IOException expected");
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
         }
         Mockito.verify(connHolder, Mockito.never()).releaseConnection();
         Mockito.verify(connHolder).abortConnection();
@@ -117,7 +117,7 @@ public class TestResponseEntityWrapper {
         Mockito.when(instream.read()).thenReturn(-1);
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(connHolder.isReusable()).thenReturn(true);
-        InputStream content = wrapper.getContent();
+        final InputStream content = wrapper.getContent();
         Assert.assertEquals(-1, content.read());
         Mockito.verify(instream).close();
         Mockito.verify(connHolder).releaseConnection();
@@ -129,11 +129,11 @@ public class TestResponseEntityWrapper {
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(connHolder.isReusable()).thenReturn(true);
         Mockito.doThrow(new IOException()).when(instream).close();
-        InputStream content = wrapper.getContent();
+        final InputStream content = wrapper.getContent();
         try {
             content.read();
             Assert.fail("IOException expected");
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
         }
         Mockito.verify(connHolder).abortConnection();
     }

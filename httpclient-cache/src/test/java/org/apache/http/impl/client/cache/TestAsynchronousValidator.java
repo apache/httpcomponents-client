@@ -92,7 +92,7 @@ public class TestAsynchronousValidator {
         impl = new AsynchronousValidator(mockClient, mockExecutor);
 
         EasyMock.expect(mockCacheEntry.hasVariants()).andReturn(false);
-        Capture<AsynchronousValidationRequest> cap = new Capture<AsynchronousValidationRequest>();
+        final Capture<AsynchronousValidationRequest> cap = new Capture<AsynchronousValidationRequest>();
         mockExecutor.execute(EasyMock.capture(cap));
 
         replayMocks();
@@ -142,13 +142,13 @@ public class TestAsynchronousValidator {
     public void testVariantsBothRevalidated() {
         impl = new AsynchronousValidator(mockClient, mockExecutor);
 
-        HttpRequest req1 = new HttpGet("/");
+        final HttpRequest req1 = new HttpGet("/");
         req1.addHeader(new BasicHeader("Accept-Encoding", "identity"));
 
-        HttpRequest req2 = new HttpGet("/");
+        final HttpRequest req2 = new HttpGet("/");
         req2.addHeader(new BasicHeader("Accept-Encoding", "gzip"));
 
-        Header[] variantHeaders = new Header[] {
+        final Header[] variantHeaders = new Header[] {
                 new BasicHeader(HeaderConstants.VARY, "Accept-Encoding")
         };
 
@@ -168,7 +168,7 @@ public class TestAsynchronousValidator {
 
     @Test
     public void testRevalidateCacheEntryEndToEnd() throws Exception {
-        CacheConfig config = CacheConfig.custom()
+        final CacheConfig config = CacheConfig.custom()
             .setAsynchronousWorkersMax(1)
             .setAsynchronousWorkersCore(1)
             .build();
@@ -183,10 +183,10 @@ public class TestAsynchronousValidator {
 
         try {
             // shut down backend executor and make sure all finishes properly, 1 second should be sufficient
-            ExecutorService implExecutor = impl.getExecutor();
+            final ExecutorService implExecutor = impl.getExecutor();
             implExecutor.shutdown();
             implExecutor.awaitTermination(1, TimeUnit.SECONDS);
-        } catch (InterruptedException ie) {
+        } catch (final InterruptedException ie) {
 
         } finally {
             verifyMocks();

@@ -47,10 +47,10 @@ public class TestHostnameVerifier {
 
     @Test
     public void testVerify() throws Exception {
-        X509HostnameVerifier DEFAULT = new BrowserCompatHostnameVerifier();
-        X509HostnameVerifier STRICT = new StrictHostnameVerifier();
-        X509HostnameVerifier ALLOW_ALL = new AllowAllHostnameVerifier();
-        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        final X509HostnameVerifier DEFAULT = new BrowserCompatHostnameVerifier();
+        final X509HostnameVerifier STRICT = new StrictHostnameVerifier();
+        final X509HostnameVerifier ALLOW_ALL = new AllowAllHostnameVerifier();
+        final CertificateFactory cf = CertificateFactory.getInstance("X.509");
         InputStream in;
         X509Certificate x509;
         in = new ByteArrayInputStream(CertificatesToPlayWith.X509_FOO);
@@ -192,11 +192,11 @@ public class TestHostnameVerifier {
 
     @Test
     public void testSubjectAlt() throws Exception {
-        CertificateFactory cf = CertificateFactory.getInstance("X.509");
-        InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_SUBJECT_ALT);
-        X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
+        final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        final InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_SUBJECT_ALT);
+        final X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
 
-        X509HostnameVerifier verifier = SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
+        final X509HostnameVerifier verifier = SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
 
         Assert.assertEquals("CN=localhost, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=CH",
                 x509.getSubjectDN().getName());
@@ -208,13 +208,13 @@ public class TestHostnameVerifier {
         try {
             verifier.verify("local.host", x509);
             Assert.fail("SSLException should have been thrown");
-        } catch (SSLException ex) {
+        } catch (final SSLException ex) {
             // expected
         }
         try {
             verifier.verify("127.0.0.2", x509);
             Assert.fail("SSLException should have been thrown");
-        } catch (SSLException ex) {
+        } catch (final SSLException ex) {
             // expected
         }
 
@@ -226,7 +226,7 @@ public class TestHostnameVerifier {
             hv.verify(host, x509);
             Assert.fail("HostnameVerifier shouldn't allow [" + host + "]");
         }
-        catch(SSLException e) {
+        catch(final SSLException e) {
             // whew!  we're okay!
         }
     }
@@ -243,7 +243,7 @@ public class TestHostnameVerifier {
                         +Arrays.toString(alts));
             }
         }
-        catch(SSLException e) {
+        catch(final SSLException e) {
             if (!shouldFail) {
                 Assert.fail("HostnameVerifier should have allowed [" + host + "] to match "
                         +Arrays.toString(cns)
@@ -258,8 +258,8 @@ public class TestHostnameVerifier {
     public void testMatching() {
         String cns[] = {};
         String alt[] = {};
-        X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
-        X509HostnameVerifier shv = new StrictHostnameVerifier();
+        final X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
+        final X509HostnameVerifier shv = new StrictHostnameVerifier();
         checkMatching(bhv, "a.b.c", cns, alt, true); // empty
         checkMatching(shv, "a.b.c", cns, alt, true); // empty
 
@@ -304,9 +304,9 @@ public class TestHostnameVerifier {
     @Test
     public void testHTTPCLIENT_1097() {
         String cns[];
-        String alt[] = {};
-        X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
-        X509HostnameVerifier shv = new StrictHostnameVerifier();
+        final String alt[] = {};
+        final X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
+        final X509HostnameVerifier shv = new StrictHostnameVerifier();
 
         cns = new String []{"a*.b.c"}; // component part
         checkMatching(bhv, "a.b.c", cns, alt, false); // OK
@@ -322,11 +322,11 @@ public class TestHostnameVerifier {
 
     @Test
     public void testHTTPCLIENT_1255() {
-        X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
-        X509HostnameVerifier shv = new StrictHostnameVerifier();
+        final X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
+        final X509HostnameVerifier shv = new StrictHostnameVerifier();
 
-        String cns[] = new String []{"m*.a.b.c.com"}; // component part
-        String alt[] = {};
+        final String cns[] = new String []{"m*.a.b.c.com"}; // component part
+        final String alt[] = {};
         checkMatching(bhv, "mail.a.b.c.com", cns, alt, false); // OK
         checkMatching(shv, "mail.a.b.c.com", cns, alt, false); // OK
     }
@@ -349,8 +349,8 @@ public class TestHostnameVerifier {
     }
 
     public void testGetCNs() {
-        Principal principal = Mockito.mock(Principal.class);
-        X509Certificate cert = Mockito.mock(X509Certificate.class);
+        final Principal principal = Mockito.mock(Principal.class);
+        final X509Certificate cert = Mockito.mock(X509Certificate.class);
         Mockito.when(cert.getSubjectDN()).thenReturn(principal);
         Mockito.when(principal.toString()).thenReturn("bla,  bla, blah");
         Assert.assertArrayEquals(new String[] {}, AbstractVerifier.getCNs(cert));

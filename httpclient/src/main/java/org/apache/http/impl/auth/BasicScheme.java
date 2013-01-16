@@ -155,15 +155,15 @@ public class BasicScheme extends RFC2617Scheme {
 
         Args.notNull(credentials, "Credentials");
         Args.notNull(request, "HTTP request");
-        StringBuilder tmp = new StringBuilder();
+        final StringBuilder tmp = new StringBuilder();
         tmp.append(credentials.getUserPrincipal().getName());
         tmp.append(":");
         tmp.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
 
-        byte[] base64password = Base64.encodeBase64(
+        final byte[] base64password = Base64.encodeBase64(
                 EncodingUtils.getBytes(tmp.toString(), getCredentialsCharset(request)));
 
-        CharArrayBuffer buffer = new CharArrayBuffer(32);
+        final CharArrayBuffer buffer = new CharArrayBuffer(32);
         if (isProxy()) {
             buffer.append(AUTH.PROXY_AUTH_RESP);
         } else {
@@ -194,15 +194,15 @@ public class BasicScheme extends RFC2617Scheme {
         Args.notNull(credentials, "Credentials");
         Args.notNull(charset, "charset");
 
-        StringBuilder tmp = new StringBuilder();
+        final StringBuilder tmp = new StringBuilder();
         tmp.append(credentials.getUserPrincipal().getName());
         tmp.append(":");
         tmp.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
 
-        byte[] base64password = Base64.encodeBase64(
+        final byte[] base64password = Base64.encodeBase64(
                 EncodingUtils.getBytes(tmp.toString(), charset));
 
-        CharArrayBuffer buffer = new CharArrayBuffer(32);
+        final CharArrayBuffer buffer = new CharArrayBuffer(32);
         if (proxy) {
             buffer.append(AUTH.PROXY_AUTH_RESP);
         } else {

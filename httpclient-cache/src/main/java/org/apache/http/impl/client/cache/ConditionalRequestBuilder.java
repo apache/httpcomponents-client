@@ -55,19 +55,19 @@ class ConditionalRequestBuilder {
      */
     public HttpRequestWrapper buildConditionalRequest(final HttpRequestWrapper request, final HttpCacheEntry cacheEntry)
             throws ProtocolException {
-        HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
+        final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
         newRequest.setHeaders(request.getAllHeaders());
-        Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
+        final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
         if (eTag != null) {
             newRequest.setHeader(HeaderConstants.IF_NONE_MATCH, eTag.getValue());
         }
-        Header lastModified = cacheEntry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
+        final Header lastModified = cacheEntry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
         if (lastModified != null) {
             newRequest.setHeader(HeaderConstants.IF_MODIFIED_SINCE, lastModified.getValue());
         }
         boolean mustRevalidate = false;
-        for(Header h : cacheEntry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for(HeaderElement elt : h.getElements()) {
+        for(final Header h : cacheEntry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
+            for(final HeaderElement elt : h.getElements()) {
                 if (HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE.equalsIgnoreCase(elt.getName())
                     || HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE.equalsIgnoreCase(elt.getName())) {
                     mustRevalidate = true;
@@ -94,13 +94,13 @@ class ConditionalRequestBuilder {
      */
     public HttpRequestWrapper buildConditionalRequestFromVariants(final HttpRequestWrapper request,
             final Map<String, Variant> variants) {
-        HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
+        final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
         newRequest.setHeaders(request.getAllHeaders());
 
         // we do not support partial content so all etags are used
-        StringBuilder etags = new StringBuilder();
+        final StringBuilder etags = new StringBuilder();
         boolean first = true;
-        for(String etag : variants.keySet()) {
+        for(final String etag : variants.keySet()) {
             if (!first) {
                 etags.append(",");
             }
@@ -124,7 +124,7 @@ class ConditionalRequestBuilder {
      * @return an unconditional validation request
      */
     public HttpRequestWrapper buildUnconditionalRequest(final HttpRequestWrapper request, final HttpCacheEntry entry) {
-        HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
+        final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
         newRequest.setHeaders(request.getAllHeaders());
         newRequest.addHeader(HeaderConstants.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.addHeader(HeaderConstants.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);

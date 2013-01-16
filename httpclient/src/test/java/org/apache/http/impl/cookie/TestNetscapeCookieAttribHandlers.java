@@ -37,9 +37,9 @@ public class TestNetscapeCookieAttribHandlers {
 
     @Test
     public void testNetscapeDomainValidate1() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("somehost", 80, "/", false);
-        CookieAttributeHandler h = new NetscapeDomainHandler();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieOrigin origin = new CookieOrigin("somehost", 80, "/", false);
+        final CookieAttributeHandler h = new NetscapeDomainHandler();
 
         cookie.setDomain("somehost");
         h.validate(cookie, origin);
@@ -48,16 +48,16 @@ public class TestNetscapeCookieAttribHandlers {
         try {
             h.validate(cookie, origin);
             Assert.fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException ex) {
+        } catch (final MalformedCookieException ex) {
             // expected
         }
     }
 
     @Test
     public void testNetscapeDomainValidate2() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
-        CookieAttributeHandler h = new NetscapeDomainHandler();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
+        final CookieAttributeHandler h = new NetscapeDomainHandler();
 
         cookie.setDomain(".somedomain.com");
         h.validate(cookie, origin);
@@ -66,23 +66,23 @@ public class TestNetscapeCookieAttribHandlers {
         try {
             h.validate(cookie, origin);
             Assert.fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException ex) {
+        } catch (final MalformedCookieException ex) {
             // expected
         }
         cookie.setDomain("www.otherdomain.com");
         try {
             h.validate(cookie, origin);
             Assert.fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException ex) {
+        } catch (final MalformedCookieException ex) {
             // expected
         }
     }
 
     @Test
     public void testNetscapeDomainValidate3() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("www.a.com", 80, "/", false);
-        CookieAttributeHandler h = new NetscapeDomainHandler();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieOrigin origin = new CookieOrigin("www.a.com", 80, "/", false);
+        final CookieAttributeHandler h = new NetscapeDomainHandler();
 
         cookie.setDomain(".a.com");
         h.validate(cookie, origin);
@@ -91,16 +91,16 @@ public class TestNetscapeCookieAttribHandlers {
         try {
             h.validate(cookie, origin);
             Assert.fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException ex) {
+        } catch (final MalformedCookieException ex) {
             // expected
         }
     }
 
     @Test
     public void testNetscapeDomainValidate4() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("www.a.b.c", 80, "/", false);
-        CookieAttributeHandler h = new NetscapeDomainHandler();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieOrigin origin = new CookieOrigin("www.a.b.c", 80, "/", false);
+        final CookieAttributeHandler h = new NetscapeDomainHandler();
 
         cookie.setDomain(".a.b.c");
         h.validate(cookie, origin);
@@ -109,16 +109,16 @@ public class TestNetscapeCookieAttribHandlers {
         try {
             h.validate(cookie, origin);
             Assert.fail("MalformedCookieException should have been thrown");
-        } catch (MalformedCookieException ex) {
+        } catch (final MalformedCookieException ex) {
             // expected
         }
     }
 
     @Test
     public void testNetscapeDomainMatch1() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
-        CookieAttributeHandler h = new NetscapeDomainHandler();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieOrigin origin = new CookieOrigin("www.somedomain.com", 80, "/", false);
+        final CookieAttributeHandler h = new NetscapeDomainHandler();
 
         cookie.setDomain(null);
         Assert.assertFalse(h.match(cookie, origin));
@@ -129,9 +129,9 @@ public class TestNetscapeCookieAttribHandlers {
 
     @Test
     public void testNetscapeDomainMatch2() throws Exception {
-        BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        CookieOrigin origin = new CookieOrigin("www.whatever.somedomain.com", 80, "/", false);
-        CookieAttributeHandler h = new NetscapeDomainHandler();
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieOrigin origin = new CookieOrigin("www.whatever.somedomain.com", 80, "/", false);
+        final CookieAttributeHandler h = new NetscapeDomainHandler();
 
         cookie.setDomain(".somedomain.com");
         Assert.assertTrue(h.match(cookie, origin));
@@ -139,17 +139,17 @@ public class TestNetscapeCookieAttribHandlers {
 
     @Test
     public void testNetscapeDomainInvalidInput() throws Exception {
-        CookieAttributeHandler h = new NetscapeDomainHandler();
+        final CookieAttributeHandler h = new NetscapeDomainHandler();
         try {
             h.match(null, null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
         try {
             h.match(new BasicClientCookie("name", "value"), null);
             Assert.fail("IllegalArgumentException must have been thrown");
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // expected
         }
     }

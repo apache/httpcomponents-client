@@ -70,15 +70,15 @@ class WarningValue {
      * @return array of <code>WarnValue</code> objects
      */
     public static WarningValue[] getWarningValues(final Header h) {
-        List<WarningValue> out = new ArrayList<WarningValue>();
-        String src = h.getValue();
+        final List<WarningValue> out = new ArrayList<WarningValue>();
+        final String src = h.getValue();
         int offs = 0;
         while(offs < src.length()) {
             try {
-                WarningValue wv = new WarningValue(src, offs);
+                final WarningValue wv = new WarningValue(src, offs);
                 out.add(wv);
                 offs = wv.offs;
-            } catch (IllegalArgumentException e) {
+            } catch (final IllegalArgumentException e) {
                 final int nextComma = src.indexOf(',', offs);
                 if (nextComma == -1) {
                     break;
@@ -86,7 +86,7 @@ class WarningValue {
                 offs = nextComma + 1;
             }
         }
-        WarningValue[] wvs = {};
+        final WarningValue[] wvs = {};
         return out.toArray(wvs);
     }
 
@@ -120,7 +120,7 @@ class WarningValue {
      * CHAR           = <any US-ASCII character (octets 0 - 127)>
      */
     private boolean isChar(final char c) {
-        int i = c;
+        final int i = c;
         return (i >= 0 && i <= 127);
     }
 
@@ -129,7 +129,7 @@ class WarningValue {
                         (octets 0 - 31) and DEL (127)>
      */
     private boolean isControl(final char c) {
-        int i = c;
+        final int i = c;
         return (i == 127 || (i >=0 && i <= 31));
     }
 
@@ -176,7 +176,7 @@ class WarningValue {
     private static final Pattern HOSTPORT_PATTERN = Pattern.compile(HOSTPORT);
 
     protected void consumeHostPort() {
-        Matcher m = HOSTPORT_PATTERN.matcher(src.substring(offs));
+        final Matcher m = HOSTPORT_PATTERN.matcher(src.substring(offs));
         if (!m.find()) {
             parseError();
         }
@@ -192,13 +192,13 @@ class WarningValue {
      * pseudonym         = token
      */
     protected void consumeWarnAgent() {
-        int curr_offs = offs;
+        final int curr_offs = offs;
         try {
             consumeHostPort();
             warnAgent = src.substring(curr_offs, offs);
             consumeCharacter(' ');
             return;
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             offs = curr_offs;
         }
         consumeToken();
@@ -217,7 +217,7 @@ class WarningValue {
         offs++;
         boolean foundEnd = false;
         while(offs < src.length() && !foundEnd) {
-            char c = src.charAt(offs);
+            final char c = src.charAt(offs);
             if (offs + 1 < src.length() && c == '\\'
                 && isChar(src.charAt(offs+1))) {
                 offs += 2;    // consume quoted-pair
@@ -239,7 +239,7 @@ class WarningValue {
      * warn-text  = quoted-string
      */
     protected void consumeWarnText() {
-        int curr = offs;
+        final int curr = offs;
         consumeQuotedString();
         warnText = src.substring(curr, offs);
     }
@@ -262,15 +262,15 @@ class WarningValue {
      * warn-date  = <"> HTTP-date <">
      */
     protected void consumeWarnDate() {
-        int curr = offs;
-        Matcher m = WARN_DATE_PATTERN.matcher(src.substring(offs));
+        final int curr = offs;
+        final Matcher m = WARN_DATE_PATTERN.matcher(src.substring(offs));
         if (!m.lookingAt()) {
             parseError();
         }
         offs += m.end();
         try {
             warnDate = DateUtils.parseDate(src.substring(curr+1,offs-1));
-        } catch (DateParseException e) {
+        } catch (final DateParseException e) {
             throw new IllegalStateException("couldn't parse a parseable date");
         }
     }
@@ -317,7 +317,7 @@ class WarningValue {
     }
 
     private void parseError() {
-        String s = src.substring(init_offs);
+        final String s = src.substring(init_offs);
         throw new IllegalArgumentException("Bad warn code \"" + s + "\"");
     }
 

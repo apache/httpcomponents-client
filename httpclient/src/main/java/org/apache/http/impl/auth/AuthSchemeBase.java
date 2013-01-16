@@ -88,7 +88,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
      */
     public void processChallenge(final Header header) throws MalformedChallengeException {
         Args.notNull(header, "Header");
-        String authheader = header.getName();
+        final String authheader = header.getName();
         if (authheader.equalsIgnoreCase(AUTH.WWW_AUTH)) {
             this.challengeState = ChallengeState.TARGET;
         } else if (authheader.equalsIgnoreCase(AUTH.PROXY_AUTH)) {
@@ -103,7 +103,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
             buffer = ((FormattedHeader) header).getBuffer();
             pos = ((FormattedHeader) header).getValuePos();
         } else {
-            String s = header.getValue();
+            final String s = header.getValue();
             if (s == null) {
                 throw new MalformedChallengeException("Header value is null");
             }
@@ -114,12 +114,12 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
         while (pos < buffer.length() && HTTP.isWhitespace(buffer.charAt(pos))) {
             pos++;
         }
-        int beginIndex = pos;
+        final int beginIndex = pos;
         while (pos < buffer.length() && !HTTP.isWhitespace(buffer.charAt(pos))) {
             pos++;
         }
-        int endIndex = pos;
-        String s = buffer.substring(beginIndex, endIndex);
+        final int endIndex = pos;
+        final String s = buffer.substring(beginIndex, endIndex);
         if (!s.equalsIgnoreCase(getSchemeName())) {
             throw new MalformedChallengeException("Invalid scheme identifier: " + s);
         }
@@ -158,7 +158,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
 
     @Override
     public String toString() {
-        String name = getSchemeName();
+        final String name = getSchemeName();
         if (name != null) {
             return name.toUpperCase(Locale.US);
         } else {

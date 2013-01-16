@@ -45,7 +45,7 @@ public class SHA256KeyHashingScheme implements KeyHashingScheme {
     private static final Log log = LogFactory.getLog(SHA256KeyHashingScheme.class);
 
     public String hash(final String key) {
-        MessageDigest md = getDigest();
+        final MessageDigest md = getDigest();
         md.update(key.getBytes());
         return Hex.encodeHexString(md.digest());
     }
@@ -53,7 +53,7 @@ public class SHA256KeyHashingScheme implements KeyHashingScheme {
     private MessageDigest getDigest() {
         try {
             return MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException nsae) {
+        } catch (final NoSuchAlgorithmException nsae) {
             log.error("can't find SHA-256 implementation for cache key hashing");
             throw new MemcachedKeyHashingException(nsae);
         }

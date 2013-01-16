@@ -160,15 +160,15 @@ class InternalHttpClient extends CloseableHttpClient {
             execAware = (HttpExecutionAware) request;
         }
         try {
-            HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
-            HttpClientContext localcontext = HttpClientContext.adapt(
+            final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
+            final HttpClientContext localcontext = HttpClientContext.adapt(
                     context != null ? context : new BasicHttpContext());
             RequestConfig config = null;
             if (request instanceof Configurable) {
                 config = ((Configurable) request).getConfig();
             }
             if (config == null) {
-                HttpParams params = request.getParams();
+                final HttpParams params = request.getParams();
                 if (params instanceof HttpParamsNames) {
                     if (!((HttpParamsNames) params).getNames().isEmpty()) {
                         config = HttpClientParamConfig.getRequestConfig(params);
@@ -181,9 +181,9 @@ class InternalHttpClient extends CloseableHttpClient {
                 localcontext.setRequestConfig(config);
             }
             setupContext(localcontext);
-            HttpRoute route = determineRoute(target, wrapper, localcontext);
+            final HttpRoute route = determineRoute(target, wrapper, localcontext);
             return this.execChain.execute(route, wrapper, localcontext, execAware);
-        } catch (HttpException httpException) {
+        } catch (final HttpException httpException) {
             throw new ClientProtocolException(httpException);
         }
     }
@@ -191,10 +191,10 @@ class InternalHttpClient extends CloseableHttpClient {
     public void close() {
         this.connManager.shutdown();
         if (this.closeables != null) {
-            for (Closeable closeable: this.closeables) {
+            for (final Closeable closeable: this.closeables) {
                 try {
                     closeable.close();
-                } catch (IOException ex) {
+                } catch (final IOException ex) {
                     this.log.error(ex.getMessage(), ex);
                 }
             }
