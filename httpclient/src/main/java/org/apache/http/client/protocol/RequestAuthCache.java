@@ -92,7 +92,7 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         }
 
         final AuthState targetState = clientContext.getTargetAuthState();
-        if (target != null && targetState != null && targetState.getState() == AuthProtocolState.UNCHALLENGED) {
+        if (targetState != null && targetState.getState() == AuthProtocolState.UNCHALLENGED) {
             final AuthScheme authScheme = authCache.get(target);
             if (authScheme != null) {
                 doPreemptiveAuth(target, authScheme, targetState, credsProvider);
