@@ -119,7 +119,7 @@ public class ProxyClient {
     }
 
     /**
-     * @deprecated (4.3) use {@link ProxyClient#ProxyClient(RequestConfig)}
+     * @deprecated (4.3) use {@link ProxyClient#ProxyClient(HttpConnectionFactory, ConnectionConfig, RequestConfig)}
      * @param params
      */
     @Deprecated

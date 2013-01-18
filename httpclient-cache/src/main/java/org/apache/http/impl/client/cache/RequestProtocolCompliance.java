@@ -88,10 +88,9 @@ class RequestProtocolCompliance {
 
     /**
      * If the {@link HttpRequest} is non-compliant but 'fixable' we go ahead and
-     * fix the request here.  Returning the updated one.
+     * fix the request here.
      *
      * @param request the request to check for compliance
-     * @return the updated request
      * @throws ClientProtocolException when we have trouble making the request compliant
      */
     public void makeRequestCompliant(final HttpRequestWrapper request)

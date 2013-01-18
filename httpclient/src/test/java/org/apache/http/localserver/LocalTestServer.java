@@ -112,7 +112,7 @@ public class LocalTestServer {
      * @param responseFactory the response factory to be used by the
      *                  server, or <code>null</code> to use
      *                  {@link #newHttpResponseFactory() default} factory.
-     * @param expectationVerifier. the expectation verifier. May be
+     * @param expectationVerifier the expectation verifier. May be
      *                  <code>null</code>.
      * @param sslcontext optional SSL context if the server is to leverage
      *                   SSL/TLS transport security
