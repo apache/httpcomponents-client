@@ -51,9 +51,8 @@ class ContentResponseHandler implements ResponseHandler<Content> {
             return new Content(
                     EntityUtils.toByteArray(entity),
                     ContentType.getOrDefault(entity));
-        } else {
-            return Content.NO_CONTENT;
         }
+        return Content.NO_CONTENT;
     }
 
 }
