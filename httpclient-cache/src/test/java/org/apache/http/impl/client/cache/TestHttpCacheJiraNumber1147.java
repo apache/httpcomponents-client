@@ -29,7 +29,7 @@ package org.apache.http.impl.client.cache;
 import java.io.File;
 import java.util.Date;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
