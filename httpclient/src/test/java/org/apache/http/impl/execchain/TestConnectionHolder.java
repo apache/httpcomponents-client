@@ -29,7 +29,7 @@ package org.apache.http.impl.execchain;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.apache.commons.logging.Log;
 import org.apache.http.HttpClientConnection;

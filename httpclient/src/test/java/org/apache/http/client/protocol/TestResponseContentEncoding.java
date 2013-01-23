@@ -26,7 +26,7 @@
  */
 package org.apache.http.client.protocol;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
