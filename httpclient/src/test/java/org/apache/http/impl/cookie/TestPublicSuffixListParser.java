@@ -30,9 +30,8 @@ package org.apache.http.impl.cookie;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
-import org.junit.Assert;
-
 import org.apache.http.cookie.CookieOrigin;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -26,8 +26,6 @@
  */
 package org.apache.http.client.protocol;
 
-import org.junit.Assert;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
@@ -39,6 +37,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class TestResponseContentEncoding {

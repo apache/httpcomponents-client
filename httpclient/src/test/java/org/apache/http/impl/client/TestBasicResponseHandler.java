@@ -29,8 +29,6 @@ package org.apache.http.impl.client;
 
 import java.io.InputStream;
 
-import org.junit.Assert;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -38,6 +36,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicStatusLine;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 

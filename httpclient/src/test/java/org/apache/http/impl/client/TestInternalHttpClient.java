@@ -30,8 +30,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.junit.Assert;
-
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthSchemeProvider;
@@ -49,6 +47,7 @@ import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.params.CoreConnectionPNames;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;

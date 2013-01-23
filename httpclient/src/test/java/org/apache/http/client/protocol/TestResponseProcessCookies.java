@@ -28,8 +28,6 @@ package org.apache.http.client.protocol;
 
 import java.util.List;
 
-import org.junit.Assert;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpVersion;
@@ -43,6 +41,7 @@ import org.apache.http.impl.cookie.BestMatchSpec;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -29,11 +29,10 @@ package org.apache.http.impl.execchain;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Assert;
-
 import org.apache.commons.logging.Log;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

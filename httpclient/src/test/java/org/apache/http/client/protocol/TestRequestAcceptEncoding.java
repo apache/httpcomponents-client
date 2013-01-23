@@ -26,14 +26,13 @@
  */
 package org.apache.http.client.protocol;
 
-import org.junit.Assert;
-
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class TestRequestAcceptEncoding {
