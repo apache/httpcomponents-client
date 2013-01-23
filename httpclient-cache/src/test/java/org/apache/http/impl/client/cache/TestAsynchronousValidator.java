@@ -30,8 +30,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Assert;
-
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -45,6 +43,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.message.BasicHeader;
 import org.easymock.Capture;
 import org.easymock.classextension.EasyMock;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 

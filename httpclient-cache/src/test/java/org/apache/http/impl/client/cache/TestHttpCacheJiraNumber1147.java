@@ -29,8 +29,6 @@ package org.apache.http.impl.client.cache;
 import java.io.File;
 import java.util.Date;
 
-import org.junit.Assert;
-
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -47,6 +45,7 @@ import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.easymock.EasyMock;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
