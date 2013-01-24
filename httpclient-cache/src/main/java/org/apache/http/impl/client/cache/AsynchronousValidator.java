@@ -87,7 +87,6 @@ class AsynchronousValidator implements Closeable {
         this.cacheKeyGenerator = new CacheKeyGenerator();
     }
 
-    @Override
     public void close() throws IOException {
         executor.shutdown();
     }
