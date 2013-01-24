@@ -97,8 +97,15 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
             }
             storage = new BasicHttpCacheStorage(cacheConfig);
         }
+        final AsynchronousValidator revalidator = createAsynchronousRevalidator(config);
         return new CachingExec(mainExec,
-                new BasicHttpCache(resourceFactory, storage, config), config);
+                new BasicHttpCache(resourceFactory, storage, config), config, revalidator);
+    }
+
+    private AsynchronousValidator createAsynchronousRevalidator(final CacheConfig config) {
+        final AsynchronousValidator revalidator = new AsynchronousValidator(config);
+        addCloseable(revalidator);
+        return revalidator;
     }
 
 }

@@ -1,3 +1,11 @@
+Changes since 4.3 ALPHA1
+-------------------
+
+* [HTTPCLIENT-1298] Add AsynchronousValidator in HttpClientBuilder's list of closeable objects.
+  Contributed by Martin Meinhold <mmeinhold at atlassian.com>
+
+
+
 Release 4.3 ALPHA1
 -------------------
 

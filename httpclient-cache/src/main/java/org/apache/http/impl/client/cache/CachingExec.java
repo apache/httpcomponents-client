@@ -119,6 +119,14 @@ public class CachingExec implements ClientExecChain {
             final ClientExecChain backend,
             final HttpCache cache,
             final CacheConfig config) {
+        this(backend, cache, config, null);
+    }
+
+    public CachingExec(
+            final ClientExecChain backend,
+            final HttpCache cache,
+            final CacheConfig config,
+            final AsynchronousValidator asynchRevalidator) {
         super();
         Args.notNull(backend, "HTTP backend");
         Args.notNull(cache, "HttpCache");
@@ -135,7 +143,7 @@ public class CachingExec implements ClientExecChain {
         this.responseCachingPolicy = new ResponseCachingPolicy(
                 this.cacheConfig.getMaxObjectSize(), this.cacheConfig.isSharedCache(),
                 this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery());
-        this.asynchRevalidator = makeAsynchronousValidator(config);
+        this.asynchRevalidator = asynchRevalidator != null ? asynchRevalidator : makeAsynchronousValidator(config);
     }
 
     public CachingExec(
@@ -179,7 +187,7 @@ public class CachingExec implements ClientExecChain {
     private AsynchronousValidator makeAsynchronousValidator(
             final CacheConfig config) {
         if (config.getAsynchronousWorkersMax() > 0) {
-            return new AsynchronousValidator(this, config);
+            return new AsynchronousValidator(config);
         }
         return null;
     }
@@ -312,7 +320,7 @@ public class CachingExec implements ClientExecChain {
                 && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)) {
                 log.trace("Serving stale with asynchronous revalidation");
                 final HttpResponse resp = generateCachedResponse(request, context, entry, now);
-                asynchRevalidator.revalidateCacheEntry(route, request, context, execAware, entry);
+                asynchRevalidator.revalidateCacheEntry(this, route, request, context, execAware, entry);
                 return Proxies.enhanceResponse(resp);
             }
             return revalidateCacheEntry(route, request, context, execAware, entry);
