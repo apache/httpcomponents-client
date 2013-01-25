@@ -64,6 +64,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
 
     private final Log log = LogFactory.getLog(getClass());
 
+    private final Base64 base64codec;
     private final boolean stripPort;
 
     /** Authentication process state */
@@ -74,8 +75,9 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
 
     GGSSchemeBase(final boolean stripPort) {
         super();
-        this.state = State.UNINITIATED;
+        this.base64codec = new Base64(0);
         this.stripPort = stripPort;
+        this.state = State.UNINITIATED;
     }
 
     GGSSchemeBase() {
@@ -174,7 +176,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                 throw new AuthenticationException(gsse.getMessage());
             }
         case TOKEN_GENERATED:
-            final String tokenstr = new String(Base64.encodeBase64(token, false));
+            final String tokenstr = new String(base64codec.encode(token));
             if (log.isDebugEnabled()) {
                 log.debug("Sending response '" + tokenstr + "' back to the auth server");
             }
