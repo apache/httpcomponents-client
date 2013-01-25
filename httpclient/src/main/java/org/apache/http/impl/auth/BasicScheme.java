@@ -200,7 +200,7 @@ public class BasicScheme extends RFC2617Scheme {
         tmp.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
 
         final byte[] base64password = Base64.encodeBase64(
-                EncodingUtils.getBytes(tmp.toString(), charset));
+                EncodingUtils.getBytes(tmp.toString(), charset), false);
 
         final CharArrayBuffer buffer = new CharArrayBuffer(32);
         if (proxy) {
