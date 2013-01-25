@@ -62,7 +62,6 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     private final Log log = LogFactory.getLog(getClass());
 
     private final boolean stripPort;
-    private final Base64 base64codec;
 
     /** Authentication process state */
     private State state;
@@ -72,7 +71,6 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
 
     GGSSchemeBase(boolean stripPort) {
         super();
-        this.base64codec = new Base64();
         this.state = State.UNINITIATED;
         this.stripPort = stripPort;
     }
@@ -110,7 +108,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     /**
      * @deprecated (4.2) Use {@link ContextAwareAuthScheme#authenticate(Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
      */
-    @Deprecated 
+    @Deprecated
     public Header authenticate(
             final Credentials credentials,
             final HttpRequest request) throws AuthenticationException {
@@ -170,7 +168,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                 throw new AuthenticationException(gsse.getMessage());
             }
         case TOKEN_GENERATED:
-            String tokenstr = new String(base64codec.encode(token));
+            String tokenstr = new String(Base64.encodeBase64(token, false));
             if (log.isDebugEnabled()) {
                 log.debug("Sending response '" + tokenstr + "' back to the auth server");
             }
@@ -197,7 +195,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
             log.debug("Received challenge '" + challenge + "' from the auth server");
         }
         if (state == State.UNINITIATED) {
-            token = base64codec.decode(challenge.getBytes());
+            token = Base64.decodeBase64(challenge.getBytes());
             state = State.CHALLENGE_RECEIVED;
         } else {
             log.debug("Authentication already attempted");

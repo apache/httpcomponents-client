@@ -1,3 +1,11 @@
+Changes since Release 4.2.3
+-------------------
+
+* [HTTPCLIENT-1305] Ensure chunking is disabled when applying Base64 encoding.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
 Release 4.2.3
 -------------------
 
