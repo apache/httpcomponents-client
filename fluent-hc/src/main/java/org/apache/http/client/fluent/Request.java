@@ -232,6 +232,11 @@ public class Request {
         return this;
     }
 
+    /**
+     * This parameter can no longer be used at the request level.
+     * @deprecated (4.3)
+     */
+    @Deprecated
     public Request elementCharset(final String charset) {
         return config(CoreProtocolPNames.HTTP_ELEMENT_CHARSET, charset);
     }
