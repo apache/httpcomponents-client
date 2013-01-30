@@ -73,8 +73,9 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
             final HttpContext context) throws HttpException, IOException {
         HttpEntity entity = response.getEntity();
 
-        // It wasn't a 304 Not Modified response, 204 No Content or similar
-        if (entity != null) {
+        // entity can be null in case of 304 Not Modified, 204 No Content or similar
+        // check for zero length entity.
+        if (entity != null && entity.getContentLength() != 0) {
             Header ceheader = entity.getContentEncoding();
             if (ceheader != null) {
                 HeaderElement[] codecs = ceheader.getElements();

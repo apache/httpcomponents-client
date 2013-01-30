@@ -84,6 +84,21 @@ public class TestResponseContentEncoding {
     }
 
     @Test
+    public void testGzipContentEncodingZeroLength() throws Exception {
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final StringEntity original = new StringEntity("");
+        original.setContentEncoding("GZip");
+        response.setEntity(original);
+        final HttpContext context = new BasicHttpContext();
+
+        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
+        interceptor.process(response, context);
+        final HttpEntity entity = response.getEntity();
+        Assert.assertNotNull(entity);
+        Assert.assertTrue(entity instanceof StringEntity);
+    }
+
+    @Test
     public void testXGzipContentEncoding() throws Exception {
         HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         StringEntity original = new StringEntity("encoded stuff");
