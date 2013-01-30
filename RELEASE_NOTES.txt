@@ -1,6 +1,9 @@
 Changes since 4.3 ALPHA1
 -------------------
 
+* [HTTPCLIENT-1313] Fixed IllegalStateException in deprecated ThreadSafeClientConnManager
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1305] Ensure chunking is disabled when applying Base64 encoding.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

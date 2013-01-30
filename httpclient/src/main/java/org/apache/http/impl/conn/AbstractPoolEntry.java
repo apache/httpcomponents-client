@@ -129,8 +129,9 @@ public abstract class AbstractPoolEntry {
 
         Args.notNull(route, "Route");
         Args.notNull(params, "HTTP parameters");
-        Asserts.notNull(this.tracker, "Route tracker");
-        Asserts.check(!this.tracker.isConnected(), "Connection already open");
+        if (this.tracker != null) {
+            Asserts.check(!this.tracker.isConnected(), "Connection already open");
+        }
         // - collect the arguments
         // - call the operator
         // - update the tracking data

@@ -42,7 +42,7 @@ import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.Args;
@@ -66,7 +66,7 @@ import org.apache.http.util.Asserts;
  *
  * @since 4.0
  *
- * @deprecated (4.2)  use {@link PoolingClientConnectionManager}
+ * @deprecated (4.2)  use {@link PoolingHttpClientConnectionManager}
  */
 @ThreadSafe
 @Deprecated
@@ -249,8 +249,9 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         Args.check(conn instanceof BasicPooledConnAdapter, "Connection class mismatch, " +
                 "connection not obtained from this manager");
         final BasicPooledConnAdapter hca = (BasicPooledConnAdapter) conn;
-        Asserts.check(hca.getPoolEntry() == null, "Connection not obtained from this manager");
-        Asserts.check(hca.getManager() == this, "Connection not obtained from this manager");
+        if (hca.getPoolEntry() != null) {
+            Asserts.check(hca.getManager() == this, "Connection not obtained from this manager");
+        }
         synchronized (hca) {
             final BasicPoolEntry entry = (BasicPoolEntry) hca.getPoolEntry();
             if (entry == null) {
