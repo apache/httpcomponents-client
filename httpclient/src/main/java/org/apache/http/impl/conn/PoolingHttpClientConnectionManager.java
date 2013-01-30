@@ -28,7 +28,6 @@ package org.apache.http.impl.conn;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -297,7 +296,7 @@ public class PoolingHttpClientConnectionManager
     public void connect(
             final HttpClientConnection managedConn,
             final HttpHost host,
-            final InetAddress local,
+            final InetSocketAddress localAddress,
             final int connectTimeout,
             final HttpContext context) throws IOException {
         Args.notNull(managedConn, "Connection");
@@ -313,7 +312,6 @@ public class PoolingHttpClientConnectionManager
         if (socketConfig == null) {
             socketConfig = SocketConfig.DEFAULT;
         }
-        final InetSocketAddress localAddress = local != null ? new InetSocketAddress(local, 0) : null;
         this.connectionOperator.connect(
                 conn, host, localAddress, connectTimeout, socketConfig, context);
     }

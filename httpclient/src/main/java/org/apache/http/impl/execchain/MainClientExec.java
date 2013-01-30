@@ -353,7 +353,7 @@ public class MainClientExec implements ClientExecChain {
             case HttpRouteDirector.CONNECT_TARGET:
                 this.connManager.connect(
                         managedConn,
-                        route.getTargetHost(), route.getLocalAddress(),
+                        route.getTargetHost(), route.getLocalSocketAddress(),
                         timeout > 0 ? timeout : 0,
                         context);
                 tracker.connectTarget(route.isSecure());
@@ -361,7 +361,7 @@ public class MainClientExec implements ClientExecChain {
             case HttpRouteDirector.CONNECT_PROXY:
                 this.connManager.connect(
                         managedConn,
-                        route.getProxyHost(), route.getLocalAddress(),
+                        route.getProxyHost(), route.getLocalSocketAddress(),
                         timeout > 0 ? timeout : 0,
                         context);
                 final HttpHost proxy  = route.getProxyHost();
@@ -434,7 +434,7 @@ public class MainClientExec implements ClientExecChain {
             if (!managedConn.isOpen()) {
                 this.connManager.connect(
                         managedConn,
-                        route.getProxyHost(), route.getLocalAddress(),
+                        route.getProxyHost(), route.getLocalSocketAddress(),
                         timeout > 0 ? timeout : 0,
                         context);
             }

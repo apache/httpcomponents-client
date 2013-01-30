@@ -27,7 +27,7 @@
 package org.apache.http.conn;
 
 import java.io.IOException;
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpClientConnection;
@@ -80,7 +80,7 @@ public interface HttpClientConnectionManager {
 
     void connect(
             HttpClientConnection conn,
-            HttpHost host, InetAddress localAddress,
+            HttpHost host, InetSocketAddress localAddress,
             int connectTimeout,
             HttpContext context) throws IOException;
 

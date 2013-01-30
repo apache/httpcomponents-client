@@ -28,7 +28,7 @@ package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
 import java.net.ConnectException;
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -297,7 +297,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         Mockito.doThrow(new ConnectException()).when(connmgr).connect(
                 Mockito.any(HttpClientConnection.class),
                 Mockito.any(HttpHost.class),
-                Mockito.any(InetAddress.class),
+                Mockito.any(InetSocketAddress.class),
                 Mockito.anyInt(),
                 Mockito.any(HttpContext.class));
 
@@ -465,7 +465,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         public void connect(
                 final HttpClientConnection conn,
                 final HttpHost host,
-                final InetAddress localAddress,
+                final InetSocketAddress localAddress,
                 final int connectTimeout,
                 final HttpContext context) throws IOException {
             throw new UnsupportedOperationException("just a mockup");

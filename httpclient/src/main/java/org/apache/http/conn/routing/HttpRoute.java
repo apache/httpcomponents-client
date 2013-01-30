@@ -28,6 +28,7 @@
 package org.apache.http.conn.routing;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
@@ -254,6 +255,10 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         return this.localAddress;
     }
 
+
+    public final InetSocketAddress getLocalSocketAddress() {
+        return this.localAddress != null ? new InetSocketAddress(this.localAddress, 0) : null;
+    }
 
     public final int getHopCount() {
         return proxyChain.length+1;

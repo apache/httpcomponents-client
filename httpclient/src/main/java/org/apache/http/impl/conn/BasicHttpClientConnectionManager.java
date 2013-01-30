@@ -29,7 +29,6 @@ package org.apache.http.impl.conn;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -304,13 +303,12 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     public void connect(
             final HttpClientConnection conn,
             final HttpHost host,
-            final InetAddress local,
+            final InetSocketAddress localAddress,
             final int connectTimeout,
             final HttpContext context) throws IOException {
         Args.notNull(conn, "Connection");
         Args.notNull(host, "HTTP host");
         Asserts.check(conn == this.conn, "Connection not obtained from this manager");
-        final InetSocketAddress localAddress = local != null ? new InetSocketAddress(local, 0) : null;
         this.connectionOperator.connect(this.conn, host, localAddress,
                 connectTimeout, this.socketConfig, context);
     }
