@@ -455,9 +455,8 @@ public class DefaultRequestDirector implements RequestDirector {
                     try {
                         managedConn = connRequest.getConnection(timeout, TimeUnit.MILLISECONDS);
                     } catch(InterruptedException interrupted) {
-                        InterruptedIOException iox = new InterruptedIOException();
-                        iox.initCause(interrupted);
-                        throw iox;
+                        Thread.currentThread().interrupt();
+                        throw new InterruptedIOException();
                     }
 
                     if (HttpConnectionParams.isStaleCheckingEnabled(params)) {

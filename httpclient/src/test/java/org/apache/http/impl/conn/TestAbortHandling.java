@@ -163,8 +163,6 @@ public class TestAbortHandling extends BasicServerTestBase {
         Assert.assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
         Assert.assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
                 throwableRef.get() instanceof IOException);
-        Assert.assertTrue("cause should be InterruptedException, was: " + throwableRef.get().getCause(),
-                throwableRef.get().getCause() instanceof InterruptedException);
     }
 
     /**
@@ -296,8 +294,6 @@ public class TestAbortHandling extends BasicServerTestBase {
         Assert.assertTrue("should have finished get request", getLatch.await(1, TimeUnit.SECONDS));
         Assert.assertTrue("should be instanceof IOException, was: " + throwableRef.get(),
                 throwableRef.get() instanceof IOException);
-        Assert.assertTrue("cause should be InterruptedException, was: " + throwableRef.get().getCause(),
-                throwableRef.get().getCause() instanceof InterruptedException);
     }
 
 
