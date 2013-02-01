@@ -32,6 +32,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -82,14 +83,14 @@ public class TestConnectionManagement extends LocalServerTestBase {
             final HttpClientConnectionManager mgr,
             final HttpRoute route,
             final long timeout,
-            final TimeUnit unit) throws ConnectionPoolTimeoutException, InterruptedException {
+            final TimeUnit unit) throws ConnectionPoolTimeoutException, ExecutionException, InterruptedException {
         final ConnectionRequest connRequest = mgr.requestConnection(route, null);
         return connRequest.get(timeout, unit);
     }
 
     private static HttpClientConnection getConnection(
             final HttpClientConnectionManager mgr,
-            final HttpRoute route) throws ConnectionPoolTimeoutException, InterruptedException {
+            final HttpRoute route) throws ConnectionPoolTimeoutException, ExecutionException, InterruptedException {
         final ConnectionRequest connRequest = mgr.requestConnection(route, null);
         return connRequest.get(0, null);
     }

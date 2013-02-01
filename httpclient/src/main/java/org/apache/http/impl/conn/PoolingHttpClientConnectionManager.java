@@ -223,7 +223,7 @@ public class PoolingHttpClientConnectionManager
 
             public HttpClientConnection get(
                     final long timeout,
-                    final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
+                    final TimeUnit tunit) throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException {
                 return leaseConnection(future, timeout, tunit);
             }
 
@@ -234,7 +234,7 @@ public class PoolingHttpClientConnectionManager
     protected HttpClientConnection leaseConnection(
             final Future<CPoolEntry> future,
             final long timeout,
-            final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
+            final TimeUnit tunit) throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException {
         CPoolEntry entry;
         try {
             entry = future.get(timeout, tunit);
@@ -246,14 +246,6 @@ public class PoolingHttpClientConnectionManager
                 this.log.debug("Connection leased: " + format(entry) + formatStats(entry.getRoute()));
             }
             return CPoolProxy.newProxy(entry);
-        } catch (final ExecutionException ex) {
-            Throwable cause = ex.getCause();
-            if (cause == null) {
-                cause = ex;
-            }
-            final InterruptedException intex = new InterruptedException();
-            intex.initCause(cause);
-            throw intex;
         } catch (final TimeoutException ex) {
             throw new ConnectionPoolTimeoutException("Timeout waiting for connection from pool");
         }

@@ -30,6 +30,7 @@ package org.apache.http.impl.execchain;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -128,7 +129,14 @@ public class MinimalClientExec implements ClientExecChain {
             final int timeout = config.getConnectionRequestTimeout();
             managedConn = connRequest.get(timeout > 0 ? timeout : 0, TimeUnit.MILLISECONDS);
         } catch(final InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
             throw new RequestAbortedException("Request aborted", interrupted);
+        } catch(final ExecutionException ex) {
+            Throwable cause = ex.getCause();
+            if (cause == null) {
+                cause = ex;
+            }
+            throw new RequestAbortedException("Request execution failed", cause);
         }
 
         final ConnectionHolder releaseTrigger = new ConnectionHolder(log, connManager, managedConn);

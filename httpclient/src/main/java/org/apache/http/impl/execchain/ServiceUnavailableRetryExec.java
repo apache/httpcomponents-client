@@ -82,7 +82,8 @@ public class ServiceUnavailableRetryExec implements ClientExecChain {
                         this.log.trace("Wait for " + nextInterval);
                         Thread.sleep(nextInterval);
                     } catch (final InterruptedException e) {
-                        throw new InterruptedIOException(e.getMessage());
+                        Thread.currentThread().interrupt();
+                        throw new InterruptedIOException();
                     }
                 } else {
                     return response;

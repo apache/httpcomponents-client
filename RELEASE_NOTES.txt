@@ -1,6 +1,9 @@
 Changes since 4.3 ALPHA1
 -------------------
 
+* [HTTPCLIENT-1311] Interrupt flag is not preserved where InterruptedException is caught.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1312] Zero length content entities with a Content-Encoding header cause 
   an I/O error when an attempt is made to consume such entity.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

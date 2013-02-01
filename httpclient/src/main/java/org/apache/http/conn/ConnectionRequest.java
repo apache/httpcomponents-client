@@ -27,6 +27,7 @@
 
 package org.apache.http.conn;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpClientConnection;
@@ -63,6 +64,6 @@ public interface ConnectionRequest extends Cancellable {
      *         if the calling thread is interrupted while waiting
      */
     HttpClientConnection get(long timeout, TimeUnit tunit)
-        throws InterruptedException, ConnectionPoolTimeoutException;
+        throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException;
 
 }
