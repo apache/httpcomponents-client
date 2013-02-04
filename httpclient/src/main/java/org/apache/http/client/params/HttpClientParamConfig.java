@@ -51,7 +51,7 @@ public final class HttpClientParamConfig {
     public static RequestConfig getRequestConfig(final HttpParams params) {
         return RequestConfig.custom()
                 .setAuthenticationEnabled(HttpClientParams.isAuthenticating(params))
-                .setCircularRedirectsAllowed(params.isParameterFalse(ClientPNames.REJECT_RELATIVE_REDIRECT))
+                .setCircularRedirectsAllowed(params.getBooleanParameter(ClientPNames.ALLOW_CIRCULAR_REDIRECTS, false))
                 .setConnectionRequestTimeout((int) HttpClientParams.getConnectionManagerTimeout(params))
                 .setConnectTimeout(HttpConnectionParams.getConnectionTimeout(params))
                 .setCookieSpec(HttpClientParams.getCookiePolicy(params))
@@ -64,7 +64,7 @@ public final class HttpClientParamConfig {
                 .setTargetPreferredAuthSchemes((Collection<String>) params.getParameter(
                         AuthPNames.TARGET_AUTH_PREF))
                 .setRedirectsEnabled(HttpClientParams.isRedirecting(params))
-                .setRelativeRedirectsAllowed(params.isParameterTrue(ClientPNames.ALLOW_CIRCULAR_REDIRECTS))
+                .setRelativeRedirectsAllowed(!params.getBooleanParameter(ClientPNames.REJECT_RELATIVE_REDIRECT, false))
                 .setSocketTimeout(HttpConnectionParams.getSoTimeout(params))
                 .setStaleConnectionCheckEnabled(HttpConnectionParams.isStaleCheckingEnabled(params))
                 .build();
