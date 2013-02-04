@@ -1,6 +1,9 @@
 Changes since 4.3 ALPHA1
 -------------------
 
+* [HTTPCLIENT-1307] Future based asynchronous request execution.
+  Contributed by Jilles van Gurp <jilles at jillesvangurp.com> 
+
 * [HTTPCLIENT-1311] Interrupt flag is not preserved where InterruptedException is caught.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
