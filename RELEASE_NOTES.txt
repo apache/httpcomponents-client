@@ -1,6 +1,10 @@
 Changes since Release 4.2.3
 -------------------
 
+* PoolingClientConnectionManager does not use ClientConnectionOperator#createConnection() 
+  method to create new connections.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1311] Interrupt flag is not preserved where InterruptedException is caught.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

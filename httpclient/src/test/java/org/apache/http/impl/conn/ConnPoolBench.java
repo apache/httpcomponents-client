@@ -58,7 +58,9 @@ public class ConnPoolBench {
     public static void newPool(int c, long reps) throws Exception {
         Log log = LogFactory.getLog(ConnPoolBench.class);
 
-        HttpConnPool pool = new HttpConnPool(log, c, c * 10, -1, TimeUnit.MILLISECONDS);
+        DefaultClientConnectionOperator connOperator = new DefaultClientConnectionOperator(
+            SchemeRegistryFactory.createDefault());
+        HttpConnPool pool = new HttpConnPool(log, connOperator, c, c * 10, -1, TimeUnit.MILLISECONDS);
 
         WorkerThread1[] workers = new WorkerThread1[c];
         for (int i = 0; i < workers.length; i++) {
