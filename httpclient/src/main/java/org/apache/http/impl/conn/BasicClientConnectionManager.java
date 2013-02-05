@@ -209,15 +209,17 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
                     if (managedConn.isOpen() && !managedConn.isMarkedReusable()) {
                         shutdownConnection(managedConn);
                     }
-                    this.poolEntry.updateExpiry(keepalive, tunit != null ? tunit : TimeUnit.MILLISECONDS);
-                    if (this.log.isDebugEnabled()) {
-                        String s;
-                        if (keepalive > 0) {
-                            s = "for " + keepalive + " " + tunit;
-                        } else {
-                            s = "indefinitely";
+                    if (managedConn.isMarkedReusable()) {
+                        this.poolEntry.updateExpiry(keepalive, tunit != null ? tunit : TimeUnit.MILLISECONDS);
+                        if (this.log.isDebugEnabled()) {
+                            String s;
+                            if (keepalive > 0) {
+                                s = "for " + keepalive + " " + tunit;
+                            } else {
+                                s = "indefinitely";
+                            }
+                            this.log.debug("Connection can be kept alive " + s);
                         }
-                        this.log.debug("Connection can be kept alive " + s);
                     }
                 } finally {
                     managedConn.detach();
