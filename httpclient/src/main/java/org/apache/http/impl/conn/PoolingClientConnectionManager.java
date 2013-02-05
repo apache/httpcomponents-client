@@ -111,7 +111,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         this.schemeRegistry = schemeRegistry;
         this.dnsResolver  = dnsResolver;
         this.operator = createConnectionOperator(schemeRegistry);
-        this.pool = new HttpConnPool(this.log, 2, 20, timeToLive, tunit);
+        this.pool = new HttpConnPool(this.log, this.operator, 2, 20, timeToLive, tunit);
     }
 
     @Override

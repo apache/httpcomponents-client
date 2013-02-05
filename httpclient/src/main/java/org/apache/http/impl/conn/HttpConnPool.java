@@ -31,6 +31,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
+import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.AbstractConnPool;
@@ -51,9 +52,10 @@ class HttpConnPool extends AbstractConnPool<HttpRoute, OperatedClientConnection,
     private final TimeUnit tunit;
 
     public HttpConnPool(final Log log,
+            final ClientConnectionOperator connOperator,
             final int defaultMaxPerRoute, final int maxTotal,
             final long timeToLive, final TimeUnit tunit) {
-        super(new InternalConnFactory(), defaultMaxPerRoute, maxTotal);
+        super(new InternalConnFactory(connOperator), defaultMaxPerRoute, maxTotal);
         this.log = log;
         this.timeToLive = timeToLive;
         this.tunit = tunit;
@@ -67,8 +69,14 @@ class HttpConnPool extends AbstractConnPool<HttpRoute, OperatedClientConnection,
 
     static class InternalConnFactory implements ConnFactory<HttpRoute, OperatedClientConnection> {
 
+        private final ClientConnectionOperator connOperator;
+
+        InternalConnFactory(final ClientConnectionOperator connOperator) {
+            this.connOperator = connOperator;
+        }
+
         public OperatedClientConnection create(final HttpRoute route) throws IOException {
-            return new DefaultClientConnection();
+            return connOperator.createConnection();
         }
 
     }
