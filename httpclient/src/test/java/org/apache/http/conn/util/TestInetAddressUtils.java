@@ -57,12 +57,15 @@ public class TestInetAddressUtils {
         Assert.assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("2001:0db8:0:0::1428:57ab"));
         Assert.assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("2001:0db8::1428:57ab"));
         Assert.assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("2001:db8::1428:57ab"));
+        Assert.assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("::1"));
     }
 
     @Test
     public void testInvalidIPv6Address() {
         Assert.assertFalse(InetAddressUtils.isIPv6Address("2001:0db8:0000:garb:age0:0000:1428:57ab"));
         Assert.assertFalse(InetAddressUtils.isIPv6Address("2001:0gb8:0000:0000:0000:0000:1428:57ab"));
+        Assert.assertFalse(InetAddressUtils.isIPv6HexCompressedAddress(":1"));
+        Assert.assertFalse(InetAddressUtils.isIPv6Address("2001:0db8::0000::57ab")); // Cannot have two contractions
     }
 
 }
