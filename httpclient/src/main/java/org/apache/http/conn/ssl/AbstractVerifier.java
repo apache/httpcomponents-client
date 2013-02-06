@@ -29,6 +29,8 @@ package org.apache.http.conn.ssl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -44,6 +46,8 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.util.InetAddressUtils;
 
@@ -74,6 +78,8 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         // Just in case developer forgot to manually sort the array.  :-)
         Arrays.sort(BAD_COUNTRY_2LDS);
     }
+
+    private final Log log = LogFactory.getLog(getClass());
 
     public AbstractVerifier() {
         super();
@@ -177,7 +183,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
 
         // We're can be case-insensitive when comparing the host we used to
         // establish the socket to the hostname in the certificate.
-        final String hostName = host.trim().toLowerCase(Locale.US);
+        final String hostName = normaliseIPv6Address(host.trim().toLowerCase(Locale.US));
         boolean match = false;
         for(final Iterator<String> it = names.iterator(); it.hasNext();) {
             // Don't trim the CN, though!
@@ -216,7 +222,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
                     match = countDots(hostName) == countDots(cn);
                 }
             } else {
-                match = hostName.equals(cn);
+                match = hostName.equals(normaliseIPv6Address(cn));
             }
             if(match) {
                 break;
@@ -361,4 +367,19 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
                     InetAddressUtils.isIPv6Address(hostname));
     }
 
+    /*
+     * Check if hostname is IPv6, and if so, convert to standard format. 
+     */
+    private String normaliseIPv6Address(final String hostname) {
+        if (hostname == null || !InetAddressUtils.isIPv6Address(hostname)) {
+            return hostname;
+        }
+        try {
+            InetAddress inetAddress = InetAddress.getByName(hostname);
+            return inetAddress.getHostAddress();
+        } catch (UnknownHostException uhe) { // Should not happen, because we check for IPv6 address above
+            log.error("Unexpected error converting "+hostname, uhe);
+            return hostname;
+        }
+    }
 }

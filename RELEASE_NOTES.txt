@@ -1,6 +1,9 @@
 Changes since 4.3 ALPHA1
 -------------------
 
+* [HTTPCLIENT-1316] Certificate verification rejects IPv6 addresses which are not String-equal.
+  Contributed Sebastian Bazley <sebb at apache.org>.
+
 * [HTTPCLIENT-1307] Future based asynchronous request execution.
   Contributed by Jilles van Gurp <jilles at jillesvangurp.com> 
 
