@@ -368,7 +368,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
     }
 
     /*
-     * Check if hostname is IPv6, and if so, convert to standard format. 
+     * Check if hostname is IPv6, and if so, convert to standard format.
      */
     private String normaliseIPv6Address(final String hostname) {
         if (hostname == null || !InetAddressUtils.isIPv6Address(hostname)) {
