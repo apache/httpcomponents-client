@@ -68,4 +68,12 @@ public class TestInetAddressUtils {
         Assert.assertFalse(InetAddressUtils.isIPv6Address("2001:0db8::0000::57ab")); // Cannot have two contractions
     }
 
+    @Test
+    @org.junit.Ignore
+    // Test HTTPCLIENT-1319
+    public void testInvalidIPv6AddressIncorrectGroupCount() {
+        Assert.assertFalse(InetAddressUtils.isIPv6HexCompressedAddress("::")); // not enough fields
+        Assert.assertFalse(InetAddressUtils.isIPv6HexCompressedAddress("1::2:3:4:5:6:7:8")); // too many fields
+    }
+
 }
