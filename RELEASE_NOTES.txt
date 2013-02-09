@@ -1,6 +1,11 @@
 Changes since 4.3 ALPHA1
 -------------------
 
+* [HTTPCLIENT-1320] SSLSocketFactory#createSystemSSLContext causes UnrecoverableKeyException 
+  'Password verification failed' when a truststore is specified with 'javax.net.ssl.trustStore' 
+  system property is used without a password.
+  Contributed by Abe Backus <abraham at backus.com> 
+
 * [HTTPCLIENT-1316] Certificate verification rejects IPv6 addresses which are not String-equal.
   Contributed Sebastian Bazley <sebb at apache.org>.
 
