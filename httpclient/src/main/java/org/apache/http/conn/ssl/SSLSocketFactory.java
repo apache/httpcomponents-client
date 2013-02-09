@@ -279,7 +279,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
                 FileInputStream instream = new FileInputStream(trustStoreFile);
                 try {
                     trustStore.load(instream, trustStorePassword != null ?
-                            trustStorePassword.toCharArray() : EMPTY_PASSWORD);
+                            trustStorePassword.toCharArray() : null);
                 } finally {
                     instream.close();
                 }

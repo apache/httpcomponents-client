@@ -1,6 +1,11 @@
 Changes since Release 4.2.3
 -------------------
 
+* [HTTPCLIENT-1320] SSLSocketFactory#createSystemSSLContext causes UnrecoverableKeyException 
+  'Password verification failed' when a truststore is specified with 'javax.net.ssl.trustStore' 
+  system property is used without a password.
+  Contributed by Abe Backus <abraham at backus.com> 
+
 * PoolingClientConnectionManager does not use ClientConnectionOperator#createConnection() 
   method to create new connections.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
