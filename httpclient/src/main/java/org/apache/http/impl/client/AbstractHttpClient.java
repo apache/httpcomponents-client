@@ -54,10 +54,12 @@ import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.RequestDirector;
 import org.apache.http.client.UserTokenHandler;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.CookiePolicy;
+import org.apache.http.client.params.HttpClientParamConfig;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionManagerFactory;
@@ -801,6 +803,10 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
             } else {
                 execContext = new DefaultedHttpContext(context, defaultContext);
             }
+            final HttpParams params = determineParams(request);
+            final RequestConfig config = HttpClientParamConfig.getRequestConfig(params);
+            execContext.setAttribute(ClientContext.REQUEST_CONFIG, config);
+
             // Create a director for this request
             director = createClientRequestDirector(
                     getRequestExecutor(),
@@ -814,7 +820,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
                     getTargetAuthenticationStrategy(),
                     getProxyAuthenticationStrategy(),
                     getUserTokenHandler(),
-                    determineParams(request));
+                    params);
             routePlanner = getRoutePlanner();
             connectionBackoffStrategy = getConnectionBackoffStrategy();
             backoffManager = getBackoffManager();
