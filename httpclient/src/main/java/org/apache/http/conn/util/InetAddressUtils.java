@@ -42,7 +42,7 @@ public class InetAddressUtils {
     private InetAddressUtils() {
     }
 
-    private static final String IPV4_BASIC_PATTERN_STRING = 
+    private static final String IPV4_BASIC_PATTERN_STRING =
             "(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}" + // initial 3 fields, 0-255 followed by .
              "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])"; // final field, 0-255
 
@@ -54,11 +54,11 @@ public class InetAddressUtils {
 
     private static final Pattern IPV6_STD_PATTERN =
         Pattern.compile(
-                "^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$");
+                "^[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){7}$");
 
     private static final Pattern IPV6_HEX_COMPRESSED_PATTERN =
         Pattern.compile(
-                "^(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)::(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4})*)?)$");
+                "^(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,5})?)::(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,5})?)$");
 
     public static boolean isIPv4Address(final String input) {
         return IPV4_PATTERN.matcher(input).matches();
