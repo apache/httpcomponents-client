@@ -105,7 +105,7 @@ public class HttpClientWithFutureTest {
     public void shouldExecuteSingleCall() throws InterruptedException, ExecutionException {
         final HttpAsyncClientFutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
             new HttpGet(uri), new OkidokiHandler());
-        Assert.assertTrue("request should have returned OK", task.get());
+        Assert.assertTrue("request should have returned OK", task.get().booleanValue());
     }
 
     @Test(expected=CancellationException.class)
@@ -133,12 +133,12 @@ public class HttpClientWithFutureTest {
         final List<Future<Boolean>> tasks = httpAsyncClientWithFuture.executeMultiple(
             new OkidokiHandler(), requests);
         for (final Future<Boolean> task : tasks) {
-            Assert.assertTrue("request should have returned OK", task.get());
+            Assert.assertTrue("request should have returned OK", task.get().booleanValue());
         }
     }
 
     @Test
-    public void shouldExecuteMultipleCallsAndCallback() throws InterruptedException, ExecutionException {
+    public void shouldExecuteMultipleCallsAndCallback() throws InterruptedException {
         final HttpGet[] requests= new HttpGet[100];
         for(int i=0;i<100;i++) {
             requests[i]=new HttpGet(uri);
