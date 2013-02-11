@@ -1,5 +1,7 @@
 Changes since 4.3 ALPHA1
 -------------------
+* [HTTPCLIENT-1317] InetAddressUtils should handle IPv6 Addresses with Embedded IPv4 Addresses 
+  Contributed Sebastian Bazley <sebb at apache.org>.
 
 * [HTTPCLIENT-1320] SSLSocketFactory#createSystemSSLContext causes UnrecoverableKeyException 
   'Password verification failed' when a truststore is specified with 'javax.net.ssl.trustStore' 

@@ -79,4 +79,16 @@ public class TestInetAddressUtils {
         Assert.assertFalse(InetAddressUtils.isIPv6HexCompressedAddress("1::2:3:4:5:6:7:8")); // too many fields
     }
 
+    @Test
+    public void testValidIPv4MappedIPv6Address() {
+        Assert.assertTrue(InetAddressUtils.isIPv4MappedIPv64Address("::FFFF:1.2.3.4"));
+        Assert.assertTrue(InetAddressUtils.isIPv4MappedIPv64Address("::ffff:255.255.255.255"));
+    }
+
+    @Test
+    public void testInValidIPv4MappedIPv6Address() {
+        Assert.assertFalse(InetAddressUtils.isIPv4MappedIPv64Address("2001:0db8:0000:0000:0000:0000:1428:57ab"));
+        Assert.assertFalse(InetAddressUtils.isIPv4MappedIPv64Address("::ffff:1:2:3:4"));
+    }
+
 }

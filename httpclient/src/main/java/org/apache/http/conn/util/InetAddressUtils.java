@@ -42,9 +42,14 @@ public class InetAddressUtils {
     private InetAddressUtils() {
     }
 
+    private static final String IPV4_BASIC_PATTERN_STRING = 
+            "(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])";
+
     private static final Pattern IPV4_PATTERN =
-        Pattern.compile(
-                "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$");
+        Pattern.compile("^" + IPV4_BASIC_PATTERN_STRING + "$");
+
+    private static final Pattern IPV4_MAPPED_IPV6_PATTERN = // TODO does not allow for redundant leading zeros
+            Pattern.compile("^::[fF]{4}:" + IPV4_BASIC_PATTERN_STRING + "$");
 
     private static final Pattern IPV6_STD_PATTERN =
         Pattern.compile(
@@ -56,6 +61,10 @@ public class InetAddressUtils {
 
     public static boolean isIPv4Address(final String input) {
         return IPV4_PATTERN.matcher(input).matches();
+    }
+
+    public static boolean isIPv4MappedIPv64Address(final String input) {
+        return IPV4_MAPPED_IPV6_PATTERN.matcher(input).matches();
     }
 
     public static boolean isIPv6StdAddress(final String input) {
