@@ -31,8 +31,6 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -47,8 +45,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -61,8 +58,6 @@ public class HttpClientWithFutureTest {
     private LocalTestServer localServer;
     private String uri;
     private HttpAsyncClientWithFuture httpAsyncClientWithFuture;
-    private CloseableHttpClient httpClient;
-    private ExecutorService executorService;
 
     private final AtomicBoolean blocked = new AtomicBoolean(false);
 
@@ -87,18 +82,14 @@ public class HttpClientWithFutureTest {
             this.localServer.start();
             final InetSocketAddress address = localServer.getServiceAddress();
             uri = "http://" + address.getHostName() + ":" + address.getPort() + "/wait";
-
-            httpClient = HttpClientBuilder.create().setMaxConnPerRoute(5).setMaxConnTotal(5).build();
-            executorService = Executors.newFixedThreadPool(5);
-            httpAsyncClientWithFuture = new HttpAsyncClientWithFuture(httpClient, executorService);
+            httpAsyncClientWithFuture = HttpClients.createAsync(5);
     }
 
     @After
     public void after() throws Exception {
         blocked.set(false); // any remaining requests should unblock
         this.localServer.stop();
-        httpClient.close();
-        executorService.shutdownNow();
+        httpAsyncClientWithFuture.close();
     }
 
     @Test
