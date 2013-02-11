@@ -182,7 +182,7 @@ public class HttpAsyncClientWithFuture {
 
     /**
      * @return metrics gathered for this instance.
-     * @see ConnectionMetrics.
+     * @see ConnectionMetrics
      */
     public ConnectionMetrics metrics() {
         return metrics;
