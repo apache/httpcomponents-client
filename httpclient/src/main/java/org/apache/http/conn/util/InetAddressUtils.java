@@ -58,7 +58,9 @@ public class InetAddressUtils {
 
     private static final Pattern IPV6_HEX_COMPRESSED_PATTERN =
         Pattern.compile(
-                "^(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,5})?)::(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,5})?)$");
+                "^(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,5})?)" + // 0-6 hex fields
+                 "::" +
+                 "(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,5})?)$"); // 0-6 hex fields
 
     public static boolean isIPv4Address(final String input) {
         return IPV4_PATTERN.matcher(input).matches();
