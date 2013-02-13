@@ -38,6 +38,7 @@ import org.apache.http.RequestLine;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
+import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 
 /**
@@ -139,6 +140,15 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpReque
         } else {
             return new HttpRequestWrapper(request);
         }
+    }
+
+    @Override
+    @Deprecated
+    public HttpParams getParams() {
+        if (this.params == null) {
+            this.params = original.getParams().copy();
+        }
+        return this.params;
     }
 
 }
