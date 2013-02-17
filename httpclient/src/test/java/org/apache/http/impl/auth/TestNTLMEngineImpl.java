@@ -95,6 +95,8 @@ public class TestNTLMEngineImpl {
             null,
             null,
             null,
+            null,
+            null,
             null);
 
         checkArraysMatch(toBytes("c337cd5cbd44fc9782a667af6d427c6de67c20c2d3e77c56"),
@@ -111,6 +113,8 @@ public class TestNTLMEngineImpl {
             null,
             null,
             null,
+            null,
+            null,
             null);
 
         checkArraysMatch(toBytes("25a98c1c31e81847466b29b2df4680f39958fb8c213a9cc6"),
@@ -124,7 +128,9 @@ public class TestNTLMEngineImpl {
             "user",
             "SecREt01",
             toBytes("0123456789abcdef"),
+            "DOMAIN",
             null,
+            toBytes("ffffff0011223344"),
             toBytes("ffffff0011223344"),
             null,
             null);
@@ -140,7 +146,9 @@ public class TestNTLMEngineImpl {
             "user",
             "SecREt01",
             toBytes("0123456789abcdef"),
+            "DOMAIN",
             toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
+            toBytes("ffffff0011223344"),
             toBytes("ffffff0011223344"),
             null,
             toBytes("0090d336b734c301"));
@@ -158,7 +166,9 @@ public class TestNTLMEngineImpl {
             "user",
             "SecREt01",
             toBytes("0123456789abcdef"),
+            "DOMAIN",
             toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
+            toBytes("ffffff0011223344"),
             toBytes("ffffff0011223344"),
             null,
             toBytes("0090d336b734c301"));
@@ -174,7 +184,9 @@ public class TestNTLMEngineImpl {
             "user",
             "SecREt01",
             toBytes("0123456789abcdef"),
+            "DOMAIN",
             toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
+            toBytes("ffffff0011223344"),
             toBytes("ffffff0011223344"),
             null,
             toBytes("0090d336b734c301"));
@@ -190,7 +202,9 @@ public class TestNTLMEngineImpl {
             "user",
             "SecREt01",
             toBytes("0123456789abcdef"),
+            "DOMAIN",
             toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
+            toBytes("ffffff0011223344"),
             toBytes("ffffff0011223344"),
             null,
             toBytes("0090d336b734c301"));

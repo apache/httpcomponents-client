@@ -3,6 +3,10 @@ Changes since 4.3 ALPHA1
 * [HTTPCLIENT-1317] InetAddressUtils should handle IPv6 Addresses with Embedded IPv4 Addresses 
   Contributed Sebastian Bazley <sebb at apache.org>.
 
+* [HTTPCLIENT-1315] NTLM support did not work properly when the target (as returned
+  in the Type 2 message) differed from the domain as supplied by the user.
+  Contributed by Karl Wright <kwright at apache.org>
+
 * [HTTPCLIENT-1320] SSLSocketFactory#createSystemSSLContext causes UnrecoverableKeyException 
   'Password verification failed' when a truststore is specified with 'javax.net.ssl.trustStore' 
   system property is used without a password.
