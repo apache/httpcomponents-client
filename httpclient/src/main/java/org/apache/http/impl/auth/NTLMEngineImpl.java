@@ -249,14 +249,16 @@ final class NTLMEngineImpl implements NTLMEngine {
 
     protected static class CipherGen {
 
-        protected final String target;
+        protected final String domain;
         protected final String user;
         protected final String password;
         protected final byte[] challenge;
+        protected final String target;
         protected final byte[] targetInformation;
 
         // Information we can generate but may be passed in (for testing)
         protected byte[] clientChallenge;
+        protected byte[] clientChallenge2;
         protected byte[] secondaryKey;
         protected byte[] timestamp;
 
@@ -266,6 +268,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         protected byte[] ntlmHash = null;
         protected byte[] ntlmResponse = null;
         protected byte[] ntlmv2Hash = null;
+        protected byte[] lmv2Hash = null;
         protected byte[] lmv2Response = null;
         protected byte[] ntlmv2Blob = null;
         protected byte[] ntlmv2Response = null;
@@ -277,22 +280,25 @@ final class NTLMEngineImpl implements NTLMEngine {
         protected byte[] ntlm2SessionResponseUserSessionKey = null;
         protected byte[] lanManagerSessionKey = null;
 
-        public CipherGen(String target, String user, String password,
-            byte[] challenge, byte[] targetInformation,
-            byte[] clientChallenge, byte[] secondaryKey, byte[] timestamp) {
+        public CipherGen(String domain, String user, String password,
+            byte[] challenge, String target, byte[] targetInformation,
+            byte[] clientChallenge, byte[] clientChallenge2,
+            byte[] secondaryKey, byte[] timestamp) {
+            this.domain = domain;
             this.target = target;
             this.user = user;
             this.password = password;
             this.challenge = challenge;
             this.targetInformation = targetInformation;
             this.clientChallenge = clientChallenge;
+            this.clientChallenge2 = clientChallenge2;
             this.secondaryKey = secondaryKey;
             this.timestamp = timestamp;
         }
 
-        public CipherGen(String target, String user, String password,
-            byte[] challenge, byte[] targetInformation) {
-            this(target, user, password, challenge, targetInformation, null, null, null);
+        public CipherGen(String domain, String user, String password,
+            byte[] challenge, String target, byte[] targetInformation) {
+            this(domain, user, password, challenge, target, targetInformation, null, null, null, null);
         }
 
         /** Calculate and return client challenge */
@@ -301,6 +307,14 @@ final class NTLMEngineImpl implements NTLMEngine {
             if (clientChallenge == null)
                 clientChallenge = makeRandomChallenge();
             return clientChallenge;
+        }
+
+        /** Calculate and return second client challenge */
+        public byte[] getClientChallenge2()
+            throws NTLMEngineException {
+            if (clientChallenge2 == null)
+                clientChallenge2 = makeRandomChallenge();
+            return clientChallenge2;
         }
 
         /** Calculate and return random secondary key */
@@ -343,11 +357,19 @@ final class NTLMEngineImpl implements NTLMEngine {
             return ntlmResponse;
         }
 
+        /** Calculate the LMv2 hash */
+        public byte[] getLMv2Hash()
+            throws NTLMEngineException {
+            if (lmv2Hash == null)
+                lmv2Hash = lmv2Hash(domain, user, getNTLMHash());
+            return lmv2Hash;
+        }
+
         /** Calculate the NTLMv2 hash */
         public byte[] getNTLMv2Hash()
             throws NTLMEngineException {
             if (ntlmv2Hash == null)
-                ntlmv2Hash = ntlmv2Hash(target, user, password);
+                ntlmv2Hash = ntlmv2Hash(domain, user, getNTLMHash());
             return ntlmv2Hash;
         }
 
@@ -371,7 +393,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         public byte[] getNTLMv2Blob()
             throws NTLMEngineException {
             if (ntlmv2Blob == null)
-                ntlmv2Blob = createBlob(getClientChallenge(), targetInformation, getTimestamp());
+                ntlmv2Blob = createBlob(getClientChallenge2(), targetInformation, getTimestamp());
             return ntlmv2Blob;
         }
 
@@ -387,7 +409,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         public byte[] getLMv2Response()
             throws NTLMEngineException {
             if (lmv2Response == null)
-                lmv2Response = lmv2Response(getNTLMv2Hash(),challenge,getClientChallenge());
+                lmv2Response = lmv2Response(getLMv2Hash(),challenge,getClientChallenge());
             return lmv2Response;
         }
 
@@ -439,14 +461,10 @@ final class NTLMEngineImpl implements NTLMEngine {
         public byte[] getNTLMv2UserSessionKey()
             throws NTLMEngineException {
             if (ntlmv2UserSessionKey == null) {
-                byte[] ntlmv2Hash = getNTLMv2Hash();
-                byte[] ntlmv2Blob = getNTLMv2Blob();
-                byte[] temp = new byte[ntlmv2Blob.length + challenge.length];
-                // "The challenge is concatenated with the blob" - check this (MHL)
-                System.arraycopy(challenge, 0, temp, 0, challenge.length);
-                System.arraycopy(ntlmv2Blob, 0, temp, challenge.length, ntlmv2Blob.length);
-                byte[] partial = hmacMD5(temp,ntlmv2Hash);
-                ntlmv2UserSessionKey = hmacMD5(partial,ntlmv2Hash);
+                byte[] ntlmv2hash = getNTLMv2Hash();
+                byte[] truncatedResponse = new byte[16];
+                System.arraycopy(getNTLMv2Response(), 0, truncatedResponse, 0, 16);
+                ntlmv2UserSessionKey = hmacMD5(truncatedResponse, ntlmv2hash);
             }
             return ntlmv2UserSessionKey;
         }
@@ -615,6 +633,32 @@ final class NTLMEngineImpl implements NTLMEngine {
     }
 
     /**
+     * Creates the LMv2 Hash of the user's password.
+     *
+     * @param target
+     *            The authentication target (i.e., domain).
+     * @param user
+     *            The username.
+     * @param password
+     *            The password.
+     *
+     * @return The LMv2 Hash, used in the calculation of the NTLMv2 and LMv2
+     *         Responses.
+     */
+    private static byte[] lmv2Hash(String domain, String user, byte[] ntlmHash)
+            throws NTLMEngineException {
+        try {
+            HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
+            // Upper case username, upper case domain!
+            hmacMD5.update(user.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
+            hmacMD5.update(domain.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
+            return hmacMD5.getOutput();
+        } catch (java.io.UnsupportedEncodingException e) {
+            throw new NTLMEngineException("Unicode not supported! " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * Creates the NTLMv2 Hash of the user's password.
      *
      * @param target
@@ -627,14 +671,13 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @return The NTLMv2 Hash, used in the calculation of the NTLMv2 and LMv2
      *         Responses.
      */
-    private static byte[] ntlmv2Hash(String target, String user, String password)
+    private static byte[] ntlmv2Hash(String domain, String user, byte[] ntlmHash)
             throws NTLMEngineException {
         try {
-            byte[] ntlmHash = ntlmHash(password);
             HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
             // Upper case username, mixed case target!!
             hmacMD5.update(user.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
-            hmacMD5.update(target.getBytes("UnicodeLittleUnmarked"));
+            hmacMD5.update(domain.getBytes("UnicodeLittleUnmarked"));
             return hmacMD5.getOutput();
         } catch (java.io.UnsupportedEncodingException e) {
             throw new NTLMEngineException("Unicode not supported! " + e.getMessage(), e);
@@ -947,12 +990,12 @@ final class NTLMEngineImpl implements NTLMEngine {
             super();
             try {
                 // Strip off domain name from the host!
-                host = convertHost(host);
+                String unqualifiedHost = convertHost(host);
                 // Use only the base domain name!
-                domain = convertDomain(domain);
+                String unqualifiedDomain = convertDomain(domain);
 
-                hostBytes = host.getBytes("UnicodeLittleUnmarked");
-                domainBytes = domain.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked");
+                hostBytes = unqualifiedHost.getBytes("ASCII");
+                domainBytes = unqualifiedDomain.toUpperCase(Locale.US).getBytes("ASCII");
             } catch (java.io.UnsupportedEncodingException e) {
                 throw new NTLMEngineException("Unicode unsupported: " + e.getMessage(), e);
             }
@@ -978,7 +1021,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                     //FLAG_DOMAIN_PRESENT |
 
                     // Required flags
-                    FLAG_REQUEST_LAN_MANAGER_KEY |
+                    //FLAG_REQUEST_LAN_MANAGER_KEY |
                     FLAG_REQUEST_NTLMv1 |
                     FLAG_REQUEST_NTLM2_SESSION |
 
@@ -988,12 +1031,12 @@ final class NTLMEngineImpl implements NTLMEngine {
                     // Recommended privacy settings
                     FLAG_REQUEST_ALWAYS_SIGN |
                     //FLAG_REQUEST_SEAL |
-                    FLAG_REQUEST_SIGN |
+                    //FLAG_REQUEST_SIGN |
 
                     // These must be set according to documentation, based on use of SEAL above
                     FLAG_REQUEST_128BIT_KEY_EXCH |
                     FLAG_REQUEST_56BIT_ENCRYPTION |
-                    FLAG_REQUEST_EXPLICIT_KEY_EXCH |
+                    //FLAG_REQUEST_EXPLICIT_KEY_EXCH |
 
                     FLAG_REQUEST_UNICODE_ENCODING);
 
@@ -1137,12 +1180,12 @@ final class NTLMEngineImpl implements NTLMEngine {
             this.type2Flags = type2Flags;
 
             // Strip off domain name from the host!
-            host = convertHost(host);
+            String unqualifiedHost = convertHost(host);
             // Use only the base domain name!
-            domain = convertDomain(domain);
+            String unqualifiedDomain = convertDomain(domain);
 
-            // Create a cipher generator class
-            CipherGen gen = new CipherGen(target, user, password, nonce, targetInformation);
+            // Create a cipher generator class.  Use domain BEFORE it gets modified!
+            CipherGen gen = new CipherGen(unqualifiedDomain, user, password, nonce, target, targetInformation);
 
             // Use the new code to calculate the responses, including v2 if that
             // seems warranted.
@@ -1169,10 +1212,6 @@ final class NTLMEngineImpl implements NTLMEngine {
                             userSessionKey = gen.getLanManagerSessionKey();
                         else
                             userSessionKey = gen.getNTLM2SessionResponseUserSessionKey();
-                        // All the other flags we send (signing, sealing, key
-                        // exchange) are supported, but they don't do anything
-                        // at all in an
-                        // NTLM2 context! So we're done at this point.
                     } else {
                         ntResp = gen.getNTLMResponse();
                         lmResp = gen.getLMResponse();
@@ -1193,14 +1232,18 @@ final class NTLMEngineImpl implements NTLMEngine {
                     userSessionKey = gen.getLMUserSessionKey();
             }
 
-            if ((type2Flags & FLAG_REQUEST_EXPLICIT_KEY_EXCH) != 0)
-                sessionKey = RC4(gen.getSecondaryKey(), userSessionKey);
-            else
+            if ((type2Flags & FLAG_REQUEST_SIGN) != 0) {
+                if ((type2Flags & FLAG_REQUEST_EXPLICIT_KEY_EXCH) != 0)
+                    sessionKey = RC4(gen.getSecondaryKey(), userSessionKey);
+                else
+                    sessionKey = userSessionKey;
+            } else {
                 sessionKey = null;
+            }
 
             try {
-                domainBytes = domain.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked");
-                hostBytes = host.getBytes("UnicodeLittleUnmarked");
+                domainBytes = unqualifiedDomain.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked");
+                hostBytes = unqualifiedHost.getBytes("UnicodeLittleUnmarked");
                 userBytes = user.getBytes("UnicodeLittleUnmarked");
             } catch (java.io.UnsupportedEncodingException e) {
                 throw new NTLMEngineException("Unicode not supported: " + e.getMessage(), e);
@@ -1276,11 +1319,10 @@ final class NTLMEngineImpl implements NTLMEngine {
             // Session key offset
             addULong(sessionKeyOffset);
 
-            // Flags. Currently: WORKSTATION_PRESENT + DOMAIN_PRESENT + UNICODE_ENCODING +
-            // TARGET_DESIRED + NEGOTIATE_128
+            // Flags.
             addULong(
-                    FLAG_WORKSTATION_PRESENT |
-                    FLAG_DOMAIN_PRESENT |
+                    //FLAG_WORKSTATION_PRESENT |
+                    //FLAG_DOMAIN_PRESENT |
 
                     // Required flags
                     (type2Flags & FLAG_REQUEST_LAN_MANAGER_KEY) |
