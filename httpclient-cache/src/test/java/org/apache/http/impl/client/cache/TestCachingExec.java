@@ -120,6 +120,7 @@ public class TestCachingExec {
     private ResponseProtocolCompliance mockResponseProtocolCompliance;
     private RequestProtocolCompliance mockRequestProtocolCompliance;
     private CacheConfig config;
+    private AsynchronousValidator asyncValidator;
 
     private Date requestDate;
     private Date responseDate;
@@ -151,6 +152,7 @@ public class TestCachingExec {
         mockRequestProtocolCompliance = createNiceMock(RequestProtocolCompliance.class);
         mockStorage = createNiceMock(HttpCacheStorage.class);
         config = CacheConfig.DEFAULT;
+        asyncValidator = new AsynchronousValidator(config);
 
         requestDate = new Date(System.currentTimeMillis() - 1000);
         responseDate = new Date();
@@ -171,7 +173,8 @@ public class TestCachingExec {
                 mockConditionalRequestBuilder,
                 mockResponseProtocolCompliance,
                 mockRequestProtocolCompliance,
-                config);
+                config,
+                asyncValidator);
     }
 
     private void replayMocks() {
@@ -1916,7 +1919,8 @@ public class TestCachingExec {
                 mockConditionalRequestBuilder,
                 mockResponseProtocolCompliance,
                 mockRequestProtocolCompliance,
-                config).addMockedMethods(methods).createNiceMock();
+                config,
+                asyncValidator).addMockedMethods(methods).createNiceMock();
     }
 
 }

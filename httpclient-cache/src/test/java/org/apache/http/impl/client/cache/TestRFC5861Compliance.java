@@ -307,7 +307,7 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
                 .setAsynchronousWorkersMax(1)
                 .build();
 
-        impl = new CachingExec(mockBackend, cache, config);
+        impl = new CachingExec(mockBackend, cache, config, new AsynchronousValidator(config));
 
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
@@ -351,7 +351,7 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
                 .setAsynchronousWorkersMax(1)
                 .setSharedCache(false)
                 .build();
-        impl = new CachingExec(mockBackend, cache, config);
+        impl = new CachingExec(mockBackend, cache, config, new AsynchronousValidator(config));
 
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));

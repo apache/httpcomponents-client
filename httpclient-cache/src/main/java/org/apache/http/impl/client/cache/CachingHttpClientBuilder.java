@@ -103,9 +103,12 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
     }
 
     private AsynchronousValidator createAsynchronousRevalidator(final CacheConfig config) {
-        final AsynchronousValidator revalidator = new AsynchronousValidator(config);
-        addCloseable(revalidator);
-        return revalidator;
+        if (config.getAsynchronousWorkersMax() > 0) {
+            final AsynchronousValidator revalidator = new AsynchronousValidator(config);
+            addCloseable(revalidator);
+            return revalidator;
+        }
+        return null;
     }
 
 }

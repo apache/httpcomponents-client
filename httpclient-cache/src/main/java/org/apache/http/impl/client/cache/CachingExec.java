@@ -143,7 +143,7 @@ public class CachingExec implements ClientExecChain {
         this.responseCachingPolicy = new ResponseCachingPolicy(
                 this.cacheConfig.getMaxObjectSize(), this.cacheConfig.isSharedCache(),
                 this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery());
-        this.asynchRevalidator = asynchRevalidator != null ? asynchRevalidator : makeAsynchronousValidator(config);
+        this.asynchRevalidator = asynchRevalidator;
     }
 
     public CachingExec(
@@ -169,7 +169,8 @@ public class CachingExec implements ClientExecChain {
             final ConditionalRequestBuilder conditionalRequestBuilder,
             final ResponseProtocolCompliance responseCompliance,
             final RequestProtocolCompliance requestCompliance,
-            final CacheConfig config) {
+            final CacheConfig config,
+            final AsynchronousValidator asynchRevalidator) {
         this.cacheConfig = config != null ? config : CacheConfig.DEFAULT;
         this.backend = backend;
         this.responseCache = responseCache;
@@ -181,15 +182,7 @@ public class CachingExec implements ClientExecChain {
         this.conditionalRequestBuilder = conditionalRequestBuilder;
         this.responseCompliance = responseCompliance;
         this.requestCompliance = requestCompliance;
-        this.asynchRevalidator = makeAsynchronousValidator(config);
-    }
-
-    private AsynchronousValidator makeAsynchronousValidator(
-            final CacheConfig config) {
-        if (config.getAsynchronousWorkersMax() > 0) {
-            return new AsynchronousValidator(config);
-        }
-        return null;
+        this.asynchRevalidator = asynchRevalidator;
     }
 
     /**
