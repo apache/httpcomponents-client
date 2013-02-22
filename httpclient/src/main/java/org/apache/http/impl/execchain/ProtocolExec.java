@@ -67,18 +67,15 @@ public class ProtocolExec implements ClientExecChain {
     private final ClientExecChain requestExecutor;
     private final HttpProcessor httpProcessor;
 
-    public ProtocolExec(
-            final ClientExecChain requestExecutor,
-            final HttpProcessor httpProcessor) {
+    public ProtocolExec(final ClientExecChain requestExecutor, final HttpProcessor httpProcessor) {
         Args.notNull(requestExecutor, "HTTP client request executor");
         Args.notNull(httpProcessor, "HTTP protocol processor");
         this.requestExecutor = requestExecutor;
         this.httpProcessor = httpProcessor;
     }
 
-    private void rewriteRequestURI(
-            final HttpRequestWrapper request,
-            final HttpRoute route) throws ProtocolException {
+    private void rewriteRequestURI(final HttpRequestWrapper request, final HttpRoute route)
+        throws ProtocolException {
         try {
             URI uri = request.getURI();
             if (uri != null) {
@@ -101,16 +98,13 @@ public class ProtocolExec implements ClientExecChain {
                 request.setURI(uri);
             }
         } catch (final URISyntaxException ex) {
-            throw new ProtocolException("Invalid URI: " +
-                    request.getRequestLine().getUri(), ex);
+            throw new ProtocolException("Invalid URI: " + request.getRequestLine().getUri(), ex);
         }
     }
 
-    public CloseableHttpResponse execute(
-            final HttpRoute route,
-            final HttpRequestWrapper request,
-            final HttpClientContext context,
-            final HttpExecutionAware execAware) throws IOException, HttpException {
+    public CloseableHttpResponse execute(final HttpRoute route, final HttpRequestWrapper request,
+        final HttpClientContext context, final HttpExecutionAware execAware) throws IOException,
+        HttpException {
         Args.notNull(route, "HTTP route");
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
@@ -122,8 +116,8 @@ public class ProtocolExec implements ClientExecChain {
             if (uri != null) {
                 final String userinfo = uri.getUserInfo();
                 if (userinfo != null) {
-                    targetAuthState.update(
-                            new BasicScheme(), new UsernamePasswordCredentials(userinfo));
+                    targetAuthState.update(new BasicScheme(), new UsernamePasswordCredentials(
+                        userinfo));
                 }
             }
         }
@@ -136,8 +130,9 @@ public class ProtocolExec implements ClientExecChain {
         // HTTPCLIENT-1092 - add the port if necessary
         if (virtualHost != null && virtualHost.getPort() == -1) {
             final int port = route.getTargetHost().getPort();
-            if (port != -1){
-                virtualHost = new HttpHost(virtualHost.getHostName(), port, virtualHost.getSchemeName());
+            if (port != -1) {
+                virtualHost = new HttpHost(virtualHost.getHostName(), port,
+                    virtualHost.getSchemeName());
             }
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Using virtual host" + virtualHost);
@@ -149,11 +144,20 @@ public class ProtocolExec implements ClientExecChain {
             target = virtualHost;
         } else {
             final HttpRequest original = request.getOriginal();
+            URI uri = null;
             if (original instanceof HttpUriRequest) {
-                final URI uri = ((HttpUriRequest) original).getURI();
-                if (uri.isAbsolute()) {
-                    target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
+                uri = ((HttpUriRequest) original).getURI();
+            } else {
+                final String uriString = original.getRequestLine().getUri();
+                try {
+                    uri = URI.create(uriString);
+                } catch (IllegalArgumentException e) {
+                    log.debug("Could not parse " + uriString + " as a URI to set Host header");
                 }
+
+            }
+            if (uri != null && uri.isAbsolute() && uri.getHost() != null) {
+                target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
             }
         }
         if (target == null) {
@@ -167,7 +171,8 @@ public class ProtocolExec implements ClientExecChain {
 
         this.httpProcessor.process(request, context);
 
-        final CloseableHttpResponse response = this.requestExecutor.execute(route, request, context, execAware);
+        final CloseableHttpResponse response = this.requestExecutor.execute(route, request,
+            context, execAware);
         try {
             // Run response protocol interceptors
             context.setAttribute(ExecutionContext.HTTP_RESPONSE, response);
