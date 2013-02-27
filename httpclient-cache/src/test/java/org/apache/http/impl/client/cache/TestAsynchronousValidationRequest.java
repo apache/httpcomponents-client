@@ -28,14 +28,19 @@ package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
 
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.ProtocolException;
+import org.apache.http.StatusLine;
+import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.message.BasicHeader;
 import org.easymock.classextension.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +54,8 @@ public class TestAsynchronousValidationRequest {
     private HttpClientContext context;
     private HttpExecutionAware mockExecAware;
     private HttpCacheEntry mockCacheEntry;
+    private CloseableHttpResponse mockResponse;
+    private StatusLine mockStatusLine;
 
     @Before
     public void setUp() {
@@ -59,6 +66,8 @@ public class TestAsynchronousValidationRequest {
         context = HttpClientContext.create();
         mockExecAware = EasyMock.createNiceMock(HttpExecutionAware.class);
         mockCacheEntry = EasyMock.createNiceMock(HttpCacheEntry.class);
+        mockResponse = EasyMock.createNiceMock(CloseableHttpResponse.class);
+        mockStatusLine = EasyMock.createNiceMock(StatusLine.class);
     }
 
     @Test
@@ -67,13 +76,59 @@ public class TestAsynchronousValidationRequest {
 
         final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
                 mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
-                identifier);
+                identifier, 0);
 
-        // response not used
         EasyMock.expect(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).andReturn(null);
+                        route, request, context, mockExecAware, mockCacheEntry)).andReturn(mockResponse);
+        EasyMock.expect(mockResponse.getStatusLine()).andReturn(mockStatusLine);
+        EasyMock.expect(mockStatusLine.getStatusCode()).andReturn(200);
         mockParent.markComplete(identifier);
+        mockParent.jobSuccessful(identifier);
+
+        replayMocks();
+        impl.run();
+        verifyMocks();
+    }
+
+    @Test
+    public void testRunReportsJobFailedForServerError() throws Exception {
+        final String identifier = "foo";
+
+        final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
+                mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
+                identifier, 0);
+
+        EasyMock.expect(
+                mockClient.revalidateCacheEntry(
+                        route, request, context, mockExecAware, mockCacheEntry)).andReturn(mockResponse);
+        EasyMock.expect(mockResponse.getStatusLine()).andReturn(mockStatusLine);
+        EasyMock.expect(mockStatusLine.getStatusCode()).andReturn(200);
+        mockParent.markComplete(identifier);
+        mockParent.jobSuccessful(identifier);
+
+        replayMocks();
+        impl.run();
+        verifyMocks();
+    }
+
+    @Test
+    public void testRunReportsJobFailedForStaleResponse() throws Exception {
+        final String identifier = "foo";
+        final Header[] warning = new Header[] {new BasicHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"")};
+
+        final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
+                mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
+                identifier, 0);
+
+        EasyMock.expect(
+                mockClient.revalidateCacheEntry(
+                        route, request, context, mockExecAware, mockCacheEntry)).andReturn(mockResponse);
+        EasyMock.expect(mockResponse.getStatusLine()).andReturn(mockStatusLine);
+        EasyMock.expect(mockStatusLine.getStatusCode()).andReturn(200);
+        EasyMock.expect(mockResponse.getHeaders(HeaderConstants.WARNING)).andReturn(warning);
+        mockParent.markComplete(identifier);
+        mockParent.jobFailed(identifier);
 
         replayMocks();
         impl.run();
@@ -86,14 +141,14 @@ public class TestAsynchronousValidationRequest {
 
         final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
                 mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
-                identifier);
+                identifier, 0);
 
-        // response not used
         EasyMock.expect(
                 mockClient.revalidateCacheEntry(
                         route, request, context, mockExecAware, mockCacheEntry)).andThrow(
-                                new ProtocolException());
+                new ProtocolException());
         mockParent.markComplete(identifier);
+        mockParent.jobFailed(identifier);
 
         replayMocks();
         impl.run();
@@ -106,14 +161,34 @@ public class TestAsynchronousValidationRequest {
 
         final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
                 mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
-                identifier);
+                identifier, 0);
 
-        // response not used
         EasyMock.expect(
                 mockClient.revalidateCacheEntry(
                         route, request, context, mockExecAware, mockCacheEntry)).andThrow(
                                 new IOException());
         mockParent.markComplete(identifier);
+        mockParent.jobFailed(identifier);
+
+        replayMocks();
+        impl.run();
+        verifyMocks();
+    }
+
+    @Test
+    public void testRunGracefullyHandlesRuntimeException() throws Exception {
+        final String identifier = "foo";
+
+        final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
+                mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
+                identifier, 0);
+
+        EasyMock.expect(
+                mockClient.revalidateCacheEntry(
+                        route, request, context, mockExecAware, mockCacheEntry)).andThrow(
+                                new RuntimeException());
+        mockParent.markComplete(identifier);
+        mockParent.jobFailed(identifier);
 
         replayMocks();
         impl.run();
@@ -124,11 +199,17 @@ public class TestAsynchronousValidationRequest {
         EasyMock.replay(mockClient);
         EasyMock.replay(mockExecAware);
         EasyMock.replay(mockCacheEntry);
+        EasyMock.replay(mockResponse);
+        EasyMock.replay(mockStatusLine);
+        EasyMock.replay(mockParent);
     }
 
     public void verifyMocks() {
         EasyMock.verify(mockClient);
         EasyMock.verify(mockExecAware);
         EasyMock.verify(mockCacheEntry);
+        EasyMock.verify(mockResponse);
+        EasyMock.verify(mockStatusLine);
+        EasyMock.verify(mockParent);
     }
 }

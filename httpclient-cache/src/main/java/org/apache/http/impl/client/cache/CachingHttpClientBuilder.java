@@ -42,6 +42,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
     private HttpCacheStorage storage;
     private File cacheDir;
     private CacheConfig cacheConfig;
+    private SchedulingStrategy schedulingStrategy;
 
     public static CachingHttpClientBuilder create() {
         return new CachingHttpClientBuilder();
@@ -75,6 +76,12 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
         return this;
     }
 
+    public final CachingHttpClientBuilder setSchedulingStrategy(
+            final SchedulingStrategy schedulingStrategy) {
+        this.schedulingStrategy = schedulingStrategy;
+        return this;
+    }
+
     @Override
     protected ClientExecChain decorateMainExec(final ClientExecChain mainExec) {
         final CacheConfig config = this.cacheConfig != null ? this.cacheConfig : CacheConfig.DEFAULT;
@@ -104,11 +111,16 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
 
     private AsynchronousValidator createAsynchronousRevalidator(final CacheConfig config) {
         if (config.getAsynchronousWorkersMax() > 0) {
-            final AsynchronousValidator revalidator = new AsynchronousValidator(config);
+            final SchedulingStrategy configuredSchedulingStrategy = createSchedulingStrategy(config);
+            final AsynchronousValidator revalidator = new AsynchronousValidator(configuredSchedulingStrategy);
             addCloseable(revalidator);
             return revalidator;
         }
         return null;
+    }
+
+    private SchedulingStrategy createSchedulingStrategy(final CacheConfig config) {
+        return schedulingStrategy != null ? schedulingStrategy : new ImmediateSchedulingStrategy(config);
     }
 
 }

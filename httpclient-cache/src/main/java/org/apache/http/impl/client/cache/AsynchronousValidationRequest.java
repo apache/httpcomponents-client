@@ -30,7 +30,10 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
 import org.apache.http.HttpException;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
@@ -50,19 +53,18 @@ class AsynchronousValidationRequest implements Runnable {
     private final HttpExecutionAware execAware;
     private final HttpCacheEntry cacheEntry;
     private final String identifier;
+    private final int consecutiveFailedAttempts;
 
     private final Log log = LogFactory.getLog(getClass());
 
     /**
      * Used internally by {@link AsynchronousValidator} to schedule a
      * revalidation.
-     * @param cachingClient
-     * @param target
      * @param request
      * @param context
      * @param cacheEntry
-     * @param bookKeeping
      * @param identifier
+     * @param consecutiveFailedAttempts
      */
     AsynchronousValidationRequest(
             final AsynchronousValidator parent,
@@ -72,7 +74,8 @@ class AsynchronousValidationRequest implements Runnable {
             final HttpClientContext context,
             final HttpExecutionAware execAware,
             final HttpCacheEntry cacheEntry,
-            final String identifier) {
+            final String identifier,
+            final int consecutiveFailedAttempts) {
         this.parent = parent;
         this.cachingExec = cachingExec;
         this.route = route;
@@ -81,22 +84,90 @@ class AsynchronousValidationRequest implements Runnable {
         this.execAware = execAware;
         this.cacheEntry = cacheEntry;
         this.identifier = identifier;
+        this.consecutiveFailedAttempts = consecutiveFailedAttempts;
     }
 
     public void run() {
         try {
-            cachingExec.revalidateCacheEntry(route, request, context, execAware, cacheEntry);
-        } catch (final IOException ioe) {
-            log.debug("Asynchronous revalidation failed due to I/O error", ioe);
-        } catch (final HttpException pe) {
-            log.error("HTTP protocol exception during asynchronous revalidation", pe);
+            if (revalidateCacheEntry()) {
+                parent.jobSuccessful(identifier);
+            } else {
+                parent.jobFailed(identifier);
+            }
         } finally {
             parent.markComplete(identifier);
         }
     }
 
+    /**
+     * Revalidate the cache entry and return if the operation was successful.
+     * Success means a connection to the server was established and replay did
+     * not indicate a server error.
+     * @return <code>true</code> if the cache entry was successfully validated;
+     * otherwise <code>false</code>
+     */
+    protected boolean revalidateCacheEntry() {
+        try {
+            final HttpResponse httpResponse = cachingExec.revalidateCacheEntry(route, request, context, execAware, cacheEntry);
+            final int statusCode = httpResponse.getStatusLine().getStatusCode();
+            return isNotServerError(statusCode) && isNotStale(httpResponse);
+        } catch (final IOException ioe) {
+            log.debug("Asynchronous revalidation failed due to I/O error", ioe);
+            return false;
+        } catch (final HttpException pe) {
+            log.error("HTTP protocol exception during asynchronous revalidation", pe);
+            return false;
+        } catch (final RuntimeException re) {
+            log.error("RuntimeException thrown during asynchronous revalidation: " + re);
+            return false;
+        }
+    }
+
+    /**
+     * Return whether the status code indicates a server error or not.
+     * @param statusCode the status code to be checked
+     * @return if the status code indicates a server error or not
+     */
+    private boolean isNotServerError(final int statusCode) {
+        return statusCode < 500;
+    }
+
+    /**
+     * Try to detect if the returned response is generated from a stale cache entry.
+     * @param httpResponse the response to be checked
+     * @return whether the response is stale or not
+     */
+    private boolean isNotStale(final HttpResponse httpResponse) {
+        final Header[] warnings = httpResponse.getHeaders(HeaderConstants.WARNING);
+        if (warnings != null)
+        {
+            for (final Header warning : warnings)
+            {
+                /**
+                 * warn-codes
+                 * 110 = Response is stale
+                 * 111 = Revalidation failed
+                 */
+                final String warningValue = warning.getValue();
+                if (warningValue.startsWith("110") || warningValue.startsWith("111"))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     String getIdentifier() {
         return identifier;
+    }
+
+    /**
+     * The number of consecutively failed revalidation attempts.
+     * @return the number of consecutively failed revalidation attempts.
+     */
+    public int getConsecutiveFailedAttempts() {
+        return consecutiveFailedAttempts;
     }
 
 }

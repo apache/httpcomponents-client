@@ -31,11 +31,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,16 +46,17 @@ import org.apache.http.conn.routing.HttpRoute;
  * while-revalidate" directive is present
  */
 class AsynchronousValidator implements Closeable {
-    private final ExecutorService executor;
+    private final SchedulingStrategy schedulingStrategy;
     private final Set<String> queued;
     private final CacheKeyGenerator cacheKeyGenerator;
+    private final FailureCache failureCache;
 
     private final Log log = LogFactory.getLog(getClass());
 
     /**
      * Create AsynchronousValidator which will make revalidation requests
-     * using a {@link ThreadPoolExecutor} generated according to the thread
-     * pool settings provided in the given {@link CacheConfig}.
+     * using an {@link ImmediateSchedulingStrategy}. Its thread
+     * pool will be configured according to the given {@link CacheConfig}.
      * @param config specifies thread pool settings. See
      * {@link CacheConfig#getAsynchronousWorkersMax()},
      * {@link CacheConfig#getAsynchronousWorkersCore()},
@@ -67,28 +64,25 @@ class AsynchronousValidator implements Closeable {
      * and {@link CacheConfig#getRevalidationQueueSize()}.
      */
     public AsynchronousValidator(final CacheConfig config) {
-        this(new ThreadPoolExecutor(config.getAsynchronousWorkersCore(),
-                        config.getAsynchronousWorkersMax(),
-                        config.getAsynchronousWorkerIdleLifetimeSecs(),
-                        TimeUnit.SECONDS,
-                        new ArrayBlockingQueue<Runnable>(config.getRevalidationQueueSize()))
-                );
+        this(new ImmediateSchedulingStrategy(config));
     }
 
     /**
      * Create AsynchronousValidator which will make revalidation requests
-     * using the supplied {@link CachingHttpClient} and
-     * {@link ExecutorService}.
-     * @param executor used to manage a thread pool of revalidation workers
+     * using the supplied {@link SchedulingStrategy}. Closing the validator
+     * will also close the given schedulingStrategy.
+     * @param schedulingStrategy used to maintain a pool of worker threads and
+     *                           schedules when requests are executed
      */
-    AsynchronousValidator(final ExecutorService executor) {
-        this.executor = executor;
+    AsynchronousValidator(final SchedulingStrategy schedulingStrategy) {
+        this.schedulingStrategy = schedulingStrategy;
         this.queued = new HashSet<String>();
         this.cacheKeyGenerator = new CacheKeyGenerator();
+        this.failureCache = new DefaultFailureCache();
     }
 
     public void close() throws IOException {
-        executor.shutdown();
+        schedulingStrategy.close();
     }
 
     /**
@@ -105,12 +99,13 @@ class AsynchronousValidator implements Closeable {
         final String uri = cacheKeyGenerator.getVariantURI(route.getTargetHost(), request, entry);
 
         if (!queued.contains(uri)) {
+            final int consecutiveFailedAttempts = failureCache.getErrorCount(uri);
             final AsynchronousValidationRequest revalidationRequest =
                 new AsynchronousValidationRequest(
-                        this, cachingExec, route, request, context, execAware, entry, uri);
+                        this, cachingExec, route, request, context, execAware, entry, uri, consecutiveFailedAttempts);
 
             try {
-                executor.execute(revalidationRequest);
+                schedulingStrategy.schedule(revalidationRequest);
                 queued.add(uri);
             } catch (final RejectedExecutionException ree) {
                 log.debug("Revalidation for [" + uri + "] not scheduled: " + ree);
@@ -129,11 +124,27 @@ class AsynchronousValidator implements Closeable {
         queued.remove(identifier);
     }
 
-    Set<String> getScheduledIdentifiers() {
-        return Collections.unmodifiableSet(queued);
+    /**
+     * The revalidation job was successful thus the number of consecutive
+     * failed attempts will be reset to zero. Should be called by
+     * {@link AsynchronousValidationRequest#run()}.
+     * @param identifier the revalidation job's unique identifier
+     */
+    void jobSuccessful(final String identifier) {
+        failureCache.resetErrorCount(identifier);
     }
 
-    ExecutorService getExecutor() {
-        return executor;
+    /**
+     * The revalidation job did fail and thus the number of consecutive failed
+     * attempts will be increased. Should be called by
+     * {@link AsynchronousValidationRequest#run()}.
+     * @param identifier the revalidation job's unique identifier
+     */
+    void jobFailed(final String identifier) {
+        failureCache.increaseErrorCount(identifier);
+    }
+
+    Set<String> getScheduledIdentifiers() {
+        return Collections.unmodifiableSet(queued);
     }
 }
