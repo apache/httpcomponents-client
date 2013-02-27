@@ -225,11 +225,10 @@ public class MainClientExec implements ClientExecChain {
                         response = ex.getResponse();
                         break;
                     }
-                } else {
-                    final int timeout = config.getSocketTimeout();
-                    if (timeout >= 0) {
-                        managedConn.setSocketTimeout(timeout);
-                    }
+                }
+                final int timeout = config.getSocketTimeout();
+                if (timeout >= 0) {
+                    managedConn.setSocketTimeout(timeout);
                 }
 
                 if (execAware != null && execAware.isAborted()) {
