@@ -115,7 +115,9 @@
             <Import-Package>
             javax.crypto,
             javax.crypto.spec,
-            javax.net.ssl,javax.security.auth.x500,
+            javax.net,
+            javax.net.ssl,
+            javax.security.auth.x500,
             org.ietf.jgss,
             org.apache.commons.logging;version=${commons-logging.version},
             org.apache.http;version=${httpcore.version},
