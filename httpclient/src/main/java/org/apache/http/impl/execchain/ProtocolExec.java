@@ -112,9 +112,9 @@ public class ProtocolExec implements ClientExecChain {
         // Get user info from the URI
         final AuthState targetAuthState = context.getTargetAuthState();
         if (targetAuthState != null) {
-            final URI uri = request.getURI();
-            if (uri != null) {
-                final String userinfo = uri.getUserInfo();
+            final URI requestURI = request.getURI();
+            if (requestURI != null) {
+                final String userinfo = requestURI.getUserInfo();
                 if (userinfo != null) {
                     targetAuthState.update(new BasicScheme(), new UsernamePasswordCredentials(
                         userinfo));
@@ -151,8 +151,11 @@ public class ProtocolExec implements ClientExecChain {
                 final String uriString = original.getRequestLine().getUri();
                 try {
                     uri = URI.create(uriString);
-                } catch (IllegalArgumentException e) {
-                    log.debug("Could not parse " + uriString + " as a URI to set Host header");
+                } catch (final IllegalArgumentException ex) {
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug("Unable to parse '" + uriString + "' as a valid URI; " +
+                            "request URI and Host header may be inconsistent", ex);
+                    }
                 }
 
             }
