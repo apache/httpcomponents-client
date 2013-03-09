@@ -27,28 +27,6 @@
 
 package org.apache.http.conn.ssl;
 
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.ThreadSafe;
-
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.HttpInetSocketAddress;
-import org.apache.http.conn.scheme.HostNameResolver;
-import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
-import org.apache.http.conn.scheme.LayeredSocketFactory;
-import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -59,10 +37,27 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
+import org.apache.http.HttpHost;
+import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpInetSocketAddress;
+import org.apache.http.conn.scheme.HostNameResolver;
+import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
+import org.apache.http.conn.scheme.LayeredSocketFactory;
+import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 
 /**
  * Layered socket factory for TLS/SSL connections.
@@ -163,45 +158,41 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
     public static final X509HostnameVerifier STRICT_HOSTNAME_VERIFIER
         = new StrictHostnameVerifier();
 
-    private final static char[] EMPTY_PASSWORD = "".toCharArray();
-
     /**
-     * Gets the default factory, which uses the default JSSE settings for initializing
-     * the SSL context.
+     * Obtains default SSL socket factory with an SSL context based on the standard JSSE
+     * trust material (<code>cacerts</code> file in the security properties directory).
+     * System properties are not taken into consideration.
      *
-     * @return the default SSL socket factory
+     * @return default SSL socket factory
      */
     public static SSLSocketFactory getSocketFactory() throws SSLInitializationException {
-        return new SSLSocketFactory(createDefaultSSLContext());
+        SSLContext sslcontext;
+        try {
+            sslcontext = SSLContext.getInstance("TLS");
+            sslcontext.init(null, null, null);
+            return new SSLSocketFactory(
+                sslcontext,
+                BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new SSLInitializationException(ex.getMessage(), ex);
+        } catch (KeyManagementException ex) {
+            throw new SSLInitializationException(ex.getMessage(), ex);
+        }
     }
 
     /**
-     * Gets the default factory, which uses system properties for initializing the SSL context
+     * Obtains default SSL socket factory with an SSL context based on system properties
      * as described in
      * <a href="http://docs.oracle.com/javase/1.5.0/docs/guide/security/jsse/JSSERefGuide.html">
      * "JavaTM Secure Socket Extension (JSSE) Reference Guide for the JavaTM 2 Platform
      * Standard Edition 5</a>
-     * <p>
-     * The following system properties are taken into account by this method:
-     * <ul>
-     *  <li>ssl.TrustManagerFactory.algorithm</li>
-     *  <li>javax.net.ssl.trustStoreType</li>
-     *  <li>javax.net.ssl.trustStore</li>
-     *  <li>javax.net.ssl.trustStoreProvider</li>
-     *  <li>javax.net.ssl.trustStorePassword</li>
-     *  <li>java.home</li>
-     *  <li>ssl.KeyManagerFactory.algorithm</li>
-     *  <li>javax.net.ssl.keyStoreType</li>
-     *  <li>javax.net.ssl.keyStore</li>
-     *  <li>javax.net.ssl.keyStoreProvider</li>
-     *  <li>javax.net.ssl.keyStorePassword</li>
-     * </ul>
-     * <p>
      *
-     * @return the system SSL socket factory
+     * @return default system SSL socket factory
      */
     public static SSLSocketFactory getSystemSocketFactory() throws SSLInitializationException {
-        return new SSLSocketFactory(createSystemSSLContext());
+        return new SSLSocketFactory(
+            (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault(),
+            BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
     }
 
     private final javax.net.ssl.SSLSocketFactory socketfactory;
@@ -243,132 +234,6 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
         return sslcontext;
     }
     
-    private static SSLContext createSystemSSLContext(
-            String algorithm,
-            final SecureRandom random) throws IOException, NoSuchAlgorithmException, NoSuchProviderException,
-            KeyStoreException, CertificateException, UnrecoverableKeyException, KeyManagementException {
-        if (algorithm == null) {
-            algorithm = TLS;
-        }
-        TrustManagerFactory tmfactory = null;
-
-        String trustAlgorithm = System.getProperty("ssl.TrustManagerFactory.algorithm");
-        if (trustAlgorithm == null) {
-            trustAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
-        }
-        String trustStoreType = System.getProperty("javax.net.ssl.trustStoreType");
-        if (trustStoreType == null) {
-            trustStoreType = KeyStore.getDefaultType();
-        }
-        if ("none".equalsIgnoreCase(trustStoreType)) {
-            tmfactory = TrustManagerFactory.getInstance(trustAlgorithm);
-        } else {
-            File trustStoreFile = null;
-            String s = System.getProperty("javax.net.ssl.trustStore");
-            if (s != null) {
-                trustStoreFile = new File(s);
-                tmfactory = TrustManagerFactory.getInstance(trustAlgorithm);
-                String trustStoreProvider = System.getProperty("javax.net.ssl.trustStoreProvider");
-                KeyStore trustStore;
-                if (trustStoreProvider != null) {
-                    trustStore = KeyStore.getInstance(trustStoreType, trustStoreProvider);
-                } else {
-                    trustStore = KeyStore.getInstance(trustStoreType);
-                }
-                String trustStorePassword = System.getProperty("javax.net.ssl.trustStorePassword");
-                FileInputStream instream = new FileInputStream(trustStoreFile);
-                try {
-                    trustStore.load(instream, trustStorePassword != null ?
-                            trustStorePassword.toCharArray() : null);
-                } finally {
-                    instream.close();
-                }
-                tmfactory.init(trustStore);
-            } else {
-                File javaHome = new File(System.getProperty("java.home"));
-                File file = new File(javaHome, "lib/security/jssecacerts");
-                if (!file.exists()) {
-                    file = new File(javaHome, "lib/security/cacerts");
-                    trustStoreFile = file;
-                } else {
-                    trustStoreFile = file;
-                }
-                tmfactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-                String trustStorePassword = System.getProperty("javax.net.ssl.trustStorePassword");
-                FileInputStream instream = new FileInputStream(trustStoreFile);
-                try {
-                    trustStore.load(instream, trustStorePassword != null ? trustStorePassword.toCharArray() : null);
-                } finally {
-                    instream.close();
-                }
-                tmfactory.init(trustStore);
-            }
-        }
-
-        KeyManagerFactory kmfactory = null;
-        String keyAlgorithm = System.getProperty("ssl.KeyManagerFactory.algorithm");
-        if (keyAlgorithm == null) {
-            keyAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
-        }
-        String keyStoreType = System.getProperty("javax.net.ssl.keyStoreType");
-        if (keyStoreType == null) {
-            keyStoreType = KeyStore.getDefaultType();
-        }
-        if ("none".equalsIgnoreCase(keyStoreType)) {
-            kmfactory = KeyManagerFactory.getInstance(keyAlgorithm);
-        } else {
-            File keyStoreFile = null;
-            String s = System.getProperty("javax.net.ssl.keyStore");
-            if (s != null) {
-                keyStoreFile = new File(s);
-            }
-            if (keyStoreFile != null) {
-                kmfactory = KeyManagerFactory.getInstance(keyAlgorithm);
-                String keyStoreProvider = System.getProperty("javax.net.ssl.keyStoreProvider");
-                KeyStore keyStore;
-                if (keyStoreProvider != null) {
-                    keyStore = KeyStore.getInstance(keyStoreType, keyStoreProvider);
-                } else {
-                    keyStore = KeyStore.getInstance(keyStoreType);
-                }
-                String keyStorePassword = System.getProperty("javax.net.ssl.keyStorePassword");
-                FileInputStream instream = new FileInputStream(keyStoreFile);
-                try {
-                    keyStore.load(instream, keyStorePassword != null ?
-                            keyStorePassword.toCharArray() : EMPTY_PASSWORD);
-                } finally {
-                    instream.close();
-                }
-                kmfactory.init(keyStore, keyStorePassword != null ?
-                        keyStorePassword.toCharArray() : EMPTY_PASSWORD);
-            }
-        }
-
-        SSLContext sslcontext = SSLContext.getInstance(algorithm);
-        sslcontext.init(
-                kmfactory != null ? kmfactory.getKeyManagers() : null,
-                tmfactory != null ? tmfactory.getTrustManagers() : null,
-                random);
-        return sslcontext;
-    }
-
-    private static SSLContext createDefaultSSLContext() throws SSLInitializationException {
-        try {
-            return createSSLContext(TLS, null, null, null, null, null);
-        } catch (Exception ex) {
-            throw new SSLInitializationException("Failure initializing default SSL context", ex);
-        }
-    }
-
-    private static SSLContext createSystemSSLContext() throws SSLInitializationException {
-        try {
-            return createSystemSSLContext(TLS, null);
-        } catch (Exception ex) {
-            throw new SSLInitializationException("Failure initializing default system SSL context", ex);
-        }
-    }
-
     /**
      * @deprecated Use {@link #SSLSocketFactory(String, KeyStore, String, KeyStore, SecureRandom, X509HostnameVerifier)}
      */

@@ -1,14 +1,13 @@
 Changes since Release 4.2.3
 -------------------
 
+* [HTTPCLIENT-1320] Leverage javax.net.ssl.SSLSocketFactory#getDefault() to initialize SSL context 
+  based on system defaults instead of using an internal custom routine.
+  Contributed by Abe Backus <abraham at backus.com> and Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1315] NTLM support did not work properly when the target (as returned
   in the Type 2 message) differed from the domain as supplied by the user.
   Contributed by Karl Wright <kwright at apache.org>
-
-* [HTTPCLIENT-1320] SSLSocketFactory#createSystemSSLContext causes UnrecoverableKeyException 
-  'Password verification failed' when a truststore is specified with 'javax.net.ssl.trustStore' 
-  system property is used without a password.
-  Contributed by Abe Backus <abraham at backus.com> 
 
 * PoolingClientConnectionManager does not use ClientConnectionOperator#createConnection() 
   method to create new connections.
