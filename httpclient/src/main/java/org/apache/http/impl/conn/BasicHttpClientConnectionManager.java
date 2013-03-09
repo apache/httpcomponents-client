@@ -49,7 +49,7 @@ import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpConnectionFactory;
 import org.apache.http.conn.SchemePortResolver;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainSocketFactory;
@@ -81,10 +81,10 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private final Log log = LogFactory.getLog(getClass());
 
     private final HttpClientConnectionOperator connectionOperator;
-    private final HttpConnectionFactory<SocketClientConnection> connFactory;
+    private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
 
     @GuardedBy("this")
-    private SocketClientConnection conn;
+    private ManagedHttpClientConnection conn;
 
     @GuardedBy("this")
     private HttpRoute route;
@@ -119,13 +119,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     public BasicHttpClientConnectionManager(
             final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<SocketClientConnection> connFactory,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
         super();
         this.connectionOperator = new HttpClientConnectionOperator(
                 socketFactoryRegistry, schemePortResolver, dnsResolver);
-        this.connFactory = connFactory != null ? connFactory : DefaultClientConnectionFactory.INSTANCE;
+        this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
         this.expiry = Long.MAX_VALUE;
         this.socketConfig = SocketConfig.DEFAULT;
         this.connConfig = ConnectionConfig.DEFAULT;
@@ -133,7 +133,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     public BasicHttpClientConnectionManager(
             final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<SocketClientConnection> connFactory) {
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
         this(socketFactoryRegistry, connFactory, null, null);
     }
 
@@ -302,25 +302,37 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     public void connect(
             final HttpClientConnection conn,
-            final HttpHost host,
-            final InetSocketAddress localAddress,
+            final HttpRoute route,
             final int connectTimeout,
             final HttpContext context) throws IOException {
         Args.notNull(conn, "Connection");
-        Args.notNull(host, "HTTP host");
+        Args.notNull(route, "HTTP route");
         Asserts.check(conn == this.conn, "Connection not obtained from this manager");
+        HttpHost host;
+        if (route.getProxyHost() != null) {
+            host = route.getProxyHost();
+        } else {
+            host = route.getTargetHost();
+        }
+        final InetSocketAddress localAddress = route.getLocalSocketAddress();
         this.connectionOperator.connect(this.conn, host, localAddress,
                 connectTimeout, this.socketConfig, context);
     }
 
     public void upgrade(
             final HttpClientConnection conn,
-            final HttpHost host,
+            final HttpRoute route,
             final HttpContext context) throws IOException {
         Args.notNull(conn, "Connection");
-        Args.notNull(host, "HTTP host");
+        Args.notNull(route, "HTTP route");
         Asserts.check(conn == this.conn, "Connection not obtained from this manager");
-        this.connectionOperator.upgrade(this.conn, host, context);
+        this.connectionOperator.upgrade(this.conn, route.getTargetHost(), context);
+    }
+
+    public void routeComplete(
+            final HttpClientConnection conn,
+            final HttpRoute route,
+            final HttpContext context) throws IOException {
     }
 
     public synchronized void closeExpiredConnections() {

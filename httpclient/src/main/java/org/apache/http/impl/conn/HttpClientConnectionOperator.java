@@ -45,7 +45,7 @@ import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.SchemePortResolver;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainSocketFactory;
@@ -86,7 +86,7 @@ class HttpClientConnectionOperator {
     }
 
     public void connect(
-            final SocketClientConnection conn,
+            final ManagedHttpClientConnection conn,
             final HttpHost host,
             final InetSocketAddress localAddress,
             final int connectTimeout,
@@ -140,7 +140,7 @@ class HttpClientConnectionOperator {
     }
 
     public void upgrade(
-            final SocketClientConnection conn,
+            final ManagedHttpClientConnection conn,
             final HttpHost host,
             final HttpContext context) throws IOException {
         final HttpClientContext clientContext = HttpClientContext.adapt(context);

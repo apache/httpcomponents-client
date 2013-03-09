@@ -67,6 +67,10 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         this.poolEntry = entry;
     }
 
+    public String getId() {
+        return null;
+    }
+
     /**
      * Obtains the pool entry.
      *

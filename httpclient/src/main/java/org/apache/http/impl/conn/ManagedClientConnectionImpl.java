@@ -56,7 +56,7 @@ import org.apache.http.util.Asserts;
 /**
  * @since 4.2
  *
- * @deprecated (4.3) no longer used.
+ * @deprecated (4.3) use {@link ManagedHttpClientConnectionFactory}.
  */
 @Deprecated
 @NotThreadSafe
@@ -81,6 +81,10 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         this.poolEntry = entry;
         this.reusable = false;
         this.duration = Long.MAX_VALUE;
+    }
+
+    public String getId() {
+        return null;
     }
 
     HttpPoolEntry getPoolEntry() {

@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.AbstractConnPool;
 import org.apache.http.pool.ConnFactory;
@@ -41,7 +41,7 @@ import org.apache.http.pool.ConnFactory;
  * @since 4.3
  */
 @ThreadSafe
-class CPool extends AbstractConnPool<HttpRoute, SocketClientConnection, CPoolEntry> {
+class CPool extends AbstractConnPool<HttpRoute, ManagedHttpClientConnection, CPoolEntry> {
 
     private static AtomicLong COUNTER = new AtomicLong();
 
@@ -50,7 +50,7 @@ class CPool extends AbstractConnPool<HttpRoute, SocketClientConnection, CPoolEnt
     private final TimeUnit tunit;
 
     public CPool(
-            final ConnFactory<HttpRoute, SocketClientConnection> connFactory,
+            final ConnFactory<HttpRoute, ManagedHttpClientConnection> connFactory,
             final int defaultMaxPerRoute, final int maxTotal,
             final long timeToLive, final TimeUnit tunit) {
         super(connFactory, defaultMaxPerRoute, maxTotal);
@@ -59,7 +59,7 @@ class CPool extends AbstractConnPool<HttpRoute, SocketClientConnection, CPoolEnt
     }
 
     @Override
-    protected CPoolEntry createEntry(final HttpRoute route, final SocketClientConnection conn) {
+    protected CPoolEntry createEntry(final HttpRoute route, final ManagedHttpClientConnection conn) {
         final String id = Long.toString(COUNTER.getAndIncrement());
         return new CPoolEntry(this.log, id, route, conn, this.timeToLive, this.tunit);
     }

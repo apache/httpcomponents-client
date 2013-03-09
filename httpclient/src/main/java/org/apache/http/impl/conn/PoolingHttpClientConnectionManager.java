@@ -52,7 +52,7 @@ import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpConnectionFactory;
 import org.apache.http.conn.SchemePortResolver;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainSocketFactory;
@@ -120,25 +120,25 @@ public class PoolingHttpClientConnectionManager
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<SocketClientConnection> connFactory) {
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
         this(socketFactoryRegistry, connFactory, null);
     }
 
     public PoolingHttpClientConnectionManager(
-            final HttpConnectionFactory<SocketClientConnection> connFactory) {
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
         this(getDefaultRegistry(), connFactory, null);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<SocketClientConnection> connFactory,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
             final DnsResolver dnsResolver) {
         this(socketFactoryRegistry, connFactory, null, dnsResolver, -1, TimeUnit.MILLISECONDS);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<SocketClientConnection> connFactory,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
             final long timeToLive, final TimeUnit tunit) {
@@ -261,7 +261,7 @@ public class PoolingHttpClientConnectionManager
             if (entry == null) {
                 return;
             }
-            final SocketClientConnection conn = entry.getConnection();
+            final ManagedHttpClientConnection conn = entry.getConnection();
             try {
                 if (conn.isOpen()) {
                     entry.setState(state);
@@ -277,7 +277,7 @@ public class PoolingHttpClientConnectionManager
                     }
                 }
             } finally {
-                this.pool.release(entry, conn.isOpen());
+                this.pool.release(entry, conn.isOpen() && entry.isRouteComplete());
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("Connection released: " + format(entry) + formatStats(entry.getRoute()));
                 }
@@ -287,16 +287,23 @@ public class PoolingHttpClientConnectionManager
 
     public void connect(
             final HttpClientConnection managedConn,
-            final HttpHost host,
-            final InetSocketAddress localAddress,
+            final HttpRoute route,
             final int connectTimeout,
             final HttpContext context) throws IOException {
-        Args.notNull(managedConn, "Connection");
-        SocketClientConnection conn;
+        Args.notNull(managedConn, "Managed Connection");
+        Args.notNull(route, "HTTP route");
+        ManagedHttpClientConnection conn;
         synchronized (managedConn) {
             final CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
             conn = entry.getConnection();
         }
+        final HttpHost host;
+        if (route.getProxyHost() != null) {
+            host = route.getProxyHost();
+        } else {
+            host = route.getTargetHost();
+        }
+        final InetSocketAddress localAddress = route.getLocalSocketAddress();
         SocketConfig socketConfig = this.configData.getSocketConfig(host);
         if (socketConfig == null) {
             socketConfig = this.configData.getDefaultSocketConfig();
@@ -310,15 +317,28 @@ public class PoolingHttpClientConnectionManager
 
     public void upgrade(
             final HttpClientConnection managedConn,
-            final HttpHost host,
+            final HttpRoute route,
             final HttpContext context) throws IOException {
-        Args.notNull(managedConn, "Connection");
-        SocketClientConnection conn;
+        Args.notNull(managedConn, "Managed Connection");
+        Args.notNull(route, "HTTP route");
+        ManagedHttpClientConnection conn;
         synchronized (managedConn) {
             final CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
             conn = entry.getConnection();
         }
-        this.connectionOperator.upgrade(conn, host, context);
+        this.connectionOperator.upgrade(conn, route.getTargetHost(), context);
+    }
+
+    public void routeComplete(
+            final HttpClientConnection managedConn,
+            final HttpRoute route,
+            final HttpContext context) throws IOException {
+        Args.notNull(managedConn, "Managed Connection");
+        Args.notNull(route, "HTTP route");
+        synchronized (managedConn) {
+            final CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
+            entry.markRouteComplete();
+        }
     }
 
     public void shutdown() {
@@ -454,21 +474,21 @@ public class PoolingHttpClientConnectionManager
 
     }
 
-    static class InternalConnectionFactory implements ConnFactory<HttpRoute, SocketClientConnection> {
+    static class InternalConnectionFactory implements ConnFactory<HttpRoute, ManagedHttpClientConnection> {
 
         private final ConfigData configData;
-        private final HttpConnectionFactory<SocketClientConnection> connFactory;
+        private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
 
         InternalConnectionFactory(
                 final ConfigData configData,
-                final HttpConnectionFactory<SocketClientConnection> connFactory) {
+                final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
             super();
             this.configData = configData != null ? configData : new ConfigData();
             this.connFactory = connFactory != null ? connFactory :
-                DefaultClientConnectionFactory.INSTANCE;
+                ManagedHttpClientConnectionFactory.INSTANCE;
         }
 
-        public SocketClientConnection create(final HttpRoute route) throws IOException {
+        public ManagedHttpClientConnection create(final HttpRoute route) throws IOException {
             ConnectionConfig config = null;
             if (route.getProxyHost() != null) {
                 config = this.configData.getConnectionConfig(route.getProxyHost());

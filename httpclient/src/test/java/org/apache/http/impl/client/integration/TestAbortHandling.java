@@ -296,8 +296,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         final HttpClientConnectionManager connmgr = Mockito.mock(HttpClientConnectionManager.class);
         Mockito.doThrow(new ConnectException()).when(connmgr).connect(
                 Mockito.any(HttpClientConnection.class),
-                Mockito.any(HttpHost.class),
-                Mockito.any(InetSocketAddress.class),
+                Mockito.any(HttpRoute.class),
                 Mockito.anyInt(),
                 Mockito.any(HttpContext.class));
 
@@ -459,6 +458,28 @@ public class TestAbortHandling extends IntegrationTestBase {
                 final HttpClientConnection conn,
                 final Object newState,
                 final long validDuration, final TimeUnit timeUnit) {
+            throw new UnsupportedOperationException("just a mockup");
+        }
+
+        public void connect(
+                final HttpClientConnection conn,
+                final HttpRoute route,
+                final int connectTimeout,
+                final HttpContext context) throws IOException {
+            throw new UnsupportedOperationException("just a mockup");
+        }
+
+        public void upgrade(
+                final HttpClientConnection conn,
+                final HttpRoute route,
+                final HttpContext context) throws IOException {
+            throw new UnsupportedOperationException("just a mockup");
+        }
+
+        public void routeComplete(
+                final HttpClientConnection conn,
+                final HttpRoute route,
+                final HttpContext context) throws IOException {
             throw new UnsupportedOperationException("just a mockup");
         }
 

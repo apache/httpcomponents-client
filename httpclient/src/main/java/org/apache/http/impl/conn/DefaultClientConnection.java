@@ -46,7 +46,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseFactory;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.OperatedClientConnection;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.impl.SocketHttpClientConnection;
 import org.apache.http.io.HttpMessageParser;
 import org.apache.http.io.SessionInputBuffer;
@@ -62,12 +62,12 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  *
- * @deprecated (4.3) deprecated in favor of {@link SocketClientConnectionImpl}.
+ * @deprecated (4.3) use {@link ManagedHttpClientConnectionFactory}.
  */
 @NotThreadSafe // connSecure, targetHost
 @Deprecated
 public class DefaultClientConnection extends SocketHttpClientConnection
-    implements OperatedClientConnection, SocketClientConnection, HttpContext {
+    implements OperatedClientConnection, ManagedHttpClientConnection, HttpContext {
 
     private final Log log = LogFactory.getLog(getClass());
     private final Log headerLog = LogFactory.getLog("org.apache.http.headers");
@@ -91,6 +91,10 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     public DefaultClientConnection() {
         super();
         this.attributes = new HashMap<String, Object>();
+    }
+
+    public String getId() {
+        return null;
     }
 
     public final HttpHost getTargetHost() {

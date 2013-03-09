@@ -56,7 +56,7 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpConnectionFactory;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainSocketFactory;
@@ -68,7 +68,7 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.DefaultClientConnectionFactory;
+import org.apache.http.impl.conn.ManagedHttpClientConnectionFactory;
 import org.apache.http.impl.conn.DefaultHttpResponseParser;
 import org.apache.http.impl.conn.DefaultHttpResponseParserFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -130,7 +130,7 @@ public class ClientConfiguration {
         // configuration parameters HTTP connection factory can control the size of
         // input / output buffers as well as determine message parser / writer routines
         // to be employed by individual connections.
-        HttpConnectionFactory<SocketClientConnection> connFactory = new DefaultClientConnectionFactory(
+        HttpConnectionFactory<ManagedHttpClientConnection> connFactory = new ManagedHttpClientConnectionFactory(
                 8 * 1024, requestWriterFactory, responseParserFactory);
 
         // Client HTTP connection objects when fully initialized can be bound to

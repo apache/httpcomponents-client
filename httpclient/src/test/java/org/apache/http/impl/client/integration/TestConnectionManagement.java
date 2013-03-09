@@ -113,7 +113,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpContext context = new BasicHttpContext();
 
         HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route.getTargetHost(), route.getLocalSocketAddress(), 0, context);
+        mgr.connect(conn, route, 0, context);
+        mgr.routeComplete(conn, route, context);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
@@ -147,7 +148,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         conn = getConnection(mgr, route);
         Assert.assertFalse("connection should have been closed", conn.isOpen());
 
-        mgr.connect(conn, route.getTargetHost(), route.getLocalSocketAddress(), 0, context);
+        mgr.connect(conn, route, 0, context);
+        mgr.routeComplete(conn, route, context);
 
         // repeat the communication, no need to prepare the request again
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
@@ -201,7 +203,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpContext context = new BasicHttpContext();
 
         HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route.getTargetHost(), route.getLocalSocketAddress(), 0, context);
+        mgr.connect(conn, route, 0, context);
+        mgr.routeComplete(conn, route, context);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
@@ -236,7 +239,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         Assert.assertFalse("connection should have been closed", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        mgr.connect(conn, route.getTargetHost(), route.getLocalSocketAddress(), 0, context);
+        mgr.connect(conn, route, 0, context);
+        mgr.routeComplete(conn, route, context);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         response = exec.execute(request, conn, context);
@@ -271,7 +275,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         Assert.assertTrue("connection should have been closed", !conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        mgr.connect(conn, route.getTargetHost(), route.getLocalSocketAddress(), 0, context);
+        mgr.connect(conn, route, 0, context);
+        mgr.routeComplete(conn, route, context);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         response = exec.execute(request, conn, context);
@@ -298,7 +303,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpContext context = new BasicHttpContext();
 
         final HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route.getTargetHost(), route.getLocalSocketAddress(), 0, context);
+        mgr.connect(conn, route, 0, context);
+        mgr.routeComplete(conn, route, context);
 
         Assert.assertEquals(1, mgr.getTotalStats().getLeased());
         Assert.assertEquals(1, mgr.getStats(route).getLeased());
@@ -338,7 +344,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpContext context = new BasicHttpContext();
 
         final HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route.getTargetHost(), route.getLocalSocketAddress(), 0, context);
+        mgr.connect(conn, route, 0, context);
+        mgr.routeComplete(conn, route, context);
 
         Assert.assertEquals(1, mgr.getTotalStats().getLeased());
         Assert.assertEquals(1, mgr.getStats(route).getLeased());
@@ -386,7 +393,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
             new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
 
         HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route.getTargetHost(), route.getLocalSocketAddress(), 0, context);
+        mgr.connect(conn, route, 0, context);
+        mgr.routeComplete(conn, route, context);
 
         context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
         context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
@@ -458,7 +466,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         abortingThread.start();
 
         try {
-            mgr.connect(conn, route.getTargetHost(), route.getLocalSocketAddress(), 0, context);
+            mgr.connect(conn, route, 0, context);
+            mgr.routeComplete(conn, route, context);
             Assert.fail("expected SocketException");
         } catch(final SocketException expected) {}
 
@@ -512,7 +521,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         abortingThread.start();
 
         try {
-            mgr.connect(conn, route.getTargetHost(), route.getLocalSocketAddress(), 0, context);
+            mgr.connect(conn, route, 0, context);
+            mgr.routeComplete(conn, route, context);
             Assert.fail("IOException expected");
         } catch(final IOException expected) {
         }
@@ -567,7 +577,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         abortingThread.start();
 
         try {
-            mgr.connect(conn, route.getTargetHost(), route.getLocalSocketAddress(), 0, context);
+            mgr.connect(conn, route, 0, context);
+            mgr.routeComplete(conn, route, context);
             Assert.fail("IOException expected");
         } catch(final IOException expected) {
         }

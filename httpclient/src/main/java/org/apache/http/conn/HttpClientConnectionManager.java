@@ -27,11 +27,9 @@
 package org.apache.http.conn;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpClientConnection;
-import org.apache.http.HttpHost;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.protocol.HttpContext;
 
@@ -80,12 +78,18 @@ public interface HttpClientConnectionManager {
 
     void connect(
             HttpClientConnection conn,
-            HttpHost host, InetSocketAddress localAddress,
+            HttpRoute route,
             int connectTimeout,
             HttpContext context) throws IOException;
 
     void upgrade(
-            HttpClientConnection conn, HttpHost host,
+            HttpClientConnection conn,
+            HttpRoute route,
+            HttpContext context) throws IOException;
+
+    void routeComplete(
+            HttpClientConnection conn,
+            HttpRoute route,
             HttpContext context) throws IOException;
 
     /**

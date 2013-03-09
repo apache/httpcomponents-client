@@ -31,13 +31,16 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
+import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.HttpConnectionFactory;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.impl.io.DefaultHttpRequestWriterFactory;
 import org.apache.http.io.HttpMessageParserFactory;
 import org.apache.http.io.HttpMessageWriterFactory;
@@ -47,17 +50,23 @@ import org.apache.http.util.Args;
  * @since 4.3
  */
 @Immutable
-public class DefaultClientConnectionFactory implements HttpConnectionFactory<SocketClientConnection> {
+public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory<ManagedHttpClientConnection> {
+
+    private static final AtomicLong COUNTER = new AtomicLong();
 
     private static final int DEFAULT_BUFSIZE = 8 * 1024;
 
-    public static final DefaultClientConnectionFactory INSTANCE = new DefaultClientConnectionFactory();
+    public static final ManagedHttpClientConnectionFactory INSTANCE = new ManagedHttpClientConnectionFactory();
+
+    private final Log log = LogFactory.getLog(ManagedHttpClientConnectionImpl.class);
+    private final Log headerlog = LogFactory.getLog("org.apache.http.headers");
+    private final Log wirelog = LogFactory.getLog("org.apache.http.wire");
 
     private final int bufferSize;
     private final HttpMessageWriterFactory<HttpRequest> requestWriterFactory;
     private final HttpMessageParserFactory<HttpResponse> responseParserFactory;
 
-    public DefaultClientConnectionFactory(
+    public ManagedHttpClientConnectionFactory(
             final int bufferSize,
             final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
@@ -69,26 +78,26 @@ public class DefaultClientConnectionFactory implements HttpConnectionFactory<Soc
             DefaultHttpResponseParserFactory.INSTANCE;
     }
 
-    public DefaultClientConnectionFactory(
+    public ManagedHttpClientConnectionFactory(
             final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
         this(DEFAULT_BUFSIZE, requestWriterFactory, responseParserFactory);
     }
 
-    public DefaultClientConnectionFactory(
+    public ManagedHttpClientConnectionFactory(
             final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
         this(null, responseParserFactory);
     }
 
-    public DefaultClientConnectionFactory(final int bufferSize) {
+    public ManagedHttpClientConnectionFactory(final int bufferSize) {
         this(bufferSize, null, null);
     }
 
-    public DefaultClientConnectionFactory() {
+    public ManagedHttpClientConnectionFactory() {
         this(DEFAULT_BUFSIZE, null, null);
     }
 
-    public SocketClientConnection create(final ConnectionConfig config) {
+    public ManagedHttpClientConnection create(final ConnectionConfig config) {
         final ConnectionConfig cconfig = config != null ? config : ConnectionConfig.DEFAULT;
         CharsetDecoder chardecoder = null;
         CharsetEncoder charencoder = null;
@@ -105,10 +114,18 @@ public class DefaultClientConnectionFactory implements HttpConnectionFactory<Soc
             charencoder.onMalformedInput(malformedInputAction);
             charencoder.onUnmappableCharacter(unmappableInputAction);
         }
-        return new SocketClientConnectionImpl(bufferSize,
-                chardecoder, charencoder,
+        final String id = "http-outgoing-" + Long.toString(COUNTER.getAndIncrement());
+        return new ManagedHttpClientConnectionImpl(
+                id,
+                log,
+                headerlog,
+                wirelog,
+                bufferSize,
+                chardecoder,
+                charencoder,
                 cconfig.getMessageConstraints(),
-                null, null,
+                null,
+                null,
                 requestWriterFactory,
                 responseParserFactory);
     }

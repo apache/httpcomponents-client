@@ -35,7 +35,7 @@ import java.lang.reflect.Proxy;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpConnection;
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -88,23 +88,21 @@ class CPoolProxy implements InvocationHandler {
     public void close() throws IOException {
         final CPoolEntry local = this.poolEntry;
         if (local != null) {
-            final HttpClientConnection conn = local.getConnection();
-            conn.close();
+            local.closeConnection();
         }
     }
 
     public void shutdown() throws IOException {
         final CPoolEntry local = this.poolEntry;
         if (local != null) {
-            final HttpClientConnection conn = local.getConnection();
-            conn.shutdown();
+            local.shutdownConnection();
         }
     }
 
     public boolean isOpen() {
-        final HttpClientConnection conn = getConnection();
-        if (conn != null) {
-            return conn.isOpen();
+        final CPoolEntry local = this.poolEntry;
+        if (local != null) {
+            return !local.isClosed();
         } else {
             return false;
         }
@@ -153,7 +151,7 @@ class CPoolProxy implements InvocationHandler {
             final CPoolEntry poolEntry) {
         return (HttpClientConnection) Proxy.newProxyInstance(
                 CPoolProxy.class.getClassLoader(),
-                new Class<?>[] { SocketClientConnection.class, HttpContext.class },
+                new Class<?>[] { ManagedHttpClientConnection.class, HttpContext.class },
                 new CPoolProxy(poolEntry));
     }
 

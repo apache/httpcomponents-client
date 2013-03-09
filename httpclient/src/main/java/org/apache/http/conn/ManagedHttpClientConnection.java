@@ -40,7 +40,9 @@ import org.apache.http.HttpInetConnection;
  *
  * @since 4.3
  */
-public interface SocketClientConnection extends HttpClientConnection, HttpInetConnection {
+public interface ManagedHttpClientConnection extends HttpClientConnection, HttpInetConnection {
+
+    String getId();
 
     void bind(Socket socket) throws IOException;
 

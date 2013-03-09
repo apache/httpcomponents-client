@@ -35,7 +35,7 @@ import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.Lookup;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpConnectionFactory;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.junit.Assert;
@@ -45,15 +45,15 @@ import org.mockito.Mockito;
 
 public class TestBasicHttpClientConnectionManager {
 
-    private SocketClientConnection conn;
-    private HttpConnectionFactory<SocketClientConnection> connFactory;
+    private ManagedHttpClientConnection conn;
+    private HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
     private Lookup<ConnectionSocketFactory> socketFactoryRegistry;
     private BasicHttpClientConnectionManager mgr;
 
     @SuppressWarnings("unchecked")
     @Before
     public void setup() throws Exception {
-        conn = Mockito.mock(SocketClientConnection.class);
+        conn = Mockito.mock(ManagedHttpClientConnection.class);
         connFactory = Mockito.mock(HttpConnectionFactory.class);
         socketFactoryRegistry = Mockito.mock(Lookup.class);
         mgr = new BasicHttpClientConnectionManager(socketFactoryRegistry, connFactory);

@@ -50,7 +50,7 @@ import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.RequestClientConnControl;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.HttpConnectionFactory;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.RouteInfo.LayerType;
 import org.apache.http.conn.routing.RouteInfo.TunnelType;
@@ -61,7 +61,7 @@ import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.auth.KerberosSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
-import org.apache.http.impl.conn.DefaultClientConnectionFactory;
+import org.apache.http.impl.conn.ManagedHttpClientConnectionFactory;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParamConfig;
@@ -79,7 +79,7 @@ import org.apache.http.util.EntityUtils;
 @SuppressWarnings("deprecation")
 public class ProxyClient {
 
-    private final HttpConnectionFactory<SocketClientConnection> connFactory;
+    private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
     private final ConnectionConfig connectionConfig;
     private final RequestConfig requestConfig;
     private final HttpProcessor httpProcessor;
@@ -94,11 +94,11 @@ public class ProxyClient {
      * @since 4.3
      */
     public ProxyClient(
-            final HttpConnectionFactory<SocketClientConnection> connFactory,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
             final ConnectionConfig connectionConfig,
             final RequestConfig requestConfig) {
         super();
-        this.connFactory = connFactory != null ? connFactory : DefaultClientConnectionFactory.INSTANCE;
+        this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
         this.connectionConfig = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
         this.requestConfig = requestConfig != null ? requestConfig : RequestConfig.DEFAULT;
         this.httpProcessor = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {
@@ -172,7 +172,7 @@ public class ProxyClient {
                 this.requestConfig.getLocalAddress(),
                 proxy, false, TunnelType.TUNNELLED, LayerType.PLAIN);
 
-        final SocketClientConnection conn = this.connFactory.create(this.connectionConfig);
+        final ManagedHttpClientConnection conn = this.connFactory.create(this.connectionConfig);
         final HttpContext context = new BasicHttpContext();
         HttpResponse response = null;
 

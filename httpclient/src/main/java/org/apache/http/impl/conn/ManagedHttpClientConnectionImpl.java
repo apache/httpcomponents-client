@@ -36,28 +36,24 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.config.MessageConstraints;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.entity.ContentLengthStrategy;
 import org.apache.http.impl.DefaultBHttpClientConnection;
 import org.apache.http.io.HttpMessageParserFactory;
 import org.apache.http.io.HttpMessageWriterFactory;
 import org.apache.http.protocol.HttpContext;
 
-class SocketClientConnectionImpl extends DefaultBHttpClientConnection
-                                 implements SocketClientConnection, HttpContext {
-
-    private static final AtomicLong COUNT = new AtomicLong();
+class ManagedHttpClientConnectionImpl extends DefaultBHttpClientConnection
+                                 implements ManagedHttpClientConnection, HttpContext {
 
     private final String id;
     private final Log log;
@@ -67,7 +63,11 @@ class SocketClientConnectionImpl extends DefaultBHttpClientConnection
 
     private volatile boolean shutdown;
 
-    public SocketClientConnectionImpl(
+    public ManagedHttpClientConnectionImpl(
+            final String id,
+            final Log log,
+            final Log headerlog,
+            final Log wirelog,
             final int buffersize,
             final CharsetDecoder chardecoder,
             final CharsetEncoder charencoder,
@@ -79,15 +79,15 @@ class SocketClientConnectionImpl extends DefaultBHttpClientConnection
         super(buffersize, chardecoder, charencoder,
                 constraints, incomingContentStrategy, outgoingContentStrategy,
                 requestWriterFactory, responseParserFactory);
-        this.id = "http-outgoing-" + COUNT.incrementAndGet();
-        this.log = LogFactory.getLog(getClass());
-        this.headerlog = LogFactory.getLog("org.apache.http.headers");
-        this.wire = new Wire(LogFactory.getLog("org.apache.http.wire"), this.id);
+        this.id = id;
+        this.log = log;
+        this.headerlog = headerlog;
+        this.wire = new Wire(wirelog, this.id);
         this.attributes = new ConcurrentHashMap<String, Object>();
     }
 
-    public SocketClientConnectionImpl(final int buffersize) {
-        this(buffersize, null, null, null, null, null, null, null);
+    public String getId() {
+        return this.id;
     }
 
     @Override

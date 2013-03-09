@@ -37,7 +37,7 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.SchemePortResolver;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.protocol.BasicHttpContext;
@@ -48,7 +48,7 @@ import org.mockito.Mockito;
 
 public class TestHttpClientConnectionOperator {
 
-    private SocketClientConnection conn;
+    private ManagedHttpClientConnection conn;
     private Socket socket;
     private ConnectionSocketFactory plainSocketFactory;
     private LayeredConnectionSocketFactory sslSocketFactory;
@@ -60,7 +60,7 @@ public class TestHttpClientConnectionOperator {
     @SuppressWarnings("unchecked")
     @Before
     public void setup() throws Exception {
-        conn = Mockito.mock(SocketClientConnection.class);
+        conn = Mockito.mock(ManagedHttpClientConnection.class);
         socket = Mockito.mock(Socket.class);
         plainSocketFactory = Mockito.mock(ConnectionSocketFactory.class);
         sslSocketFactory = Mockito.mock(LayeredConnectionSocketFactory.class);

@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.conn.SocketClientConnection;
+import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.PoolEntry;
 
@@ -41,18 +41,37 @@ import org.apache.http.pool.PoolEntry;
  * @since 4.3
  */
 @ThreadSafe
-class CPoolEntry extends PoolEntry<HttpRoute, SocketClientConnection> {
+class CPoolEntry extends PoolEntry<HttpRoute, ManagedHttpClientConnection> {
 
     private final Log log;
+    private volatile boolean routeComplete;
 
     public CPoolEntry(
             final Log log,
             final String id,
             final HttpRoute route,
-            final SocketClientConnection conn,
+            final ManagedHttpClientConnection conn,
             final long timeToLive, final TimeUnit tunit) {
         super(id, route, conn, timeToLive, tunit);
         this.log = log;
+    }
+
+    public void markRouteComplete() {
+        this.routeComplete = true;
+    }
+
+    public boolean isRouteComplete() {
+        return this.routeComplete;
+    }
+
+    public void closeConnection() throws IOException {
+        final HttpClientConnection conn = getConnection();
+        conn.close();
+    }
+
+    public void shutdownConnection() throws IOException {
+        final HttpClientConnection conn = getConnection();
+        conn.shutdown();
     }
 
     @Override
@@ -72,9 +91,8 @@ class CPoolEntry extends PoolEntry<HttpRoute, SocketClientConnection> {
 
     @Override
     public void close() {
-        final HttpClientConnection conn = getConnection();
         try {
-            conn.close();
+            closeConnection();
         } catch (final IOException ex) {
             this.log.debug("I/O error closing connection", ex);
         }

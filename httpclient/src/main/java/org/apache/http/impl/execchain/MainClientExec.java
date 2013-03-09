@@ -360,7 +360,7 @@ public class MainClientExec implements ClientExecChain {
             case HttpRouteDirector.CONNECT_TARGET:
                 this.connManager.connect(
                         managedConn,
-                        route.getTargetHost(), route.getLocalSocketAddress(),
+                        route,
                         timeout > 0 ? timeout : 0,
                         context);
                 tracker.connectTarget(route.isSecure());
@@ -368,7 +368,7 @@ public class MainClientExec implements ClientExecChain {
             case HttpRouteDirector.CONNECT_PROXY:
                 this.connManager.connect(
                         managedConn,
-                        route.getProxyHost(), route.getLocalSocketAddress(),
+                        route,
                         timeout > 0 ? timeout : 0,
                         context);
                 final HttpHost proxy  = route.getProxyHost();
@@ -393,14 +393,15 @@ public class MainClientExec implements ClientExecChain {
             }   break;
 
             case HttpRouteDirector.LAYER_PROTOCOL:
-                this.connManager.upgrade(managedConn, route.getTargetHost(), context);
+                this.connManager.upgrade(managedConn, route, context);
+                tracker.layerProtocol(route.isSecure());
                 break;
 
             case HttpRouteDirector.UNREACHABLE:
                 throw new HttpException("Unable to establish route: " +
                         "planned = " + route + "; current = " + fact);
             case HttpRouteDirector.COMPLETE:
-                // do nothing
+                this.connManager.routeComplete(managedConn, route, context);
                 break;
             default:
                 throw new IllegalStateException("Unknown step indicator "
@@ -441,7 +442,7 @@ public class MainClientExec implements ClientExecChain {
             if (!managedConn.isOpen()) {
                 this.connManager.connect(
                         managedConn,
-                        route.getProxyHost(), route.getLocalSocketAddress(),
+                        route,
                         timeout > 0 ? timeout : 0,
                         context);
             }

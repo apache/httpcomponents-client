@@ -48,7 +48,7 @@ import org.apache.http.protocol.HttpContext;
  */
 @Deprecated
 public interface ManagedClientConnection extends
-    HttpClientConnection, HttpRoutedConnection, SocketClientConnection, ConnectionReleaseTrigger {
+    HttpClientConnection, HttpRoutedConnection, ManagedHttpClientConnection, ConnectionReleaseTrigger {
 
     /**
      * Indicates whether this connection is secure.
