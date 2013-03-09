@@ -61,6 +61,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainSocketFactory;
 import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
+import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.DefaultHttpResponseFactory;
@@ -140,7 +141,7 @@ public class ClientConfiguration {
 
         // SSL context for secure connections can be created either based on
         // system or application specific properties.
-        SSLContext sslcontext = SSLSocketFactory.createSystemSSLContext();
+        SSLContext sslcontext = SSLContexts.createSystemDefault();
         // Use custom hostname verifier to customize SSL hostname verification.
         X509HostnameVerifier hostnameVerifier = new BrowserCompatHostnameVerifier();
 
