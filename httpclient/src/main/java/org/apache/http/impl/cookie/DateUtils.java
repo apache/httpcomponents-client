@@ -147,8 +147,10 @@ public final class DateUtils {
         // trim single quotes around date if present
         // see issue #5279
         if (dateValue.length() > 1
-            && dateValue.startsWith("'")
-            && dateValue.endsWith("'")
+            && (
+                (dateValue.startsWith("'") && dateValue.endsWith("'"))
+                || (dateValue.startsWith("\"") && dateValue.endsWith("\""))
+                )
         ) {
             dateValue = dateValue.substring (1, dateValue.length() - 1);
         }
