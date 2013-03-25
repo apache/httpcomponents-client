@@ -222,6 +222,8 @@ public class DefaultHttpClient extends AbstractHttpClient {
         httpproc.addInterceptor(new ResponseProcessCookies());
         // HTTP authentication interceptors
         httpproc.addInterceptor(new RequestAuthCache());
+        httpproc.addInterceptor(new RequestTargetAuthentication());
+        httpproc.addInterceptor(new RequestProxyAuthentication());
         return httpproc;
     }
 
