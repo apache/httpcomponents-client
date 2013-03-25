@@ -128,11 +128,10 @@ public class ClientConfiguration {
 
         // Use a custom connection factory to customize the process of
         // initialization of outgoing HTTP connections. Beside standard connection
-        // configuration parameters HTTP connection factory can control the size of
-        // input / output buffers as well as determine message parser / writer routines
-        // to be employed by individual connections.
+        // configuration parameters HTTP connection factory can define message
+        // parser / writer routines to be employed by individual connections.
         HttpConnectionFactory<ManagedHttpClientConnection> connFactory = new ManagedHttpClientConnectionFactory(
-                8 * 1024, requestWriterFactory, responseParserFactory);
+                requestWriterFactory, responseParserFactory);
 
         // Client HTTP connection objects when fully initialized can be bound to
         // an arbitrary network socket. The process of network socket initialization,

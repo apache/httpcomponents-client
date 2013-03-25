@@ -44,7 +44,6 @@ import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.impl.io.DefaultHttpRequestWriterFactory;
 import org.apache.http.io.HttpMessageParserFactory;
 import org.apache.http.io.HttpMessageWriterFactory;
-import org.apache.http.util.Args;
 
 /**
  * @since 4.3
@@ -54,24 +53,19 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
-    private static final int DEFAULT_BUFSIZE = 8 * 1024;
-
     public static final ManagedHttpClientConnectionFactory INSTANCE = new ManagedHttpClientConnectionFactory();
 
     private final Log log = LogFactory.getLog(ManagedHttpClientConnectionImpl.class);
     private final Log headerlog = LogFactory.getLog("org.apache.http.headers");
     private final Log wirelog = LogFactory.getLog("org.apache.http.wire");
 
-    private final int bufferSize;
     private final HttpMessageWriterFactory<HttpRequest> requestWriterFactory;
     private final HttpMessageParserFactory<HttpResponse> responseParserFactory;
 
     public ManagedHttpClientConnectionFactory(
-            final int bufferSize,
             final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
         super();
-        this.bufferSize = Args.notNegative(bufferSize, "Buffer size");
         this.requestWriterFactory = requestWriterFactory != null ? requestWriterFactory :
             DefaultHttpRequestWriterFactory.INSTANCE;
         this.responseParserFactory = responseParserFactory != null ? responseParserFactory :
@@ -79,22 +73,12 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
     }
 
     public ManagedHttpClientConnectionFactory(
-            final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
-            final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
-        this(DEFAULT_BUFSIZE, requestWriterFactory, responseParserFactory);
-    }
-
-    public ManagedHttpClientConnectionFactory(
             final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
         this(null, responseParserFactory);
     }
 
-    public ManagedHttpClientConnectionFactory(final int bufferSize) {
-        this(bufferSize, null, null);
-    }
-
     public ManagedHttpClientConnectionFactory() {
-        this(DEFAULT_BUFSIZE, null, null);
+        this(null, null);
     }
 
     public ManagedHttpClientConnection create(final ConnectionConfig config) {
@@ -120,7 +104,8 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
                 log,
                 headerlog,
                 wirelog,
-                bufferSize,
+                config.getBufferSize(),
+                config.getFragmentSizeHint(),
                 chardecoder,
                 charencoder,
                 cconfig.getMessageConstraints(),

@@ -69,6 +69,7 @@ class ManagedHttpClientConnectionImpl extends DefaultBHttpClientConnection
             final Log headerlog,
             final Log wirelog,
             final int buffersize,
+            final int fragmentSizeHint,
             final CharsetDecoder chardecoder,
             final CharsetEncoder charencoder,
             final MessageConstraints constraints,
@@ -76,7 +77,7 @@ class ManagedHttpClientConnectionImpl extends DefaultBHttpClientConnection
             final ContentLengthStrategy outgoingContentStrategy,
             final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
-        super(buffersize, chardecoder, charencoder,
+        super(buffersize, fragmentSizeHint, chardecoder, charencoder,
                 constraints, incomingContentStrategy, outgoingContentStrategy,
                 requestWriterFactory, responseParserFactory);
         this.id = id;
