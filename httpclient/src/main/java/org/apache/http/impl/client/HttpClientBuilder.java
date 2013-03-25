@@ -34,6 +34,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.net.ssl.SSLContext;
+
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -141,6 +143,7 @@ public class HttpClientBuilder {
 
     private HttpRequestExecutor requestExec;
     private LayeredConnectionSocketFactory sslSocketFactory;
+    private SSLContext sslcontext;
     private HttpClientConnectionManager connManager;
     private SchemePortResolver schemePortResolver;
     private ConnectionReuseStrategy reuseStrategy;
@@ -443,10 +446,14 @@ public class HttpClientBuilder {
         if (connManager == null) {
             LayeredConnectionSocketFactory sslSocketFactory = this.sslSocketFactory;
             if (sslSocketFactory == null) {
-                if (systemProperties) {
-                    sslSocketFactory = SSLSocketFactory.getSystemSocketFactory();
+                if (sslcontext != null) {
+                    sslSocketFactory = new SSLSocketFactory(sslcontext);
                 } else {
-                    sslSocketFactory = SSLSocketFactory.getSocketFactory();
+                    if (systemProperties) {
+                        sslSocketFactory = SSLSocketFactory.getSystemSocketFactory();
+                    } else {
+                        sslSocketFactory = SSLSocketFactory.getSocketFactory();
+                    }
                 }
             }
             final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
