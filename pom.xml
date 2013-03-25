@@ -422,7 +422,7 @@
           <plugin>
             <groupId>com.atlassian.maven.plugins</groupId>
             <artifactId>maven-clover2-plugin</artifactId>
-            <version>3.1.10</version>
+            <version>3.1.10.1</version>
             <configuration>
               <flushPolicy>threaded</flushPolicy>
               <flushInterval>100</flushInterval>
@@ -446,7 +446,7 @@
           <plugin>
             <groupId>com.atlassian.maven.plugins</groupId>
             <artifactId>maven-clover2-plugin</artifactId>
-            <version>3.1.10</version>
+            <version>3.1.10.1</version>
             <configuration>
               <jdk>1.5</jdk>
             </configuration>
