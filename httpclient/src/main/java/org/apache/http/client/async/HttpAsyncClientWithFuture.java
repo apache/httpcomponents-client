@@ -26,6 +26,8 @@
  */
 package org.apache.http.client.async;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -33,12 +35,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.concurrent.FutureCallback;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -47,12 +51,14 @@ import org.apache.http.protocol.HttpContext;
  * Similar to the non-blockcing HttpAsyncClient, a callback handler api is provided.
  */
 @ThreadSafe
-public class HttpAsyncClientWithFuture {
+public class HttpAsyncClientWithFuture implements Closeable {
     final HttpClient httpclient;
 
     private final ExecutorService executorService;
 
     private final ConnectionMetrics metrics = new ConnectionMetrics();
+
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     /**
      * Create a new HttpAsyncClientWithFuture.
@@ -113,6 +119,9 @@ public class HttpAsyncClientWithFuture {
             final HttpContext context,
             final ResponseHandler<T> responseHandler,
             final FutureCallback<T> callback) throws InterruptedException {
+        if(closed.get()) {
+            throw new IllegalStateException("Close has been called on this httpclient instance.");
+        }
         metrics.scheduledConnections.incrementAndGet();
         final HttpAsyncClientCallable<T> callable = new HttpAsyncClientCallable<T>(
             httpclient, request, context, responseHandler, callback, metrics);
@@ -188,4 +197,11 @@ public class HttpAsyncClientWithFuture {
         return metrics;
     }
 
+    public void close() throws IOException {
+        closed.set(true);
+        executorService.shutdownNow();
+        if(httpclient instanceof CloseableHttpClient) {
+            ((CloseableHttpClient) httpclient).close();
+        }
+    }
 }
