@@ -34,6 +34,8 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
@@ -405,6 +407,73 @@ public class TestBasicHttpCache {
         final HttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
         EntityUtils.consume(result.getEntity());
         assertTrue(inputStream.wasClosed());
+    }
+
+    static class DisposableResource implements Resource {
+
+        private static final long serialVersionUID = 1L;
+
+        private final byte[] b;
+        private boolean dispoased;
+
+        public DisposableResource(final byte[] b) {
+            super();
+            this.b = b;
+        }
+
+        byte[] getByteArray() {
+            return this.b;
+        }
+
+        public InputStream getInputStream() throws IOException {
+            if (dispoased) {
+                throw new IOException("Already dispoased");
+            }
+            return new ByteArrayInputStream(this.b);
+        }
+
+        public long length() {
+            return this.b.length;
+        }
+
+        public void dispose() {
+            this.dispoased = true;
+        }
+
+    }
+
+    @Test
+    public void testEntryUpdate() throws Exception {
+
+        final HeapResourceFactory rf = new HeapResourceFactory() {
+
+            @Override
+            Resource createResource(final byte[] buf) {
+                return new DisposableResource(buf);
+            }
+
+        };
+
+        impl = new BasicHttpCache(rf, backing, CacheConfig.DEFAULT);
+
+        final HttpHost host = new HttpHost("foo.example.com");
+
+        final HttpRequest origRequest = new HttpGet("http://foo.example.com/bar");
+        origRequest.setHeader("Accept-Encoding","gzip");
+
+        final HttpResponse origResponse = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        origResponse.setEntity(HttpTestUtils.makeBody(128));
+        origResponse.setHeader("Date", DateUtils.formatDate(new Date()));
+        origResponse.setHeader("Cache-Control", "max-age=3600, public");
+        origResponse.setHeader("ETag", "\"etag\"");
+        origResponse.setHeader("Vary", "Accept-Encoding");
+        origResponse.setHeader("Content-Encoding","gzip");
+
+        final HttpResponse response = impl.cacheAndReturnResponse(
+                host, origRequest, origResponse, new Date(), new Date());
+        final HttpEntity entity = response.getEntity();
+        Assert.assertNotNull(entity);
+        IOUtils.copyAndClose(entity.getContent(), new ByteArrayOutputStream());
     }
 
 }

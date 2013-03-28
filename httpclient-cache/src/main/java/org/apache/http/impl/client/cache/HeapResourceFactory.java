@@ -59,7 +59,7 @@ public class HeapResourceFactory implements ResourceFactory {
                 break;
             }
         }
-        return new HeapResource(outstream.toByteArray());
+        return createResource(outstream.toByteArray());
     }
 
     public Resource copy(
@@ -73,7 +73,11 @@ public class HeapResourceFactory implements ResourceFactory {
             IOUtils.copyAndClose(resource.getInputStream(), outstream);
             body = outstream.toByteArray();
         }
-        return new HeapResource(body);
+        return createResource(body);
+    }
+
+    Resource createResource(byte[] buf) {
+        return new HeapResource(buf);
     }
 
 }
