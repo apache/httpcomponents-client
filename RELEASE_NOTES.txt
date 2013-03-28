@@ -1,6 +1,10 @@
 Changes since Release 4.2.3
 -------------------
 
+* [HTTPCLIENT-1299] (regression) cache incorrectly disposes of the underlying cache resource 
+  when storing variant entry.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1320] Leverage javax.net.ssl.SSLSocketFactory#getDefault() to initialize SSL context 
   based on system defaults instead of using an internal custom routine.
   Contributed by Abe Backus <abraham at backus.com> and Oleg Kalnichevski <olegk at apache.org>
