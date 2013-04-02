@@ -437,6 +437,16 @@ public class TestCookieRFC2109Spec {
                 "name4=value4; $Path=/", headers.get(0).getValue());
     }
 
+    @Test(expected=MalformedCookieException.class)
+    public void testVersion1CookieWithInvalidExpires() throws Exception {
+        final CookieSpec cookiespec = new RFC2109Spec();
+        final CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
+
+        final Header origHeader = new BasicHeader("Set-Cookie",
+            "test=\"test\"; Version=1; Expires=Mon, 11-Feb-2013 10:39:19 GMT; Path=/");
+        cookiespec.parse(origHeader, origin);
+    }
+
     @Test
     public void testInvalidInput() throws Exception {
         final CookieSpec cookiespec = new RFC2109Spec();

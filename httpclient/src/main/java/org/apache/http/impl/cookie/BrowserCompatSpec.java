@@ -154,18 +154,20 @@ public class BrowserCompatSpec extends CookieSpecBase {
             if (i > 0) {
                 buffer.append("; ");
             }
-            if (cookie.getVersion() > 0) {
+            final String cookieName = cookie.getName();
+            final String cookieValue = cookie.getValue();
+            if (cookie.getVersion() > 0 &&
+                    !(cookieValue.startsWith("\"") && cookieValue.endsWith("\""))) {
                 BasicHeaderValueFormatter.INSTANCE.formatHeaderElement(
                         buffer,
-                        new BasicHeaderElement(cookie.getName(), cookie.getValue()),
+                        new BasicHeaderElement(cookieName, cookieValue),
                         false);
             } else {
                 // Netscape style cookies do not support quoted values
-                buffer.append(cookie.getName());
+                buffer.append(cookieName);
                 buffer.append("=");
-                final String s = cookie.getValue();
-                if (s != null) {
-                    buffer.append(s);
+                if (cookieValue != null) {
+                    buffer.append(cookieValue);
                 }
             }
         }
