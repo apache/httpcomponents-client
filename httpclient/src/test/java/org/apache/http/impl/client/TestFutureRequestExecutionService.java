@@ -56,7 +56,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class HttpClientWithFutureTest {
+public class TestFutureRequestExecutionService {
 
     private LocalTestServer localServer;
     private String uri;
@@ -143,7 +143,7 @@ public class HttpClientWithFutureTest {
         }
         final CountingCallback callback = new CountingCallback();
         httpAsyncClientWithFuture.executeMultiple(null,
-            new OkidokiHandler(), callback , 1000, TimeUnit.MILLISECONDS, requests);
+            new OkidokiHandler(), callback , 10, TimeUnit.SECONDS, requests);
         Assert.assertEquals(100, callback.completed);
         Assert.assertEquals(0, callback.cancelled);
         Assert.assertEquals(0, callback.failed);
