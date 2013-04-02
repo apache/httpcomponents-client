@@ -225,6 +225,12 @@
               </goals>
               <phase>pre-site</phase>
             </execution>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
           </executions>        
         <configuration>
           <!-- reduce console output. Can override with -Dquiet=false -->
