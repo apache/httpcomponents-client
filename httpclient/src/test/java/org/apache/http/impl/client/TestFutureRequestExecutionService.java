@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -137,13 +138,18 @@ public class TestFutureRequestExecutionService {
 
     @Test
     public void shouldExecuteMultipleCallsAndCallback() throws InterruptedException {
-        final HttpGet[] requests= new HttpGet[100];
-        for(int i=0;i<100;i++) {
-            requests[i]=new HttpGet(uri);
+        final int reqNo = 100;
+        final HttpGet[] requests= new HttpGet[reqNo];
+        for(int i = 0; i < reqNo; i++) {
+            requests[i] = new HttpGet(uri);
         }
-        final CountingCallback callback = new CountingCallback();
+        final CountDownLatch latch = new CountDownLatch(reqNo);
+        final CountingCallback callback = new CountingCallback(latch);
         httpAsyncClientWithFuture.executeMultiple(null,
             new OkidokiHandler(), callback , 10, TimeUnit.SECONDS, requests);
+
+        latch.await(10, TimeUnit.SECONDS);
+
         Assert.assertEquals(100, callback.completed);
         Assert.assertEquals(0, callback.cancelled);
         Assert.assertEquals(0, callback.failed);
@@ -151,19 +157,30 @@ public class TestFutureRequestExecutionService {
 
 
     private final class CountingCallback implements FutureCallback<Boolean> {
+
+        private final CountDownLatch latch;
+
         int failed=0;
         int cancelled=0;
         int completed=0;
 
+        CountingCallback(final CountDownLatch latch) {
+            super();
+            this.latch = latch;
+        }
+
         public void failed(final Exception ex) {
+            latch.countDown();
             failed++;
         }
 
         public void completed(final Boolean result) {
+            latch.countDown();
             completed++;
         }
 
         public void cancelled() {
+            latch.countDown();
             cancelled++;
         }
     }
