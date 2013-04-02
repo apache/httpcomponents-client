@@ -30,6 +30,7 @@ import static org.easymock.classextension.EasyMock.createNiceMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -304,4 +305,34 @@ public class TestHttpCacheEntry {
         assertNotNull(entry.toString());
         assertFalse("".equals(entry.toString()));
     }
+
+    @Test
+    public void testMissingDateHeaderIsIgnored() {
+        final Header[] headers = new Header[] {};
+        entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
+                                   headers, mockResource);
+        assertNull(entry.getDate());
+    }
+
+    @Test
+    public void testMalformedDateHeaderIsIgnored() {
+        final Header[] headers = new Header[] { new BasicHeader("Date", "asdf") };
+        entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
+                                   headers, mockResource);
+        assertNull(entry.getDate());
+    }
+
+    @Test
+    public void testValidDateHeaderIsParsed() {
+        final long now = System.currentTimeMillis();
+        // round down to nearest second to make comparison easier
+        final Date date = new Date(now - (now % 1000L));
+        final Header[] headers = new Header[] { new BasicHeader("Date", DateUtils.formatDate(date)) };
+        entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
+                                   headers, mockResource);
+        final Date dateHeaderValue = entry.getDate();
+        assertNotNull(dateHeaderValue);
+        assertEquals(date.getTime(), dateHeaderValue.getTime());
+    }
+
 }

@@ -60,7 +60,7 @@ class CacheValidityPolicy {
             return maxage;
         }
 
-        final Date dateValue = getDateValue(entry);
+        final Date dateValue = entry.getDate();
         if (dateValue == null) {
             return 0L;
         }
@@ -97,7 +97,7 @@ class CacheValidityPolicy {
 
     public long getHeuristicFreshnessLifetimeSecs(final HttpCacheEntry entry,
             final float coefficient, final long defaultLifetime) {
-        final Date dateValue = getDateValue(entry);
+        final Date dateValue = entry.getDate();
         final Date lastModifiedValue = getLastModifiedValue(entry);
 
         if (dateValue != null && lastModifiedValue != null) {
@@ -172,17 +172,14 @@ class CacheValidityPolicy {
         return result;
     }
 
+    /**
+     * @deprecated (4.3) use {@link HttpCacheEntry#getDate()}.
+     * @param entry
+     * @return
+     */
+    @Deprecated
     protected Date getDateValue(final HttpCacheEntry entry) {
-        final Header dateHdr = entry.getFirstHeader(HTTP.DATE_HEADER);
-        if (dateHdr == null) {
-            return null;
-        }
-        try {
-            return DateUtils.parseDate(dateHdr.getValue());
-        } catch (final DateParseException dpe) {
-            // ignore malformed date
-        }
-        return null;
+        return entry.getDate();
     }
 
     protected Date getLastModifiedValue(final HttpCacheEntry entry) {
@@ -227,7 +224,7 @@ class CacheValidityPolicy {
     }
 
     protected long getApparentAgeSecs(final HttpCacheEntry entry) {
-        final Date dateValue = getDateValue(entry);
+        final Date dateValue = entry.getDate();
         if (dateValue == null) {
             return MAX_AGE;
         }
