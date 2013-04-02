@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.client.async;
+package org.apache.http.impl.client;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -41,27 +41,25 @@ import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * HttpAsyncClientWithFuture wraps calls to execute with a {@link HttpAsyncClientFutureTask}
+ * HttpAsyncClientWithFuture wraps calls to execute with a {@link HttpRequestFutureTask}
  * and schedules them using the provided executor service. Scheduled calls may be cancelled.
  * Similar to the non-blockcing HttpAsyncClient, a callback handler api is provided.
  */
 @ThreadSafe
-public class HttpAsyncClientWithFuture implements Closeable {
-    final HttpClient httpclient;
+public class FutureRequestExecutionService implements Closeable {
 
+    private final HttpClient httpclient;
     private final ExecutorService executorService;
-
-    private final ConnectionMetrics metrics = new ConnectionMetrics();
-
+    private final FutureRequestExecutionMetrics metrics = new FutureRequestExecutionMetrics();
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
     /**
-     * Create a new HttpAsyncClientWithFuture.
+     * Create a new FutureRequestExecutionService.
      *
      * @param httpclient
      *            you should tune your httpclient instance to match your needs. You should
@@ -72,7 +70,7 @@ public class HttpAsyncClientWithFuture implements Closeable {
      * @param executorService
      *            any executorService will do here. E.g. {@link Executors#newFixedThreadPool(int)}
      */
-    public HttpAsyncClientWithFuture(
+    public FutureRequestExecutionService(
             final HttpClient httpclient,
             final ExecutorService executorService) {
         this.httpclient = httpclient;
@@ -91,10 +89,11 @@ public class HttpAsyncClientWithFuture implements Closeable {
      * @return HttpAsyncClientFutureTask for the scheduled request.
      * @throws InterruptedException
      */
-    public <T> HttpAsyncClientFutureTask<T> execute(
+    public <T> HttpRequestFutureTask<T> execute(
             final HttpUriRequest request,
-            final ResponseHandler<T> responseHandler) throws InterruptedException {
-        return execute(request, null, responseHandler, null);
+            final HttpContext context,
+            final ResponseHandler<T> responseHandler) {
+        return execute(request, context, responseHandler, null);
     }
 
     /**
@@ -114,18 +113,18 @@ public class HttpAsyncClientWithFuture implements Closeable {
      * @return HttpAsyncClientFutureTask for the scheduled request.
      * @throws InterruptedException
      */
-    public <T> HttpAsyncClientFutureTask<T> execute(
+    public <T> HttpRequestFutureTask<T> execute(
             final HttpUriRequest request,
             final HttpContext context,
             final ResponseHandler<T> responseHandler,
-            final FutureCallback<T> callback) throws InterruptedException {
+            final FutureCallback<T> callback) {
         if(closed.get()) {
             throw new IllegalStateException("Close has been called on this httpclient instance.");
         }
-        metrics.scheduledConnections.incrementAndGet();
-        final HttpAsyncClientCallable<T> callable = new HttpAsyncClientCallable<T>(
+        metrics.getScheduledConnections().incrementAndGet();
+        final HttpRequestTaskCallable<T> callable = new HttpRequestTaskCallable<T>(
             httpclient, request, context, responseHandler, callback, metrics);
-        final HttpAsyncClientFutureTask<T> httpRequestFutureTask = new HttpAsyncClientFutureTask<T>(
+        final HttpRequestFutureTask<T> httpRequestFutureTask = new HttpRequestFutureTask<T>(
             request, callable);
         executorService.execute(httpRequestFutureTask);
 
@@ -147,7 +146,7 @@ public class HttpAsyncClientWithFuture implements Closeable {
     public <T> List<Future<T>> executeMultiple(
             final ResponseHandler<T> responseHandler,
             final HttpUriRequest... requests) throws InterruptedException {
-        return executeMultiple(null, responseHandler, null, -1, null, requests);
+        return executeMultiple(HttpClientContext.create(), responseHandler, null, -1, null, requests);
     }
 
     /**
@@ -175,10 +174,10 @@ public class HttpAsyncClientWithFuture implements Closeable {
             final FutureCallback<T> callback,
             final long timeout, final TimeUnit timeUnit,
             final HttpUriRequest... requests) throws InterruptedException {
-        metrics.scheduledConnections.incrementAndGet();
+        metrics.getScheduledConnections().incrementAndGet();
         final List<Callable<T>> callables = new ArrayList<Callable<T>>();
         for (final HttpUriRequest request : requests) {
-            final HttpAsyncClientCallable<T> callable = new HttpAsyncClientCallable<T>(
+            final HttpRequestTaskCallable<T> callable = new HttpRequestTaskCallable<T>(
                 httpclient, request, context, responseHandler, callback, metrics);
             callables.add(callable);
         }
@@ -191,17 +190,17 @@ public class HttpAsyncClientWithFuture implements Closeable {
 
     /**
      * @return metrics gathered for this instance.
-     * @see ConnectionMetrics
+     * @see FutureRequestExecutionMetrics
      */
-    public ConnectionMetrics metrics() {
+    public FutureRequestExecutionMetrics metrics() {
         return metrics;
     }
 
     public void close() throws IOException {
         closed.set(true);
         executorService.shutdownNow();
-        if(httpclient instanceof CloseableHttpClient) {
-            ((CloseableHttpClient) httpclient).close();
+        if (httpclient instanceof Closeable) {
+            ((Closeable) httpclient).close();
         }
     }
 }

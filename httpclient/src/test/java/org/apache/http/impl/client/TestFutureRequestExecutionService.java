@@ -24,13 +24,15 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.client.async;
+package org.apache.http.impl.client;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -42,10 +44,11 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -57,7 +60,7 @@ public class HttpClientWithFutureTest {
 
     private LocalTestServer localServer;
     private String uri;
-    private HttpAsyncClientWithFuture httpAsyncClientWithFuture;
+    private FutureRequestExecutionService httpAsyncClientWithFuture;
 
     private final AtomicBoolean blocked = new AtomicBoolean(false);
 
@@ -82,7 +85,11 @@ public class HttpClientWithFutureTest {
             this.localServer.start();
             final InetSocketAddress address = localServer.getServiceAddress();
             uri = "http://" + address.getHostName() + ":" + address.getPort() + "/wait";
-            httpAsyncClientWithFuture = HttpClients.createAsync(5);
+            final HttpClient httpClient = HttpClientBuilder.create()
+                    .setMaxConnPerRoute(5)
+                    .build();
+            final ExecutorService executorService = Executors.newFixedThreadPool(5);
+            httpAsyncClientWithFuture = new FutureRequestExecutionService(httpClient, executorService);
     }
 
     @After
@@ -94,15 +101,15 @@ public class HttpClientWithFutureTest {
 
     @Test
     public void shouldExecuteSingleCall() throws InterruptedException, ExecutionException {
-        final HttpAsyncClientFutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
-            new HttpGet(uri), new OkidokiHandler());
+        final HttpRequestFutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
+            new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
         Assert.assertTrue("request should have returned OK", task.get().booleanValue());
     }
 
     @Test(expected=CancellationException.class)
     public void shouldCancel() throws InterruptedException, ExecutionException {
-        final HttpAsyncClientFutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
-            new HttpGet(uri), new OkidokiHandler());
+        final HttpRequestFutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
+            new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
         task.cancel(true);
         task.get();
     }
@@ -110,8 +117,8 @@ public class HttpClientWithFutureTest {
     @Test(expected=TimeoutException.class)
     public void shouldTimeout() throws InterruptedException, ExecutionException, TimeoutException {
         blocked.set(true);
-        final HttpAsyncClientFutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
-            new HttpGet(uri), new OkidokiHandler());
+        final HttpRequestFutureTask<Boolean> task = httpAsyncClientWithFuture.execute(
+            new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
         task.get(10, TimeUnit.MILLISECONDS);
     }
 

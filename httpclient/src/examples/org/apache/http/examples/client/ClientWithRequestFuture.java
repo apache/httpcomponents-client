@@ -29,23 +29,31 @@ package org.apache.http.examples.client;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.async.HttpAsyncClientFutureTask;
-import org.apache.http.client.async.HttpAsyncClientWithFuture;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.FutureRequestExecutionService;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpRequestFutureTask;
 
-public class ClientAsyncWithFuture {
+public class ClientWithRequestFuture {
 
     public static void main(String[] args) throws Exception {
         // the simplest way to create a HttpAsyncClientWithFuture
-        HttpAsyncClientWithFuture client = HttpClients.createAsync(3);
+        HttpClient httpclient = HttpClientBuilder.create()
+                .setMaxConnPerRoute(5)
+                .setMaxConnTotal(5).build();
+        ExecutorService execService = Executors.newFixedThreadPool(5);
+        FutureRequestExecutionService requestExecService = new FutureRequestExecutionService(httpclient, execService);
 
         // Because things are asynchronous, you must provide a ResponseHandler
         ResponseHandler<Boolean> handler = new ResponseHandler<Boolean>() {
@@ -57,14 +65,16 @@ public class ClientAsyncWithFuture {
 
         // Simple request ...
         HttpGet request1 = new HttpGet("http://google.com");
-        HttpAsyncClientFutureTask<Boolean> futureTask1 = client.execute(request1, handler);
+        HttpRequestFutureTask<Boolean> futureTask1 = requestExecService.execute(request1,
+                HttpClientContext.create(), handler);
         Boolean wasItOk1 = futureTask1.get();
         System.out.println("It was ok? "  + wasItOk1);
 
         // Cancel a request
         try {
             HttpGet request2 = new HttpGet("http://google.com");
-            HttpAsyncClientFutureTask<Boolean> futureTask2 = client.execute(request2, handler);
+            HttpRequestFutureTask<Boolean> futureTask2 = requestExecService.execute(request2,
+                    HttpClientContext.create(), handler);
             futureTask2.cancel(true);
             Boolean wasItOk2 = futureTask2.get();
             System.out.println("It was cancelled so it should never print this: " + wasItOk2);
@@ -74,7 +84,8 @@ public class ClientAsyncWithFuture {
 
         // Request with a timeout
         HttpGet request3 = new HttpGet("http://google.com");
-        HttpAsyncClientFutureTask<Boolean> futureTask3 = client.execute(request3, handler);
+        HttpRequestFutureTask<Boolean> futureTask3 = requestExecService.execute(request3,
+                HttpClientContext.create(), handler);
         Boolean wasItOk3 = futureTask3.get(10, TimeUnit.SECONDS);
         System.out.println("It was ok? "  + wasItOk3);
 
@@ -96,7 +107,8 @@ public class ClientAsyncWithFuture {
         HttpGet request4 = new HttpGet("http://google.com");
         // using a null HttpContext here since it is optional
         // the callback will be called when the task completes, fails, or is cancelled
-        HttpAsyncClientFutureTask<Boolean> futureTask4 = client.execute(request4, null, handler, callback);
+        HttpRequestFutureTask<Boolean> futureTask4 = requestExecService.execute(request4,
+                HttpClientContext.create(), handler, callback);
         Boolean wasItOk4 = futureTask4.get(10, TimeUnit.SECONDS);
         System.out.println("It was ok? "  + wasItOk4);
 
@@ -106,8 +118,9 @@ public class ClientAsyncWithFuture {
         HttpGet request7 = new HttpGet("http://yahoo.com");
         // using a null HttpContext here since it is optional
         // the callback will be called for each request as their responses come back.
-        List<Future<Boolean>> futureTask = client.executeMultiple(null, handler, callback,20,
-                TimeUnit.SECONDS, request5, request6, request7);
+        List<Future<Boolean>> futureTask = requestExecService.executeMultiple(
+                HttpClientContext.create(), handler, callback,
+                20,TimeUnit.SECONDS, request5, request6, request7);
         // you can still access the futures directly, if you want. The futures are in the same order as the requests.
         for (Future<Boolean> future : futureTask) {
             System.out.println("another result " + future.get());

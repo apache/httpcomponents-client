@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.client.async;
+package org.apache.http.impl.client;
 
 import java.util.concurrent.FutureTask;
 
@@ -36,15 +36,14 @@ import org.apache.http.client.methods.HttpUriRequest;
  *
  * @param <V>
  */
-public class HttpAsyncClientFutureTask<V> extends FutureTask<V> {
+public class HttpRequestFutureTask<V> extends FutureTask<V> {
 
     private final HttpUriRequest request;
+    private final HttpRequestTaskCallable<V> callable;
 
-    private final HttpAsyncClientCallable<V> callable;
-
-    public HttpAsyncClientFutureTask(
+    public HttpRequestFutureTask(
             final HttpUriRequest request,
-            final HttpAsyncClientCallable<V> httpCallable) {
+            final HttpRequestTaskCallable<V> httpCallable) {
         super(httpCallable);
         this.request = request;
         this.callable = httpCallable;
@@ -67,14 +66,14 @@ public class HttpAsyncClientFutureTask<V> extends FutureTask<V> {
      * @return the time in millis the task was scheduled.
      */
     public long scheduledTime() {
-        return callable.scheduled;
+        return callable.getScheduled();
     }
 
     /**
      * @return the time in millis the task was started.
      */
     public long startedTime() {
-        return callable.started;
+        return callable.getStarted();
     }
 
     /**
@@ -82,7 +81,7 @@ public class HttpAsyncClientFutureTask<V> extends FutureTask<V> {
      */
     public long endedTime() {
         if (isDone()) {
-            return callable.ended;
+            return callable.getEnded();
         } else {
             throw new IllegalStateException("Task is not done yet");
         }
@@ -115,4 +114,5 @@ public class HttpAsyncClientFutureTask<V> extends FutureTask<V> {
     public String toString() {
         return request.getRequestLine().getUri();
     }
+
 }

@@ -27,12 +27,7 @@
 
 package org.apache.http.impl.client;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.async.HttpAsyncClientWithFuture;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
@@ -66,17 +61,4 @@ public class HttpClients {
         return new MinimalHttpClient(connManager);
     }
 
-    /**
-     * Creates a simple HttpAsyncClientWithFuture with an executor with the specified number of threads and a matching httpclient.
-     * @param threads
-     *            the number of connections and threads used for the httpclient and the executor used by @see
-     *            HttpAsyncClientWithFuture.
-     * @return a HttpAsyncClientWithFuture with an httpclient and executor that can handle the specified amount of
-     *         threads/connections.
-     */
-    public static HttpAsyncClientWithFuture createAsync(int threads) {
-        HttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(5).setMaxConnTotal(5).build();
-        ExecutorService executorService = Executors.newFixedThreadPool(5);
-        return new HttpAsyncClientWithFuture(httpClient, executorService);
-    }
 }
