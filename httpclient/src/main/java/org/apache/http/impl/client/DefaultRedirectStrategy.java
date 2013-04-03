@@ -48,8 +48,8 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.Asserts;
 
@@ -149,7 +149,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
                             + uri + "' not allowed");
                 }
                 // Adjust location URI
-                final HttpHost target = (HttpHost) context.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
+                final HttpHost target = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
                 Asserts.notNull(target, "Target host");
                 final URI requestURI = new URI(request.getRequestLine().getUri());
                 final URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, true);

@@ -46,6 +46,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.entity.StringEntity;
@@ -55,7 +56,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.TargetAuthenticationStrategy;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpProcessorBuilder;
@@ -193,7 +193,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
             .setDefaultCredentialsProvider(credsProvider)
             .build();
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         for (int i = 0; i < 10; i++) {
             final HttpGet httpget = new HttpGet("/");
             httpget.setConfig(config);

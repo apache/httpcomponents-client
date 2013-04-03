@@ -48,7 +48,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
@@ -60,7 +60,6 @@ import org.apache.http.localserver.BasicAuthTokenExtractor;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.localserver.ResponseBasicUnauthorized;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExpectationVerifier;
 import org.apache.http.protocol.HttpProcessor;
@@ -370,7 +369,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
             .setTargetAuthenticationStrategy(authStrategy)
             .build();
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpHost targethost = getServerHttp();
         final HttpGet httpget = new HttpGet("/");
@@ -467,10 +466,10 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
         final HttpHost targethost = getServerHttp();
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final AuthCache authCache = new BasicAuthCache();
         authCache.put(targethost, new BasicScheme());
-        context.setAttribute(ClientContext.AUTH_CACHE, authCache);
+        context.setAuthCache(authCache);
 
         final HttpGet httpget = new HttpGet("/");
 
@@ -498,10 +497,10 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
         final HttpHost targethost = getServerHttp();
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final AuthCache authCache = new BasicAuthCache();
         authCache.put(targethost, new BasicScheme());
-        context.setAttribute(ClientContext.AUTH_CACHE, authCache);
+        context.setAuthCache(authCache);
 
         final HttpGet httpget = new HttpGet("/");
 

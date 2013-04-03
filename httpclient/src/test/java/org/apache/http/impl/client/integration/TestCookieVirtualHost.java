@@ -38,13 +38,12 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
@@ -115,8 +114,8 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
         this.httpclient = HttpClients.createDefault();
 
         final CookieStore cookieStore = new BasicCookieStore();
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCookieStore(cookieStore);
 
         // First request : retrieve a domain cookie from remote server.
         URI uri = new URI("http://app.mydomain.fr");

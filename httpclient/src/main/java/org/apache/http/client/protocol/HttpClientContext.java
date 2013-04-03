@@ -52,7 +52,89 @@ import org.apache.http.protocol.HttpCoreContext;
  * @since 4.3
  */
 @NotThreadSafe
-public class HttpClientContext extends HttpCoreContext implements ClientContext {
+public class HttpClientContext extends HttpCoreContext {
+
+    /**
+     * Attribute name of a {@link org.apache.http.conn.routing.RouteInfo}
+     * object that represents the actual connection route.
+     */
+    public static final String HTTP_ROUTE   = "http.route";
+
+    /**
+     * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
+     * the actual {@link CookieSpecProvider} registry.
+     */
+    public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry";
+
+    /**
+     * Attribute name of a {@link org.apache.http.cookie.CookieSpec}
+     * object that represents the actual cookie specification.
+     */
+    public static final String COOKIE_SPEC           = "http.cookie-spec";
+
+    /**
+     * Attribute name of a {@link org.apache.http.cookie.CookieOrigin}
+     * object that represents the actual details of the origin server.
+     */
+    public static final String COOKIE_ORIGIN         = "http.cookie-origin";
+
+    /**
+     * Attribute name of a {@link org.apache.http.client.CookieStore}
+     * object that represents the actual cookie store.
+     */
+    public static final String COOKIE_STORE          = "http.cookie-store";
+
+    /**
+     * Attribute name of a {@link org.apache.http.client.CredentialsProvider}
+     * object that represents the actual credentials provider.
+     */
+    public static final String CREDS_PROVIDER        = "http.auth.credentials-provider";
+
+    /**
+     * Attribute name of a {@link org.apache.http.client.AuthCache} object
+     * that represents the auth scheme cache.
+     */
+    public static final String AUTH_CACHE            = "http.auth.auth-cache";
+
+    /**
+     * Attribute name of a {@link org.apache.http.auth.AuthState}
+     * object that represents the actual target authentication state.
+     */
+    public static final String TARGET_AUTH_STATE     = "http.auth.target-scope";
+
+    /**
+     * Attribute name of a {@link org.apache.http.auth.AuthState}
+     * object that represents the actual proxy authentication state.
+     */
+    public static final String PROXY_AUTH_STATE      = "http.auth.proxy-scope";
+
+    /**
+     * Attribute name of a {@link java.lang.Object} object that represents
+     * the actual user identity such as user {@link java.security.Principal}.
+     */
+    public static final String USER_TOKEN            = "http.user-token";
+
+    /**
+     * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
+     * the actual {@link AuthSchemeProvider} registry.
+     */
+    public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry";
+
+    /**
+     * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
+     * the actual {@link ConnectionSocketFactory} registry.
+     *
+     * @since 4.3
+     */
+    public static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";
+
+    /**
+     * Attribute name of a {@link org.apache.http.client.config.RequestConfig} object that
+     * represents the actual request configuration.
+     *
+     * @since 4.3
+     */
+    public static final String REQUEST_CONFIG = "http.request-config";
 
     public static HttpClientContext adapt(final HttpContext context) {
         if (context instanceof HttpClientContext) {
@@ -75,7 +157,7 @@ public class HttpClientContext extends HttpCoreContext implements ClientContext 
     }
 
     public RouteInfo getHttpRoute() {
-        return getAttribute(ROUTE, HttpRoute.class);
+        return getAttribute(HTTP_ROUTE, HttpRoute.class);
     }
 
     public CookieStore getCookieStore() {
@@ -96,7 +178,7 @@ public class HttpClientContext extends HttpCoreContext implements ClientContext 
 
     @SuppressWarnings("unchecked")
     protected <T> Lookup<T> getLookup(final String name, final Class<T> clazz) {
-        return (Lookup<T>) getAttribute(name, Lookup.class);
+        return getAttribute(name, Lookup.class);
     }
 
     public Lookup<CookieSpecProvider> getCookieSpecRegistry() {

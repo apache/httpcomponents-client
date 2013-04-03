@@ -192,8 +192,8 @@ public class RequestAddCookies implements HttpRequestInterceptor {
 
         // Stick the CookieSpec and CookieOrigin instances to the HTTP context
         // so they could be obtained by the response interceptor
-        context.setAttribute(ClientContext.COOKIE_SPEC, cookieSpec);
-        context.setAttribute(ClientContext.COOKIE_ORIGIN, cookieOrigin);
+        context.setAttribute(HttpClientContext.COOKIE_SPEC, cookieSpec);
+        context.setAttribute(HttpClientContext.COOKIE_ORIGIN, cookieOrigin);
     }
 
 }

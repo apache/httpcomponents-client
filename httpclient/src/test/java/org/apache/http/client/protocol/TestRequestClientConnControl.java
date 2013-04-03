@@ -34,9 +34,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.RouteInfo.LayerType;
 import org.apache.http.conn.routing.RouteInfo.TunnelType;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -44,7 +42,7 @@ public class TestRequestClientConnControl {
 
     @Test(expected=IllegalArgumentException.class)
     public void testRequestParameterCheck() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(null, context);
     }
@@ -52,7 +50,7 @@ public class TestRequestClientConnControl {
     @Test
     public void testConnectionKeepAliveForConnectRequest() throws Exception {
         final HttpRequest request = new BasicHttpRequest("CONNECT", "www.somedomain.com");
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);
@@ -66,12 +64,12 @@ public class TestRequestClientConnControl {
     @Test
     public void testConnectionKeepAliveForDirectRequests() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpHost target = new HttpHost("localhost", 80, "http");
         final HttpRoute route = new HttpRoute(target, null, false);
 
-        context.setAttribute(ClientContext.ROUTE, route);
+        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
 
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);
@@ -86,14 +84,14 @@ public class TestRequestClientConnControl {
     @Test
     public void testConnectionKeepAliveForTunneledRequests() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpHost target = new HttpHost("localhost", 443, "https");
         final HttpHost proxy = new HttpHost("localhost", 8080);
         final HttpRoute route = new HttpRoute(target, null, proxy, true,
                 TunnelType.TUNNELLED, LayerType.LAYERED);
 
-        context.setAttribute(ClientContext.ROUTE, route);
+        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
 
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);
@@ -108,14 +106,14 @@ public class TestRequestClientConnControl {
     @Test
     public void testProxyConnectionKeepAliveForRequestsOverProxy() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpHost target = new HttpHost("localhost", 80, "http");
         final HttpHost proxy = new HttpHost("localhost", 8080);
         final HttpRoute route = new HttpRoute(target, null, proxy, false,
                 TunnelType.PLAIN, LayerType.PLAIN);
 
-        context.setAttribute(ClientContext.ROUTE, route);
+        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
 
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);
@@ -131,14 +129,14 @@ public class TestRequestClientConnControl {
     public void testPreserveCustomConnectionHeader() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         request.addHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpHost target = new HttpHost("localhost", 443, "https");
         final HttpHost proxy = new HttpHost("localhost", 8080);
         final HttpRoute route = new HttpRoute(target, null, proxy, true,
                 TunnelType.TUNNELLED, LayerType.LAYERED);
 
-        context.setAttribute(ClientContext.ROUTE, route);
+        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
 
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);
@@ -154,14 +152,14 @@ public class TestRequestClientConnControl {
     public void testPreserveCustomProxyConnectionHeader() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         request.addHeader("Proxy-Connection", HTTP.CONN_CLOSE);
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpHost target = new HttpHost("localhost", 80, "http");
         final HttpHost proxy = new HttpHost("localhost", 8080);
         final HttpRoute route = new HttpRoute(target, null, proxy, false,
                 TunnelType.PLAIN, LayerType.PLAIN);
 
-        context.setAttribute(ClientContext.ROUTE, route);
+        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
 
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);

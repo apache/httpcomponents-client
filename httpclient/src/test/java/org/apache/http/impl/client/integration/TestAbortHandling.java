@@ -42,6 +42,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.concurrent.Cancellable;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ConnectionRequest;
@@ -53,7 +54,6 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.junit.Assert;
@@ -108,14 +108,14 @@ public class TestAbortHandling extends IntegrationTestBase {
 
         this.httpclient = HttpClients.createDefault();
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         try {
             this.httpclient.execute(getServerHttp(), httpget, context);
         } catch (final IllegalStateException e) {
         } catch (final IOException e) {
         }
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
+        final HttpRequest reqWrapper = context.getRequest();
         Assert.assertNotNull("Request should exist",reqWrapper);
     }
 

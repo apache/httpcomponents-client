@@ -37,11 +37,11 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
@@ -104,10 +104,10 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
             .setUserTokenHandler(userTokenHandler)
             .build();
 
-        final HttpContext[] contexts = new HttpContext[workerCount];
+        final HttpClientContext[] contexts = new HttpClientContext[workerCount];
         final HttpWorker[] workers = new HttpWorker[workerCount];
         for (int i = 0; i < contexts.length; i++) {
-            final HttpContext context = new BasicHttpContext();
+            final HttpClientContext context = HttpClientContext.create();
             contexts[i] = context;
             workers[i] = new HttpWorker(
                     "user" + i,
@@ -143,7 +143,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
     static class HttpWorker extends Thread {
 
         private final String uid;
-        private final HttpContext context;
+        private final HttpClientContext context;
         private final int requestCount;
         private final HttpHost target;
         private final HttpClient httpclient;
@@ -153,7 +153,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
 
         public HttpWorker(
                 final String uid,
-                final HttpContext context,
+                final HttpClientContext context,
                 final int requestCount,
                 final HttpHost target,
                 final HttpClient httpclient) {
@@ -186,8 +186,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
                             this.context);
                     this.count++;
 
-                    final HttpClientConnection conn = (HttpClientConnection) this.context.getAttribute(
-                            ExecutionContext.HTTP_CONNECTION);
+                    final HttpClientConnection conn = this.context.getConnection(HttpClientConnection.class);
                     final HttpContext connContext = (HttpContext) conn;
                     String connuid = (String) connContext.getAttribute("user");
                     if (connuid == null) {

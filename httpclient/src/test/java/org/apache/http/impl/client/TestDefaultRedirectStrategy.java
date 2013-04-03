@@ -44,12 +44,12 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -68,7 +68,7 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testIsRedirectedMovedTemporary() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
@@ -81,7 +81,7 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testIsRedirectedMovedTemporaryNoLocation() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
@@ -91,7 +91,7 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testIsRedirectedMovedPermanently() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_PERMANENTLY, "Redirect");
@@ -103,7 +103,7 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testIsRedirectedTemporaryRedirect() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_TEMPORARY_REDIRECT, "Redirect");
@@ -115,7 +115,7 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testIsRedirectedSeeOther() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_SEE_OTHER, "Redirect");
@@ -127,7 +127,7 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testIsRedirectedUnknownStatus() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 333, "Redirect");
         Assert.assertFalse(redirectStrategy.isRedirected(httpget, response, context));
@@ -138,7 +138,7 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testIsRedirectedInvalidInput() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_SEE_OTHER, "Redirect");
@@ -157,7 +157,7 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testGetLocationUri() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
@@ -169,7 +169,7 @@ public class TestDefaultRedirectStrategy {
     @Test(expected=ProtocolException.class)
     public void testGetLocationUriMissingHeader() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
@@ -179,7 +179,7 @@ public class TestDefaultRedirectStrategy {
     @Test(expected=ProtocolException.class)
     public void testGetLocationUriInvalidLocation() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
@@ -190,8 +190,8 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testGetLocationUriRelative() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
@@ -203,7 +203,7 @@ public class TestDefaultRedirectStrategy {
     @Test(expected=IllegalStateException.class)
     public void testGetLocationUriRelativeMissingTargetHost() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
@@ -215,8 +215,8 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testGetLocationUriRelativeWithFragment() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
@@ -228,8 +228,8 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testGetLocationUriAbsoluteWithFragment() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
@@ -241,8 +241,8 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testGetLocationUriNormalized() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
@@ -254,10 +254,10 @@ public class TestDefaultRedirectStrategy {
     @Test(expected=ProtocolException.class)
     public void testGetLocationUriRelativeLocationNotAllowed() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
         final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(false).build();
-        context.setAttribute(ClientContext.REQUEST_CONFIG, config);
+        context.setRequestConfig(config);
 
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
@@ -269,11 +269,11 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testGetLocationUriAllowCircularRedirects() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
         final HttpGet httpget = new HttpGet("http://localhost/");
         final RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
-        context.setAttribute(ClientContext.REQUEST_CONFIG, config);
+        context.setRequestConfig(config);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
         response.addHeader("Location", "http://localhost/stuff");
@@ -297,11 +297,11 @@ public class TestDefaultRedirectStrategy {
     @Test(expected=ProtocolException.class)
     public void testGetLocationUriDisallowCircularRedirects() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
         final HttpGet httpget = new HttpGet("http://localhost/");
         final RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(false).build();
-        context.setAttribute(ClientContext.REQUEST_CONFIG, config);
+        context.setRequestConfig(config);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
         response.addHeader("Location", "http://localhost/stuff");
@@ -313,7 +313,7 @@ public class TestDefaultRedirectStrategy {
     @Test
     public void testGetLocationUriInvalidInput() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("http://localhost/");
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");

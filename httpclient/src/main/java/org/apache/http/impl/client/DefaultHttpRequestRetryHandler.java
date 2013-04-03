@@ -39,8 +39,8 @@ import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.Args;
 
 /**
@@ -106,7 +106,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
         }
 
         final HttpRequest request = (HttpRequest)
-            context.getAttribute(ExecutionContext.HTTP_REQUEST);
+            context.getAttribute(HttpCoreContext.HTTP_REQUEST);
 
         if(requestIsAborted(request)){
             return false;
@@ -118,7 +118,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
         }
 
         final Boolean b = (Boolean)
-            context.getAttribute(ExecutionContext.HTTP_REQ_SENT);
+            context.getAttribute(HttpCoreContext.HTTP_REQ_SENT);
         final boolean sent = (b != null && b.booleanValue());
 
         if (!sent || this.requestSentRetryEnabled) {

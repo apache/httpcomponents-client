@@ -48,6 +48,7 @@ import org.apache.http.protocol.HTTP;
  *
  * @since 4.3
  */
+@SuppressWarnings("deprecation")
 @NotThreadSafe
 public class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
 

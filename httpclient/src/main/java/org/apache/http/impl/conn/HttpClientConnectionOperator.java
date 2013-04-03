@@ -36,7 +36,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Lookup;
 import org.apache.http.config.SocketConfig;
@@ -44,8 +43,8 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpHostConnectException;
-import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.ManagedHttpClientConnection;
+import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainSocketFactory;
@@ -78,7 +77,7 @@ class HttpClientConnectionOperator {
     @SuppressWarnings("unchecked")
     private Lookup<ConnectionSocketFactory> getSocketFactoryRegistry(final HttpContext context) {
         Lookup<ConnectionSocketFactory> reg = (Lookup<ConnectionSocketFactory>)
-            context.getAttribute(ClientContext.SOCKET_FACTORY_REGISTRY);
+            context.getAttribute(HttpClientContext.SOCKET_FACTORY_REGISTRY);
         if (reg == null) {
             reg = this.socketFactoryRegistry;
         }

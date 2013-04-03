@@ -39,8 +39,6 @@ import org.apache.http.cookie.SM;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BestMatchSpec;
 import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,7 +58,7 @@ public class TestResponseProcessCookies {
 
     @Test(expected=IllegalArgumentException.class)
     public void testResponseParameterCheck() throws Exception {
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(null, context);
     }
@@ -77,10 +75,10 @@ public class TestResponseProcessCookies {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE, "name1=value1");
 
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_ORIGIN, this.cookieOrigin);
-        context.setAttribute(ClientContext.COOKIE_SPEC, this.cookieSpec);
-        context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpClientContext.COOKIE_ORIGIN, this.cookieOrigin);
+        context.setAttribute(HttpClientContext.COOKIE_SPEC, this.cookieSpec);
+        context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
 
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
@@ -101,10 +99,10 @@ public class TestResponseProcessCookies {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE, "name1=value1");
 
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_ORIGIN, null);
-        context.setAttribute(ClientContext.COOKIE_SPEC, this.cookieSpec);
-        context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpClientContext.COOKIE_ORIGIN, null);
+        context.setAttribute(HttpClientContext.COOKIE_SPEC, this.cookieSpec);
+        context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
 
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
@@ -119,10 +117,10 @@ public class TestResponseProcessCookies {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE, "name1=value1");
 
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_ORIGIN, this.cookieOrigin);
-        context.setAttribute(ClientContext.COOKIE_SPEC, null);
-        context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpClientContext.COOKIE_ORIGIN, this.cookieOrigin);
+        context.setAttribute(HttpClientContext.COOKIE_SPEC, null);
+        context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
 
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
@@ -137,10 +135,10 @@ public class TestResponseProcessCookies {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE, "name1=value1");
 
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_ORIGIN, this.cookieOrigin);
-        context.setAttribute(ClientContext.COOKIE_SPEC, this.cookieSpec);
-        context.setAttribute(ClientContext.COOKIE_STORE, null);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpClientContext.COOKIE_ORIGIN, this.cookieOrigin);
+        context.setAttribute(HttpClientContext.COOKIE_SPEC, this.cookieSpec);
+        context.setAttribute(HttpClientContext.COOKIE_STORE, null);
 
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
@@ -156,10 +154,10 @@ public class TestResponseProcessCookies {
         response.addHeader(SM.SET_COOKIE, "name1=value1");
         response.addHeader(SM.SET_COOKIE2, "name1=value2; Version=1");
 
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_ORIGIN, this.cookieOrigin);
-        context.setAttribute(ClientContext.COOKIE_SPEC, this.cookieSpec);
-        context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpClientContext.COOKIE_ORIGIN, this.cookieOrigin);
+        context.setAttribute(HttpClientContext.COOKIE_SPEC, this.cookieSpec);
+        context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
 
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
@@ -180,10 +178,10 @@ public class TestResponseProcessCookies {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE2, "name=value; Version=crap");
 
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_ORIGIN, this.cookieOrigin);
-        context.setAttribute(ClientContext.COOKIE_SPEC, this.cookieSpec);
-        context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpClientContext.COOKIE_ORIGIN, this.cookieOrigin);
+        context.setAttribute(HttpClientContext.COOKIE_SPEC, this.cookieSpec);
+        context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
 
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);
@@ -198,10 +196,10 @@ public class TestResponseProcessCookies {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         response.addHeader(SM.SET_COOKIE2, "name=value; Domain=www.somedomain.com; Version=1");
 
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_ORIGIN, this.cookieOrigin);
-        context.setAttribute(ClientContext.COOKIE_SPEC, this.cookieSpec);
-        context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setAttribute(HttpClientContext.COOKIE_ORIGIN, this.cookieOrigin);
+        context.setAttribute(HttpClientContext.COOKIE_SPEC, this.cookieSpec);
+        context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
 
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
         interceptor.process(response, context);

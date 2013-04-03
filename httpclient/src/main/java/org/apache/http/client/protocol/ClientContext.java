@@ -37,6 +37,7 @@ import org.apache.http.cookie.CookieSpecProvider;
  *
  * @since 4.0
  */
+@Deprecated
 public interface ClientContext {
 
     /**

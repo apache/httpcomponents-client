@@ -56,14 +56,12 @@ import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.cookie.DateParseException;
 import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
@@ -291,11 +289,11 @@ public class CachingExec implements ClientExecChain {
             log.debug("Cache entry not usable; calling backend");
             return callBackend(route, request, context, execAware);
         }
-        context.setAttribute(ClientContext.ROUTE, route);
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
-        context.setAttribute(ExecutionContext.HTTP_REQUEST, request);
-        context.setAttribute(ExecutionContext.HTTP_RESPONSE, out);
-        context.setAttribute(ExecutionContext.HTTP_REQ_SENT, Boolean.TRUE);
+        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+        context.setAttribute(HttpClientContext.HTTP_TARGET_HOST, target);
+        context.setAttribute(HttpClientContext.HTTP_REQUEST, request);
+        context.setAttribute(HttpClientContext.HTTP_RESPONSE, out);
+        context.setAttribute(HttpClientContext.HTTP_REQ_SENT, Boolean.TRUE);
         return out;
     }
 

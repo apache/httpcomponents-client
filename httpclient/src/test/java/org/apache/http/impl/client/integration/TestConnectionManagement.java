@@ -56,8 +56,8 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
@@ -116,8 +116,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         mgr.connect(conn, route, 0, context);
         mgr.routeComplete(conn, route, context);
 
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
 
         final HttpProcessor httpProcessor = new ImmutableHttpProcessor(
                 new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
@@ -152,7 +152,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         mgr.routeComplete(conn, route, context);
 
         // repeat the communication, no need to prepare the request again
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
         response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in second response",
@@ -170,7 +170,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         Assert.assertTrue("connection should have been open", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
         response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in third response",
@@ -206,8 +206,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         mgr.connect(conn, route, 0, context);
         mgr.routeComplete(conn, route, context);
 
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
 
         final HttpProcessor httpProcessor = new ImmutableHttpProcessor(
                 new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
@@ -242,7 +242,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         mgr.connect(conn, route, 0, context);
         mgr.routeComplete(conn, route, context);
 
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
         response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in second response",
@@ -258,7 +258,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         Assert.assertTrue("connection should have been open", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
         response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in third response",
@@ -278,7 +278,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         mgr.connect(conn, route, 0, context);
         mgr.routeComplete(conn, route, context);
 
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
         response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in third response",
@@ -396,8 +396,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         mgr.connect(conn, route, 0, context);
         mgr.routeComplete(conn, route, context);
 
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
 
         final HttpProcessor httpProcessor = new ImmutableHttpProcessor(
                 new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });

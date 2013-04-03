@@ -38,7 +38,7 @@ import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
@@ -133,7 +133,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
             throw new AuthenticationException(getSchemeName() + " authentication has failed");
         case CHALLENGE_RECEIVED:
             try {
-                final HttpRoute route = (HttpRoute) context.getAttribute(ClientContext.ROUTE);
+                final HttpRoute route = (HttpRoute) context.getAttribute(HttpClientContext.HTTP_ROUTE);
                 if (route == null) {
                     throw new AuthenticationException("Connection route is not available");
                 }

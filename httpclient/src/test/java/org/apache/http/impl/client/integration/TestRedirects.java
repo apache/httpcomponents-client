@@ -45,17 +45,16 @@ import org.apache.http.client.RedirectException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.cookie.SM;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
@@ -90,7 +89,7 @@ public class TestRedirects extends IntegrationTestBase {
                 final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final HttpInetConnection conn = (HttpInetConnection) context.getAttribute(ExecutionContext.HTTP_CONNECTION);
+            final HttpInetConnection conn = (HttpInetConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
             final String localhost = conn.getLocalAddress().getHostName();
             final int port = conn.getLocalPort();
             final ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
@@ -218,15 +217,14 @@ public class TestRedirects extends IntegrationTestBase {
         this.localServer.register("*",
                 new BasicRedirectService(HttpStatus.SC_MULTIPLE_CHOICES));
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
+        final HttpRequest reqWrapper = context.getRequest();
 
         Assert.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
@@ -238,17 +236,15 @@ public class TestRedirects extends IntegrationTestBase {
         this.localServer.register("*",
                 new BasicRedirectService(HttpStatus.SC_MOVED_PERMANENTLY));
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
-        final HttpHost host = (HttpHost) context.getAttribute(
-                ExecutionContext.HTTP_TARGET_HOST);
+        final HttpRequest reqWrapper = context.getRequest();
+        final HttpHost host = context.getTargetHost();
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
@@ -261,17 +257,15 @@ public class TestRedirects extends IntegrationTestBase {
         this.localServer.register("*",
                 new BasicRedirectService(HttpStatus.SC_MOVED_TEMPORARILY));
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
-        final HttpHost host = (HttpHost) context.getAttribute(
-                ExecutionContext.HTTP_TARGET_HOST);
+        final HttpRequest reqWrapper = context.getRequest();
+        final HttpHost host = context.getTargetHost();
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
@@ -292,17 +286,15 @@ public class TestRedirects extends IntegrationTestBase {
 
         });
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
-        final HttpHost host = (HttpHost) context.getAttribute(
-                ExecutionContext.HTTP_TARGET_HOST);
+        final HttpRequest reqWrapper = context.getRequest();
+        final HttpHost host = context.getTargetHost();
 
         Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
@@ -315,17 +307,15 @@ public class TestRedirects extends IntegrationTestBase {
         this.localServer.register("*",
                 new BasicRedirectService(HttpStatus.SC_SEE_OTHER));
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
-        final HttpHost host = (HttpHost) context.getAttribute(
-                ExecutionContext.HTTP_TARGET_HOST);
+        final HttpRequest reqWrapper = context.getRequest();
+        final HttpHost host = context.getTargetHost();
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
@@ -338,15 +328,14 @@ public class TestRedirects extends IntegrationTestBase {
         this.localServer.register("*",
                 new BasicRedirectService(HttpStatus.SC_NOT_MODIFIED));
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
+        final HttpRequest reqWrapper = context.getRequest();
 
         Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
@@ -357,15 +346,14 @@ public class TestRedirects extends IntegrationTestBase {
         final HttpHost target = getServerHttp();
         this.localServer.register("*",
                 new BasicRedirectService(HttpStatus.SC_USE_PROXY));
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
+        final HttpRequest reqWrapper = context.getRequest();
 
         Assert.assertEquals(HttpStatus.SC_USE_PROXY, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
@@ -377,17 +365,15 @@ public class TestRedirects extends IntegrationTestBase {
         this.localServer.register("*",
                 new BasicRedirectService(HttpStatus.SC_TEMPORARY_REDIRECT));
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
-        final HttpHost host = (HttpHost) context.getAttribute(
-                ExecutionContext.HTTP_TARGET_HOST);
+        final HttpRequest reqWrapper = context.getRequest();
+        final HttpHost host = context.getTargetHost();
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
@@ -438,7 +424,7 @@ public class TestRedirects extends IntegrationTestBase {
         final HttpHost target = getServerHttp();
         this.localServer.register("*", new BasicRedirectService());
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpPost httppost = new HttpPost("/oldlocation/");
         httppost.setEntity(new StringEntity("stuff"));
@@ -446,8 +432,7 @@ public class TestRedirects extends IntegrationTestBase {
         final HttpResponse response = this.httpclient.execute(target, httppost, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
+        final HttpRequest reqWrapper = context.getRequest();
 
         Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
@@ -459,7 +444,7 @@ public class TestRedirects extends IntegrationTestBase {
         final HttpHost target = getServerHttp();
         this.localServer.register("*", new BasicRedirectService(HttpStatus.SC_SEE_OTHER));
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpPost httppost = new HttpPost("/oldlocation/");
         httppost.setEntity(new StringEntity("stuff"));
@@ -467,8 +452,7 @@ public class TestRedirects extends IntegrationTestBase {
         final HttpResponse response = this.httpclient.execute(target, httppost, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
+        final HttpRequest reqWrapper = context.getRequest();
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
@@ -480,7 +464,7 @@ public class TestRedirects extends IntegrationTestBase {
         final HttpHost target = getServerHttp();
         this.localServer.register("*", new RelativeRedirectService());
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(true).build();
         final HttpGet httpget = new HttpGet("/oldlocation/");
@@ -489,10 +473,8 @@ public class TestRedirects extends IntegrationTestBase {
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
-        final HttpHost host = (HttpHost) context.getAttribute(
-                ExecutionContext.HTTP_TARGET_HOST);
+        final HttpRequest reqWrapper = context.getRequest();
+        final HttpHost host = context.getTargetHost();
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/relativelocation/", reqWrapper.getRequestLine().getUri());
@@ -504,7 +486,7 @@ public class TestRedirects extends IntegrationTestBase {
         final HttpHost target = getServerHttp();
         this.localServer.register("*", new RelativeRedirectService2());
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(true).build();
         final HttpGet httpget = new HttpGet("/test/oldlocation");
@@ -513,10 +495,8 @@ public class TestRedirects extends IntegrationTestBase {
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
-        final HttpHost host = (HttpHost) context.getAttribute(
-                ExecutionContext.HTTP_TARGET_HOST);
+        final HttpRequest reqWrapper = context.getRequest();
+        final HttpHost host = context.getTargetHost();
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/test/relativelocation", reqWrapper.getRequestLine().getUri());
@@ -580,16 +560,15 @@ public class TestRedirects extends IntegrationTestBase {
 
         cookieStore.addCookie(cookie);
 
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCookieStore(cookieStore);
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
 
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
+        final HttpRequest reqWrapper = context.getRequest();
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
@@ -607,7 +586,7 @@ public class TestRedirects extends IntegrationTestBase {
 
         this.localServer.register("*", new BasicRedirectService());
 
-        final HttpContext context = new BasicHttpContext();
+        final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
@@ -615,8 +594,7 @@ public class TestRedirects extends IntegrationTestBase {
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(
-                ExecutionContext.HTTP_REQUEST);
+        final HttpRequest reqWrapper = context.getRequest();
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());

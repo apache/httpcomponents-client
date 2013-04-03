@@ -54,7 +54,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.protocol.RequestClientConnControl;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
@@ -67,7 +66,6 @@ import org.apache.http.conn.routing.RouteTracker;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
@@ -137,12 +135,12 @@ public class MainClientExec implements ClientExecChain {
         AuthState targetAuthState = context.getTargetAuthState();
         if (targetAuthState == null) {
             targetAuthState = new AuthState();
-            context.setAttribute(ClientContext.TARGET_AUTH_STATE, targetAuthState);
+            context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, targetAuthState);
         }
         AuthState proxyAuthState = context.getProxyAuthState();
         if (proxyAuthState == null) {
             proxyAuthState = new AuthState();
-            context.setAttribute(ClientContext.PROXY_AUTH_STATE, proxyAuthState);
+            context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
         }
 
         if (request instanceof HttpEntityEnclosingRequest) {
@@ -178,7 +176,7 @@ public class MainClientExec implements ClientExecChain {
             throw new RequestAbortedException("Request execution failed", cause);
         }
 
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, managedConn);
+        context.setAttribute(HttpClientContext.HTTP_CONNECTION, managedConn);
 
         if (config.isStaleConnectionCheckEnabled()) {
             // validate connection
@@ -306,7 +304,7 @@ public class MainClientExec implements ClientExecChain {
 
             if (userToken == null) {
                 userToken = userTokenHandler.getUserToken(context);
-                context.setAttribute(ClientContext.USER_TOKEN, userToken);
+                context.setAttribute(HttpClientContext.USER_TOKEN, userToken);
             }
             if (userToken != null) {
                 connHolder.setState(userToken);

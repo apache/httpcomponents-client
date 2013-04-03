@@ -38,7 +38,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.SM;
 import org.apache.http.cookie.SetCookie2;
@@ -46,8 +46,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
@@ -86,8 +84,8 @@ public class TestCookie2Support extends IntegrationTestBase {
         this.localServer.register("*", new CookieVer0Service());
 
         final CookieStore cookieStore = new BasicCookieStore();
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCookieStore(cookieStore);
 
         final HttpGet httpget = new HttpGet("/test/");
 
@@ -103,7 +101,7 @@ public class TestCookie2Support extends IntegrationTestBase {
         final HttpEntity e2 = response2.getEntity();
         EntityUtils.consume(e2);
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
+        final HttpRequest reqWrapper = context.getRequest();
 
         final Header cookiesupport = reqWrapper.getFirstHeader("Cookie2");
         Assert.assertNotNull(cookiesupport);
@@ -131,8 +129,8 @@ public class TestCookie2Support extends IntegrationTestBase {
         this.localServer.register("*", new CookieVer1Service());
 
         final CookieStore cookieStore = new BasicCookieStore();
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCookieStore(cookieStore);
 
         final HttpGet httpget = new HttpGet("/test/");
 
@@ -148,7 +146,7 @@ public class TestCookie2Support extends IntegrationTestBase {
         final HttpEntity e2 = response2.getEntity();
         EntityUtils.consume(e2);
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
+        final HttpRequest reqWrapper = context.getRequest();
 
         final Header cookiesupport = reqWrapper.getFirstHeader(SM.COOKIE2);
         Assert.assertNotNull(cookiesupport);
@@ -175,8 +173,8 @@ public class TestCookie2Support extends IntegrationTestBase {
         this.localServer.register("*", new CookieVer2Service());
 
         final CookieStore cookieStore = new BasicCookieStore();
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCookieStore(cookieStore);
 
         final HttpGet httpget = new HttpGet("/test/");
 
@@ -192,7 +190,7 @@ public class TestCookie2Support extends IntegrationTestBase {
         final HttpEntity e2 = response2.getEntity();
         EntityUtils.consume(e2);
 
-        final HttpRequest reqWrapper = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
+        final HttpRequest reqWrapper = context.getRequest();
 
         final Header cookiesupport = reqWrapper.getFirstHeader("Cookie2");
         Assert.assertNotNull(cookiesupport);
@@ -220,8 +218,8 @@ public class TestCookie2Support extends IntegrationTestBase {
         this.localServer.register("*", new SetCookieVersionMixService());
 
         final CookieStore cookieStore = new BasicCookieStore();
-        final HttpContext context = new BasicHttpContext();
-        context.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
+        final HttpClientContext context = HttpClientContext.create();
+        context.setCookieStore(cookieStore);
 
         final HttpGet httpget = new HttpGet("/test/");
 

@@ -34,8 +34,8 @@ import java.net.UnknownHostException;
 
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -52,7 +52,7 @@ public class TestDefaultHttpRequestRetryHandler {
         Assert.assertEquals(3, retryHandler.getRetryCount());
 
         when(request.isAborted()).thenReturn(Boolean.FALSE);
-        when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
+        when(context.getAttribute(HttpCoreContext.HTTP_REQUEST)).thenReturn(request);
 
         Assert.assertFalse(retryHandler.retryRequest(new ConnectTimeoutException(), 1, context));
     }
@@ -65,7 +65,7 @@ public class TestDefaultHttpRequestRetryHandler {
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
         when(request.isAborted()).thenReturn(Boolean.FALSE);
-        when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
+        when(context.getAttribute(HttpCoreContext.HTTP_REQUEST)).thenReturn(request);
 
         Assert.assertFalse(retryHandler.retryRequest(new UnknownHostException(), 1, context));
     }
@@ -78,7 +78,7 @@ public class TestDefaultHttpRequestRetryHandler {
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
         when(request.isAborted()).thenReturn(Boolean.TRUE);
-        when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
+        when(context.getAttribute(HttpCoreContext.HTTP_REQUEST)).thenReturn(request);
 
         Assert.assertFalse(retryHandler.retryRequest(new IOException(),3,context));
     }
@@ -92,7 +92,7 @@ public class TestDefaultHttpRequestRetryHandler {
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
         when(request.isAborted()).thenReturn(Boolean.FALSE);
-        when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
+        when(context.getAttribute(HttpCoreContext.HTTP_REQUEST)).thenReturn(request);
 
         Assert.assertTrue(retryHandler.retryRequest(new IOException(),3,context));
     }
@@ -106,7 +106,7 @@ public class TestDefaultHttpRequestRetryHandler {
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
         when(request.isAborted()).thenReturn(false);
-        when(context.getAttribute(ExecutionContext.HTTP_REQUEST)).thenReturn(request);
+        when(context.getAttribute(HttpCoreContext.HTTP_REQUEST)).thenReturn(request);
 
         Assert.assertFalse(retryHandler.retryRequest(new ConnectTimeoutException(),3,context));
     }

@@ -32,9 +32,6 @@ import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,7 +47,6 @@ public class TestProtocolExec {
     private HttpRequestWrapper request;
     private HttpExecutionAware execAware;
     private HttpRoute route;
-    private HttpParams params = new BasicHttpParams();
 
     @Before
     public void setup() throws Exception {
@@ -67,8 +63,7 @@ public class TestProtocolExec {
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "http://bar/test"));
         protocolExec.execute(route, request, context, execAware);
         // ProtocolExect should have extracted the host from request URI
-        Assert.assertEquals(new HttpHost("bar", -1, "http"),
-            context.getAttribute(ExecutionContext.HTTP_TARGET_HOST));
+        Assert.assertEquals(new HttpHost("bar", -1, "http"), context.getTargetHost());
     }
 
     @Test
@@ -77,8 +72,7 @@ public class TestProtocolExec {
         protocolExec.execute(route, request, context, execAware);
         // ProtocolExect should have fall back to physical host as request URI
         // is not parseable
-        Assert.assertEquals(new HttpHost("foo", 8080, "http"),
-            context.getAttribute(ExecutionContext.HTTP_TARGET_HOST));
+        Assert.assertEquals(new HttpHost("foo", 8080, "http"), context.getTargetHost());
     }
 
 }
