@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.http.impl.execchain;
+package org.apache.http.impl.auth;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -51,6 +51,9 @@ import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Asserts;
 
+/**
+ * @since 4.3
+ */
 public class HttpAuthenticator {
 
     private final Log log;
@@ -90,23 +93,6 @@ public class HttpAuthenticator {
         }
     }
 
-    /**
-     * @deprecated (4.3) use {@link #handleAuthChallenge(
-     *   HttpHost, HttpResponse, AuthenticationStrategy, AuthState, HttpContext)}.
-     */
-    @Deprecated
-    public boolean authenticate (
-            final HttpHost host,
-            final HttpResponse response,
-            final AuthenticationStrategy authStrategy,
-            final AuthState authState,
-            final HttpContext context) {
-        return handleAuthChallenge(host, response, authStrategy, authState, context);
-    }
-
-    /**
-     * @since 4.3
-     */
     public boolean handleAuthChallenge(
             final HttpHost host,
             final HttpResponse response,
@@ -182,9 +168,6 @@ public class HttpAuthenticator {
         }
     }
 
-    /**
-     * @since 4.3
-     */
     public void generateAuthResponse(
             final HttpRequest request,
             final AuthState authState,
