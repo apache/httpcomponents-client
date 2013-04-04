@@ -1,5 +1,8 @@
 Changes since 4.3 ALPHA1
 -------------------
+* [HTTPCLIENT-1319] InetAddressUtils.isIPv6HexCompressedAddress does not detect excess groups 
+  Contributed Sebastian Bazley <sebb at apache.org>.
+
 * [HTTPCLIENT-1317] InetAddressUtils should handle IPv6 Addresses with Embedded IPv4 Addresses 
   Contributed Sebastian Bazley <sebb at apache.org>.
 

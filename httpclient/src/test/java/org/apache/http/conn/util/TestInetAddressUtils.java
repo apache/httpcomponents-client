@@ -59,6 +59,7 @@ public class TestInetAddressUtils {
         Assert.assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("2001:0db8::1428:57ab"));
         Assert.assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("2001:db8::1428:57ab"));
         Assert.assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("::1"));
+        Assert.assertTrue(InetAddressUtils.isIPv6HexCompressedAddress("::")); // http://tools.ietf.org/html/rfc4291#section-2.2
     }
 
     @Test
@@ -70,15 +71,15 @@ public class TestInetAddressUtils {
         Assert.assertFalse(InetAddressUtils.isIPv6HexCompressedAddress(":1"));
         Assert.assertFalse(InetAddressUtils.isIPv6Address("2001:0db8::0000::57ab")); // Cannot have two contractions
         Assert.assertFalse(InetAddressUtils.isIPv6HexCompressedAddress("1:2:3:4:5:6:7::9")); // too many fields before ::
+        Assert.assertFalse(InetAddressUtils.isIPv6HexCompressedAddress("1::3:4:5:6:7:8:9")); // too many fields after ::
         Assert.assertFalse(InetAddressUtils.isIPv6HexCompressedAddress("::3:4:5:6:7:8:9")); // too many fields after ::
     }
 
     @Test
-    @org.junit.Ignore
     // Test HTTPCLIENT-1319
     public void testInvalidIPv6AddressIncorrectGroupCount() {
-        Assert.assertFalse(InetAddressUtils.isIPv6HexCompressedAddress("::")); // not enough fields
-        Assert.assertFalse(InetAddressUtils.isIPv6HexCompressedAddress("1::2:3:4:5:6:7:8")); // too many fields
+        Assert.assertFalse(InetAddressUtils.isIPv6HexCompressedAddress("1:2::4:5:6:7:8:9")); // too many fields in total
+        Assert.assertFalse(InetAddressUtils.isIPv6HexCompressedAddress("1:2:3:4:5:6::8:9")); // too many fields in total
     }
 
     @Test
