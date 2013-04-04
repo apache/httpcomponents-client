@@ -205,7 +205,6 @@ public class RFC2965Spec extends RFC2109Spec {
      * that all effective host names contain at least one dot.
      *
      * @param origin origin where cookie is received from or being sent to.
-     * @return
      */
     private static CookieOrigin adjustEffectiveHost(final CookieOrigin origin) {
         String host = origin.getHost();
