@@ -38,6 +38,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import junit.framework.Assert;
 
@@ -150,9 +151,9 @@ public class TestFutureRequestExecutionService {
 
         latch.await(10, TimeUnit.SECONDS);
 
-        Assert.assertEquals(100, callback.completed);
-        Assert.assertEquals(0, callback.cancelled);
-        Assert.assertEquals(0, callback.failed);
+        Assert.assertEquals(100, callback.completed.get());
+        Assert.assertEquals(0, callback.cancelled.get());
+        Assert.assertEquals(0, callback.failed.get());
     }
 
 
@@ -160,9 +161,9 @@ public class TestFutureRequestExecutionService {
 
         private final CountDownLatch latch;
 
-        int failed=0;
-        int cancelled=0;
-        int completed=0;
+        AtomicInteger failed = new AtomicInteger(0);
+        AtomicInteger cancelled = new AtomicInteger(0);
+        AtomicInteger completed = new AtomicInteger(0);
 
         CountingCallback(final CountDownLatch latch) {
             super();
@@ -171,17 +172,17 @@ public class TestFutureRequestExecutionService {
 
         public void failed(final Exception ex) {
             latch.countDown();
-            failed++;
+            failed.incrementAndGet();
         }
 
         public void completed(final Boolean result) {
             latch.countDown();
-            completed++;
+            completed.incrementAndGet();
         }
 
         public void cancelled() {
             latch.countDown();
-            cancelled++;
+            cancelled.incrementAndGet();
         }
     }
 
