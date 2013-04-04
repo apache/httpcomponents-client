@@ -33,7 +33,7 @@ HttpClient Downloads
     The latest release available for download:
 
     {{{http://hc.apache.org/downloads.cgi}Release packages}} - 
-    {{{http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES.txt}Release Notes}} -
+    {{{http://www.apache.org/dist/httpcomponents/httpclient/RELEASE_NOTES-4.2.x.txt}Release Notes}} -
     {{{http://www.apache.org/licenses/LICENSE-2.0.html}License}}
 
 {Dependency management with Maven}
@@ -42,46 +42,46 @@ HttpClient Downloads
     in your {{{http://maven.apache.org/guides/introduction/introduction-to-the-pom.html}pom.xml}} 
     by adding the following block to the dependency descriptor:
 
-* {HttpComponents Client 4.2.3}
+* {HttpComponents Client 4.2.4}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpclient</artifactId>
-    <version>4.2.3</version>
+    <version>4.2.4</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
 
-* {HttpComponents HttpMime 4.2.3}
+* {HttpComponents HttpMime 4.2.4}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpmime</artifactId>
-    <version>4.2.3</version>
+    <version>4.2.4</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
 
-* {HttpComponents HttpClient Cache 4.2.3}
+* {HttpComponents HttpClient Cache 4.2.4}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpclient-cache</artifactId>
-    <version>4.2.3</version>
+    <version>4.2.4</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
 
-* {HttpComponents HttpClient Fluent 4.2.3}
+* {HttpComponents HttpClient Fluent 4.2.4}
 
 -------------------------
   <dependency>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>fluent-hc</artifactId>
-    <version>4.2.3</version>
+    <version>4.2.4</version>
     <scope>compile</scope>
   </dependency>
 -------------------------
