@@ -282,7 +282,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 
 
     protected HttpContext createHttpContext() {
-        HttpContext context = new BasicHttpContext();
+        final HttpContext context = new BasicHttpContext();
         context.setAttribute(
                 ClientContext.SCHEME_REGISTRY,
                 getConnectionManager().getSchemeRegistry());
@@ -303,24 +303,24 @@ public abstract class AbstractHttpClient implements HttpClient {
 
 
     protected ClientConnectionManager createClientConnectionManager() {
-        SchemeRegistry registry = SchemeRegistryFactory.createDefault();
+        final SchemeRegistry registry = SchemeRegistryFactory.createDefault();
 
         ClientConnectionManager connManager = null;
-        HttpParams params = getParams();
+        final HttpParams params = getParams();
 
         ClientConnectionManagerFactory factory = null;
 
-        String className = (String) params.getParameter(
+        final String className = (String) params.getParameter(
                 ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME);
         if (className != null) {
             try {
-                Class<?> clazz = Class.forName(className);
+                final Class<?> clazz = Class.forName(className);
                 factory = (ClientConnectionManagerFactory) clazz.newInstance();
-            } catch (ClassNotFoundException ex) {
+            } catch (final ClassNotFoundException ex) {
                 throw new IllegalStateException("Invalid class name: " + className);
-            } catch (IllegalAccessException ex) {
+            } catch (final IllegalAccessException ex) {
                 throw new IllegalAccessError(ex.getMessage());
-            } catch (InstantiationException ex) {
+            } catch (final InstantiationException ex) {
                 throw new InstantiationError(ex.getMessage());
             }
         }
@@ -335,7 +335,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 
 
     protected AuthSchemeRegistry createAuthSchemeRegistry() {
-        AuthSchemeRegistry registry = new AuthSchemeRegistry();
+        final AuthSchemeRegistry registry = new AuthSchemeRegistry();
         registry.register(
                 AuthPolicy.BASIC,
                 new BasicSchemeFactory());
@@ -356,7 +356,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 
 
     protected CookieSpecRegistry createCookieSpecRegistry() {
-        CookieSpecRegistry registry = new CookieSpecRegistry();
+        final CookieSpecRegistry registry = new CookieSpecRegistry();
         registry.register(
                 CookiePolicy.BEST_MATCH,
                 new BestMatchSpecFactory());
@@ -397,7 +397,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @deprecated (4.1) do not use
      */
-    @Deprecated 
+    @Deprecated
     protected RedirectHandler createRedirectHandler() {
         return new DefaultRedirectHandler();
     }
@@ -409,7 +409,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     protected AuthenticationHandler createTargetAuthenticationHandler() {
         return new DefaultTargetAuthenticationHandler();
     }
@@ -421,7 +421,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     protected AuthenticationHandler createProxyAuthenticationHandler() {
         return new DefaultProxyAuthenticationHandler();
     }
@@ -456,7 +456,7 @@ public abstract class AbstractHttpClient implements HttpClient {
      *
      * @param params    the new default parameters
      */
-    public synchronized void setParams(HttpParams params) {
+    public synchronized void setParams(final HttpParams params) {
         defaultParams = params;
     }
 
@@ -555,7 +555,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @deprecated (4.1) do not use
      */
-    @Deprecated 
+    @Deprecated
     public synchronized final RedirectHandler getRedirectHandler() {
         return createRedirectHandler();
     }
@@ -563,7 +563,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @deprecated (4.1) do not use
      */
-    @Deprecated 
+    @Deprecated
     public synchronized void setRedirectHandler(final RedirectHandler handler) {
         this.redirectStrategy = new DefaultRedirectStrategyAdaptor(handler);
     }
@@ -588,7 +588,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     public synchronized final AuthenticationHandler getTargetAuthenticationHandler() {
         return createTargetAuthenticationHandler();
     }
@@ -596,7 +596,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     public synchronized void setTargetAuthenticationHandler(final AuthenticationHandler handler) {
         this.targetAuthStrategy = new AuthenticationStrategyAdaptor(handler);
     }
@@ -621,7 +621,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     public synchronized final AuthenticationHandler getProxyAuthenticationHandler() {
         return createProxyAuthenticationHandler();
     }
@@ -629,7 +629,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     public synchronized void setProxyAuthenticationHandler(final AuthenticationHandler handler) {
         this.proxyAuthStrategy = new AuthenticationStrategyAdaptor(handler);
     }
@@ -705,15 +705,15 @@ public abstract class AbstractHttpClient implements HttpClient {
     private synchronized final HttpProcessor getProtocolProcessor() {
         if (protocolProcessor == null) {
             // Get mutable HTTP processor
-            BasicHttpProcessor proc = getHttpProcessor();
+            final BasicHttpProcessor proc = getHttpProcessor();
             // and create an immutable copy of it
-            int reqc = proc.getRequestInterceptorCount();
-            HttpRequestInterceptor[] reqinterceptors = new HttpRequestInterceptor[reqc];
+            final int reqc = proc.getRequestInterceptorCount();
+            final HttpRequestInterceptor[] reqinterceptors = new HttpRequestInterceptor[reqc];
             for (int i = 0; i < reqc; i++) {
                 reqinterceptors[i] = proc.getRequestInterceptor(i);
             }
-            int resc = proc.getResponseInterceptorCount();
-            HttpResponseInterceptor[] resinterceptors = new HttpResponseInterceptor[resc];
+            final int resc = proc.getResponseInterceptorCount();
+            final HttpResponseInterceptor[] resinterceptors = new HttpResponseInterceptor[resc];
             for (int i = 0; i < resc; i++) {
                 resinterceptors[i] = proc.getResponseInterceptor(i);
             }
@@ -726,11 +726,11 @@ public abstract class AbstractHttpClient implements HttpClient {
         return getHttpProcessor().getResponseInterceptorCount();
     }
 
-    public synchronized HttpResponseInterceptor getResponseInterceptor(int index) {
+    public synchronized HttpResponseInterceptor getResponseInterceptor(final int index) {
         return getHttpProcessor().getResponseInterceptor(index);
     }
 
-    public synchronized HttpRequestInterceptor getRequestInterceptor(int index) {
+    public synchronized HttpRequestInterceptor getRequestInterceptor(final int index) {
         return getHttpProcessor().getRequestInterceptor(index);
     }
 
@@ -743,7 +743,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         protocolProcessor = null;
     }
 
-    public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp, int index) {
+    public synchronized void addResponseInterceptor(final HttpResponseInterceptor itcp, final int index) {
         getHttpProcessor().addInterceptor(itcp, index);
         protocolProcessor = null;
     }
@@ -753,7 +753,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         protocolProcessor = null;
     }
 
-    public synchronized void removeResponseInterceptorByClass(Class<? extends HttpResponseInterceptor> clazz) {
+    public synchronized void removeResponseInterceptorByClass(final Class<? extends HttpResponseInterceptor> clazz) {
         getHttpProcessor().removeResponseInterceptorByClass(clazz);
         protocolProcessor = null;
     }
@@ -763,7 +763,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         protocolProcessor = null;
     }
 
-    public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp, int index) {
+    public synchronized void addRequestInterceptor(final HttpRequestInterceptor itcp, final int index) {
         getHttpProcessor().addInterceptor(itcp, index);
         protocolProcessor = null;
     }
@@ -773,12 +773,12 @@ public abstract class AbstractHttpClient implements HttpClient {
         protocolProcessor = null;
     }
 
-    public synchronized void removeRequestInterceptorByClass(Class<? extends HttpRequestInterceptor> clazz) {
+    public synchronized void removeRequestInterceptorByClass(final Class<? extends HttpRequestInterceptor> clazz) {
         getHttpProcessor().removeRequestInterceptorByClass(clazz);
         protocolProcessor = null;
     }
 
-    public final HttpResponse execute(HttpUriRequest request)
+    public final HttpResponse execute(final HttpUriRequest request)
         throws IOException, ClientProtocolException {
 
         return execute(request, (HttpContext) null);
@@ -793,8 +793,8 @@ public abstract class AbstractHttpClient implements HttpClient {
      * @param context   the request-specific execution context,
      *                  or <code>null</code> to use a default context
      */
-    public final HttpResponse execute(HttpUriRequest request,
-                                      HttpContext context)
+    public final HttpResponse execute(final HttpUriRequest request,
+                                      final HttpContext context)
         throws IOException, ClientProtocolException {
 
         if (request == null) {
@@ -805,12 +805,12 @@ public abstract class AbstractHttpClient implements HttpClient {
         return execute(determineTarget(request), request, context);
     }
 
-    private static HttpHost determineTarget(HttpUriRequest request) throws ClientProtocolException {
+    private static HttpHost determineTarget(final HttpUriRequest request) throws ClientProtocolException {
         // A null target may be acceptable if there is a default target.
         // Otherwise, the null target is detected in the director.
         HttpHost target = null;
 
-        URI requestURI = request.getURI();
+        final URI requestURI = request.getURI();
         if (requestURI.isAbsolute()) {
             target = URIUtils.extractHost(requestURI);
             if (target == null) {
@@ -821,14 +821,14 @@ public abstract class AbstractHttpClient implements HttpClient {
         return target;
     }
 
-    public final HttpResponse execute(HttpHost target, HttpRequest request)
+    public final HttpResponse execute(final HttpHost target, final HttpRequest request)
         throws IOException, ClientProtocolException {
 
         return execute(target, request, (HttpContext) null);
     }
 
-    public final HttpResponse execute(HttpHost target, HttpRequest request,
-                                      HttpContext context)
+    public final HttpResponse execute(final HttpHost target, final HttpRequest request,
+                                      final HttpContext context)
         throws IOException, ClientProtocolException {
 
         if (request == null) {
@@ -848,7 +848,7 @@ public abstract class AbstractHttpClient implements HttpClient {
         // all shared objects that are potentially threading unsafe.
         synchronized (this) {
 
-            HttpContext defaultContext = createHttpContext();
+            final HttpContext defaultContext = createHttpContext();
             if (context == null) {
                 execContext = defaultContext;
             } else {
@@ -875,20 +875,20 @@ public abstract class AbstractHttpClient implements HttpClient {
 
         try {
             if (connectionBackoffStrategy != null && backoffManager != null) {
-                HttpHost targetForRoute = (target != null) ? target
+                final HttpHost targetForRoute = (target != null) ? target
                         : (HttpHost) determineParams(request).getParameter(
                                 ClientPNames.DEFAULT_HOST);
-                HttpRoute route = routePlanner.determineRoute(targetForRoute, request, execContext);
+                final HttpRoute route = routePlanner.determineRoute(targetForRoute, request, execContext);
 
                 HttpResponse out;
                 try {
                     out = director.execute(target, request, execContext);
-                } catch (RuntimeException re) {
+                } catch (final RuntimeException re) {
                     if (connectionBackoffStrategy.shouldBackoff(re)) {
                         backoffManager.backOff(route);
                     }
                     throw re;
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     if (connectionBackoffStrategy.shouldBackoff(e)) {
                         backoffManager.backOff(route);
                     }
@@ -905,7 +905,7 @@ public abstract class AbstractHttpClient implements HttpClient {
             } else {
                 return director.execute(target, request, execContext);
             }
-        } catch(HttpException httpException) {
+        } catch(final HttpException httpException) {
             throw new ClientProtocolException(httpException);
         }
     }
@@ -945,7 +945,7 @@ public abstract class AbstractHttpClient implements HttpClient {
     /**
      * @deprecated (4.2) do not use
      */
-    @Deprecated 
+    @Deprecated
     protected RequestDirector createClientRequestDirector(
             final HttpRequestExecutor requestExec,
             final ClientConnectionManager conman,
@@ -1023,11 +1023,26 @@ public abstract class AbstractHttpClient implements HttpClient {
      *
      * @return  the parameters to use
      */
-    protected HttpParams determineParams(HttpRequest req) {
+    protected HttpParams determineParams(final HttpRequest req) {
         return new ClientParamsStack
             (null, getParams(), req.getParams(), null);
     }
 
+    /**
+     * Executes a request using the default context and processes the
+     * response using the given response handler. The content entity associated
+     * with the response is fully consumed and the underlying connection is
+     * released back to the connection manager automatically in all cases
+     * relieving individual {@link ResponseHandler}s from having to manage
+     * resource deallocation internally.
+     *
+     * @param request   the request to execute
+     * @param responseHandler the response handler
+     *
+     * @return  the response object as generated by the response handler.
+     * @throws IOException in case of a problem or the connection was aborted
+     * @throws ClientProtocolException in case of an http protocol error
+     */
     public <T> T execute(
             final HttpUriRequest request,
             final ResponseHandler<? extends T> responseHandler)
@@ -1035,15 +1050,51 @@ public abstract class AbstractHttpClient implements HttpClient {
         return execute(request, responseHandler, null);
     }
 
+    /**
+     * Executes a request using the default context and processes the
+     * response using the given response handler. The content entity associated
+     * with the response is fully consumed and the underlying connection is
+     * released back to the connection manager automatically in all cases
+     * relieving individual {@link ResponseHandler}s from having to manage
+     * resource deallocation internally.
+     *
+     * @param request   the request to execute
+     * @param responseHandler the response handler
+     * @param context   the context to use for the execution, or
+     *                  <code>null</code> to use the default context
+     *
+     * @return  the response object as generated by the response handler.
+     * @throws IOException in case of a problem or the connection was aborted
+     * @throws ClientProtocolException in case of an http protocol error
+     */
     public <T> T execute(
             final HttpUriRequest request,
             final ResponseHandler<? extends T> responseHandler,
             final HttpContext context)
                 throws IOException, ClientProtocolException {
-        HttpHost target = determineTarget(request);
+        final HttpHost target = determineTarget(request);
         return execute(target, request, responseHandler, context);
     }
 
+    /**
+     * Executes a request using the default context and processes the
+     * response using the given response handler. The content entity associated
+     * with the response is fully consumed and the underlying connection is
+     * released back to the connection manager automatically in all cases
+     * relieving individual {@link ResponseHandler}s from having to manage
+     * resource deallocation internally.
+     *
+     * @param target    the target host for the request.
+     *                  Implementations may accept <code>null</code>
+     *                  if they can still determine a route, for example
+     *                  to a default target or by inspecting the request.
+     * @param request   the request to execute
+     * @param responseHandler the response handler
+     *
+     * @return  the response object as generated by the response handler.
+     * @throws IOException in case of a problem or the connection was aborted
+     * @throws ClientProtocolException in case of an http protocol error
+     */
     public <T> T execute(
             final HttpHost target,
             final HttpRequest request,
@@ -1052,6 +1103,27 @@ public abstract class AbstractHttpClient implements HttpClient {
         return execute(target, request, responseHandler, null);
     }
 
+    /**
+     * Executes a request using the default context and processes the
+     * response using the given response handler. The content entity associated
+     * with the response is fully consumed and the underlying connection is
+     * released back to the connection manager automatically in all cases
+     * relieving individual {@link ResponseHandler}s from having to manage
+     * resource deallocation internally.
+     *
+     * @param target    the target host for the request.
+     *                  Implementations may accept <code>null</code>
+     *                  if they can still determine a route, for example
+     *                  to a default target or by inspecting the request.
+     * @param request   the request to execute
+     * @param responseHandler the response handler
+     * @param context   the context to use for the execution, or
+     *                  <code>null</code> to use the default context
+     *
+     * @return  the response object as generated by the response handler.
+     * @throws IOException in case of a problem or the connection was aborted
+     * @throws ClientProtocolException in case of an http protocol error
+     */
     public <T> T execute(
             final HttpHost target,
             final HttpRequest request,
@@ -1063,16 +1135,16 @@ public abstract class AbstractHttpClient implements HttpClient {
                 ("Response handler must not be null.");
         }
 
-        HttpResponse response = execute(target, request, context);
+        final HttpResponse response = execute(target, request, context);
 
         T result;
         try {
             result = responseHandler.handleResponse(response);
-        } catch (Exception t) {
-            HttpEntity entity = response.getEntity();
+        } catch (final Exception t) {
+            final HttpEntity entity = response.getEntity();
             try {
                 EntityUtils.consume(entity);
-            } catch (Exception t2) {
+            } catch (final Exception t2) {
                 // Log this exception. The original exception is more
                 // important and will be thrown to the caller.
                 this.log.warn("Error consuming content after an exception.", t2);
@@ -1088,7 +1160,7 @@ public abstract class AbstractHttpClient implements HttpClient {
 
         // Handling the response was successful. Ensure that the content has
         // been fully consumed.
-        HttpEntity entity = response.getEntity();
+        final HttpEntity entity = response.getEntity();
         EntityUtils.consume(entity);
         return result;
     }
