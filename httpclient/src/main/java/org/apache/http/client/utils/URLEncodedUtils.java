@@ -363,14 +363,6 @@ public class URLEncodedUtils {
 
     private static final int RADIX = 16;
 
-    /**
-     * Emcode/escape a portion of a URL, to use with the query part ensure {@code plusAsBlank} is true.
-     *
-     * @param content the portion to decode
-     * @param charset the charset to use
-     * @param blankAsPlus if {@code true}, then convert space to '+' (e.g. for www-url-form-encoded content), otherwise leave as is.
-     * @return
-     */
     private static String urlencode(
             final String content,
             final Charset charset,
@@ -404,7 +396,7 @@ public class URLEncodedUtils {
      * @param content the portion to decode
      * @param charset the charset to use
      * @param plusAsBlank if {@code true}, then convert '+' to space (e.g. for www-url-form-encoded content), otherwise leave as is.
-     * @return
+     * @return encoded string
      */
     private static String urldecode(
             final String content,
@@ -444,7 +436,7 @@ public class URLEncodedUtils {
      *
      * @param content the content to decode, will decode '+' as space
      * @param charset the charset to use
-     * @return
+     * @return encoded string
      */
     private static String decodeFormFields (final String content, final String charset) {
         if (content == null) {
@@ -458,7 +450,7 @@ public class URLEncodedUtils {
      *
      * @param content the content to decode, will decode '+' as space
      * @param charset the charset to use
-     * @return
+     * @return encoded string
      */
     private static String decodeFormFields (final String content, final Charset charset) {
         if (content == null) {
@@ -476,7 +468,7 @@ public class URLEncodedUtils {
      *
      * @param content the content to encode, will convert space to '+'
      * @param charset the charset to use
-     * @return
+     * @return encoded string
      */
     private static String encodeFormFields (final String content, final String charset) {
         if (content == null) {
@@ -495,7 +487,7 @@ public class URLEncodedUtils {
      *
      * @param content the content to encode, will convert space to '+'
      * @param charset the charset to use
-     * @return
+     * @return encoded string
      */
     private static String encodeFormFields (final String content, final Charset charset) {
         if (content == null) {
