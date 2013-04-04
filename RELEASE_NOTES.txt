@@ -1,4 +1,10 @@
-Changes since Release 4.2.3
+Release 4.2.4
+-------------------
+
+HttpClient 4.2.4 (GA) is a maintenance release that addresses a number of issues reported since 
+release 4.2.3. 
+
+Changelog
 -------------------
 
 * [HTTPCLIENT-1319] InetAddressUtils.isIPv6HexCompressedAddress does not detect excess groups 
