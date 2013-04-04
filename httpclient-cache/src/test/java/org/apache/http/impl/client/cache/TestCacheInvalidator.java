@@ -26,7 +26,6 @@
  */
 package org.apache.http.impl.client.cache;
 
-import static org.apache.http.impl.cookie.DateUtils.formatDate;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.classextension.EasyMock.createNiceMock;
 import static org.easymock.classextension.EasyMock.replay;
@@ -47,6 +46,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
@@ -280,12 +280,12 @@ public class TestCacheInvalidator {
     public void flushesEntryIfFresherAndSpecifiedByContentLocation()
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", formatDate(now));
+        response.setHeader("Date", DateUtils.formatDate(now));
         final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -302,12 +302,12 @@ public class TestCacheInvalidator {
             throws Exception {
         response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_REQUEST, "Bad Request");
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", formatDate(now));
+        response.setHeader("Date", DateUtils.formatDate(now));
         final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -322,12 +322,12 @@ public class TestCacheInvalidator {
     public void flushesEntryIfFresherAndSpecifiedByNonCanonicalContentLocation()
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", formatDate(now));
+        response.setHeader("Date", DateUtils.formatDate(now));
         final String cacheKey = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", "http://foo.example.com/bar");
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -343,12 +343,12 @@ public class TestCacheInvalidator {
     public void flushesEntryIfFresherAndSpecifiedByRelativeContentLocation()
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", formatDate(now));
+        response.setHeader("Date", DateUtils.formatDate(now));
         final String cacheKey = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", "/bar");
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -364,12 +364,12 @@ public class TestCacheInvalidator {
     public void doesNotFlushEntryIfContentLocationFromDifferentHost()
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", formatDate(now));
+        response.setHeader("Date", DateUtils.formatDate(now));
         final String cacheKey = "http://baz.example.com:80/bar";
         response.setHeader("Content-Location", cacheKey);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -386,12 +386,12 @@ public class TestCacheInvalidator {
     public void doesNotFlushEntrySpecifiedByContentLocationIfEtagsMatch()
             throws Exception {
         response.setHeader("ETag","\"same-etag\"");
-        response.setHeader("Date", formatDate(now));
+        response.setHeader("Date", DateUtils.formatDate(now));
         final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"same-etag\"")
         });
 
@@ -406,12 +406,12 @@ public class TestCacheInvalidator {
     public void doesNotFlushEntrySpecifiedByContentLocationIfOlder()
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", formatDate(tenSecondsAgo));
+        response.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", formatDate(now)),
+           new BasicHeader("Date", DateUtils.formatDate(now)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -426,7 +426,7 @@ public class TestCacheInvalidator {
     public void doesNotFlushEntryIfNotInCache()
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", formatDate(now));
+        response.setHeader("Date", DateUtils.formatDate(now));
         final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
@@ -441,12 +441,12 @@ public class TestCacheInvalidator {
     public void doesNotFlushEntrySpecifiedByContentLocationIfResponseHasNoEtag()
             throws Exception {
         response.removeHeaders("ETag");
-        response.setHeader("Date", formatDate(now));
+        response.setHeader("Date", DateUtils.formatDate(now));
         final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
@@ -461,12 +461,12 @@ public class TestCacheInvalidator {
     public void doesNotFlushEntrySpecifiedByContentLocationIfEntryHasNoEtag()
             throws Exception {
         response.setHeader("ETag", "\"some-etag\"");
-        response.setHeader("Date", formatDate(now));
+        response.setHeader("Date", DateUtils.formatDate(now));
         final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", formatDate(tenSecondsAgo)),
+           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
         });
 
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
@@ -486,7 +486,7 @@ public class TestCacheInvalidator {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
                 new BasicHeader("ETag", "\"old-etag\""),
-                new BasicHeader("Date", formatDate(tenSecondsAgo)),
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
         });
 
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
@@ -501,7 +501,7 @@ public class TestCacheInvalidator {
     public void flushesEntrySpecifiedByContentLocationIfEntryHasNoDate()
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", formatDate(now));
+        response.setHeader("Date", DateUtils.formatDate(now));
         final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
@@ -527,7 +527,7 @@ public class TestCacheInvalidator {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
                 new BasicHeader("ETag", "\"old-etag\""),
-                new BasicHeader("Date", formatDate(tenSecondsAgo))
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo))
         });
 
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
@@ -542,7 +542,7 @@ public class TestCacheInvalidator {
     public void flushesEntrySpecifiedByContentLocationIfEntryHasMalformedDate()
             throws Exception {
         response.setHeader("ETag","\"new-etag\"");
-        response.setHeader("Date", formatDate(now));
+        response.setHeader("Date", DateUtils.formatDate(now));
         final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 

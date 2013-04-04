@@ -34,8 +34,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.impl.cookie.DateParseException;
-import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.protocol.HTTP;
 
 /**
@@ -187,12 +186,7 @@ class CacheValidityPolicy {
         if (dateHdr == null) {
             return null;
         }
-        try {
-            return DateUtils.parseDate(dateHdr.getValue());
-        } catch (final DateParseException dpe) {
-            // ignore malformed date
-        }
-        return null;
+        return DateUtils.parseDate(dateHdr.getValue());
     }
 
     protected long getContentLengthValue(final HttpCacheEntry entry) {
@@ -298,12 +292,7 @@ class CacheValidityPolicy {
         if (expiresHeader == null) {
             return null;
         }
-        try {
-            return DateUtils.parseDate(expiresHeader.getValue());
-        } catch (final DateParseException dpe) {
-            // malformed expires header
-        }
-        return null;
+        return DateUtils.parseDate(expiresHeader.getValue());
     }
 
     public boolean hasCacheControlDirective(final HttpCacheEntry entry,

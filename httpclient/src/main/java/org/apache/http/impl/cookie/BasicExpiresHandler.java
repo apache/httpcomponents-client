@@ -26,11 +26,13 @@
  */
 package org.apache.http.impl.cookie;
 
+import java.util.Date;
+
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.Args;
-
 
 /**
  *
@@ -53,12 +55,12 @@ public class BasicExpiresHandler extends AbstractCookieAttributeHandler {
         if (value == null) {
             throw new MalformedCookieException("Missing value for expires attribute");
         }
-        try {
-            cookie.setExpiryDate(DateUtils.parseDate(value, this.datepatterns));
-        } catch (final DateParseException dpe) {
+        final Date expiry = DateUtils.parseDate(value, this.datepatterns);
+        if (expiry == null) {
             throw new MalformedCookieException("Unable to parse expires attribute: "
-                + value);
+                    + value);
         }
+        cookie.setExpiryDate(expiry);
     }
 
 }

@@ -38,8 +38,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.impl.cookie.DateParseException;
-import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.client.utils.DateUtils;
 
 /**
  * Determines whether a given {@link HttpCacheEntry} is suitable to be
@@ -319,26 +318,19 @@ class CachedResponseSuitabilityChecker {
     private boolean lastModifiedValidatorMatches(final HttpRequest request, final HttpCacheEntry entry, final Date now) {
         final Header lastModifiedHeader = entry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
         Date lastModified = null;
-        try {
-            if(lastModifiedHeader != null) {
-                lastModified = DateUtils.parseDate(lastModifiedHeader.getValue());
-            }
-        } catch (final DateParseException dpe) {
-            // nop
+        if (lastModifiedHeader != null) {
+            lastModified = DateUtils.parseDate(lastModifiedHeader.getValue());
         }
-
         if (lastModified == null) {
             return false;
         }
 
         for (final Header h : request.getHeaders(HeaderConstants.IF_MODIFIED_SINCE)) {
-            try {
-                final Date ifModifiedSince = DateUtils.parseDate(h.getValue());
+            final Date ifModifiedSince = DateUtils.parseDate(h.getValue());
+            if (ifModifiedSince != null) {
                 if (ifModifiedSince.after(now) || lastModified.after(ifModifiedSince)) {
                     return false;
                 }
-            } catch (final DateParseException dpe) {
-                // nop
             }
         }
         return true;
@@ -346,12 +338,8 @@ class CachedResponseSuitabilityChecker {
 
     private boolean hasValidDateField(final HttpRequest request, final String headerName) {
         for(final Header h : request.getHeaders(headerName)) {
-            try {
-                DateUtils.parseDate(h.getValue());
-                return true;
-            } catch (final DateParseException dpe) {
-                // ignore malformed dates
-            }
+            final Date date = DateUtils.parseDate(h.getValue());
+            return date != null;
         }
         return false;
     }

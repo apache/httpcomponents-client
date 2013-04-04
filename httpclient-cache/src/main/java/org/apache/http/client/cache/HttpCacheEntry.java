@@ -37,8 +37,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.impl.cookie.DateParseException;
-import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.HeaderGroup;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.Args;
@@ -136,12 +135,7 @@ public class HttpCacheEntry implements Serializable {
         final Header dateHdr = getFirstHeader(HTTP.DATE_HEADER);
         if (dateHdr == null)
             return null;
-        try {
-            return DateUtils.parseDate(dateHdr.getValue());
-        } catch (final DateParseException dpe) {
-            // ignore malformed date
-        }
-        return null;
+        return DateUtils.parseDate(dateHdr.getValue());
     }
 
     /**

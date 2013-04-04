@@ -57,9 +57,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.cookie.DateParseException;
-import org.apache.http.impl.cookie.DateUtils;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HTTP;
@@ -590,17 +589,17 @@ public class CachingExec implements ClientExecChain {
         final Header entryDateHeader = cacheEntry.getFirstHeader(HTTP.DATE_HEADER);
         final Header responseDateHeader = backendResponse.getFirstHeader(HTTP.DATE_HEADER);
         if (entryDateHeader != null && responseDateHeader != null) {
-            try {
-                final Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
-                final Date respDate = DateUtils.parseDate(responseDateHeader.getValue());
-                if (respDate.before(entryDate)) {
-                    return true;
-                }
-            } catch (final DateParseException e) {
+            final Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
+            final Date respDate = DateUtils.parseDate(responseDateHeader.getValue());
+            if (entryDate == null || respDate == null) {
                 // either backend response or cached entry did not have a valid
                 // Date header, so we can't tell if they are out of order
                 // according to the origin clock; thus we can skip the
                 // unconditional retry recommended in 13.2.6 of RFC 2616.
+                return false;
+            }
+            if (respDate.before(entryDate)) {
+                return true;
             }
         }
         return false;
@@ -862,14 +861,12 @@ public class CachingExec implements ClientExecChain {
         if (responseDateHeader == null) {
             return false;
         }
-        try {
-            final Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
-            final Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());
-            return responseDate.before(entryDate);
-        } catch (final DateParseException e) {
-            // Empty on Purpose
+        final Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
+        final Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());
+        if (entryDate == null || responseDate == null) {
+            return false;
         }
-        return false;
+        return responseDate.before(entryDate);
     }
 
 }

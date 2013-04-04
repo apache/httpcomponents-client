@@ -41,8 +41,7 @@ import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.client.cache.ResourceFactory;
-import org.apache.http.impl.cookie.DateParseException;
-import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.Args;
 
@@ -151,19 +150,16 @@ class CacheEntryUpdater {
     }
 
     private boolean entryDateHeaderNewerThenResponse(final HttpCacheEntry entry, final HttpResponse response) {
-        try {
-            final Date entryDate = DateUtils.parseDate(entry.getFirstHeader(HTTP.DATE_HEADER)
-                    .getValue());
-            final Date responseDate = DateUtils.parseDate(response.getFirstHeader(HTTP.DATE_HEADER)
-                    .getValue());
-
-            if (!entryDate.after(responseDate)) {
-                return false;
-            }
-        } catch (final DateParseException e) {
+        final Date entryDate = DateUtils.parseDate(entry.getFirstHeader(HTTP.DATE_HEADER)
+                .getValue());
+        final Date responseDate = DateUtils.parseDate(response.getFirstHeader(HTTP.DATE_HEADER)
+                .getValue());
+        if (entryDate == null || responseDate == null) {
             return false;
         }
-
+        if (!entryDate.after(responseDate)) {
+            return false;
+        }
         return true;
     }
 

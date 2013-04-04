@@ -43,8 +43,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.impl.cookie.DateParseException;
-import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
@@ -101,13 +100,7 @@ class ResponseProtocolCompliance {
 
     private void warningsWithNonMatchingWarnDatesAreRemoved(
             final HttpResponse response) {
-        Date responseDate = null;
-        try {
-            responseDate = DateUtils.parseDate(response.getFirstHeader(HTTP.DATE_HEADER).getValue());
-        } catch (final DateParseException e) {
-            //Empty On Purpose
-        }
-
+        final Date responseDate = DateUtils.parseDate(response.getFirstHeader(HTTP.DATE_HEADER).getValue());
         if (responseDate == null) {
             return;
         }

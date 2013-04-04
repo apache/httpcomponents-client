@@ -25,11 +25,12 @@
  *
  */
 
-package org.apache.http.impl.cookie;
+package org.apache.http.client.utils;
 
 import java.util.Calendar;
 import java.util.Date;
 
+import org.apache.http.impl.cookie.DateParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -58,17 +59,16 @@ public class TestDateUtils {
     }
 
     @Test
+    public void testMalformedDate() {
+        Assert.assertNull(DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", new String[] {}, null));
+    }
+
+    @Test
     public void testInvalidInput() throws Exception {
         try {
             DateUtils.parseDate(null, null, null);
             Assert.fail("IllegalArgumentException should habe been thrown");
         } catch (final IllegalArgumentException ex) {
-            // expected
-        }
-        try {
-            DateUtils.parseDate("Fri, 14 Oct 2005 00:00:00 GMT", new String[] {}, null);
-            Assert.fail("DateParseException should habe been thrown");
-        } catch (final DateParseException ex) {
             // expected
         }
         try {

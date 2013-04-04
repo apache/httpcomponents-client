@@ -26,7 +26,6 @@
  */
 package org.apache.http.impl.client.cache;
 
-import static org.apache.http.impl.cookie.DateUtils.formatDate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.fail;
@@ -39,7 +38,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Before;
@@ -88,7 +87,7 @@ public class TestCacheEntryUpdater {
     @Test
     public void testHeadersAreMergedCorrectly() throws IOException {
         final Header[] headers = {
-                new BasicHeader("Date", formatDate(responseDate)),
+                new BasicHeader("Date", DateUtils.formatDate(responseDate)),
                 new BasicHeader("ETag", "\"etag\"")};
         entry = HttpTestUtils.makeCacheEntry(headers);
         response.setHeaders(new Header[]{});
@@ -99,22 +98,22 @@ public class TestCacheEntryUpdater {
 
         final Header[] updatedHeaders = updatedEntry.getAllHeaders();
         assertEquals(2, updatedHeaders.length);
-        headersContain(updatedHeaders, "Date", formatDate(responseDate));
+        headersContain(updatedHeaders, "Date", DateUtils.formatDate(responseDate));
         headersContain(updatedHeaders, "ETag", "\"etag\"");
     }
 
     @Test
     public void testNewerHeadersReplaceExistingHeaders() throws IOException {
         final Header[] headers = {
-                new BasicHeader("Date", formatDate(requestDate)),
+                new BasicHeader("Date", DateUtils.formatDate(requestDate)),
                 new BasicHeader("Cache-Control", "private"),
                 new BasicHeader("ETag", "\"etag\""),
-                new BasicHeader("Last-Modified", formatDate(requestDate)),
+                new BasicHeader("Last-Modified", DateUtils.formatDate(requestDate)),
                 new BasicHeader("Cache-Control", "max-age=0"),};
         entry = HttpTestUtils.makeCacheEntry(headers);
 
         response.setHeaders(new Header[] {
-                new BasicHeader("Last-Modified", formatDate(responseDate)),
+                new BasicHeader("Last-Modified", DateUtils.formatDate(responseDate)),
                 new BasicHeader("Cache-Control", "public")});
 
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
@@ -123,10 +122,9 @@ public class TestCacheEntryUpdater {
         final Header[] updatedHeaders = updatedEntry.getAllHeaders();
 
         assertEquals(4, updatedHeaders.length);
-        headersContain(updatedHeaders, "Date", formatDate(requestDate));
+        headersContain(updatedHeaders, "Date", DateUtils.formatDate(requestDate));
         headersContain(updatedHeaders, "ETag", "\"etag\"");
-        headersContain(updatedHeaders, "Last-Modified", DateUtils
-                .formatDate(responseDate));
+        headersContain(updatedHeaders, "Last-Modified", DateUtils.formatDate(responseDate));
         headersContain(updatedHeaders, "Cache-Control", "public");
     }
 
@@ -134,12 +132,12 @@ public class TestCacheEntryUpdater {
     public void testNewHeadersAreAddedByMerge() throws IOException {
 
         final Header[] headers = {
-                new BasicHeader("Date", formatDate(requestDate)),
+                new BasicHeader("Date", DateUtils.formatDate(requestDate)),
                 new BasicHeader("ETag", "\"etag\"")};
 
         entry = HttpTestUtils.makeCacheEntry(headers);
         response.setHeaders(new Header[]{
-                new BasicHeader("Last-Modified", formatDate(responseDate)),
+                new BasicHeader("Last-Modified", DateUtils.formatDate(responseDate)),
                 new BasicHeader("Cache-Control", "public"),});
 
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
@@ -148,9 +146,9 @@ public class TestCacheEntryUpdater {
         final Header[] updatedHeaders = updatedEntry.getAllHeaders();
         assertEquals(4, updatedHeaders.length);
 
-        headersContain(updatedHeaders, "Date", formatDate(requestDate));
+        headersContain(updatedHeaders, "Date", DateUtils.formatDate(requestDate));
         headersContain(updatedHeaders, "ETag", "\"etag\"");
-        headersContain(updatedHeaders, "Last-Modified", formatDate(responseDate));
+        headersContain(updatedHeaders, "Last-Modified", DateUtils.formatDate(responseDate));
         headersContain(updatedHeaders, "Cache-Control", "public");
     }
 
@@ -158,16 +156,16 @@ public class TestCacheEntryUpdater {
     public void oldHeadersRetainedIfResponseOlderThanEntry()
             throws Exception {
         final Header[] headers = {
-                new BasicHeader("Date", formatDate(oneSecondAgo)),
+                new BasicHeader("Date", DateUtils.formatDate(oneSecondAgo)),
                 new BasicHeader("ETag", "\"new-etag\"")
         };
         entry = HttpTestUtils.makeCacheEntry(twoSecondsAgo, now, headers);
-        response.setHeader("Date", formatDate(tenSecondsAgo));
+        response.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         response.setHeader("ETag", "\"old-etag\"");
         final HttpCacheEntry result = impl.updateCacheEntry("A", entry, new Date(),
                 new Date(), response);
         assertEquals(2, result.getAllHeaders().length);
-        headersContain(result.getAllHeaders(), "Date", formatDate(oneSecondAgo));
+        headersContain(result.getAllHeaders(), "Date", DateUtils.formatDate(oneSecondAgo));
         headersContain(result.getAllHeaders(), "ETag", "\"new-etag\"");
     }
 
@@ -187,11 +185,11 @@ public class TestCacheEntryUpdater {
         final Header[] headers = {
                 new BasicHeader("Warning", "110 fred \"Response is stale\""),
                 new BasicHeader("ETag", "\"old\""),
-                new BasicHeader("Date", formatDate(eightSecondsAgo))
+                new BasicHeader("Date", DateUtils.formatDate(eightSecondsAgo))
         };
         entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, headers);
         response.setHeader("ETag", "\"new\"");
-        response.setHeader("Date", formatDate(twoSecondsAgo));
+        response.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
         final HttpCacheEntry updated = impl.updateCacheEntry(null, entry,
                 twoSecondsAgo, oneSecondAgo, response);
 
@@ -206,7 +204,7 @@ public class TestCacheEntryUpdater {
         };
         entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, headers);
         response.setHeader("ETag", "\"new\"");
-        response.setHeader("Date", formatDate(twoSecondsAgo));
+        response.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
         final HttpCacheEntry updated = impl.updateCacheEntry(null, entry,
                 twoSecondsAgo, oneSecondAgo, response);
 
@@ -217,7 +215,7 @@ public class TestCacheEntryUpdater {
     public void entryIsStillUpdatedByResponseWithMalformedDate() throws Exception {
         final Header[] headers = {
                 new BasicHeader("ETag", "\"old\""),
-                new BasicHeader("Date", formatDate(tenSecondsAgo))
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo))
         };
         entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, headers);
         response.setHeader("ETag", "\"new\"");

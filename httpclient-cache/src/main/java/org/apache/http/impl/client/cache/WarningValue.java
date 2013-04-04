@@ -33,8 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.Header;
-import org.apache.http.impl.cookie.DateParseException;
-import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.client.utils.DateUtils;
 
 /** This class provides for parsing and understanding Warning headers. As
  * the Warning header can be multi-valued, but the values can contain
@@ -268,11 +267,7 @@ class WarningValue {
             parseError();
         }
         offs += m.end();
-        try {
-            warnDate = DateUtils.parseDate(src.substring(curr+1,offs-1));
-        } catch (final DateParseException e) {
-            throw new IllegalStateException("couldn't parse a parseable date");
-        }
+        warnDate = DateUtils.parseDate(src.substring(curr+1,offs-1));
     }
 
     /*

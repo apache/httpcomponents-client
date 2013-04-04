@@ -42,8 +42,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
-import org.apache.http.impl.cookie.DateParseException;
-import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.protocol.HTTP;
 
 /**
@@ -138,9 +137,8 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        try {
-            DateUtils.parseDate(dateHeaders[0].getValue());
-        } catch (final DateParseException dpe) {
+        final Date date = DateUtils.parseDate(dateHeaders[0].getValue());
+        if (date == null) {
             return false;
         }
 
@@ -275,13 +273,12 @@ class ResponseCachingPolicy {
         if (expiresHdr == null || dateHdr == null) {
             return false;
         }
-        try {
-            final Date expires = DateUtils.parseDate(expiresHdr.getValue());
-            final Date date = DateUtils.parseDate(dateHdr.getValue());
-            return expires.equals(date) || expires.before(date);
-        } catch (final DateParseException dpe) {
+        final Date expires = DateUtils.parseDate(expiresHdr.getValue());
+        final Date date = DateUtils.parseDate(dateHdr.getValue());
+        if (expires == null || date == null) {
             return false;
         }
+        return expires.equals(date) || expires.before(date);
     }
 
     private boolean from1_0Origin(final HttpResponse response) {

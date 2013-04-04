@@ -27,19 +27,11 @@
 
 package org.apache.http.impl.cookie;
 
-import java.lang.ref.SoftReference;
-import java.text.DateFormat;
-import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.http.util.Args;
 
 /**
  * A utility class for parsing and formatting HTTP dates as used in cookies and
@@ -48,43 +40,30 @@ import org.apache.http.util.Args;
  *
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) Use {@link org.apache.http.client.utils.DateUtils}.
  */
+@Deprecated
 @Immutable
 public final class DateUtils {
 
     /**
      * Date format pattern used to parse HTTP date headers in RFC 1123 format.
      */
-    public static final String PATTERN_RFC1123 = "EEE, dd MMM yyyy HH:mm:ss zzz";
+    public static final String PATTERN_RFC1123 = org.apache.http.client.utils.DateUtils.PATTERN_RFC1123;
 
     /**
      * Date format pattern used to parse HTTP date headers in RFC 1036 format.
      */
-    public static final String PATTERN_RFC1036 = "EEE, dd-MMM-yy HH:mm:ss zzz";
+    public static final String PATTERN_RFC1036 = org.apache.http.client.utils.DateUtils.PATTERN_RFC1036;
 
     /**
      * Date format pattern used to parse HTTP date headers in ANSI C
      * <code>asctime()</code> format.
      */
-    public static final String PATTERN_ASCTIME = "EEE MMM d HH:mm:ss yyyy";
-
-    private static final String[] DEFAULT_PATTERNS = new String[] {
-        PATTERN_RFC1123,
-        PATTERN_RFC1036,
-        PATTERN_ASCTIME
-    };
-
-    private static final Date DEFAULT_TWO_DIGIT_YEAR_START;
+    public static final String PATTERN_ASCTIME = org.apache.http.client.utils.DateUtils.PATTERN_ASCTIME;
 
     public static final TimeZone GMT = TimeZone.getTimeZone("GMT");
-
-    static {
-        final Calendar calendar = Calendar.getInstance();
-        calendar.setTimeZone(GMT);
-        calendar.set(2000, Calendar.JANUARY, 1, 0, 0, 0);
-        calendar.set(Calendar.MILLISECOND, 0);
-        DEFAULT_TWO_DIGIT_YEAR_START = calendar.getTime();
-    }
 
     /**
      * Parses a date value.  The formats used for parsing the date value are retrieved from
@@ -131,38 +110,15 @@ public final class DateUtils {
      * @throws DateParseException if none of the dataFormats could parse the dateValue
      */
     public static Date parseDate(
-        String dateValue,
-        String[] dateFormats,
-        Date startDate
+        final String dateValue,
+        final String[] dateFormats,
+        final Date startDate
     ) throws DateParseException {
-        Args.notNull(dateValue, "Date value");
-        if (dateFormats == null) {
-            dateFormats = DEFAULT_PATTERNS;
+        final Date d = org.apache.http.client.utils.DateUtils.parseDate(dateValue, dateFormats, startDate);
+        if (d == null) {
+            throw new DateParseException("Unable to parse the date " + dateValue);
         }
-        if (startDate == null) {
-            startDate = DEFAULT_TWO_DIGIT_YEAR_START;
-        }
-        // trim single quotes around date if present
-        // see issue #5279
-        if (dateValue.length() > 1
-            && dateValue.startsWith("'")
-            && dateValue.endsWith("'")
-        ) {
-            dateValue = dateValue.substring (1, dateValue.length() - 1);
-        }
-
-        for (final String dateFormat : dateFormats) {
-            final SimpleDateFormat dateParser = DateFormatHolder.formatFor(dateFormat);
-            dateParser.set2DigitYearStart(startDate);
-            final ParsePosition pos = new ParsePosition(0);
-            final Date result = dateParser.parse(dateValue, pos);
-            if (pos.getIndex() != 0) {
-                return result;
-            }
-        }
-
-        // we were unable to parse the date
-        throw new DateParseException("Unable to parse the date " + dateValue);
+        return d;
     }
 
     /**
@@ -174,7 +130,7 @@ public final class DateUtils {
      * @see #PATTERN_RFC1123
      */
     public static String formatDate(final Date date) {
-        return formatDate(date, PATTERN_RFC1123);
+        return org.apache.http.client.utils.DateUtils.formatDate(date);
     }
 
     /**
@@ -191,79 +147,11 @@ public final class DateUtils {
      * @see SimpleDateFormat
      */
     public static String formatDate(final Date date, final String pattern) {
-        Args.notNull(date, "Date");
-        Args.notNull(pattern, "Pattern");
-        final SimpleDateFormat formatter = DateFormatHolder.formatFor(pattern);
-        return formatter.format(date);
-    }
-
-    /**
-     * Clears thread-local variable containing {@link DateFormat} cache.
-     *
-     * @since 4.3
-     */
-    public static void clearThreadLocal() {
-        DateFormatHolder.clearThreadLocal();
+        return org.apache.http.client.utils.DateUtils.formatDate(date, pattern);
     }
 
     /** This class should not be instantiated. */
     private DateUtils() {
-    }
-
-    /**
-     * A factory for {@link SimpleDateFormat}s. The instances are stored in a
-     * threadlocal way because SimpleDateFormat is not threadsafe as noted in
-     * {@link SimpleDateFormat its javadoc}.
-     *
-     */
-    final static class DateFormatHolder {
-
-        private static final ThreadLocal<SoftReference<Map<String, SimpleDateFormat>>>
-            THREADLOCAL_FORMATS = new ThreadLocal<SoftReference<Map<String, SimpleDateFormat>>>() {
-
-            @Override
-            protected SoftReference<Map<String, SimpleDateFormat>> initialValue() {
-                return new SoftReference<Map<String, SimpleDateFormat>>(
-                        new HashMap<String, SimpleDateFormat>());
-            }
-
-        };
-
-        /**
-         * creates a {@link SimpleDateFormat} for the requested format string.
-         *
-         * @param pattern
-         *            a non-<code>null</code> format String according to
-         *            {@link SimpleDateFormat}. The format is not checked against
-         *            <code>null</code> since all paths go through
-         *            {@link DateUtils}.
-         * @return the requested format. This simple dateformat should not be used
-         *         to {@link SimpleDateFormat#applyPattern(String) apply} to a
-         *         different pattern.
-         */
-        public static SimpleDateFormat formatFor(final String pattern) {
-            final SoftReference<Map<String, SimpleDateFormat>> ref = THREADLOCAL_FORMATS.get();
-            Map<String, SimpleDateFormat> formats = ref.get();
-            if (formats == null) {
-                formats = new HashMap<String, SimpleDateFormat>();
-                THREADLOCAL_FORMATS.set(
-                        new SoftReference<Map<String, SimpleDateFormat>>(formats));
-            }
-
-            SimpleDateFormat format = formats.get(pattern);
-            if (format == null) {
-                format = new SimpleDateFormat(pattern, Locale.US);
-                format.setTimeZone(TimeZone.getTimeZone("GMT"));
-                formats.put(pattern, format);
-            }
-
-            return format;
-        }
-
-        public static void clearThreadLocal() {
-            THREADLOCAL_FORMATS.remove();
-        }
-
     }
 
 }

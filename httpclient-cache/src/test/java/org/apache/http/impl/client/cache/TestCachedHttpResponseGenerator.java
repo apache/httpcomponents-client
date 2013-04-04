@@ -31,7 +31,7 @@ import java.util.Date;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;

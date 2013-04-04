@@ -41,8 +41,7 @@ import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
-import org.apache.http.impl.cookie.DateParseException;
-import org.apache.http.impl.cookie.DateUtils;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.protocol.HTTP;
 
 /**
@@ -257,13 +256,11 @@ class CacheInvalidator {
             /* be conservative; should probably flush */
             return false;
         }
-        try {
-            final Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
-            final Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());
-            return responseDate.before(entryDate);
-        } catch (final DateParseException e) {
-            /* flushing is always safe */
+        final Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
+        final Date responseDate = DateUtils.parseDate(responseDateHeader.getValue());
+        if (entryDate == null || responseDate == null) {
             return false;
         }
+        return responseDate.before(entryDate);
     }
 }
