@@ -1,51 +1,7 @@
-Changes since 4.3 ALPHA1
--------------------
-* [HTTPCLIENT-1319] InetAddressUtils.isIPv6HexCompressedAddress does not detect excess groups 
-  Contributed Sebastian Bazley <sebb at apache.org>.
-
-* [HTTPCLIENT-1317] InetAddressUtils should handle IPv6 Addresses with Embedded IPv4 Addresses 
-  Contributed Sebastian Bazley <sebb at apache.org>.
-
-* [HTTPCLIENT-1299] (regression) cache incorrectly disposes of the underlying cache resource 
-  when storing variant entry.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
-
-* [HTTPCLIENT-1320] Leverage javax.net.ssl.SSLSocketFactory#getDefault() to initialize SSL context 
-  based on system defaults instead of using an internal custom routine.
-  Contributed by Abe Backus <abraham at backus.com> and Oleg Kalnichevski <olegk at apache.org>
-
-* [HTTPCLIENT-1315] NTLM support did not work properly when the target (as returned
-  in the Type 2 message) differed from the domain as supplied by the user.
-  Contributed by Karl Wright <kwright at apache.org>
-
-* [HTTPCLIENT-1316] Certificate verification rejects IPv6 addresses which are not String-equal.
-  Contributed Sebastian Bazley <sebb at apache.org>.
-
-* [HTTPCLIENT-1307] Future based asynchronous request execution.
-  Contributed by Jilles van Gurp <jilles at jillesvangurp.com> 
-
-* [HTTPCLIENT-1311] Interrupt flag is not preserved where InterruptedException is caught.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
-
-* [HTTPCLIENT-1312] Zero length content entities with a Content-Encoding header cause 
-  an I/O error when an attempt is made to consume such entity.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
-
-* [HTTPCLIENT-1313] Fixed IllegalStateException in deprecated ThreadSafeClientConnManager.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
-
-* [HTTPCLIENT-1305] Ensure chunking is disabled when applying Base64 encoding.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
-
-* [HTTPCLIENT-1298] Add AsynchronousValidator in HttpClientBuilder's list of closeable objects.
-  Contributed by Martin Meinhold <mmeinhold at atlassian.com>
-
-
-
-Release 4.3 ALPHA1
+Release 4.3 BETA1
 -------------------
 
-This is the first ALPHA release of HttpClient 4.3. The 4.3 branch enhances HttpClient in several
+This is the first BETA release of HttpClient 4.3. The 4.3 branch enhances HttpClient in several
 key areas and includes several notable features and improvements:
 
 * Support for Java 7 try-with-resources for resource management (connection release.)
@@ -72,6 +28,43 @@ This feature might be of particular use in web crawler development.
 * There is now option to avoid strict URI syntax for request URIs by executing HTTP requests 
 with an explicitly specified target host. HttpClient will no longer attempt to parse the request 
 URI if it does not need to extract the target host from it.
+
+This release also includes all fixes from the stable 4.2.x release branch.
+
+
+Changelog
+-------------------
+
+* [HTTPCLIENT-1317] InetAddressUtils should handle IPv6 Addresses with Embedded IPv4 Addresses 
+  Contributed Sebastian Bazley <sebb at apache.org>.
+
+* [HTTPCLIENT-1320] Leverage javax.net.ssl.SSLSocketFactory#getDefault() to initialize SSL context 
+  based on system defaults instead of using an internal custom routine.
+  Contributed by Abe Backus <abraham at backus.com> and Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1316] Certificate verification rejects IPv6 addresses which are not String-equal.
+  Contributed Sebastian Bazley <sebb at apache.org>.
+
+* [HTTPCLIENT-1307] Future based asynchronous request execution.
+  Contributed by Jilles van Gurp <jilles at jillesvangurp.com> 
+
+* [HTTPCLIENT-1313] Fixed IllegalStateException in deprecated ThreadSafeClientConnManager.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1298] Add AsynchronousValidator in HttpClientBuilder's list of closeable objects.
+  Contributed by Martin Meinhold <mmeinhold at atlassian.com>
+
+
+
+Release 4.3 ALPHA1
+-------------------
+
+This is the first ALPHA release of HttpClient 4.3. The 4.3 branch enhances HttpClient in several
+key areas and includes several notable features and improvements: Support for Java 7 
+try-with-resources for resource management (connection release); fluent Builder classes for 
+HttpEntity, HttpRequest and HttpClient instances, deprecation of preference and configuration API 
+based on HttpParams interface in favor of constructor injection and plain configuration objects, 
+reliance on object immutability instead of access synchronization for thread safety. 
 
 We are kindly asking all upstream projects to review API changes and help us improve 
 the APIs by providing feedback and sharing ideas on dev@hc.apache.org. 
