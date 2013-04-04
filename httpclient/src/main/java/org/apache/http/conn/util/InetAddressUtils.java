@@ -63,8 +63,8 @@ public class InetAddressUtils {
                  "(([0-9A-Fa-f]{1,4}(:[0-9A-Fa-f]{1,4}){0,5})?)$"); // 0-6 hex fields
 
     /*
-     *  The above pattern is not totally rigorous as it allows for more than 7 hex fields in total 
-     */   
+     *  The above pattern is not totally rigorous as it allows for more than 7 hex fields in total
+     */
     private static final char COLON_CHAR = ':';
 
     // Must not have more than 7 colons (i.e. 8 fields)
@@ -72,7 +72,7 @@ public class InetAddressUtils {
 
     /**
      * Checks whether the parameter is a valid IPv4 address
-     * 
+     *
      * @param input the address string to check for validity
      * @return true if the input parameter is a valid IPv4 address
      */
@@ -86,7 +86,7 @@ public class InetAddressUtils {
 
     /**
      * Checks whether the parameter is a valid standard (non-compressed) IPv6 address
-     * 
+     *
      * @param input the address string to check for validity
      * @return true if the input parameter is a valid standard (non-compressed) IPv6 address
      */
@@ -96,7 +96,7 @@ public class InetAddressUtils {
 
     /**
      * Checks whether the parameter is a valid compressed IPv6 address
-     * 
+     *
      * @param input the address string to check for validity
      * @return true if the input parameter is a valid compressed IPv6 address
      */
@@ -112,7 +112,7 @@ public class InetAddressUtils {
 
     /**
      * Checks whether the parameter is a valid IPv6 address (including compressed).
-     * 
+     *
      * @param input the address string to check for validity
      * @return true if the input parameter is a valid standard or compressed IPv6 address
      */
