@@ -97,6 +97,8 @@ public class BasicManagedEntity extends HttpEntityWrapper
                 // this will not trigger a callback from EofSensorInputStream
                 EntityUtils.consume(wrappedEntity);
                 managedConn.markReusable();
+            } else {
+                managedConn.unmarkReusable();
             }
         } finally {
             releaseManagedConnection();
@@ -135,11 +137,15 @@ public class BasicManagedEntity extends HttpEntityWrapper
 
     public boolean eofDetected(final InputStream wrapped) throws IOException {
         try {
-            if (attemptReuse && (managedConn != null)) {
-                // there may be some cleanup required, such as
-                // reading trailers after the response body:
-                wrapped.close();
-                managedConn.markReusable();
+            if (managedConn != null) {
+                if (attemptReuse) {
+                    // there may be some cleanup required, such as
+                    // reading trailers after the response body:
+                    wrapped.close();
+                    managedConn.markReusable();
+                } else {
+                    managedConn.unmarkReusable();
+                }
             }
         } finally {
             releaseManagedConnection();
@@ -149,17 +155,21 @@ public class BasicManagedEntity extends HttpEntityWrapper
 
     public boolean streamClosed(final InputStream wrapped) throws IOException {
         try {
-            if (attemptReuse && (managedConn != null)) {
-                final boolean valid = managedConn.isOpen();
-                // this assumes that closing the stream will
-                // consume the remainder of the response body:
-                try {
-                    wrapped.close();
-                    managedConn.markReusable();
-                } catch (final SocketException ex) {
-                    if (valid) {
-                        throw ex;
+            if (managedConn != null) {
+                if (attemptReuse) {
+                    final boolean valid = managedConn.isOpen();
+                    // this assumes that closing the stream will
+                    // consume the remainder of the response body:
+                    try {
+                        wrapped.close();
+                        managedConn.markReusable();
+                    } catch (final SocketException ex) {
+                        if (valid) {
+                            throw ex;
+                        }
                     }
+                } else {
+                    managedConn.unmarkReusable();
                 }
             }
         } finally {

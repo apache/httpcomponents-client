@@ -60,6 +60,7 @@ import org.apache.http.localserver.BasicAuthTokenExtractor;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.localserver.ResponseBasicUnauthorized;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExpectationVerifier;
 import org.apache.http.protocol.HttpProcessor;
@@ -545,6 +546,50 @@ public class TestClientAuthentication extends IntegrationTestBase {
         Assert.assertEquals(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED,
                 response.getStatusLine().getStatusCode());
         EntityUtils.consume(entity);
+    }
+
+    static class ClosingAuthHandler implements HttpRequestHandler {
+
+        public void handle(
+                final HttpRequest request,
+                final HttpResponse response,
+                final HttpContext context) throws HttpException, IOException {
+            final String creds = (String) context.getAttribute("creds");
+            if (creds == null || !creds.equals("test:test")) {
+                response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
+            } else {
+                response.setStatusCode(HttpStatus.SC_OK);
+                final StringEntity entity = new StringEntity("success", Consts.ASCII);
+                response.setEntity(entity);
+                response.setHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
+            }
+        }
+
+    }
+
+    @Test
+    public void testConnectionCloseAfterAuthenticationSuccess() throws Exception {
+        this.localServer.register("*", new ClosingAuthHandler());
+
+        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials("test", "test"));
+
+        this.httpclient = HttpClients.custom()
+                .setDefaultCredentialsProvider(credsProvider)
+                .build();
+
+        final HttpClientContext context = HttpClientContext.create();
+
+        final HttpHost targethost = getServerHttp();
+
+        for (int i = 0; i < 2; i++) {
+            final HttpGet httpget = new HttpGet("/");
+
+            final HttpResponse response = this.httpclient.execute(targethost, httpget, context);
+            EntityUtils.consume(response.getEntity());
+            Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        }
     }
 
 }
