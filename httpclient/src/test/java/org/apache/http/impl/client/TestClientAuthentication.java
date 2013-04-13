@@ -58,6 +58,7 @@ import org.apache.http.localserver.ResponseBasicUnauthorized;
 import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.BasicHttpProcessor;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpExpectationVerifier;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -555,6 +556,52 @@ public class TestClientAuthentication extends BasicServerTestBase {
         Assert.assertEquals(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED,
                 response.getStatusLine().getStatusCode());
         EntityUtils.consume(entity);
+    }
+
+    static class ClosingAuthHandler implements HttpRequestHandler {
+
+        public void handle(
+                final HttpRequest request,
+                final HttpResponse response,
+                final HttpContext context) throws HttpException, IOException {
+            String creds = (String) context.getAttribute("creds");
+            if (creds == null || !creds.equals("test:test")) {
+                response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
+            } else {
+                response.setStatusCode(HttpStatus.SC_OK);
+                StringEntity entity = new StringEntity("success", Consts.ASCII);
+                response.setEntity(entity);
+                response.setHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
+            }
+        }
+
+    }
+
+    @Test
+    public void testConnectionCloseAfterAuthenticationSuccess() throws Exception {
+        this.localServer.register("*", new ClosingAuthHandler());
+        this.localServer.start();
+
+        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials("test", "test"));
+
+        TestTargetAuthenticationStrategy authStrategy = new TestTargetAuthenticationStrategy();
+
+        this.httpclient.setCredentialsProvider(credsProvider);
+        this.httpclient.setTargetAuthenticationStrategy(authStrategy);
+
+        HttpContext context = new BasicHttpContext();
+
+        HttpHost targethost = getServerHttp();
+
+        for (int i = 0; i < 2; i++) {
+            HttpGet httpget = new HttpGet("/");
+
+            HttpResponse response = this.httpclient.execute(targethost, httpget, context);
+            EntityUtils.consume(response.getEntity());
+            Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        }
     }
 
 }

@@ -1,3 +1,10 @@
+Changes since Release 4.2.4
+-------------------
+
+* [HTTPCLIENT-1340] Connection re-used in a inconsistent state despite presence of 
+  'Connection: close' response header immediately after a successful authentication exchange. 
+
+
 Release 4.2.4
 -------------------
 
