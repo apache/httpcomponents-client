@@ -480,4 +480,14 @@ public class DigestScheme extends RFC2617Scheme {
         return encode(tmp);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("DIGEST [complete=").append(complete)
+                .append(", nonce=").append(lastNonce)
+                .append(", nc=").append(nounceCount)
+                .append("]");
+        return builder.toString();
+    }
+
 }

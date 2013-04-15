@@ -1,8 +1,13 @@
 Changes since Release 4.2.4
 -------------------
 
+* [HTTPCLIENT-1338] (regression) Invalidated / stale DIGEST schemes do not get evicted from
+  the auth cache. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1340] Connection re-used in a inconsistent state despite presence of 
   'Connection: close' response header immediately after a successful authentication exchange. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 
 Release 4.2.4
