@@ -462,8 +462,7 @@ public class DefaultRequestDirector implements RequestDirector {
                 } else {
                     final URI requestURI = wrapper.getURI();
                     if (requestURI.isAbsolute()) {
-                        target = new HttpHost(
-                            requestURI.getHost(), requestURI.getPort(), requestURI.getScheme());
+                        target = URIUtils.extractHost(requestURI);
                     }
                 }
                 if (target == null) {

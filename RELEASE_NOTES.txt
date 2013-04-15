@@ -1,6 +1,10 @@
 Changes since release 4.3 BETA1
 -------------------
 
+* [HTTPCLIENT-1342] Redirects with underscore character in the location hostname cause
+  "java.lang.IllegalArgumentException: Host name may not be null".  
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1338] (regression) Invalidated / stale DIGEST schemes do not get evicted from
   the auth cache. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>

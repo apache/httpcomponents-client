@@ -113,7 +113,7 @@ public class RedirectExec implements ClientExecChain {
 
                     final URI uri = currentRequest.getURI();
                     final HttpHost newTarget = URIUtils.extractHost(uri);
-                    if (uri.getHost() == null) {
+                    if (newTarget == null) {
                         throw new ProtocolException("Redirect URI does not specify a valid host name: " +
                                 uri);
                     }
