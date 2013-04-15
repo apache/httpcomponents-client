@@ -116,6 +116,24 @@ public class TestHttpAuthenticator {
     }
 
     @Test
+    public void testAuthenticationRequestedAfterSuccess() throws Exception {
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
+        Mockito.when(this.authStrategy.isAuthenticationRequested(
+                Mockito.any(HttpHost.class),
+                Mockito.any(HttpResponse.class),
+                Mockito.any(HttpContext.class))).thenReturn(Boolean.TRUE);
+
+        this.authState.update(this.authScheme, this.credentials);
+        this.authState.setState(AuthProtocolState.SUCCESS);
+
+        Assert.assertTrue(this.httpAuthenticator.isAuthenticationRequested(
+                this.host, response, this.authStrategy, this.authState, this.context));
+
+        Mockito.verify(this.authStrategy).isAuthenticationRequested(this.host, response, this.context);
+        Mockito.verify(this.authStrategy).authFailed(this.host, this.authScheme, this.context);
+    }
+
+    @Test
     public void testAuthenticationNotRequestedUnchallenged() throws Exception {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         Mockito.when(this.authStrategy.isAuthenticationRequested(

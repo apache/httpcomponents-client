@@ -75,6 +75,9 @@ public class HttpAuthenticator {
             final HttpContext context) {
         if (authStrategy.isAuthenticationRequested(host, response, context)) {
             this.log.debug("Authentication required");
+            if (authState.getState() == AuthProtocolState.SUCCESS) {
+                authStrategy.authFailed(host, authState.getAuthScheme(), context);
+            }
             return true;
         } else {
             switch (authState.getState()) {
