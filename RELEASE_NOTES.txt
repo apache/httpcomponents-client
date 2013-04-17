@@ -1,6 +1,10 @@
 Changes since Release 4.2.4
 -------------------
 
+* [HTTPCLIENT-1299] (regression) cache incorrectly disposes of the underlying cache resource 
+  when storing variant entry.
+  Contributed by James Leigh <james at 3roundstones.com> 
+
 * [HTTPCLIENT-1342] Redirects with underscore character in the location hostname cause
   "java.lang.IllegalArgumentException: Host name may not be null".  
   Contributed by Oleg Kalnichevski <olegk at apache.org>

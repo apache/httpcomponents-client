@@ -196,10 +196,9 @@ class BasicHttpCache implements HttpCache {
             src = entry;
         }
 
-        Resource oldResource = entry.getResource();
         Resource resource = null;
-        if (oldResource != null) {
-            resource = resourceFactory.copy(requestId, entry.getResource());
+        if (src.getResource() != null) {
+            resource = resourceFactory.copy(requestId, src.getResource());
         }
         Map<String,String> variantMap = new HashMap<String,String>(src.getVariantMap());
         variantMap.put(variantKey, variantCacheKey);
