@@ -87,11 +87,9 @@ class CacheEntryUpdater {
         Args.check(response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED,
                 "Response must have 304 status code");
         final Header[] mergedHeaders = mergeHeaders(entry, response);
-        final Resource oldResource = entry.getResource();
         Resource resource = null;
-        if (oldResource != null) {
+        if (entry.getResource() != null) {
             resource = resourceFactory.copy(requestId, entry.getResource());
-            oldResource.dispose();
         }
         return new HttpCacheEntry(
                 requestDate,
