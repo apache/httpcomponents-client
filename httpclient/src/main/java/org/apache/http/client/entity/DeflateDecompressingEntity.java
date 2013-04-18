@@ -142,13 +142,15 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
              * and return an unused InputStream now.
              */
             pushback.unread(peeked, 0, headerLength);
-            return new InflaterInputStream(pushback);
+            return new DeflateStream(pushback, new Inflater());
         } catch (final DataFormatException e) {
 
             /* Presume that it's an RFC1951 deflate stream rather than RFC1950 zlib stream and try
              * again. */
             pushback.unread(peeked, 0, headerLength);
-            return new InflaterInputStream(pushback, new Inflater(true));
+            return new DeflateStream(pushback, new Inflater(true));
+        } finally {
+            inf.end();
         }
     }
 
@@ -170,6 +172,26 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
 
         /* Length of inflated content is unknown. */
         return -1;
+    }
+
+    static class DeflateStream extends InflaterInputStream {
+
+        private boolean closed = false;
+
+        public DeflateStream(final InputStream in, final Inflater inflater) {
+            super(in, inflater);
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (closed) {
+                return;
+            }
+            closed = true;
+            inf.end();
+            super.close();
+        }
+
     }
 
 }

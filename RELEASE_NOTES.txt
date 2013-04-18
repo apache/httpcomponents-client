@@ -1,6 +1,9 @@
 Changes since release 4.3 BETA1
 -------------------
 
+* [HTTPCLIENT-1341] DeflateDecompressingEntity does not call Inflater#end.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1299] (regression) cache incorrectly disposes of the underlying cache resource 
   when storing variant entry.
   Contributed by James Leigh <james at 3roundstones.com> 
