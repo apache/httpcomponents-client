@@ -1,6 +1,9 @@
 Changes since release 4.3 BETA1
 -------------------
 
+* [HTTPCLIENT-1238] Contribute Bundle Activator And Central Proxy Configuration.
+  Contributed by Simone Tripodi <simonetripodi at apache.org> 
+
 * [HTTPCLIENT-1341] DeflateDecompressingEntity does not call Inflater#end.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
