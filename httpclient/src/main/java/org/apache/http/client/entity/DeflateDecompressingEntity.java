@@ -1,20 +1,21 @@
 /*
  * ====================================================================
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *  Licensed to the Apache Software Foundation (ASF) under one or more
- *  contributor license agreements.  See the NOTICE file distributed with
- *  this work for additional information regarding copyright ownership.
- *  The ASF licenses this file to You under the Apache License, Version 2.0
- *  (the "License"); you may not use this file except in compliance with
- *  the License.  You may obtain a copy of the License at
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  * ====================================================================
  *
  * This software consists of voluntary contributions made by many
@@ -22,7 +23,7 @@
  * information on the Apache Software Foundation, please see
  * <http://www.apache.org/>.
  *
-*/
+ */
 package org.apache.http.client.entity;
 
 import java.io.IOException;
@@ -97,20 +98,20 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
          */
 
         /* We read a small buffer to sniff the content. */
-        byte[] peeked = new byte[6];
+        final byte[] peeked = new byte[6];
 
-        PushbackInputStream pushback = new PushbackInputStream(wrapped, peeked.length);
+        final PushbackInputStream pushback = new PushbackInputStream(wrapped, peeked.length);
 
-        int headerLength = pushback.read(peeked);
+        final int headerLength = pushback.read(peeked);
 
         if (headerLength == -1) {
             throw new IOException("Unable to read the response");
         }
 
         /* We try to read the first uncompressed byte. */
-        byte[] dummy = new byte[1];
+        final byte[] dummy = new byte[1];
 
-        Inflater inf = new Inflater();
+        final Inflater inf = new Inflater();
 
         try {
             int n;
@@ -141,13 +142,15 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
              * and return an unused InputStream now.
              */
             pushback.unread(peeked, 0, headerLength);
-            return new InflaterInputStream(pushback);
-        } catch (DataFormatException e) {
+            return new DeflateStream(pushback, new Inflater());
+        } catch (final DataFormatException e) {
 
             /* Presume that it's an RFC1951 deflate stream rather than RFC1950 zlib stream and try
              * again. */
             pushback.unread(peeked, 0, headerLength);
-            return new InflaterInputStream(pushback, new Inflater(true));
+            return new DeflateStream(pushback, new Inflater(true));
+        } finally {
+            inf.end();
         }
     }
 
@@ -169,6 +172,26 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
 
         /* Length of inflated content is unknown. */
         return -1;
+    }
+
+    static class DeflateStream extends InflaterInputStream {
+
+        private boolean closed = false;
+
+        public DeflateStream(final InputStream in, final Inflater inflater) {
+            super(in, inflater);
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (closed) {
+                return;
+            }
+            closed = true;
+            inf.end();
+            super.close();
+        }
+
     }
 
 }
