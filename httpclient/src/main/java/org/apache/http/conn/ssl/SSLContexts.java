@@ -51,7 +51,7 @@ public class SSLContexts {
      */
     public static final SSLContext createDefault() throws SSLInitializationException {
         try {
-            final SSLContext sslcontext = SSLContext.getInstance("TLS");
+            final SSLContext sslcontext = SSLContext.getInstance(SSLContextBuilder.TLS);
             sslcontext.init(null, null, null);
             return sslcontext;
         } catch (final NoSuchAlgorithmException ex) {
@@ -76,6 +76,15 @@ public class SSLContexts {
         } catch (final NoSuchAlgorithmException ex) {
             return createDefault();
         }
+    }
+
+    /**
+     * Creates custom SSL context.
+     *
+     * @return default system SSL context
+     */
+    public static final SSLContextBuilder custom() {
+        return new SSLContextBuilder();
     }
 
 }

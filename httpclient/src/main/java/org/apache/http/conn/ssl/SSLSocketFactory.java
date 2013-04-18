@@ -40,13 +40,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.ThreadSafe;
@@ -187,59 +182,8 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     // TODO: make final
     private volatile X509HostnameVerifier hostnameVerifier;
 
-    private static SSLContext createSSLContext(
-            String algorithm,
-            final KeyStore keystore,
-            final char[] keystorePassword,
-            final KeyStore truststore,
-            final SecureRandom random,
-            final TrustStrategy trustStrategy)
-                throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException, KeyManagementException {
-        if (algorithm == null) {
-            algorithm = TLS;
-        }
-        final KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(
-                KeyManagerFactory.getDefaultAlgorithm());
-        kmfactory.init(keystore, keystorePassword);
-        final KeyManager[] keymanagers =  kmfactory.getKeyManagers();
-        final TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(
-                TrustManagerFactory.getDefaultAlgorithm());
-        tmfactory.init(truststore);
-        final TrustManager[] trustmanagers = tmfactory.getTrustManagers();
-        if (trustmanagers != null && trustStrategy != null) {
-            for (int i = 0; i < trustmanagers.length; i++) {
-                final TrustManager tm = trustmanagers[i];
-                if (tm instanceof X509TrustManager) {
-                    trustmanagers[i] = new TrustManagerDecorator(
-                            (X509TrustManager) tm, trustStrategy);
-                }
-            }
-        }
-
-        final SSLContext sslcontext = SSLContext.getInstance(algorithm);
-        sslcontext.init(keymanagers, trustmanagers, random);
-        return sslcontext;
-    }
-
     /**
-     * @since 4.3
-     */
-    public SSLSocketFactory(
-            final String algorithm,
-            final KeyStore keystore,
-            final char[] keystorePassword,
-            final KeyStore truststore,
-            final SecureRandom random,
-            final TrustStrategy trustStrategy,
-            final X509HostnameVerifier hostnameVerifier)
-                throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        this(createSSLContext(algorithm, keystore, keystorePassword, truststore, random, trustStrategy),
-                hostnameVerifier);
-    }
-
-    /**
-     * @deprecated (4.1) Use {@link #SSLSocketFactory(String, KeyStore, char[], KeyStore,
-     *   SecureRandom, X509HostnameVerifier)}
+     * @deprecated (4.1) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext))}.
      */
     @Deprecated
     public SSLSocketFactory(
@@ -250,16 +194,19 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final SecureRandom random,
             final HostNameResolver nameResolver)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        this(createSSLContext(
-                algorithm, keystore, keystorePassword != null ? keystorePassword.toCharArray() : null,
-                        truststore, random, null), nameResolver);
+        this(SSLContexts.custom()
+                .useProtocol(algorithm)
+                .loadKeyMaterial(keystore, keystorePassword != null ? keystorePassword.toCharArray() : null)
+                .loadTrustMaterial(truststore)
+                .build(),
+                nameResolver);
     }
 
     /**
      * @since 4.1
      *
-     * @deprecated (4.3) Use {@link SSLSocketFactory#SSLSocketFactory(String, KeyStore, char[],
-     *   KeyStore, SecureRandom, TrustStrategy, X509HostnameVerifier)}
+     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext,
+     *   X509HostnameVerifier)))}
      */
     @Deprecated
     public SSLSocketFactory(
@@ -271,16 +218,19 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final TrustStrategy trustStrategy,
             final X509HostnameVerifier hostnameVerifier)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        this(createSSLContext(
-                algorithm, keystore, keystorePassword != null ? keystorePassword.toCharArray() : null,
-                        truststore, random, trustStrategy), hostnameVerifier);
+        this(SSLContexts.custom()
+                .useProtocol(algorithm)
+                .loadKeyMaterial(keystore, keystorePassword != null ? keystorePassword.toCharArray() : null)
+                .loadTrustMaterial(truststore, trustStrategy)
+                .build(),
+                hostnameVerifier);
     }
 
     /**
      * @since 4.1
      *
-     * @deprecated (4.3) Use {@link SSLSocketFactory#SSLSocketFactory(String, KeyStore, char[],
-     *   KeyStore, SecureRandom, X509HostnameVerifier)}
+     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext,
+     *   X509HostnameVerifier)))}
      */
     @Deprecated
     public SSLSocketFactory(
@@ -291,28 +241,16 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final SecureRandom random,
             final X509HostnameVerifier hostnameVerifier)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        this(createSSLContext(
-                algorithm, keystore, keystorePassword != null ? keystorePassword.toCharArray() : null,
-                        truststore, random, null), hostnameVerifier);
-    }
-
-    /**
-     * @since 4.3
-     */
-    public SSLSocketFactory(
-            final String algorithm,
-            final KeyStore keystore,
-            final char[] keystorePassword,
-            final KeyStore truststore,
-            final SecureRandom random,
-            final X509HostnameVerifier hostnameVerifier)
-                throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        this(createSSLContext(algorithm, keystore, keystorePassword, truststore, random, null),
+        this(SSLContexts.custom()
+                .useProtocol(algorithm)
+                .loadKeyMaterial(keystore, keystorePassword != null ? keystorePassword.toCharArray() : null)
+                .loadTrustMaterial(truststore)
+                .build(),
                 hostnameVerifier);
     }
 
     /**
-     * @deprecated (4.3) Use {@link SSLSocketFactory#SSLSocketFactory(KeyStore, char[], KeyStore)}
+     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)))}
      */
     @Deprecated
     public SSLSocketFactory(
@@ -320,69 +258,69 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final String keystorePassword,
             final KeyStore truststore)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        this(TLS, keystore, keystorePassword, truststore, null, null, BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
-    }
-
-    /**
-     * @since 4.3
-     */
-    public SSLSocketFactory(
-            final KeyStore keystore,
-            final char[] keystorePassword,
-            final KeyStore truststore)
-                throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException{
-        this(createSSLContext(TLS, keystore, keystorePassword, truststore, null, null),
+        this(SSLContexts.custom()
+                .loadKeyMaterial(keystore, keystorePassword != null ? keystorePassword.toCharArray() : null)
+                .loadTrustMaterial(truststore)
+                .build(),
                 BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
     }
 
     /**
-     * @deprecated (4.3) Use {@link SSLSocketFactory#SSLSocketFactory(KeyStore, char[])}
+     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)))}
      */
     @Deprecated
     public SSLSocketFactory(
             final KeyStore keystore,
             final String keystorePassword)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException{
-        this(createSSLContext(TLS, keystore, keystorePassword != null ? keystorePassword.toCharArray() : null,
-                null, null, null),
+        this(SSLContexts.custom()
+                .loadKeyMaterial(keystore, keystorePassword != null ? keystorePassword.toCharArray() : null)
+                .build(),
                 BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
     }
 
     /**
-     * @since 4.3
+     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)))}
      */
-    public SSLSocketFactory(
-            final KeyStore keystore,
-            final char[] keystorePassword)
-                throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException{
-        this(createSSLContext(TLS, keystore, keystorePassword, null, null, null),
-                BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
-    }
-
+    @Deprecated
     public SSLSocketFactory(
             final KeyStore truststore)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        this(createSSLContext(TLS, null, null, truststore, null, null),
+        this(SSLContexts.custom()
+                .loadTrustMaterial(truststore)
+                .build(),
                 BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
     }
 
     /**
      * @since 4.1
+     *
+     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext, X509HostnameVerifier))))}
      */
+    @Deprecated
     public SSLSocketFactory(
             final TrustStrategy trustStrategy,
             final X509HostnameVerifier hostnameVerifier)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        this(createSSLContext(TLS, null, null, null, null, trustStrategy), hostnameVerifier);
+        this(SSLContexts.custom()
+                .loadTrustMaterial(null, null, trustStrategy)
+                .build(),
+                hostnameVerifier);
     }
 
     /**
      * @since 4.1
+     *
+     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext))))}
      */
+    @Deprecated
     public SSLSocketFactory(
             final TrustStrategy trustStrategy)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
-        this(createSSLContext(TLS, null, null, null, null, trustStrategy), BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
+        this(SSLContexts.custom()
+                .loadTrustMaterial(null, null, trustStrategy)
+                .build(),
+                BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
     }
 
     public SSLSocketFactory(final SSLContext sslContext) {
