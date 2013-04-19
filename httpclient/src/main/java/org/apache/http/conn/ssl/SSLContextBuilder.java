@@ -74,6 +74,11 @@ public class SSLContextBuilder {
         return this;
     }
 
+    public SSLContextBuilder setSecureRandom(final SecureRandom secureRandom) {
+        this.secureRandom = secureRandom;
+        return this;
+    }
+
     public SSLContextBuilder loadTrustMaterial(
             final KeyStore truststore,
             final char[] truststorePassword,

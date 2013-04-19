@@ -57,6 +57,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.Asserts;
+import org.apache.http.util.TextUtils;
 
 /**
  * Layered socket factory for TLS/SSL connections.
@@ -84,50 +85,7 @@ import org.apache.http.util.Asserts;
  * itself to the target HTTPS server during the SSL session handshake if
  * requested to do so by the server.
  * The target HTTPS server will in its turn verify the certificate presented
- * by the client in order to establish client's authenticity
- * <p>
- * Use the following sequence of actions to generate a key-store file
- * </p>
- *   <ul>
- *     <li>
- *      <p>
- *      Use JDK keytool utility to generate a new key
- *      <pre>keytool -genkey -v -alias "my client key" -validity 365 -keystore my.keystore</pre>
- *      For simplicity use the same password for the key as that of the key-store
- *      </p>
- *     </li>
- *     <li>
- *      <p>
- *      Issue a certificate signing request (CSR)
- *      <pre>keytool -certreq -alias "my client key" -file mycertreq.csr -keystore my.keystore</pre>
- *     </p>
- *     </li>
- *     <li>
- *      <p>
- *      Send the certificate request to the trusted Certificate Authority for signature.
- *      One may choose to act as her own CA and sign the certificate request using a PKI
- *      tool, such as OpenSSL.
- *      </p>
- *     </li>
- *     <li>
- *      <p>
- *       Import the trusted CA root certificate
- *       <pre>keytool -import -alias "my trusted ca" -file caroot.crt -keystore my.keystore</pre>
- *      </p>
- *     </li>
- *     <li>
- *      <p>
- *       Import the PKCS#7 file containg the complete certificate chain
- *       <pre>keytool -import -alias "my client key" -file mycert.p7 -keystore my.keystore</pre>
- *      </p>
- *     </li>
- *     <li>
- *      <p>
- *       Verify the content the resultant keystore file
- *       <pre>keytool -list -v -keystore my.keystore</pre>
- *      </p>
- *     </li>
- *   </ul>
+ * by the client in order to establish client's authenticity.
  *
  * @since 4.0
  */
@@ -162,6 +120,13 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
     }
 
+    private static String[] split(final String s) {
+        if (TextUtils.isBlank(s)) {
+            return null;
+        }
+        return s.split(" *, *");
+    }
+
     /**
      * Obtains default SSL socket factory with an SSL context based on system properties
      * as described in
@@ -174,6 +139,8 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     public static SSLSocketFactory getSystemSocketFactory() throws SSLInitializationException {
         return new SSLSocketFactory(
             (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault(),
+            split(System.getProperty("https.protocols")),
+            split(System.getProperty("https.cipherSuites")),
             BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
     }
 
@@ -181,9 +148,11 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     private final HostNameResolver nameResolver;
     // TODO: make final
     private volatile X509HostnameVerifier hostnameVerifier;
+    private final String[] supportedProtocols;
+    private final String[] supportedCipherSuites;
 
     /**
-     * @deprecated (4.1) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext))}.
+     * @deprecated (4.1) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)}.
      */
     @Deprecated
     public SSLSocketFactory(
@@ -206,7 +175,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      * @since 4.1
      *
      * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext,
-     *   X509HostnameVerifier)))}
+     *   X509HostnameVerifier)}
      */
     @Deprecated
     public SSLSocketFactory(
@@ -230,7 +199,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      * @since 4.1
      *
      * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext,
-     *   X509HostnameVerifier)))}
+     *   X509HostnameVerifier)}
      */
     @Deprecated
     public SSLSocketFactory(
@@ -250,7 +219,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     }
 
     /**
-     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)))}
+     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)}
      */
     @Deprecated
     public SSLSocketFactory(
@@ -266,7 +235,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     }
 
     /**
-     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)))}
+     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)}
      */
     @Deprecated
     public SSLSocketFactory(
@@ -280,7 +249,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     }
 
     /**
-     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)))}
+     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)}
      */
     @Deprecated
     public SSLSocketFactory(
@@ -295,7 +264,8 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     /**
      * @since 4.1
      *
-     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext, X509HostnameVerifier))))}
+     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext,
+     *   X509HostnameVerifier)}
      */
     @Deprecated
     public SSLSocketFactory(
@@ -311,7 +281,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     /**
      * @since 4.1
      *
-     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext))))}
+     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)}
      */
     @Deprecated
     public SSLSocketFactory(
@@ -337,6 +307,8 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         this.socketfactory = sslContext.getSocketFactory();
         this.hostnameVerifier = BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
         this.nameResolver = nameResolver;
+        this.supportedProtocols = null;
+        this.supportedCipherSuites = null;
     }
 
     /**
@@ -344,11 +316,20 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      */
     public SSLSocketFactory(
             final SSLContext sslContext, final X509HostnameVerifier hostnameVerifier) {
-        super();
-        Args.notNull(sslContext, "SSL context");
-        this.socketfactory = sslContext.getSocketFactory();
-        this.hostnameVerifier = hostnameVerifier;
-        this.nameResolver = null;
+        this(Args.notNull(sslContext, "SSL context").getSocketFactory(),
+                null, null, hostnameVerifier);
+    }
+
+    /**
+     * @since 4.3
+     */
+    public SSLSocketFactory(
+            final SSLContext sslContext,
+            final String[] supportedProtocols,
+            final String[] supportedCipherSuites,
+            final X509HostnameVerifier hostnameVerifier) {
+        this(Args.notNull(sslContext, "SSL context").getSocketFactory(),
+                supportedProtocols, supportedCipherSuites, hostnameVerifier);
     }
 
     /**
@@ -357,8 +338,21 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     public SSLSocketFactory(
             final javax.net.ssl.SSLSocketFactory socketfactory,
             final X509HostnameVerifier hostnameVerifier) {
+        this(socketfactory, null, null, hostnameVerifier);
+    }
+
+    /**
+     * @since 4.3
+     */
+    public SSLSocketFactory(
+            final javax.net.ssl.SSLSocketFactory socketfactory,
+            final String[] supportedProtocols,
+            final String[] supportedCipherSuites,
+            final X509HostnameVerifier hostnameVerifier) {
         Args.notNull(socketfactory, "SSL socket factory");
         this.socketfactory = socketfactory;
+        this.supportedProtocols = supportedProtocols;
+        this.supportedCipherSuites = supportedCipherSuites;
         this.hostnameVerifier = hostnameVerifier;
         this.nameResolver = null;
     }
@@ -522,6 +516,16 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     protected void prepareSocket(final SSLSocket socket) throws IOException {
     }
 
+    private void internalPrepareSocket(final SSLSocket socket) throws IOException {
+        if (supportedProtocols != null) {
+            socket.setEnabledProtocols(supportedProtocols);
+        }
+        if (supportedCipherSuites != null) {
+            socket.setEnabledCipherSuites(supportedCipherSuites);
+        }
+        prepareSocket(socket);
+    }
+
     /**
      * {@inheritDoc}
      *
@@ -529,7 +533,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      */
     public Socket createSocket(final HttpContext context) throws IOException {
         final SSLSocket sock = (SSLSocket) this.socketfactory.createSocket();
-        prepareSocket(sock);
+        internalPrepareSocket(sock);
         return sock;
     }
 
@@ -575,9 +579,9 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
                 target,
                 port,
                 true);
-          prepareSocket(sslSocket);
-          verifyHostname(sslSocket, target);
-          return sslSocket;
+        internalPrepareSocket(sslSocket);
+        verifyHostname(sslSocket, target);
+        return sslSocket;
     }
 
     private void verifyHostname(final SSLSocket sslsock, final String hostname) throws IOException {
