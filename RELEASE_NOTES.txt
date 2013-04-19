@@ -1,4 +1,14 @@
-Changes since Release 4.2.4
+Release 4.2.5
+-------------------
+
+HttpClient 4.2.5 (GA) is a maintenance release that addresses a number of issues reported since 
+release 4.2.3 including a major bug that can lead to re-use of persistent connections in 
+ a inconsistent state.
+
+All users of HttpClient 4.2 are strongly advised to upgrade.
+  
+
+Changelog
 -------------------
 
 * [HTTPCLIENT-1341] DeflateDecompressingEntity does not call Inflater#end.
