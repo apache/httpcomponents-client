@@ -562,7 +562,9 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         }
         // Setup SSL layering if necessary
         if (sock instanceof SSLSocket) {
-            verifyHostname((SSLSocket) sock, host.getHostName());
+            final SSLSocket sslsock = (SSLSocket) sock;
+            sslsock.startHandshake();
+            verifyHostname(sslsock, host.getHostName());
         } else {
             sock = createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), context);
         }
@@ -574,14 +576,15 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final String target,
             final int port,
             final HttpContext context) throws IOException, UnknownHostException {
-        final SSLSocket sslSocket = (SSLSocket) this.socketfactory.createSocket(
+        final SSLSocket sslsock = (SSLSocket) this.socketfactory.createSocket(
                 socket,
                 target,
                 port,
                 true);
-        internalPrepareSocket(sslSocket);
-        verifyHostname(sslSocket, target);
-        return sslSocket;
+        internalPrepareSocket(sslsock);
+        sslsock.startHandshake();
+        verifyHostname(sslsock, target);
+        return sslsock;
     }
 
     private void verifyHostname(final SSLSocket sslsock, final String hostname) throws IOException {

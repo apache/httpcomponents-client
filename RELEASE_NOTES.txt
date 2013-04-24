@@ -1,6 +1,9 @@
 Changes since release 4.3 BETA1
 -------------------
 
+* [HTTPCLIENT-1346] Ensure propagation of SSL handshake exceptions.
+  Contributed by Pasi Eronen <pe at iki.fi>
+
 * [HTTPCLIENT-1343] SSLSocketFactory optional parameters for supported SSL protocols and cipher 
   suites. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>
