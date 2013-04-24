@@ -39,6 +39,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -160,7 +161,7 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
         Assert.assertTrue(hostVerifier.isFired());
     }
 
-    @Test(expected=SSLPeerUnverifiedException.class)
+    @Test(expected=SSLHandshakeException.class)
     public void testSSLTrustVerification() throws Exception {
         // Use default SSL context
         SSLContext defaultsslcontext = SSLContext.getInstance("TLS");

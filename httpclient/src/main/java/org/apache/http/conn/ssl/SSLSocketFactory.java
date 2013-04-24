@@ -432,6 +432,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
             sslsock = (SSLSocket) this.socketfactory.createSocket(sock, hostname, port, true);
             prepareSocket(sslsock);
         }
+        sslsock.startHandshake();
         if (this.hostnameVerifier != null) {
             try {
                 this.hostnameVerifier.verify(hostname, sslsock);
@@ -489,6 +490,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
               port,
               true);
         prepareSocket(sslSocket);
+        sslSocket.startHandshake();
         if (this.hostnameVerifier != null) {
             this.hostnameVerifier.verify(host, sslSocket);
         }
@@ -511,6 +513,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
               autoClose
         );
         prepareSocket(sslSocket);
+        sslSocket.startHandshake();
         if (this.hostnameVerifier != null) {
             this.hostnameVerifier.verify(host, sslSocket);
         }
