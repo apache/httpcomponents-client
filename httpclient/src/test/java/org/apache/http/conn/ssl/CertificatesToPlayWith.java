@@ -471,4 +471,41 @@ public class CertificatesToPlayWith {
         "BSW775NHlkjsscFVgXkNf0PobqJ9\n" +
         "-----END CERTIFICATE-----").getBytes();
 
+    /**
+     * subject CN=repository.infonotary.com (Multiple AVA in RDN).
+     */
+    public final static byte[] X509_MULTIPLE_VALUE_AVA = (
+        "-----BEGIN CERTIFICATE-----\n" +
+        "MIIFxzCCBK+gAwIBAgIIRO/2+/XA7z4wDQYJKoZIhvcNAQEFBQAwgZwxgZkwCQYD\n" +
+        "VQQGDAJCRzAVBgNVBAoMDkluZm9Ob3RhcnkgUExDMBcGCgmSJomT8ixkARkWCWRv\n" +
+        "bWFpbi1jYTAtBgNVBAMMJmktTm90YXJ5IFRydXN0UGF0aCBWYWxpZGF0ZWQgRG9t\n" +
+        "YWluIENBMC0GA1UECwwmaS1Ob3RhcnkgVHJ1c3RQYXRoIFZhbGlkYXRlZCBEb21h\n" +
+        "aW4gQ0EwHhcNMTIwNjE4MDg1MzIyWhcNMTMwNjE4MDg1MzIyWjCBxjGBwzAJBgNV\n" +
+        "BAYTAkJHMBUGA1UEChMOSW5mb05vdGFyeSBQTEMwFwYDVQQLExBGaWxlcyBSZXBv\n" +
+        "c2l0b3J5MBcGCgmSJomT8ixkARkWCWRvbWFpbi1jYTAgBgNVBAMTGXJlcG9zaXRv\n" +
+        "cnkuaW5mb25vdGFyeS5jb20wIwYJKoZIhvcNAQkBFhZzdXBwb3J0QGluZm9ub3Rh\n" +
+        "cnkuY29tMCYGCSqGSIb3DQEJAhMZcmVwb3NpdG9yeS5pbmZvbm90YXJ5LmNvbTCC\n" +
+        "ASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALKWjGpgsuz103xVEW/GSg5I\n" +
+        "tBoLbXPxockabOTHnOh0VO2sImycyhBH78nMj+VMexn4y+kdCOuJqAA5LApxyhTA\n" +
+        "KgKlRN7TfoC90IYHjB1dqLMIseg4YM7Oe0e4Z2nL50bHoqXg7OUHaILUQn7ufpYp\n" +
+        "+VCWxyI43KvaR4+HnST3x47wqeArg/rULGV1a16X+46cxq2eoMAcDfostXHaemvz\n" +
+        "vg/Wd5xcWfPbF/oY1/sBXH+AK+peVBMen82+3GtAWtNWbyPE3bT4RG+WgKUyfLZ1\n" +
+        "7A67rX9DkUEVMPQpa50MpLnrRveiM9w6R3mrMHMHbNnwID0Tqfds5zzOi/7cLD0C\n" +
+        "AwEAAaOCAd8wggHbMA4GA1UdDwEB/wQEAwIDuDATBgNVHSUEDDAKBggrBgEFBQcD\n" +
+        "ATBEBggrBgEFBQcBAQQ4MDYwNAYIKwYBBQUHMAGGKGh0dHA6Ly9vY3NwLmluZm9u\n" +
+        "b3RhcnkuY29tL3Jlc3BvbmRlci5jZ2kwgZAGA1UdIASBiDCBhTCBggYMKwYBBAGB\n" +
+        "rQABAgMBMHIwOAYIKwYBBQUHAgEWLGh0dHA6Ly9yZXBvc2l0b3J5LmluZm9ub3Rh\n" +
+        "cnkuY29tL2RvbWFpbi5odG1sMDYGCCsGAQUFBwICMCoaKGktTm90YXJ5IFZhbGlk\n" +
+        "YXRlZCBEb21haW4gQ2VydGlmaWNhdGUgQ1AwgYkGA1UdHwSBgTB/MDWgL6Athito\n" +
+        "dHRwOi8vY3JsLmluZm9ub3RhcnkuY29tL2NybC9kb21haW4tY2EuY3JsgQIBVjBG\n" +
+        "oECgPoY8bGRhcDovL2xkYXAuaW5mb25vdGFyeS5jb20vZGM9ZG9tYWluLWNhLGRj\n" +
+        "PWluZm9ub3RhcnksZGM9Y29tgQIBVjAPBgNVHRMBAf8EBTADAQEAMB0GA1UdDgQW\n" +
+        "BBTImKJZrgV/8n7mHrA0U5EeGsBvbzAfBgNVHSMEGDAWgBTbkorEK+bPdVPpvyVI\n" +
+        "PTxGFnuOoDANBgkqhkiG9w0BAQUFAAOCAQEAhsMbqsqvkbfVaKZ+wDY9rX3EtuDS\n" +
+        "isdAo4AjmWgTtj/aBGiEiXcIGP312x+0JF+mEEQ75ZOKN+WsM8eLB0F4aqylklk7\n" +
+        "6yRYauRXp8dfbXrT3ozxekt0cpSMqbzze456krI12nL+C00V2Iwq96k5J/yZboNW\n" +
+        "Q+ibCaEAHNiL4tGVHSHm6znkWvIuUTbDgDEsm5RdafO27suz5H6zMnV+VE6onN1J\n" +
+        "I1mQmUs44cg2HZAqnFBpDyJQhNYy8M7yGVaRkbfuVaMqiPa+xDPR5v7NFB3kxRq2\n" +
+        "Za2Snopi52eUxDEhJ0MNqFi3Jfj/ZSmJ+XHra5lU4R8lijCAq8SVLZCmIQ==\n" +
+        "-----END CERTIFICATE-----").getBytes();
 }

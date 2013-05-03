@@ -267,7 +267,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         */
 
         final String subjectPrincipal = cert.getSubjectX500Principal().toString();
-        final StringTokenizer st = new StringTokenizer(subjectPrincipal, ",");
+        final StringTokenizer st = new StringTokenizer(subjectPrincipal, ",+");
         while(st.hasMoreTokens()) {
             final String tok = st.nextToken().trim();
             if (tok.length() > 3) {

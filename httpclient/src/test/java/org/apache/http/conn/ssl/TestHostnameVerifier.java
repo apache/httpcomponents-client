@@ -188,6 +188,12 @@ public class TestHostnameVerifier {
         //STRICT.verify("\u82b1\u5b50.\u82b1\u5b50.co.jp", x509 );
         //DEFAULT.verify("a.b.\u82b1\u5b50.co.jp", x509 );
         //exceptionPlease(STRICT,"a.b.\u82b1\u5b50.co.jp", x509 );
+
+        in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_VALUE_AVA);
+        x509 = (X509Certificate) cf.generateCertificate(in);
+        ALLOW_ALL.verify("repository.infonotary.com", x509);
+        DEFAULT.verify("repository.infonotary.com", x509);
+        STRICT.verify("repository.infonotary.com", x509);
     }
 
     @Test
