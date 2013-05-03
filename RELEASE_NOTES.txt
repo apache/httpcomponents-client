@@ -1,6 +1,10 @@
 Changes since release 4.3 BETA1
 -------------------
 
+* [HTTPCLIENT-1349] SSLSocketFactory incorrectly identifies key passed with keystore as 
+  the keystore password.
+  Contributed by David Graff <djgraff209 at gmail.com>
+
 * [HTTPCLIENT-1346] Ensure propagation of SSL handshake exceptions.
   Contributed by Pasi Eronen <pe at iki.fi>
 

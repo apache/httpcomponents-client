@@ -113,11 +113,11 @@ public class SSLContextBuilder {
 
     public SSLContextBuilder loadKeyMaterial(
             final KeyStore keystore,
-            final char[] keystorePassword)
+            final char[] keyPassword)
                 throws NoSuchAlgorithmException, KeyStoreException, UnrecoverableKeyException {
         final KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(
                 KeyManagerFactory.getDefaultAlgorithm());
-        kmfactory.init(keystore, keystorePassword);
+        kmfactory.init(keystore, keyPassword);
         this.keymanagers =  kmfactory.getKeyManagers();
         return this;
     }

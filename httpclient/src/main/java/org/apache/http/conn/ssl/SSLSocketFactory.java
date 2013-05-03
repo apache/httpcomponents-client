@@ -158,14 +158,14 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     public SSLSocketFactory(
             final String algorithm,
             final KeyStore keystore,
-            final String keystorePassword,
+            final String keyPassword,
             final KeyStore truststore,
             final SecureRandom random,
             final HostNameResolver nameResolver)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         this(SSLContexts.custom()
                 .useProtocol(algorithm)
-                .loadKeyMaterial(keystore, keystorePassword != null ? keystorePassword.toCharArray() : null)
+                .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
                 .loadTrustMaterial(truststore)
                 .build(),
                 nameResolver);
@@ -181,7 +181,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     public SSLSocketFactory(
             final String algorithm,
             final KeyStore keystore,
-            final String keystorePassword,
+            final String keyPassword,
             final KeyStore truststore,
             final SecureRandom random,
             final TrustStrategy trustStrategy,
@@ -189,7 +189,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         this(SSLContexts.custom()
                 .useProtocol(algorithm)
-                .loadKeyMaterial(keystore, keystorePassword != null ? keystorePassword.toCharArray() : null)
+                .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
                 .loadTrustMaterial(truststore, trustStrategy)
                 .build(),
                 hostnameVerifier);
@@ -205,14 +205,14 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     public SSLSocketFactory(
             final String algorithm,
             final KeyStore keystore,
-            final String keystorePassword,
+            final String keyPassword,
             final KeyStore truststore,
             final SecureRandom random,
             final X509HostnameVerifier hostnameVerifier)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         this(SSLContexts.custom()
                 .useProtocol(algorithm)
-                .loadKeyMaterial(keystore, keystorePassword != null ? keystorePassword.toCharArray() : null)
+                .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
                 .loadTrustMaterial(truststore)
                 .build(),
                 hostnameVerifier);
