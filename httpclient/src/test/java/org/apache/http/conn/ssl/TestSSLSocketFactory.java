@@ -41,7 +41,6 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
@@ -182,14 +181,20 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         final SSLContext defaultsslcontext = SSLContext.getInstance("TLS");
         defaultsslcontext.init(null, null, null);
 
-        final SSLSocketFactory socketFactory = new SSLSocketFactory(new TrustStrategy() {
+        final TrustStrategy trustStrategy = new TrustStrategy() {
 
             public boolean isTrusted(
                     final X509Certificate[] chain, final String authType) throws CertificateException {
                 return chain.length == 1;
             }
 
-        }, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+        };
+        final SSLContext sslcontext = SSLContexts.custom()
+            .loadTrustMaterial(null, null, trustStrategy)
+            .build();
+        final SSLSocketFactory socketFactory = new SSLSocketFactory(
+                sslcontext,
+                SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
         final SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
@@ -198,27 +203,35 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
 
     @Test
     public void testKeyWithAlternatePassword() throws Exception {
-        String keystorePassword = "nopassword";
-        String keyPassword = "password";
+        final String keystorePassword = "nopassword";
+        final String keyPassword = "password";
 
-        ClassLoader cl = getClass().getClassLoader();
-        URL url = cl.getResource("test-keypasswd.keystore");
-        KeyStore keystore  = KeyStore.getInstance("jks");
+        final ClassLoader cl = getClass().getClassLoader();
+        final URL url = cl.getResource("test-keypasswd.keystore");
+        final KeyStore keystore  = KeyStore.getInstance("jks");
         keystore.load(url.openStream(), keystorePassword.toCharArray());
 
-        new SSLSocketFactory(keystore, keyPassword, keystore);
+        final SSLContext sslcontext = SSLContexts.custom()
+                .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
+                .loadTrustMaterial(keystore)
+                .build();
+        new SSLSocketFactory(sslcontext);
     }
 
     @Test(expected=UnrecoverableKeyException.class)
     public void testKeyWithAlternatePasswordInvalid() throws Exception {
-        String keystorePassword = "nopassword";
-        String keyPassword = "!password";
+        final String keystorePassword = "nopassword";
+        final String keyPassword = "!password";
 
-        ClassLoader cl = getClass().getClassLoader();
-        URL url = cl.getResource("test-keypasswd.keystore");
-        KeyStore keystore  = KeyStore.getInstance("jks");
+        final ClassLoader cl = getClass().getClassLoader();
+        final URL url = cl.getResource("test-keypasswd.keystore");
+        final KeyStore keystore  = KeyStore.getInstance("jks");
         keystore.load(url.openStream(), keystorePassword.toCharArray());
 
-        new SSLSocketFactory(keystore, keyPassword, keystore);
+        final SSLContext sslcontext = SSLContexts.custom()
+                .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
+                .loadTrustMaterial(keystore)
+                .build();
+        new SSLSocketFactory(sslcontext);
     }
 }
