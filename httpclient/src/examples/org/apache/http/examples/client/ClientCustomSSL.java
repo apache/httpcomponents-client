@@ -30,9 +30,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 
+import javax.net.ssl.SSLContext;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -52,8 +55,15 @@ public class ClientCustomSSL {
         } finally {
             instream.close();
         }
+        SSLContext sslcontext = SSLContexts.custom()
+                .loadTrustMaterial(trustStore)
+                .build();
+
+        SSLSocketFactory sslsf = new SSLSocketFactory(sslcontext,
+                SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
         CloseableHttpClient httpclient = HttpClients.custom()
-                .setSSLSocketFactory(new SSLSocketFactory(trustStore)).build();
+                .setSSLSocketFactory(sslsf)
+                .build();
         try {
 
             HttpGet httpget = new HttpGet("https://localhost/");
