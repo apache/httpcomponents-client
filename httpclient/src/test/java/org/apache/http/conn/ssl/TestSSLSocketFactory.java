@@ -32,6 +32,7 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -202,4 +203,29 @@ public class TestSSLSocketFactory extends BasicServerTestBase {
         Assert.assertEquals(200, response.getStatusLine().getStatusCode());
     }
 
+    @Test
+    public void testKeyWithAlternatePassword() throws Exception {
+        String keystorePassword = "nopassword";
+        String keyPassword = "password";
+
+        ClassLoader cl = getClass().getClassLoader();
+        URL url = cl.getResource("test-keypasswd.keystore");
+        KeyStore keystore  = KeyStore.getInstance("jks");
+        keystore.load(url.openStream(), keystorePassword.toCharArray());
+
+        new SSLSocketFactory(keystore, keyPassword, keystore);
+    }
+
+    @Test(expected=UnrecoverableKeyException.class)
+    public void testKeyWithAlternatePasswordInvalid() throws Exception {
+        String keystorePassword = "nopassword";
+        String keyPassword = "!password";
+
+        ClassLoader cl = getClass().getClassLoader();
+        URL url = cl.getResource("test-keypasswd.keystore");
+        KeyStore keystore  = KeyStore.getInstance("jks");
+        keystore.load(url.openStream(), keystorePassword.toCharArray());
+
+        new SSLSocketFactory(keystore, keyPassword, keystore);
+    }
 }

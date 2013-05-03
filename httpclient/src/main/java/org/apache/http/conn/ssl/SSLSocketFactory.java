@@ -203,7 +203,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
     private static SSLContext createSSLContext(
             String algorithm,
             final KeyStore keystore,
-            final String keystorePassword,
+            final String keyPassword,
             final KeyStore truststore,
             final SecureRandom random,
             final TrustStrategy trustStrategy)
@@ -213,7 +213,7 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
         }
         KeyManagerFactory kmfactory = KeyManagerFactory.getInstance(
                 KeyManagerFactory.getDefaultAlgorithm());
-        kmfactory.init(keystore, keystorePassword != null ? keystorePassword.toCharArray(): null);
+        kmfactory.init(keystore, keyPassword != null ? keyPassword.toCharArray(): null);
         KeyManager[] keymanagers =  kmfactory.getKeyManagers();
         TrustManagerFactory tmfactory = TrustManagerFactory.getInstance(
                 TrustManagerFactory.getDefaultAlgorithm());
@@ -241,13 +241,13 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
     public SSLSocketFactory(
             final String algorithm,
             final KeyStore keystore,
-            final String keystorePassword,
+            final String keyPassword,
             final KeyStore truststore,
             final SecureRandom random,
             final HostNameResolver nameResolver)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         this(createSSLContext(
-                algorithm, keystore, keystorePassword, truststore, random, null),
+                algorithm, keystore, keyPassword, truststore, random, null),
                 nameResolver);
     }
 
@@ -257,13 +257,13 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
     public SSLSocketFactory(
             String algorithm,
             final KeyStore keystore,
-            final String keystorePassword,
+            final String keyPassword,
             final KeyStore truststore,
             final SecureRandom random,
             final X509HostnameVerifier hostnameVerifier)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         this(createSSLContext(
-                algorithm, keystore, keystorePassword, truststore, random, null),
+                algorithm, keystore, keyPassword, truststore, random, null),
                 hostnameVerifier);
     }
 
@@ -273,14 +273,14 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
     public SSLSocketFactory(
             String algorithm,
             final KeyStore keystore,
-            final String keystorePassword,
+            final String keyPassword,
             final KeyStore truststore,
             final SecureRandom random,
             final TrustStrategy trustStrategy,
             final X509HostnameVerifier hostnameVerifier)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         this(createSSLContext(
-                algorithm, keystore, keystorePassword, truststore, random, trustStrategy),
+                algorithm, keystore, keyPassword, truststore, random, trustStrategy),
                 hostnameVerifier);
     }
 
