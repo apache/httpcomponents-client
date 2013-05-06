@@ -59,6 +59,7 @@ import org.apache.http.util.CharArrayBuffer;
 @NotThreadSafe // superclass is @NotThreadSafe
 public class BrowserCompatSpec extends CookieSpecBase {
 
+
     private static final String[] DEFAULT_DATE_PATTERNS = new String[] {
         DateUtils.PATTERN_RFC1123,
         DateUtils.PATTERN_RFC1036,
@@ -77,16 +78,34 @@ public class BrowserCompatSpec extends CookieSpecBase {
     };
 
     private final String[] datepatterns;
+    private final BrowserCompatSpecFactory.SecurityLevel securityLevel;
 
     /** Default constructor */
-    public BrowserCompatSpec(final String[] datepatterns) {
+    public BrowserCompatSpec(final String[] datepatterns, final BrowserCompatSpecFactory.SecurityLevel securityLevel) {
         super();
+        this.securityLevel = securityLevel;
         if (datepatterns != null) {
             this.datepatterns = datepatterns.clone();
         } else {
             this.datepatterns = DEFAULT_DATE_PATTERNS;
         }
-        registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler());
+        switch (securityLevel) {
+            case SECURITYLEVEL_DEFAULT:
+                registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler());
+                break;
+            case SECURITYLEVEL_IE_MEDIUM:
+                registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler() {
+                        @Override
+                        public void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException {
+                            // No validation
+                        }
+                    }
+                );
+                break;
+            default:
+                throw new RuntimeException("Unknown security level");
+        }
+
         registerAttribHandler(ClientCookie.DOMAIN_ATTR, new BasicDomainHandler());
         registerAttribHandler(ClientCookie.MAX_AGE_ATTR, new BasicMaxAgeHandler());
         registerAttribHandler(ClientCookie.SECURE_ATTR, new BasicSecureHandler());
@@ -97,8 +116,13 @@ public class BrowserCompatSpec extends CookieSpecBase {
     }
 
     /** Default constructor */
+    public BrowserCompatSpec(final String[] datepatterns) {
+        this(datepatterns, BrowserCompatSpecFactory.SecurityLevel.SECURITYLEVEL_DEFAULT);
+    }
+
+    /** Default constructor */
     public BrowserCompatSpec() {
-        this(null);
+        this(null, BrowserCompatSpecFactory.SecurityLevel.SECURITYLEVEL_DEFAULT);
     }
 
     public List<Cookie> parse(final Header header, final CookieOrigin origin)

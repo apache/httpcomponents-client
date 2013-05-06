@@ -47,15 +47,26 @@ import org.apache.http.protocol.HttpContext;
 @SuppressWarnings("deprecation")
 public class BrowserCompatSpecFactory implements CookieSpecFactory, CookieSpecProvider {
 
-    private final String[] datepatterns;
+    public enum SecurityLevel {
+        SECURITYLEVEL_DEFAULT,
+        SECURITYLEVEL_IE_MEDIUM
+    };
 
-    public BrowserCompatSpecFactory(final String[] datepatterns) {
+    private final String[] datepatterns;
+    private final SecurityLevel securityLevel;
+
+    public BrowserCompatSpecFactory(final String[] datepatterns, SecurityLevel securityLevel) {
         super();
         this.datepatterns = datepatterns;
+        this.securityLevel = securityLevel;
+    }
+
+    public BrowserCompatSpecFactory(final String[] datepatterns) {
+        this(null, SecurityLevel.SECURITYLEVEL_DEFAULT);
     }
 
     public BrowserCompatSpecFactory() {
-        this(null);
+        this(null, SecurityLevel.SECURITYLEVEL_DEFAULT);
     }
 
     public CookieSpec newInstance(final HttpParams params) {
@@ -68,9 +79,9 @@ public class BrowserCompatSpecFactory implements CookieSpecFactory, CookieSpecPr
                 patterns = new String[param.size()];
                 patterns = param.toArray(patterns);
             }
-            return new BrowserCompatSpec(patterns);
+            return new BrowserCompatSpec(patterns, securityLevel);
         } else {
-            return new BrowserCompatSpec();
+            return new BrowserCompatSpec(null, securityLevel);
         }
     }
 

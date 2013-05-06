@@ -1,6 +1,11 @@
 Changes since release 4.3 BETA1
 -------------------
 
+* [HTTPCLIENT-1264] Add support for multiple levels of browser compatibility
+  to BrowserCompatSpec and BrowserCompatSpecFactory.  Include constructor
+  argument for IE medium-security compatibility.
+  Contributed by Karl Wright (kwright at apache.org)
+
 * [HTTPCLIENT-1349] SSLSocketFactory incorrectly identifies key passed with keystore as 
   the keystore password.
   Contributed by David Graff <djgraff209 at gmail.com>
