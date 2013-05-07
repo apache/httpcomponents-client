@@ -38,6 +38,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.ManagedHttpClientConnection;
+import org.apache.http.conn.UnsupportedSchemeException;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.protocol.BasicHttpContext;
@@ -198,10 +199,20 @@ public class TestHttpClientConnectionOperator {
         Mockito.verify(conn).bind(socket);
     }
 
-    @Test(expected=IllegalStateException.class)
+    @Test(expected=UnsupportedSchemeException.class)
+    public void testUpgradeUpsupportedScheme() throws Exception {
+        final HttpContext context = new BasicHttpContext();
+        final HttpHost host = new HttpHost("somehost", -1, "httpsssss");
+        Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
+
+        connectionOperator.upgrade(conn, host, context);
+    }
+
+    @Test(expected=UnsupportedSchemeException.class)
     public void testUpgradeNonLayeringScheme() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final HttpHost host = new HttpHost("somehost", -1, "http");
+        Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
 
         connectionOperator.upgrade(conn, host, context);
     }

@@ -45,12 +45,11 @@ import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.SchemePortResolver;
+import org.apache.http.conn.UnsupportedSchemeException;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
-import org.apache.http.util.Asserts;
 
 @Immutable
 class HttpClientConnectionOperator {
@@ -94,7 +93,8 @@ class HttpClientConnectionOperator {
         final Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(context);
         final ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
         if (sf == null) {
-            throw new IOException("Unsupported scheme: " + host.getSchemeName());
+            throw new UnsupportedSchemeException(host.getSchemeName() +
+                    " protocol is not supported");
         }
         final InetAddress[] addresses = this.dnsResolver.resolve(host.getHostName());
         final int port = this.schemePortResolver.resolve(host);
@@ -144,12 +144,15 @@ class HttpClientConnectionOperator {
             final HttpContext context) throws IOException {
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(clientContext);
-        ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
+        final ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
         if (sf == null) {
-            sf = PlainSocketFactory.INSTANCE;
+            throw new UnsupportedSchemeException(host.getSchemeName() +
+                    " protocol is not supported");
         }
-        Asserts.check(sf instanceof LayeredConnectionSocketFactory,
-            "Socket factory must implement LayeredConnectionSocketFactory");
+        if (!(sf instanceof LayeredConnectionSocketFactory)) {
+            throw new UnsupportedSchemeException(host.getSchemeName() +
+                    " protocol does not support connection upgrade");
+        }
         final LayeredConnectionSocketFactory lsf = (LayeredConnectionSocketFactory) sf;
         Socket sock = conn.getSocket();
         try {
