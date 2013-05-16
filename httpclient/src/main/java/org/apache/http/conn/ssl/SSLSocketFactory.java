@@ -551,13 +551,14 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final HttpContext context) throws IOException, ConnectTimeoutException {
         Args.notNull(host, "HTTP host");
         Args.notNull(remoteAddress, "Remote address");
-        Socket sock = socket != null ? socket : createSocket(context);
+        final Socket sock = socket != null ? socket : createSocket(context);
         if (localAddress != null) {
             sock.bind(localAddress);
         }
         try {
             sock.connect(remoteAddress, connectTimeout);
         } catch (final SocketTimeoutException ex) {
+            closeSocket(sock);
             throw new ConnectTimeoutException(host, remoteAddress);
         }
         // Setup SSL layering if necessary
@@ -565,10 +566,17 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final SSLSocket sslsock = (SSLSocket) sock;
             sslsock.startHandshake();
             verifyHostname(sslsock, host.getHostName());
+            return sock;
         } else {
-            sock = createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), context);
+            return createLayeredSocket(sock, host.getHostName(), remoteAddress.getPort(), context);
         }
-        return sock;
+    }
+
+    private void closeSocket(final Socket sock) {
+        try {
+            sock.close();
+        } catch (final IOException ignore) {
+        }
     }
 
     public Socket createLayeredSocket(

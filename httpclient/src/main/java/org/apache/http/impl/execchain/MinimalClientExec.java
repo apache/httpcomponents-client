@@ -141,7 +141,7 @@ public class MinimalClientExec implements ClientExecChain {
         try {
             if (execAware != null) {
                 if (execAware.isAborted()) {
-                    releaseTrigger.abortConnection();
+                    releaseTrigger.close();
                     throw new RequestAbortedException("Request aborted");
                 } else {
                     execAware.setCancellable(releaseTrigger);

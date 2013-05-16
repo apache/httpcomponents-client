@@ -45,13 +45,11 @@ import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.util.Args;
 
@@ -168,9 +166,9 @@ public class ProtocolExec implements ClientExecChain {
         }
 
         // Run request protocol interceptors
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
-        context.setAttribute(ClientContext.ROUTE, route);
-        context.setAttribute(ExecutionContext.HTTP_REQUEST, request);
+        context.setAttribute(HttpClientContext.HTTP_TARGET_HOST, target);
+        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+        context.setAttribute(HttpClientContext.HTTP_REQUEST, request);
 
         this.httpProcessor.process(request, context);
 
@@ -178,7 +176,7 @@ public class ProtocolExec implements ClientExecChain {
             context, execAware);
         try {
             // Run response protocol interceptors
-            context.setAttribute(ExecutionContext.HTTP_RESPONSE, response);
+            context.setAttribute(HttpClientContext.HTTP_RESPONSE, response);
             this.httpProcessor.process(response, context);
             return response;
         } catch (final RuntimeException ex) {

@@ -456,6 +456,7 @@ public class HttpClientBuilder {
                     }
                 }
             }
+            @SuppressWarnings("resource")
             final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
                     RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("http", PlainSocketFactory.getSocketFactory())

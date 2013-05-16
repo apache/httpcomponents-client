@@ -194,7 +194,7 @@ public class MainClientExec implements ClientExecChain {
         try {
             if (execAware != null) {
                 if (execAware.isAborted()) {
-                    connHolder.abortConnection();
+                    connHolder.close();
                     throw new RequestAbortedException("Request aborted");
                 } else {
                     execAware.setCancellable(connHolder);

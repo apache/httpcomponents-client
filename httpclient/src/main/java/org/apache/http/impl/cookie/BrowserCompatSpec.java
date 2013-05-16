@@ -78,12 +78,10 @@ public class BrowserCompatSpec extends CookieSpecBase {
     };
 
     private final String[] datepatterns;
-    private final BrowserCompatSpecFactory.SecurityLevel securityLevel;
 
     /** Default constructor */
     public BrowserCompatSpec(final String[] datepatterns, final BrowserCompatSpecFactory.SecurityLevel securityLevel) {
         super();
-        this.securityLevel = securityLevel;
         if (datepatterns != null) {
             this.datepatterns = datepatterns.clone();
         } else {

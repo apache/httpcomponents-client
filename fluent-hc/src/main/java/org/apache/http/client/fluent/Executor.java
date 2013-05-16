@@ -45,7 +45,7 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -207,9 +207,9 @@ public class Executor {
      */
     public Response execute(
             final Request request) throws ClientProtocolException, IOException {
-        this.localContext.setAttribute(ClientContext.CREDS_PROVIDER, this.credentialsProvider);
-        this.localContext.setAttribute(ClientContext.AUTH_CACHE, this.authCache);
-        this.localContext.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
+        this.localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
+        this.localContext.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
+        this.localContext.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         final HttpRequestBase httprequest = request.getHttpRequest();
         httprequest.reset();
         return new Response(this.httpclient.execute(httprequest, this.localContext));
