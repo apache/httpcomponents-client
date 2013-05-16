@@ -1,6 +1,13 @@
 Changes since release 4.3 BETA1
 -------------------
 
+* [HTTPCLIENT-1344] Userinfo credentials in URI should not default to preemptive BASIC 
+  authentication. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1345] Useinfo credentials ignored in redirect location header. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1294] HttpClient to rewrite host name of the redirect location URI in order 
   to avoid circular redirect exception due to host name case mismatch. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>

@@ -144,8 +144,6 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         // rfc2616 demands the location value be a complete URI
         // Location       = "Location" ":" absoluteURI
         try {
-            // Drop fragment
-            uri = URIUtils.rewriteURI(uri);
             if (!uri.isAbsolute()) {
                 if (!config.isRelativeRedirectsAllowed()) {
                     throw new ProtocolException("Relative redirect location '"
@@ -191,6 +189,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             if (TextUtils.isEmpty(path)) {
                 b.setPath("/");
             }
+            b.setFragment(null);
             return b.build();
         } catch (final URISyntaxException ex) {
             throw new ProtocolException("Invalid redirect URI: " + location, ex);

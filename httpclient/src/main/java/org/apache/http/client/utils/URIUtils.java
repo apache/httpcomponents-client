@@ -131,6 +131,9 @@ public class URIUtils {
             final HttpHost target,
             final boolean dropFragment) throws URISyntaxException {
         Args.notNull(uri, "URI");
+        if (uri.isOpaque()) {
+            return uri;
+        }
         final URIBuilder uribuilder = new URIBuilder(uri);
         if (target != null) {
             uribuilder.setScheme(target.getSchemeName());
@@ -174,14 +177,20 @@ public class URIUtils {
      */
     public static URI rewriteURI(final URI uri) throws URISyntaxException {
         Args.notNull(uri, "URI");
+        if (uri.isOpaque()) {
+            return uri;
+        }
         final URIBuilder uribuilder = new URIBuilder(uri);
-        uribuilder.setFragment(null).setUserInfo(null);
+        if (uribuilder.getUserInfo() != null) {
+            uribuilder.setUserInfo(null);
+        }
         if (TextUtils.isEmpty(uribuilder.getPath())) {
             uribuilder.setPath("/");
         }
         if (uribuilder.getHost() != null) {
             uribuilder.setHost(uribuilder.getHost().toLowerCase(Locale.ENGLISH));
         }
+        uribuilder.setFragment(null);
         return uribuilder.build();
     }
 

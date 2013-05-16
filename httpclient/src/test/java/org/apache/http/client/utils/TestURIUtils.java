@@ -71,6 +71,8 @@ public class TestURIUtils {
                 URI.create("http://thathost")).toString());
         Assert.assertEquals("http://thathost/", URIUtils.rewriteURI(
                 URI.create("http://ThatHost")).toString());
+        Assert.assertEquals("http://That_Host/", URIUtils.rewriteURI(
+                URI.create("http://That_Host")).toString());
     }
 
     @Test

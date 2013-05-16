@@ -50,7 +50,6 @@ import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.params.HttpClientParamConfig;
-import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Lookup;
 import org.apache.http.conn.ClientConnectionManager;
@@ -126,26 +125,26 @@ class InternalHttpClient extends CloseableHttpClient {
     }
 
     private void setupContext(final HttpClientContext context) {
-        if (context.getAttribute(ClientContext.TARGET_AUTH_STATE) == null) {
-            context.setAttribute(ClientContext.TARGET_AUTH_STATE, new AuthState());
+        if (context.getAttribute(HttpClientContext.TARGET_AUTH_STATE) == null) {
+            context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, new AuthState());
         }
-        if (context.getAttribute(ClientContext.PROXY_AUTH_STATE) == null) {
-            context.setAttribute(ClientContext.PROXY_AUTH_STATE, new AuthState());
+        if (context.getAttribute(HttpClientContext.PROXY_AUTH_STATE) == null) {
+            context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, new AuthState());
         }
-        if (context.getAttribute(ClientContext.AUTHSCHEME_REGISTRY) == null) {
-            context.setAttribute(ClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
+        if (context.getAttribute(HttpClientContext.AUTHSCHEME_REGISTRY) == null) {
+            context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
         }
-        if (context.getAttribute(ClientContext.COOKIESPEC_REGISTRY) == null) {
-            context.setAttribute(ClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
+        if (context.getAttribute(HttpClientContext.COOKIESPEC_REGISTRY) == null) {
+            context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
         }
-        if (context.getAttribute(ClientContext.COOKIE_STORE) == null) {
-            context.setAttribute(ClientContext.COOKIE_STORE, this.cookieStore);
+        if (context.getAttribute(HttpClientContext.COOKIE_STORE) == null) {
+            context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         }
-        if (context.getAttribute(ClientContext.CREDS_PROVIDER) == null) {
-            context.setAttribute(ClientContext.CREDS_PROVIDER, this.credentialsProvider);
+        if (context.getAttribute(HttpClientContext.CREDS_PROVIDER) == null) {
+            context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
         }
-        if (context.getAttribute(ClientContext.REQUEST_CONFIG) == null) {
-            context.setAttribute(ClientContext.REQUEST_CONFIG, this.defaultConfig);
+        if (context.getAttribute(HttpClientContext.REQUEST_CONFIG) == null) {
+            context.setAttribute(HttpClientContext.REQUEST_CONFIG, this.defaultConfig);
         }
     }
 

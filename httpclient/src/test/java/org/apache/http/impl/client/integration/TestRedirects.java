@@ -37,7 +37,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
-import org.apache.http.ProtocolVersion;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
@@ -92,19 +91,18 @@ public class TestRedirects extends IntegrationTestBase {
             final HttpInetConnection conn = (HttpInetConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
             final String localhost = conn.getLocalAddress().getHostName();
             final int port = conn.getLocalPort();
-            final ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
             final String uri = request.getRequestLine().getUri();
             if (uri.equals("/oldlocation/")) {
-                response.setStatusLine(ver, this.statuscode);
+                response.setStatusCode(this.statuscode);
                 response.addHeader(new BasicHeader("Location",
                         "http://" + localhost + ":" + port + "/newlocation/"));
                 response.addHeader(new BasicHeader("Connection", "close"));
             } else if (uri.equals("/newlocation/")) {
-                response.setStatusLine(ver, HttpStatus.SC_OK);
+                response.setStatusCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("Successful redirect");
                 response.setEntity(entity);
             } else {
-                response.setStatusLine(ver, HttpStatus.SC_NOT_FOUND);
+                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
             }
         }
 
@@ -120,16 +118,15 @@ public class TestRedirects extends IntegrationTestBase {
                 final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
             final String uri = request.getRequestLine().getUri();
             if (uri.startsWith("/circular-oldlocation")) {
-                response.setStatusLine(ver, HttpStatus.SC_MOVED_TEMPORARILY);
+                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
                 response.addHeader(new BasicHeader("Location", "/circular-location2"));
             } else if (uri.startsWith("/circular-location2")) {
-                response.setStatusLine(ver, HttpStatus.SC_MOVED_TEMPORARILY);
+                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
                 response.addHeader(new BasicHeader("Location", "/circular-oldlocation"));
             } else {
-                response.setStatusLine(ver, HttpStatus.SC_NOT_FOUND);
+                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
             }
         }
     }
@@ -144,17 +141,16 @@ public class TestRedirects extends IntegrationTestBase {
                 final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
             final String uri = request.getRequestLine().getUri();
             if (uri.equals("/oldlocation/")) {
-                response.setStatusLine(ver, HttpStatus.SC_MOVED_TEMPORARILY);
+                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
                 response.addHeader(new BasicHeader("Location", "/relativelocation/"));
             } else if (uri.equals("/relativelocation/")) {
-                response.setStatusLine(ver, HttpStatus.SC_OK);
+                response.setStatusCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("Successful redirect");
                 response.setEntity(entity);
             } else {
-                response.setStatusLine(ver, HttpStatus.SC_NOT_FOUND);
+                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
             }
         }
     }
@@ -169,17 +165,16 @@ public class TestRedirects extends IntegrationTestBase {
                 final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
             final String uri = request.getRequestLine().getUri();
             if (uri.equals("/test/oldlocation")) {
-                response.setStatusLine(ver, HttpStatus.SC_MOVED_TEMPORARILY);
+                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
                 response.addHeader(new BasicHeader("Location", "relativelocation"));
             } else if (uri.equals("/test/relativelocation")) {
-                response.setStatusLine(ver, HttpStatus.SC_OK);
+                response.setStatusCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("Successful redirect");
                 response.setEntity(entity);
             } else {
-                response.setStatusLine(ver, HttpStatus.SC_NOT_FOUND);
+                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
             }
         }
     }
@@ -196,17 +191,16 @@ public class TestRedirects extends IntegrationTestBase {
                 final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
             final String uri = request.getRequestLine().getUri();
             if (uri.equals("/oldlocation/")) {
-                response.setStatusLine(ver, HttpStatus.SC_MOVED_TEMPORARILY);
+                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
                 response.addHeader(new BasicHeader("Location", url));
             } else if (uri.equals("/relativelocation/")) {
-                response.setStatusLine(ver, HttpStatus.SC_OK);
+                response.setStatusCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("Successful redirect");
                 response.setEntity(entity);
             } else {
-                response.setStatusLine(ver, HttpStatus.SC_NOT_FOUND);
+                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
             }
         }
     }

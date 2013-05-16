@@ -38,8 +38,9 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.auth.AuthState;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
@@ -48,7 +49,6 @@ import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.util.Args;
@@ -107,18 +107,23 @@ public class ProtocolExec implements ClientExecChain {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        // Get user info from the URI
-        final AuthState targetAuthState = context.getTargetAuthState();
-        if (targetAuthState != null) {
-            final URI requestURI = request.getURI();
-            if (requestURI != null) {
-                final String userinfo = requestURI.getUserInfo();
-                if (userinfo != null) {
-                    targetAuthState.update(new BasicScheme(), new UsernamePasswordCredentials(
-                        userinfo));
+        final HttpRequest original = request.getOriginal();
+        URI uri = null;
+        if (original instanceof HttpUriRequest) {
+            uri = ((HttpUriRequest) original).getURI();
+        } else {
+            final String uriString = original.getRequestLine().getUri();
+            try {
+                uri = URI.create(uriString);
+            } catch (final IllegalArgumentException ex) {
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug("Unable to parse '" + uriString + "' as a valid URI; " +
+                        "request URI and Host header may be inconsistent", ex);
                 }
             }
+
         }
+        request.setURI(uri);
 
         // Re-write request URI if needed
         rewriteRequestURI(request, route);
@@ -141,28 +146,23 @@ public class ProtocolExec implements ClientExecChain {
         if (virtualHost != null) {
             target = virtualHost;
         } else {
-            final HttpRequest original = request.getOriginal();
-            URI uri = null;
-            if (original instanceof HttpUriRequest) {
-                uri = ((HttpUriRequest) original).getURI();
-            } else {
-                final String uriString = original.getRequestLine().getUri();
-                try {
-                    uri = URI.create(uriString);
-                } catch (final IllegalArgumentException ex) {
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug("Unable to parse '" + uriString + "' as a valid URI; " +
-                            "request URI and Host header may be inconsistent", ex);
-                    }
-                }
-
-            }
             if (uri != null && uri.isAbsolute() && uri.getHost() != null) {
                 target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
             }
         }
         if (target == null) {
             target = route.getTargetHost();
+        }
+
+        // Get user info from the URI
+        if (uri != null) {
+            final String userinfo = uri.getUserInfo();
+            if (userinfo != null) {
+                final CredentialsProvider credsProvider = context.getCredentialsProvider();
+                credsProvider.setCredentials(
+                        new AuthScope(target),
+                        new UsernamePasswordCredentials(userinfo));
+            }
         }
 
         // Run request protocol interceptors

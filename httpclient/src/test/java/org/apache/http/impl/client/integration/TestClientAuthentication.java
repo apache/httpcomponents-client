@@ -34,6 +34,7 @@ import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpInetConnection;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -60,8 +61,10 @@ import org.apache.http.localserver.BasicAuthTokenExtractor;
 import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.localserver.ResponseBasicUnauthorized;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.protocol.HttpExpectationVerifier;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpProcessorBuilder;
@@ -418,6 +421,43 @@ public class TestClientAuthentication extends IntegrationTestBase {
         final HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
         final HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity);
+        EntityUtils.consume(entity);
+    }
+
+    private static class RedirectHandler implements HttpRequestHandler {
+
+        public RedirectHandler() {
+            super();
+        }
+
+        public void handle(
+                final HttpRequest request,
+                final HttpResponse response,
+                final HttpContext context) throws HttpException, IOException {
+            final HttpInetConnection conn = (HttpInetConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
+            final String localhost = conn.getLocalAddress().getHostName();
+            final int port = conn.getLocalPort();
+            response.setStatusCode(HttpStatus.SC_MOVED_PERMANENTLY);
+            response.addHeader(new BasicHeader("Location",
+                    "http://test:test@" + localhost + ":" + port + "/"));
+        }
+
+    }
+
+    @Test
+    public void testAuthenticationUserinfoInRedirectSuccess() throws Exception {
+        this.localServer.register("*", new AuthHandler());
+        this.localServer.register("/thatway", new RedirectHandler());
+
+        final HttpHost target = getServerHttp();
+        final HttpGet httpget = new HttpGet("http://" +  target.toHostString() + "/thatway");
+
+        this.httpclient = HttpClients.custom().build();
+
+        final HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
+        final HttpEntity entity = response.getEntity();
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity);
         EntityUtils.consume(entity);
     }
