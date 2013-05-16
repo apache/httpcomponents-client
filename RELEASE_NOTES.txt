@@ -1,6 +1,10 @@
 Changes since release 4.3 BETA1
 -------------------
 
+* [HTTPCLIENT-1294] HttpClient to rewrite host name of the redirect location URI in order 
+  to avoid circular redirect exception due to host name case mismatch. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1264] Add support for multiple levels of browser compatibility
   to BrowserCompatSpec and BrowserCompatSpecFactory.  Include constructor
   argument for IE medium-security compatibility.

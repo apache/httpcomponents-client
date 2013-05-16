@@ -69,6 +69,8 @@ public class TestURIUtils {
                 URI.create("http://userinfo@thathost/stuff#fragment")).toString());
         Assert.assertEquals("http://thathost/", URIUtils.rewriteURI(
                 URI.create("http://thathost")).toString());
+        Assert.assertEquals("http://thathost/", URIUtils.rewriteURI(
+                URI.create("http://ThatHost")).toString());
     }
 
     @Test

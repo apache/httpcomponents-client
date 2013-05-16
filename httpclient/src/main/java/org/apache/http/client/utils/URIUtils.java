@@ -28,6 +28,7 @@ package org.apache.http.client.utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Locale;
 import java.util.Stack;
 
 import org.apache.http.HttpHost;
@@ -173,17 +174,15 @@ public class URIUtils {
      */
     public static URI rewriteURI(final URI uri) throws URISyntaxException {
         Args.notNull(uri, "URI");
-        if (uri.getFragment() != null || uri.getUserInfo() != null
-                || TextUtils.isEmpty(uri.getPath())) {
-            final URIBuilder uribuilder = new URIBuilder(uri);
-            uribuilder.setFragment(null).setUserInfo(null);
-            if (TextUtils.isEmpty(uribuilder.getPath())) {
-                uribuilder.setPath("/");
-            }
-            return uribuilder.build();
-        } else {
-            return uri;
+        final URIBuilder uribuilder = new URIBuilder(uri);
+        uribuilder.setFragment(null).setUserInfo(null);
+        if (TextUtils.isEmpty(uribuilder.getPath())) {
+            uribuilder.setPath("/");
         }
+        if (uribuilder.getHost() != null) {
+            uribuilder.setHost(uribuilder.getHost().toLowerCase(Locale.ENGLISH));
+        }
+        return uribuilder.build();
     }
 
     /**
