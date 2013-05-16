@@ -31,6 +31,10 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.ConnectException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.net.ssl.SSLException;
 
@@ -39,8 +43,8 @@ import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.Args;
 
 /**
@@ -59,13 +63,34 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
     /** Whether or not methods that have successfully sent their request will be retried */
     private final boolean requestSentRetryEnabled;
 
+    private final Set<Class<? extends IOException>> nonRetriableClasses;
+
     /**
-     * Default constructor
+     * @since 4.3
      */
-    public DefaultHttpRequestRetryHandler(final int retryCount, final boolean requestSentRetryEnabled) {
+    protected DefaultHttpRequestRetryHandler(
+            final int retryCount,
+            final boolean requestSentRetryEnabled,
+            final Collection<Class<? extends IOException>> clazzes) {
         super();
         this.retryCount = retryCount;
         this.requestSentRetryEnabled = requestSentRetryEnabled;
+        this.nonRetriableClasses = new HashSet<Class<? extends IOException>>();
+        for (final Class<? extends IOException> clazz: clazzes) {
+            this.nonRetriableClasses.add(clazz);
+        }
+    }
+
+    /**
+     * Default constructor
+     */
+    @SuppressWarnings("unchecked")
+    public DefaultHttpRequestRetryHandler(final int retryCount, final boolean requestSentRetryEnabled) {
+        this(retryCount, requestSentRetryEnabled, Arrays.asList(
+                InterruptedIOException.class,
+                UnknownHostException.class,
+                ConnectException.class,
+                SSLException.class));
     }
 
     /**
@@ -88,25 +113,13 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             // Do not retry if over max retry count
             return false;
         }
-        if (exception instanceof InterruptedIOException) {
-            // Timeout
-            return false;
+        for (final Class<? extends IOException> rejectException : this.nonRetriableClasses) {
+            if (rejectException.isInstance(exception)) {
+                return false;
+            }
         }
-        if (exception instanceof UnknownHostException) {
-            // Unknown host
-            return false;
-        }
-        if (exception instanceof ConnectException) {
-            // Connection refused
-            return false;
-        }
-        if (exception instanceof SSLException) {
-            // SSL handshake exception
-            return false;
-        }
-
-        final HttpRequest request = (HttpRequest)
-            context.getAttribute(HttpCoreContext.HTTP_REQUEST);
+        final HttpClientContext localcontext = HttpClientContext.adapt(context);
+        final HttpRequest request = localcontext.getRequest();
 
         if(requestIsAborted(request)){
             return false;
@@ -117,11 +130,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             return true;
         }
 
-        final Boolean b = (Boolean)
-            context.getAttribute(HttpCoreContext.HTTP_REQ_SENT);
-        final boolean sent = (b != null && b.booleanValue());
-
-        if (!sent || this.requestSentRetryEnabled) {
+        if (!localcontext.isRequestSent() || this.requestSentRetryEnabled) {
             // Retry if the request has not been sent fully or
             // if it's OK to retry methods that have been sent
             return true;
