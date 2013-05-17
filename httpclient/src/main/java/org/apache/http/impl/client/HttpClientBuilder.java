@@ -542,7 +542,8 @@ public class HttpClientBuilder {
             if (userAgent == null) {
                 if (systemProperties) {
                     userAgent = System.getProperty("http.agent");
-                } else {
+                }
+                if (userAgent == null) {
                     final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client",
                             HttpClientBuilder.class.getClassLoader());
                     final String release = vi != null ? vi.getRelease() : VersionInfo.UNAVAILABLE;
@@ -669,7 +670,11 @@ public class HttpClientBuilder {
 
         CredentialsProvider defaultCredentialsProvider = this.credentialsProvider;
         if (defaultCredentialsProvider == null) {
-            defaultCredentialsProvider = new BasicCredentialsProvider();
+            if (systemProperties) {
+                defaultCredentialsProvider = new SystemDefaultCredentialsProvider();
+            } else {
+                defaultCredentialsProvider = new BasicCredentialsProvider();
+            }
         }
 
         return new InternalHttpClient(
