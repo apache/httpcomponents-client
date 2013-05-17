@@ -113,13 +113,17 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             // Do not retry if over max retry count
             return false;
         }
-        for (final Class<? extends IOException> rejectException : this.nonRetriableClasses) {
-            if (rejectException.isInstance(exception)) {
-                return false;
+        if (this.nonRetriableClasses.contains(exception.getClass())) {
+            return false;
+        } else {
+            for (final Class<? extends IOException> rejectException : this.nonRetriableClasses) {
+                if (rejectException.isInstance(exception)) {
+                    return false;
+                }
             }
         }
-        final HttpClientContext localcontext = HttpClientContext.adapt(context);
-        final HttpRequest request = localcontext.getRequest();
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final HttpRequest request = clientContext.getRequest();
 
         if(requestIsAborted(request)){
             return false;
@@ -130,7 +134,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             return true;
         }
 
-        if (!localcontext.isRequestSent() || this.requestSentRetryEnabled) {
+        if (!clientContext.isRequestSent() || this.requestSentRetryEnabled) {
             // Retry if the request has not been sent fully or
             // if it's OK to retry methods that have been sent
             return true;
