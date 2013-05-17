@@ -27,6 +27,8 @@
 
 package org.apache.http.client.protocol;
 
+import java.net.URI;
+
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthState;
@@ -55,10 +57,10 @@ import org.apache.http.protocol.HttpCoreContext;
 public class HttpClientContext extends HttpCoreContext {
 
     /**
-     * Attribute name of a {@link String} object that represents
-     * request URI fragment of the actual request.
+     * Attribute name of a {@link URI} object that represents
+     * request URI location (relative or absolute) of the last request target.
      */
-    public static final String URI_FRAGMENT   = "http.uri-fragment";
+    public static final String HTTP_LOCATION   = "http.location";
 
     /**
      * Attribute name of a {@link org.apache.http.conn.routing.RouteInfo}
@@ -158,8 +160,8 @@ public class HttpClientContext extends HttpCoreContext {
         super();
     }
 
-    public String getUriFragemnt() {
-        return getAttribute(URI_FRAGMENT, String.class);
+    public URI getHttpLocation() {
+        return getAttribute(HTTP_LOCATION, URI.class);
     }
 
     public RouteInfo getHttpRoute() {

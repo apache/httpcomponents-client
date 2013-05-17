@@ -258,6 +258,9 @@ public class TestClientRequestExecution extends IntegrationTestBase {
 
         final HttpRequest request = (HttpRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
         Assert.assertEquals("/stuff", request.getRequestLine().getUri());
+
+        final URI location = (URI) context.getAttribute(HttpClientContext.HTTP_LOCATION);
+        Assert.assertEquals(uri, location);
     }
 
 }

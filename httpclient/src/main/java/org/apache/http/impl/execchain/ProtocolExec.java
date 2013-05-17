@@ -79,10 +79,7 @@ public class ProtocolExec implements ClientExecChain {
         try {
             URI uri = request.getURI();
             if (uri != null) {
-                final String fragment = uri.getFragment();
-                if (fragment != null) {
-                    context.setAttribute(HttpClientContext.URI_FRAGMENT, fragment);
-                }
+                context.setAttribute(HttpClientContext.HTTP_LOCATION, uri);
                 if (route.getProxyHost() != null && !route.isTunnelled()) {
                     // Make sure the request URI is absolute
                     if (!uri.isAbsolute()) {

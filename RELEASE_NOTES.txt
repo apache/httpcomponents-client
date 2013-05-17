@@ -1,8 +1,8 @@
 Changes since release 4.3 BETA1
 -------------------
 
-* [HTTPCLIENT-1351] Preserve last request URI fragment in the execution context. 
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
+* [HTTPCLIENT-1351] Preserve last request URI in the execution context. 
+  Contributed by James Leigh <james at 3roundstones.com> 
 
 * [HTTPCLIENT-1344] Userinfo credentials in URI should not default to preemptive BASIC 
   authentication. 
