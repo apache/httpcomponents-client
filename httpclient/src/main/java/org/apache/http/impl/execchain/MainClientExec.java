@@ -274,12 +274,12 @@ public class MainClientExec implements ClientExecChain {
 
                 if (needAuthentication(
                         targetAuthState, proxyAuthState, route, request, response, context)) {
+                    // Make sure the response body is fully consumed, if present
+                    final HttpEntity entity = response.getEntity();
+                    EntityUtils.consume(entity);
                     if (connHolder.isReusable()) {
-                        // Make sure the response body is fully consumed, if present
-                        final HttpEntity entity = response.getEntity();
-                        EntityUtils.consume(entity);
-                        // entity consumed above is not an auto-release entity,
-                        // need to mark the connection re-usable explicitly
+                        // TODO consume response body on if connection is re-usable
+                        // (requires post 4.3-beta2 bug fix in HttpCore)
                     } else {
                         managedConn.close();
                         if (proxyAuthState.getState() == AuthProtocolState.SUCCESS
