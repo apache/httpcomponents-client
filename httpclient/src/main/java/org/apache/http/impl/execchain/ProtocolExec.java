@@ -72,11 +72,17 @@ public class ProtocolExec implements ClientExecChain {
         this.httpProcessor = httpProcessor;
     }
 
-    private void rewriteRequestURI(final HttpRequestWrapper request, final HttpRoute route)
-        throws ProtocolException {
+    private void rewriteRequestURI(
+            final HttpRequestWrapper request,
+            final HttpRoute route,
+            final HttpClientContext context) throws ProtocolException {
         try {
             URI uri = request.getURI();
             if (uri != null) {
+                final String fragment = uri.getFragment();
+                if (fragment != null) {
+                    context.setAttribute(HttpClientContext.URI_FRAGMENT, fragment);
+                }
                 if (route.getProxyHost() != null && !route.isTunnelled()) {
                     // Make sure the request URI is absolute
                     if (!uri.isAbsolute()) {
@@ -126,7 +132,7 @@ public class ProtocolExec implements ClientExecChain {
         request.setURI(uri);
 
         // Re-write request URI if needed
-        rewriteRequestURI(request, route);
+        rewriteRequestURI(request, route, context);
 
         final HttpParams params = request.getParams();
         HttpHost virtualHost = (HttpHost) params.getParameter(ClientPNames.VIRTUAL_HOST);

@@ -222,7 +222,7 @@ public class TestDefaultRedirectStrategy {
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
         response.addHeader("Location", "/stuff#fragment");
         final URI uri = redirectStrategy.getLocationURI(httpget, response, context);
-        Assert.assertEquals(URI.create("http://localhost/stuff"), uri);
+        Assert.assertEquals(URI.create("http://localhost/stuff#fragment"), uri);
     }
 
     @Test
@@ -235,7 +235,7 @@ public class TestDefaultRedirectStrategy {
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
         response.addHeader("Location", "http://localhost/stuff#fragment");
         final URI uri = redirectStrategy.getLocationURI(httpget, response, context);
-        Assert.assertEquals(URI.create("http://localhost/stuff"), uri);
+        Assert.assertEquals(URI.create("http://localhost/stuff#fragment"), uri);
     }
 
     @Test

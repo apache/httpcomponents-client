@@ -55,6 +55,12 @@ import org.apache.http.protocol.HttpCoreContext;
 public class HttpClientContext extends HttpCoreContext {
 
     /**
+     * Attribute name of a {@link String} object that represents
+     * request URI fragment of the actual request.
+     */
+    public static final String URI_FRAGMENT   = "http.uri-fragment";
+
+    /**
      * Attribute name of a {@link org.apache.http.conn.routing.RouteInfo}
      * object that represents the actual connection route.
      */
@@ -123,16 +129,12 @@ public class HttpClientContext extends HttpCoreContext {
     /**
      * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
      * the actual {@link ConnectionSocketFactory} registry.
-     *
-     * @since 4.3
      */
     public static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";
 
     /**
      * Attribute name of a {@link org.apache.http.client.config.RequestConfig} object that
      * represents the actual request configuration.
-     *
-     * @since 4.3
      */
     public static final String REQUEST_CONFIG = "http.request-config";
 
@@ -154,6 +156,10 @@ public class HttpClientContext extends HttpCoreContext {
 
     public HttpClientContext() {
         super();
+    }
+
+    public String getUriFragemnt() {
+        return getAttribute(URI_FRAGMENT, String.class);
     }
 
     public RouteInfo getHttpRoute() {

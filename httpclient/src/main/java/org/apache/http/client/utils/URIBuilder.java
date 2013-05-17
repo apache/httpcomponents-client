@@ -419,6 +419,20 @@ public class URIBuilder {
         return this;
     }
 
+    /**
+     * @since 4.3
+     */
+    public boolean isAbsolute() {
+        return this.scheme != null;
+    }
+
+    /**
+     * @since 4.3
+     */
+    public boolean isOpaque() {
+        return this.path == null;
+    }
+
     public String getScheme() {
         return this.scheme;
     }

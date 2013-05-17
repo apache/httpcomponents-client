@@ -51,7 +51,6 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.Asserts;
 import org.apache.http.util.TextUtils;
@@ -150,17 +149,17 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
                             + uri + "' not allowed");
                 }
                 // Adjust location URI
-                final HttpHost target = (HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST);
+                final HttpHost target = clientContext.getTargetHost();
                 Asserts.notNull(target, "Target host");
                 final URI requestURI = new URI(request.getRequestLine().getUri());
-                final URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, true);
+                final URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, false);
                 uri = URIUtils.resolve(absoluteRequestURI, uri);
             }
         } catch (final URISyntaxException ex) {
             throw new ProtocolException(ex.getMessage(), ex);
         }
 
-        RedirectLocations redirectLocations = (RedirectLocations) context.getAttribute(
+        RedirectLocations redirectLocations = (RedirectLocations) clientContext.getAttribute(
                 REDIRECT_LOCATIONS);
         if (redirectLocations == null) {
             redirectLocations = new RedirectLocations();
@@ -189,7 +188,6 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             if (TextUtils.isEmpty(path)) {
                 b.setPath("/");
             }
-            b.setFragment(null);
             return b.build();
         } catch (final URISyntaxException ex) {
             throw new ProtocolException("Invalid redirect URI: " + location, ex);
