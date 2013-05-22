@@ -1,6 +1,9 @@
 Changes since release 4.3 BETA1
 -------------------
 
+* [HTTPCLIENT-1354] do not quote algorithm parameter in DIGEST auth response.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1351] Preserve last request URI in the execution context. 
   Contributed by James Leigh <james at 3roundstones.com> 
 

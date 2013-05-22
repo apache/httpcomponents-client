@@ -423,7 +423,9 @@ public class DigestScheme extends RFC2617Scheme {
             if (i > 0) {
                 buffer.append(", ");
             }
-            final boolean noQuotes = "nc".equals(param.getName()) || "qop".equals(param.getName());
+            final String name = param.getName();
+            final boolean noQuotes = ("nc".equals(name) || "qop".equals(name)
+                    || "algorithm".equals(name));
             BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(buffer, param, !noQuotes);
         }
         return new BufferedHeader(buffer);
@@ -476,7 +478,7 @@ public class DigestScheme extends RFC2617Scheme {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
         builder.append("DIGEST [complete=").append(complete)
                 .append(", nonce=").append(lastNonce)
                 .append(", nc=").append(nounceCount)
