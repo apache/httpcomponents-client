@@ -50,7 +50,7 @@ import org.apache.http.protocol.HTTP;
  */
 @SuppressWarnings("deprecation")
 @NotThreadSafe
-public class HttpRequestWrapper extends AbstractHttpMessage implements HttpRequest {
+public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
 
     private final HttpRequest original;
     private final String method;
@@ -84,6 +84,18 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpReque
 
     public void setURI(final URI uri) {
         this.uri = uri;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public void abort() throws UnsupportedOperationException {
+        throw new UnsupportedOperationException();
+    }
+
+    public boolean isAborted() {
+        return false;
     }
 
     public RequestLine getRequestLine() {
