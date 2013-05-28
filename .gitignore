@@ -5,3 +5,5 @@ bin
 .clover
 .externalToolBuilders
 target
+.idea
+*.iml
