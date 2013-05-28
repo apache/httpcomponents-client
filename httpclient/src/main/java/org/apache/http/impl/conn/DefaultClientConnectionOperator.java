@@ -218,7 +218,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         Socket sock;
         try {
             sock = lsf.createLayeredSocket(
-                    conn.getSocket(), target.getHostName(), target.getPort(), params);
+                    conn.getSocket(), target.getHostName(), schm.resolvePort(target.getPort()), params);
         } catch (final ConnectException ex) {
             throw new HttpHostConnectException(target, ex);
         }
