@@ -27,14 +27,13 @@
 
 package org.apache.http.client.protocol;
 
-import java.net.URI;
-
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.URICollection;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Lookup;
 import org.apache.http.conn.routing.HttpRoute;
@@ -57,16 +56,17 @@ import org.apache.http.protocol.HttpCoreContext;
 public class HttpClientContext extends HttpCoreContext {
 
     /**
-     * Attribute name of a {@link URI} object that represents
-     * request URI location (relative or absolute) of the last request target.
-     */
-    public static final String HTTP_LOCATION   = "http.location";
-
-    /**
      * Attribute name of a {@link org.apache.http.conn.routing.RouteInfo}
      * object that represents the actual connection route.
      */
     public static final String HTTP_ROUTE   = "http.route";
+
+    /**
+     * Attribute name of a {@link org.apache.http.client.URICollection} object that
+     * represents a collection of all redirect locations received in the process
+     * of request execution.
+     */
+    public static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
     /**
      * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
@@ -160,12 +160,12 @@ public class HttpClientContext extends HttpCoreContext {
         super();
     }
 
-    public URI getHttpLocation() {
-        return getAttribute(HTTP_LOCATION, URI.class);
-    }
-
     public RouteInfo getHttpRoute() {
         return getAttribute(HTTP_ROUTE, HttpRoute.class);
+    }
+
+    public URICollection getRedirectLocations() {
+        return getAttribute(REDIRECT_LOCATIONS, URICollection.class);
     }
 
     public CookieStore getCookieStore() {

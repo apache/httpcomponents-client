@@ -74,12 +74,10 @@ public class ProtocolExec implements ClientExecChain {
 
     private void rewriteRequestURI(
             final HttpRequestWrapper request,
-            final HttpRoute route,
-            final HttpClientContext context) throws ProtocolException {
+            final HttpRoute route) throws ProtocolException {
         try {
             URI uri = request.getURI();
             if (uri != null) {
-                context.setAttribute(HttpClientContext.HTTP_LOCATION, uri);
                 if (route.getProxyHost() != null && !route.isTunnelled()) {
                     // Make sure the request URI is absolute
                     if (!uri.isAbsolute()) {
@@ -129,7 +127,7 @@ public class ProtocolExec implements ClientExecChain {
         request.setURI(uri);
 
         // Re-write request URI if needed
-        rewriteRequestURI(request, route, context);
+        rewriteRequestURI(request, route);
 
         final HttpParams params = request.getParams();
         HttpHost virtualHost = (HttpHost) params.getParameter(ClientPNames.VIRTUAL_HOST);

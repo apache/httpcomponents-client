@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.client.URICollection;
 
 /**
  * This class represents a collection of {@link URI}s used as redirect locations.
@@ -42,7 +43,7 @@ import org.apache.http.annotation.NotThreadSafe;
  * @since 4.0
  */
 @NotThreadSafe // HashSet is not synch.
-public class RedirectLocations {
+public class RedirectLocations implements URICollection {
 
     private final Set<URI> unique;
     private final List<URI> all;
@@ -94,6 +95,34 @@ public class RedirectLocations {
      */
     public List<URI> getAll() {
         return new ArrayList<URI>(this.all);
+    }
+
+    /**
+     * @since 4.3
+     */
+    public Set<URI> getUnique() {
+        return new HashSet<URI>(this.unique);
+    }
+
+    /**
+     * @since 4.3
+     */
+    public Iterator<URI> iterator() {
+        return getAll().iterator();
+    }
+
+    /**
+     * @since 4.3
+     */
+    public int getCount() {
+        return this.all.size();
+    }
+
+    /**
+     * @since 4.3
+     */
+    public boolean isEmpty() {
+        return this.all.isEmpty();
     }
 
 }

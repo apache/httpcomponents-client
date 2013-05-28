@@ -74,6 +74,10 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
 
     private final Log log = LogFactory.getLog(getClass());
 
+    /**
+     * @deprecated (4.3) use {@link org.apache.http.client.protocol.HttpClientContext#REDIRECT_LOCATIONS}.
+     */
+    @Deprecated
     public static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
     public static final DefaultRedirectStrategy INSTANCE = new DefaultRedirectStrategy();
@@ -160,10 +164,10 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         }
 
         RedirectLocations redirectLocations = (RedirectLocations) clientContext.getAttribute(
-                REDIRECT_LOCATIONS);
+                HttpClientContext.REDIRECT_LOCATIONS);
         if (redirectLocations == null) {
             redirectLocations = new RedirectLocations();
-            context.setAttribute(REDIRECT_LOCATIONS, redirectLocations);
+            context.setAttribute(HttpClientContext.REDIRECT_LOCATIONS, redirectLocations);
         }
         if (!config.isCircularRedirectsAllowed()) {
             if (redirectLocations.contains(uri)) {
