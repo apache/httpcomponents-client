@@ -42,6 +42,7 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectStrategy;
+import org.apache.http.client.URICollection;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
@@ -86,6 +87,11 @@ public class RedirectExec implements ClientExecChain {
         Args.notNull(route, "HTTP route");
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
+
+        final URICollection redirectLocations = context.getRedirectLocations();
+        if (redirectLocations != null) {
+            redirectLocations.clear();
+        }
 
         final RequestConfig config = context.getRequestConfig();
         final int maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;

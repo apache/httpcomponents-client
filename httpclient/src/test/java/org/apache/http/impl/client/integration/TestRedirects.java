@@ -182,6 +182,28 @@ public class TestRedirects extends IntegrationTestBase {
         }
     }
 
+    private static class RomeRedirectService implements HttpRequestHandler {
+
+        public RomeRedirectService() {
+            super();
+        }
+
+        public void handle(
+                final HttpRequest request,
+                final HttpResponse response,
+                final HttpContext context) throws HttpException, IOException {
+            final String uri = request.getRequestLine().getUri();
+            if (uri.equals("/rome")) {
+                response.setStatusCode(HttpStatus.SC_OK);
+                final StringEntity entity = new StringEntity("Successful redirect");
+                response.setEntity(entity);
+            } else {
+                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
+                response.addHeader(new BasicHeader("Location", "/rome"));
+            }
+        }
+    }
+
     private static class BogusRedirectService implements HttpRequestHandler {
         private final String url;
 
@@ -424,6 +446,89 @@ public class TestRedirects extends IntegrationTestBase {
             Assert.assertTrue(e.getCause() instanceof CircularRedirectException);
             throw e;
         }
+    }
+
+    @Test
+    public void testRepeatRequest() throws Exception {
+        final HttpHost target = getServerHttp();
+        this.localServer.register("*", new RomeRedirectService());
+
+        final HttpClientContext context = HttpClientContext.create();
+
+        final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(true).build();
+        final HttpGet first = new HttpGet("/rome");
+        first.setConfig(config);
+
+        EntityUtils.consume(this.httpclient.execute(target, first, context).getEntity());
+
+        final HttpGet second = new HttpGet("/rome");
+        second.setConfig(config);
+
+        final HttpResponse response = this.httpclient.execute(target, second, context);
+        EntityUtils.consume(response.getEntity());
+
+        final HttpRequest reqWrapper = context.getRequest();
+        final HttpHost host = context.getTargetHost();
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals("/rome", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(host, target);
+    }
+
+    @Test
+    public void testRepeatRequestRedirect() throws Exception {
+        final HttpHost target = getServerHttp();
+        this.localServer.register("*", new RomeRedirectService());
+
+        final HttpClientContext context = HttpClientContext.create();
+
+        final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(true).build();
+        final HttpGet first = new HttpGet("/lille");
+        first.setConfig(config);
+
+        final HttpResponse response1 = this.httpclient.execute(target, first, context);
+        EntityUtils.consume(response1.getEntity());
+
+        final HttpGet second = new HttpGet("/lille");
+        second.setConfig(config);
+
+        final HttpResponse response2 = this.httpclient.execute(target, second, context);
+        EntityUtils.consume(response2.getEntity());
+
+        final HttpRequest reqWrapper = context.getRequest();
+        final HttpHost host = context.getTargetHost();
+
+        Assert.assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
+        Assert.assertEquals("/rome", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(host, target);
+    }
+
+    @Test
+    public void testDifferentRequestSameRedirect() throws Exception {
+        final HttpHost target = getServerHttp();
+        this.localServer.register("*", new RomeRedirectService());
+
+        final HttpClientContext context = HttpClientContext.create();
+
+        final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(true).build();
+        final HttpGet first = new HttpGet("/alian");
+        first.setConfig(config);
+
+        final HttpResponse response1 = this.httpclient.execute(target, first, context);
+        EntityUtils.consume(response1.getEntity());
+
+        final HttpGet second = new HttpGet("/lille");
+        second.setConfig(config);
+
+        final HttpResponse response2 = this.httpclient.execute(target, second, context);
+        EntityUtils.consume(response2.getEntity());
+
+        final HttpRequest reqWrapper = context.getRequest();
+        final HttpHost host = context.getTargetHost();
+
+        Assert.assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
+        Assert.assertEquals("/rome", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(host, target);
     }
 
     @Test

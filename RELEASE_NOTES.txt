@@ -1,6 +1,9 @@
 Changes since release 4.3 BETA1
 -------------------
 
+* [HTTPCLIENT-1359] repeated requests using the same context fail if they redirect.
+  Contributed by James Leigh <james at 3roundstones.com>
+
 * [HTTPCLIENT-1354] do not quote algorithm parameter in DIGEST auth response.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

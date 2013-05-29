@@ -272,26 +272,38 @@ public class TestDefaultRedirectStrategy {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
-        final HttpGet httpget = new HttpGet("http://localhost/");
         final RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(true).build();
         context.setRequestConfig(config);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+        final URI uri1 = URI.create("http://localhost/stuff1");
+        final URI uri2 = URI.create("http://localhost/stuff2");
+        final URI uri3 = URI.create("http://localhost/stuff3");
+        final HttpGet httpget1 = new HttpGet("http://localhost/");
+        final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
-        response.addHeader("Location", "http://localhost/stuff");
-        final URI uri = URI.create("http://localhost/stuff");
-        Assert.assertEquals(uri, redirectStrategy.getLocationURI(httpget, response, context));
-        Assert.assertEquals(uri, redirectStrategy.getLocationURI(httpget, response, context));
-        Assert.assertEquals(uri, redirectStrategy.getLocationURI(httpget, response, context));
+        response1.addHeader("Location", uri1.toASCIIString());
+        final HttpGet httpget2 = new HttpGet(uri1.toASCIIString());
+        final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
+        response2.addHeader("Location", uri2.toASCIIString());
+        final HttpGet httpget3 = new HttpGet(uri2.toASCIIString());
+        final HttpResponse response3 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
+        response3.addHeader("Location", uri3.toASCIIString());
+        Assert.assertEquals(uri1, redirectStrategy.getLocationURI(httpget1, response1, context));
+        Assert.assertEquals(uri2, redirectStrategy.getLocationURI(httpget2, response2, context));
+        Assert.assertEquals(uri3, redirectStrategy.getLocationURI(httpget3, response3, context));
 
         final URICollection redirectLocations = context.getRedirectLocations();
         Assert.assertNotNull(redirectLocations);
-        Assert.assertTrue(redirectLocations.contains(uri));
+        Assert.assertTrue(redirectLocations.contains(uri1));
+        Assert.assertTrue(redirectLocations.contains(uri2));
+        Assert.assertTrue(redirectLocations.contains(uri3));
         final List<URI> uris = redirectLocations.getAll();
         Assert.assertNotNull(uris);
         Assert.assertEquals(3, uris.size());
-        Assert.assertEquals(uri, uris.get(0));
-        Assert.assertEquals(uri, uris.get(1));
-        Assert.assertEquals(uri, uris.get(2));
+        Assert.assertEquals(uri1, uris.get(0));
+        Assert.assertEquals(uri2, uris.get(1));
+        Assert.assertEquals(uri3, uris.get(2));
     }
 
     @Test(expected=ProtocolException.class)
@@ -299,7 +311,7 @@ public class TestDefaultRedirectStrategy {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
-        final HttpGet httpget = new HttpGet("http://localhost/");
+        final HttpGet httpget = new HttpGet("http://localhost/stuff");
         final RequestConfig config = RequestConfig.custom().setCircularRedirectsAllowed(false).build();
         context.setRequestConfig(config);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
