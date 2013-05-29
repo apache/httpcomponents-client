@@ -1,6 +1,10 @@
 Changes since release 4.3 BETA1
 -------------------
 
+* [HTTPCLIENT-1360] separate out DeflateInputStream as an independent class,
+  so it can be used by others.
+  Contributed by Karl Wright <kwright at apache.org>
+
 * [HTTPCLIENT-1359] repeated requests using the same context fail if they redirect.
   Contributed by James Leigh <james at 3roundstones.com>
 

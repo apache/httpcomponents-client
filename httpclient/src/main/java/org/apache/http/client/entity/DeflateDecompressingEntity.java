@@ -28,10 +28,6 @@ package org.apache.http.client.entity;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PushbackInputStream;
-import java.util.zip.DataFormatException;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -72,86 +68,7 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
      */
     @Override
     InputStream decorate(final InputStream wrapped) throws IOException {
-        /*
-         * A zlib stream will have a header.
-         *
-         * CMF | FLG [| DICTID ] | ...compressed data | ADLER32 |
-         *
-         * * CMF is one byte.
-         *
-         * * FLG is one byte.
-         *
-         * * DICTID is four bytes, and only present if FLG.FDICT is set.
-         *
-         * Sniff the content. Does it look like a zlib stream, with a CMF, etc? c.f. RFC1950,
-         * section 2.2. http://tools.ietf.org/html/rfc1950#page-4
-         *
-         * We need to see if it looks like a proper zlib stream, or whether it is just a deflate
-         * stream. RFC2616 calls zlib streams deflate. Confusing, isn't it? That's why some servers
-         * implement deflate Content-Encoding using deflate streams, rather than zlib streams.
-         *
-         * We could start looking at the bytes, but to be honest, someone else has already read
-         * the RFCs and implemented that for us. So we'll just use the JDK libraries and exception
-         * handling to do this. If that proves slow, then we could potentially change this to check
-         * the first byte - does it look like a CMF? What about the second byte - does it look like
-         * a FLG, etc.
-         */
-
-        /* We read a small buffer to sniff the content. */
-        final byte[] peeked = new byte[6];
-
-        final PushbackInputStream pushback = new PushbackInputStream(wrapped, peeked.length);
-
-        final int headerLength = pushback.read(peeked);
-
-        if (headerLength == -1) {
-            throw new IOException("Unable to read the response");
-        }
-
-        /* We try to read the first uncompressed byte. */
-        final byte[] dummy = new byte[1];
-
-        final Inflater inf = new Inflater();
-
-        try {
-            int n;
-            while ((n = inf.inflate(dummy)) == 0) {
-                if (inf.finished()) {
-
-                    /* Not expecting this, so fail loudly. */
-                    throw new IOException("Unable to read the response");
-                }
-
-                if (inf.needsDictionary()) {
-
-                    /* Need dictionary - then it must be zlib stream with DICTID part? */
-                    break;
-                }
-
-                if (inf.needsInput()) {
-                    inf.setInput(peeked);
-                }
-            }
-
-            if (n == -1) {
-                throw new IOException("Unable to read the response");
-            }
-
-            /*
-             * We read something without a problem, so it's a valid zlib stream. Just need to reset
-             * and return an unused InputStream now.
-             */
-            pushback.unread(peeked, 0, headerLength);
-            return new DeflateStream(pushback, new Inflater());
-        } catch (final DataFormatException e) {
-
-            /* Presume that it's an RFC1951 deflate stream rather than RFC1950 zlib stream and try
-             * again. */
-            pushback.unread(peeked, 0, headerLength);
-            return new DeflateStream(pushback, new Inflater(true));
-        } finally {
-            inf.end();
-        }
+        return new DeflateInputStream(wrapped);
     }
 
     /**
@@ -172,26 +89,6 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
 
         /* Length of inflated content is unknown. */
         return -1;
-    }
-
-    static class DeflateStream extends InflaterInputStream {
-
-        private boolean closed = false;
-
-        public DeflateStream(final InputStream in, final Inflater inflater) {
-            super(in, inflater);
-        }
-
-        @Override
-        public void close() throws IOException {
-            if (closed) {
-                return;
-            }
-            closed = true;
-            inf.end();
-            super.close();
-        }
-
     }
 
 }
