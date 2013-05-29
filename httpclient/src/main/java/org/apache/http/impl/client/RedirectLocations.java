@@ -27,102 +27,16 @@
 
 package org.apache.http.impl.client;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.URICollection;
+
+import java.net.URI;
 
 /**
  * This class represents a collection of {@link URI}s used as redirect locations.
  *
  * @since 4.0
  */
-@NotThreadSafe // HashSet is not synch.
-public class RedirectLocations implements URICollection {
-
-    private final Set<URI> unique;
-    private final List<URI> all;
-
-    public RedirectLocations() {
-        super();
-        this.unique = new HashSet<URI>();
-        this.all = new ArrayList<URI>();
-    }
-
-    /**
-     * Test if the URI is present in the collection.
-     */
-    public boolean contains(final URI uri) {
-        return this.unique.contains(uri);
-    }
-
-    /**
-     * Adds a new URI to the collection.
-     */
-    public void add(final URI uri) {
-        this.unique.add(uri);
-        this.all.add(uri);
-    }
-
-    /**
-     * Removes a URI from the collection.
-     */
-    public boolean remove(final URI uri) {
-        final boolean removed = this.unique.remove(uri);
-        if (removed) {
-            final Iterator<URI> it = this.all.iterator();
-            while (it.hasNext()) {
-                final URI current = it.next();
-                if (current.equals(uri)) {
-                    it.remove();
-                }
-            }
-        }
-        return removed;
-    }
-
-    /**
-     * Returns all redirect {@link URI}s in the order they were added to the collection.
-     *
-     * @return list of all URIs
-     *
-     * @since 4.1
-     */
-    public List<URI> getAll() {
-        return new ArrayList<URI>(this.all);
-    }
-
-    /**
-     * @since 4.3
-     */
-    public Set<URI> getUnique() {
-        return new HashSet<URI>(this.unique);
-    }
-
-    /**
-     * @since 4.3
-     */
-    public Iterator<URI> iterator() {
-        return getAll().iterator();
-    }
-
-    /**
-     * @since 4.3
-     */
-    public int getCount() {
-        return this.all.size();
-    }
-
-    /**
-     * @since 4.3
-     */
-    public boolean isEmpty() {
-        return this.all.isEmpty();
-    }
-
+@NotThreadSafe
+public class RedirectLocations extends URICollection {
 }

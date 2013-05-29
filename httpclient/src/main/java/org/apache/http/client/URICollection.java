@@ -28,24 +28,86 @@
 package org.apache.http.client;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.http.annotation.NotThreadSafe;
+
 /**
- * This class represents an iterable collection of {@link java.net.URI} locations.
+ * This class represents an iterable collection of {@link URI}s.
  *
  * @since 4.3
  */
-public interface URICollection extends Iterable<URI> {
+@NotThreadSafe // HashSet is not synch.
+public class URICollection implements Iterable<URI> {
 
-    int getCount();
+    private final Set<URI> unique;
+    private final List<URI> all;
 
-    boolean isEmpty();
+    public URICollection() {
+        super();
+        this.unique = new HashSet<URI>();
+        this.all = new ArrayList<URI>();
+    }
 
-    boolean contains(URI uri);
+    /**
+     * Test if the URI is present in the collection.
+     */
+    public boolean contains(final URI uri) {
+        return this.unique.contains(uri);
+    }
 
-    Set<URI> getUnique();
+    /**
+     * Adds a new URI to the collection.
+     */
+    public void add(final URI uri) {
+        this.unique.add(uri);
+        this.all.add(uri);
+    }
 
-    List<URI> getAll();
+    /**
+     * Removes a URI from the collection.
+     */
+    public boolean remove(final URI uri) {
+        final boolean removed = this.unique.remove(uri);
+        if (removed) {
+            final Iterator<URI> it = this.all.iterator();
+            while (it.hasNext()) {
+                final URI current = it.next();
+                if (current.equals(uri)) {
+                    it.remove();
+                }
+            }
+        }
+        return removed;
+    }
+
+    public List<URI> getAll() {
+        return new ArrayList<URI>(this.all);
+    }
+
+    public Set<URI> getUnique() {
+        return new HashSet<URI>(this.unique);
+    }
+
+    public Iterator<URI> iterator() {
+        return getAll().iterator();
+    }
+
+    public int getCount() {
+        return this.all.size();
+    }
+
+    public boolean isEmpty() {
+        return this.all.isEmpty();
+    }
+
+    public void clear() {
+        this.all.clear();
+        this.unique.clear();
+    }
 
 }

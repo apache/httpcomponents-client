@@ -36,6 +36,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
+import org.apache.http.client.URICollection;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -282,8 +283,7 @@ public class TestDefaultRedirectStrategy {
         Assert.assertEquals(uri, redirectStrategy.getLocationURI(httpget, response, context));
         Assert.assertEquals(uri, redirectStrategy.getLocationURI(httpget, response, context));
 
-        final RedirectLocations redirectLocations = (RedirectLocations) context.getAttribute(
-                DefaultRedirectStrategy.REDIRECT_LOCATIONS);
+        final URICollection redirectLocations = context.getRedirectLocations();
         Assert.assertNotNull(redirectLocations);
         Assert.assertTrue(redirectLocations.contains(uri));
         final List<URI> uris = redirectLocations.getAll();
