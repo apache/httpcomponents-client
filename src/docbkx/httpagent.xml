@@ -206,6 +206,23 @@ System.out.println("Target host: " + target);
 System.out.println("Final request URI: " + req.getURI()); // relative URI (no proxy used)
 System.out.println("Final request method: " + req.getMethod());
 ]]></programlisting>
+        <para>The final interpreted absolute HTTP location can be built using the original request
+            and the context. The utility method URIUtils.resolve(URI,HttpHost,URICollection)
+            can be used to build the interpreted absolute URI used to generate the final request.
+            This method includes the last fragment identifier from the redirect requests or
+            the original request.</para>
+        <programlisting><![CDATA[
+DefaultHttpClient httpclient = new DefaultHttpClient();
+
+HttpClientContext context = HttpClientContext.create();
+HttpGet httpget = new HttpGet("http://localhost:8080/");
+HttpResponse response = httpclient.execute(httpget, context);
+HttpHost target = context.getTargetHost();
+URICollection redirectLocations = context.getRedirectLocations();
+URI location = URIUtils.resolve(httpget.getURI(), target,
+    redirectLocations != null ? redirectLocations.getAll() : null);
+System.out.println("Final HTTP location: " + location.toASCIIString()); // absolute URI
+]]></programlisting>
     </section>
   <section>
     <title>Compressed response content</title>

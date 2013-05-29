@@ -27,8 +27,19 @@
 package org.apache.http.client.utils;
 
 import java.net.URI;
+import java.util.Arrays;
 
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -201,6 +212,70 @@ public class TestURIUtils {
                 URIUtils.extractHost(new URI("http://localhost:8080;sessionid=stuff/abcd")));
         Assert.assertEquals(new HttpHost("localhost",-1),
                 URIUtils.extractHost(new URI("http://localhost:;sessionid=stuff/abcd")));
+    }
+
+    @Test
+    public void testHttpLocationWithRelativeFragment() throws Exception {
+        final HttpHost target = new HttpHost("localhost", -1, "http");
+        final URI requestURI = new URI("/stuff#blahblah");
+
+        final URI location = URIUtils.resolve(requestURI, target, null);
+        final URI expectedURI = new URIBuilder(requestURI)
+                .setHost(target.getHostName())
+                .setScheme(target.getSchemeName())
+                .build();
+        Assert.assertEquals(expectedURI, location);
+    }
+
+    @Test
+    public void testHttpLocationWithAbsoluteFragment() throws Exception {
+        final HttpHost target = new HttpHost("localhost", 80, "http");
+
+        final URI requestURI = new URIBuilder()
+            .setHost(target.getHostName())
+            .setScheme(target.getSchemeName())
+            .setPath("/stuff")
+            .setFragment("blahblah")
+            .build();
+
+        final URI location = URIUtils.resolve(requestURI, target, null);
+        final URI expectedURI = requestURI;
+        Assert.assertEquals(expectedURI, location);
+    }
+
+    @Test
+    public void testHttpLocationRedirect() throws Exception {
+        final HttpHost target = new HttpHost("localhost", -1, "http");
+        final URI requestURI = new URI("/People.htm#tim");
+
+        final URI redirect = new URI("http://localhost/people.html");
+
+        final URI location = URIUtils.resolve(requestURI, target, Arrays.asList(redirect));
+        final URI expectedURI = new URIBuilder()
+                .setHost(target.getHostName())
+                .setScheme(target.getSchemeName())
+                .setPath("/people.html")
+                .setFragment("tim")
+                .build();
+        Assert.assertEquals(expectedURI, location);
+    }
+
+    @Test
+    public void testHttpLocationWithRedirectFragment() throws Exception {
+        final HttpHost target = new HttpHost("localhost", -1, "http");
+        final URI requestURI = new URI("/~tim");
+
+        final URI redirect1 = new URI("http://localhost/People.htm#tim");
+        final URI redirect2 = new URI("http://localhost/people.html");
+
+        final URI location = URIUtils.resolve(requestURI, target, Arrays.asList(redirect1, redirect2));
+        final URI expectedURI = new URIBuilder()
+                .setHost(target.getHostName())
+                .setScheme(target.getSchemeName())
+                .setPath("/people.html")
+                .setFragment("tim")
+                .build();
+        Assert.assertEquals(expectedURI, location);
     }
 
 }

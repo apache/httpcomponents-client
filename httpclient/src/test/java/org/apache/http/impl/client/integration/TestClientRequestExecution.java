@@ -41,10 +41,12 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
+import org.apache.http.client.URICollection;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.client.utils.URIUtils;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
@@ -256,8 +258,13 @@ public class TestClientRequestExecution extends IntegrationTestBase {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         EntityUtils.consume(response.getEntity());
 
-        final HttpRequest request = (HttpRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
+        final HttpRequest request = context.getRequest();
         Assert.assertEquals("/stuff", request.getRequestLine().getUri());
+
+        final URICollection redirectLocations = context.getRedirectLocations();
+        final URI location = URIUtils.resolve(uri, target,
+                redirectLocations != null ? redirectLocations.getAll() : null);
+        Assert.assertEquals(uri, location);
     }
 
 }
