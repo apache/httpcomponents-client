@@ -49,6 +49,7 @@ import org.apache.http.protocol.HttpContext;
  */
 public interface HttpClientConnectionManager {
 
+
     /**
      * Returns a new {@link ClientConnectionRequest}, from which a
      * {@link HttpClientConnection} can be obtained or the request can be

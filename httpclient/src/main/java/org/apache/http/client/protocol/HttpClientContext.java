@@ -38,7 +38,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Lookup;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.RouteInfo;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecProvider;
@@ -129,12 +128,6 @@ public class HttpClientContext extends HttpCoreContext {
     public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry";
 
     /**
-     * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
-     * the actual {@link ConnectionSocketFactory} registry.
-     */
-    public static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";
-
-    /**
      * Attribute name of a {@link org.apache.http.client.config.RequestConfig} object that
      * represents the actual request configuration.
      */
@@ -203,14 +196,6 @@ public class HttpClientContext extends HttpCoreContext {
 
     public void setAuthSchemeRegistry(final Lookup<AuthSchemeProvider> lookup) {
         setAttribute(AUTHSCHEME_REGISTRY, lookup);
-    }
-
-    public Lookup<ConnectionSocketFactory> getSocketFactoryRegistry() {
-        return getLookup(SOCKET_FACTORY_REGISTRY, ConnectionSocketFactory.class);
-    }
-
-    public void setSocketFactoryRegistry(final Lookup<ConnectionSocketFactory> lookup) {
-        setAttribute(SOCKET_FACTORY_REGISTRY, lookup);
     }
 
     public CredentialsProvider getCredentialsProvider() {

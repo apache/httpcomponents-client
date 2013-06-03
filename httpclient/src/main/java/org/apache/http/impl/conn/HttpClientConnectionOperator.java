@@ -42,7 +42,6 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.UnsupportedSchemeException;
@@ -53,6 +52,8 @@ import org.apache.http.util.Args;
 
 @Immutable
 class HttpClientConnectionOperator {
+
+    static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";
 
     private final Log log = LogFactory.getLog(HttpClientConnectionManager.class);
 
@@ -75,8 +76,8 @@ class HttpClientConnectionOperator {
 
     @SuppressWarnings("unchecked")
     private Lookup<ConnectionSocketFactory> getSocketFactoryRegistry(final HttpContext context) {
-        Lookup<ConnectionSocketFactory> reg = (Lookup<ConnectionSocketFactory>)
-            context.getAttribute(HttpClientContext.SOCKET_FACTORY_REGISTRY);
+        Lookup<ConnectionSocketFactory> reg = (Lookup<ConnectionSocketFactory>) context.getAttribute(
+                SOCKET_FACTORY_REGISTRY);
         if (reg == null) {
             reg = this.socketFactoryRegistry;
         }
