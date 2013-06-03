@@ -26,7 +26,9 @@
  */
 package org.apache.http.conn;
 
+import java.io.IOException;
 import java.net.ConnectException;
+import java.net.InetSocketAddress;
 
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
@@ -43,15 +45,39 @@ public class HttpHostConnectException extends ConnectException {
     private static final long serialVersionUID = -3194482710275220224L;
 
     private final HttpHost host;
+    private final InetSocketAddress remoteAddress;
 
     public HttpHostConnectException(final HttpHost host, final ConnectException cause) {
-        super("Connection to " + host + " refused");
+        this(host, null, cause);
+    }
+
+    /**
+     * Creates a HttpHostConnectException based on original {@link java.io.IOException}.
+     *
+     * @since 4.3
+     */
+    public HttpHostConnectException(
+            final HttpHost host,
+            final InetSocketAddress remoteAddress,
+            final IOException cause) {
+        super("Connect to " +
+                (host != null ? host.toHostString() : "remote host") +
+                (remoteAddress != null ? " (" + remoteAddress.getAddress() + ")" : "")
+                + ((cause != null && cause.getMessage() != null) ? " failed: " + cause.getMessage() : " refused"));
         this.host = host;
+        this.remoteAddress = remoteAddress;
         initCause(cause);
     }
 
     public HttpHost getHost() {
         return this.host;
+    }
+
+    /**
+     * @since 4.3
+     */
+    public InetSocketAddress getRemoteAddress() {
+        return remoteAddress;
     }
 
 }

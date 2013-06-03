@@ -27,6 +27,7 @@
 
 package org.apache.http.conn;
 
+import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.InetSocketAddress;
 
@@ -45,11 +46,16 @@ public class ConnectTimeoutException extends InterruptedIOException {
 
     private static final long serialVersionUID = -4816682903149535989L;
 
+    private final HttpHost host;
+    private final InetSocketAddress remoteAddress;
+
     /**
      * Creates a ConnectTimeoutException with a <tt>null</tt> detail message.
      */
     public ConnectTimeoutException() {
         super();
+        this.host = null;
+        this.remoteAddress = null;
     }
 
     /**
@@ -57,18 +63,40 @@ public class ConnectTimeoutException extends InterruptedIOException {
      */
     public ConnectTimeoutException(final String message) {
         super(message);
+        this.host = null;
+        this.remoteAddress = null;
     }
 
     /**
-     * Creates a ConnectTimeoutException with the specified detail message.
+     * Creates a ConnectTimeoutException based on original {@link IOException}.
      *
      * @since 4.3
      */
-    public ConnectTimeoutException(final HttpHost host, final InetSocketAddress remoteAddress) {
+    public ConnectTimeoutException(
+            final HttpHost host,
+            final InetSocketAddress remoteAddress,
+            final IOException cause) {
         super("Connect to " +
-                (host != null ? host.toHostString() : " remote host") +
+                (host != null ? host.toHostString() : "remote host") +
                 (remoteAddress != null ? " (" + remoteAddress.getAddress() + ")" : "")
-                + " timed out");
+                + ((cause != null && cause.getMessage() != null) ? " failed: " + cause.getMessage() : " timed out"));
+        this.host = host;
+        this.remoteAddress = remoteAddress;
+        initCause(cause);
+    }
+
+    /**
+     * @since 4.3
+     */
+    public HttpHost getHost() {
+        return host;
+    }
+
+    /**
+     * @since 4.3
+     */
+    public InetSocketAddress getRemoteAddress() {
+        return remoteAddress;
     }
 
 }

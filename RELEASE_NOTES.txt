@@ -1,6 +1,10 @@
 Changes since release 4.3 BETA1
 -------------------
 
+* [HTTPCLIENT-1362] Better error messages for connect timed out and connection refused 
+  exceptions.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1360] separate out DeflateInputStream as an independent class,
   so it can be used by others.
   Contributed by Karl Wright <kwright at apache.org>

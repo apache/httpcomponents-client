@@ -51,6 +51,7 @@ import org.apache.http.conn.scheme.HostNameResolver;
 import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
 import org.apache.http.conn.scheme.LayeredSocketFactory;
 import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
+import org.apache.http.conn.socket.AbstractConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -91,7 +92,8 @@ import org.apache.http.util.TextUtils;
  */
 @SuppressWarnings("deprecation")
 @ThreadSafe
-public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeLayeredSocketFactory,
+public class SSLSocketFactory extends AbstractConnectionSocketFactory
+                              implements LayeredConnectionSocketFactory, SchemeLayeredSocketFactory,
                                          LayeredSchemeSocketFactory, LayeredSocketFactory {
 
     public static final String TLS   = "TLS";
@@ -548,19 +550,11 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final HttpHost host,
             final InetSocketAddress remoteAddress,
             final InetSocketAddress localAddress,
-            final HttpContext context) throws IOException, ConnectTimeoutException {
+            final HttpContext context) throws IOException {
         Args.notNull(host, "HTTP host");
         Args.notNull(remoteAddress, "Remote address");
-        final Socket sock = socket != null ? socket : createSocket(context);
-        if (localAddress != null) {
-            sock.bind(localAddress);
-        }
-        try {
-            sock.connect(remoteAddress, connectTimeout);
-        } catch (final SocketTimeoutException ex) {
-            closeSocket(sock);
-            throw new ConnectTimeoutException(host, remoteAddress);
-        }
+        final Socket sock = super.connectSocket(
+                connectTimeout, socket, host, remoteAddress, localAddress, context);
         // Setup SSL layering if necessary
         if (sock instanceof SSLSocket) {
             final SSLSocket sslsock = (SSLSocket) sock;
@@ -572,18 +566,11 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         }
     }
 
-    private void closeSocket(final Socket sock) {
-        try {
-            sock.close();
-        } catch (final IOException ignore) {
-        }
-    }
-
     public Socket createLayeredSocket(
             final Socket socket,
             final String target,
             final int port,
-            final HttpContext context) throws IOException, UnknownHostException {
+            final HttpContext context) throws IOException {
         final SSLSocket sslsock = (SSLSocket) this.socketfactory.createSocket(
                 socket,
                 target,

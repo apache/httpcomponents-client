@@ -124,7 +124,7 @@ class HttpClientConnectionOperator {
                 return;
             } catch (final ConnectException ex) {
                 if (last) {
-                    throw new HttpHostConnectException(host, ex);
+                    throw ex;
                 }
             } catch (final ConnectTimeoutException ex) {
                 if (last) {
@@ -155,12 +155,8 @@ class HttpClientConnectionOperator {
         }
         final LayeredConnectionSocketFactory lsf = (LayeredConnectionSocketFactory) sf;
         Socket sock = conn.getSocket();
-        try {
-            final int port = this.schemePortResolver.resolve(host);
-            sock = lsf.createLayeredSocket(sock, host.getHostName(), port, context);
-        } catch (final ConnectException ex) {
-            throw new HttpHostConnectException(host, ex);
-        }
+        final int port = this.schemePortResolver.resolve(host);
+        sock = lsf.createLayeredSocket(sock, host.getHostName(), port, context);
         conn.bind(sock);
     }
 

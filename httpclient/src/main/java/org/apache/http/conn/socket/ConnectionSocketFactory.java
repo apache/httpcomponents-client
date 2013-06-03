@@ -32,7 +32,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import org.apache.http.HttpHost;
-import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -69,8 +68,6 @@ public interface ConnectionSocketFactory {
      *          a layered protocol.
      *
      * @throws IOException if an I/O error occurs
-     * @throws ConnectTimeoutException if the socket cannot be connected
-     *          within the time limit defined in the <code>params</code>
      */
     Socket connectSocket(
         int connectTimeout,
@@ -78,6 +75,6 @@ public interface ConnectionSocketFactory {
         HttpHost host,
         InetSocketAddress remoteAddress,
         InetSocketAddress localAddress,
-        HttpContext context) throws IOException, ConnectTimeoutException;
+        HttpContext context) throws IOException;
 
 }

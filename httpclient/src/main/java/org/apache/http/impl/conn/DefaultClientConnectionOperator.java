@@ -186,7 +186,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
                 return;
             } catch (final ConnectException ex) {
                 if (last) {
-                    throw new HttpHostConnectException(target, ex);
+                    throw ex;
                 }
             } catch (final ConnectTimeoutException ex) {
                 if (last) {
@@ -215,13 +215,8 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         Asserts.check(schm.getSchemeSocketFactory() instanceof LayeredConnectionSocketFactory,
             "Socket factory must implement SchemeLayeredSocketFactory");
         final SchemeLayeredSocketFactory lsf = (SchemeLayeredSocketFactory) schm.getSchemeSocketFactory();
-        Socket sock;
-        try {
-            sock = lsf.createLayeredSocket(
-                    conn.getSocket(), target.getHostName(), schm.resolvePort(target.getPort()), params);
-        } catch (final ConnectException ex) {
-            throw new HttpHostConnectException(target, ex);
-        }
+        Socket sock = lsf.createLayeredSocket(
+                conn.getSocket(), target.getHostName(), schm.resolvePort(target.getPort()), params);
         prepareSocket(sock, context, params);
         conn.update(sock, target, lsf.isSecure(sock), params);
     }
