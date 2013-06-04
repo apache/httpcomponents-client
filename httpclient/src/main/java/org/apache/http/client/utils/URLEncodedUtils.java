@@ -363,7 +363,7 @@ public class URLEncodedUtils {
 
     private static final int RADIX = 16;
 
-    private static String urlencode(
+    private static String urlEncode(
             final String content,
             final Charset charset,
             final BitSet safechars,
@@ -398,7 +398,7 @@ public class URLEncodedUtils {
      * @param plusAsBlank if {@code true}, then convert '+' to space (e.g. for www-url-form-encoded content), otherwise leave as is.
      * @return encoded string
      */
-    private static String urldecode(
+    private static String urlDecode(
             final String content,
             final Charset charset,
             final boolean plusAsBlank) {
@@ -442,7 +442,7 @@ public class URLEncodedUtils {
         if (content == null) {
             return null;
         }
-        return urldecode(content, charset != null ? Charset.forName(charset) : Consts.UTF_8, true);
+        return urlDecode(content, charset != null ? Charset.forName(charset) : Consts.UTF_8, true);
     }
 
     /**
@@ -456,7 +456,7 @@ public class URLEncodedUtils {
         if (content == null) {
             return null;
         }
-        return urldecode(content, charset != null ? charset : Consts.UTF_8, true);
+        return urlDecode(content, charset != null ? charset : Consts.UTF_8, true);
     }
 
     /**
@@ -474,7 +474,7 @@ public class URLEncodedUtils {
         if (content == null) {
             return null;
         }
-        return urlencode(content, charset != null ? Charset.forName(charset) :
+        return urlEncode(content, charset != null ? Charset.forName(charset) :
             Consts.UTF_8, URLENCODER, true);
     }
 
@@ -493,7 +493,7 @@ public class URLEncodedUtils {
         if (content == null) {
             return null;
         }
-        return urlencode(content, charset != null ? charset : Consts.UTF_8, URLENCODER, true);
+        return urlEncode(content, charset != null ? charset : Consts.UTF_8, URLENCODER, true);
     }
 
     /**
@@ -506,7 +506,7 @@ public class URLEncodedUtils {
      * @return the encoded string
      */
     static String encUserInfo(final String content, final Charset charset) {
-        return urlencode(content, charset, USERINFO, false);
+        return urlEncode(content, charset, USERINFO, false);
     }
 
     /**
@@ -519,7 +519,7 @@ public class URLEncodedUtils {
      * @return the encoded string
      */
     static String encUric(final String content, final Charset charset) {
-        return urlencode(content, charset, URIC, false);
+        return urlEncode(content, charset, URIC, false);
     }
 
     /**
@@ -532,7 +532,7 @@ public class URLEncodedUtils {
      * @return the encoded string
      */
     static String encPath(final String content, final Charset charset) {
-        return urlencode(content, charset, PATHSAFE, false);
+        return urlEncode(content, charset, PATHSAFE, false);
     }
 
 }
