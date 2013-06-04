@@ -73,7 +73,7 @@ public class URLEncodedUtils {
      * This is typically useful while parsing an HTTP PUT.
      *
      * @param uri
-     *            uri to parse
+     *            URI to parse
      * @param charset
      *            charset name to use while parsing the query
      */
