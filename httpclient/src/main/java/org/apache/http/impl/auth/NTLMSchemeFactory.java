@@ -46,11 +46,11 @@ import org.apache.http.protocol.HttpContext;
 public class NTLMSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider {
 
     public AuthScheme newInstance(final HttpParams params) {
-        return new NTLMScheme(new NTLMEngineImpl());
+        return new NTLMScheme();
     }
 
     public AuthScheme create(final HttpContext context) {
-        return new NTLMScheme(new NTLMEngineImpl());
+        return new NTLMScheme();
     }
 
 }

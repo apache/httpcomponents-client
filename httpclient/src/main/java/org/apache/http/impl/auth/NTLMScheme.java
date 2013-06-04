@@ -70,6 +70,13 @@ public class NTLMScheme extends AuthSchemeBase {
         this.challenge = null;
     }
 
+    /**
+     * @since 4.3
+     */
+    public NTLMScheme() {
+        this(new NTLMEngineImpl());
+    }
+
     public String getSchemeName() {
         return "ntlm";
     }
