@@ -31,6 +31,7 @@ import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,6 +43,7 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.UnsupportedSchemeException;
@@ -123,13 +125,18 @@ class HttpClientConnectionOperator {
                 }
                 conn.bind(sock);
                 return;
+            } catch (final SocketTimeoutException ex) {
+                if (last) {
+                    throw new ConnectTimeoutException(ex, host, addresses);
+                }
             } catch (final ConnectException ex) {
                 if (last) {
-                    throw ex;
-                }
-            } catch (final ConnectTimeoutException ex) {
-                if (last) {
-                    throw ex;
+                    final String msg = ex.getMessage();
+                    if ("Connection timed out".equals(msg)) {
+                        throw new ConnectTimeoutException(ex, host, addresses);
+                    } else {
+                        throw new HttpHostConnectException(ex, host, addresses);
+                    }
                 }
             }
             if (this.log.isDebugEnabled()) {

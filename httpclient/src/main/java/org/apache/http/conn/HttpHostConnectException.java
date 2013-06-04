@@ -28,7 +28,9 @@ package org.apache.http.conn;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
@@ -45,10 +47,14 @@ public class HttpHostConnectException extends ConnectException {
     private static final long serialVersionUID = -3194482710275220224L;
 
     private final HttpHost host;
-    private final InetSocketAddress remoteAddress;
 
+    /**
+     * @deprecated (4.3) use {@link #HttpHostConnectException(java.io.IOException, org.apache.http.HttpHost,
+     *   java.net.InetAddress...)}
+     */
+    @Deprecated
     public HttpHostConnectException(final HttpHost host, final ConnectException cause) {
-        this(host, null, cause);
+        this(cause, host, null);
     }
 
     /**
@@ -57,27 +63,19 @@ public class HttpHostConnectException extends ConnectException {
      * @since 4.3
      */
     public HttpHostConnectException(
+            final IOException cause,
             final HttpHost host,
-            final InetSocketAddress remoteAddress,
-            final IOException cause) {
+            final InetAddress... remoteAddresses) {
         super("Connect to " +
                 (host != null ? host.toHostString() : "remote host") +
-                (remoteAddress != null ? " (" + remoteAddress.getAddress() + ")" : "")
+                (remoteAddresses != null ? " " + Arrays.asList(remoteAddresses) : "")
                 + ((cause != null && cause.getMessage() != null) ? " failed: " + cause.getMessage() : " refused"));
         this.host = host;
-        this.remoteAddress = remoteAddress;
         initCause(cause);
     }
 
     public HttpHost getHost() {
         return this.host;
-    }
-
-    /**
-     * @since 4.3
-     */
-    public InetSocketAddress getRemoteAddress() {
-        return remoteAddress;
     }
 
 }

@@ -27,15 +27,18 @@
 
 package org.apache.http.impl.conn;
 
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 import org.apache.http.HttpHost;
 import org.apache.http.config.Lookup;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.DnsResolver;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.UnsupportedSchemeException;
@@ -119,6 +122,28 @@ public class TestHttpClientConnectionOperator {
     }
 
     @Test(expected=ConnectTimeoutException.class)
+    public void testConnectTimeout() throws Exception {
+        final HttpContext context = new BasicHttpContext();
+        final HttpHost host = new HttpHost("somehost");
+        final InetAddress ip1 = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
+        final InetAddress ip2 = InetAddress.getByAddress(new byte[] {10, 0, 0, 2});
+
+        Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[] { ip1, ip2 });
+        Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
+        Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.connectSocket(
+                Mockito.anyInt(),
+                Mockito.<Socket>any(),
+                Mockito.<HttpHost>any(),
+                Mockito.<InetSocketAddress>any(),
+                Mockito.<InetSocketAddress>any(),
+                Mockito.<HttpContext>any())).thenThrow(new SocketTimeoutException());
+
+        connectionOperator.connect(conn, host, null, 1000, SocketConfig.DEFAULT, context);
+    }
+
+    @Test(expected=HttpHostConnectException.class)
     public void testConnectFailure() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final HttpHost host = new HttpHost("somehost");
@@ -135,7 +160,7 @@ public class TestHttpClientConnectionOperator {
                 Mockito.<HttpHost>any(),
                 Mockito.<InetSocketAddress>any(),
                 Mockito.<InetSocketAddress>any(),
-                Mockito.<HttpContext>any())).thenThrow(new ConnectTimeoutException());
+                Mockito.<HttpContext>any())).thenThrow(new ConnectException());
 
         connectionOperator.connect(conn, host, null, 1000, SocketConfig.DEFAULT, context);
     }
@@ -158,7 +183,7 @@ public class TestHttpClientConnectionOperator {
                 Mockito.<HttpHost>any(),
                 Mockito.eq(new InetSocketAddress(ip1, 80)),
                 Mockito.<InetSocketAddress>any(),
-                Mockito.<HttpContext>any())).thenThrow(new ConnectTimeoutException());
+                Mockito.<HttpContext>any())).thenThrow(new ConnectException());
         Mockito.when(plainSocketFactory.connectSocket(
                 Mockito.anyInt(),
                 Mockito.<Socket>any(),
