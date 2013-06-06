@@ -28,6 +28,7 @@ package org.apache.http.impl.conn;
 
 import org.apache.http.HttpHost;
 import org.apache.http.conn.SchemePortResolver;
+import org.apache.http.conn.UnsupportedSchemeException;
 import org.apache.http.util.Args;
 
 /**
@@ -39,16 +40,19 @@ public class DefaultSchemePortResolver implements SchemePortResolver {
 
     public static final DefaultSchemePortResolver INSTANCE = new DefaultSchemePortResolver();
 
-    public int resolve(final HttpHost host) {
+    public int resolve(final HttpHost host) throws UnsupportedSchemeException {
         Args.notNull(host, "HTTP host");
         final int port = host.getPort();
         if (port > 0) {
             return port;
         } else {
-            if ("https".equalsIgnoreCase(host.getSchemeName())) {
+            final String name = host.getSchemeName();
+            if (name.equalsIgnoreCase("http")) {
+                return 80;
+            } else if (name.equalsIgnoreCase("https")) {
                 return 443;
             } else {
-                return 80;
+                throw new UnsupportedSchemeException(name + " protocol is not supported");
             }
         }
     }

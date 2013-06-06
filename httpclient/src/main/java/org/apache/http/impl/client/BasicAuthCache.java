@@ -33,6 +33,7 @@ import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.client.AuthCache;
 import org.apache.http.conn.SchemePortResolver;
+import org.apache.http.conn.UnsupportedSchemeException;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.util.Args;
 
@@ -65,7 +66,12 @@ public class BasicAuthCache implements AuthCache {
 
     protected HttpHost getKey(final HttpHost host) {
         if (host.getPort() <= 0) {
-            final int port = schemePortResolver.resolve(host);
+            final int port;
+            try {
+                port = schemePortResolver.resolve(host);
+            } catch (final UnsupportedSchemeException ignore) {
+                return host;
+            }
             return new HttpHost(host.getHostName(), port, host.getSchemeName());
         } else {
             return host;

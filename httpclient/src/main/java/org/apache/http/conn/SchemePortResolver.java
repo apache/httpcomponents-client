@@ -38,6 +38,6 @@ public interface SchemePortResolver {
     /**
      * Returns the actual port for the host based on the protocol scheme.
      */
-    int resolve(HttpHost host);
+    int resolve(HttpHost host) throws UnsupportedSchemeException;
 
 }

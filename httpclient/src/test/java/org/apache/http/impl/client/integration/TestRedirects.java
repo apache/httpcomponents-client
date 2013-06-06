@@ -631,14 +631,20 @@ public class TestRedirects extends IntegrationTestBase {
         }
     }
 
-    @Test(expected=IOException.class)
+    @Test(expected=ClientProtocolException.class)
     public void testRejectBogusRedirectLocation() throws Exception {
         final HttpHost target = getServerHttp();
         this.localServer.register("*", new BogusRedirectService("xxx://bogus"));
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
-        this.httpclient.execute(target, httpget);
+        try {
+            this.httpclient.execute(target, httpget);
+        } catch (ClientProtocolException ex) {
+            Throwable cause = ex.getCause();
+            Assert.assertTrue(cause instanceof HttpException);
+            throw ex;
+        }
     }
 
     @Test(expected=ClientProtocolException.class)

@@ -36,6 +36,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.SchemePortResolver;
+import org.apache.http.conn.UnsupportedSchemeException;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.protocol.HttpContext;
@@ -74,10 +75,14 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
 
         HttpHost target;
         if (host.getPort() <= 0) {
-            target = new HttpHost(
-                    host.getHostName(),
-                    this.schemePortResolver.resolve(host),
-                    host.getSchemeName());
+            try {
+                target = new HttpHost(
+                        host.getHostName(),
+                        this.schemePortResolver.resolve(host),
+                        host.getSchemeName());
+            } catch (final UnsupportedSchemeException ex) {
+                throw new HttpException(ex.getMessage());
+            }
         } else {
             target = host;
         }
