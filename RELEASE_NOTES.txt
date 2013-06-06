@@ -1,6 +1,9 @@
 Changes since release 4.3 BETA2
 -------------------
 
+* [HTTPCLIENT-1365] NPE when ManagedHttpClientConnectionFactory.create(ConnectionConfig) is called with null.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 * [HTTPCLIENT-1362] Better error messages for connect timed out and connection refused 
   exceptions.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
