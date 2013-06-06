@@ -43,7 +43,7 @@ import org.junit.Test;
 public class TestURLEncodedUtils {
 
     @Test
-    public void testParseURLCodedContent () throws Exception {
+    public void testParseURLCodedContent() throws Exception {
         List <NameValuePair> result;
 
         result = parse("");
@@ -98,7 +98,7 @@ public class TestURLEncodedUtils {
     }
 
     @Test
-    public void testParseURLCodedContentString () throws Exception {
+    public void testParseURLCodedContentString() throws Exception {
         List <NameValuePair> result;
 
         result = parseString("");
@@ -153,7 +153,7 @@ public class TestURLEncodedUtils {
     }
 
     @Test
-    public void testParseInvalidURLCodedContent () throws Exception {
+    public void testParseInvalidURLCodedContent() throws Exception {
         List <NameValuePair> result;
 
         result = parse("name=%");
@@ -170,7 +170,7 @@ public class TestURLEncodedUtils {
     }
 
     @Test
-    public void testParseEntity () throws Exception {
+    public void testParseEntity() throws Exception {
         final StringEntity entity = new StringEntity("Name1=Value1");
 
         entity.setContentType(URLEncodedUtils.CONTENT_TYPE);
@@ -202,7 +202,7 @@ public class TestURLEncodedUtils {
     }
 
     @Test
-    public void testParseUTF8Entity () throws Exception {
+    public void testParseUTF8Entity() throws Exception {
         final String ru_hello = constructString(RUSSIAN_HELLO);
         final String ch_hello = constructString(SWISS_GERMAN_HELLO);
         final List <NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -223,7 +223,7 @@ public class TestURLEncodedUtils {
     }
 
     @Test
-    public void testParseUTF8String () throws Exception {
+    public void testParseUTF8String() throws Exception {
         final String ru_hello = constructString(RUSSIAN_HELLO);
         final String ch_hello = constructString(SWISS_GERMAN_HELLO);
         final List <NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -239,7 +239,7 @@ public class TestURLEncodedUtils {
     }
 
     @Test
-    public void testParseEntityDefaultContentType () throws Exception {
+    public void testParseEntityDefaultContentType() throws Exception {
         final String ch_hello = constructString(SWISS_GERMAN_HELLO);
         final String us_hello = "hi there";
         final List <NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -259,7 +259,7 @@ public class TestURLEncodedUtils {
     }
 
     @Test
-    public void testIsEncoded () throws Exception {
+    public void testIsEncoded() throws Exception {
         final StringEntity entity = new StringEntity("...");
 
         entity.setContentType(URLEncodedUtils.CONTENT_TYPE);
@@ -273,7 +273,7 @@ public class TestURLEncodedUtils {
     }
 
     @Test
-    public void testFormat () throws Exception {
+    public void testFormat() throws Exception {
         final List <NameValuePair> params = new ArrayList <NameValuePair>();
         Assert.assertEquals(0, URLEncodedUtils.format(params, Consts.ASCII).length());
 
