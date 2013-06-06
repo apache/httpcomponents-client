@@ -63,9 +63,7 @@ class ResponseCachingPolicy {
                 HttpStatus.SC_MULTIPLE_CHOICES,
                 HttpStatus.SC_MOVED_PERMANENTLY,
                 HttpStatus.SC_GONE));
-    private static final Set<Integer> uncacheableStatuses =
-            new HashSet<Integer>(Arrays.asList(HttpStatus.SC_PARTIAL_CONTENT,
-                    HttpStatus.SC_SEE_OTHER));
+    private final Set<Integer> uncacheableStatuses;
     /**
      * Define a cache policy that limits the size of things that should be stored
      * in the cache to a maximum of {@link HttpResponse} bytes in size.
@@ -75,13 +73,22 @@ class ResponseCachingPolicy {
      * non-shared/private cache (false)
      * @param neverCache1_0ResponsesWithQueryString true to never cache HTTP 1.0 responses with a query string, false
      * to cache if explicit cache headers are found.
+     * @param allow303Caching if this policy is permitted to cache 303 response
      */
-    public ResponseCachingPolicy(final long maxObjectSizeBytes, final boolean sharedCache,
-                                 final boolean neverCache1_0ResponsesWithQueryString
-    ) {
+    public ResponseCachingPolicy(final long maxObjectSizeBytes,
+            final boolean sharedCache,
+            final boolean neverCache1_0ResponsesWithQueryString,
+            boolean allow303Caching) {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
         this.sharedCache = sharedCache;
         this.neverCache1_0ResponsesWithQueryString = neverCache1_0ResponsesWithQueryString;
+        if (allow303Caching) {
+            uncacheableStatuses = new HashSet<Integer>(
+                    Arrays.asList(HttpStatus.SC_PARTIAL_CONTENT));
+        } else {
+            uncacheableStatuses = new HashSet<Integer>(Arrays.asList(
+                    HttpStatus.SC_PARTIAL_CONTENT, HttpStatus.SC_SEE_OTHER));
+        }
     }
 
     /**

@@ -56,6 +56,15 @@ import org.apache.http.util.Args;
  * browser cache), then you will want to {@link
  * CacheConfig#setSharedCache(boolean) turn off the shared cache setting}.</p>
  *
+ * <p><b>303 caching</b>. RFC2616 explicitly disallows caching 303 responses;
+ * however, the HTTPbis working group says they can be cached
+ * if explicitly indicated in the response headers and permitted by the request method.
+ * (They also indicate that disallowing 303 caching is actually an unintended
+ * spec error in RFC2616).
+ * This behavior is off by default, to err on the side of a conservative
+ * adherence to the existing standard, but you may want to
+ * {@link Builder#setAllow303Caching(boolean) enable it}.
+ *
  * <p><b>Heuristic caching</b>. Per RFC2616, a cache may cache certain cache
  * entries even if no explicit cache control headers are set by the origin.
  * This behavior is off by default, but you may want to turn this on if you
@@ -100,6 +109,10 @@ public class CacheConfig implements Cloneable {
      */
     public final static int DEFAULT_MAX_UPDATE_RETRIES = 1;
 
+    /** Default setting for 303 caching
+     */
+    public final static boolean DEFAULT_303_CACHING_ENABLED = false;
+
     /** Default setting for heuristic caching
      */
     public final static boolean DEFAULT_HEURISTIC_CACHING_ENABLED = false;
@@ -139,6 +152,7 @@ public class CacheConfig implements Cloneable {
     private long maxObjectSize;
     private int maxCacheEntries;
     private int maxUpdateRetries;
+    private boolean allow303Caching;
     private boolean heuristicCachingEnabled;
     private float heuristicCoefficient;
     private long heuristicDefaultLifetime;
@@ -158,6 +172,7 @@ public class CacheConfig implements Cloneable {
         this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
         this.maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
         this.maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
+        this.allow303Caching = false;
         this.heuristicCachingEnabled = false;
         this.heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
         this.heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
@@ -172,6 +187,7 @@ public class CacheConfig implements Cloneable {
             final long maxObjectSize,
             final int maxCacheEntries,
             final int maxUpdateRetries,
+            final boolean allow303Caching,
             final boolean heuristicCachingEnabled,
             final float heuristicCoefficient,
             final long heuristicDefaultLifetime,
@@ -185,6 +201,7 @@ public class CacheConfig implements Cloneable {
         this.maxObjectSize = maxObjectSize;
         this.maxCacheEntries = maxCacheEntries;
         this.maxUpdateRetries = maxUpdateRetries;
+        this.allow303Caching = allow303Caching;
         this.heuristicCachingEnabled = heuristicCachingEnabled;
         this.heuristicCoefficient = heuristicCoefficient;
         this.heuristicDefaultLifetime = heuristicDefaultLifetime;
@@ -285,6 +302,14 @@ public class CacheConfig implements Cloneable {
     @Deprecated
     public void setMaxUpdateRetries(final int maxUpdateRetries){
         this.maxUpdateRetries = maxUpdateRetries;
+    }
+
+    /**
+     * Returns whether 303 caching is enabled.
+     * @return {@code true} if it is enabled.
+     */
+    public boolean is303CachingEnabled() {
+        return allow303Caching;
     }
 
     /**
@@ -493,6 +518,7 @@ public class CacheConfig implements Cloneable {
         private long maxObjectSize;
         private int maxCacheEntries;
         private int maxUpdateRetries;
+        private boolean allow303Caching;
         private boolean heuristicCachingEnabled;
         private float heuristicCoefficient;
         private long heuristicDefaultLifetime;
@@ -507,6 +533,7 @@ public class CacheConfig implements Cloneable {
             this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
             this.maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
             this.maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
+            this.allow303Caching = false;
             this.heuristicCachingEnabled = false;
             this.heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
             this.heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
@@ -539,6 +566,16 @@ public class CacheConfig implements Cloneable {
          */
         public Builder setMaxUpdateRetries(final int maxUpdateRetries) {
             this.maxUpdateRetries = maxUpdateRetries;
+            return this;
+        }
+
+        /**
+         * Enables or disables 303 caching.
+         * @param allow303Caching should be {@code true} to
+         *   permit 303 caching, {@code false} to disable it.
+         */
+        public Builder setAllow303Caching(final boolean allow303Caching) {
+            this.allow303Caching = allow303Caching;
             return this;
         }
 
@@ -652,6 +689,7 @@ public class CacheConfig implements Cloneable {
                     maxObjectSize,
                     maxCacheEntries,
                     maxUpdateRetries,
+                    allow303Caching,
                     heuristicCachingEnabled,
                     heuristicCoefficient,
                     heuristicDefaultLifetime,
@@ -670,7 +708,9 @@ public class CacheConfig implements Cloneable {
         final StringBuilder builder = new StringBuilder();
         builder.append("[maxObjectSize=").append(this.maxObjectSize)
                 .append(", maxCacheEntries=").append(this.maxCacheEntries)
-                .append(", maxUpdateRetries=").append(this.heuristicCachingEnabled)
+                .append(", maxUpdateRetries=").append(this.maxUpdateRetries)
+                .append(", 303CachingEnabled=").append(this.allow303Caching)
+                .append(", heuristicCachingEnabled=").append(this.heuristicCachingEnabled)
                 .append(", heuristicCoefficient=").append(this.heuristicCoefficient)
                 .append(", heuristicDefaultLifetime=").append(this.heuristicDefaultLifetime)
                 .append(", isSharedCache=").append(this.isSharedCache)
