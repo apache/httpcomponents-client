@@ -223,7 +223,7 @@ public class TestURLEncodedUtils {
     }
 
     @Test
-    public void testParseUTF8String() throws Exception {
+    public void testParseUTF8Ampersand1String() throws Exception {
         final String ru_hello = constructString(RUSSIAN_HELLO);
         final String ch_hello = constructString(SWISS_GERMAN_HELLO);
         final List <NameValuePair> parameters = new ArrayList<NameValuePair>();
@@ -236,6 +236,34 @@ public class TestURLEncodedUtils {
         Assert.assertEquals(2, result.size());
         assertNameValuePair(result.get(0), "russian", ru_hello);
         assertNameValuePair(result.get(1), "swiss", ch_hello);
+    }
+
+    @Test
+    public void testParseUTF8Ampersand2String() throws Exception {
+        testParseUTF8String('&');
+    }
+
+    @Test
+    public void testParseUTF8SemicolonString() throws Exception {
+        testParseUTF8String(';');
+    }
+
+    private void testParseUTF8String(final char parameterSeparator) throws Exception {
+        final String ru_hello = constructString(RUSSIAN_HELLO);
+        final String ch_hello = constructString(SWISS_GERMAN_HELLO);
+        final List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+        parameters.add(new BasicNameValuePair("russian", ru_hello));
+        parameters.add(new BasicNameValuePair("swiss", ch_hello));
+
+        final String s = URLEncodedUtils.format(parameters, parameterSeparator, Consts.UTF_8);
+
+        final List <NameValuePair> result1 = URLEncodedUtils.parse(s, Consts.UTF_8);
+        Assert.assertEquals(2, result1.size());
+        assertNameValuePair(result1.get(0), "russian", ru_hello);
+        assertNameValuePair(result1.get(1), "swiss", ch_hello);
+
+        final List <NameValuePair> result2 = URLEncodedUtils.parse(s, Consts.UTF_8, parameterSeparator);
+        Assert.assertEquals(result1, result2);
     }
 
     @Test
@@ -311,6 +339,8 @@ public class TestURLEncodedUtils {
         params.add(new BasicNameValuePair("Name7", "b,b"));
         params.add(new BasicNameValuePair("Name7", "ccc"));
         Assert.assertEquals("Name7=aaa&Name7=b%2Cb&Name7=ccc", URLEncodedUtils.format(params, Consts.ASCII));
+        Assert.assertEquals("Name7=aaa&Name7=b%2Cb&Name7=ccc", URLEncodedUtils.format(params, '&', Consts.ASCII));
+        Assert.assertEquals("Name7=aaa;Name7=b%2Cb;Name7=ccc", URLEncodedUtils.format(params, ';', Consts.ASCII));
 
         params.clear();
         params.add(new BasicNameValuePair("Name8", "xx,  yy  ,zz"));

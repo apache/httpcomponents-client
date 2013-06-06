@@ -1,6 +1,9 @@
 Changes since release 4.3 BETA2
 -------------------
 
+* [HTTPCLIENT-1366] org.apache.http.client.utils.URLEncodedUtils should parse the semicolon as a query parameter separator.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 * [HTTPCLIENT-1365] NPE when ManagedHttpClientConnectionFactory.create(ConnectionConfig) is called with null.
   Contributed by Gary Gregory <ggregory at apache.org>
 
