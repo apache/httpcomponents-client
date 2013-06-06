@@ -1,4 +1,4 @@
-Changes since release 4.3 BETA1
+Changes since release 4.3 BETA2
 -------------------
 
 * [HTTPCLIENT-1362] Better error messages for connect timed out and connection refused 
