@@ -111,9 +111,9 @@ Client HTTP Programming Primer
 
     HttpClient is not a browser. Here's the difference.
 
-    <<Browser>>
+    {<<Browser>>}
 
-[images/browser.png] {Browser}
+[images/browser.png] Browser components
 
     The figure shows some of the components you will find in a browser.
     To the left, there is the user interface. The browser needs a rendering
@@ -146,9 +146,9 @@ Client HTTP Programming Primer
     executing protocols, to make as many websites as possible accessible to
     the user.
 
-    <<HTTP Client>>
+    {<<HTTP Client>>}
 
-[images/httpclient.png] {HTTP Client}
+[images/httpclient.png] HTTP Client components
 
     The figure shows some of the components you will find in a browser,
     and highlights the scope of HttpClient. The primary responsibility
