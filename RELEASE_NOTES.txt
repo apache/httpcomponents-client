@@ -1,5 +1,37 @@
-Changes since release 4.3 BETA2
+Release 4.3 BETA2
 -------------------
+
+This is the second BETA release of HttpClient 4.3. The most notable features and improvements 
+in the 4.3 branch are: 
+
+* Support for Java 7 try-with-resources for resource management (connection release.)
+
+* Added fluent Builder classes for HttpEntity, HttpRequest, HttpClient and SSLContext instances. 
+
+* Deprecation of preference and configuration API based on HttpParams interface in favor of
+constructor injection and plain configuration objects.
+
+* Reliance on object immutability instead of access synchronization for thread safety. 
+Several old classes whose instances can be shared by multiple request exchanges have
+been replaced by immutable equivalents. 
+
+* DefaultHttpClient,  DecompressingHttpClient, CachingHttpClient and similar classes are 
+deprecated in favor of builder classes that produce immutable HttpClient instances. 
+
+* HttpClient builders now dynamically construct a request execution pipeline tailored 
+specifically to the user configuration by physically excluding unnecessary protocol components.
+
+* There is now an option to construct a minimal HttpClient implementation that can only execute 
+basic HTTP message exchanges without redirects, authentication, state management or proxy support.
+This feature might be of particular use in web crawler development. 
+
+* There is now option to avoid strict URI syntax for request URIs by executing HTTP requests 
+with an explicitly specified target host. HttpClient will no longer attempt to parse the request 
+URI if it does not need to extract the target host from it.
+
+This release also includes all fixes from the stable 4.2.x release branch.
+
+
 
 * [HTTPCLIENT-1366] org.apache.http.client.utils.URLEncodedUtils should parse the semicolon as a query parameter separator.
   Contributed by Gary Gregory <ggregory at apache.org>
@@ -55,9 +87,6 @@ Changes since release 4.3 BETA2
 * [HTTPCLIENT-1238] Contribute Bundle Activator And Central Proxy Configuration.
   Contributed by Simone Tripodi <simonetripodi at apache.org> 
 
-* [HTTPCLIENT-1341] DeflateDecompressingEntity does not call Inflater#end.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
-
 * [HTTPCLIENT-1299] (regression) cache incorrectly disposes of the underlying cache resource 
   when storing variant entry.
   Contributed by James Leigh <james at 3roundstones.com> 
@@ -66,42 +95,17 @@ Changes since release 4.3 BETA2
   "java.lang.IllegalArgumentException: Host name may not be null".  
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-1338] (regression) Invalidated / stale DIGEST schemes do not get evicted from
-  the auth cache. 
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
-
 
 
 Release 4.3 BETA1
 -------------------
 
 This is the first BETA release of HttpClient 4.3. The 4.3 branch enhances HttpClient in several
-key areas and includes several notable features and improvements:
-
-* Support for Java 7 try-with-resources for resource management (connection release.)
-
-* Added fluent Builder classes for HttpEntity, HttpRequest and HttpClient instances. 
-
-* Deprecation of preference and configuration API based on HttpParams interface in favor of
-constructor injection and plain configuration objects.
-
-* Reliance on object immutability instead of access synchronization for thread safety. 
-Several old classes whose instances can be shared by multiple request exchanges have
-been replaced by immutable equivalents. 
-
-* DefaultHttpClient,  DecompressingHttpClient, CachingHttpClient and similar classes are 
-deprecated in favor of builder classes that produce immutable HttpClient instances. 
-
-* HttpClient builders now dynamically construct a request execution pipeline tailored 
-specifically to the user configuration by physically excluding unnecessary protocol components.
-
-* There is now an option to construct a minimal HttpClient implementation that can only execute 
-basic HTTP message exchanges without redirects, authentication, state management or proxy support.
-This feature might be of particular use in web crawler development. 
-
-* There is now option to avoid strict URI syntax for request URIs by executing HTTP requests 
-with an explicitly specified target host. HttpClient will no longer attempt to parse the request 
-URI if it does not need to extract the target host from it.
+key areas and includes several notable features and improvements: Support for Java 7 
+try-with-resources for resource management (connection release); fluent Builder classes for 
+HttpEntity, HttpRequest and HttpClient instances, deprecation of preference and configuration API 
+based on HttpParams interface in favor of constructor injection and plain configuration objects, 
+reliance on object immutability instead of access synchronization for thread safety.
 
 This release also includes all fixes from the stable 4.2.x release branch.
 
