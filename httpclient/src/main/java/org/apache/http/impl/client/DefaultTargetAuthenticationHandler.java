@@ -37,13 +37,12 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.params.AuthPNames;
-import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 
 /**
- * Default {@link AuthenticationHandler} implementation for target host
- * authentication.
+ * Default {@link org.apache.http.client.AuthenticationHandler} implementation
+ * for target host authentication.
  *
  * @since 4.0
  *

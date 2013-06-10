@@ -30,7 +30,6 @@ package org.apache.http.examples.client;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -39,7 +38,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 /**
- * How to send a request via proxy using {@link HttpClient}.
+ * How to send a request via proxy.
  *
  * @since 4.0
  */

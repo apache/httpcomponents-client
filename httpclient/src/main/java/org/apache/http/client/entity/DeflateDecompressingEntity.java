@@ -31,16 +31,18 @@ import java.io.InputStream;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.entity.HttpEntityWrapper;
 
 /**
- * {@link HttpEntityWrapper} responsible for handling deflate Content Coded responses. In RFC2616
- * terms, <code>deflate</code> means a <code>zlib</code> stream as defined in RFC1950. Some server
- * implementations have misinterpreted RFC2616 to mean that a <code>deflate</code> stream as
- * defined in RFC1951 should be used (or maybe they did that since that's how IE behaves?). It's
- * confusing that <code>deflate</code> in HTTP 1.1 means <code>zlib</code> streams rather than
- * <code>deflate</code> streams. We handle both types in here, since that's what is seen on the
- * internet. Moral - prefer <code>gzip</code>!
+ * {@link org.apache.http.entity.HttpEntityWrapper} responsible for handling
+ * deflate Content Coded responses. In RFC2616 terms, <code>deflate</code>
+ * means a <code>zlib</code> stream as defined in RFC1950. Some server
+ * implementations have misinterpreted RFC2616 to mean that a
+ * <code>deflate</code> stream as defined in RFC1951 should be used
+ * (or maybe they did that since that's how IE behaves?). It's confusing
+ * that <code>deflate</code> in HTTP 1.1 means <code>zlib</code> streams
+ * rather than <code>deflate</code> streams. We handle both types in here,
+ * since that's what is seen on the internet. Moral - prefer
+ * <code>gzip</code>!
  *
  * @see GzipDecompressingEntity
  *

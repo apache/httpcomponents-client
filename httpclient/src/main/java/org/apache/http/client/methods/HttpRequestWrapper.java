@@ -36,7 +36,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.params.HttpParams;
@@ -157,7 +156,8 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
     }
 
     /**
-     * @deprecated (4.3) use {@link RequestConfig}.
+     * @deprecated (4.3) use
+     *   {@link org.apache.http.client.config.RequestConfig}.
      */
     @Override
     @Deprecated

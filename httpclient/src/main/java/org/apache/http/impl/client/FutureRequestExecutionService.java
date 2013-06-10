@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -68,7 +67,8 @@ public class FutureRequestExecutionService implements Closeable {
      *            and if you have less connections than threads, the threads will just end up
      *            blocking on getting a connection from the pool.
      * @param executorService
-     *            any executorService will do here. E.g. {@link Executors#newFixedThreadPool(int)}
+     *            any executorService will do here. E.g.
+     *            {@link java.util.concurrent.Executors#newFixedThreadPool(int)}
      */
     public FutureRequestExecutionService(
             final HttpClient httpclient,

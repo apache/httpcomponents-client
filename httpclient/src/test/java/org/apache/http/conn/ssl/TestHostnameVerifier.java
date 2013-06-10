@@ -310,8 +310,8 @@ public class TestHostnameVerifier {
     @Test
     // Check compressed IPv6 hostname matching
     public void testHTTPCLIENT_1316() throws Exception{
-        String cns[] = {"2001:0db8:aaaa:bbbb:cccc:0:0:0001"};
-        String alt[] = {};
+        final String cns[] = {"2001:0db8:aaaa:bbbb:cccc:0:0:0001"};
+        final String alt[] = {};
         final X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
         final X509HostnameVerifier shv = new StrictHostnameVerifier();
         checkMatching(bhv, "2001:0db8:aaaa:bbbb:cccc:0:0:0001", cns, alt, false);

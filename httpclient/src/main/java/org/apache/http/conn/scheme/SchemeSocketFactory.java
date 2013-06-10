@@ -32,10 +32,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.apache.http.HttpHost;
 import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.HttpInetSocketAddress;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.params.HttpParams;
 
 /**
@@ -44,7 +41,7 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.1
  *
- * @deprecated (4.3) use {@link ConnectionSocketFactory}
+ * @deprecated (4.3) use {@link org.apache.http.conn.socket.ConnectionSocketFactory}
  */
 @Deprecated
 public interface SchemeSocketFactory {
@@ -70,10 +67,12 @@ public interface SchemeSocketFactory {
     /**
      * Connects a socket to the target host with the given remote address.
      * <p/>
-     * Please note that {@link HttpInetSocketAddress} class should be used in order to pass
-     * the target remote address along with the original {@link HttpHost} value used to resolve
-     * the address. The use of {@link HttpInetSocketAddress} can also ensure that no reverse
-     * DNS lookup will be performed if the target remote address was specified as an IP address.
+     * Please note that {@link org.apache.http.conn.HttpInetSocketAddress} class should
+     * be used in order to pass the target remote address along with the original
+     * {@link org.apache.http.HttpHost} value used to resolve the address. The use of
+     * {@link org.apache.http.conn.HttpInetSocketAddress} can also ensure that no reverse
+     * DNS lookup will be performed if the target remote address was specified
+     * as an IP address.
      *
      * @param sock      the socket to connect, as obtained from
      *                  {@link #createSocket(HttpParams) createSocket}.
@@ -94,7 +93,7 @@ public interface SchemeSocketFactory {
      * @throws ConnectTimeoutException if the socket cannot be connected
      *          within the time limit defined in the <code>params</code>
      *
-     * @see HttpInetSocketAddress
+     * @see org.apache.http.conn.HttpInetSocketAddress
      */
     Socket connectSocket(
         Socket sock,

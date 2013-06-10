@@ -34,7 +34,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
@@ -111,7 +110,8 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     }
 
     /**
-     * @deprecated (4.2) Use {@link ContextAwareAuthScheme#authenticate(Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
+     * @deprecated (4.2) Use {@link org.apache.http.auth.ContextAwareAuthScheme#authenticate(
+     *   Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
      */
     @Deprecated
     public Header authenticate(
@@ -146,7 +146,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                 } else {
                     host = route.getTargetHost();
                 }
-                String authServer;
+                final String authServer;
                 if (!this.stripPort && host.getPort() > 0) {
                     authServer = host.toHostString();
                 } else {

@@ -37,20 +37,18 @@ import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.conn.DefaultClientConnectionOperator;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.Args;
 import org.apache.http.util.Asserts;
 
 /**
- * Manages a pool of {@link OperatedClientConnection client connections} and
- * is able to service connection requests from multiple execution threads.
+ * Manages a pool of {@link org.apache.http.conn.OperatedClientConnection }
+ * and is able to service connection requests from multiple execution threads.
  * Connections are pooled on a per route basis. A request for a route which
  * already the manager has persistent connections for available in the pool
  * will be services by leasing a connection from the pool rather than
@@ -66,7 +64,7 @@ import org.apache.http.util.Asserts;
  *
  * @since 4.0
  *
- * @deprecated (4.2)  use {@link PoolingHttpClientConnectionManager}
+ * @deprecated (4.2)  use {@link org.apache.http.impl.conn.PoolingHttpClientConnectionManager}
  */
 @ThreadSafe
 @Deprecated

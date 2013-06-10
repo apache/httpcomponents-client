@@ -48,7 +48,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
     private final long created;
 
     private long updated;
-    private long validUntil;
+    private final long validUntil;
     private long expiry;
 
     public BasicPoolEntry(final ClientConnectionOperator op,
@@ -142,7 +142,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
      */
     public void updateExpiry(final long time, final TimeUnit timeunit) {
         this.updated = System.currentTimeMillis();
-        long newExpiry;
+        final long newExpiry;
         if (time > 0) {
             newExpiry = this.updated + timeunit.toMillis(time);
         } else {

@@ -50,7 +50,7 @@ public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler {
         if (value == null) {
             throw new MalformedCookieException("Missing value for max-age attribute");
         }
-        int age;
+        final int age;
         try {
             age = Integer.parseInt(value);
         } catch (final NumberFormatException e) {

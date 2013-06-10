@@ -31,13 +31,12 @@ import java.io.OutputStream;
 
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MIME;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.util.Args;
 
 /**
  * Binary body part backed by a byte array.
  *
- * @see MultipartEntityBuilder
+ * @see org.apache.http.entity.mime.MultipartEntityBuilder
  *
  * @since 4.1
  */
@@ -61,7 +60,7 @@ public class ByteArrayBody extends AbstractContentBody {
      * @param filename The name of the file contained in this part.
      *
      * @deprecated (4.3) use {@link ByteArrayBody#ByteArrayBody(byte[], ContentType, String)}
-     *   or {@link MultipartEntityBuilder}
+     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
      */
     @Deprecated
     public ByteArrayBody(final byte[] data, final String mimeType, final String filename) {

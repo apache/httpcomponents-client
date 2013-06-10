@@ -45,6 +45,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.config.Lookup;
 import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.cookie.Cookie;
@@ -122,9 +123,13 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
 
         URI requestURI = null;
-        try {
-            requestURI = new URI(request.getRequestLine().getUri());
-        } catch (final URISyntaxException ignore) {
+        if (request instanceof HttpUriRequest) {
+            requestURI = ((HttpUriRequest) request).getURI();
+        } else {
+            try {
+                requestURI = new URI(request.getRequestLine().getUri());
+            } catch (final URISyntaxException ignore) {
+            }
         }
         final String path = requestURI != null ? requestURI.getPath() : null;
         final String hostName = targetHost.getHostName();

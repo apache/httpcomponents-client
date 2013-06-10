@@ -73,7 +73,7 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
             proxy = determineProxy(host, request, context);
         }
 
-        HttpHost target;
+        final HttpHost target;
         if (host.getPort() <= 0) {
             try {
                 target = new HttpHost(

@@ -37,7 +37,6 @@ import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
-import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
 import org.apache.http.message.BufferedHeader;
@@ -46,9 +45,10 @@ import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * This {@link CookieSpec} implementation conforms to the original draft
- * specification published by Netscape Communications. It should be avoided
- * unless absolutely necessary for compatibility with legacy code.
+ * This {@link org.apache.http.cookie.CookieSpec} implementation conforms to
+ * the original draft specification published by Netscape Communications.
+ * It should be avoided unless absolutely necessary for compatibility with
+ * legacy applications.
  *
  * @since 4.0
  */
@@ -114,8 +114,8 @@ public class NetscapeDraftSpec extends CookieSpecBase {
                     + header.toString() + "'");
         }
         final NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
-        CharArrayBuffer buffer;
-        ParserCursor cursor;
+        final CharArrayBuffer buffer;
+        final ParserCursor cursor;
         if (header instanceof FormattedHeader) {
             buffer = ((FormattedHeader) header).getBuffer();
             cursor = new ParserCursor(

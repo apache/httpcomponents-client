@@ -584,12 +584,13 @@ public class TestRouteTracker {
      * @return  <code>true</code> iff the route is complete
      */
     public final static boolean checkVia(final RouteTracker rt, final HttpRoute r,
-                                         final HttpRouteDirector rd, int steps) {
+                                         final HttpRouteDirector rd, final int steps) {
 
         final String msg = r.toString() + " @ " + rt.toString();
 
         boolean complete = false;
-        while (!complete && (steps > 0)) {
+        int n = steps;
+        while (!complete && (n > 0)) {
 
             final int action = rd.nextStep(r, rt.toRoute());
             switch (action) {
@@ -676,7 +677,7 @@ public class TestRouteTracker {
                 break;
 
             } // switch
-            steps--;
+            n--;
         }
 
         return complete;

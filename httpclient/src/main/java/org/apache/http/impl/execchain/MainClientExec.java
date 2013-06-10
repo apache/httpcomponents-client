@@ -162,7 +162,7 @@ public class MainClientExec implements ClientExecChain {
 
         final RequestConfig config = context.getRequestConfig();
 
-        HttpClientConnection managedConn;
+        final HttpClientConnection managedConn;
         try {
             final int timeout = config.getConnectionRequestTimeout();
             managedConn = connRequest.get(timeout > 0 ? timeout : 0, TimeUnit.MILLISECONDS);
@@ -258,7 +258,7 @@ public class MainClientExec implements ClientExecChain {
                     // Set the idle duration of this connection
                     final long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
                     if (this.log.isDebugEnabled()) {
-                        String s;
+                        final String s;
                         if (duration > 0) {
                             s = "for " + duration + " " + TimeUnit.MILLISECONDS;
                         } else {

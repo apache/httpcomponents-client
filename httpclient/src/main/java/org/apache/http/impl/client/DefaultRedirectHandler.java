@@ -151,7 +151,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
                 context.setAttribute(REDIRECT_LOCATIONS, redirectLocations);
             }
 
-            URI redirectURI;
+            final URI redirectURI;
             if (uri.getFragment() != null) {
                 try {
                     final HttpHost target = new HttpHost(

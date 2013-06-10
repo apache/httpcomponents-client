@@ -47,19 +47,20 @@ public class Rfc3492Idn implements Idn {
     private static final char delimiter = '-';
     private static final String ACE_PREFIX = "xn--";
 
-    private int adapt(int delta, final int numpoints, final boolean firsttime) {
+    private int adapt(final int delta, final int numpoints, final boolean firsttime) {
+        int d = delta;
         if (firsttime) {
-            delta = delta / damp;
+            d = d / damp;
         } else {
-            delta = delta / 2;
+            d = d / 2;
         }
-        delta = delta + (delta / numpoints);
+        d = d + (d / numpoints);
         int k = 0;
-        while (delta > ((base - tmin) * tmax) / 2) {
-          delta = delta / (base - tmin);
+        while (d > ((base - tmin) * tmax) / 2) {
+          d = d / (base - tmin);
           k = k + base;
         }
-        return k + (((base - tmin + 1) * delta) / (delta + skew));
+        return k + (((base - tmin + 1) * d) / (d + skew));
     }
 
     private int digit(final char c) {
@@ -91,7 +92,8 @@ public class Rfc3492Idn implements Idn {
         return unicode.toString();
     }
 
-    protected String decode(String input) {
+    protected String decode(final String s) {
+        String input = s;
         int n = initial_n;
         int i = 0;
         int bias = initial_bias;
@@ -113,7 +115,7 @@ public class Rfc3492Idn implements Idn {
                 input = input.substring(1);
                 final int digit = digit(c);
                 i = i + digit * w; // FIXME fail on overflow
-                int t;
+                final int t;
                 if (k <= bias + tmin) {
                     t = tmin;
                 } else if (k >= bias + tmax) {

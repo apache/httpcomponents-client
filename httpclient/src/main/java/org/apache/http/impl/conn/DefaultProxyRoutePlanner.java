@@ -32,13 +32,12 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.SchemePortResolver;
-import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 
 /**
- * Implementation of an {@link HttpRoutePlanner} that routes requests through
- * a default proxy.
+ * Implementation of an {@link org.apache.http.conn.routing.HttpRoutePlanner}
+ * that routes requests through a default proxy.
  *
  * @since 4.3
  */

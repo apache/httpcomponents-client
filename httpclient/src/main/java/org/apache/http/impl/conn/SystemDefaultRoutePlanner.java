@@ -39,11 +39,11 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.SchemePortResolver;
-import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * {@link HttpRoutePlanner} implementation based on {@link ProxySelector}.
+ * {@link org.apache.http.conn.routing.HttpRoutePlanner} implementation
+ * based on {@link ProxySelector}.
  * By default, it will pick up the proxy settings of the JVM, either
  * from system properties or from the browser running the application.
  * Additionally, it interprets some

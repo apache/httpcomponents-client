@@ -41,7 +41,6 @@ import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.ManagedClientConnection;
-import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.pool.ConnPoolControl;
@@ -50,8 +49,8 @@ import org.apache.http.util.Args;
 import org.apache.http.util.Asserts;
 
 /**
- * Manages a pool of {@link OperatedClientConnection client connections} and
- * is able to service connection requests from multiple execution threads.
+ * Manages a pool of {@link org.apache.http.conn.OperatedClientConnection}
+ * and is able to service connection requests from multiple execution threads.
  * Connections are pooled on a per route basis. A request for a route which
  * already the manager has persistent connections for available in the pool
  * will be services by leasing a connection from the pool rather than
@@ -204,7 +203,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
             final Future<HttpPoolEntry> future,
             final long timeout,
             final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
-        HttpPoolEntry entry;
+        final HttpPoolEntry entry;
         try {
             entry = future.get(timeout, tunit);
             if (entry == null || future.isCancelled()) {
@@ -254,7 +253,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
                 if (managedConn.isMarkedReusable()) {
                     entry.updateExpiry(keepalive, tunit != null ? tunit : TimeUnit.MILLISECONDS);
                     if (this.log.isDebugEnabled()) {
-                        String s;
+                        final String s;
                         if (keepalive > 0) {
                             s = "for " + keepalive + " " + tunit;
                         } else {

@@ -29,7 +29,6 @@ package org.apache.http.impl.client;
 
 import org.apache.http.HttpVersion;
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.RequestAddCookies;
 import org.apache.http.client.protocol.RequestAuthCache;
 import org.apache.http.client.protocol.RequestClientConnControl;
@@ -38,8 +37,6 @@ import org.apache.http.client.protocol.RequestProxyAuthentication;
 import org.apache.http.client.protocol.RequestTargetAuthentication;
 import org.apache.http.client.protocol.ResponseProcessCookies;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.CoreProtocolPNames;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
@@ -53,7 +50,8 @@ import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.VersionInfo;
 
 /**
- * Default implementation of {@link HttpClient} pre-configured for most common use scenarios.
+ * Default implementation of {@link org.apache.http.client.HttpClient} pre-configured
+ * for most common use scenarios.
  * <p>
  * Please see the Javadoc for {@link #createHttpProcessor()} for the details of the interceptors
  * that are set up by default.
@@ -166,11 +164,16 @@ public class DefaultHttpClient extends AbstractHttpClient {
      * Saves the default set of HttpParams in the provided parameter.
      * These are:
      * <ul>
-     * <li>{@link CoreProtocolPNames#PROTOCOL_VERSION}: 1.1</li>
-     * <li>{@link CoreProtocolPNames#HTTP_CONTENT_CHARSET}: ISO-8859-1</li>
-     * <li>{@link CoreConnectionPNames#TCP_NODELAY}: true</li>
-     * <li>{@link CoreConnectionPNames#SOCKET_BUFFER_SIZE}: 8192</li>
-     * <li>{@link CoreProtocolPNames#USER_AGENT}: Apache-HttpClient/<release> (java 1.5)</li>
+     * <li>{@link org.apache.http.params.CoreProtocolPNames#PROTOCOL_VERSION}:
+     *   1.1</li>
+     * <li>{@link org.apache.http.params.CoreProtocolPNames#HTTP_CONTENT_CHARSET}:
+     *   ISO-8859-1</li>
+     * <li>{@link org.apache.http.params.CoreConnectionPNames#TCP_NODELAY}:
+     *   true</li>
+     * <li>{@link org.apache.http.params.CoreConnectionPNames#SOCKET_BUFFER_SIZE}:
+     *   8192</li>
+     * <li>{@link org.apache.http.params.CoreProtocolPNames#USER_AGENT}:
+     *   Apache-HttpClient/<release> (java 1.5)</li>
      * </ul>
      */
     public static void setDefaultHttpParams(final HttpParams params) {

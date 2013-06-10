@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.config.Registry;
 import org.apache.http.util.Args;
 
 /**
@@ -42,7 +41,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  *
- * @deprecated (4.3) use {@link Registry}
+ * @deprecated (4.3) use {@link org.apache.http.config.Registry}
  */
 @ThreadSafe
 @Deprecated

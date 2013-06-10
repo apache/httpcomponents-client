@@ -30,7 +30,6 @@ package org.apache.http.conn;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.Arrays;
 
 import org.apache.http.HttpHost;

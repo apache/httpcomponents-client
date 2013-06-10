@@ -26,14 +26,12 @@
  */
 package org.apache.http.client.params;
 
-import org.apache.http.client.config.RequestConfig;
-
 /**
  * Parameter names for HTTP client parameters.
  *
  * @since 4.0
  *
- * @deprecated (4.3) use {@link RequestConfig}
+ * @deprecated (4.3) use {@link org.apache.http.client.config.RequestConfig}.
  */
 @Deprecated
 public interface ClientPNames {

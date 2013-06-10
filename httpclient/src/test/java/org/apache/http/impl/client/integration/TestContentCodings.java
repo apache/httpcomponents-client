@@ -41,13 +41,11 @@ import java.util.zip.GZIPOutputStream;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.DeflateDecompressingEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
@@ -107,7 +105,6 @@ public class TestContentCodings extends IntegrationTestBase {
      * to return RFC1950 streams for <code>deflate</code> content coding.
      *
      * @throws Exception
-     * @see DeflateDecompressingEntity
      */
     @Test
     public void testDeflateSupportForServerReturningRfc1950Stream() throws Exception {
@@ -128,7 +125,6 @@ public class TestContentCodings extends IntegrationTestBase {
      * to return RFC1951 streams for <code>deflate</code> content coding.
      *
      * @throws Exception
-     * @see DeflateDecompressingEntity
      */
     @Test
     public void testDeflateSupportForServerReturningRfc1951Stream() throws Exception {
@@ -216,12 +212,6 @@ public class TestContentCodings extends IntegrationTestBase {
         }
     }
 
-    /**
-     * Test that the returned {@link HttpEntity} in the response correctly overrides
-     * {@link HttpEntity#writeTo(OutputStream)} for gzip-encoding.
-     *
-     * @throws Exception
-     */
     @Test
     public void testHttpEntityWriteToForGzip() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
@@ -239,12 +229,6 @@ public class TestContentCodings extends IntegrationTestBase {
         Assert.assertEquals(entityText, out.toString("utf-8"));
     }
 
-    /**
-     * Test that the returned {@link HttpEntity} in the response correctly overrides
-     * {@link HttpEntity#writeTo(OutputStream)} for deflate-encoding.
-     *
-     * @throws Exception
-     */
     @Test
     public void testHttpEntityWriteToForDeflate() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
@@ -475,8 +459,7 @@ public class TestContentCodings extends IntegrationTestBase {
                 } finally {
                     endGate.countDown();
                 }
-            } catch (final InterruptedException e) {
-
+            } catch (final InterruptedException ignore) {
             }
         }
 

@@ -295,7 +295,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
      */
     private static String[] getSubjectAlts(
             final X509Certificate cert, final String hostname) {
-        int subjectType;
+        final int subjectType;
         if (isIPAddress(hostname)) {
             subjectType = 7;
         } else {
@@ -375,7 +375,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             return hostname;
         }
         try {
-            InetAddress inetAddress = InetAddress.getByName(hostname);
+            final InetAddress inetAddress = InetAddress.getByName(hostname);
             return inetAddress.getHostAddress();
         } catch (UnknownHostException uhe) { // Should not happen, because we check for IPv6 address above
             log.error("Unexpected error converting "+hostname, uhe);

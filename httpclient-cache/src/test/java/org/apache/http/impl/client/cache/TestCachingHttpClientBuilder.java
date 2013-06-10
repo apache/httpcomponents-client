@@ -32,7 +32,9 @@ public class TestCachingHttpClientBuilder {
 
     @Test
     public void testAsynchronousWorkersMax0() throws Exception {
-        CacheConfig cacheConfig = CacheConfig.custom().setAsynchronousWorkersMax(0).build();
+        final CacheConfig cacheConfig = CacheConfig.custom()
+                .setAsynchronousWorkersMax(0)
+                .build();
         // Asynchronous validation should be disabled but we should not get an
         // Exception
         CachingHttpClientBuilder.create().setCacheConfig(cacheConfig).build();

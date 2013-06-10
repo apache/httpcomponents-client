@@ -40,13 +40,12 @@ import java.nio.charset.UnsupportedCharsetException;
 import org.apache.http.Consts;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MIME;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.util.Args;
 
 /**
  * Text body part backed by a byte array.
  *
- * @see MultipartEntityBuilder
+ * @see org.apache.http.entity.mime.MultipartEntityBuilder
  *
  * @since 4.0
  */
@@ -58,7 +57,7 @@ public class StringBody extends AbstractContentBody {
      * @since 4.1
      *
      * @deprecated (4.3) use {@link StringBody#StringBody(String, ContentType)}
-     *   or {@link MultipartEntityBuilder}
+     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
      */
     @Deprecated
     public static StringBody create(
@@ -76,7 +75,7 @@ public class StringBody extends AbstractContentBody {
      * @since 4.1
      *
      * @deprecated (4.3) use {@link StringBody#StringBody(String, ContentType)}
-     *   or {@link MultipartEntityBuilder}
+     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
      */
     @Deprecated
     public static StringBody create(
@@ -88,7 +87,7 @@ public class StringBody extends AbstractContentBody {
      * @since 4.1
      *
      * @deprecated (4.3) use {@link StringBody#StringBody(String, ContentType)}
-     *   or {@link MultipartEntityBuilder}
+     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
      */
     @Deprecated
     public static StringBody create(final String text) throws IllegalArgumentException {
@@ -105,7 +104,7 @@ public class StringBody extends AbstractContentBody {
      * @throws IllegalArgumentException if the {@code text} parameter is null
      *
      * @deprecated (4.3) use {@link StringBody#StringBody(String, ContentType)}
-     *   or {@link MultipartEntityBuilder}
+     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
      */
     @Deprecated
     public StringBody(
@@ -125,7 +124,7 @@ public class StringBody extends AbstractContentBody {
      * @throws IllegalArgumentException if the {@code text} parameter is null
      *
      * @deprecated (4.3) use {@link StringBody#StringBody(String, ContentType)}
-     *   or {@link MultipartEntityBuilder}
+     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
      */
     @Deprecated
     public StringBody(final String text, final Charset charset) throws UnsupportedEncodingException {
@@ -142,7 +141,7 @@ public class StringBody extends AbstractContentBody {
      * @throws IllegalArgumentException if the {@code text} parameter is null
      *
      * @deprecated (4.3) use {@link StringBody#StringBody(String, ContentType)}
-     *   or {@link MultipartEntityBuilder}
+     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
      */
     @Deprecated
     public StringBody(final String text) throws UnsupportedEncodingException {

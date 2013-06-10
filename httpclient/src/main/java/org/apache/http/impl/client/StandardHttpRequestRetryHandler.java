@@ -33,12 +33,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.HttpRequestRetryHandler;
 
 /**
- * A {@link HttpRequestRetryHandler} which assumes that all requested
- * HTTP methods which should be idempotent according to RFC-2616 are
- * in fact idempotent and can be retried.
+ * {@link org.apache.http.client.HttpRequestRetryHandler} which assumes
+ * that all requested HTTP methods which should be idempotent according
+ * to RFC-2616 are in fact idempotent and can be retried.
  *
  * According to RFC-2616 section 9.1.2 the idempotent HTTP methods are:
  * GET, HEAD, PUT, DELETE, OPTIONS, and TRACE

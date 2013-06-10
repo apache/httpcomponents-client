@@ -289,7 +289,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             final HttpParams params) throws IOException {
         Args.notNull(route, "Route");
         Args.notNull(params, "HTTP parameters");
-        OperatedClientConnection conn;
+        final OperatedClientConnection conn;
         synchronized (this) {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
@@ -323,8 +323,8 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     public void tunnelTarget(
             final boolean secure, final HttpParams params) throws IOException {
         Args.notNull(params, "HTTP parameters");
-        HttpHost target;
-        OperatedClientConnection conn;
+        final HttpHost target;
+        final OperatedClientConnection conn;
         synchronized (this) {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
@@ -352,7 +352,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
             final HttpHost next, final boolean secure, final HttpParams params) throws IOException {
         Args.notNull(next, "Next proxy");
         Args.notNull(params, "HTTP parameters");
-        OperatedClientConnection conn;
+        final OperatedClientConnection conn;
         synchronized (this) {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();
@@ -377,8 +377,8 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     public void layerProtocol(
             final HttpContext context, final HttpParams params) throws IOException {
         Args.notNull(params, "HTTP parameters");
-        HttpHost target;
-        OperatedClientConnection conn;
+        final HttpHost target;
+        final OperatedClientConnection conn;
         synchronized (this) {
             if (this.poolEntry == null) {
                 throw new ConnectionShutdownException();

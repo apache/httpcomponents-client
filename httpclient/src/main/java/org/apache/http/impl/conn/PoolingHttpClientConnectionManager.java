@@ -235,7 +235,7 @@ public class PoolingHttpClientConnectionManager
             final Future<CPoolEntry> future,
             final long timeout,
             final TimeUnit tunit) throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException {
-        CPoolEntry entry;
+        final CPoolEntry entry;
         try {
             entry = future.get(timeout, tunit);
             if (entry == null || future.isCancelled()) {
@@ -267,7 +267,7 @@ public class PoolingHttpClientConnectionManager
                     entry.setState(state);
                     entry.updateExpiry(keepalive, tunit != null ? tunit : TimeUnit.MILLISECONDS);
                     if (this.log.isDebugEnabled()) {
-                        String s;
+                        final String s;
                         if (keepalive > 0) {
                             s = "for " + (double) keepalive / 1000 + " seconds";
                         } else {
@@ -292,7 +292,7 @@ public class PoolingHttpClientConnectionManager
             final HttpContext context) throws IOException {
         Args.notNull(managedConn, "Managed Connection");
         Args.notNull(route, "HTTP route");
-        ManagedHttpClientConnection conn;
+        final ManagedHttpClientConnection conn;
         synchronized (managedConn) {
             final CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
             conn = entry.getConnection();
@@ -321,7 +321,7 @@ public class PoolingHttpClientConnectionManager
             final HttpContext context) throws IOException {
         Args.notNull(managedConn, "Managed Connection");
         Args.notNull(route, "HTTP route");
-        ManagedHttpClientConnection conn;
+        final ManagedHttpClientConnection conn;
         synchronized (managedConn) {
             final CPoolEntry entry = CPoolProxy.getPoolEntry(managedConn);
             conn = entry.getConnection();

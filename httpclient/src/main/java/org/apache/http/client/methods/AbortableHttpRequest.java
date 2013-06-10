@@ -27,13 +27,11 @@
 
 package org.apache.http.client.methods;
 
-import java.io.IOException;
-
-import org.apache.http.client.HttpClient;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionRequest;
 import org.apache.http.conn.ConnectionReleaseTrigger;
-import org.apache.http.conn.ManagedClientConnection;
+
+import java.io.IOException;
+
 
 /**
  * Interface representing an HTTP request that can be aborted by shutting
@@ -47,18 +45,19 @@ import org.apache.http.conn.ManagedClientConnection;
 public interface AbortableHttpRequest {
 
     /**
-     * Sets the {@link ClientConnectionRequest} callback that can be
-     * used to abort a long-lived request for a connection.
+     * Sets the {@link org.apache.http.conn.ClientConnectionRequest}
+     * callback that can be used to abort a long-lived request for a connection.
      * If the request is already aborted, throws an {@link IOException}.
      *
-     * @see ClientConnectionManager
+     * @see org.apache.http.conn.ClientConnectionManager
      */
     void setConnectionRequest(ClientConnectionRequest connRequest) throws IOException;
 
     /**
      * Sets the {@link ConnectionReleaseTrigger} callback that can
      * be used to abort an active connection.
-     * Typically, this will be the {@link ManagedClientConnection} itself.
+     * Typically, this will be the
+     *   {@link org.apache.http.conn.ManagedClientConnection} itself.
      * If the request is already aborted, throws an {@link IOException}.
      */
     void setReleaseTrigger(ConnectionReleaseTrigger releaseTrigger) throws IOException;
@@ -69,12 +68,12 @@ public interface AbortableHttpRequest {
      * the next execution. Aborting this request will cause all subsequent
      * executions with this request to fail.
      *
-     * @see HttpClient#execute(HttpUriRequest)
-     * @see HttpClient#execute(org.apache.http.HttpHost,
+     * @see org.apache.http.client.HttpClient#execute(HttpUriRequest)
+     * @see org.apache.http.client.HttpClient#execute(org.apache.http.HttpHost,
      *      org.apache.http.HttpRequest)
-     * @see HttpClient#execute(HttpUriRequest,
+     * @see org.apache.http.client.HttpClient#execute(HttpUriRequest,
      *      org.apache.http.protocol.HttpContext)
-     * @see HttpClient#execute(org.apache.http.HttpHost,
+     * @see org.apache.http.client.HttpClient#execute(org.apache.http.HttpHost,
      *      org.apache.http.HttpRequest, org.apache.http.protocol.HttpContext)
      */
     void abort();

@@ -27,7 +27,6 @@
 package org.apache.http.client.params;
 
 import org.apache.http.auth.params.AuthPNames;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.params.ConnConnectionPNames;
 import org.apache.http.conn.params.ConnManagerPNames;
 import org.apache.http.conn.params.ConnRoutePNames;
@@ -48,7 +47,10 @@ import org.apache.http.params.CoreProtocolPNames;
  *
  * @since 4.0
  *
- * @deprecated (4.3) use {@link RequestConfig}
+ * @deprecated (4.3) use
+ *   {@link org.apache.http.client.config.RequestConfig},
+ *   {@link org.apache.http.config.ConnectionConfig},
+ *   {@link org.apache.http.config.SocketConfig}
  */
 @Deprecated
 public interface AllClientPNames extends

@@ -138,7 +138,7 @@ public class DeflateInputStream extends InputStream
     /** Read lots of bytes.
     */
     @Override
-    public int read(byte[] b)
+    public int read(final byte[] b)
         throws IOException
     {
         return sourceStream.read(b);
@@ -147,7 +147,7 @@ public class DeflateInputStream extends InputStream
     /** Read lots of specific bytes.
     */
     @Override
-    public int read(byte[] b, int off, int len)
+    public int read(final byte[] b, final int off, final int len)
         throws IOException
     {
         return sourceStream.read(b,off,len);
@@ -156,7 +156,7 @@ public class DeflateInputStream extends InputStream
     /** Skip
     */
     @Override
-    public long skip(long n)
+    public long skip(final long n)
         throws IOException
     {
         return sourceStream.skip(n);
@@ -174,7 +174,7 @@ public class DeflateInputStream extends InputStream
     /** Mark.
     */
     @Override
-    public void mark(int readLimit)
+    public void mark(final int readLimit)
     {
         sourceStream.mark(readLimit);
     }

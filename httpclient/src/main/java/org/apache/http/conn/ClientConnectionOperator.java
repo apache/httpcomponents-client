@@ -29,18 +29,17 @@ package org.apache.http.conn;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.Socket;
 
 import org.apache.http.HttpHost;
-import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
  * ClientConnectionOperator represents a strategy for creating
  * {@link OperatedClientConnection} instances and updating the underlying
- * {@link Socket} of those objects. Implementations will most likely make use
- * of {@link SchemeSocketFactory}s to create {@link Socket} instances.
+ * {@link java.net.Socket} of those objects. Implementations will most
+ * likely make use of {@link org.apache.http.conn.scheme.SchemeSocketFactory}s
+ * to create {@link java.net.Socket} instances.
  * <p>
  * The methods in this interface allow the creation of plain and layered
  * sockets. Creating a tunnelled connection through a proxy, however,

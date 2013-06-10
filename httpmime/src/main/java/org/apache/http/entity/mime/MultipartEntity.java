@@ -67,20 +67,14 @@ public class MultipartEntity implements HttpEntity {
      * @param charset the character set to use, may be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
      */
     public MultipartEntity(
-            HttpMultipartMode mode,
-            String boundary,
+            final HttpMultipartMode mode,
+            final String boundary,
             final Charset charset) {
         super();
-        if (boundary == null) {
-            boundary = generateBoundary();
-        }
-        if (mode == null) {
-            mode = HttpMultipartMode.STRICT;
-        }
-        this.multipart = new HttpMultipart("form-data", charset, boundary, mode);
-        this.contentType = new BasicHeader(
-                HTTP.CONTENT_TYPE,
-                generateContentType(boundary, charset));
+        final String b = boundary != null ? boundary : generateBoundary();
+        final HttpMultipartMode m = mode != null ? mode : HttpMultipartMode.STRICT;
+        this.multipart = new HttpMultipart("form-data", charset, b, m);
+        this.contentType = new BasicHeader(HTTP.CONTENT_TYPE, generateContentType(b, charset));
         this.dirty = true;
     }
 

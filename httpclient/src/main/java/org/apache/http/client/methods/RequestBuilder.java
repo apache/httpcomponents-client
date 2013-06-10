@@ -277,7 +277,7 @@ public class RequestBuilder {
     }
 
     public HttpUriRequest build() {
-        HttpRequestBase result;
+        final HttpRequestBase result;
         URI uri = this.uri != null ? this.uri : URI.create("/");
         HttpEntity entity = this.entity;
         if (parameters != null && !parameters.isEmpty()) {

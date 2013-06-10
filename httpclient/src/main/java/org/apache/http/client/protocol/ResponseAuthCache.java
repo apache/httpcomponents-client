@@ -39,7 +39,6 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthCache;
-import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -56,7 +55,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.1
  *
- * @deprecated (4.2)  use {@link AuthenticationStrategy}
+ * @deprecated (4.2)  use {@link org.apache.http.client.AuthenticationStrategy}
  */
 @Immutable
 @Deprecated

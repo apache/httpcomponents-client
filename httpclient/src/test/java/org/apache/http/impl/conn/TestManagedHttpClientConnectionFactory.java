@@ -39,7 +39,7 @@ public class TestManagedHttpClientConnectionFactory {
         validateDefault(ManagedHttpClientConnectionFactory.INSTANCE.create(ConnectionConfig.DEFAULT));
     }
 
-    private void validateDefault(ManagedHttpClientConnection managedHttpClientConnection) {
+    private void validateDefault(final ManagedHttpClientConnection managedHttpClientConnection) {
         // Nothing really interesting to check here
         Assert.assertNotNull(managedHttpClientConnection.getId());
     }

@@ -45,7 +45,7 @@ import org.apache.http.pool.ConnFactory;
 @Deprecated
 class HttpConnPool extends AbstractConnPool<HttpRoute, OperatedClientConnection, HttpPoolEntry> {
 
-    private static AtomicLong COUNTER = new AtomicLong();
+    private static final AtomicLong COUNTER = new AtomicLong();
 
     private final Log log;
     private final long timeToLive;

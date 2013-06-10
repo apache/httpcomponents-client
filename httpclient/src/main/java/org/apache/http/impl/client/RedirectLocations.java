@@ -30,10 +30,9 @@ package org.apache.http.impl.client;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.URICollection;
 
-import java.net.URI;
-
 /**
- * This class represents a collection of {@link URI}s used as redirect locations.
+ * This class represents a collection of {@link java.net.URI}s used
+ * as redirect locations.
  *
  * @since 4.0
  */

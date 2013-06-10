@@ -28,7 +28,6 @@ package org.apache.http.conn.params;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.Args;
 
@@ -56,7 +55,8 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @return timeout in milliseconds.
      *
-     * @deprecated (4.1)  use {@link HttpConnectionParams#getConnectionTimeout(HttpParams)}
+     * @deprecated (4.1)  use {@link
+     *   org.apache.http.params.HttpConnectionParams#getConnectionTimeout(HttpParams)}
      */
     @Deprecated
     public static long getTimeout(final HttpParams params) {
@@ -71,7 +71,8 @@ public final class ConnManagerParams implements ConnManagerPNames {
      *
      * @param timeout the timeout in milliseconds
      *
-     * @deprecated (4.1)  use {@link HttpConnectionParams#setConnectionTimeout(HttpParams, int)}
+     * @deprecated (4.1)  use {@link
+     *   org.apache.http.params.HttpConnectionParams#setConnectionTimeout(HttpParams, int)}
      */
     @Deprecated
     public static void setTimeout(final HttpParams params, final long timeout) {

@@ -27,7 +27,6 @@
 package org.apache.http.impl.client;
 
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.RequestAcceptEncoding;
 import org.apache.http.client.protocol.ResponseContentEncoding;
 import org.apache.http.conn.ClientConnectionManager;
@@ -40,11 +39,11 @@ import org.apache.http.protocol.BasicHttpProcessor;
  *
  * <b>Deprecation note:</b> due to the way this class modifies a response body
  * without changing the response headers to reflect the entity changes, it cannot
- * be used as the &quot;backend&quot; for a caching {@link HttpClient} and still
- * have uncompressed responses be cached. Users are encouraged to use the
- * {@link DecompressingHttpClient} instead of this class, which can be wired in
- * either before or after caching, depending on whether you want to cache
- * responses in compressed or uncompressed form.
+ * be used as the &quot;backend&quot; for a caching {@link
+ * org.apache.http.client.HttpClient} and still have uncompressed responses be cached.
+ * Users are encouraged to use the {@link DecompressingHttpClient} instead
+ * of this class, which can be wired in either before or after caching, depending on
+ * whether you want to cache responses in compressed or uncompressed form.
  *
  * @since 4.1
  *

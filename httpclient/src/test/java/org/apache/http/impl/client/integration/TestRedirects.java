@@ -248,7 +248,7 @@ public class TestRedirects extends IntegrationTestBase {
         Assert.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
 
-        URICollection redirects = context.getRedirectLocations();
+        final URICollection redirects = context.getRedirectLocations();
         Assert.assertNull(redirects);
     }
 
@@ -272,11 +272,11 @@ public class TestRedirects extends IntegrationTestBase {
         Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
         Assert.assertEquals(target, host);
 
-        URICollection redirects = context.getRedirectLocations();
+        final URICollection redirects = context.getRedirectLocations();
         Assert.assertNotNull(redirects);
         Assert.assertEquals(1, redirects.getCount());
 
-        URI redirect = URIUtils.rewriteURI(new URI("/newlocation/"), target);
+        final URI redirect = URIUtils.rewriteURI(new URI("/newlocation/"), target);
         Assert.assertTrue(redirects.contains(redirect));
     }
 
@@ -641,7 +641,7 @@ public class TestRedirects extends IntegrationTestBase {
         try {
             this.httpclient.execute(target, httpget);
         } catch (ClientProtocolException ex) {
-            Throwable cause = ex.getCause();
+            final Throwable cause = ex.getCause();
             Assert.assertTrue(cause instanceof HttpException);
             throw ex;
         }

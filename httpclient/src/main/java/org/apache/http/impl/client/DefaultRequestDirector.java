@@ -86,7 +86,6 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.util.Args;
-import org.apache.http.util.Asserts;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -366,12 +365,14 @@ public class DefaultRequestDirector implements RequestDirector {
 
 
     // non-javadoc, see interface ClientRequestDirector
-    public HttpResponse execute(HttpHost target, final HttpRequest request,
+    public HttpResponse execute(final HttpHost targetHost, final HttpRequest request,
                                 final HttpContext context)
         throws HttpException, IOException {
 
         context.setAttribute(ClientContext.TARGET_AUTH_STATE, targetAuthState);
         context.setAttribute(ClientContext.PROXY_AUTH_STATE, proxyAuthState);
+
+        HttpHost target = targetHost;
 
         final HttpRequest orig = request;
         final RequestWrapper origWrapper = wrapRequest(orig);
@@ -499,7 +500,7 @@ public class DefaultRequestDirector implements RequestDirector {
                     // Set the idle duration of this connection
                     final long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
                     if (this.log.isDebugEnabled()) {
-                        String s;
+                        final String s;
                         if (duration > 0) {
                             s = "for " + duration + " " + TimeUnit.MILLISECONDS;
                         } else {
@@ -728,7 +729,7 @@ public class DefaultRequestDirector implements RequestDirector {
      * Called by {@link #execute}
      * to determine the route for either the original or a followup request.
      *
-     * @param target    the target host for the request.
+     * @param targetHost  the target host for the request.
      *                  Implementations may accept <code>null</code>
      *                  if they can still determine a route, for example
      *                  to a default target or by inspecting the request.
@@ -740,17 +741,14 @@ public class DefaultRequestDirector implements RequestDirector {
      *
      * @throws HttpException    in case of a problem
      */
-    protected HttpRoute determineRoute(HttpHost    target,
+    protected HttpRoute determineRoute(final HttpHost targetHost,
                                            final HttpRequest request,
                                            final HttpContext context)
         throws HttpException {
-
-        if (target == null) {
-            target = (HttpHost) request.getParams().getParameter(
-                ClientPNames.DEFAULT_HOST);
-        }
-        Asserts.notNull(target, "Target host");
-        return this.routePlanner.determineRoute(target, request, context);
+        return this.routePlanner.determineRoute(
+                targetHost != null ? targetHost : (HttpHost) request.getParams()
+                        .getParameter(ClientPNames.DEFAULT_HOST),
+                request, context);
     }
 
 

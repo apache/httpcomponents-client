@@ -27,7 +27,6 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
 
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.HttpCacheEntry;
@@ -36,11 +35,11 @@ import org.apache.http.client.cache.HttpCacheUpdateCallback;
 
 /**
  * Basic {@link HttpCacheStorage} implementation backed by an instance of
- * {@link LinkedHashMap}. In other words, cache entries and the cached
- * response bodies are held in-memory. This cache does NOT deallocate
- * resources associated with the cache entries; it is intended for use
- * with {@link HeapResource} and similar. This is the default cache
- * storage backend used by {@link CachingHttpClient}.
+ * {@link java.util.LinkedHashMap}. In other words, cache entries and
+ * the cached response bodies are held in-memory. This cache does NOT
+ * deallocate resources associated with the cache entries; it is intended
+ * for use with {@link HeapResource} and similar. This is the default cache
+ * storage backend used by {@link CachingHttpClients}.
  *
  * @since 4.1
  */

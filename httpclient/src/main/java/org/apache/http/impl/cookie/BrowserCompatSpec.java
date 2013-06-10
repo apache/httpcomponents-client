@@ -94,7 +94,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
             case SECURITYLEVEL_IE_MEDIUM:
                 registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler() {
                         @Override
-                        public void validate(Cookie cookie, CookieOrigin origin) throws MalformedCookieException {
+                        public void validate(final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
                             // No validation
                         }
                     }
@@ -147,8 +147,8 @@ public class BrowserCompatSpec extends CookieSpecBase {
             // Need to parse the header again, because Netscape style cookies do not correctly
             // support multiple header elements (comma cannot be treated as an element separator)
             final NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
-            CharArrayBuffer buffer;
-            ParserCursor cursor;
+            final CharArrayBuffer buffer;
+            final ParserCursor cursor;
             if (header instanceof FormattedHeader) {
                 buffer = ((FormattedHeader) header).getBuffer();
                 cursor = new ParserCursor(

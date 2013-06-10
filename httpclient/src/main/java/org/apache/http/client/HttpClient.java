@@ -27,17 +27,15 @@
 
 package org.apache.http.client;
 
-import java.io.IOException;
-
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
+
+import java.io.IOException;
 
 /**
  * This interface represents only the most basic contract for HTTP request
@@ -115,7 +113,8 @@ public interface HttpClient {
      *
      * @return  the default parameters
      *
-     * @deprecated (4.3) use {@link RequestConfig}.
+     * @deprecated (4.3) use
+     *   {@link org.apache.http.client.config.RequestConfig}.
      */
     @Deprecated
     HttpParams getParams();
@@ -125,7 +124,8 @@ public interface HttpClient {
      *
      * @return  the connection manager
      *
-     * @deprecated (4.3) use {@link HttpClientBuilder}.
+     * @deprecated (4.3) use
+     *   {@link org.apache.http.impl.client.HttpClientBuilder}.
      */
     @Deprecated
     ClientConnectionManager getConnectionManager();

@@ -76,12 +76,15 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
      * @see #DEFAULT_MAX_EXPIRY_IN_MILLIS
      */
     public ExponentialBackOffSchedulingStrategy(final CacheConfig cacheConfig) {
-        this(cacheConfig, DEFAULT_BACK_OFF_RATE, DEFAULT_INITIAL_EXPIRY_IN_MILLIS, DEFAULT_MAX_EXPIRY_IN_MILLIS);
+        this(cacheConfig,
+                DEFAULT_BACK_OFF_RATE,
+                DEFAULT_INITIAL_EXPIRY_IN_MILLIS,
+                DEFAULT_MAX_EXPIRY_IN_MILLIS);
     }
 
     /**
-     * Create a new scheduling strategy by using a fixed pool of worker threads and the given parameters to calculated
-     * the delay.
+     * Create a new scheduling strategy by using a fixed pool of worker threads and the
+     * given parameters to calculated the delay.
      *
      * @param cacheConfig the thread pool configuration to be used; not <code>null</code>
      * @param backOffRate the back off rate to be used; not negative
@@ -90,24 +93,38 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
      * @see org.apache.http.impl.client.cache.CacheConfig#getAsynchronousWorkersMax()
      * @see ExponentialBackOffSchedulingStrategy
      */
-    public ExponentialBackOffSchedulingStrategy(final CacheConfig cacheConfig, final long backOffRate, final long initialExpiryInMillis, final long maxExpiryInMillis) {
-        this(createThreadPoolFromCacheConfig(cacheConfig), backOffRate, initialExpiryInMillis, maxExpiryInMillis);
+    public ExponentialBackOffSchedulingStrategy(
+            final CacheConfig cacheConfig,
+            final long backOffRate,
+            final long initialExpiryInMillis,
+            final long maxExpiryInMillis) {
+        this(createThreadPoolFromCacheConfig(cacheConfig),
+                backOffRate,
+                initialExpiryInMillis,
+                maxExpiryInMillis);
     }
 
-    private static ScheduledThreadPoolExecutor createThreadPoolFromCacheConfig(final CacheConfig cacheConfig) {
-        ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(cacheConfig.getAsynchronousWorkersMax());
+    private static ScheduledThreadPoolExecutor createThreadPoolFromCacheConfig(
+            final CacheConfig cacheConfig) {
+        final ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(
+                cacheConfig.getAsynchronousWorkersMax());
         scheduledThreadPoolExecutor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
         return scheduledThreadPoolExecutor;
     }
 
-    ExponentialBackOffSchedulingStrategy(final ScheduledExecutorService executor, final long backOffRate, final long initialExpiryInMillis, final long maxExpiryInMillis) {
+    ExponentialBackOffSchedulingStrategy(
+            final ScheduledExecutorService executor,
+            final long backOffRate,
+            final long initialExpiryInMillis,
+            final long maxExpiryInMillis) {
         this.executor = checkNotNull("executor", executor);
         this.backOffRate = checkNotNegative("backOffRate", backOffRate);
         this.initialExpiryInMillis = checkNotNegative("initialExpiryInMillis", initialExpiryInMillis);
         this.maxExpiryInMillis = checkNotNegative("maxExpiryInMillis", maxExpiryInMillis);
     }
 
-    public void schedule(final AsynchronousValidationRequest revalidationRequest) {
+    public void schedule(
+            final AsynchronousValidationRequest revalidationRequest) {
         checkNotNull("revalidationRequest", revalidationRequest);
         final int consecutiveFailedAttempts = revalidationRequest.getConsecutiveFailedAttempts();
         final long delayInMillis = calculateDelayInMillis(consecutiveFailedAttempts);
@@ -132,7 +149,8 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
 
     protected long calculateDelayInMillis(final int consecutiveFailedAttempts) {
         if (consecutiveFailedAttempts > 0) {
-            final long delayInSeconds = (long) (initialExpiryInMillis * Math.pow(backOffRate, consecutiveFailedAttempts - 1));
+            final long delayInSeconds = (long) (initialExpiryInMillis *
+                    Math.pow(backOffRate, consecutiveFailedAttempts - 1));
             return Math.min(delayInSeconds, maxExpiryInMillis);
         }
         else {

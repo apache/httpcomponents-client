@@ -32,11 +32,11 @@ import java.util.Collection;
 import org.apache.http.HttpStatus;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AUTH;
-import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.config.RequestConfig;
 
 /**
- * Default {@link AuthenticationStrategy} implementation for proxy host authentication.
+ * Default {@link org.apache.http.client.AuthenticationStrategy} implementation
+ * for proxy host authentication.
  *
  * @since 4.2
  */

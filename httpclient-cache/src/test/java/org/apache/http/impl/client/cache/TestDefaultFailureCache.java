@@ -41,7 +41,7 @@ public class TestDefaultFailureCache
         failureCache.increaseErrorCount(IDENTIFIER);
         failureCache.resetErrorCount(IDENTIFIER);
 
-        int errorCount = failureCache.getErrorCount(IDENTIFIER);
+        final int errorCount = failureCache.getErrorCount(IDENTIFIER);
         Assert.assertEquals(0, errorCount);
     }
 
@@ -51,7 +51,7 @@ public class TestDefaultFailureCache
         failureCache.increaseErrorCount(IDENTIFIER);
         failureCache.increaseErrorCount(IDENTIFIER);
 
-        int errorCount = failureCache.getErrorCount(IDENTIFIER);
+        final int errorCount = failureCache.getErrorCount(IDENTIFIER);
         Assert.assertEquals(3, errorCount);
     }
 
@@ -63,7 +63,7 @@ public class TestDefaultFailureCache
         failureCache.increaseErrorCount("c");
         failureCache.increaseErrorCount("d");
 
-        int errorCount = failureCache.getErrorCount("a");
+        final int errorCount = failureCache.getErrorCount("a");
         Assert.assertEquals(0, errorCount);
     }
 }

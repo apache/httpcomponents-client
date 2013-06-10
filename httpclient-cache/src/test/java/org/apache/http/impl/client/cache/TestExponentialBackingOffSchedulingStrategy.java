@@ -58,7 +58,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithoutPreviousError() {
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(0));
+        final AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(0));
 
         expectRequestScheduledWithoutDelay(request);
 
@@ -69,7 +69,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithOneFailedAttempt() {
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(1));
+        final AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(1));
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(6));
 
@@ -80,7 +80,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithTwoFailedAttempts() {
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(2));
+        final AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(2));
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(60));
 
@@ -91,7 +91,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithThreeFailedAttempts() {
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(3));
+        final AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(3));
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(600));
 
@@ -102,7 +102,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithFourFailedAttempts() {
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(4));
+        final AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(4));
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(6000));
 
@@ -113,7 +113,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithFiveFailedAttempts() {
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(5));
+        final AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(5));
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(60000));
 
@@ -124,7 +124,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithSixFailedAttempts() {
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(6));
+        final AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(6));
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(86400));
 
@@ -135,7 +135,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Test
     public void testScheduleWithMaxNumberOfFailedAttempts() {
-        AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(Integer.MAX_VALUE));
+        final AsynchronousValidationRequest request = createAsynchronousValidationRequest(withErrorCount(Integer.MAX_VALUE));
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(86400));
 

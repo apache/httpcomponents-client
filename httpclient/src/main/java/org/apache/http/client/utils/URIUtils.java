@@ -34,7 +34,6 @@ import java.util.Stack;
 
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.URICollection;
 import org.apache.http.util.Args;
 import org.apache.http.util.TextUtils;
 
@@ -216,18 +215,19 @@ public class URIUtils {
      * @param reference the URI reference
      * @return the resulting URI
      */
-    public static URI resolve(final URI baseURI, URI reference){
+    public static URI resolve(final URI baseURI, final URI reference){
         Args.notNull(baseURI, "Base URI");
         Args.notNull(reference, "Reference URI");
-        final String s = reference.toString();
+        URI ref = reference;
+        final String s = ref.toString();
         if (s.startsWith("?")) {
-            return resolveReferenceStartingWithQueryString(baseURI, reference);
+            return resolveReferenceStartingWithQueryString(baseURI, ref);
         }
         final boolean emptyReference = s.length() == 0;
         if (emptyReference) {
-            reference = URI.create("#");
+            ref = URI.create("#");
         }
-        URI resolved = baseURI.resolve(reference);
+        URI resolved = baseURI.resolve(ref);
         if (emptyReference) {
             final String resolvedString = resolved.toString();
             resolved = URI.create(resolvedString.substring(0,

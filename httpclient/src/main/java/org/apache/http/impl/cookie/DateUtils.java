@@ -27,7 +27,6 @@
 
 package org.apache.http.impl.cookie;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -135,8 +134,8 @@ public final class DateUtils {
 
     /**
      * Formats the given date according to the specified pattern.  The pattern
-     * must conform to that used by the {@link SimpleDateFormat simple date
-     * format} class.
+     * must conform to that used by the {@link java.text.SimpleDateFormat simple
+     * date format} class.
      *
      * @param date The date to format.
      * @param pattern The pattern to use for formatting the date.
@@ -144,7 +143,7 @@ public final class DateUtils {
      *
      * @throws IllegalArgumentException If the given date pattern is invalid.
      *
-     * @see SimpleDateFormat
+     * @see java.text.SimpleDateFormat
      */
     public static String formatDate(final Date date, final String pattern) {
         return org.apache.http.client.utils.DateUtils.formatDate(date, pattern);

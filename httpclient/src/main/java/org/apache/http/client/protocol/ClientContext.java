@@ -27,15 +27,13 @@
 
 package org.apache.http.client.protocol;
 
-import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.cookie.CookieSpecProvider;
-
 /**
  * {@link org.apache.http.protocol.HttpContext} attribute names for
  * client side HTTP protocol processing.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link HttpClientContext}.
  */
 @Deprecated
 public interface ClientContext {
@@ -51,15 +49,13 @@ public interface ClientContext {
     /**
      * Attribute name of a {@link org.apache.http.conn.scheme.Scheme}
      * object that represents the actual protocol scheme registry.
-     *
-     * @deprecated (4.3) do not use
      */
     @Deprecated
     public static final String SCHEME_REGISTRY   = "http.scheme-registry";
 
     /**
      * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
-     * the actual {@link CookieSpecProvider} registry.
+     * the actual {@link org.apache.http.cookie.CookieSpecRegistry} registry.
      */
     public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry";
 
@@ -119,16 +115,10 @@ public interface ClientContext {
 
     /**
      * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
-     * the actual {@link AuthSchemeProvider} registry.
+     * the actual {@link org.apache.http.auth.AuthSchemeRegistry} registry.
      */
     public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry";
 
-    /**
-     * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
-     * the actual {@link ConnectionSocketFactory} registry.
-     *
-     * @since 4.3
-     */
     public static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";
 
     /**

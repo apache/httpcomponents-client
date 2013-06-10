@@ -37,9 +37,6 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
-/**
- * @deprecated (4.1) do not use
- */
 @Deprecated
 class SocketFactoryAdaptor implements SocketFactory {
 
@@ -58,15 +55,11 @@ class SocketFactoryAdaptor implements SocketFactory {
     public Socket connectSocket(
             final Socket socket,
             final String host, final int port,
-            final InetAddress localAddress, int localPort,
+            final InetAddress localAddress, final int localPort,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         InetSocketAddress local = null;
         if (localAddress != null || localPort > 0) {
-            // we need to bind explicitly
-            if (localPort < 0) {
-                localPort = 0; // indicates "any"
-            }
-            local = new InetSocketAddress(localAddress, localPort);
+            local = new InetSocketAddress(localAddress, localPort > 0 ? localPort : 0);
         }
         final InetAddress remoteAddress = InetAddress.getByName(host);
         final InetSocketAddress remote = new InetSocketAddress(remoteAddress, port);

@@ -48,7 +48,6 @@ import org.apache.http.client.BackoffManager;
 import org.apache.http.client.ConnectionBackoffStrategy;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
@@ -111,7 +110,7 @@ import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.VersionInfo;
 
 /**
- * {@link HttpClient} builder.
+ * {@link CloseableHttpClient} builder.
  * <p>
  * The following system properties are taken into account by this class
  *  if the {@link #useSystemProperties()} method is called.
@@ -204,6 +203,11 @@ public class HttpClientBuilder {
     public final HttpClientBuilder setSSLSocketFactory(
             final LayeredConnectionSocketFactory sslSocketFactory) {
         this.sslSocketFactory = sslSocketFactory;
+        return this;
+    }
+
+    public final HttpClientBuilder setSslcontext(final SSLContext sslcontext) {
+        this.sslcontext = sslcontext;
         return this;
     }
 
@@ -409,6 +413,16 @@ public class HttpClientBuilder {
 
     public final HttpClientBuilder disableContentCompression() {
         contentCompressionDisabled = true;
+        return this;
+    }
+
+    public final HttpClientBuilder disableCookieManagement() {
+        this.cookieManagementDisabled = true;
+        return this;
+    }
+
+    public final HttpClientBuilder disableAuthCaching() {
+        this.authCachingDisabled = true;
         return this;
     }
 

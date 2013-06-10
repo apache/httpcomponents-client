@@ -49,7 +49,7 @@ public class SSLContexts {
      *
      * @return the default SSL socket factory
      */
-    public static final SSLContext createDefault() throws SSLInitializationException {
+    public static SSLContext createDefault() throws SSLInitializationException {
         try {
             final SSLContext sslcontext = SSLContext.getInstance(SSLContextBuilder.TLS);
             sslcontext.init(null, null, null);
@@ -70,7 +70,7 @@ public class SSLContexts {
      *
      * @return default system SSL context
      */
-    public static final SSLContext createSystemDefault() throws SSLInitializationException {
+    public static SSLContext createSystemDefault() throws SSLInitializationException {
         try {
             return SSLContext.getInstance("Default");
         } catch (final NoSuchAlgorithmException ex) {
@@ -83,7 +83,7 @@ public class SSLContexts {
      *
      * @return default system SSL context
      */
-    public static final SSLContextBuilder custom() {
+    public static SSLContextBuilder custom() {
         return new SSLContextBuilder();
     }
 

@@ -281,7 +281,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             } else {
                 this.state = state;
                 if (this.log.isDebugEnabled()) {
-                    String s;
+                    final String s;
                     if (keepalive > 0) {
                         s = "for " + keepalive + " " + tunit;
                     } else {
@@ -308,7 +308,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         Args.notNull(conn, "Connection");
         Args.notNull(route, "HTTP route");
         Asserts.check(conn == this.conn, "Connection not obtained from this manager");
-        HttpHost host;
+        final HttpHost host;
         if (route.getProxyHost() != null) {
             host = route.getProxyHost();
         } else {

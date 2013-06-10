@@ -122,7 +122,7 @@ public class MinimalClientExec implements ClientExecChain {
 
         final RequestConfig config = context.getRequestConfig();
 
-        HttpClientConnection managedConn;
+        final HttpClientConnection managedConn;
         try {
             final int timeout = config.getConnectionRequestTimeout();
             managedConn = connRequest.get(timeout > 0 ? timeout : 0, TimeUnit.MILLISECONDS);

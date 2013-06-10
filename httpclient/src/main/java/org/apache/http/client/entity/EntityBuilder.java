@@ -184,7 +184,7 @@ public class EntityBuilder {
     }
 
     public HttpEntity build() {
-        AbstractHttpEntity e;
+        final AbstractHttpEntity e;
         if (this.text != null) {
             e = new StringEntity(this.text, getContentOrDefault(ContentType.DEFAULT_TEXT));
         } else if (this.binary != null) {

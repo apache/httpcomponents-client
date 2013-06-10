@@ -102,7 +102,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
         final Header[] headers = response.getHeaders(this.headerName);
         final Map<String, Header> map = new HashMap<String, Header>(headers.length);
         for (final Header header : headers) {
-            CharArrayBuffer buffer;
+            final CharArrayBuffer buffer;
             int pos;
             if (header instanceof FormattedHeader) {
                 buffer = ((FormattedHeader) header).getBuffer();

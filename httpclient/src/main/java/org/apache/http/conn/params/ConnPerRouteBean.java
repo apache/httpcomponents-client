@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.pool.ConnPoolControl;
 import org.apache.http.util.Args;
 
 /**
@@ -42,7 +41,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  *
- * @deprecated (4.2)  use {@link ConnPoolControl}
+ * @deprecated (4.2)  use {@link org.apache.http.pool.ConnPoolControl}
  */
 @Deprecated
 @ThreadSafe

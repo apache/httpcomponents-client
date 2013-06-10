@@ -34,6 +34,7 @@ import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.Args;
+import org.apache.http.util.TextUtils;
 
 /**
  *
@@ -46,13 +47,10 @@ public class BasicPathHandler implements CookieAttributeHandler {
         super();
     }
 
-    public void parse(final SetCookie cookie, String value)
-            throws MalformedCookieException {
+    public void parse(
+            final SetCookie cookie, final String value) throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
-        if (value == null || value.trim().length() == 0) {
-            value = "/";
-        }
-        cookie.setPath(value);
+        cookie.setPath(!TextUtils.isBlank(value) ? value : "/");
     }
 
     public void validate(final Cookie cookie, final CookieOrigin origin)

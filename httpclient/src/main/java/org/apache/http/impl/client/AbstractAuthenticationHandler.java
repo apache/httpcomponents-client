@@ -46,7 +46,6 @@ import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationHandler;
-import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.params.AuthPolicy;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.protocol.HTTP;
@@ -59,7 +58,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  *
- * @deprecated (4.2)  use {@link AuthenticationStrategy}
+ * @deprecated (4.2)  use {@link org.apache.http.client.AuthenticationStrategy}
  */
 @Deprecated
 @Immutable
@@ -84,7 +83,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
 
         final Map<String, Header> map = new HashMap<String, Header>(headers.length);
         for (final Header header : headers) {
-            CharArrayBuffer buffer;
+            final CharArrayBuffer buffer;
             int pos;
             if (header instanceof FormattedHeader) {
                 buffer = ((FormattedHeader) header).getBuffer();

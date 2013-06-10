@@ -32,10 +32,10 @@ import java.util.zip.GZIPInputStream;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.entity.HttpEntityWrapper;
 
 /**
- * {@link HttpEntityWrapper} for handling gzip Content Coded responses.
+ * {@link org.apache.http.entity.HttpEntityWrapper} for handling gzip
+ * Content Coded responses.
  *
  * @since 4.1
  */

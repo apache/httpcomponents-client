@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.Header;
-import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
@@ -43,10 +42,10 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.Args;
 
 /**
- * Structure used to store an {@link HttpResponse} in a cache. Some entries
- * can optionally depend on system resources that may require explicit
- * deallocation. In such a case {@link #getResource()} should return a non
- * null instance of {@link Resource} that must be deallocated by calling
+ * Structure used to store an {@link org.apache.http.HttpResponse} in a cache.
+ * Some entries can optionally depend on system resources that may require
+ * explicit deallocation. In such a case {@link #getResource()} should return
+ * a non null instance of {@link Resource} that must be deallocated by calling
  * {@link Resource#dispose()} method when no longer used.
  *
  * @since 4.1
@@ -139,29 +138,32 @@ public class HttpCacheEntry implements Serializable {
     }
 
     /**
-     * Returns the {@link StatusLine} from the origin {@link HttpResponse}.
+     * Returns the {@link StatusLine} from the origin
+     * {@link org.apache.http.HttpResponse}.
      */
     public StatusLine getStatusLine() {
         return this.statusLine;
     }
 
     /**
-     * Returns the {@link ProtocolVersion} from the origin {@link HttpResponse}.
+     * Returns the {@link ProtocolVersion} from the origin
+     * {@link org.apache.http.HttpResponse}.
      */
     public ProtocolVersion getProtocolVersion() {
         return this.statusLine.getProtocolVersion();
     }
 
     /**
-     * Gets the reason phrase from the origin {@link HttpResponse}, for example,
-     * "Not Modified".
+     * Gets the reason phrase from the origin
+     * {@link org.apache.http.HttpResponse}, for example, "Not Modified".
      */
     public String getReasonPhrase() {
         return this.statusLine.getReasonPhrase();
     }
 
     /**
-     * Returns the HTTP response code from the origin {@link HttpResponse}.
+     * Returns the HTTP response code from the origin
+     * {@link org.apache.http.HttpResponse}.
      */
     public int getStatusCode() {
         return this.statusLine.getStatusCode();

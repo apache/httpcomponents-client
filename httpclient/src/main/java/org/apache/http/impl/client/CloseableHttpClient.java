@@ -213,7 +213,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
 
         final HttpResponse response = execute(target, request, context);
 
-        T result;
+        final T result;
         try {
             result = responseHandler.handleResponse(response);
         } catch (final Exception t) {

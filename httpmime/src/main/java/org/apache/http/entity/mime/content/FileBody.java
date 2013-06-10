@@ -35,13 +35,12 @@ import java.io.OutputStream;
 
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MIME;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.util.Args;
 
 /**
  * Binary body part backed by a file.
  *
- * @see MultipartEntityBuilder
+ * @see org.apache.http.entity.mime.MultipartEntityBuilder
  *
  * @since 4.0
  */
@@ -54,7 +53,7 @@ public class FileBody extends AbstractContentBody {
      * @since 4.1
      *
      * @deprecated (4.3) use {@link FileBody#FileBody(File, ContentType, String)}
-     *   or {@link MultipartEntityBuilder}
+     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
      */
     @Deprecated
     public FileBody(final File file,
@@ -68,7 +67,7 @@ public class FileBody extends AbstractContentBody {
      * @since 4.1
      *
      * @deprecated (4.3) use {@link FileBody#FileBody(File, ContentType)}
-     *   or {@link MultipartEntityBuilder}
+     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
      */
     @Deprecated
     public FileBody(final File file,
@@ -79,7 +78,7 @@ public class FileBody extends AbstractContentBody {
 
     /**
      * @deprecated (4.3) use {@link FileBody#FileBody(File, ContentType)}
-     *   or {@link MultipartEntityBuilder}
+     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
      */
     @Deprecated
     public FileBody(final File file, final String mimeType) {

@@ -49,7 +49,7 @@ public class CloneUtils {
         }
         if (obj instanceof Cloneable) {
             final Class<?> clazz = obj.getClass ();
-            Method m;
+            final Method m;
             try {
                 m = clazz.getMethod("clone", (Class[]) null);
             } catch (final NoSuchMethodException ex) {

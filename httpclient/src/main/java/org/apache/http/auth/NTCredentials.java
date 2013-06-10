@@ -63,7 +63,7 @@ public class NTCredentials implements Credentials, Serializable {
     public NTCredentials(final String usernamePassword) {
         super();
         Args.notNull(usernamePassword, "Username:password string");
-        String username;
+        final String username;
         final int atColon = usernamePassword.indexOf(':');
         if (atColon >= 0) {
             username = usernamePassword.substring(0, atColon);

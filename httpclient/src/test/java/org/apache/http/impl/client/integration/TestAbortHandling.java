@@ -368,17 +368,12 @@ public class TestAbortHandling extends IntegrationTestBase {
                     }
 
                     public HttpClientConnection get(
-                            long timeout, final TimeUnit tunit)
-                            throws InterruptedException,
-                            ConnectionPoolTimeoutException {
+                            final long timeout,
+                            final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
                         connLatch.countDown(); // notify waiter that we're getting a connection
 
                         // zero usually means sleep forever, but CountDownLatch doesn't interpret it that way.
-                        if(timeout == 0) {
-                            timeout = Integer.MAX_VALUE;
-                        }
-
-                        if(!awaitLatch.await(timeout, tunit)) {
+                        if(!awaitLatch.await(timeout > 0 ? timeout : Integer.MAX_VALUE, tunit)) {
                             throw new ConnectionPoolTimeoutException();
                         }
 
@@ -428,17 +423,12 @@ public class TestAbortHandling extends IntegrationTestBase {
                 }
 
                 public HttpClientConnection get(
-                        long timeout, final TimeUnit tunit)
-                        throws InterruptedException,
-                        ConnectionPoolTimeoutException {
+                        final long timeout,
+                        final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
                     connLatch.countDown(); // notify waiter that we're getting a connection
 
                     // zero usually means sleep forever, but CountDownLatch doesn't interpret it that way.
-                    if(timeout == 0) {
-                        timeout = Integer.MAX_VALUE;
-                    }
-
-                    if(!awaitLatch.await(timeout, tunit)) {
+                    if(!awaitLatch.await(timeout > 0 ? timeout : Integer.MAX_VALUE, tunit)) {
                         throw new ConnectionPoolTimeoutException();
                     }
 

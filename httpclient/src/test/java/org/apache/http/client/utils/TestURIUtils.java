@@ -30,16 +30,6 @@ import java.net.URI;
 import java.util.Arrays;
 
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Test;
 

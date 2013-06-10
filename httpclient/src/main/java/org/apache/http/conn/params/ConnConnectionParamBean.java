@@ -27,7 +27,6 @@
 
 package org.apache.http.conn.params;
 
-import org.apache.http.impl.conn.DefaultHttpResponseParser;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
@@ -38,7 +37,8 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.0
  *
- * @deprecated (4.2) do not use
+ * @deprecated (4.1) use custom {@link
+ *   org.apache.http.impl.conn.DefaultHttpResponseParser} implementation.
  */
 @Deprecated
 public class ConnConnectionParamBean extends HttpAbstractParamBean {
@@ -48,7 +48,8 @@ public class ConnConnectionParamBean extends HttpAbstractParamBean {
     }
 
     /**
-     * @deprecated (4.2)  Use custom {@link DefaultHttpResponseParser} implementation
+     * @deprecated (4.2)  Use custom {@link
+     *   org.apache.http.impl.conn.DefaultHttpResponseParser} implementation
      */
     @Deprecated
     public void setMaxStatusLineGarbage (final int maxStatusLineGarbage) {

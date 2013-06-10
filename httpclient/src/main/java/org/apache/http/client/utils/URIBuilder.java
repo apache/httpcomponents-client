@@ -470,20 +470,21 @@ public class URIBuilder {
         return buildString();
     }
 
-    private static String normalizePath(String path) {
-        if (path == null) {
+    private static String normalizePath(final String path) {
+        String s = path;
+        if (s == null) {
             return null;
         }
         int n = 0;
-        for (; n < path.length(); n++) {
-            if (path.charAt(n) != '/') {
+        for (; n < s.length(); n++) {
+            if (s.charAt(n) != '/') {
                 break;
             }
         }
         if (n > 1) {
-            path = path.substring(n - 1);
+            s = s.substring(n - 1);
         }
-        return path;
+        return s;
     }
 
 }

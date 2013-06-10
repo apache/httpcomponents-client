@@ -212,7 +212,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
                     if (managedConn.isMarkedReusable()) {
                         this.poolEntry.updateExpiry(keepalive, tunit != null ? tunit : TimeUnit.MILLISECONDS);
                         if (this.log.isDebugEnabled()) {
-                            String s;
+                            final String s;
                             if (keepalive > 0) {
                                 s = "for " + keepalive + " " + tunit;
                             } else {

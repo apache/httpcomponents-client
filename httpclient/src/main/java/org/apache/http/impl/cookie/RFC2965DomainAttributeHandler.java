@@ -55,8 +55,8 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
     /**
      * Parse cookie domain attribute.
      */
-    public void parse(final SetCookie cookie, String domain)
-            throws MalformedCookieException {
+    public void parse(
+            final SetCookie cookie, final String domain) throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
         if (domain == null) {
             throw new MalformedCookieException(
@@ -66,16 +66,17 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
             throw new MalformedCookieException(
                     "Blank value for domain attribute");
         }
-        domain = domain.toLowerCase(Locale.ENGLISH);
+        String s = domain;
+        s = s.toLowerCase(Locale.ENGLISH);
         if (!domain.startsWith(".")) {
             // Per RFC 2965 section 3.2.2
             // "... If an explicitly specified value does not start with
             // a dot, the user agent supplies a leading dot ..."
             // That effectively implies that the domain attribute
             // MAY NOT be an IP address of a host name
-            domain = '.' + domain;
+            s = '.' + s;
         }
-        cookie.setDomain(domain);
+        cookie.setDomain(s);
     }
 
     /**

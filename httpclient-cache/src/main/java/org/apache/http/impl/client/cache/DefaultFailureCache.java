@@ -72,7 +72,7 @@ public class DefaultFailureCache implements FailureCache {
         return storedErrorCode != null ? storedErrorCode.getErrorCount() : 0;
     }
 
-    public void resetErrorCount(String identifier) {
+    public void resetErrorCount(final String identifier) {
         if (identifier == null) {
             throw new IllegalArgumentException("identifier may not be null");
         }
@@ -106,7 +106,7 @@ public class DefaultFailureCache implements FailureCache {
                 }
             }
             else {
-                int errorCount = oldValue.getErrorCount();
+                final int errorCount = oldValue.getErrorCount();
                 if (errorCount == Integer.MAX_VALUE) {
                     return;
                 }

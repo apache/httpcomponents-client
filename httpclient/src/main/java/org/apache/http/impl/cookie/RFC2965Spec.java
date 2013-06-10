@@ -40,7 +40,6 @@ import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
-import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
 import org.apache.http.message.BufferedHeader;
@@ -48,7 +47,7 @@ import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * RFC 2965 compliant {@link CookieSpec} implementation.
+ * RFC 2965 compliant {@link org.apache.http.cookie.CookieSpec} implementation.
  *
  * @since 4.0
  */
@@ -75,24 +74,22 @@ public class RFC2965Spec extends RFC2109Spec {
     @Override
     public List<Cookie> parse(
             final Header header,
-            CookieOrigin origin) throws MalformedCookieException {
+            final CookieOrigin origin) throws MalformedCookieException {
         Args.notNull(header, "Header");
         Args.notNull(origin, "Cookie origin");
         if (!header.getName().equalsIgnoreCase(SM.SET_COOKIE2)) {
             throw new MalformedCookieException("Unrecognized cookie header '"
                     + header.toString() + "'");
         }
-        origin = adjustEffectiveHost(origin);
         final HeaderElement[] elems = header.getElements();
-        return createCookies(elems, origin);
+        return createCookies(elems, adjustEffectiveHost(origin));
     }
 
     @Override
     protected List<Cookie> parse(
             final HeaderElement[] elems,
-            CookieOrigin origin) throws MalformedCookieException {
-        origin = adjustEffectiveHost(origin);
-        return createCookies(elems, origin);
+            final CookieOrigin origin) throws MalformedCookieException {
+        return createCookies(elems, adjustEffectiveHost(origin));
     }
 
     private List<Cookie> createCookies(
@@ -138,20 +135,18 @@ public class RFC2965Spec extends RFC2109Spec {
     }
 
     @Override
-    public void validate(final Cookie cookie, CookieOrigin origin)
-            throws MalformedCookieException {
+    public void validate(
+            final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
-        origin = adjustEffectiveHost(origin);
-        super.validate(cookie, origin);
+        super.validate(cookie, adjustEffectiveHost(origin));
     }
 
     @Override
-    public boolean match(final Cookie cookie, CookieOrigin origin) {
+    public boolean match(final Cookie cookie, final CookieOrigin origin) {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
-        origin = adjustEffectiveHost(origin);
-        return super.match(cookie, origin);
+        return super.match(cookie, adjustEffectiveHost(origin));
     }
 
     /**
@@ -171,7 +166,8 @@ public class RFC2965Spec extends RFC2109Spec {
                 if (s.trim().length() > 0) {
                     final int[] ports = cookie.getPorts();
                     if (ports != null) {
-                        for (int i = 0, len = ports.length; i < len; i++) {
+                        final int len = ports.length;
+                        for (int i = 0; i < len; i++) {
                             if (i > 0) {
                                 buffer.append(",");
                             }

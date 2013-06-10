@@ -49,32 +49,32 @@ final class PropertiesUtils {
         register(new DoublePropertyConverter(), double.class, Double.class);
     }
 
-    private static void register(PropertyConverter<?> converter, Class<?>...targetTypes) {
-        for (Class<?> targetType : targetTypes) {
+    private static void register(final PropertyConverter<?> converter, final Class<?>...targetTypes) {
+        for (final Class<?> targetType : targetTypes) {
             CONVERTERS_REGISTRY.put(targetType, converter);
         }
     }
 
-    public static <T> T to(Object propValue, Class<T> targetType, T defaultValue) {
-        if (propValue == null) {
+    public static <T> T to(final Object propValue, final Class<T> targetType, final T defaultValue) {
+        Object v = propValue;
+        if (v == null) {
             return defaultValue;
         }
 
         if (!targetType.isArray()) {
-            propValue = toObject(propValue);
+            v = toObject(v);
         }
 
-        if (targetType.isInstance(propValue)) {
-            return targetType.cast(propValue);
+        if (targetType.isInstance(v)) {
+            return targetType.cast(v);
         }
 
         if (CONVERTERS_REGISTRY.containsKey(targetType)) {
-            @SuppressWarnings("unchecked") // type driven by targetType
+            @SuppressWarnings("unchecked") final // type driven by targetType
             PropertyConverter<T> converter = (PropertyConverter<T>) CONVERTERS_REGISTRY.get(targetType);
             try {
-                return converter.to(propValue);
-            } catch (Throwable t) {
-                // don't care, fall through to default value
+                return converter.to(v);
+            } catch (final Exception ignore) {
             }
         }
 
@@ -90,14 +90,14 @@ final class PropertiesUtils {
      *
      * @param propValue the parameter to convert.
      */
-    private static Object toObject(Object propValue) {
+    private static Object toObject(final Object propValue) {
        if (propValue.getClass().isArray()) {
-           Object[] prop = (Object[]) propValue;
+           final Object[] prop = (Object[]) propValue;
            return prop.length > 0 ? prop[0] : null;
        }
 
        if (propValue instanceof Collection<?>) {
-           Collection<?> prop = (Collection<?>) propValue;
+           final Collection<?> prop = (Collection<?>) propValue;
            return prop.isEmpty() ? null : prop.iterator().next();
        }
 
@@ -119,7 +119,7 @@ final class PropertiesUtils {
 
     private static class BooleanPropertyConverter implements PropertyConverter<Boolean> {
 
-        public Boolean to(Object propValue) {
+        public Boolean to(final Object propValue) {
             return Boolean.valueOf(String.valueOf(propValue));
         }
 
@@ -127,7 +127,7 @@ final class PropertiesUtils {
 
     private static class StringPropertyConverter implements PropertyConverter<String> {
 
-        public String to(Object propValue) {
+        public String to(final Object propValue) {
             return String.valueOf(propValue);
         }
 
@@ -135,7 +135,7 @@ final class PropertiesUtils {
 
     private static class StringArrayPropertyConverter implements PropertyConverter<String[]> {
 
-        public String[] to(Object propValue) {
+        public String[] to(final Object propValue) {
             if (propValue instanceof String) {
                 // single string
                 return new String[] { (String) propValue };
@@ -143,9 +143,9 @@ final class PropertiesUtils {
 
             if (propValue.getClass().isArray()) {
                 // other array
-                Object[] valueArray = (Object[]) propValue;
-                List<String> values = new ArrayList<String>(valueArray.length);
-                for (Object value : valueArray) {
+                final Object[] valueArray = (Object[]) propValue;
+                final List<String> values = new ArrayList<String>(valueArray.length);
+                for (final Object value : valueArray) {
                     if (value != null) {
                         values.add(value.toString());
                     }
@@ -156,9 +156,9 @@ final class PropertiesUtils {
 
             if (propValue instanceof Collection<?>) {
                 // collection
-                Collection<?> valueCollection = (Collection<?>) propValue;
-                List<String> valueList = new ArrayList<String>(valueCollection.size());
-                for (Object value : valueCollection) {
+                final Collection<?> valueCollection = (Collection<?>) propValue;
+                final List<String> valueList = new ArrayList<String>(valueCollection.size());
+                for (final Object value : valueCollection) {
                     if (value != null) {
                         valueList.add(value.toString());
                     }
@@ -174,7 +174,7 @@ final class PropertiesUtils {
 
     private static class IntegerPropertyConverter implements PropertyConverter<Integer> {
 
-        public Integer to(Object propValue) {
+        public Integer to(final Object propValue) {
             return Integer.valueOf(String.valueOf(propValue));
         }
 
@@ -182,7 +182,7 @@ final class PropertiesUtils {
 
     private static class LongPropertyConverter implements PropertyConverter<Long> {
 
-        public Long to(Object propValue) {
+        public Long to(final Object propValue) {
             return Long.valueOf(String.valueOf(propValue));
         }
 
@@ -190,7 +190,7 @@ final class PropertiesUtils {
 
     private static class DoublePropertyConverter implements PropertyConverter<Double> {
 
-        public Double to(Object propValue) {
+        public Double to(final Object propValue) {
             return Double.valueOf(String.valueOf(propValue));
         }
 

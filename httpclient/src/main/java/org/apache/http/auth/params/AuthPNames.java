@@ -27,17 +27,14 @@
 
 package org.apache.http.auth.params;
 
-import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.client.config.RequestConfig;
-
 /**
  * Parameter names for HTTP authentication classes.
  *
  * @since 4.0
  *
- * @deprecated (4.3) use {@link RequestConfig} and constructor parameters of
- *   {@link AuthSchemeProvider}s.
+ * @deprecated (4.3) use {@link org.apache.http.client.config.RequestConfig}
+ *   and constructor parameters of
+ *   {@link org.apache.http.auth.AuthSchemeProvider}s.
 */
 @Deprecated
 public interface AuthPNames {
@@ -51,24 +48,26 @@ public interface AuthPNames {
     public static final String CREDENTIAL_CHARSET = "http.auth.credential-charset";
 
     /**
-     * Defines the order of preference for supported {@link AuthScheme}s when
-     * authenticating with the target host.
+     * Defines the order of preference for supported
+     *  {@link org.apache.http.auth.AuthScheme}s when authenticating with
+     *  the target host.
      * <p>
      * This parameter expects a value of type {@link java.util.Collection}. The
      * collection is expected to contain {@link String} instances representing
      * a name of an authentication scheme as returned by
-     * {@link AuthScheme#getSchemeName()}.
+     * {@link org.apache.http.auth.AuthScheme#getSchemeName()}.
      */
     public static final String TARGET_AUTH_PREF = "http.auth.target-scheme-pref";
 
     /**
-     * Defines the order of preference for supported {@link AuthScheme}s when
-     * authenticating with the proxy host.
+     * Defines the order of preference for supported
+     *  {@link org.apache.http.auth.AuthScheme}s when authenticating with the
+     *  proxy host.
      * <p>
      * This parameter expects a value of type {@link java.util.Collection}. The
      * collection is expected to contain {@link String} instances representing
      * a name of an authentication scheme as returned by
-     * {@link AuthScheme#getSchemeName()}.
+     * {@link org.apache.http.auth.AuthScheme#getSchemeName()}.
      */
     public static final String PROXY_AUTH_PREF = "http.auth.proxy-scheme-pref";
 

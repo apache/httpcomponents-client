@@ -42,7 +42,6 @@ import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.DnsResolver;
-import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.HttpInetSocketAddress;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.scheme.Scheme;
@@ -215,7 +214,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         Asserts.check(schm.getSchemeSocketFactory() instanceof LayeredConnectionSocketFactory,
             "Socket factory must implement SchemeLayeredSocketFactory");
         final SchemeLayeredSocketFactory lsf = (SchemeLayeredSocketFactory) schm.getSchemeSocketFactory();
-        Socket sock = lsf.createLayeredSocket(
+        final Socket sock = lsf.createLayeredSocket(
                 conn.getSocket(), target.getHostName(), schm.resolvePort(target.getPort()), params);
         prepareSocket(sock, context, params);
         conn.update(sock, target, lsf.isSecure(sock), params);

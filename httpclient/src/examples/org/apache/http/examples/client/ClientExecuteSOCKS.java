@@ -36,7 +36,6 @@ import java.net.SocketTimeoutException;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -51,7 +50,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 /**
- * How to send a request via SOCKS proxy using {@link HttpClient}.
+ * How to send a request via SOCKS proxy.
  *
  * @since 4.1
  */

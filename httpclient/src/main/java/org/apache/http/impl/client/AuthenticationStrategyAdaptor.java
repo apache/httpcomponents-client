@@ -101,7 +101,7 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
             return options;
         }
 
-        AuthScheme authScheme;
+        final AuthScheme authScheme;
         try {
             authScheme = this.handler.selectScheme(challenges, response, context);
         } catch (final AuthenticationException ex) {

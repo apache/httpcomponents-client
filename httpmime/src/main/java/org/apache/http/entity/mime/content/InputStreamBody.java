@@ -33,13 +33,12 @@ import java.io.OutputStream;
 
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MIME;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.util.Args;
 
 /**
  * Binary body part backed by an input stream.
  *
- * @see MultipartEntityBuilder
+ * @see org.apache.http.entity.mime.MultipartEntityBuilder
  *
  * @since 4.0
  */
@@ -52,7 +51,7 @@ public class InputStreamBody extends AbstractContentBody {
      * @since 4.1
      *
      * @deprecated (4.3) use {@link InputStreamBody#InputStreamBody(InputStream, ContentType,
-     *  String)} or {@link MultipartEntityBuilder}
+     *  String)} or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
      */
     @Deprecated
     public InputStreamBody(final InputStream in, final String mimeType, final String filename) {

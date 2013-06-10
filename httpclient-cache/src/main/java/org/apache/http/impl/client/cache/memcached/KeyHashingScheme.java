@@ -51,14 +51,13 @@
  *
  */package org.apache.http.impl.client.cache.memcached;
 
-import org.apache.http.client.cache.HttpCacheStorage;
-
 /**
- * Since the {@link HttpCacheStorage} interface expects to use variant-annotated
- * URLs for its storage keys, but Memcached has a maximum key size, we need to
- * support mapping storage keys to cache keys. Clients can implement this
- * interface to change the way the mapping is done (for example, to add a prefix
- * to all cache keys to provide a form of memcached namespacing).
+ * Since the {@link org.apache.http.client.cache.HttpCacheStorage} interface
+ * expects to use variant-annotated URLs for its storage keys, but Memcached
+ * has a maximum key size, we need to support mapping storage keys to cache
+ * keys. Clients can implement this interface to change the way the mapping
+ * is done (for example, to add a prefix to all cache keys to provide a form
+ * of memcached namespacing).
  */
 public interface KeyHashingScheme {
 

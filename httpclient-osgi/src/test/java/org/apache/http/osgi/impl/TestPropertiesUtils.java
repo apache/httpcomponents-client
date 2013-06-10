@@ -116,13 +116,15 @@ public final class TestPropertiesUtils {
         assertConverted(789d, "not a double", Double.class, 789d);
     }
 
-    private static <T> void assertConverted(T expected, Object propValue, Class<T> targetType, T defaultValue) {
-        T actual = to(propValue, targetType, defaultValue);
+    private static <T> void assertConverted(
+            final T expected, final Object propValue, final Class<T> targetType, final T defaultValue) {
+        final T actual = to(propValue, targetType, defaultValue);
         assertEquals(expected, actual);
     }
 
-    private static <T> void assertConvertedArray(T[] expected, Object propValue, Class<T[]> targetType, T[] defaultValue) {
-        T[] actual = to(propValue, targetType, defaultValue);
+    private static <T> void assertConvertedArray(
+            final T[] expected, final Object propValue, final Class<T[]> targetType, final T[] defaultValue) {
+        final T[] actual = to(propValue, targetType, defaultValue);
         assertArrayEquals(expected, actual);
     }
 

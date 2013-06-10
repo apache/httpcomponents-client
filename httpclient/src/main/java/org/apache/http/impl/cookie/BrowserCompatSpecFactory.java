@@ -50,12 +50,12 @@ public class BrowserCompatSpecFactory implements CookieSpecFactory, CookieSpecPr
     public enum SecurityLevel {
         SECURITYLEVEL_DEFAULT,
         SECURITYLEVEL_IE_MEDIUM
-    };
+    }
 
     private final String[] datepatterns;
     private final SecurityLevel securityLevel;
 
-    public BrowserCompatSpecFactory(final String[] datepatterns, SecurityLevel securityLevel) {
+    public BrowserCompatSpecFactory(final String[] datepatterns, final SecurityLevel securityLevel) {
         super();
         this.datepatterns = datepatterns;
         this.securityLevel = securityLevel;

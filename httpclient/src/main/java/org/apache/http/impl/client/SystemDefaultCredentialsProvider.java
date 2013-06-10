@@ -48,7 +48,7 @@ import org.apache.http.util.Args;
 @ThreadSafe
 public class SystemDefaultCredentialsProvider implements CredentialsProvider {
 
-    private static Map<String, String> SCHEME_MAP;
+    private static final Map<String, String> SCHEME_MAP;
 
     static {
         SCHEME_MAP = new ConcurrentHashMap<String, String>();

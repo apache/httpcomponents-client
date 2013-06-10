@@ -40,7 +40,6 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookiePathComparator;
 import org.apache.http.cookie.CookieRestrictionViolationException;
-import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
 import org.apache.http.message.BufferedHeader;
@@ -48,9 +47,9 @@ import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * RFC 2109 compliant {@link CookieSpec} implementation. This is an older
- * version of the official HTTP state management specification superseded
- * by RFC 2965.
+ * RFC 2109 compliant {@link org.apache.http.cookie.CookieSpec} implementation.
+ * This is an older version of the official HTTP state management specification
+ * superseded by RFC 2965.
  *
  * @see RFC2965Spec
  *
@@ -120,17 +119,20 @@ public class RFC2109Spec extends CookieSpecBase {
         super.validate(cookie, origin);
     }
 
-    public List<Header> formatCookies(List<Cookie> cookies) {
+    public List<Header> formatCookies(final List<Cookie> cookies) {
         Args.notEmpty(cookies, "List of cookies");
+        List<Cookie> cookieList;
         if (cookies.size() > 1) {
             // Create a mutable copy and sort the copy.
-            cookies = new ArrayList<Cookie>(cookies);
-            Collections.sort(cookies, PATH_COMPARATOR);
+            cookieList = new ArrayList<Cookie>(cookies);
+            Collections.sort(cookieList, PATH_COMPARATOR);
+        } else {
+            cookieList = cookies;
         }
         if (this.oneHeader) {
-            return doFormatOneHeader(cookies);
+            return doFormatOneHeader(cookieList);
         } else {
-            return doFormatManyHeaders(cookies);
+            return doFormatManyHeaders(cookieList);
         }
     }
 

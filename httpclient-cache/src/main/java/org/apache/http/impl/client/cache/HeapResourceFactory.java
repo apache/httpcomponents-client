@@ -76,7 +76,7 @@ public class HeapResourceFactory implements ResourceFactory {
         return createResource(body);
     }
 
-    Resource createResource(byte[] buf) {
+    Resource createResource(final byte[] buf) {
         return new HeapResource(buf);
     }
 

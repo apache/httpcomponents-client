@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.params.HttpParams;
 
 /**
@@ -39,7 +38,8 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.2
  *
- * @deprecated (4.3) use {@link LayeredConnectionSocketFactory}
+ * @deprecated (4.3) use {@link
+ *   org.apache.http.conn.socket.LayeredConnectionSocketFactory}
  */
 @Deprecated
 public interface SchemeLayeredSocketFactory extends SchemeSocketFactory {

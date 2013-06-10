@@ -183,14 +183,11 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     @Override
     protected SessionInputBuffer createSessionInputBuffer(
             final Socket socket,
-            int buffersize,
+            final int buffersize,
             final HttpParams params) throws IOException {
-        if (buffersize == -1) {
-            buffersize = 8192;
-        }
         SessionInputBuffer inbuffer = super.createSessionInputBuffer(
                 socket,
-                buffersize,
+                buffersize > 0 ? buffersize : 8192,
                 params);
         if (wireLog.isDebugEnabled()) {
             inbuffer = new LoggingSessionInputBuffer(
@@ -204,14 +201,11 @@ public class DefaultClientConnection extends SocketHttpClientConnection
     @Override
     protected SessionOutputBuffer createSessionOutputBuffer(
             final Socket socket,
-            int buffersize,
+            final int buffersize,
             final HttpParams params) throws IOException {
-        if (buffersize == -1) {
-            buffersize = 8192;
-        }
         SessionOutputBuffer outbuffer = super.createSessionOutputBuffer(
                 socket,
-                buffersize,
+                buffersize > 0 ? buffersize : 8192,
                 params);
         if (wireLog.isDebugEnabled()) {
             outbuffer = new LoggingSessionOutputBuffer(

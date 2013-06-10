@@ -28,7 +28,6 @@
 package org.apache.http.client.utils;
 
 import java.lang.ref.SoftReference;
-import java.text.DateFormat;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -125,31 +124,24 @@ public final class DateUtils {
      * @return the parsed date or null if input could not be parsed
      */
     public static Date parseDate(
-        String dateValue,
-        String[] dateFormats,
-        Date startDate
-    ) {
+            final String dateValue,
+            final String[] dateFormats,
+            final Date startDate) {
         Args.notNull(dateValue, "Date value");
-        if (dateFormats == null) {
-            dateFormats = DEFAULT_PATTERNS;
-        }
-        if (startDate == null) {
-            startDate = DEFAULT_TWO_DIGIT_YEAR_START;
-        }
+        final String[] localDateFormats = dateFormats != null ? dateFormats : DEFAULT_PATTERNS;
+        final Date localStartDate = startDate != null ? startDate : DEFAULT_TWO_DIGIT_YEAR_START;
+        String v = dateValue;
         // trim single quotes around date if present
         // see issue #5279
-        if (dateValue.length() > 1
-            && dateValue.startsWith("'")
-            && dateValue.endsWith("'")
-        ) {
-            dateValue = dateValue.substring (1, dateValue.length() - 1);
+        if (v.length() > 1 && v.startsWith("'") && v.endsWith("'")) {
+            v = v.substring (1, v.length() - 1);
         }
 
-        for (final String dateFormat : dateFormats) {
+        for (final String dateFormat : localDateFormats) {
             final SimpleDateFormat dateParser = DateFormatHolder.formatFor(dateFormat);
-            dateParser.set2DigitYearStart(startDate);
+            dateParser.set2DigitYearStart(localStartDate);
             final ParsePosition pos = new ParsePosition(0);
-            final Date result = dateParser.parse(dateValue, pos);
+            final Date result = dateParser.parse(v, pos);
             if (pos.getIndex() != 0) {
                 return result;
             }
@@ -190,7 +182,7 @@ public final class DateUtils {
     }
 
     /**
-     * Clears thread-local variable containing {@link DateFormat} cache.
+     * Clears thread-local variable containing {@link java.text.DateFormat} cache.
      *
      * @since 4.3
      */

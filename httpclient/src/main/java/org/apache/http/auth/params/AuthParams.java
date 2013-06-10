@@ -28,8 +28,6 @@
 package org.apache.http.auth.params;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.Args;
@@ -40,8 +38,9 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  *
- * @deprecated (4.3) use {@link RequestConfig} and constructor parameters of
- *   {@link AuthSchemeProvider}s.
+ * @deprecated (4.3) use {@link org.apache.http.client.config.RequestConfig}
+ *   and constructor parameters of
+ *   {@link org.apache.http.auth.AuthSchemeProvider}s.
  */
 @Immutable
 @Deprecated

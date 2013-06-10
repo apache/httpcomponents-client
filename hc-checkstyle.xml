@@ -26,12 +26,11 @@
     <module name="AvoidStarImport"/>
     <module name="IllegalImport" />
     <module name="RedundantImport" />
+    <module name="UnusedImports"/>
+    <module name="EqualsHashCode"/>
   </module>
   <module name="Header">
     <property name="headerFile" value="asl2.header" />
-  </module>
-  <module name="FileLength">
-    <property name="max" value="10000" />
   </module>
   <module name="FileTabCharacter">
     <property name="eachLine" value="true"/>

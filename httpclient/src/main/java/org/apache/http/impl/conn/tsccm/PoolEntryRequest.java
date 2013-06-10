@@ -26,7 +26,6 @@
  */
 package org.apache.http.impl.conn.tsccm;
 
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.conn.ConnectionPoolTimeoutException;
@@ -36,7 +35,7 @@ import org.apache.http.conn.ConnectionPoolTimeoutException;
  *
  * @since 4.0
  *
- * @deprecated (4.2)  use {@link Future}
+ * @deprecated (4.2)  use {@link java.util.concurrent.Future}
  */
 @Deprecated
 public interface PoolEntryRequest {

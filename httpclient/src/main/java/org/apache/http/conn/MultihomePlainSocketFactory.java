@@ -38,7 +38,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.http.conn.scheme.SchemeSocketFactory;
 import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -55,7 +54,7 @@ import org.apache.http.util.Asserts;
  * @since 4.0
  *
  * @deprecated (4.1)  Do not use. For multihome support socket factories must implement
- * {@link SchemeSocketFactory} interface.
+ * {@link org.apache.http.conn.scheme.SchemeSocketFactory} interface.
  */
 @Deprecated
 @Immutable
@@ -93,7 +92,7 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
      * given host name resolves to. If connection to all addresses fail, the
      * last I/O exception is propagated to the caller.
      *
-     * @param sock socket to connect to any of the given addresses
+     * @param socket socket to connect to any of the given addresses
      * @param host Host name to connect to
      * @param port the port to connect to
      * @param localAddress local address
@@ -103,27 +102,21 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
      * @throws  IOException if an error occurs during the connection
      * @throws  SocketTimeoutException if timeout expires before connecting
      */
-    public Socket connectSocket(Socket sock, final String host, final int port,
-                                final InetAddress localAddress, int localPort,
+    public Socket connectSocket(final Socket socket, final String host, final int port,
+                                final InetAddress localAddress, final int localPort,
                                 final HttpParams params)
         throws IOException {
         Args.notNull(host, "Target host");
         Args.notNull(params, "HTTP parameters");
 
+        Socket sock = socket;
         if (sock == null) {
             sock = createSocket();
         }
 
         if ((localAddress != null) || (localPort > 0)) {
-
-            // we need to bind explicitly
-            if (localPort < 0)
-             {
-                localPort = 0; // indicates "any"
-            }
-
-            final InetSocketAddress isa =
-                new InetSocketAddress(localAddress, localPort);
+            final InetSocketAddress isa = new InetSocketAddress(localAddress,
+                    localPort > 0 ? localPort : 0);
             sock.bind(isa);
         }
 

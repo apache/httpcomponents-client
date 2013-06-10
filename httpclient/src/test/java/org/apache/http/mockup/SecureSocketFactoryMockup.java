@@ -29,12 +29,11 @@ package org.apache.http.mockup;
 
 import java.net.Socket;
 
-import org.apache.http.conn.scheme.LayeredSchemeSocketFactory;
 import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
 import org.apache.http.params.HttpParams;
 
 /**
- * {@link LayeredSchemeSocketFactory} mockup implementation.
+ * {@link org.apache.http.conn.scheme.LayeredSchemeSocketFactory} mockup implementation.
  */
 @Deprecated
 public class SecureSocketFactoryMockup extends SocketFactoryMockup

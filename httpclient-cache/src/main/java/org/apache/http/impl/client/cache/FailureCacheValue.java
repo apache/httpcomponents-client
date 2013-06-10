@@ -40,7 +40,7 @@ public class FailureCacheValue {
     private final String key;
     private final int errorCount;
 
-    public FailureCacheValue(String key, int errorCount) {
+    public FailureCacheValue(final String key, final int errorCount) {
         this.creationTimeInNanos = System.nanoTime();
         this.key = key;
         this.errorCount = errorCount;
@@ -61,6 +61,7 @@ public class FailureCacheValue {
 
     @Override
     public String toString() {
-        return "[entry creationTimeInNanos=" + creationTimeInNanos + "; key=" + key + "; errorCount=" + errorCount + ']';
+        return "[entry creationTimeInNanos=" + creationTimeInNanos + "; " +
+                "key=" + key + "; errorCount=" + errorCount + ']';
     }
 }

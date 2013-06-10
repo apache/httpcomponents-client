@@ -92,7 +92,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     private HttpRoute(final InetAddress local,
                       final HttpHost target, final HttpHost[] proxies,
                       final boolean secure,
-                      TunnelType tunnelled, LayerType layered) {
+                      final TunnelType tunnelled, final LayerType layered) {
         Args.notNull(target, "Target host");
         Args.notNull(proxies, "Array of proxy hosts");
         for (final HttpHost proxy: proxies) {
@@ -101,22 +101,13 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         if (tunnelled == TunnelType.TUNNELLED) {
             Args.check(proxies.length > 0, "Proxy required if tunnelled");
         }
-        // tunnelled is already checked above, that is in line with the default
-        if (tunnelled == null) {
-            tunnelled = TunnelType.PLAIN;
-        }
-        if (layered == null) {
-            layered = LayerType.PLAIN;
-        }
-
         this.targetHost   = target;
         this.localAddress = local;
         this.proxyChain   = proxies;
         this.secure       = secure;
-        this.tunnelled    = tunnelled;
-        this.layered      = layered;
+        this.tunnelled    = tunnelled != null ? tunnelled : TunnelType.PLAIN;
+        this.layered      = layered != null ? layered : LayerType.PLAIN;
     }
-
 
     /**
      * Creates a new route with all attributes specified explicitly.

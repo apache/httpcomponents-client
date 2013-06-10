@@ -47,7 +47,6 @@ import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ChallengeState;
-import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeaderValueFormatter;
@@ -178,7 +177,8 @@ public class DigestScheme extends RFC2617Scheme {
     }
 
     /**
-     * @deprecated (4.2) Use {@link ContextAwareAuthScheme#authenticate(Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
+     * @deprecated (4.2) Use {@link org.apache.http.auth.ContextAwareAuthScheme#authenticate(
+     *   Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
      */
     @Deprecated
     public Header authenticate(
@@ -288,7 +288,7 @@ public class DigestScheme extends RFC2617Scheme {
             digAlg = "MD5";
         }
 
-        MessageDigest digester;
+        final MessageDigest digester;
         try {
             digester = createMessageDigest(digAlg);
         } catch (final UnsupportedDigestAlgorithmException ex) {
@@ -377,7 +377,7 @@ public class DigestScheme extends RFC2617Scheme {
 
         // 3.2.2.1
 
-        String digestValue;
+        final String digestValue;
         if (qop == QOP_MISSING) {
             sb.setLength(0);
             sb.append(hasha1).append(':').append(nonce).append(':').append(hasha2);

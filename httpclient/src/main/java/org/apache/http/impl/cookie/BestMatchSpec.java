@@ -111,8 +111,8 @@ public class BestMatchSpec implements CookieSpec {
             // Need to parse the header again, because Netscape style cookies do not correctly
             // support multiple header elements (comma cannot be treated as an element separator)
             final NetscapeDraftHeaderParser parser = NetscapeDraftHeaderParser.DEFAULT;
-            CharArrayBuffer buffer;
-            ParserCursor cursor;
+            final CharArrayBuffer buffer;
+            final ParserCursor cursor;
             if (header instanceof FormattedHeader) {
                 buffer = ((FormattedHeader) header).getBuffer();
                 cursor = new ParserCursor(

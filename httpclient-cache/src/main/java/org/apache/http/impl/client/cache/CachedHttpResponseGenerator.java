@@ -28,8 +28,6 @@ package org.apache.http.impl.client.cache;
 
 import java.util.Date;
 
-import net.sf.ehcache.CacheEntry;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -44,7 +42,7 @@ import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HTTP;
 
 /**
- * Rebuilds an {@link HttpResponse} from a {@link CacheEntry}
+ * Rebuilds an {@link HttpResponse} from a {@link net.sf.ehcache.CacheEntry}
  *
  * @since 4.1
  */

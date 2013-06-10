@@ -43,7 +43,7 @@ import org.apache.http.pool.ConnFactory;
 @ThreadSafe
 class CPool extends AbstractConnPool<HttpRoute, ManagedHttpClientConnection, CPoolEntry> {
 
-    private static AtomicLong COUNTER = new AtomicLong();
+    private static final AtomicLong COUNTER = new AtomicLong();
 
     private final Log log = LogFactory.getLog(CPool.class);
     private final long timeToLive;

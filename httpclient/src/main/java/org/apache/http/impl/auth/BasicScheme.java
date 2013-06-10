@@ -36,9 +36,7 @@ import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ChallengeState;
-import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
-import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.BasicHttpContext;
@@ -130,7 +128,8 @@ public class BasicScheme extends RFC2617Scheme {
     }
 
     /**
-     * @deprecated (4.2) Use {@link ContextAwareAuthScheme#authenticate(Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
+     * @deprecated (4.2) Use {@link org.apache.http.auth.ContextAwareAuthScheme#authenticate(
+     *   Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
      */
     @Deprecated
     public Header authenticate(
@@ -143,8 +142,8 @@ public class BasicScheme extends RFC2617Scheme {
      *
      * @param credentials The set of credentials to be used for authentication
      * @param request The request being authenticated
-     * @throws InvalidCredentialsException if authentication credentials are not
-     *   valid or not applicable for this authentication scheme
+     * @throws org.apache.http.auth.InvalidCredentialsException if authentication
+     *   credentials are not valid or not applicable for this authentication scheme
      * @throws AuthenticationException if authorization string cannot
      *   be generated due to an authentication failure
      *

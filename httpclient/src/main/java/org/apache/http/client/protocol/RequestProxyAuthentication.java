@@ -36,7 +36,6 @@ import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthState;
 import org.apache.http.conn.HttpRoutedConnection;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.client.HttpAuthenticator;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
@@ -47,7 +46,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  *
- * @deprecated (4.3) use {@link HttpAuthenticator}.
+ * @deprecated (4.3) use {@link org.apache.http.impl.auth.HttpAuthenticator}.
  */
 @Deprecated
 @Immutable

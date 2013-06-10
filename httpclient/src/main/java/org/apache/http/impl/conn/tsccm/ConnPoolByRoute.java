@@ -446,7 +446,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
             if (reusable && rospl.getCapacity() >= 0) {
                 if (log.isDebugEnabled()) {
-                    String s;
+                    final String s;
                     if (validDuration > 0) {
                         s = "for " + validDuration + " " + timeUnit;
                     } else {
@@ -711,16 +711,14 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @param tunit     the unit for the <code>idletime</code>
      */
     @Override
-    public void closeIdleConnections(long idletime, final TimeUnit tunit) {
+    public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
         Args.notNull(tunit, "Time unit");
-        if (idletime < 0) {
-            idletime = 0;
-        }
+        final long t = idletime > 0 ? idletime : 0;
         if (log.isDebugEnabled()) {
-            log.debug("Closing connections idle longer than "  + idletime + " " + tunit);
+            log.debug("Closing connections idle longer than "  + t + " " + tunit);
         }
         // the latest time for which connections will be closed
-        final long deadline = System.currentTimeMillis() - tunit.toMillis(idletime);
+        final long deadline = System.currentTimeMillis() - tunit.toMillis(t);
         poolLock.lock();
         try {
             final Iterator<BasicPoolEntry>  iter = freeConnections.iterator();

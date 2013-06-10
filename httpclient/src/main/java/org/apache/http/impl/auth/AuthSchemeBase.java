@@ -97,7 +97,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
             throw new MalformedChallengeException("Unexpected header name: " + authheader);
         }
 
-        CharArrayBuffer buffer;
+        final CharArrayBuffer buffer;
         int pos;
         if (header instanceof FormattedHeader) {
             buffer = ((FormattedHeader) header).getBuffer();

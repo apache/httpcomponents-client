@@ -78,7 +78,7 @@ class ResponseCachingPolicy {
     public ResponseCachingPolicy(final long maxObjectSizeBytes,
             final boolean sharedCache,
             final boolean neverCache1_0ResponsesWithQueryString,
-            boolean allow303Caching) {
+            final boolean allow303Caching) {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
         this.sharedCache = sharedCache;
         this.neverCache1_0ResponsesWithQueryString = neverCache1_0ResponsesWithQueryString;

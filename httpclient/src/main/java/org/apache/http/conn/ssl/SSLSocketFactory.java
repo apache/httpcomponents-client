@@ -28,11 +28,9 @@
 package org.apache.http.conn.ssl;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -166,6 +164,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         this(SSLContexts.custom()
                 .useProtocol(algorithm)
+                .setSecureRandom(random)
                 .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
                 .loadTrustMaterial(truststore)
                 .build(),
@@ -190,6 +189,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         this(SSLContexts.custom()
                 .useProtocol(algorithm)
+                .setSecureRandom(random)
                 .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
                 .loadTrustMaterial(truststore, trustStrategy)
                 .build(),
@@ -213,6 +213,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
         this(SSLContexts.custom()
                 .useProtocol(algorithm)
+                .setSecureRandom(random)
                 .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
                 .loadTrustMaterial(truststore)
                 .build(),
@@ -392,7 +393,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         Args.notNull(remoteAddress, "Remote address");
         Args.notNull(params, "HTTP parameters");
-        HttpHost host;
+        final HttpHost host;
         if (remoteAddress instanceof HttpInetSocketAddress) {
             host = ((HttpInetSocketAddress) remoteAddress).getHttpHost();
         } else {
@@ -473,9 +474,9 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     public Socket connectSocket(
             final Socket socket,
             final String host, final int port,
-            final InetAddress local, int localPort,
+            final InetAddress local, final int localPort,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
-        InetAddress remote;
+        final InetAddress remote;
         if (this.nameResolver != null) {
             remote = this.nameResolver.resolve(host);
         } else {
@@ -483,11 +484,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         }
         InetSocketAddress localAddress = null;
         if (local != null || localPort > 0) {
-            // we need to bind explicitly
-            if (localPort < 0) {
-                localPort = 0; // indicates "any"
-            }
-            localAddress = new InetSocketAddress(local, localPort);
+            localAddress = new InetSocketAddress(local, localPort > 0 ? localPort : 0);
         }
         final InetSocketAddress remoteAddress = new HttpInetSocketAddress(
                 new HttpHost(host, port), remote, port);

@@ -30,7 +30,6 @@ import java.util.Map;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
-import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
@@ -45,8 +44,9 @@ class ConditionalRequestBuilder {
 
     /**
      * When a {@link HttpCacheEntry} is stale but 'might' be used as a response
-     * to an {@link HttpRequest} we will attempt to revalidate the entry with
-     * the origin.  Build the origin {@link HttpRequest} here and return it.
+     * to an {@link org.apache.http.HttpRequest} we will attempt to revalidate
+     * the entry with the origin.  Build the origin {@link org.apache.http.HttpRequest}
+     * here and return it.
      *
      * @param request the original request from the caller
      * @param cacheEntry the entry that needs to be re-validated
@@ -83,10 +83,11 @@ class ConditionalRequestBuilder {
     }
 
     /**
-     * When a {@link HttpCacheEntry} does not exist for a specific {@link HttpRequest}
-     * we attempt to see if an existing {@link HttpCacheEntry} is appropriate by building
-     * a conditional {@link HttpRequest} using the variants' ETag values.  If no such values
-     * exist, the request is unmodified
+     * When a {@link HttpCacheEntry} does not exist for a specific
+     * {@link org.apache.http.HttpRequest} we attempt to see if an existing
+     * {@link HttpCacheEntry} is appropriate by building a conditional
+     * {@link org.apache.http.HttpRequest} using the variants' ETag values.
+     * If no such values exist, the request is unmodified
      *
      * @param request the original request from the caller
      * @param variants

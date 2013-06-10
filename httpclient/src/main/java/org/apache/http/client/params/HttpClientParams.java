@@ -27,7 +27,6 @@
 package org.apache.http.client.params;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.Args;
@@ -37,7 +36,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  *
- * @deprecated (4.3) use {@link RequestConfig}
+ * @deprecated (4.3) use {@link org.apache.http.client.config.RequestConfig}
  */
 @Deprecated
 @Immutable

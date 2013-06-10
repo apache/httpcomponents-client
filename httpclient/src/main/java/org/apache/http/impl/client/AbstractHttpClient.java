@@ -48,7 +48,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ConnectionBackoffStrategy;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RedirectStrategy;
@@ -94,10 +93,10 @@ import org.apache.http.protocol.ImmutableHttpProcessor;
 import org.apache.http.util.Args;
 
 /**
- * Base class for {@link HttpClient} implementations. This class acts as
- * a facade to a number of special purpose handler or strategy
- * implementations responsible for handling of a particular aspect of
- * the HTTP protocol such as redirect or authentication handling or
+ * Base class for {@link org.apache.http.client.HttpClient} implementations.
+ * This class acts as a facade to a number of special purpose handler or
+ * strategy implementations responsible for handling of a particular aspect
+ * of the HTTP protocol such as redirect or authentication handling or
  * making decision about connection persistence and keep alive duration.
  * This enables the users to selectively replace default implementation
  * of those aspects with custom, application specific ones. This class
@@ -702,7 +701,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
         return mutableProcessor;
     }
 
-    private synchronized final HttpProcessor getProtocolProcessor() {
+    private synchronized HttpProcessor getProtocolProcessor() {
         if (protocolProcessor == null) {
             // Get mutable HTTP processor
             final BasicHttpProcessor proc = getHttpProcessor();
@@ -833,7 +832,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
                                 ClientPNames.DEFAULT_HOST);
                 final HttpRoute route = routePlanner.determineRoute(targetForRoute, request, execContext);
 
-                CloseableHttpResponse out;
+                final CloseableHttpResponse out;
                 try {
                     out = CloseableHttpResponseProxy.newProxy(
                             director.execute(target, request, execContext));

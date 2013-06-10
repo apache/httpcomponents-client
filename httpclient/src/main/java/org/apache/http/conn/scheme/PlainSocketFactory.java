@@ -36,7 +36,6 @@ import java.net.UnknownHostException;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.DnsResolver;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.Args;
@@ -64,7 +63,7 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
     }
 
     /**
-     * @deprecated (4.1) use {@link DnsResolver}
+     * @deprecated (4.1) use {@link org.apache.http.conn.DnsResolver}
      */
     @Deprecated
     public PlainSocketFactory(final HostNameResolver nameResolver) {
@@ -142,17 +141,13 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
     public Socket connectSocket(
             final Socket socket,
             final String host, final int port,
-            final InetAddress localAddress, int localPort,
+            final InetAddress localAddress, final int localPort,
             final HttpParams params) throws IOException, UnknownHostException, ConnectTimeoutException {
         InetSocketAddress local = null;
         if (localAddress != null || localPort > 0) {
-            // we need to bind explicitly
-            if (localPort < 0) {
-                localPort = 0; // indicates "any"
-            }
-            local = new InetSocketAddress(localAddress, localPort);
+            local = new InetSocketAddress(localAddress, localPort > 0 ? localPort : 0);
         }
-        InetAddress remoteAddress;
+        final InetAddress remoteAddress;
         if (this.nameResolver != null) {
             remoteAddress = this.nameResolver.resolve(host);
         } else {
