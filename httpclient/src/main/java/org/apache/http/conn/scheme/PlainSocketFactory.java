@@ -126,7 +126,8 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
             sock.setSoTimeout(soTimeout);
             sock.connect(remoteAddress, connTimeout);
         } catch (SocketTimeoutException ex) {
-            throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
+            throw new ConnectTimeoutException(
+                    "Connect to " + remoteAddress + " timed out", ex);
         }
         return sock;
     }

@@ -413,7 +413,8 @@ public class SSLSocketFactory implements SchemeLayeredSocketFactory,
             sock.setSoTimeout(soTimeout);
             sock.connect(remoteAddress, connTimeout);
         } catch (SocketTimeoutException ex) {
-            throw new ConnectTimeoutException("Connect to " + remoteAddress + " timed out");
+            throw new ConnectTimeoutException(
+                    "Connect to " + remoteAddress + " timed out", ex);
         }
 
         String hostname;

@@ -59,4 +59,9 @@ public class ConnectTimeoutException extends InterruptedIOException {
         super(message);
     }
 
+    public ConnectTimeoutException(final String message, final Throwable cause) {
+        super(message);
+        initCause(cause);
+    }
+
 }
