@@ -39,7 +39,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import junit.framework.Assert;
 
@@ -126,7 +125,7 @@ public class TestFutureRequestExecutionService {
     }
 
     @Test
-    public void shouldExecuteMultipleCalls() throws InterruptedException, ExecutionException {
+    public void shouldExecuteMultipleCalls() throws Exception {
         final int reqNo = 100;
         final Queue<Future<Boolean>> tasks = new LinkedList<Future<Boolean>>();
         for(int i = 0; i < reqNo; i++) {
@@ -142,30 +141,27 @@ public class TestFutureRequestExecutionService {
     }
 
     @Test
-    public void shouldExecuteMultipleCallsAndCallback() throws InterruptedException {
+    public void shouldExecuteMultipleCallsAndCallback() throws Exception {
         final int reqNo = 100;
+        final Queue<Future<Boolean>> tasks = new LinkedList<Future<Boolean>>();
         final CountDownLatch latch = new CountDownLatch(reqNo);
-        final CountingCallback callback = new CountingCallback(latch);
         for(int i = 0; i < reqNo; i++) {
-            httpAsyncClientWithFuture.execute(
+            final Future<Boolean> task = httpAsyncClientWithFuture.execute(
                     new HttpGet(uri), HttpClientContext.create(),
-                    new OkidokiHandler(), callback);
+                    new OkidokiHandler(), new CountingCallback(latch));
+            tasks.add(task);
         }
-        latch.await(10, TimeUnit.SECONDS);
-
-        Assert.assertEquals(100, callback.completed.get());
-        Assert.assertEquals(0, callback.cancelled.get());
-        Assert.assertEquals(0, callback.failed.get());
+        Assert.assertTrue(latch.await(5, TimeUnit.SECONDS));
+        for (final Future<Boolean> task : tasks) {
+            final Boolean b = task.get();
+            Assert.assertNotNull(b);
+            Assert.assertTrue("request should have returned OK", b.booleanValue());
+        }
     }
-
 
     private final class CountingCallback implements FutureCallback<Boolean> {
 
         private final CountDownLatch latch;
-
-        AtomicInteger failed = new AtomicInteger(0);
-        AtomicInteger cancelled = new AtomicInteger(0);
-        AtomicInteger completed = new AtomicInteger(0);
 
         CountingCallback(final CountDownLatch latch) {
             super();
@@ -174,17 +170,14 @@ public class TestFutureRequestExecutionService {
 
         public void failed(final Exception ex) {
             latch.countDown();
-            failed.incrementAndGet();
         }
 
         public void completed(final Boolean result) {
             latch.countDown();
-            completed.incrementAndGet();
         }
 
         public void cancelled() {
             latch.countDown();
-            cancelled.incrementAndGet();
         }
     }
 
