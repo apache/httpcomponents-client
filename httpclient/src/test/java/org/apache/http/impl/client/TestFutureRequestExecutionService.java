@@ -28,7 +28,8 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -126,29 +127,30 @@ public class TestFutureRequestExecutionService {
 
     @Test
     public void shouldExecuteMultipleCalls() throws InterruptedException, ExecutionException {
-        final HttpGet[] requests= new HttpGet[100];
-        for(int i=0;i<100;i++) {
-            requests[i]=new HttpGet(uri);
+        final int reqNo = 100;
+        final Queue<Future<Boolean>> tasks = new LinkedList<Future<Boolean>>();
+        for(int i = 0; i < reqNo; i++) {
+            final Future<Boolean> task = httpAsyncClientWithFuture.execute(
+                    new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
+            tasks.add(task);
         }
-        final List<Future<Boolean>> tasks = httpAsyncClientWithFuture.executeMultiple(
-            new OkidokiHandler(), requests);
         for (final Future<Boolean> task : tasks) {
-            Assert.assertTrue("request should have returned OK", task.get().booleanValue());
+            final Boolean b = task.get();
+            Assert.assertNotNull(b);
+            Assert.assertTrue("request should have returned OK", b.booleanValue());
         }
     }
 
     @Test
     public void shouldExecuteMultipleCallsAndCallback() throws InterruptedException {
         final int reqNo = 100;
-        final HttpGet[] requests= new HttpGet[reqNo];
-        for(int i = 0; i < reqNo; i++) {
-            requests[i] = new HttpGet(uri);
-        }
         final CountDownLatch latch = new CountDownLatch(reqNo);
         final CountingCallback callback = new CountingCallback(latch);
-        httpAsyncClientWithFuture.executeMultiple(null,
-            new OkidokiHandler(), callback , 10, TimeUnit.SECONDS, requests);
-
+        for(int i = 0; i < reqNo; i++) {
+            httpAsyncClientWithFuture.execute(
+                    new HttpGet(uri), HttpClientContext.create(),
+                    new OkidokiHandler(), callback);
+        }
         latch.await(10, TimeUnit.SECONDS);
 
         Assert.assertEquals(100, callback.completed.get());
@@ -188,7 +190,8 @@ public class TestFutureRequestExecutionService {
 
 
     private final class OkidokiHandler implements ResponseHandler<Boolean> {
-        public Boolean handleResponse(final HttpResponse response) throws ClientProtocolException, IOException {
+        public Boolean handleResponse(
+                final HttpResponse response) throws ClientProtocolException, IOException {
             return response.getStatusLine().getStatusCode() == 200;
         }
     }

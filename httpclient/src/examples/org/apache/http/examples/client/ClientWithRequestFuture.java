@@ -27,11 +27,9 @@
 package org.apache.http.examples.client;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpResponse;
@@ -112,20 +110,6 @@ public class ClientWithRequestFuture {
                     HttpClientContext.create(), handler, callback);
             Boolean wasItOk4 = futureTask4.get(10, TimeUnit.SECONDS);
             System.out.println("It was ok? "  + wasItOk4);
-
-            // Multiple requests, with a callback
-            HttpGet request5 = new HttpGet("http://google.com");
-            HttpGet request6 = new HttpGet("http://bing.com");
-            HttpGet request7 = new HttpGet("http://yahoo.com");
-            // using a null HttpContext here since it is optional
-            // the callback will be called for each request as their responses come back.
-            List<Future<Boolean>> futureTask = requestExecService.executeMultiple(
-                    HttpClientContext.create(), handler, callback,
-                    20,TimeUnit.SECONDS, request5, request6, request7);
-            // you can still access the futures directly, if you want. The futures are in the same order as the requests.
-            for (Future<Boolean> future : futureTask) {
-                System.out.println("another result " + future.get());
-            }
         } finally {
             requestExecService.close();
         }

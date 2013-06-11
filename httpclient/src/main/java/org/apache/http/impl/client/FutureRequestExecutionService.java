@@ -28,19 +28,13 @@ package org.apache.http.impl.client;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.protocol.HttpContext;
 
@@ -129,63 +123,6 @@ public class FutureRequestExecutionService implements Closeable {
         executorService.execute(httpRequestFutureTask);
 
         return httpRequestFutureTask;
-    }
-
-    /**
-     * Schedule multiple requests for execution.
-     *
-     * @param <T>
-     *
-     * @param responseHandler
-     *            handler that will process the responses.
-     * @param requests
-     *            one or more requests.
-     * @return a list of HttpAsyncClientFutureTask for the scheduled requests.
-     * @throws InterruptedException
-     */
-    public <T> List<Future<T>> executeMultiple(
-            final ResponseHandler<T> responseHandler,
-            final HttpUriRequest... requests) throws InterruptedException {
-        return executeMultiple(HttpClientContext.create(), responseHandler, null, -1, null, requests);
-    }
-
-    /**
-     * Schedule multiple requests for execution with a timeout.
-     *
-     * @param <T>
-     *
-     * @param context
-     *            optional context; use null if not needed.
-     * @param responseHandler
-     *            handler that will process the responses.
-     * @param callback
-     *            callback handler that will be called when requests are scheduled,
-     *            started, completed, failed, or cancelled.
-     * @param timeout
-     * @param timeUnit
-     * @param requests
-     *            one or more requests.
-     * @return a list of HttpAsyncClientFutureTask for the scheduled requests.
-     * @throws InterruptedException
-     */
-    public <T> List<Future<T>> executeMultiple(
-            final HttpContext context,
-            final ResponseHandler<T> responseHandler,
-            final FutureCallback<T> callback,
-            final long timeout, final TimeUnit timeUnit,
-            final HttpUriRequest... requests) throws InterruptedException {
-        metrics.getScheduledConnections().incrementAndGet();
-        final List<Callable<T>> callables = new ArrayList<Callable<T>>();
-        for (final HttpUriRequest request : requests) {
-            final HttpRequestTaskCallable<T> callable = new HttpRequestTaskCallable<T>(
-                httpclient, request, context, responseHandler, callback, metrics);
-            callables.add(callable);
-        }
-        if (timeout > 0) {
-            return executorService.invokeAll(callables, timeout, timeUnit);
-        } else {
-            return executorService.invokeAll(callables);
-        }
     }
 
     /**
