@@ -241,7 +241,6 @@ public class ClientConfiguration {
             // precedence over those set at the client level.
             context.setCookieStore(cookieStore);
             context.setCredentialsProvider(credentialsProvider);
-            context.setSocketFactoryRegistry(socketFactoryRegistry);
 
             System.out.println("executing request " + httpget.getURI());
             CloseableHttpResponse response = httpclient.execute(httpget, context);
