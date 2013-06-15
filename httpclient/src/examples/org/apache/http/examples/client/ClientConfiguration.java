@@ -130,7 +130,7 @@ public class ClientConfiguration {
         // initialization of outgoing HTTP connections. Beside standard connection
         // configuration parameters HTTP connection factory can define message
         // parser / writer routines to be employed by individual connections.
-        HttpConnectionFactory<ManagedHttpClientConnection> connFactory = new ManagedHttpClientConnectionFactory(
+        HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory = new ManagedHttpClientConnectionFactory(
                 requestWriterFactory, responseParserFactory);
 
         // Client HTTP connection objects when fully initialized can be bound to

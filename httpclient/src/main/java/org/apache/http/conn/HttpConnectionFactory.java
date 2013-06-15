@@ -34,8 +34,8 @@ import org.apache.http.config.ConnectionConfig;
  *
  * @since 4.3
  */
-public interface HttpConnectionFactory<T extends HttpConnection> {
+public interface HttpConnectionFactory<T, C extends HttpConnection> {
 
-    T create(ConnectionConfig config);
+    C create(T route, ConnectionConfig config);
 
 }

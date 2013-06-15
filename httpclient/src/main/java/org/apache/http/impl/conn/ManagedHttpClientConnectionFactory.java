@@ -41,6 +41,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.HttpConnectionFactory;
 import org.apache.http.conn.ManagedHttpClientConnection;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.io.DefaultHttpRequestWriterFactory;
 import org.apache.http.io.HttpMessageParserFactory;
 import org.apache.http.io.HttpMessageWriterFactory;
@@ -49,7 +50,8 @@ import org.apache.http.io.HttpMessageWriterFactory;
  * @since 4.3
  */
 @Immutable
-public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory<ManagedHttpClientConnection> {
+public class ManagedHttpClientConnectionFactory
+        implements HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> {
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
@@ -81,7 +83,7 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
         this(null, null);
     }
 
-    public ManagedHttpClientConnection create(final ConnectionConfig config) {
+    public ManagedHttpClientConnection create(final HttpRoute route, final ConnectionConfig config) {
         final ConnectionConfig cconfig = config != null ? config : ConnectionConfig.DEFAULT;
         CharsetDecoder chardecoder = null;
         CharsetEncoder charencoder = null;

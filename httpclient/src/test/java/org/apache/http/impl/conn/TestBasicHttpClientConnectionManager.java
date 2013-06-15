@@ -46,7 +46,7 @@ import org.mockito.Mockito;
 public class TestBasicHttpClientConnectionManager {
 
     private ManagedHttpClientConnection conn;
-    private HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
+    private HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory;
     private Lookup<ConnectionSocketFactory> socketFactoryRegistry;
     private BasicHttpClientConnectionManager mgr;
 
@@ -64,7 +64,8 @@ public class TestBasicHttpClientConnectionManager {
         final HttpHost target = new HttpHost("localhost");
         final HttpRoute route = new HttpRoute(target);
 
-        Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
+        Mockito.when(connFactory.create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
         final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
         final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
@@ -81,7 +82,8 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertNotNull(conn2);
         Assert.assertFalse(conn2.isOpen());
 
-        Mockito.verify(connFactory, Mockito.times(2)).create(Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(2)).create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any());
     }
 
     @Test
@@ -89,13 +91,14 @@ public class TestBasicHttpClientConnectionManager {
         final HttpHost target = new HttpHost("somehost");
         final HttpRoute route = new HttpRoute(target);
 
-        Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
+        Mockito.when(connFactory.create(Mockito.eq(route), Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
         final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
         final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
-        Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(1)).create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
 
@@ -109,7 +112,8 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertNotNull(conn2);
         Assert.assertTrue(conn2.isOpen());
 
-        Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(1)).create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any());
     }
 
     @Test
@@ -117,13 +121,15 @@ public class TestBasicHttpClientConnectionManager {
         final HttpHost target = new HttpHost("somehost");
         final HttpRoute route = new HttpRoute(target);
 
-        Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
+        Mockito.when(connFactory.create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
         final ConnectionRequest connRequest1 = mgr.requestConnection(route, "some state");
         final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
-        Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(1)).create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
 
@@ -137,7 +143,8 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertNotNull(conn2);
         Assert.assertTrue(conn2.isOpen());
 
-        Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(1)).create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any());
     }
 
     @Test
@@ -145,13 +152,15 @@ public class TestBasicHttpClientConnectionManager {
         final HttpHost target1 = new HttpHost("somehost");
         final HttpRoute route1 = new HttpRoute(target1);
 
-        Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
+        Mockito.when(connFactory.create(
+                Mockito.<HttpRoute>any(), Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
         final ConnectionRequest connRequest1 = mgr.requestConnection(route1, null);
         final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
-        Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(1)).create(
+                Mockito.eq(route1), Mockito.<ConnectionConfig>any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
@@ -168,7 +177,10 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertFalse(conn2.isOpen());
 
         Mockito.verify(conn).close();
-        Mockito.verify(connFactory, Mockito.times(2)).create(Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(1)).create(
+                Mockito.eq(route1), Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(1)).create(
+                Mockito.eq(route2), Mockito.<ConnectionConfig>any());
     }
 
     @Test
@@ -176,13 +188,15 @@ public class TestBasicHttpClientConnectionManager {
         final HttpHost target = new HttpHost("somehost");
         final HttpRoute route = new HttpRoute(target);
 
-        Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
+        Mockito.when(connFactory.create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
         final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
         final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
-        Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(1)).create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
@@ -199,7 +213,8 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertFalse(conn2.isOpen());
 
         Mockito.verify(conn).close();
-        Mockito.verify(connFactory, Mockito.times(2)).create(Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(2)).create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any());
     }
 
     @Test(expected=IllegalArgumentException.class)
@@ -223,13 +238,15 @@ public class TestBasicHttpClientConnectionManager {
         final HttpHost target = new HttpHost("somehost");
         final HttpRoute route = new HttpRoute(target);
 
-        Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
+        Mockito.when(connFactory.create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
         final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
         final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
-        Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(1)).create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
 
@@ -252,13 +269,15 @@ public class TestBasicHttpClientConnectionManager {
         final HttpHost target = new HttpHost("somehost");
         final HttpRoute route = new HttpRoute(target);
 
-        Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
+        Mockito.when(connFactory.create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
         final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
         final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
-        Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(1)).create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
@@ -279,13 +298,15 @@ public class TestBasicHttpClientConnectionManager {
         final HttpHost target = new HttpHost("somehost");
         final HttpRoute route = new HttpRoute(target);
 
-        Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
+        Mockito.when(connFactory.create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
         final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
         final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(conn1);
 
-        Mockito.verify(connFactory, Mockito.times(1)).create(Mockito.<ConnectionConfig>any());
+        Mockito.verify(connFactory, Mockito.times(1)).create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any());
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
@@ -306,7 +327,8 @@ public class TestBasicHttpClientConnectionManager {
         final HttpHost target = new HttpHost("somehost");
         final HttpRoute route = new HttpRoute(target);
 
-        Mockito.when(connFactory.create(Mockito.<ConnectionConfig>any())).thenReturn(conn);
+        Mockito.when(connFactory.create(
+                Mockito.eq(route), Mockito.<ConnectionConfig>any())).thenReturn(conn);
 
         final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
         final HttpClientConnection conn1 = connRequest1.get(0, TimeUnit.MILLISECONDS);

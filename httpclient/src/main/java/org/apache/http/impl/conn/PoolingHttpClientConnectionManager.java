@@ -120,25 +120,25 @@ public class PoolingHttpClientConnectionManager
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
+            final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory) {
         this(socketFactoryRegistry, connFactory, null);
     }
 
     public PoolingHttpClientConnectionManager(
-            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
+            final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory) {
         this(getDefaultRegistry(), connFactory, null);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
+            final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory,
             final DnsResolver dnsResolver) {
         this(socketFactoryRegistry, connFactory, null, dnsResolver, -1, TimeUnit.MILLISECONDS);
     }
 
     public PoolingHttpClientConnectionManager(
             final Registry<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
+            final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
             final long timeToLive, final TimeUnit tunit) {
@@ -477,11 +477,11 @@ public class PoolingHttpClientConnectionManager
     static class InternalConnectionFactory implements ConnFactory<HttpRoute, ManagedHttpClientConnection> {
 
         private final ConfigData configData;
-        private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
+        private final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory;
 
         InternalConnectionFactory(
                 final ConfigData configData,
-                final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
+                final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory) {
             super();
             this.configData = configData != null ? configData : new ConfigData();
             this.connFactory = connFactory != null ? connFactory :
@@ -502,7 +502,7 @@ public class PoolingHttpClientConnectionManager
             if (config == null) {
                 config = ConnectionConfig.DEFAULT;
             }
-            return this.connFactory.create(config);
+            return this.connFactory.create(route, config);
         }
 
     }

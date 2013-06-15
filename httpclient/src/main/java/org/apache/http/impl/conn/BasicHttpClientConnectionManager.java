@@ -81,7 +81,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private final Log log = LogFactory.getLog(getClass());
 
     private final HttpClientConnectionOperator connectionOperator;
-    private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
+    private final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory;
 
     @GuardedBy("this")
     private ManagedHttpClientConnection conn;
@@ -119,7 +119,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     public BasicHttpClientConnectionManager(
             final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
+            final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory,
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver) {
         super();
@@ -133,7 +133,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     public BasicHttpClientConnectionManager(
             final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory) {
+            final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory) {
         this(socketFactoryRegistry, connFactory, null, null);
     }
 
@@ -252,7 +252,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.state = state;
         checkExpiry();
         if (this.conn == null) {
-            this.conn = this.connFactory.create(this.connConfig);
+            this.conn = this.connFactory.create(route, this.connConfig);
         }
         this.leased = true;
         return this.conn;
