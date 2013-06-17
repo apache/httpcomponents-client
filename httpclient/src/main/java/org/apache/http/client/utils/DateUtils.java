@@ -103,8 +103,6 @@ public final class DateUtils {
      * @param dateValue the date value to parse
      * @param dateFormats the date formats to use
      *
-     * @return the parsed date
-     *
      * @return the parsed date or null if input could not be parsed
      */
     public static Date parseDate(final String dateValue, final String[] dateFormats) {
