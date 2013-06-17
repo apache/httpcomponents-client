@@ -510,7 +510,7 @@ public class MainClientExec implements ClientExecChain {
     private boolean createTunnelToProxy(
             final HttpRoute route,
             final int hop,
-            final HttpClientContext context) throws HttpException, IOException {
+            final HttpClientContext context) throws HttpException {
 
         // Have a look at createTunnelToTarget and replicate the parts
         // you need in a custom derived class. If your proxies don't require
@@ -530,7 +530,7 @@ public class MainClientExec implements ClientExecChain {
             final HttpRoute route,
             final HttpRequestWrapper request,
             final HttpResponse response,
-            final HttpClientContext context) throws HttpException, IOException {
+            final HttpClientContext context) {
         final RequestConfig config = context.getRequestConfig();
         if (config.isAuthenticationEnabled()) {
             HttpHost target = context.getTargetHost();

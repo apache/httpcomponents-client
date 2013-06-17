@@ -57,7 +57,7 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
     void process(
             final AuthState authState,
             final HttpRequest request,
-            final HttpContext context) throws HttpException, IOException {
+            final HttpContext context) {
         AuthScheme authScheme = authState.getAuthScheme();
         Credentials creds = authState.getCredentials();
         switch (authState.getState()) {

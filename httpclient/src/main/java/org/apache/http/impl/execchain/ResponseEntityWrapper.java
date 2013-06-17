@@ -55,7 +55,7 @@ class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatche
         this.connReleaseTrigger = connReleaseTrigger;
     }
 
-    private void cleanup() throws IOException {
+    private void cleanup() {
         if (this.connReleaseTrigger != null) {
             this.connReleaseTrigger.abortConnection();
         }

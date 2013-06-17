@@ -302,7 +302,7 @@ public class CachingExec implements ClientExecChain {
             final HttpClientContext context,
             final HttpExecutionAware execAware,
             final HttpCacheEntry entry,
-            final Date now) throws IOException, HttpException {
+            final Date now) throws HttpException {
 
         try {
             if (asynchRevalidator != null

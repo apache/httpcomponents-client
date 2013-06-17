@@ -201,7 +201,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         return (byte[])o;
     }
 
-    private MemcachedCacheEntry reconstituteEntry(final Object o) throws IOException {
+    private MemcachedCacheEntry reconstituteEntry(final Object o) {
         final byte[] bytes = convertToByteArray(o);
         if (bytes == null) {
             return null;
