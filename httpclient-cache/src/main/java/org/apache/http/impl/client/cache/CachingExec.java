@@ -139,7 +139,7 @@ public class CachingExec implements ClientExecChain {
         this.requestCompliance = new RequestProtocolCompliance();
         this.responseCachingPolicy = new ResponseCachingPolicy(
                 this.cacheConfig.getMaxObjectSize(), this.cacheConfig.isSharedCache(),
-                this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery(), config.is303CachingEnabled());
+                this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery(), this.cacheConfig.is303CachingEnabled());
         this.asynchRevalidator = asynchRevalidator;
     }
 
