@@ -27,19 +27,6 @@
 
 package org.apache.http.impl.conn;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InterruptedIOException;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
-
 import org.apache.commons.logging.Log;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
@@ -52,18 +39,25 @@ import org.apache.http.io.HttpMessageParserFactory;
 import org.apache.http.io.HttpMessageWriterFactory;
 import org.apache.http.protocol.HttpContext;
 
-class ManagedHttpClientConnectionImpl extends DefaultBHttpClientConnection
-                                 implements ManagedHttpClientConnection, HttpContext {
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-    private final String id;
+class LoggingManagedHttpClientConnection extends DefaultManagedHttpClientConnection {
+
     private final Log log;
     private final Log headerlog;
     private final Wire wire;
-    private final Map<String, Object> attributes;
 
-    private volatile boolean shutdown;
-
-    public ManagedHttpClientConnectionImpl(
+    public LoggingManagedHttpClientConnection(
             final String id,
             final Log log,
             final Log headerlog,
@@ -77,24 +71,18 @@ class ManagedHttpClientConnectionImpl extends DefaultBHttpClientConnection
             final ContentLengthStrategy outgoingContentStrategy,
             final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
-        super(buffersize, fragmentSizeHint, chardecoder, charencoder,
+        super(id, buffersize, fragmentSizeHint, chardecoder, charencoder,
                 constraints, incomingContentStrategy, outgoingContentStrategy,
                 requestWriterFactory, responseParserFactory);
-        this.id = id;
         this.log = log;
         this.headerlog = headerlog;
-        this.wire = new Wire(wirelog, this.id);
-        this.attributes = new ConcurrentHashMap<String, Object>();
-    }
-
-    public String getId() {
-        return this.id;
+        this.wire = new Wire(wirelog, id);
     }
 
     @Override
     public void close() throws IOException {
         if (this.log.isDebugEnabled()) {
-            this.log.debug(this.id + ": Close connection");
+            this.log.debug(getId() + ": Close connection");
         }
         super.close();
     }
@@ -102,9 +90,8 @@ class ManagedHttpClientConnectionImpl extends DefaultBHttpClientConnection
     @Override
     public void shutdown() throws IOException {
         if (this.log.isDebugEnabled()) {
-            this.log.debug(this.id + ": Shutdown connection");
+            this.log.debug(getId() + ": Shutdown connection");
         }
-        this.shutdown = true;
         super.shutdown();
     }
 
@@ -129,10 +116,10 @@ class ManagedHttpClientConnectionImpl extends DefaultBHttpClientConnection
     @Override
     protected void onResponseReceived(final HttpResponse response) {
         if (response != null && this.headerlog.isDebugEnabled()) {
-            this.headerlog.debug(this.id + " << " + response.getStatusLine().toString());
+            this.headerlog.debug(getId() + " << " + response.getStatusLine().toString());
             final Header[] headers = response.getAllHeaders();
             for (final Header header : headers) {
-                this.headerlog.debug(this.id + " << " + header.toString());
+                this.headerlog.debug(getId() + " << " + header.toString());
             }
         }
     }
@@ -140,47 +127,11 @@ class ManagedHttpClientConnectionImpl extends DefaultBHttpClientConnection
     @Override
     protected void onRequestSubmitted(final HttpRequest request) {
         if (request != null && this.headerlog.isDebugEnabled()) {
-            this.headerlog.debug(id + " >> " + request.getRequestLine().toString());
+            this.headerlog.debug(getId() + " >> " + request.getRequestLine().toString());
             final Header[] headers = request.getAllHeaders();
             for (final Header header : headers) {
-                this.headerlog.debug(this.id + " >> " + header.toString());
+                this.headerlog.debug(getId() + " >> " + header.toString());
             }
-        }
-    }
-
-    public Object getAttribute(final String id) {
-        return this.attributes.get(id);
-    }
-
-    public Object removeAttribute(final String id) {
-        return this.attributes.remove(id);
-    }
-
-    public void setAttribute(final String id, final Object obj) {
-        this.attributes.put(id, obj);
-    }
-
-    @Override
-    public void bind(final Socket socket) throws IOException {
-        if (this.shutdown) {
-            socket.close(); // allow this to throw...
-            // ...but if it doesn't, explicitly throw one ourselves.
-            throw new InterruptedIOException("Connection already shutdown");
-        }
-        super.bind(socket);
-    }
-
-    @Override
-    public Socket getSocket() {
-        return super.getSocket();
-    }
-
-    public SSLSession getSSLSession() {
-        final Socket socket = super.getSocket();
-        if (socket instanceof SSLSocket) {
-            return ((SSLSocket) socket).getSession();
-        } else {
-            return null;
         }
     }
 

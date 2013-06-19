@@ -57,7 +57,7 @@ public class ManagedHttpClientConnectionFactory
 
     public static final ManagedHttpClientConnectionFactory INSTANCE = new ManagedHttpClientConnectionFactory();
 
-    private final Log log = LogFactory.getLog(ManagedHttpClientConnectionImpl.class);
+    private final Log log = LogFactory.getLog(DefaultManagedHttpClientConnection.class);
     private final Log headerlog = LogFactory.getLog("org.apache.http.headers");
     private final Log wirelog = LogFactory.getLog("org.apache.http.wire");
 
@@ -101,7 +101,7 @@ public class ManagedHttpClientConnectionFactory
             charencoder.onUnmappableCharacter(unmappableInputAction);
         }
         final String id = "http-outgoing-" + Long.toString(COUNTER.getAndIncrement());
-        return new ManagedHttpClientConnectionImpl(
+        return new LoggingManagedHttpClientConnection(
                 id,
                 log,
                 headerlog,
