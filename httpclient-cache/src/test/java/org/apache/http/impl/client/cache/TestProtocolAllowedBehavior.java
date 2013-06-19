@@ -65,8 +65,8 @@ public class TestProtocolAllowedBehavior extends AbstractProtocolTest {
 
         replayMocks();
         behaveAsNonSharedCache();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
@@ -86,8 +86,8 @@ public class TestProtocolAllowedBehavior extends AbstractProtocolTest {
 
         replayMocks();
         behaveAsNonSharedCache();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());

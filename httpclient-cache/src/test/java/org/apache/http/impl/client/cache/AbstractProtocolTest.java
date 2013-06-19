@@ -33,6 +33,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.cache.HttpCacheContext;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
@@ -55,13 +56,19 @@ public abstract class AbstractProtocolTest {
     protected ClientExecChain mockBackend;
     protected HttpCache mockCache;
     protected HttpRequestWrapper request;
+    protected HttpCacheContext context;
     protected CloseableHttpResponse originResponse;
     protected CacheConfig config;
-    protected CachingExec impl;
+    protected ClientExecChain impl;
     protected HttpCache cache;
 
     public static HttpRequestWrapper eqRequest(final HttpRequestWrapper in) {
         EasyMock.reportMatcher(new RequestEquivalent(in));
+        return null;
+    }
+
+    public static HttpResponse eqResponse(final HttpResponse in) {
+        EasyMock.reportMatcher(new ResponseEquivalent(in));
         return null;
     }
 
@@ -75,6 +82,8 @@ public abstract class AbstractProtocolTest {
 
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1));
 
+        context = HttpCacheContext.create();
+
         originResponse = Proxies.enhanceResponse(HttpTestUtils.make200Response());
 
         config = CacheConfig.custom()
@@ -85,7 +94,16 @@ public abstract class AbstractProtocolTest {
         cache = new BasicHttpCache(config);
         mockBackend = EasyMock.createNiceMock(ClientExecChain.class);
         mockCache = EasyMock.createNiceMock(HttpCache.class);
-        impl = new CachingExec(mockBackend, cache, config);
+        impl = createCachingExecChain(mockBackend, cache, config);
+    }
+
+    protected ClientExecChain createCachingExecChain(final ClientExecChain backend,
+            final HttpCache cache, final CacheConfig config) {
+        return new CachingExec(backend, cache, config);
+    }
+
+    protected boolean supportsRangeAndContentRangeHeaders(final ClientExecChain impl) {
+        return impl instanceof CachingExec && ((CachingExec) impl).supportsRangeAndContentRangeHeaders();
     }
 
     protected void replayMocks() {

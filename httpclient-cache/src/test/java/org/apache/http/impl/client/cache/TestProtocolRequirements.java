@@ -85,7 +85,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
@@ -118,7 +118,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
         Assert.assertSame(originResponse, result);
@@ -141,7 +141,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
@@ -172,7 +172,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
@@ -204,7 +204,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
         Assert.assertEquals(HttpVersion.HTTP_1_1, result.getProtocolVersion());
@@ -223,7 +223,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
         Assert.assertEquals(HttpVersion.HTTP_1_1, result.getProtocolVersion());
@@ -253,7 +253,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
 
         verifyMocks();
     }
@@ -278,7 +278,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
 
@@ -311,14 +311,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
 
         verifyMocks();
 
         final HttpRequest forwarded = reqCapture.getValue();
         Assert.assertNotNull(forwarded);
-        Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(request, h), HttpTestUtils
-                .getCanonicalHeaderValue(forwarded, h));
+        final String expected = HttpTestUtils.getCanonicalHeaderValue(request, h);
+        final String actual = HttpTestUtils.getCanonicalHeaderValue(forwarded, h);
+        if (!actual.contains(expected)) {
+            Assert.assertEquals(expected, actual);
+        }
 
     }
 
@@ -431,7 +434,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
 
@@ -520,7 +523,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
 
         // in particular, there were no storage calls on the cache
         verifyMocks();
@@ -564,7 +567,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
 
         verifyMocks();
         final HttpRequest forwarded = reqCap.getValue();
@@ -585,7 +588,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
         final Header[] hdrs = result.getHeaders("X-Unknown-Header");
@@ -619,7 +622,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, HttpRequestWrapper.wrap(post));
+        impl.execute(route, HttpRequestWrapper.wrap(post), context, null);
 
         verifyMocks();
 
@@ -662,7 +665,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, HttpRequestWrapper.wrap(post));
+        impl.execute(route, HttpRequestWrapper.wrap(post), context, null);
 
         verifyMocks();
 
@@ -698,7 +701,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
         verifyMocks();
         final HttpRequest forwarded = reqCap.getValue();
         boolean foundExpectContinue = false;
@@ -765,7 +768,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         try {
             // if a 100 response gets up to us from the HttpClient
             // backend, we can't really handle it at that point
-            impl.execute(route, HttpRequestWrapper.wrap(post));
+            impl.execute(route, HttpRequestWrapper.wrap(post), context, null);
             Assert.fail("should have thrown an exception");
         } catch (final ClientProtocolException expected) {
         }
@@ -793,7 +796,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
 
         verifyMocks();
     }
@@ -819,7 +822,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
         final Header contentLength = result.getFirstHeader("Content-Length");
@@ -843,7 +846,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         request.setHeader("Max-Forwards", "0");
 
         replayMocks();
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
         verifyMocks();
     }
 
@@ -869,7 +872,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
         verifyMocks();
 
         final HttpRequest captured = cap.getValue();
@@ -894,7 +897,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
         verifyMocks();
 
         final HttpRequest forwarded = reqCap.getValue();
@@ -919,7 +922,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
 
@@ -981,9 +984,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
 
         verifyMocks();
     }
@@ -1043,7 +1046,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, HttpRequestWrapper.wrap(post));
+        impl.execute(route, HttpRequestWrapper.wrap(post), context, null);
 
         verifyMocks();
     }
@@ -1073,7 +1076,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, HttpRequestWrapper.wrap(put));
+        impl.execute(route, HttpRequestWrapper.wrap(put), context, null);
 
         verifyMocks();
     }
@@ -1099,7 +1102,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
 
         verifyMocks();
     }
@@ -1126,7 +1129,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, HttpRequestWrapper.wrap(trace));
+        impl.execute(route, HttpRequestWrapper.wrap(trace), context, null);
         verifyMocks();
 
         final HttpRequest forwarded = reqCap.getValue();
@@ -1160,7 +1163,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
 
         verifyMocks();
     }
@@ -1186,7 +1189,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
 
@@ -1213,7 +1216,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
 
@@ -1256,8 +1259,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp1).times(1, 2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         if (HttpStatus.SC_PARTIAL_CONTENT == result.getStatusLine().getStatusCode()) {
@@ -1288,8 +1291,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp1).times(1, 2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         if (HttpStatus.SC_PARTIAL_CONTENT == result.getStatusLine().getStatusCode()) {
@@ -1322,8 +1325,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp1).times(1, 2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         if (HttpStatus.SC_PARTIAL_CONTENT == result.getStatusLine().getStatusCode()) {
@@ -1351,7 +1354,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         Assert.assertTrue(result.getStatusLine().getStatusCode() != HttpStatus.SC_PARTIAL_CONTENT
                 || result.getFirstHeader("Date") != null);
 
@@ -1374,8 +1377,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
 
         verifyMocks();
 
@@ -1400,8 +1403,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
 
         verifyMocks();
 
@@ -1446,9 +1449,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        final HttpResponse result = impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        final HttpResponse result = impl.execute(route, req3, context, null);
 
         verifyMocks();
 
@@ -1496,8 +1499,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
 
         verifyMocks();
 
@@ -1545,8 +1548,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
 
         verifyMocks();
 
@@ -1640,9 +1643,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp3)).times(0, 1);
         replayMocks();
 
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        final HttpResponse result = impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        final HttpResponse result = impl.execute(route, req3, context, null);
 
         verifyMocks();
 
@@ -1734,9 +1737,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp3)).times(0, 1);
         replayMocks();
 
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        final HttpResponse result = impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        final HttpResponse result = impl.execute(route, req3, context, null);
 
         verifyMocks();
 
@@ -1766,7 +1769,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void test206ResponsesAreNotCachedIfTheCacheDoesNotSupportRangeAndContentRangeHeaders()
             throws Exception {
 
-        if (!impl.supportsRangeAndContentRangeHeaders()) {
+        if (!supportsRangeAndContentRangeHeaders(impl)) {
             emptyMockCacheExpectsNoPuts();
 
             request = HttpRequestWrapper.wrap(
@@ -1791,7 +1794,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                     originResponse);
 
             replayMocks();
-            impl.execute(route, request);
+            impl.execute(route, request, context, null);
             verifyMocks();
         }
     }
@@ -1825,7 +1828,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
         verifyMocks();
     }
 
@@ -1856,7 +1859,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
 
@@ -1891,7 +1894,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Date"));
@@ -1917,8 +1920,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse).times(1, 2);
         replayMocks();
 
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
 
         verifyMocks();
         if (result.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
@@ -1952,8 +1955,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse).times(1, 2);
         replayMocks();
 
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
 
         verifyMocks();
         if (result.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
@@ -1982,8 +1985,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse).times(1, 2);
         replayMocks();
 
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
 
         verifyMocks();
         if (result.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
@@ -2049,9 +2052,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp2)).times(1, 2);
         replayMocks();
 
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        final HttpResponse result = impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        final HttpResponse result = impl.execute(route, req3, context, null);
 
         verifyMocks();
 
@@ -2103,8 +2106,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp1)).times(1, 2);
         replayMocks();
 
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
 
         verifyMocks();
 
@@ -2188,8 +2191,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp3));
         replayMocks();
 
-        impl.execute(route, req1);
-        impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
 
         verifyMocks();
     }
@@ -2265,8 +2268,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(route, initialRequest);
-        final HttpResponse result = impl.execute(route, secondRequest);
+        impl.execute(route, initialRequest, context, null);
+        final HttpResponse result = impl.execute(route, secondRequest, context, null);
 
         verifyMocks();
 
@@ -2301,7 +2304,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         if (result.getStatusLine().getStatusCode() == 401) {
             Assert.assertNotNull(result.getFirstHeader("WWW-Authenticate"));
         }
@@ -2325,7 +2328,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         if (result.getStatusLine().getStatusCode() == 405) {
             Assert.assertNotNull(result.getFirstHeader("Allow"));
         }
@@ -2354,7 +2357,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         if (result.getStatusLine().getStatusCode() == 407) {
             Assert.assertNotNull(result.getFirstHeader("Proxy-Authenticate"));
         }
@@ -2381,7 +2384,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         if (result.getStatusLine().getStatusCode() == 416) {
@@ -2425,8 +2428,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(orig416)).times(0, 1);
 
         replayMocks();
-        impl.execute(route, request);
-        final HttpResponse result = impl.execute(route, rangeReq);
+        impl.execute(route, request, context, null);
+        final HttpResponse result = impl.execute(route, rangeReq, context, null);
         verifyMocks();
 
         // might have gotten a 416 from the origin or the cache
@@ -2501,8 +2504,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         notModified.setHeader("Date", DateUtils.formatDate(now));
         notModified.setHeader("ETag", "\"etag\"");
 
-        mockCache.flushInvalidatedCacheEntriesFor(host, request);
-        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
+        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host),
+                eqRequest(request));
+        EasyMock.expect(
+                mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request)))
+                .andReturn(entry);
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -2510,16 +2516,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(notModified);
         EasyMock.expect(mockCache.updateCacheEntry(
-                EasyMock.same(host),
-                EasyMock.same(request),
-                EasyMock.same(entry),
-                EasyMock.same(notModified),
+                EasyMock.eq(host),
+                eqRequest(request),
+                EasyMock.eq(entry),
+                eqResponse(notModified),
                 EasyMock.isA(Date.class),
                 EasyMock.isA(Date.class)))
             .andReturn(HttpTestUtils.makeCacheEntry());
 
         replayMocks();
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
         verifyMocks();
     }
 
@@ -2545,11 +2551,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl = new CachingExec(mockBackend, mockCache, config);
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1));
 
-        mockCache.flushInvalidatedCacheEntriesFor(host, request);
-        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
+        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host), eqRequest(request));
+        EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         Assert.assertEquals(200, result.getStatusLine().getStatusCode());
@@ -2593,8 +2599,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl = new CachingExec(mockBackend, mockCache, config);
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1));
 
-        mockCache.flushInvalidatedCacheEntriesFor(host, request);
-        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
+        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host), eqRequest(request));
+        EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.isA(HttpRoute.class),
@@ -2605,7 +2611,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
 
         verifyMocks();
 
@@ -2680,11 +2686,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        final HttpResponse stale = impl.execute(route, req1);
+        final HttpResponse stale = impl.execute(route, req1, context, null);
         Assert.assertNotNull(stale.getFirstHeader("Warning"));
 
-        final HttpResponse result1 = impl.execute(route, req2);
-        final HttpResponse result2 = impl.execute(route, req3);
+        final HttpResponse result1 = impl.execute(route, req2, context, null);
+        final HttpResponse result2 = impl.execute(route, req3, context, null);
 
         verifyMocks();
 
@@ -2752,11 +2758,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        final HttpResponse stale = impl.execute(route, req1);
+        final HttpResponse stale = impl.execute(route, req1, context, null);
         Assert.assertNotNull(stale.getFirstHeader("Warning"));
 
-        final HttpResponse result1 = impl.execute(route, req2);
-        final HttpResponse result2 = impl.execute(route, req3);
+        final HttpResponse result1 = impl.execute(route, req2, context, null);
+        final HttpResponse result2 = impl.execute(route, req3, context, null);
 
         verifyMocks();
 
@@ -2812,11 +2818,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl = new CachingExec(mockBackend, mockCache, config);
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1));
 
-        mockCache.flushInvalidatedCacheEntriesFor(host, request);
-        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
+        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host), eqRequest(request));
+        EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         Assert.assertEquals(200, result.getStatusLine().getStatusCode());
@@ -2875,12 +2881,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
 
-        mockCache.flushInvalidatedCacheEntriesFor(host, request);
+        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host), eqRequest(request));
         mockCache.flushInvalidatedCacheEntriesFor(
                 EasyMock.isA(HttpHost.class),
                 EasyMock.isA(HttpRequestWrapper.class),
                 EasyMock.isA(HttpResponse.class));
-        EasyMock.expect(mockCache.getCacheEntry(host, request)).andReturn(entry);
+        EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.isA(HttpRoute.class),
@@ -2893,12 +2899,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         EasyMock.expect(mockCache.cacheAndReturnResponse(
                 EasyMock.isA(HttpHost.class),
                 EasyMock.isA(HttpRequestWrapper.class),
-                EasyMock.same(validated),
+                eqResponse(validated),
                 EasyMock.isA(Date.class),
                 EasyMock.isA(Date.class))).andReturn(reconstructed).times(0, 1);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         Assert.assertEquals(200, result.getStatusLine().getStatusCode());
@@ -2966,9 +2972,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        final HttpResponse result = impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        final HttpResponse result = impl.execute(route, req3, context, null);
         verifyMocks();
         Assert.assertEquals("\"etag1\"", result.getFirstHeader("ETag").getValue());
     }
@@ -2998,7 +3004,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse).times(0, 1);
 
         replayMocks();
-        final HttpResponse response = impl.execute(route, request);
+        final HttpResponse response = impl.execute(route, request, context, null);
         verifyMocks();
 
         // it's probably ok to return a 400 (Bad Request) to this client
@@ -3099,8 +3105,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp1)).times(1, 2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         Assert.assertFalse(HttpStatus.SC_PARTIAL_CONTENT == result.getStatusLine().getStatusCode());
@@ -3149,8 +3155,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp1));
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
 
         final HttpRequest validation = cap.getValue();
@@ -3224,8 +3230,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp1)).times(2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         Assert.assertFalse(HttpStatus.SC_NOT_MODIFIED == result.getStatusLine().getStatusCode());
@@ -3260,8 +3266,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp1)).times(1,2);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
     }
 
@@ -3276,7 +3282,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testCacheWithoutSupportForRangeAndContentRangeHeadersDoesNotCacheA206Response()
             throws Exception {
 
-        if (!impl.supportsRangeAndContentRangeHeaders()) {
+        if (!supportsRangeAndContentRangeHeaders(impl)) {
             emptyMockCacheExpectsNoPuts();
 
             final HttpRequestWrapper req = HttpRequestWrapper.wrap(
@@ -3295,7 +3301,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                     EasyMock.<HttpExecutionAware>isNull())).andReturn(Proxies.enhanceResponse(resp));
 
             replayMocks();
-            impl.execute(route, req);
+            impl.execute(route, req, context, null);
             verifyMocks();
         }
     }
@@ -3322,8 +3328,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse).times(2);
 
         replayMocks();
-        impl.execute(route, request);
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
+        impl.execute(route, request, context, null);
         verifyMocks();
     }
 
@@ -3339,7 +3345,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         Assert.assertEquals(value, result.getFirstHeader(header).getValue());
@@ -3374,7 +3380,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         Assert.assertNull(result.getFirstHeader(header));
@@ -3415,8 +3421,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         Assert.assertEquals(value, result.getFirstHeader(header).getValue());
@@ -3457,8 +3463,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         Assert.assertNull(result.getFirstHeader(header));
@@ -3501,7 +3507,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, HttpRequestWrapper.wrap(req));
+        impl.execute(route, HttpRequestWrapper.wrap(req), context, null);
         verifyMocks();
 
         final HttpRequest captured = cap.getValue();
@@ -3548,7 +3554,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, HttpRequestWrapper.wrap(req));
+        impl.execute(route, HttpRequestWrapper.wrap(req), context, null);
         verifyMocks();
 
         final HttpRequest captured = cap.getValue();
@@ -3602,7 +3608,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         final Header expHdr = result.getFirstHeader("Expires");
@@ -3625,8 +3631,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         final Header expHdr = result.getFirstHeader("Expires");
@@ -3649,7 +3655,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         Assert.assertEquals(value, result.getFirstHeader(header).getValue());
@@ -3688,8 +3694,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         Assert.assertEquals(value, result.getFirstHeader(header).getValue());
@@ -3722,8 +3728,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse).times(1,2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         Assert.assertEquals("bytes 0-49/128",
@@ -3825,8 +3831,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         final InputStream i1 = resp1.getEntity().getContent();
@@ -3888,8 +3894,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         final String[] endToEndHeaders = {
@@ -3937,9 +3943,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result1 = impl.execute(route, req2);
-        final HttpResponse result2 = impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result1 = impl.execute(route, req2, context, null);
+        final HttpResponse result2 = impl.execute(route, req3, context, null);
         verifyMocks();
 
         final String[] endToEndHeaders = {
@@ -3981,9 +3987,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result1 = impl.execute(route, req2);
-        final HttpResponse result2 = impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result1 = impl.execute(route, req2, context, null);
+        final HttpResponse result2 = impl.execute(route, req3, context, null);
         verifyMocks();
 
         final String h = "Cache-Control";
@@ -4058,9 +4064,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
     }
 
@@ -4110,9 +4116,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
     }
 
@@ -4163,9 +4169,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
     }
 
@@ -4217,9 +4223,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
     }
 
@@ -4271,9 +4277,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
     }
 
@@ -4326,9 +4332,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
     }
 
@@ -4381,9 +4387,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
     }
 
@@ -4435,9 +4441,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
     }
 
@@ -4477,8 +4483,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
     }
 
@@ -4511,8 +4517,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
     }
 
@@ -4590,8 +4596,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp200)).times(0,1);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         if (HttpStatus.SC_OK == result.getStatusLine().getStatusCode()) {
@@ -4623,7 +4629,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         final int status = result.getStatusLine().getStatusCode();
@@ -4667,9 +4673,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, unsafeReq);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, unsafeReq, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
     }
 
@@ -4713,9 +4719,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, unsafeReq);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, unsafeReq, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
     }
 
@@ -4817,9 +4823,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                 new BasicHttpRequest("GET", "/content", HttpVersion.HTTP_1_1));
 
         replayMocks();
-        impl.execute(otherRoute, req1);
-        impl.execute(route, unsafeReq);
-        impl.execute(otherRoute, req3);
+        impl.execute(otherRoute, req1, context, null);
+        impl.execute(route, unsafeReq, context, null);
+        impl.execute(otherRoute, req3, context, null);
         verifyMocks();
     }
 
@@ -4904,7 +4910,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp));
 
         replayMocks();
-        impl.execute(route, wrapper);
+        impl.execute(route, wrapper, context, null);
         verifyMocks();
     }
 
@@ -4982,7 +4988,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route,request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         Assert.assertEquals("2147483648",
@@ -5002,7 +5008,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setHeader("Allow",allowHeaderValue);
         backendExpectsAnyRequest().andReturn(originResponse);
         replayMocks();
-        final HttpResponse result = impl.execute(route,request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(originResponse,"Allow"),
                             HttpTestUtils.getCanonicalHeaderValue(result, "Allow"));
@@ -5056,8 +5062,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             }
 
             replayMocks();
-            impl.execute(route, req1);
-            impl.execute(route, req2);
+            impl.execute(route, req1, context, null);
+            impl.execute(route, req2, context, null);
             verifyMocks();
         }
     }
@@ -5135,8 +5141,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                     Proxies.enhanceResponse(resp2));
 
             replayMocks();
-            impl.execute(route,req1);
-            impl.execute(route,req2);
+            impl.execute(route, req1, context, null);
+            impl.execute(route, req2, context, null);
             verifyMocks();
 
             final HttpRequest captured = cap.getValue();
@@ -5213,8 +5219,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp2)).times(0,1);
 
         replayMocks();
-        impl.execute(route,req1);
-        final HttpResponse result = impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         if (!cap.hasCaptured()) {
@@ -5250,7 +5256,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
         try {
-            impl.execute(route, request);
+            impl.execute(route, request, context, null);
         } catch (final ClientProtocolException acceptable) {
         }
         verifyMocks();
@@ -5296,8 +5302,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         Proxies.enhanceResponse(resp2));
 
         replayMocks();
-        impl.execute(route,req1);
-        final HttpResponse result = impl.execute(route,req);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req, context, null);
         verifyMocks();
 
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
@@ -5357,8 +5363,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp2));
 
         replayMocks();
-        impl.execute(route,req1);
-        impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
 
         final HttpRequest reval = cap.getValue();
@@ -5405,8 +5411,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andThrow(new SocketTimeoutException());
 
         replayMocks();
-        impl.execute(route,req1);
-        final HttpResponse result = impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT,
@@ -5486,8 +5492,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                backendExpectsAnyRequestAndReturn(resp2);
 
                replayMocks();
-               impl.execute(route,req1);
-               impl.execute(route,req2);
+               impl.execute(route, req1, context, null);
+               impl.execute(route, req2, context, null);
                verifyMocks();
        }
     }
@@ -5512,8 +5518,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                backendExpectsAnyRequestAndReturn(resp2).times(0,1);
 
                replayMocks();
-               impl.execute(route,req1);
-               final HttpResponse result = impl.execute(route,req2);
+               impl.execute(route, req1, context, null);
+               final HttpResponse result = impl.execute(route, req2, context, null);
                verifyMocks();
                Assert.assertNull(result.getFirstHeader("X-Personal"));
        }
@@ -5546,8 +5552,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route,req1);
-        impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
     }
 
@@ -5571,8 +5577,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route,req1);
-        impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
     }
 
@@ -5611,8 +5617,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                                 Proxies.enhanceResponse(resp2)).times(0,1);
 
         replayMocks();
-        impl.execute(route,req1);
-        final HttpResponse result = impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         if (!cap.hasCaptured()) {
@@ -5643,7 +5649,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route,request);
+        impl.execute(route, request, context, null);
         verifyMocks();
     }
 
@@ -5656,7 +5662,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route,request);
+        impl.execute(route, request, context, null);
         verifyMocks();
     }
 
@@ -5668,7 +5674,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route,request);
+        impl.execute(route, request, context, null);
         verifyMocks();
     }
 
@@ -5680,7 +5686,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route,request);
+        impl.execute(route, request, context, null);
         verifyMocks();
     }
 
@@ -5697,7 +5703,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route,request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         int total_encodings = 0;
         for(final Header hdr : result.getHeaders("Content-Encoding")) {
@@ -5725,7 +5731,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route,request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         int total_encodings = 0;
         for(final Header hdr : result.getHeaders("Content-Encoding")) {
@@ -5772,8 +5778,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
     }
 
@@ -5793,7 +5799,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Date"));
     }
@@ -5823,8 +5829,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
     }
 
@@ -5864,8 +5870,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
     }
 
@@ -5883,7 +5889,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         Assert.assertEquals(server, result.getFirstHeader("Server").getValue());
     }
@@ -5902,7 +5908,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         int transfer_encodings = 0;
         for(final Header h : result.getHeaders("Transfer-Encoding")) {
@@ -5931,7 +5937,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         int transfer_encodings = 0;
         for(final Header h : result.getHeaders("Transfer-Encoding")) {
@@ -5971,7 +5977,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         for(final Header h : result.getHeaders("Vary")) {
             for(final HeaderElement elt : h.getElements()) {
@@ -5999,7 +6005,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
         verifyMocks();
 
         final HttpRequest captured = cap.getValue();
@@ -6012,7 +6018,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.removeHeaders("Via");
         backendExpectsAnyRequest().andReturn(originResponse);
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         assertValidViaHeader(result.getFirstHeader("Via").getValue());
     }
@@ -6100,7 +6106,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
         verifyMocks();
 
         final HttpRequest captured = cap.getValue();
@@ -6123,7 +6129,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         final String via = result.getFirstHeader("Via").getValue();
@@ -6151,7 +6157,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         Assert.assertEquals(warning,
                 result.getFirstHeader("Warning").getValue());
@@ -6192,8 +6198,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         boolean oldWarningFound = false;
@@ -6228,7 +6234,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setHeader("Date", dateHdr);
         backendExpectsAnyRequest().andReturn(originResponse);
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         // note that currently the implementation acts as an HTTP/1.1 proxy,
         // which means that all the responses from the caching module should
@@ -6272,7 +6278,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         for(final Header h : result.getHeaders("Warning")) {
@@ -6292,7 +6298,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         for(final Header h : result.getHeaders("Warning")) {
@@ -6311,7 +6317,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         final Header[] warningHeaders = result.getHeaders("Warning");

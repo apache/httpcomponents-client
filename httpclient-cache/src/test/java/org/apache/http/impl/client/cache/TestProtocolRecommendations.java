@@ -47,6 +47,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.DateUtils;
@@ -91,7 +92,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         originResponse.setHeader("Content-Encoding", "identity");
         backendExpectsAnyRequest().andReturn(originResponse);
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         boolean foundIdentity = false;
         for(final Header h : result.getHeaders("Content-Encoding")) {
@@ -127,8 +128,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req2.setHeader(conditionalHeader, validator);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         if (HttpStatus.SC_NOT_MODIFIED == result.getStatusLine().getStatusCode()) {
@@ -247,15 +248,15 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
-                        EasyMock.same(route),
+                        EasyMock.eq(route),
                         EasyMock.capture(cap),
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(
                                 Proxies.enhanceResponse(resp2)).times(0,1);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         if (!cap.hasCaptured()
@@ -321,7 +322,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, req);
+        final HttpResponse result = impl.execute(route, req, context, null);
         verifyMocks();
 
         assertNull(result.getFirstHeader(entityHeader));
@@ -384,7 +385,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, req);
+        final HttpResponse result = impl.execute(route, req, context, null);
         verifyMocks();
 
         assertNull(result.getFirstHeader("Content-Range"));
@@ -423,10 +424,10 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequest().andThrow(new IOException());
 
         replayMocks();
-        impl.execute(route, req1);
+        impl.execute(route, req1, context, null);
         HttpResponse result = null;
         try {
-            result = impl.execute(route, req2);
+            result = impl.execute(route, req2, context, null);
         } catch (final IOException acceptable) {
         }
         verifyMocks();
@@ -504,8 +505,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequest().andThrow(new IOException()).times(0,1);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
@@ -565,8 +566,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequest().andThrow(new IOException()).anyTimes();
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
@@ -606,7 +607,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         assertNull(result.getFirstHeader("Warning"));
@@ -627,7 +628,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
 
         assertEquals(warning, result.getFirstHeader("Warning").getValue());
@@ -645,7 +646,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
             .getCanonicalHeaderValue(originResponse, headerName);
         backendExpectsAnyRequest().andReturn(originResponse);
         replayMocks();
-        final HttpResponse result = impl.execute(route, request);
+        final HttpResponse result = impl.execute(route, request, context, null);
         verifyMocks();
         assertEquals(headerValue,
             result.getFirstHeader(headerName).getValue());
@@ -657,12 +658,12 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
-                        EasyMock.same(route),
+                        EasyMock.eq(route),
                         EasyMock.capture(cap),
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
         replayMocks();
-        impl.execute(route, request);
+        impl.execute(route, request, context, null);
         verifyMocks();
         assertEquals(headerValue,
                 HttpTestUtils.getCanonicalHeaderValue(cap.getValue(),
@@ -947,15 +948,15 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         EasyMock.expect(
                 mockBackend.execute(
-                        EasyMock.same(route),
+                        EasyMock.eq(route),
                         EasyMock.capture(cap),
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(
                                 Proxies.enhanceResponse(resp2));
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
 
         final HttpRequest captured = cap.getValue();
@@ -998,15 +999,15 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         EasyMock.expect(
                 mockBackend.execute(
-                        EasyMock.same(route),
+                        EasyMock.eq(route),
                         EasyMock.capture(cap),
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(
                                 Proxies.enhanceResponse(resp2));
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
 
         final HttpRequest captured = cap.getValue();
@@ -1057,15 +1058,15 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         EasyMock.expect(
                 mockBackend.execute(
-                        EasyMock.same(route),
+                        EasyMock.eq(route),
                         eqRequest(revalidate),
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(
                                 Proxies.enhanceResponse(resp2));
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_OK,
@@ -1117,15 +1118,15 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         EasyMock.expect(
                 mockBackend.execute(
-                        EasyMock.same(route),
+                        EasyMock.eq(route),
                         EasyMock.capture(cap),
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(
                                 Proxies.enhanceResponse(resp3));
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
 
         final HttpRequest captured = cap.getValue();
@@ -1193,16 +1194,16 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         EasyMock.expect(
                 mockBackend.execute(
-                        EasyMock.same(route),
+                        EasyMock.eq(route),
                         EasyMock.capture(cap),
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(
                                 Proxies.enhanceResponse(resp3));
 
         replayMocks();
-        impl.execute(route,req1);
-        impl.execute(route,req2);
-        impl.execute(route,req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
 
         final HttpRequest captured = cap.getValue();
@@ -1275,10 +1276,10 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req4.setHeader("User-Agent", "agent1");
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        final HttpResponse result1 = impl.execute(route, req3);
-        final HttpResponse result2 = impl.execute(route, req4);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        final HttpResponse result1 = impl.execute(route, req3, context, null);
+        final HttpResponse result2 = impl.execute(route, req4, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result1.getStatusLine().getStatusCode());
@@ -1321,9 +1322,9 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req3.setHeader("User-Agent", "agent2");
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
     }
 
@@ -1372,16 +1373,16 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
-                        EasyMock.same(route),
+                        EasyMock.eq(route),
                         EasyMock.capture(cap),
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(
                                 Proxies.enhanceResponse(resp3));
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
 
         final HttpRequest captured = cap.getValue();
@@ -1414,7 +1415,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp1);
 
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
-                new HttpGet("http://foo.example.com/bar"));
+                new HttpPost("http://foo.example.com/bar"));
         final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag", "\"new-etag\"");
         resp2.setHeader("Date", DateUtils.formatDate(now));
@@ -1429,9 +1430,9 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
         verifyMocks();
     }
 
@@ -1455,7 +1456,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req2);
+        impl.execute(route, req2, context, null);
         verifyMocks();
     }
 
@@ -1473,7 +1474,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req2);
+        impl.execute(route, req2, context, null);
         verifyMocks();
     }
 
@@ -1509,9 +1510,9 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        final HttpResponse result = impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        final HttpResponse result = impl.execute(route, req3, context, null);
         verifyMocks();
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp3, result));
@@ -1563,11 +1564,11 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp5);
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        impl.execute(route, req3);
-        final HttpResponse result4 = impl.execute(route, req4);
-        final HttpResponse result5 = impl.execute(route, req5);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        impl.execute(route, req3, context, null);
+        final HttpResponse result4 = impl.execute(route, req4, context, null);
+        final HttpResponse result5 = impl.execute(route, req5, context, null);
         verifyMocks();
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp4, result4));
@@ -1604,9 +1605,9 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
 
         replayMocks();
-        impl.execute(route, req1);
-        impl.execute(route, req2);
-        final HttpResponse result = impl.execute(route, req3);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
+        final HttpResponse result = impl.execute(route, req3, context, null);
         verifyMocks();
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
@@ -1642,8 +1643,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
@@ -1668,8 +1669,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
@@ -1692,14 +1693,14 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
         EasyMock.expect(
                 mockBackend.execute(
-                        EasyMock.same(route),
+                        EasyMock.eq(route),
                         EasyMock.capture(cap),
                         EasyMock.isA(HttpClientContext.class),
                         EasyMock.<HttpExecutionAware>isNull())).andReturn(
                                 Proxies.enhanceResponse(HttpTestUtils.make200Response()));
 
         replayMocks();
-        impl.execute(route, req1);
+        impl.execute(route, req1, context, null);
         verifyMocks();
 
         final HttpRequest captured = cap.getValue();
@@ -1737,7 +1738,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req.setHeader("Cache-Control", "only-if-cached");
 
         replayMocks();
-        final HttpResponse result = impl.execute(route, req);
+        final HttpResponse result = impl.execute(route, req, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT,
@@ -1757,8 +1758,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req2.setHeader("Cache-Control", "only-if-cached");
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
@@ -1778,8 +1779,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req2.setHeader("Cache-Control", "only-if-cached");
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT,
@@ -1801,8 +1802,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req2.setHeader("Cache-Control", "max-stale=20, only-if-cached");
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertTrue(HttpTestUtils.semanticallyTransparent(resp1, result));
@@ -1822,8 +1823,8 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req2.setHeader("If-None-Match","W/\"weak-sauce\"");
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());

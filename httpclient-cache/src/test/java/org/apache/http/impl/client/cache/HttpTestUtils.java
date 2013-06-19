@@ -244,6 +244,12 @@ public class HttpTestUtils {
                 r2));
     }
 
+    /* Assert.asserts that two requests are morally equivalent. */
+    public static boolean equivalent(final HttpResponse r1, final HttpResponse r2) {
+        return (equivalent(r1.getStatusLine(), r2.getStatusLine()) && isEndToEndHeaderSubset(r1,
+                r2));
+    }
+
     public static byte[] getRandomBytes(final int nbytes) {
         final byte[] bytes = new byte[nbytes];
         (new Random()).nextBytes(bytes);

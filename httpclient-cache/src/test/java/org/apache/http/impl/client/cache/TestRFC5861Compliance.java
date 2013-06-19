@@ -82,8 +82,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route,req1);
-        final HttpResponse result = impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         HttpTestUtils.assert110WarningFound(result);
@@ -110,8 +110,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route,req1);
-        impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertTrue(cis.wasClosed());
@@ -133,8 +133,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route,req1);
-        final HttpResponse result = impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertTrue(HttpStatus.SC_OK != result.getStatusLine().getStatusCode());
@@ -157,8 +157,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route,req1);
-        final HttpResponse result = impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertTrue(HttpStatus.SC_OK != result.getStatusLine().getStatusCode());
@@ -184,8 +184,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route,req1);
-        final HttpResponse result = impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         HttpTestUtils.assert110WarningFound(result);
@@ -208,8 +208,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route,req1);
-        final HttpResponse result = impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertTrue(HttpStatus.SC_OK != result.getStatusLine().getStatusCode());
@@ -232,8 +232,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route,req1);
-        final HttpResponse result = impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         HttpTestUtils.assert110WarningFound(result);
@@ -256,8 +256,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route,req1);
-        final HttpResponse result = impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR,
@@ -282,8 +282,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route,req1);
-        final HttpResponse result = impl.execute(route,req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR,
@@ -324,8 +324,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
@@ -369,8 +369,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         req2.setHeader("If-None-Match","\"etag\"");
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_NOT_MODIFIED, result.getStatusLine().getStatusCode());
@@ -420,8 +420,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
@@ -471,8 +471,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
@@ -523,8 +523,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(route, req1);
-        final HttpResponse result = impl.execute(route, req2);
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
         verifyMocks();
 
         assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());

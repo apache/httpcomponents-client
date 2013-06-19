@@ -112,7 +112,7 @@ public class TestHttpCacheJiraNumber1147 {
         EasyMock.replay(backend);
 
         final BasicHttpCache cache = new BasicHttpCache(resourceFactory, httpCacheStorage, cacheConfig);
-        final CachingExec t = new CachingExec(backend, cache, cacheConfig);
+        final ClientExecChain t = createCachingExecChain(backend, cache, cacheConfig);
 
         final HttpResponse response1 = t.execute(route, get, context, null);
         Assert.assertEquals(200, response1.getStatusLine().getStatusCode());
@@ -135,6 +135,11 @@ public class TestHttpCacheJiraNumber1147 {
         EntityUtils.consume(response2.getEntity());
 
         EasyMock.verify(backend);
+    }
+
+    protected ClientExecChain createCachingExecChain(final ClientExecChain backend,
+            final BasicHttpCache cache, final CacheConfig config) {
+        return new CachingExec(backend, cache, config);
     }
 
 }
