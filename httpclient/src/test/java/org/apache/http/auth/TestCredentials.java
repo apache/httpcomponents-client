@@ -70,7 +70,7 @@ public class TestCredentials {
         Assert.assertEquals(new NTUserPrincipal("DOMAIN", "name"),
                 creds1.getUserPrincipal());
         Assert.assertEquals("pwd", creds1.getPassword());
-        Assert.assertEquals("[principal: DOMAIN/name][workstation: LOCALHOST]",
+        Assert.assertEquals("[principal: DOMAIN\\name][workstation: LOCALHOST]",
                 creds1.toString());
         NTCredentials creds2 = new NTCredentials(
                 "name", null, null, null);
@@ -86,7 +86,7 @@ public class TestCredentials {
         Assert.assertEquals(new NTUserPrincipal("DOMAIN", "name"),
                 creds3.getUserPrincipal());
         Assert.assertEquals("pwd", creds3.getPassword());
-        Assert.assertEquals("[principal: DOMAIN/name][workstation: null]",
+        Assert.assertEquals("[principal: DOMAIN\\name][workstation: null]",
                 creds3.toString());
         NTCredentials creds4 = new NTCredentials(
             "domain/name");
@@ -94,7 +94,7 @@ public class TestCredentials {
         Assert.assertEquals(new NTUserPrincipal("DOMAIN", "name"),
                 creds4.getUserPrincipal());
         Assert.assertEquals(null, creds4.getPassword());
-        Assert.assertEquals("[principal: DOMAIN/name][workstation: null]",
+        Assert.assertEquals("[principal: DOMAIN\\name][workstation: null]",
                 creds4.toString());
         NTCredentials creds5 = new NTCredentials(
             "name");

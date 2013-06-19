@@ -1,6 +1,10 @@
 Changes since Release 4.2.5
 -------------------
 
+* [HTTPCLIENT-1377] User principal for non-NTLM authentication is incorrectly generated when
+  using user credentials are specified as NTCredentials.  
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1357] Connection upgrade operation does not resolve default port (-1) to a scheme 
   default value which can lead to a InvalidArgumentException on some platforms. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>
