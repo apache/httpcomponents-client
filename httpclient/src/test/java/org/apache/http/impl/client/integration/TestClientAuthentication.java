@@ -235,7 +235,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
             .add(new RequestBasicAuth())
             .add(new ResponseBasicUnauthorized()).build();
         this.localServer = new LocalTestServer(
-                httpproc, null, null, new AuthExpectationVerifier(), null);
+                httpproc, null, null, new AuthExpectationVerifier(), null, false);
         this.localServer.register("*", new AuthHandler());
         this.localServer.start();
 

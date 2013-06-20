@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 
 import org.apache.http.ConnectionReuseStrategy;
@@ -85,6 +86,9 @@ public class LocalTestServer {
     /** Optional SSL context */
     private final SSLContext sslcontext;
 
+    /** Optional flag whether to force SSL context */
+    private final boolean forceSSLAuth;
+
     /** The server socket, while being served. */
     private volatile ServerSocket servicedSocket;
 
@@ -116,13 +120,15 @@ public class LocalTestServer {
      *                  <code>null</code>.
      * @param sslcontext optional SSL context if the server is to leverage
      *                   SSL/TLS transport security
+     * @param forceSSLAuth whether or not the server needs to enforce client auth
      */
     public LocalTestServer(
             final HttpProcessor proc,
             final ConnectionReuseStrategy reuseStrat,
             final HttpResponseFactory responseFactory,
             final HttpExpectationVerifier expectationVerifier,
-            final SSLContext sslcontext) {
+            final SSLContext sslcontext,
+            final boolean forceSSLAuth) {
         super();
         this.handlerRegistry = new UriHttpRequestHandlerMapper();
         this.workers = Collections.synchronizedSet(new HashSet<Worker>());
@@ -133,12 +139,23 @@ public class LocalTestServer {
             handlerRegistry,
             expectationVerifier);
         this.sslcontext = sslcontext;
+        this.forceSSLAuth = forceSSLAuth;
     }
 
     public LocalTestServer(
             final HttpProcessor proc,
             final ConnectionReuseStrategy reuseStrat) {
-        this(proc, reuseStrat, null, null, null);
+        this(proc, reuseStrat, null, null, null, false);
+    }
+
+    /**
+     * Creates a new test server with SSL/TLS encryption.
+     *
+     * @param sslcontext SSL context
+     * @param forceSSLAuth whether or not the server needs to enforce client auth
+     */
+    public LocalTestServer(final SSLContext sslcontext, final boolean forceSSLAuth) {
+        this(null, null, null, null, sslcontext, forceSSLAuth);
     }
 
     /**
@@ -147,7 +164,7 @@ public class LocalTestServer {
      * @param sslcontext SSL context
      */
     public LocalTestServer(final SSLContext sslcontext) {
-        this(null, null, null, null, sslcontext);
+        this(null, null, null, null, sslcontext, false);
     }
 
     /**
@@ -226,10 +243,16 @@ public class LocalTestServer {
      */
     public void start() throws Exception {
         Asserts.check(servicedSocket == null, "Already running");
-        ServerSocket ssock;
+        final ServerSocket ssock;
         if (sslcontext != null) {
             final SSLServerSocketFactory sf = sslcontext.getServerSocketFactory();
-            ssock = sf.createServerSocket();
+            final SSLServerSocket sslsock = (SSLServerSocket) sf.createServerSocket();
+            if (forceSSLAuth) {
+                sslsock.setNeedClientAuth(true);
+            } else {
+                sslsock.setWantClientAuth(true);
+            }
+            ssock = sslsock;
         } else {
             ssock = new ServerSocket();
         }

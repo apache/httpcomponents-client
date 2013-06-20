@@ -27,28 +27,60 @@
 
 package org.apache.http.conn.ssl;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.security.KeyStore;
 import java.security.UnrecoverableKeyException;
 
-import org.apache.http.localserver.LocalServerTestBase;
 import org.junit.Test;
 
 /**
  * Unit tests for {@link org.apache.http.conn.ssl.SSLContextBuilder}.
  */
-public class TestSSLContextBuilder extends LocalServerTestBase {
+public class TestSSLContextBuilder {
+
+    private static KeyStore load(final String res, final char[] passwd) throws Exception {
+        final KeyStore keystore  = KeyStore.getInstance("jks");
+        final ClassLoader cl = TestSSLContextBuilder.class.getClassLoader();
+        final URL url = cl.getResource(res);
+        final InputStream instream = url.openStream();
+        try {
+            keystore.load(instream, passwd);
+        } finally {
+            instream.close();
+        }
+        return keystore;
+    }
+
+    @Test
+    public void testBuildDefault() throws Exception {
+        new SSLContextBuilder().build();
+    }
+
+    @Test
+    public void testBuildAllNull() throws Exception {
+        new SSLContextBuilder()
+                .useProtocol(null)
+                .setSecureRandom(null)
+                .loadTrustMaterial(null)
+                .loadKeyMaterial(null, null)
+                .build();
+    }
+
+    @Test
+    public void testLoadTrustMultipleMaterial() throws Exception {
+        final KeyStore truststore1 = load("hc-test-1.truststore", "nopassword".toCharArray());
+        final KeyStore truststore2 = load("hc-test-2.truststore", "nopassword".toCharArray());
+        new SSLContextBuilder()
+                .loadTrustMaterial(truststore1)
+                .loadTrustMaterial(truststore2)
+                .build();
+    }
 
     @Test
     public void testKeyWithAlternatePassword() throws Exception {
-        final String keystorePassword = "nopassword";
+        final KeyStore keystore = load("test-keypasswd.keystore", "nopassword".toCharArray());
         final String keyPassword = "password";
-
-        final ClassLoader cl = getClass().getClassLoader();
-        final URL url = cl.getResource("test-keypasswd.keystore");
-        final KeyStore keystore  = KeyStore.getInstance("jks");
-        keystore.load(url.openStream(), keystorePassword.toCharArray());
-
         new SSLContextBuilder()
                 .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
                 .loadTrustMaterial(keystore)
@@ -57,14 +89,8 @@ public class TestSSLContextBuilder extends LocalServerTestBase {
 
     @Test(expected=UnrecoverableKeyException.class)
     public void testKeyWithAlternatePasswordInvalid() throws Exception {
-        final String keystorePassword = "nopassword";
+        final KeyStore keystore = load("test-keypasswd.keystore", "nopassword".toCharArray());
         final String keyPassword = "!password";
-
-        final ClassLoader cl = getClass().getClassLoader();
-        final URL url = cl.getResource("test-keypasswd.keystore");
-        final KeyStore keystore  = KeyStore.getInstance("jks");
-        keystore.load(url.openStream(), keystorePassword.toCharArray());
-
         new SSLContextBuilder()
                 .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
                 .loadTrustMaterial(keystore)
