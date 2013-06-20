@@ -41,7 +41,7 @@ public class TestMultipartEntityBuilder {
     public void testBasics() throws Exception {
         final MultipartEntity entity = MultipartEntityBuilder.create().build();
         Assert.assertNotNull(entity);
-        Assert.assertEquals(HttpMultipartMode.STRICT, entity.getMultipart().getMode());
+        Assert.assertEquals("org.apache.http.entity.mime.HttpStrictMultipart", entity.getMultipart().getClass().getName());
         Assert.assertEquals(0, entity.getMultipart().getBodyParts().size());
     }
 
@@ -53,7 +53,7 @@ public class TestMultipartEntityBuilder {
                 .setLaxMode()
                 .build();
         Assert.assertNotNull(entity);
-        Assert.assertEquals(HttpMultipartMode.BROWSER_COMPATIBLE, entity.getMultipart().getMode());
+        Assert.assertEquals("org.apache.http.entity.mime.HttpBrowserCompatibleMultipart", entity.getMultipart().getClass().getName());
         Assert.assertEquals("blah-blah", entity.getMultipart().getBoundary());
         Assert.assertEquals(Consts.UTF_8, entity.getMultipart().getCharset());
     }

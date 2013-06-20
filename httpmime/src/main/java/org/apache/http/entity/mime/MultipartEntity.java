@@ -53,7 +53,7 @@ public class MultipartEntity implements HttpEntity {
         "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
             .toCharArray();
 
-    private final HttpMultipart multipart;
+    private final HttpMultipartForm multipart;
     private final Header contentType;
 
     // @GuardedBy("dirty") // we always read dirty before accessing length
@@ -72,8 +72,24 @@ public class MultipartEntity implements HttpEntity {
             final Charset charset) {
         super();
         final String b = boundary != null ? boundary : generateBoundary();
-        final HttpMultipartMode m = mode != null ? mode : HttpMultipartMode.STRICT;
-        this.multipart = new HttpMultipart("form-data", charset, b, m);
+        this.multipart = HttpMultipartFactory.getInstance("form-data", charset, b, mode != null ? mode : HttpMultipartMode.STRICT);
+        this.contentType = new BasicHeader(HTTP.CONTENT_TYPE, generateContentType(b, charset));
+        this.dirty = true;
+    }
+    
+    /**
+     * Creates an instance using the specified parameters
+     * @param multipart the part encoder to use, may not be {@code null}
+     * @param boundary the boundary string, may be {@code null}, in which case {@link #generateBoundary()} is invoked to create the string
+     * @param charset the character set to use, may be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
+     */
+    public MultipartEntity(
+            final HttpMultipartForm multipart,
+            final String boundary,
+            final Charset charset) {
+        super();
+        final String b = boundary != null ? boundary : generateBoundary();
+        this.multipart = multipart;
         this.contentType = new BasicHeader(HTTP.CONTENT_TYPE, generateContentType(b, charset));
         this.dirty = true;
     }
@@ -120,7 +136,7 @@ public class MultipartEntity implements HttpEntity {
     /**
      * @since 4.3
      */
-    protected HttpMultipart getMultipart() {
+    protected HttpMultipartForm getMultipart() {
         return multipart;
     }
 

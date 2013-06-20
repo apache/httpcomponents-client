@@ -45,10 +45,9 @@ import org.apache.http.util.ByteArrayBuffer;
  * capable of operating either in the strict (RFC 822, RFC 2045, RFC 2046 compliant) or
  * the browser compatible modes.
  *
- * @since 4.0
+ * @since 4.3
  */
- @Deprecated
-public class HttpMultipart {
+public abstract class HttpMultipartForm {
 
     private static ByteArrayBuffer encode(
             final Charset charset, final String string) {
@@ -75,7 +74,7 @@ public class HttpMultipart {
         writeBytes(b, out);
     }
 
-    private static void writeField(
+    protected static void writeField(
             final MinimalField field, final OutputStream out) throws IOException {
         writeBytes(field.getName(), out);
         writeBytes(FIELD_SEP, out);
@@ -83,7 +82,7 @@ public class HttpMultipart {
         writeBytes(CR_LF, out);
     }
 
-    private static void writeField(
+    protected static void writeField(
             final MinimalField field, final Charset charset, final OutputStream out) throws IOException {
         writeBytes(field.getName(), charset, out);
         writeBytes(FIELD_SEP, out);
@@ -97,11 +96,9 @@ public class HttpMultipart {
 
 
     private final String subType;
-    private final Charset charset;
+    protected final Charset charset;
     private final String boundary;
     private final List<FormBodyPart> parts;
-
-    private final HttpMultipartMode mode;
 
     /**
      * Creates an instance with the specified settings.
@@ -112,7 +109,7 @@ public class HttpMultipart {
      * @param mode the mode to use
      * @throws IllegalArgumentException if charset is null or boundary is null
      */
-    public HttpMultipart(final String subType, final Charset charset, final String boundary, final HttpMultipartMode mode) {
+    public HttpMultipartForm(final String subType, final Charset charset, final String boundary) {
         super();
         Args.notNull(subType, "Multipart subtype");
         Args.notNull(boundary, "Multipart boundary");
@@ -120,23 +117,9 @@ public class HttpMultipart {
         this.charset = charset != null ? charset : MIME.DEFAULT_CHARSET;
         this.boundary = boundary;
         this.parts = new ArrayList<FormBodyPart>();
-        this.mode = mode;
     }
 
-    /**
-     * Creates an instance with the specified settings.
-     * Mode is set to {@link HttpMultipartMode#STRICT}
-     *
-     * @param subType mime subtype - must not be {@code null}
-     * @param charset the character set to use. May be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
-     * @param boundary to use  - must not be {@code null}
-     * @throws IllegalArgumentException if charset is null or boundary is null
-     */
-    public HttpMultipart(final String subType, final Charset charset, final String boundary) {
-        this(subType, charset, boundary, HttpMultipartMode.STRICT);
-    }
-
-    public HttpMultipart(final String subType, final String boundary) {
+    public HttpMultipartForm(final String subType, final String boundary) {
         this(subType, null, boundary);
     }
 
@@ -146,10 +129,6 @@ public class HttpMultipart {
 
     public Charset getCharset() {
         return this.charset;
-    }
-
-    public HttpMultipartMode getMode() {
-        return this.mode;
     }
 
     public List<FormBodyPart> getBodyParts() {
@@ -168,7 +147,6 @@ public class HttpMultipart {
     }
 
     private void doWriteTo(
-        final HttpMultipartMode mode,
         final OutputStream out,
         final boolean writeContent) throws IOException {
 
@@ -178,26 +156,8 @@ public class HttpMultipart {
             writeBytes(boundary, out);
             writeBytes(CR_LF, out);
 
-            final Header header = part.getHeader();
+            formatMultipartHeader(part, out);
 
-            switch (mode) {
-            case STRICT:
-                for (final MinimalField field: header) {
-                    writeField(field, out);
-                }
-                break;
-            case BROWSER_COMPATIBLE:
-                // Only write Content-Disposition
-                // Use content charset
-                final MinimalField cd = part.getHeader().getField(MIME.CONTENT_DISPOSITION);
-                writeField(cd, this.charset, out);
-                final String filename = part.getBody().getFilename();
-                if (filename != null) {
-                    final MinimalField ct = part.getHeader().getField(MIME.CONTENT_TYPE);
-                    writeField(ct, this.charset, out);
-                }
-                break;
-            }
             writeBytes(CR_LF, out);
 
             if (writeContent) {
@@ -212,6 +172,13 @@ public class HttpMultipart {
     }
 
     /**
+      * Write the multipart header fields; depends on the style.
+      */
+    protected abstract void formatMultipartHeader(
+        final FormBodyPart part,
+        final OutputStream out) throws IOException;
+
+    /**
      * Writes out the content in the multipart/form encoding. This method
      * produces slightly different formatting depending on its compatibility
      * mode.
@@ -219,7 +186,7 @@ public class HttpMultipart {
      * @see #getMode()
      */
     public void writeTo(final OutputStream out) throws IOException {
-        doWriteTo(this.mode, out, true);
+        doWriteTo(out, true);
     }
 
     /**
@@ -248,7 +215,7 @@ public class HttpMultipart {
         }
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            doWriteTo(this.mode, out, false);
+            doWriteTo(out, false);
             final byte[] extra = out.toByteArray();
             return contentLen + extra.length;
         } catch (final IOException ex) {

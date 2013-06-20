@@ -45,10 +45,10 @@ import org.apache.http.util.Args;
  */
 public class MultipartEntityBuilder {
 
-    private boolean lax;
-    private String boundary;
-    private Charset charset;
-    private List<FormBodyPart> bodyParts;
+    private HttpMultipartMode mode = HttpMultipartMode.STRICT;
+    private String boundary = null;
+    private Charset charset = null;
+    private List<FormBodyPart> bodyParts = null;
 
     public static MultipartEntityBuilder create() {
         return new MultipartEntityBuilder();
@@ -59,12 +59,12 @@ public class MultipartEntityBuilder {
     }
 
     public MultipartEntityBuilder setLaxMode() {
-        this.lax = true;
+        this.mode = HttpMultipartMode.BROWSER_COMPATIBLE;
         return this;
     }
 
     public MultipartEntityBuilder setStrictMode() {
-        this.lax = false;
+        this.mode = HttpMultipartMode.STRICT;
         return this;
     }
 
@@ -140,7 +140,7 @@ public class MultipartEntityBuilder {
 
     public MultipartEntity build() {
         final MultipartEntity e = new MultipartEntity(
-                this.lax ? HttpMultipartMode.BROWSER_COMPATIBLE : HttpMultipartMode.STRICT,
+                this.mode,
                 this.boundary, this.charset);
         if (this.bodyParts != null) {
             for (final FormBodyPart bp: this.bodyParts) {
