@@ -47,7 +47,7 @@ import org.apache.http.util.ByteArrayBuffer;
  *
  * @since 4.3
  */
-public abstract class HttpMultipartForm {
+abstract class AbstractMultipartForm {
 
     private static ByteArrayBuffer encode(
             final Charset charset, final String string) {
@@ -106,10 +106,9 @@ public abstract class HttpMultipartForm {
      * @param subType mime subtype - must not be {@code null}
      * @param charset the character set to use. May be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
      * @param boundary to use  - must not be {@code null}
-     * @param mode the mode to use
      * @throws IllegalArgumentException if charset is null or boundary is null
      */
-    public HttpMultipartForm(final String subType, final Charset charset, final String boundary) {
+    public AbstractMultipartForm(final String subType, final Charset charset, final String boundary) {
         super();
         Args.notNull(subType, "Multipart subtype");
         Args.notNull(boundary, "Multipart boundary");
@@ -119,7 +118,7 @@ public abstract class HttpMultipartForm {
         this.parts = new ArrayList<FormBodyPart>();
     }
 
-    public HttpMultipartForm(final String subType, final String boundary) {
+    public AbstractMultipartForm(final String subType, final String boundary) {
         this(subType, null, boundary);
     }
 
@@ -182,8 +181,6 @@ public abstract class HttpMultipartForm {
      * Writes out the content in the multipart/form encoding. This method
      * produces slightly different formatting depending on its compatibility
      * mode.
-     *
-     * @see #getMode()
      */
     public void writeTo(final OutputStream out) throws IOException {
         doWriteTo(out, true);

@@ -53,7 +53,7 @@ public class MultipartEntity implements HttpEntity {
         "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
             .toCharArray();
 
-    private final HttpMultipartForm multipart;
+    private final AbstractMultipartForm multipart;
     private final Header contentType;
 
     // @GuardedBy("dirty") // we always read dirty before accessing length
@@ -84,7 +84,7 @@ public class MultipartEntity implements HttpEntity {
      * @param charset the character set to use, may be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
      */
     public MultipartEntity(
-            final HttpMultipartForm multipart,
+            final AbstractMultipartForm multipart,
             final String boundary,
             final Charset charset) {
         super();
@@ -136,7 +136,7 @@ public class MultipartEntity implements HttpEntity {
     /**
      * @since 4.3
      */
-    protected HttpMultipartForm getMultipart() {
+    protected AbstractMultipartForm getMultipart() {
         return multipart;
     }
 

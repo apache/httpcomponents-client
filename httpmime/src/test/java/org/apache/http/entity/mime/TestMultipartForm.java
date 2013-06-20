@@ -46,7 +46,7 @@ public class TestMultipartForm {
 
     @Test
     public void testMultipartFormStringParts() throws Exception {
-        final HttpMultipartForm multipart = new HttpStrictMultipart("form-data", "foo");
+        final AbstractMultipartForm multipart = new HttpStrictMultipart("form-data", "foo");
         final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new StringBody("this stuff", ContentType.DEFAULT_TEXT));
@@ -102,7 +102,7 @@ public class TestMultipartForm {
             writer.close();
         }
 
-        final HttpMultipartForm multipart = new HttpStrictMultipart("form-data", "foo");
+        final AbstractMultipartForm multipart = new HttpStrictMultipart("form-data", "foo");
         final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new FileBody(tmpfile));
@@ -152,7 +152,7 @@ public class TestMultipartForm {
         }
 
         // Strict is no accident here, despite the test name - otherwise Transfer-Encoding is not produced.
-        final HttpMultipartForm multipart = new HttpStrictMultipart("form-data", null, "foo");
+        final AbstractMultipartForm multipart = new HttpStrictMultipart("form-data", null, "foo");
         final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new FileBody(tmpfile));
@@ -234,7 +234,7 @@ public class TestMultipartForm {
             writer.close();
         }
 
-        final HttpMultipartForm multipart = new HttpBrowserCompatibleMultipart("form-data", Charset.forName("UTF-8"), "foo");
+        final AbstractMultipartForm multipart = new HttpBrowserCompatibleMultipart("form-data", Charset.forName("UTF-8"), "foo");
         final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new InputStreamBody(new FileInputStream(tmpfile), s1 + ".tmp"));
@@ -275,7 +275,7 @@ public class TestMultipartForm {
         final String s1 = constructString(SWISS_GERMAN_HELLO);
         final String s2 = constructString(RUSSIAN_HELLO);
 
-        final HttpMultipartForm multipart = new HttpStrictMultipart("form-data", "foo");
+        final AbstractMultipartForm multipart = new HttpStrictMultipart("form-data", "foo");
         final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new StringBody(s1, ContentType.create("text/plain", Charset.forName("ISO-8859-1"))));

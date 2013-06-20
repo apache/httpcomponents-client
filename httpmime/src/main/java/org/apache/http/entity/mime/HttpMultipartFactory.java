@@ -39,8 +39,8 @@ public class HttpMultipartFactory {
     private HttpMultipartFactory() {
     }
     
-    /** Create an appropriate HttpMultipartForm instance */
-    public static HttpMultipartForm getInstance(
+    /** Create an appropriate AbstractMultipartForm instance */
+    public static AbstractMultipartForm getInstance(
         final String subType, final Charset charset, final String boundary,
         final HttpMultipartMode mode) {
         // If needed, this can be replaced with a registry in time

@@ -27,36 +27,29 @@
 
 package org.apache.http.entity.mime;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.util.Args;
-import org.apache.http.util.ByteArrayBuffer;
 
 /**
- * HttpBrowserCompatibleMultipart represents a collection of MIME multipart encoded content bodies. This class is
- * emulates browser compatibility, e.g. IE 5 or earlier.
+ * HttpBrowserCompatibleMultipart represents a collection of MIME multipart encoded
+ * content bodies. This class is emulates browser compatibility, e.g. IE 5 or earlier.
  *
  * @since 4.3
  */
-public class HttpBrowserCompatibleMultipart extends HttpMultipartForm {
+class HttpBrowserCompatibleMultipart extends AbstractMultipartForm {
 
     /**
      * Creates an instance with the specified settings.
      *
      * @param subType mime subtype - must not be {@code null}
-     * @param charset the character set to use. May be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
+     * @param charset the character set to use. May be {@code null},
+     *   in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
      * @param boundary to use  - must not be {@code null}
      * @throws IllegalArgumentException if charset is null or boundary is null
      */
-    public HttpBrowserCompatibleMultipart(final String subType, final Charset charset, final String boundary) {
+    public HttpBrowserCompatibleMultipart(
+            final String subType, final Charset charset, final String boundary) {
         super(subType, charset, boundary);
     }
 
@@ -69,8 +62,8 @@ public class HttpBrowserCompatibleMultipart extends HttpMultipartForm {
       */
     @Override
     protected void formatMultipartHeader(
-        final FormBodyPart part,
-        final OutputStream out) throws IOException {
+            final FormBodyPart part,
+            final OutputStream out) throws IOException {
         // For browser-compatible, only write Content-Disposition
         // Use content charset
         final Header header = part.getHeader();

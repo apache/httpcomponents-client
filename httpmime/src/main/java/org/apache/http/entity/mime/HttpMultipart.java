@@ -27,18 +27,9 @@
 
 package org.apache.http.entity.mime;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.util.Args;
-import org.apache.http.util.ByteArrayBuffer;
 
 /**
  * HttpMultipart represents a collection of MIME multipart encoded content bodies. This class is
@@ -46,60 +37,11 @@ import org.apache.http.util.ByteArrayBuffer;
  * the browser compatible modes.
  *
  * @since 4.0
+ *
+ * @deprecated  (4.3) Use {@link MultipartEntityBuilder}.
  */
  @Deprecated
-public class HttpMultipart {
-
-    private static ByteArrayBuffer encode(
-            final Charset charset, final String string) {
-        final ByteBuffer encoded = charset.encode(CharBuffer.wrap(string));
-        final ByteArrayBuffer bab = new ByteArrayBuffer(encoded.remaining());
-        bab.append(encoded.array(), encoded.position(), encoded.remaining());
-        return bab;
-    }
-
-    private static void writeBytes(
-            final ByteArrayBuffer b, final OutputStream out) throws IOException {
-        out.write(b.buffer(), 0, b.length());
-    }
-
-    private static void writeBytes(
-            final String s, final Charset charset, final OutputStream out) throws IOException {
-        final ByteArrayBuffer b = encode(charset, s);
-        writeBytes(b, out);
-    }
-
-    private static void writeBytes(
-            final String s, final OutputStream out) throws IOException {
-        final ByteArrayBuffer b = encode(MIME.DEFAULT_CHARSET, s);
-        writeBytes(b, out);
-    }
-
-    private static void writeField(
-            final MinimalField field, final OutputStream out) throws IOException {
-        writeBytes(field.getName(), out);
-        writeBytes(FIELD_SEP, out);
-        writeBytes(field.getBody(), out);
-        writeBytes(CR_LF, out);
-    }
-
-    private static void writeField(
-            final MinimalField field, final Charset charset, final OutputStream out) throws IOException {
-        writeBytes(field.getName(), charset, out);
-        writeBytes(FIELD_SEP, out);
-        writeBytes(field.getBody(), charset, out);
-        writeBytes(CR_LF, out);
-    }
-
-    private static final ByteArrayBuffer FIELD_SEP = encode(MIME.DEFAULT_CHARSET, ": ");
-    private static final ByteArrayBuffer CR_LF = encode(MIME.DEFAULT_CHARSET, "\r\n");
-    private static final ByteArrayBuffer TWO_DASHES = encode(MIME.DEFAULT_CHARSET, "--");
-
-
-    private final String subType;
-    private final Charset charset;
-    private final String boundary;
-    private final List<FormBodyPart> parts;
+public class HttpMultipart extends AbstractMultipartForm {
 
     private final HttpMultipartMode mode;
 
@@ -107,19 +49,16 @@ public class HttpMultipart {
      * Creates an instance with the specified settings.
      *
      * @param subType mime subtype - must not be {@code null}
-     * @param charset the character set to use. May be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
+     * @param charset the character set to use. May be {@code null},
+     *  in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
      * @param boundary to use  - must not be {@code null}
      * @param mode the mode to use
      * @throws IllegalArgumentException if charset is null or boundary is null
      */
-    public HttpMultipart(final String subType, final Charset charset, final String boundary, final HttpMultipartMode mode) {
-        super();
-        Args.notNull(subType, "Multipart subtype");
-        Args.notNull(boundary, "Multipart boundary");
-        this.subType = subType;
-        this.charset = charset != null ? charset : MIME.DEFAULT_CHARSET;
-        this.boundary = boundary;
-        this.parts = new ArrayList<FormBodyPart>();
+    public HttpMultipart(
+            final String subType, final Charset charset, final String boundary,
+            final HttpMultipartMode mode) {
+        super(subType, charset, boundary);
         this.mode = mode;
     }
 
@@ -128,7 +67,8 @@ public class HttpMultipart {
      * Mode is set to {@link HttpMultipartMode#STRICT}
      *
      * @param subType mime subtype - must not be {@code null}
-     * @param charset the character set to use. May be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
+     * @param charset the character set to use. May be {@code null},
+     *   in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
      * @param boundary to use  - must not be {@code null}
      * @throws IllegalArgumentException if charset is null or boundary is null
      */
@@ -140,120 +80,30 @@ public class HttpMultipart {
         this(subType, null, boundary);
     }
 
-    public String getSubType() {
-        return this.subType;
-    }
-
-    public Charset getCharset() {
-        return this.charset;
-    }
-
     public HttpMultipartMode getMode() {
         return this.mode;
     }
 
-    public List<FormBodyPart> getBodyParts() {
-        return this.parts;
-    }
-
-    public void addBodyPart(final FormBodyPart part) {
-        if (part == null) {
-            return;
-        }
-        this.parts.add(part);
-    }
-
-    public String getBoundary() {
-        return this.boundary;
-    }
-
-    private void doWriteTo(
-        final HttpMultipartMode mode,
-        final OutputStream out,
-        final boolean writeContent) throws IOException {
-
-        final ByteArrayBuffer boundary = encode(this.charset, getBoundary());
-        for (final FormBodyPart part: this.parts) {
-            writeBytes(TWO_DASHES, out);
-            writeBytes(boundary, out);
-            writeBytes(CR_LF, out);
-
-            final Header header = part.getHeader();
-
-            switch (mode) {
-            case STRICT:
-                for (final MinimalField field: header) {
-                    writeField(field, out);
-                }
-                break;
+    @Override
+    protected void formatMultipartHeader(
+            final FormBodyPart part, final OutputStream out) throws IOException {
+        final Header header = part.getHeader();
+        switch (this.mode) {
             case BROWSER_COMPATIBLE:
-                // Only write Content-Disposition
+                // For browser-compatible, only write Content-Disposition
                 // Use content charset
-                final MinimalField cd = part.getHeader().getField(MIME.CONTENT_DISPOSITION);
+                final MinimalField cd = header.getField(MIME.CONTENT_DISPOSITION);
                 writeField(cd, this.charset, out);
                 final String filename = part.getBody().getFilename();
                 if (filename != null) {
-                    final MinimalField ct = part.getHeader().getField(MIME.CONTENT_TYPE);
+                    final MinimalField ct = header.getField(MIME.CONTENT_TYPE);
                     writeField(ct, this.charset, out);
                 }
                 break;
-            }
-            writeBytes(CR_LF, out);
-
-            if (writeContent) {
-                part.getBody().writeTo(out);
-            }
-            writeBytes(CR_LF, out);
-        }
-        writeBytes(TWO_DASHES, out);
-        writeBytes(boundary, out);
-        writeBytes(TWO_DASHES, out);
-        writeBytes(CR_LF, out);
-    }
-
-    /**
-     * Writes out the content in the multipart/form encoding. This method
-     * produces slightly different formatting depending on its compatibility
-     * mode.
-     *
-     * @see #getMode()
-     */
-    public void writeTo(final OutputStream out) throws IOException {
-        doWriteTo(this.mode, out, true);
-    }
-
-    /**
-     * Determines the total length of the multipart content (content length of
-     * individual parts plus that of extra elements required to delimit the parts
-     * from one another). If any of the @{link BodyPart}s contained in this object
-     * is of a streaming entity of unknown length the total length is also unknown.
-     * <p/>
-     * This method buffers only a small amount of data in order to determine the
-     * total length of the entire entity. The content of individual parts is not
-     * buffered.
-     *
-     * @return total length of the multipart entity if known, <code>-1</code>
-     *   otherwise.
-     */
-    public long getTotalLength() {
-        long contentLen = 0;
-        for (final FormBodyPart part: this.parts) {
-            final ContentBody body = part.getBody();
-            final long len = body.getContentLength();
-            if (len >= 0) {
-                contentLen += len;
-            } else {
-                return -1;
-            }
-        }
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try {
-            doWriteTo(this.mode, out, false);
-            final byte[] extra = out.toByteArray();
-            return contentLen + extra.length;
-        } catch (final IOException ex) {
-            // Should never happen
-            return -1;
+            default:
+                for (final MinimalField field: header) {
+                    writeField(field, out);
+                }
         }
     }
 
