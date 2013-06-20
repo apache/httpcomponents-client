@@ -32,7 +32,6 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -201,37 +200,4 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
     }
 
-    @Test
-    public void testKeyWithAlternatePassword() throws Exception {
-        final String keystorePassword = "nopassword";
-        final String keyPassword = "password";
-
-        final ClassLoader cl = getClass().getClassLoader();
-        final URL url = cl.getResource("test-keypasswd.keystore");
-        final KeyStore keystore  = KeyStore.getInstance("jks");
-        keystore.load(url.openStream(), keystorePassword.toCharArray());
-
-        final SSLContext sslcontext = SSLContexts.custom()
-                .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
-                .loadTrustMaterial(keystore)
-                .build();
-        new SSLSocketFactory(sslcontext);
-    }
-
-    @Test(expected=UnrecoverableKeyException.class)
-    public void testKeyWithAlternatePasswordInvalid() throws Exception {
-        final String keystorePassword = "nopassword";
-        final String keyPassword = "!password";
-
-        final ClassLoader cl = getClass().getClassLoader();
-        final URL url = cl.getResource("test-keypasswd.keystore");
-        final KeyStore keystore  = KeyStore.getInstance("jks");
-        keystore.load(url.openStream(), keystorePassword.toCharArray());
-
-        final SSLContext sslcontext = SSLContexts.custom()
-                .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
-                .loadTrustMaterial(keystore)
-                .build();
-        new SSLSocketFactory(sslcontext);
-    }
 }
