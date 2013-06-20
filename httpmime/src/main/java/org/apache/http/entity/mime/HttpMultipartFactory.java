@@ -49,6 +49,8 @@ public class HttpMultipartFactory {
                 return new HttpStrictMultipart(subType, charset, boundary);
             case BROWSER_COMPATIBLE:
                 return new HttpBrowserCompatibleMultipart(subType, charset, boundary);
+            case RFC6532:
+                return new HttpRFC6532Multipart(subType, charset, boundary);
             default:
                 throw new IllegalArgumentException("Unknown multipart mode");
         }

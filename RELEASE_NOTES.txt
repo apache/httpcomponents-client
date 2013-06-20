@@ -1,5 +1,10 @@
+
 Changes since release 4.3 BETA2
 -------------------
+
+* [HTTPCLIENT-1372] Refactor HttpMultipart, and add RFC6532 mode, so that headers in post
+  are no longer constrained to ASCII values.
+  Contributed by Karl Wright <kwright at apache.org>
 
 * [HTTPCLIENT-1377] User principal for non-NTLM authentication is incorrectly generated when using 
   user credentials are specified as NTCredentials
@@ -39,7 +44,6 @@ with an explicitly specified target host. HttpClient will no longer attempt to p
 URI if it does not need to extract the target host from it.
 
 This release also includes all fixes from the stable 4.2.x release branch.
-
 
 
 * [HTTPCLIENT-1366] org.apache.http.client.utils.URLEncodedUtils should parse the semicolon as a query parameter separator.

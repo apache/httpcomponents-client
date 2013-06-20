@@ -36,6 +36,8 @@ public enum HttpMultipartMode {
     /** RFC 822, RFC 2045, RFC 2046 compliant */
     STRICT,
     /** browser-compatible mode, i.e. only write Content-Disposition; use content charset */
-    BROWSER_COMPATIBLE
+    BROWSER_COMPATIBLE,
+    /** RFC 6532 compliant */
+    RFC6532
 
 }

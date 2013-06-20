@@ -201,6 +201,67 @@ public class TestMultipartForm {
         tmpfile.delete();
     }
 
+    @Test
+    public void testMultipartFormRFC6532() throws Exception {
+        final File tmpfile = File.createTempFile("tmp", ".bin");
+        tmpfile.deleteOnExit();
+        final Writer writer = new FileWriter(tmpfile);
+        try {
+            writer.append("some random whatever");
+        } finally {
+            writer.close();
+        }
+
+        // Strict is no accident here, despite the test name - otherwise Transfer-Encoding is not produced.
+        final AbstractMultipartForm multipart = new HttpRFC6532Multipart("form-data", null, "foo");
+        final FormBodyPart p1 = new FormBodyPart(
+                "field1\u0414",
+                new FileBody(tmpfile));
+        final FormBodyPart p2 = new FormBodyPart(
+                "field2",
+                new FileBody(tmpfile, ContentType.create("text/plain", "ANSI_X3.4-1968"), "test-file"));
+        final FormBodyPart p3 = new FormBodyPart(
+                "field3",
+                new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
+
+        multipart.addBodyPart(p1);
+        multipart.addBodyPart(p2);
+        multipart.addBodyPart(p3);
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        multipart.writeTo(out);
+        out.close();
+
+        final String expected =
+            "--foo\r\n" +
+            "Content-Disposition: form-data; name=\"field1\u0414\"; " +
+                "filename=\"" + tmpfile.getName() + "\"\r\n" +
+            "Content-Type: application/octet-stream\r\n" +
+            "Content-Transfer-Encoding: binary\r\n" +
+            "\r\n" +
+            "some random whatever\r\n" +
+            "--foo\r\n" +
+            "Content-Disposition: form-data; name=\"field2\"; " +
+                "filename=\"test-file\"\r\n" +
+            "Content-Type: text/plain; charset=US-ASCII\r\n" +
+            "Content-Transfer-Encoding: binary\r\n" +
+            "\r\n" +
+            "some random whatever\r\n" +
+            "--foo\r\n" +
+            "Content-Disposition: form-data; name=\"field3\"; " +
+                "filename=\"file.tmp\"\r\n" +
+            "Content-Type: application/octet-stream\r\n" +
+            "Content-Transfer-Encoding: binary\r\n" +
+            "\r\n" +
+            "some random whatever\r\n" +
+            "--foo--\r\n";
+        final String s = out.toString("UTF-8");
+        Assert.assertEquals(expected, s);
+        Assert.assertEquals(-1, multipart.getTotalLength());
+
+        tmpfile.delete();
+    }
+
     private static final int SWISS_GERMAN_HELLO [] = {
         0x47, 0x72, 0xFC, 0x65, 0x7A, 0x69, 0x5F, 0x7A, 0xE4, 0x6D, 0xE4
     };

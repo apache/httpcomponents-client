@@ -44,5 +44,8 @@ public final class MIME {
 
     /** The default character set to be used, i.e. "US-ASCII" */
     public static final Charset DEFAULT_CHARSET      = Charset.forName("US-ASCII");
+    
+    /** UTF-8 is used for RFC6532 */
+    public static final Charset UTF8_CHARSET    = Charset.forName("UTF-8");
 
 }
