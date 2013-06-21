@@ -29,14 +29,13 @@ package org.apache.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.Charset;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.content.InputStreamBody;
-import org.apache.http.entity.mime.content.StringBody;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -44,10 +43,11 @@ public class TestMultipartFormHttpEntity {
 
     @Test
     public void testExplictContractorParams() throws Exception {
-        final MultipartEntity entity = new MultipartEntity(
-                HttpMultipartMode.BROWSER_COMPATIBLE,
-                "whatever",
-                Charset.forName("UTF-8"));
+        final HttpEntity entity = MultipartEntityBuilder.create()
+                .setLaxMode()
+                .setBoundary("whatever")
+                .setCharset(MIME.UTF8_CHARSET)
+                .build();
 
         Assert.assertNull(entity.getContentEncoding());
         Assert.assertNotNull(entity.getContentType());
@@ -68,7 +68,7 @@ public class TestMultipartFormHttpEntity {
 
     @Test
     public void testImplictContractorParams() throws Exception {
-        final MultipartEntity entity = new MultipartEntity();
+        final HttpEntity entity = MultipartEntityBuilder.create().build();
         Assert.assertNull(entity.getContentEncoding());
         Assert.assertNotNull(entity.getContentType());
         final Header header = entity.getContentType();
@@ -93,9 +93,10 @@ public class TestMultipartFormHttpEntity {
 
     @Test
     public void testRepeatable() throws Exception {
-        final MultipartEntity entity = new MultipartEntity();
-        entity.addPart("p1", new StringBody("blah blah", ContentType.DEFAULT_TEXT));
-        entity.addPart("p2", new StringBody("yada yada", ContentType.DEFAULT_TEXT));
+        final HttpEntity entity = MultipartEntityBuilder.create()
+                .addTextBody("p1", "blah blah", ContentType.DEFAULT_TEXT)
+                .addTextBody("p2", "yada yada", ContentType.DEFAULT_TEXT)
+                .build();
         Assert.assertTrue(entity.isRepeatable());
         Assert.assertFalse(entity.isChunked());
         Assert.assertFalse(entity.isStreaming());
@@ -124,11 +125,12 @@ public class TestMultipartFormHttpEntity {
 
     @Test
     public void testNonRepeatable() throws Exception {
-        final MultipartEntity entity = new MultipartEntity();
-        entity.addPart("p1", new InputStreamBody(
-                new ByteArrayInputStream("blah blah".getBytes()), ContentType.DEFAULT_BINARY));
-        entity.addPart("p2", new InputStreamBody(
-                new ByteArrayInputStream("yada yada".getBytes()), ContentType.DEFAULT_BINARY));
+        final HttpEntity entity = MultipartEntityBuilder.create()
+            .addPart("p1", new InputStreamBody(
+                new ByteArrayInputStream("blah blah".getBytes()), ContentType.DEFAULT_BINARY))
+            .addPart("p2", new InputStreamBody(
+                new ByteArrayInputStream("yada yada".getBytes()), ContentType.DEFAULT_BINARY))
+            .build();
         Assert.assertFalse(entity.isRepeatable());
         Assert.assertTrue(entity.isChunked());
         Assert.assertTrue(entity.isStreaming());

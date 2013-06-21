@@ -33,7 +33,6 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.entity.mime.content.ContentBody;
@@ -94,11 +93,9 @@ abstract class AbstractMultipartForm {
     private static final ByteArrayBuffer CR_LF = encode(MIME.DEFAULT_CHARSET, "\r\n");
     private static final ByteArrayBuffer TWO_DASHES = encode(MIME.DEFAULT_CHARSET, "--");
 
-
     private final String subType;
     protected final Charset charset;
     private final String boundary;
-    private final List<FormBodyPart> parts;
 
     /**
      * Creates an instance with the specified settings.
@@ -115,7 +112,6 @@ abstract class AbstractMultipartForm {
         this.subType = subType;
         this.charset = charset != null ? charset : MIME.DEFAULT_CHARSET;
         this.boundary = boundary;
-        this.parts = new ArrayList<FormBodyPart>();
     }
 
     public AbstractMultipartForm(final String subType, final String boundary) {
@@ -130,27 +126,18 @@ abstract class AbstractMultipartForm {
         return this.charset;
     }
 
-    public List<FormBodyPart> getBodyParts() {
-        return this.parts;
-    }
-
-    public void addBodyPart(final FormBodyPart part) {
-        if (part == null) {
-            return;
-        }
-        this.parts.add(part);
-    }
+    public abstract List<FormBodyPart> getBodyParts();
 
     public String getBoundary() {
         return this.boundary;
     }
 
-    private void doWriteTo(
+    void doWriteTo(
         final OutputStream out,
         final boolean writeContent) throws IOException {
 
         final ByteArrayBuffer boundary = encode(this.charset, getBoundary());
-        for (final FormBodyPart part: this.parts) {
+        for (final FormBodyPart part: getBodyParts()) {
             writeBytes(TWO_DASHES, out);
             writeBytes(boundary, out);
             writeBytes(CR_LF, out);
@@ -201,7 +188,7 @@ abstract class AbstractMultipartForm {
      */
     public long getTotalLength() {
         long contentLen = 0;
-        for (final FormBodyPart part: this.parts) {
+        for (final FormBodyPart part: getBodyParts()) {
             final ContentBody body = part.getBody();
             final long len = body.getContentLength();
             if (len >= 0) {

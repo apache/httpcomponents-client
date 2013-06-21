@@ -27,6 +27,8 @@
 
 package org.apache.http.entity.mime;
 
+import org.apache.http.Consts;
+
 import java.nio.charset.Charset;
 
 /**
@@ -43,9 +45,9 @@ public final class MIME {
     public static final String ENC_BINARY            = "binary";
 
     /** The default character set to be used, i.e. "US-ASCII" */
-    public static final Charset DEFAULT_CHARSET      = Charset.forName("US-ASCII");
+    public static final Charset DEFAULT_CHARSET      = Consts.ASCII;
     
     /** UTF-8 is used for RFC6532 */
-    public static final Charset UTF8_CHARSET    = Charset.forName("UTF-8");
+    public static final Charset UTF8_CHARSET         = Consts.UTF_8;
 
 }

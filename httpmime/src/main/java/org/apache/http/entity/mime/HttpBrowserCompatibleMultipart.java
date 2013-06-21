@@ -30,6 +30,7 @@ package org.apache.http.entity.mime;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.List;
 
 /**
  * HttpBrowserCompatibleMultipart represents a collection of MIME multipart encoded
@@ -39,22 +40,20 @@ import java.nio.charset.Charset;
  */
 class HttpBrowserCompatibleMultipart extends AbstractMultipartForm {
 
-    /**
-     * Creates an instance with the specified settings.
-     *
-     * @param subType mime subtype - must not be {@code null}
-     * @param charset the character set to use. May be {@code null},
-     *   in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
-     * @param boundary to use  - must not be {@code null}
-     * @throws IllegalArgumentException if charset is null or boundary is null
-     */
+    private final List<FormBodyPart> parts;
+
     public HttpBrowserCompatibleMultipart(
-            final String subType, final Charset charset, final String boundary) {
+            final String subType,
+            final Charset charset,
+            final String boundary,
+            final List<FormBodyPart> parts) {
         super(subType, charset, boundary);
+        this.parts = parts;
     }
 
-    public HttpBrowserCompatibleMultipart(final String subType, final String boundary) {
-        this(subType, null, boundary);
+    @Override
+    public List<FormBodyPart> getBodyParts() {
+        return this.parts;
     }
 
     /**

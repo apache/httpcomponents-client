@@ -39,33 +39,33 @@ public class TestMultipartEntityBuilder {
 
     @Test
     public void testBasics() throws Exception {
-        final MultipartEntity entity = MultipartEntityBuilder.create().build();
+        final MultipartFormEntity entity = MultipartEntityBuilder.create().buildEntity();
         Assert.assertNotNull(entity);
-        Assert.assertEquals("org.apache.http.entity.mime.HttpStrictMultipart", entity.getMultipart().getClass().getName());
+        Assert.assertTrue(entity.getMultipart() instanceof HttpStrictMultipart);
         Assert.assertEquals(0, entity.getMultipart().getBodyParts().size());
     }
 
     @Test
     public void testMultipartOptions() throws Exception {
-        final MultipartEntity entity = MultipartEntityBuilder.create()
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .setBoundary("blah-blah")
                 .setCharset(Consts.UTF_8)
                 .setLaxMode()
-                .build();
+                .buildEntity();
         Assert.assertNotNull(entity);
-        Assert.assertEquals("org.apache.http.entity.mime.HttpBrowserCompatibleMultipart", entity.getMultipart().getClass().getName());
+        Assert.assertTrue(entity.getMultipart() instanceof HttpBrowserCompatibleMultipart);
         Assert.assertEquals("blah-blah", entity.getMultipart().getBoundary());
         Assert.assertEquals(Consts.UTF_8, entity.getMultipart().getCharset());
     }
 
     @Test
     public void testAddBodyParts() throws Exception {
-        final MultipartEntity entity = MultipartEntityBuilder.create()
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .addTextBody("p1", "stuff")
                 .addBinaryBody("p2", new File("stuff"))
                 .addBinaryBody("p3", new byte[] {})
                 .addBinaryBody("p4", new ByteArrayInputStream(new byte[] {}))
-                .build();
+                .buildEntity();
         Assert.assertNotNull(entity);
         final List<FormBodyPart> bodyParts = entity.getMultipart().getBodyParts();
         Assert.assertNotNull(bodyParts);

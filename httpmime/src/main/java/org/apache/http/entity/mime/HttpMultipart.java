@@ -30,6 +30,8 @@ package org.apache.http.entity.mime;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * HttpMultipart represents a collection of MIME multipart encoded content bodies. This class is
@@ -44,6 +46,7 @@ import java.nio.charset.Charset;
 public class HttpMultipart extends AbstractMultipartForm {
 
     private final HttpMultipartMode mode;
+    private final List<FormBodyPart> parts;
 
     /**
      * Creates an instance with the specified settings.
@@ -60,6 +63,7 @@ public class HttpMultipart extends AbstractMultipartForm {
             final HttpMultipartMode mode) {
         super(subType, charset, boundary);
         this.mode = mode;
+        this.parts = new ArrayList<FormBodyPart>();
     }
 
     /**
@@ -105,6 +109,18 @@ public class HttpMultipart extends AbstractMultipartForm {
                     writeField(field, out);
                 }
         }
+    }
+
+    @Override
+    public List<FormBodyPart> getBodyParts() {
+        return this.parts;
+    }
+
+    public void addBodyPart(final FormBodyPart part) {
+        if (part == null) {
+            return;
+        }
+        this.parts.add(part);
     }
 
 }

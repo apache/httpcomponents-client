@@ -36,14 +36,15 @@ import java.util.Random;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
 
 /**
  * Multipart/form coded HTTP entity consisting of multiple body parts.
  *
  * @since 4.0
+ *
+ * @deprecated 4.3 Use {@link MultipartEntityBuilder}.
  */
+@Deprecated
 public class MultipartEntity implements HttpEntity {
 
     /**
@@ -53,12 +54,8 @@ public class MultipartEntity implements HttpEntity {
         "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
             .toCharArray();
 
-    private final AbstractMultipartForm multipart;
-    private final Header contentType;
-
-    // @GuardedBy("dirty") // we always read dirty before accessing length
-    private long length;
-    private volatile boolean dirty; // used to decide whether to recalculate length
+    private final MultipartEntityBuilder builder;
+    private volatile MultipartFormEntity entity;
 
     /**
      * Creates an instance using the specified parameters
@@ -71,29 +68,13 @@ public class MultipartEntity implements HttpEntity {
             final String boundary,
             final Charset charset) {
         super();
-        final String b = boundary != null ? boundary : generateBoundary();
-        this.multipart = HttpMultipartFactory.getInstance("form-data", charset, b, mode != null ? mode : HttpMultipartMode.STRICT);
-        this.contentType = new BasicHeader(HTTP.CONTENT_TYPE, generateContentType(b, charset));
-        this.dirty = true;
+        this.builder = new MultipartEntityBuilder()
+                .setMode(mode)
+                .setCharset(charset)
+                .setBoundary(boundary);
+        this.entity = null;
     }
     
-    /**
-     * Creates an instance using the specified parameters
-     * @param multipart the part encoder to use, may not be {@code null}
-     * @param boundary the boundary string, may be {@code null}, in which case {@link #generateBoundary()} is invoked to create the string
-     * @param charset the character set to use, may be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
-     */
-    public MultipartEntity(
-            final AbstractMultipartForm multipart,
-            final String boundary,
-            final Charset charset) {
-        super();
-        final String b = boundary != null ? boundary : generateBoundary();
-        this.multipart = multipart;
-        this.contentType = new BasicHeader(HTTP.CONTENT_TYPE, generateContentType(b, charset));
-        this.dirty = true;
-    }
-
     /**
      * Creates an instance using the specified {@link HttpMultipartMode} mode.
      * Boundary and charset are set to {@code null}.
@@ -133,16 +114,16 @@ public class MultipartEntity implements HttpEntity {
         return buffer.toString();
     }
 
-    /**
-     * @since 4.3
-     */
-    protected AbstractMultipartForm getMultipart() {
-        return multipart;
+    private MultipartFormEntity getEntity() {
+        if (this.entity == null) {
+            this.entity = this.builder.buildEntity();
+        }
+        return this.entity;
     }
 
     public void addPart(final FormBodyPart bodyPart) {
-        this.multipart.addBodyPart(bodyPart);
-        this.dirty = true;
+        this.builder.addPart(bodyPart);
+        this.entity = null;
     }
 
     public void addPart(final String name, final ContentBody contentBody) {
@@ -150,37 +131,27 @@ public class MultipartEntity implements HttpEntity {
     }
 
     public boolean isRepeatable() {
-        for (final FormBodyPart part: this.multipart.getBodyParts()) {
-            final ContentBody body = part.getBody();
-            if (body.getContentLength() < 0) {
-                return false;
-            }
-        }
-        return true;
+        return getEntity().isRepeatable();
     }
 
     public boolean isChunked() {
-        return !isRepeatable();
+        return getEntity().isChunked();
     }
 
     public boolean isStreaming() {
-        return !isRepeatable();
+        return getEntity().isStreaming();
     }
 
     public long getContentLength() {
-        if (this.dirty) {
-            this.length = this.multipart.getTotalLength();
-            this.dirty = false;
-        }
-        return this.length;
+        return getEntity().getContentLength();
     }
 
     public Header getContentType() {
-        return this.contentType;
+        return getEntity().getContentType();
     }
 
     public Header getContentEncoding() {
-        return null;
+        return getEntity().getContentEncoding();
     }
 
     public void consumeContent()
@@ -197,7 +168,7 @@ public class MultipartEntity implements HttpEntity {
     }
 
     public void writeTo(final OutputStream outstream) throws IOException {
-        this.multipart.writeTo(outstream);
+        getEntity().writeTo(outstream);
     }
 
 }

@@ -33,20 +33,30 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 
 import org.apache.http.Consts;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class TestMultipartForm {
 
+    private File tmpfile;
+
+    @After
+    public void cleanup() {
+        if (tmpfile != null) {
+            tmpfile.delete();
+        }
+    }
+
     @Test
     public void testMultipartFormStringParts() throws Exception {
-        final AbstractMultipartForm multipart = new HttpStrictMultipart("form-data", "foo");
         final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new StringBody("this stuff", ContentType.DEFAULT_TEXT));
@@ -57,10 +67,8 @@ public class TestMultipartForm {
         final FormBodyPart p3 = new FormBodyPart(
                 "field3",
                 new StringBody("all kind of stuff", ContentType.DEFAULT_TEXT));
-
-        multipart.addBodyPart(p1);
-        multipart.addBodyPart(p2);
-        multipart.addBodyPart(p3);
+        final HttpStrictMultipart multipart = new HttpStrictMultipart("form-data", null, "foo",
+                Arrays.asList(p1, p2, p3));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
@@ -93,8 +101,7 @@ public class TestMultipartForm {
 
     @Test
     public void testMultipartFormBinaryParts() throws Exception {
-        final File tmpfile = File.createTempFile("tmp", ".bin");
-        tmpfile.deleteOnExit();
+        tmpfile = File.createTempFile("tmp", ".bin");
         final Writer writer = new FileWriter(tmpfile);
         try {
             writer.append("some random whatever");
@@ -102,16 +109,14 @@ public class TestMultipartForm {
             writer.close();
         }
 
-        final AbstractMultipartForm multipart = new HttpStrictMultipart("form-data", "foo");
         final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new FileBody(tmpfile));
         final FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
-
-        multipart.addBodyPart(p1);
-        multipart.addBodyPart(p2);
+        final HttpStrictMultipart multipart = new HttpStrictMultipart("form-data", null, "foo",
+                Arrays.asList(p1, p2));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
@@ -136,14 +141,11 @@ public class TestMultipartForm {
         final String s = out.toString("US-ASCII");
         Assert.assertEquals(expected, s);
         Assert.assertEquals(-1, multipart.getTotalLength());
-
-        tmpfile.delete();
     }
 
     @Test
-    public void testMultipartFormBrowserCompatible() throws Exception {
-        final File tmpfile = File.createTempFile("tmp", ".bin");
-        tmpfile.deleteOnExit();
+    public void testMultipartFormStrict() throws Exception {
+        tmpfile = File.createTempFile("tmp", ".bin");
         final Writer writer = new FileWriter(tmpfile);
         try {
             writer.append("some random whatever");
@@ -151,8 +153,6 @@ public class TestMultipartForm {
             writer.close();
         }
 
-        // Strict is no accident here, despite the test name - otherwise Transfer-Encoding is not produced.
-        final AbstractMultipartForm multipart = new HttpStrictMultipart("form-data", null, "foo");
         final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new FileBody(tmpfile));
@@ -162,10 +162,8 @@ public class TestMultipartForm {
         final FormBodyPart p3 = new FormBodyPart(
                 "field3",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
-
-        multipart.addBodyPart(p1);
-        multipart.addBodyPart(p2);
-        multipart.addBodyPart(p3);
+        final HttpStrictMultipart multipart = new HttpStrictMultipart("form-data", null, "foo",
+                Arrays.asList(p1, p2, p3));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
@@ -197,14 +195,11 @@ public class TestMultipartForm {
         final String s = out.toString("US-ASCII");
         Assert.assertEquals(expected, s);
         Assert.assertEquals(-1, multipart.getTotalLength());
-
-        tmpfile.delete();
     }
 
     @Test
     public void testMultipartFormRFC6532() throws Exception {
-        final File tmpfile = File.createTempFile("tmp", ".bin");
-        tmpfile.deleteOnExit();
+        tmpfile = File.createTempFile("tmp", ".bin");
         final Writer writer = new FileWriter(tmpfile);
         try {
             writer.append("some random whatever");
@@ -212,8 +207,6 @@ public class TestMultipartForm {
             writer.close();
         }
 
-        // Strict is no accident here, despite the test name - otherwise Transfer-Encoding is not produced.
-        final AbstractMultipartForm multipart = new HttpRFC6532Multipart("form-data", null, "foo");
         final FormBodyPart p1 = new FormBodyPart(
                 "field1\u0414",
                 new FileBody(tmpfile));
@@ -223,10 +216,8 @@ public class TestMultipartForm {
         final FormBodyPart p3 = new FormBodyPart(
                 "field3",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
-
-        multipart.addBodyPart(p1);
-        multipart.addBodyPart(p2);
-        multipart.addBodyPart(p3);
+        final HttpRFC6532Multipart multipart = new HttpRFC6532Multipart("form-data", null, "foo",
+                Arrays.asList(p1, p2, p3));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
@@ -258,8 +249,6 @@ public class TestMultipartForm {
         final String s = out.toString("UTF-8");
         Assert.assertEquals(expected, s);
         Assert.assertEquals(-1, multipart.getTotalLength());
-
-        tmpfile.delete();
     }
 
     private static final int SWISS_GERMAN_HELLO [] = {
@@ -286,8 +275,7 @@ public class TestMultipartForm {
         final String s1 = constructString(SWISS_GERMAN_HELLO);
         final String s2 = constructString(RUSSIAN_HELLO);
 
-        final File tmpfile = File.createTempFile("tmp", ".bin");
-        tmpfile.deleteOnExit();
+        tmpfile = File.createTempFile("tmp", ".bin");
         final Writer writer = new FileWriter(tmpfile);
         try {
             writer.append("some random whatever");
@@ -295,16 +283,15 @@ public class TestMultipartForm {
             writer.close();
         }
 
-        final AbstractMultipartForm multipart = new HttpBrowserCompatibleMultipart("form-data", Charset.forName("UTF-8"), "foo");
         final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new InputStreamBody(new FileInputStream(tmpfile), s1 + ".tmp"));
         final FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new InputStreamBody(new FileInputStream(tmpfile), s2 + ".tmp"));
-
-        multipart.addBodyPart(p1);
-        multipart.addBodyPart(p2);
+        final HttpBrowserCompatibleMultipart multipart = new HttpBrowserCompatibleMultipart(
+                "form-data", Consts.UTF_8, "foo",
+                Arrays.asList(p1, p2));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         multipart.writeTo(out);
@@ -327,8 +314,6 @@ public class TestMultipartForm {
         final String s = out.toString("UTF-8");
         Assert.assertEquals(expected, s);
         Assert.assertEquals(-1, multipart.getTotalLength());
-
-        tmpfile.delete();
     }
 
     @Test
@@ -336,16 +321,14 @@ public class TestMultipartForm {
         final String s1 = constructString(SWISS_GERMAN_HELLO);
         final String s2 = constructString(RUSSIAN_HELLO);
 
-        final AbstractMultipartForm multipart = new HttpStrictMultipart("form-data", "foo");
         final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new StringBody(s1, ContentType.create("text/plain", Charset.forName("ISO-8859-1"))));
         final FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new StringBody(s2, ContentType.create("text/plain", Charset.forName("KOI8-R"))));
-
-        multipart.addBodyPart(p1);
-        multipart.addBodyPart(p2);
+        final HttpStrictMultipart multipart = new HttpStrictMultipart("form-data", null, "foo",
+                Arrays.asList(p1, p2));
 
         final ByteArrayOutputStream out1 = new ByteArrayOutputStream();
         multipart.writeTo(out1);
