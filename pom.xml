@@ -388,6 +388,20 @@
               <failsOnError>true</failsOnError>
               <linkXRef>false</linkXRef>
               <sourceDirectory>${basedir}/src/main</sourceDirectory>
+            </configuration>
+            <goals>
+              <goal>checkstyle</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>validate-test</id>
+            <phase>validate</phase>
+            <configuration>
+              <configLocation>hc-stylecheck/default.xml</configLocation>
+              <headerLocation>hc-stylecheck/asl2.header</headerLocation>
+              <consoleOutput>true</consoleOutput>
+              <failsOnError>true</failsOnError>
+              <linkXRef>false</linkXRef>
               <sourceDirectory>${basedir}/src/test</sourceDirectory>
             </configuration>
             <goals>

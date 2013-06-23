@@ -32,24 +32,16 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.config.MessageConstraints;
-import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.entity.ContentLengthStrategy;
-import org.apache.http.impl.DefaultBHttpClientConnection;
 import org.apache.http.io.HttpMessageParserFactory;
 import org.apache.http.io.HttpMessageWriterFactory;
-import org.apache.http.protocol.HttpContext;
 
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocket;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 class LoggingManagedHttpClientConnection extends DefaultManagedHttpClientConnection {
 

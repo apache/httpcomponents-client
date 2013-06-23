@@ -68,5 +68,5 @@ class HttpStrictMultipart extends AbstractMultipartForm {
             writeField(field, out);
         }
     }
-    
+
 }

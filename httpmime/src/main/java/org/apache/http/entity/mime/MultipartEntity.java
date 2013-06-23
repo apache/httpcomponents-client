@@ -74,7 +74,7 @@ public class MultipartEntity implements HttpEntity {
                 .setBoundary(boundary);
         this.entity = null;
     }
-    
+
     /**
      * Creates an instance using the specified {@link HttpMultipartMode} mode.
      * Boundary and charset are set to {@code null}.

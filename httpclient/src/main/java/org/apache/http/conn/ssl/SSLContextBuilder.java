@@ -217,7 +217,7 @@ public class SSLContextBuilder {
                 final String[] keyTypes, final Principal[] issuers, final Socket socket) {
             final Map<String, PrivateKeyDetails> validAliases = new HashMap<String, PrivateKeyDetails>();
             for (String keyType: keyTypes) {
-                String[] aliases = this.keyManager.getClientAliases(keyType, issuers);
+                final String[] aliases = this.keyManager.getClientAliases(keyType, issuers);
                 if (aliases != null) {
                     for (String alias: aliases) {
                         validAliases.put(alias,
@@ -236,7 +236,7 @@ public class SSLContextBuilder {
         public String chooseServerAlias(
                 final String keyType, final Principal[] issuers, final Socket socket) {
             final Map<String, PrivateKeyDetails> validAliases = new HashMap<String, PrivateKeyDetails>();
-            String[] aliases = this.keyManager.getServerAliases(keyType, issuers);
+            final String[] aliases = this.keyManager.getServerAliases(keyType, issuers);
             if (aliases != null) {
                 for (String alias: aliases) {
                     validAliases.put(alias,

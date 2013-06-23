@@ -28,10 +28,8 @@ package org.apache.http.conn.ssl;
 
 import org.apache.http.util.Args;
 
-import java.net.Socket;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
-import java.util.Map;
 
 /**
  * Private key details.

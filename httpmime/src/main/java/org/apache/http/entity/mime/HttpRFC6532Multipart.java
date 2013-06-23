@@ -68,5 +68,5 @@ class HttpRFC6532Multipart extends AbstractMultipartForm {
             writeField(field, MIME.UTF8_CHARSET, out);
         }
     }
-    
+
 }

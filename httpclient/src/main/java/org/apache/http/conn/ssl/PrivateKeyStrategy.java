@@ -27,10 +27,7 @@
 package org.apache.http.conn.ssl;
 
 import java.net.Socket;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A strategy allowing for a choice of an alias during SSL authentication.
