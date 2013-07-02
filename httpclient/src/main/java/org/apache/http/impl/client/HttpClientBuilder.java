@@ -74,7 +74,9 @@ import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainSocketFactory;
+import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.NoConnectionReuseStrategy;
@@ -107,6 +109,7 @@ import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
+import org.apache.http.util.TextUtils;
 import org.apache.http.util.VersionInfo;
 
 /**
@@ -141,6 +144,7 @@ import org.apache.http.util.VersionInfo;
 public class HttpClientBuilder {
 
     private HttpRequestExecutor requestExec;
+    private X509HostnameVerifier hostnameVerifier;
     private LayeredConnectionSocketFactory sslSocketFactory;
     private SSLContext sslcontext;
     private HttpClientConnectionManager connManager;
@@ -197,6 +201,11 @@ public class HttpClientBuilder {
 
     public final HttpClientBuilder setRequestExecutor(final HttpRequestExecutor requestExec) {
         this.requestExec = requestExec;
+        return this;
+    }
+
+    public final HttpClientBuilder setHostnameVerifier(final X509HostnameVerifier hostnameVerifier) {
+        this.hostnameVerifier = hostnameVerifier;
         return this;
     }
 
@@ -449,6 +458,12 @@ public class HttpClientBuilder {
         closeables.add(closeable);
     }
 
+    private static String[] split(final String s) {
+        if (TextUtils.isBlank(s)) {
+            return null;
+        }
+        return s.split(" *, *");
+    }
 
     public CloseableHttpClient build() {
         // Create main request executor
@@ -461,12 +476,18 @@ public class HttpClientBuilder {
             LayeredConnectionSocketFactory sslSocketFactory = this.sslSocketFactory;
             if (sslSocketFactory == null) {
                 if (sslcontext != null) {
-                    sslSocketFactory = new SSLSocketFactory(sslcontext);
+                    sslSocketFactory = new SSLSocketFactory(sslcontext, hostnameVerifier);
                 } else {
                     if (systemProperties) {
-                        sslSocketFactory = SSLSocketFactory.getSystemSocketFactory();
+                        sslSocketFactory = new SSLSocketFactory(
+                                (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault(),
+                                split(System.getProperty("https.protocols")),
+                                split(System.getProperty("https.cipherSuites")),
+                                hostnameVerifier);
                     } else {
-                        sslSocketFactory = SSLSocketFactory.getSocketFactory();
+                        sslSocketFactory = new SSLSocketFactory(
+                                SSLContexts.createDefault(),
+                                hostnameVerifier);
                     }
                 }
             }
