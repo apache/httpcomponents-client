@@ -56,6 +56,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.message.BasicStatusLine;
 import org.easymock.IExpectationSetters;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
@@ -187,7 +188,12 @@ public class TestCachingExec extends TestCachingExecChain {
         getCacheEntryReturns(mockCacheEntry);
         cacheEntrySuitable(false);
         cacheEntryValidatable(false);
-        implExpectsAnyRequestAndReturn(mockBackendResponse);
+        expect(mockConditionalRequestBuilder.buildConditionalRequest(request, mockCacheEntry))
+            .andReturn(request);
+        backendExpectsRequestAndReturn(request, mockBackendResponse);
+        expect(mockBackendResponse.getProtocolVersion()).andReturn(HttpVersion.HTTP_1_1);
+        expect(mockBackendResponse.getStatusLine()).andReturn(
+            new BasicStatusLine(HttpVersion.HTTP_1_1, 200, "Ok"));
 
         replayMocks();
         final HttpResponse result = impl.execute(route, request, context);
@@ -196,7 +202,7 @@ public class TestCachingExec extends TestCachingExecChain {
         Assert.assertSame(mockBackendResponse, result);
         Assert.assertEquals(0, impl.getCacheMisses());
         Assert.assertEquals(1, impl.getCacheHits());
-        Assert.assertEquals(0, impl.getCacheUpdates());
+        Assert.assertEquals(1, impl.getCacheUpdates());
     }
 
     @Test

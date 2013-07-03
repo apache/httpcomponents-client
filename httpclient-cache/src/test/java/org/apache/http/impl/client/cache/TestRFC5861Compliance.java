@@ -240,6 +240,31 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     }
 
     @Test
+    public void testStaleIfErrorInRequestIsTrueReturnsStaleNonRevalidatableEntryWithWarning()
+        throws Exception {
+        final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+        resp1.setHeader("Cache-Control", "public, max-age=5");
+
+        backendExpectsAnyRequestAndReturn(resp1);
+
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        req2.setHeader("Cache-Control", "public, stale-if-error=60");
+        final HttpResponse resp2 = HttpTestUtils.make500Response();
+
+        backendExpectsAnyRequestAndReturn(resp2);
+
+        replayMocks();
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
+        verifyMocks();
+
+        HttpTestUtils.assert110WarningFound(result);
+    }
+
+    @Test
     public void testStaleIfErrorInResponseIsFalseReturnsError()
             throws Exception{
         final Date now = new Date();
@@ -332,6 +357,45 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
         boolean warning110Found = false;
         for(final Header h : result.getHeaders("Warning")) {
             for(final WarningValue wv : WarningValue.getWarningValues(h)) {
+                if (wv.getWarnCode() == 110) {
+                    warning110Found = true;
+                    break;
+                }
+            }
+        }
+        assertTrue(warning110Found);
+    }
+
+    @Test
+    public void testStaleWhileRevalidateReturnsStaleNonRevalidatableEntryWithWarning()
+        throws Exception {
+        config = CacheConfig.custom().setMaxCacheEntries(MAX_ENTRIES).setMaxObjectSize(MAX_BYTES)
+            .setAsynchronousWorkersMax(1).build();
+
+        impl = new CachingExec(mockBackend, cache, config, new AsynchronousValidator(config));
+
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/",
+            HttpVersion.HTTP_1_1));
+        final HttpResponse resp1 = HttpTestUtils.make200Response();
+        final Date now = new Date();
+        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
+        resp1.setHeader("Cache-Control", "public, max-age=5, stale-while-revalidate=15");
+        resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
+
+        backendExpectsAnyRequestAndReturn(resp1).times(1, 2);
+
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/",
+            HttpVersion.HTTP_1_1));
+
+        replayMocks();
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
+        verifyMocks();
+
+        assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
+        boolean warning110Found = false;
+        for (final Header h : result.getHeaders("Warning")) {
+            for (final WarningValue wv : WarningValue.getWarningValues(h)) {
                 if (wv.getWarnCode() == 110) {
                     warning110Found = true;
                     break;

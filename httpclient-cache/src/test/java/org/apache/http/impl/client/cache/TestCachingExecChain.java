@@ -1650,7 +1650,7 @@ public abstract class TestCachingExecChain {
 
     protected void cacheEntryValidatable(final boolean b) {
         expect(mockValidityPolicy.isRevalidatable(
-                (HttpCacheEntry)anyObject())).andReturn(b);
+                (HttpCacheEntry)anyObject())).andReturn(b).anyTimes();
     }
 
     protected void cacheEntryMustRevalidate(final boolean b) {
