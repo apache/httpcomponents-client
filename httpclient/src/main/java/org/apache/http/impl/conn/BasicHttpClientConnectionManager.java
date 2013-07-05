@@ -112,7 +112,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
         return RegistryBuilder.<ConnectionSocketFactory>create()
-                .register("https", PlainSocketFactory.getSocketFactory())
+                .register("http", PlainSocketFactory.getSocketFactory())
                 .register("https", SSLSocketFactory.getSocketFactory())
                 .build();
     }
