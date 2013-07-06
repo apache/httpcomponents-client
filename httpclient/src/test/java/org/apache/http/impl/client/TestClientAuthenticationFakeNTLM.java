@@ -81,7 +81,7 @@ public class TestClientAuthenticationFakeNTLM extends BasicServerTestBase {
 
         BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new NTCredentials("test", "test", "", ""));
+                new NTCredentials("test", "test", null, null));
 
         this.httpclient.setCredentialsProvider(credsProvider);
 
@@ -124,7 +124,7 @@ public class TestClientAuthenticationFakeNTLM extends BasicServerTestBase {
 
         BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new NTCredentials("test", "test", "", ""));
+                new NTCredentials("test", "test", null, null));
 
         this.httpclient.setCredentialsProvider(credsProvider);
 
