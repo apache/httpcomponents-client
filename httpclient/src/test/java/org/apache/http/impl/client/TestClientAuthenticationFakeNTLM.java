@@ -1,0 +1,142 @@
+/*
+ * ====================================================================
+ *
+ *  Licensed to the Apache Software Foundation (ASF) under one or more
+ *  contributor license agreements.  See the NOTICE file distributed with
+ *  this work for additional information regarding copyright ownership.
+ *  The ASF licenses this file to You under the Apache License, Version 2.0
+ *  (the "License"); you may not use this file except in compliance with
+ *  the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ * ====================================================================
+ *
+ * This software consists of voluntary contributions made by many
+ * individuals on behalf of the Apache Software Foundation.  For more
+ * information on the Apache Software Foundation, please see
+ * <http://www.apache.org/>.
+ */
+
+package org.apache.http.impl.client;
+
+import org.apache.http.HttpException;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.localserver.BasicServerTestBase;
+import org.apache.http.localserver.LocalTestServer;
+import org.apache.http.message.BasicStatusLine;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpRequestHandler;
+import org.apache.http.util.EntityUtils;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+
+/**
+ * Unit tests for some of the NTLM auth functionality..
+ */
+public class TestClientAuthenticationFakeNTLM extends BasicServerTestBase {
+
+    @Before
+    public void setUp() throws Exception {
+        this.localServer = new LocalTestServer(null, null);
+        this.httpclient = new DefaultHttpClient();
+    }
+
+    static class NtlmResponseHandler implements HttpRequestHandler {
+
+        public void handle(
+                final HttpRequest request,
+                final HttpResponse response,
+                final HttpContext context) throws HttpException, IOException {
+            response.setStatusLine(new BasicStatusLine(
+                    HttpVersion.HTTP_1_1,
+                    HttpStatus.SC_UNAUTHORIZED,
+                    "Authentication Required"));
+            response.setHeader("Connection", "Keep-Alive");
+            response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "NTLM");
+        }
+    }
+
+    @Test
+    public void testNTLMAuthenticationFailure() throws Exception {
+        this.localServer.register("*", new NtlmResponseHandler());
+        this.localServer.start();
+
+        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(AuthScope.ANY,
+                new NTCredentials("test", "test", "", ""));
+
+        this.httpclient.setCredentialsProvider(credsProvider);
+
+        HttpContext context = new BasicHttpContext();
+
+        HttpHost targethost = getServerHttp();
+        HttpGet httpget = new HttpGet("/");
+
+        HttpResponse response = this.httpclient.execute(targethost, httpget, context);
+        EntityUtils.consume(response.getEntity());
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
+                response.getStatusLine().getStatusCode());
+    }
+
+    static class NtlmType2ResponseHandler implements HttpRequestHandler {
+
+        public void handle(
+                final HttpRequest request,
+                final HttpResponse response,
+                final HttpContext context) throws HttpException, IOException {
+            response.setStatusLine(new BasicStatusLine(
+                    HttpVersion.HTTP_1_1,
+                    HttpStatus.SC_UNAUTHORIZED,
+                    "Authentication Required"));
+            response.setHeader("Connection", "Keep-Alive");
+            if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
+                response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "NTLM");
+            } else {
+                response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "NTLM TlRMTVNTUAACAA" +
+                        "AADAAMADgAAAAzwoICLgEjRWfCicKrw43DrwAAAAAAAAAAAAAAAAAAAAAGAHAX" +
+                        "AAAAD1MAZQByAHYAZQByAA==");
+            }
+        }
+    }
+
+    @Test
+    public void testNTLMType2() throws Exception {
+        this.localServer.register("*", new NtlmType2ResponseHandler());
+        this.localServer.start();
+
+        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(AuthScope.ANY,
+                new NTCredentials("test", "test", "", ""));
+
+        this.httpclient.setCredentialsProvider(credsProvider);
+
+        HttpContext context = new BasicHttpContext();
+
+        HttpHost targethost = getServerHttp();
+        HttpGet httpget = new HttpGet("/");
+
+        HttpResponse response = this.httpclient.execute(targethost, httpget, context);
+        EntityUtils.consume(response.getEntity());
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
+                response.getStatusLine().getStatusCode());
+    }
+
+}
