@@ -82,7 +82,7 @@ public class TestClientAuthenticationFakeNTLM extends IntegrationTestBase {
 
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new NTCredentials("test", "test", "", ""));
+                new NTCredentials("test", "test", null, null));
 
         this.httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
@@ -127,7 +127,7 @@ public class TestClientAuthenticationFakeNTLM extends IntegrationTestBase {
 
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new NTCredentials("test", "test", "", ""));
+                new NTCredentials("test", "test", null, null));
 
         this.httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
