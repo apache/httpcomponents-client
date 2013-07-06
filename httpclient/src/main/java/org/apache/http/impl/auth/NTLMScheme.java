@@ -99,17 +99,17 @@ public class NTLMScheme extends AuthSchemeBase {
     protected void parseChallenge(
             final CharArrayBuffer buffer,
             final int beginIndex, final int endIndex) throws MalformedChallengeException {
-        final String challenge = buffer.substringTrimmed(beginIndex, endIndex);
-        if (challenge.length() == 0) {
+        this.challenge = buffer.substringTrimmed(beginIndex, endIndex);
+        if (this.challenge.length() == 0) {
             if (this.state == State.UNINITIATED) {
                 this.state = State.CHALLENGE_RECEIVED;
             } else {
                 this.state = State.FAILED;
             }
-            this.challenge = null;
         } else {
-            this.state = State.MSG_TYPE2_RECEVIED;
-            this.challenge = challenge;
+            if (this.state == State.MSG_TYPE1_GENERATED) {
+                this.state = State.MSG_TYPE2_RECEVIED;
+            }
         }
     }
 
