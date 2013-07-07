@@ -99,7 +99,13 @@ public class TestClientAuthenticationFakeNTLM extends IntegrationTestBase {
                 response.getStatusLine().getStatusCode());
     }
 
-    static class NtlmType2ResponseHandler implements HttpRequestHandler {
+    static class NtlmType2MessageResponseHandler implements HttpRequestHandler {
+
+        private final String authenticateHeaderValue;
+
+        public NtlmType2MessageResponseHandler(final String type2Message) {
+            this.authenticateHeaderValue = "NTLM " + type2Message;
+        }
 
         public void handle(
                 final HttpRequest request,
@@ -113,16 +119,42 @@ public class TestClientAuthenticationFakeNTLM extends IntegrationTestBase {
             if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
                 response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "NTLM");
             } else {
-                response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "NTLM TlRMTVNTUAACAA" +
-                        "AADAAMADgAAAAzwoICLgEjRWfCicKrw43DrwAAAAAAAAAAAAAAAAAAAAAGAHAX" +
-                        "AAAAD1MAZQByAHYAZQByAA==");
+                response.setHeader(HttpHeaders.WWW_AUTHENTICATE, authenticateHeaderValue);
             }
         }
     }
 
     @Test
-    public void testNTLMType2() throws Exception {
-        this.localServer.register("*", new NtlmType2ResponseHandler());
+    public void testNTLMv1Type2Message() throws Exception {
+        this.localServer.register("*", new NtlmType2MessageResponseHandler("TlRMTVNTUAACAA" +
+                "AADAAMADgAAAAzggLiASNFZ4mrze8AAAAAAAAAAAAAAAAAAAAABgBwFwAAAA9T" +
+                "AGUAcgB2AGUAcgA="));
+        this.localServer.start();
+
+        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(AuthScope.ANY,
+                new NTCredentials("test", "test", null, null));
+
+        this.httpclient = HttpClients.custom()
+                .setDefaultCredentialsProvider(credsProvider)
+                .build();
+
+        final HttpContext context = HttpClientContext.create();
+
+        final HttpHost targethost = getServerHttp();
+        final HttpGet httpget = new HttpGet("/");
+
+        final HttpResponse response = this.httpclient.execute(targethost, httpget, context);
+        EntityUtils.consume(response.getEntity());
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
+                response.getStatusLine().getStatusCode());
+    }
+
+    @Test
+    public void testNTLMv2Type2Message() throws Exception {
+        this.localServer.register("*", new NtlmType2MessageResponseHandler("TlRMTVNTUAACAA" +
+                "AADAAMADgAAAAzgoriASNFZ4mrze8AAAAAAAAAACQAJABEAAAABgBwFwAAAA9T" +
+                "AGUAcgB2AGUAcgACAAwARABvAG0AYQBpAG4AAQAMAFMAZQByAHYAZQByAAAAAAA="));
         this.localServer.start();
 
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
