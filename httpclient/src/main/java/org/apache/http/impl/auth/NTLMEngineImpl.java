@@ -631,7 +631,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             MD4 md4 = new MD4();
             md4.update(unicodePassword);
             return md4.getOutput();
-        } catch (java.io.UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             throw new NTLMEngineException("Unicode not supported: " + e.getMessage(), e);
         }
     }
@@ -655,9 +655,11 @@ final class NTLMEngineImpl implements NTLMEngine {
             HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
             // Upper case username, upper case domain!
             hmacMD5.update(user.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
-            hmacMD5.update(domain.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
+            if (domain != null) {
+                hmacMD5.update(domain.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
+            }
             return hmacMD5.getOutput();
-        } catch (java.io.UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             throw new NTLMEngineException("Unicode not supported! " + e.getMessage(), e);
         }
     }
@@ -681,9 +683,11 @@ final class NTLMEngineImpl implements NTLMEngine {
             HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
             // Upper case username, mixed case target!!
             hmacMD5.update(user.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
-            hmacMD5.update(domain.getBytes("UnicodeLittleUnmarked"));
+            if (domain != null) {
+                hmacMD5.update(domain.getBytes("UnicodeLittleUnmarked"));
+            }
             return hmacMD5.getOutput();
-        } catch (java.io.UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             throw new NTLMEngineException("Unicode not supported! " + e.getMessage(), e);
         }
     }
@@ -1004,7 +1008,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 hostBytes = unqualifiedHost != null? unqualifiedHost.getBytes("ASCII") : null;
                 domainBytes = unqualifiedDomain != null ? unqualifiedDomain
                         .toUpperCase(Locale.US).getBytes("ASCII") : null;
-            } catch (java.io.UnsupportedEncodingException e) {
+            } catch (UnsupportedEncodingException e) {
                 throw new NTLMEngineException("Unicode unsupported: " + e.getMessage(), e);
             }
         }
@@ -1127,7 +1131,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 if (bytes.length != 0) {
                     try {
                         target = new String(bytes, "UnicodeLittleUnmarked");
-                    } catch (java.io.UnsupportedEncodingException e) {
+                    } catch (UnsupportedEncodingException e) {
                         throw new NTLMEngineException(e.getMessage(), e);
                     }
                 }
