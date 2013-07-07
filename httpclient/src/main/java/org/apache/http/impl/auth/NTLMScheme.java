@@ -107,7 +107,9 @@ public class NTLMScheme extends AuthSchemeBase {
                 this.state = State.FAILED;
             }
         } else {
-            if (this.state == State.MSG_TYPE1_GENERATED) {
+            if (this.state.compareTo(State.MSG_TYPE1_GENERATED) < 0) {
+                this.state = State.FAILED;
+            } else if (this.state == State.MSG_TYPE1_GENERATED) {
                 this.state = State.MSG_TYPE2_RECEVIED;
             }
         }

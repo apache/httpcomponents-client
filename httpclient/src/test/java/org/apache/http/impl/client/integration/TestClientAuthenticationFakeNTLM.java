@@ -176,4 +176,45 @@ public class TestClientAuthenticationFakeNTLM extends IntegrationTestBase {
                 response.getStatusLine().getStatusCode());
     }
 
+    static class NtlmType2MessageOnlyResponseHandler implements HttpRequestHandler {
+
+        public void handle(
+                final HttpRequest request,
+                final HttpResponse response,
+                final HttpContext context) throws HttpException, IOException {
+            response.setStatusLine(new BasicStatusLine(
+                    HttpVersion.HTTP_1_1,
+                    HttpStatus.SC_UNAUTHORIZED,
+                    "Authentication Required"));
+            response.setHeader("Connection", "Keep-Alive");
+            response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "NTLM TlRMTVNTUAACAA" +
+                    "AADAAMADgAAAAzggLiASNFZ4mrze8AAAAAAAAAAAAAAAAAAAAABgBwFwAAAA9T" +
+                    "AGUAcgB2AGUAcgA=");
+        }
+    }
+
+    @Test
+    public void testNTLMType2MessageOnlyAuthenticationFailure() throws Exception {
+        this.localServer.register("*", new NtlmType2MessageOnlyResponseHandler());
+        this.localServer.start();
+
+        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(AuthScope.ANY,
+                new NTCredentials("test", "test", null, null));
+
+        this.httpclient = HttpClients.custom()
+                .setDefaultCredentialsProvider(credsProvider)
+                .build();
+
+        final HttpContext context = HttpClientContext.create();
+
+        final HttpHost targethost = getServerHttp();
+        final HttpGet httpget = new HttpGet("/");
+
+        final HttpResponse response = this.httpclient.execute(targethost, httpget, context);
+        EntityUtils.consume(response.getEntity());
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
+                response.getStatusLine().getStatusCode());
+    }
+
 }
