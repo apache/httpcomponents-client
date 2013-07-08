@@ -105,6 +105,7 @@ public class NTLMScheme extends AuthSchemeBase {
         } else {
             if (this.state.compareTo(State.MSG_TYPE1_GENERATED) < 0) {
                 this.state = State.FAILED;
+                throw new MalformedChallengeException("Out of sequence NTLM response message");
             } else if (this.state == State.MSG_TYPE1_GENERATED) {
                 this.state = State.MSG_TYPE2_RECEVIED;
             }
@@ -123,7 +124,9 @@ public class NTLMScheme extends AuthSchemeBase {
               + credentials.getClass().getName());
         }
         String response = null;
-        if (this.state == State.CHALLENGE_RECEIVED || this.state == State.FAILED) {
+        if (this.state == State.FAILED) {
+            throw new AuthenticationException("NTLM authentication failed");
+        } else if (this.state == State.CHALLENGE_RECEIVED) {
             response = this.engine.generateType1Msg(
                     ntcredentials.getDomain(),
                     ntcredentials.getWorkstation());
