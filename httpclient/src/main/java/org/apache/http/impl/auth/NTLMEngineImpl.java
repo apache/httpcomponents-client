@@ -50,21 +50,21 @@ final class NTLMEngineImpl implements NTLMEngine {
     // http://davenport.sourceforge.net/ntlm.html
     // and
     // http://msdn.microsoft.com/en-us/library/cc236650%28v=prot.20%29.aspx
-    protected final static int FLAG_REQUEST_UNICODE_ENCODING = 0x00000001;      // Unicode string encoding requested
-    protected final static int FLAG_REQUEST_TARGET = 0x00000004;                      // Requests target field
-    protected final static int FLAG_REQUEST_SIGN = 0x00000010;  // Requests all messages have a signature attached, in NEGOTIATE message.
-    protected final static int FLAG_REQUEST_SEAL = 0x00000020;  // Request key exchange for message confidentiality in NEGOTIATE message.  MUST be used in conjunction with 56BIT.
-    protected final static int FLAG_REQUEST_LAN_MANAGER_KEY = 0x00000080;    // Request Lan Manager key instead of user session key
-    protected final static int FLAG_REQUEST_NTLMv1 = 0x00000200; // Request NTLMv1 security.  MUST be set in NEGOTIATE and CHALLENGE both
-    protected final static int FLAG_DOMAIN_PRESENT = 0x00001000;        // Domain is present in message
-    protected final static int FLAG_WORKSTATION_PRESENT = 0x00002000;   // Workstation is present in message
-    protected final static int FLAG_REQUEST_ALWAYS_SIGN = 0x00008000;   // Requests a signature block on all messages.  Overridden by REQUEST_SIGN and REQUEST_SEAL.
-    protected final static int FLAG_REQUEST_NTLM2_SESSION = 0x00080000; // From server in challenge, requesting NTLM2 session security
-    protected final static int FLAG_REQUEST_VERSION = 0x02000000;       // Request protocol version
-    protected final static int FLAG_TARGETINFO_PRESENT = 0x00800000;    // From server in challenge message, indicating targetinfo is present
-    protected final static int FLAG_REQUEST_128BIT_KEY_EXCH = 0x20000000; // Request explicit 128-bit key exchange
-    protected final static int FLAG_REQUEST_EXPLICIT_KEY_EXCH = 0x40000000;     // Request explicit key exchange
-    protected final static int FLAG_REQUEST_56BIT_ENCRYPTION = 0x80000000;      // Must be used in conjunction with SEAL
+    protected static final int FLAG_REQUEST_UNICODE_ENCODING = 0x00000001;      // Unicode string encoding requested
+    protected static final int FLAG_REQUEST_TARGET = 0x00000004;                      // Requests target field
+    protected static final int FLAG_REQUEST_SIGN = 0x00000010;  // Requests all messages have a signature attached, in NEGOTIATE message.
+    protected static final int FLAG_REQUEST_SEAL = 0x00000020;  // Request key exchange for message confidentiality in NEGOTIATE message.  MUST be used in conjunction with 56BIT.
+    protected static final int FLAG_REQUEST_LAN_MANAGER_KEY = 0x00000080;    // Request Lan Manager key instead of user session key
+    protected static final int FLAG_REQUEST_NTLMv1 = 0x00000200; // Request NTLMv1 security.  MUST be set in NEGOTIATE and CHALLENGE both
+    protected static final int FLAG_DOMAIN_PRESENT = 0x00001000;        // Domain is present in message
+    protected static final int FLAG_WORKSTATION_PRESENT = 0x00002000;   // Workstation is present in message
+    protected static final int FLAG_REQUEST_ALWAYS_SIGN = 0x00008000;   // Requests a signature block on all messages.  Overridden by REQUEST_SIGN and REQUEST_SEAL.
+    protected static final int FLAG_REQUEST_NTLM2_SESSION = 0x00080000; // From server in challenge, requesting NTLM2 session security
+    protected static final int FLAG_REQUEST_VERSION = 0x02000000;       // Request protocol version
+    protected static final int FLAG_TARGETINFO_PRESENT = 0x00800000;    // From server in challenge message, indicating targetinfo is present
+    protected static final int FLAG_REQUEST_128BIT_KEY_EXCH = 0x20000000; // Request explicit 128-bit key exchange
+    protected static final int FLAG_REQUEST_EXPLICIT_KEY_EXCH = 0x40000000;     // Request explicit key exchange
+    protected static final int FLAG_REQUEST_56BIT_ENCRYPTION = 0x80000000;      // Must be used in conjunction with SEAL
 
 
     /** Secure random generator */
