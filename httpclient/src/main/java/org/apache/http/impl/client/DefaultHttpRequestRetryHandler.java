@@ -66,6 +66,11 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
     private final Set<Class<? extends IOException>> nonRetriableClasses;
 
     /**
+     * Create the request retry handler using the specified IOException classes
+     * 
+     * @param retryCount how many times to retry; 0 means no retries
+     * @param requestSentRetryEnabled true if it's OK to retry requests that have been sent
+     * @param clazzes the IOException types that should not be retried 
      * @since 4.3
      */
     protected DefaultHttpRequestRetryHandler(
@@ -82,7 +87,16 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
     }
 
     /**
-     * Default constructor
+     * Create the request retry handler using the following list of 
+     * non-retriable IOException classes: <br>
+     * <ul>
+     * <li>InterruptedIOException</li>
+     * <li>UnknownHostException</li>
+     * <li>ConnectException</li>
+     * <li>SSLException</li>
+     * </ul>
+     * @param retryCount how many times to retry; 0 means no retries
+     * @param requestSentRetryEnabled true if it's OK to retry requests that have been sent
      */
     @SuppressWarnings("unchecked")
     public DefaultHttpRequestRetryHandler(final int retryCount, final boolean requestSentRetryEnabled) {
@@ -94,7 +108,14 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
     }
 
     /**
-     * Default constructor
+     * Create the request retry handler with a retry count of 3, requestSentRetryEnabled false
+     * and using the following list of non-retriable IOException classes: <br>
+     * <ul>
+     * <li>InterruptedIOException</li>
+     * <li>UnknownHostException</li>
+     * <li>ConnectException</li>
+     * <li>SSLException</li>
+     * </ul>
      */
     public DefaultHttpRequestRetryHandler() {
         this(3, false);
