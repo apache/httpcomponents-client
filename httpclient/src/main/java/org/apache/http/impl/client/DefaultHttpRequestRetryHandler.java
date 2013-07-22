@@ -67,10 +67,10 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
 
     /**
      * Create the request retry handler using the specified IOException classes
-     * 
+     *
      * @param retryCount how many times to retry; 0 means no retries
      * @param requestSentRetryEnabled true if it's OK to retry requests that have been sent
-     * @param clazzes the IOException types that should not be retried 
+     * @param clazzes the IOException types that should not be retried
      * @since 4.3
      */
     protected DefaultHttpRequestRetryHandler(
@@ -87,7 +87,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
     }
 
     /**
-     * Create the request retry handler using the following list of 
+     * Create the request retry handler using the following list of
      * non-retriable IOException classes: <br>
      * <ul>
      * <li>InterruptedIOException</li>
