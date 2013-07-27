@@ -46,7 +46,6 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.execchain.ClientExecChain;
-import org.apache.http.params.CoreConnectionPNames;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -156,20 +155,6 @@ public class TestInternalHttpClient {
         client.execute(httpget, context);
 
         Assert.assertSame(config, context.getRequestConfig());
-    }
-
-    @Test
-    public void testExecuteRequestConfigDeprecated() throws Exception {
-        final HttpGet httpget = new HttpGet("http://somehost/stuff");
-        httpget.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, new Integer(123));
-
-        final HttpClientContext context = HttpClientContext.create();
-        client.execute(httpget, context);
-
-        final RequestConfig config = context.getRequestConfig();
-
-        Assert.assertNotSame(config, defaultConfig);
-        Assert.assertEquals(123, config.getConnectionRequestTimeout());
     }
 
     @SuppressWarnings("unchecked")

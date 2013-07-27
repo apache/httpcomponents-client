@@ -35,7 +35,10 @@ import org.apache.http.conn.routing.HttpRoute;
  * a fine-grained control of connections on a per route basis.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) no longer used.
  */
+@Deprecated
 public interface ConnPerRoute {
 
     int getMaxForRoute(HttpRoute route);

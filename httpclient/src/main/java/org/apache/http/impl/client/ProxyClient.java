@@ -46,7 +46,7 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.params.HttpClientParamConfig;
-import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.protocol.RequestClientConnControl;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.HttpConnectionFactory;
@@ -58,17 +58,19 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestSchemeFactory;
+import org.apache.http.impl.auth.HttpAuthenticator;
 import org.apache.http.impl.auth.KerberosSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.conn.ManagedHttpClientConnectionFactory;
+import org.apache.http.impl.execchain.TunnelRefusedException;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParamConfig;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
@@ -184,14 +186,14 @@ public class ProxyClient {
         credsProvider.setCredentials(new AuthScope(proxy), credentials);
 
         // Populate the execution context
-        context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
-        context.setAttribute(ExecutionContext.HTTP_CONNECTION, conn);
-        context.setAttribute(ExecutionContext.HTTP_REQUEST, connect);
-        context.setAttribute(ClientContext.ROUTE, route);
-        context.setAttribute(ClientContext.PROXY_AUTH_STATE, this.proxyAuthState);
-        context.setAttribute(ClientContext.CREDS_PROVIDER, credsProvider);
-        context.setAttribute(ClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
-        context.setAttribute(ClientContext.REQUEST_CONFIG, this.requestConfig);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
+        context.setAttribute(HttpCoreContext.HTTP_REQUEST, connect);
+        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
+        context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, this.proxyAuthState);
+        context.setAttribute(HttpClientContext.CREDS_PROVIDER, credsProvider);
+        context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
+        context.setAttribute(HttpClientContext.REQUEST_CONFIG, this.requestConfig);
 
         this.requestExec.preProcess(connect, this.httpProcessor, context);
 
