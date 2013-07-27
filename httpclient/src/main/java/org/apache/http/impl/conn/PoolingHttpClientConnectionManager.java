@@ -55,8 +55,8 @@ import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainSocketFactory;
-import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.pool.ConnFactory;
 import org.apache.http.pool.ConnPoolControl;
 import org.apache.http.pool.PoolStats;
@@ -94,8 +94,8 @@ public class PoolingHttpClientConnectionManager
 
     private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
         return RegistryBuilder.<ConnectionSocketFactory>create()
-                .register("http", PlainSocketFactory.getSocketFactory())
-                .register("https", SSLSocketFactory.getSocketFactory())
+                .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                .register("https", SSLConnectionSocketFactory.getSocketFactory())
                 .build();
     }
 

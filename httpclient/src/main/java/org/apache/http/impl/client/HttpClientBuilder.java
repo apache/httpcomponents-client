@@ -73,9 +73,9 @@ import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
-import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
@@ -476,16 +476,16 @@ public class HttpClientBuilder {
             LayeredConnectionSocketFactory sslSocketFactory = this.sslSocketFactory;
             if (sslSocketFactory == null) {
                 if (sslcontext != null) {
-                    sslSocketFactory = new SSLSocketFactory(sslcontext, hostnameVerifier);
+                    sslSocketFactory = new SSLConnectionSocketFactory(sslcontext, hostnameVerifier);
                 } else {
                     if (systemProperties) {
-                        sslSocketFactory = new SSLSocketFactory(
+                        sslSocketFactory = new SSLConnectionSocketFactory(
                                 (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault(),
                                 split(System.getProperty("https.protocols")),
                                 split(System.getProperty("https.cipherSuites")),
                                 hostnameVerifier);
                     } else {
-                        sslSocketFactory = new SSLSocketFactory(
+                        sslSocketFactory = new SSLConnectionSocketFactory(
                                 SSLContexts.createDefault(),
                                 hostnameVerifier);
                     }
@@ -494,7 +494,7 @@ public class HttpClientBuilder {
             @SuppressWarnings("resource")
             final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
                     RegistryBuilder.<ConnectionSocketFactory>create()
-                        .register("http", PlainSocketFactory.getSocketFactory())
+                        .register("http", PlainConnectionSocketFactory.getSocketFactory())
                         .register("https", sslSocketFactory)
                         .build());
             if (defaultSocketConfig != null) {

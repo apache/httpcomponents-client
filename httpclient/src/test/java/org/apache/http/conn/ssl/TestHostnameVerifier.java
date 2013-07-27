@@ -202,7 +202,7 @@ public class TestHostnameVerifier {
         final InputStream in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_SUBJECT_ALT);
         final X509Certificate x509 = (X509Certificate) cf.generateCertificate(in);
 
-        final X509HostnameVerifier verifier = SSLSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
+        final X509HostnameVerifier verifier = SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
 
         Assert.assertEquals("CN=localhost, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=CH",
                 x509.getSubjectDN().getName());

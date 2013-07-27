@@ -53,7 +53,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link SSLSocketFactory}.
+ * Unit tests for {@link SSLConnectionSocketFactory}.
  */
 public class TestSSLSocketFactory extends LocalServerTestBase {
 
@@ -124,7 +124,8 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         final HttpHost host = new HttpHost("localhost", 443, "https");
         final HttpContext context = new BasicHttpContext();
         final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
-        final SSLSocketFactory socketFactory = new SSLSocketFactory(clientSSLContext, hostVerifier);
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
+                clientSSLContext, hostVerifier);
         SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
         socket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
@@ -154,7 +155,7 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         final HttpHost host = new HttpHost("localhost", 443, "https");
         final HttpContext context = new BasicHttpContext();
         final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
-        final SSLSocketFactory socketFactory = new SSLSocketFactory(clientSSLContext, hostVerifier);
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(clientSSLContext, hostVerifier);
         SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
         socket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
@@ -183,7 +184,7 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         final HttpHost host = new HttpHost("localhost", 443, "https");
         final HttpContext context = new BasicHttpContext();
         final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
-        final SSLSocketFactory socketFactory = new SSLSocketFactory(clientSSLContext, hostVerifier);
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(clientSSLContext, hostVerifier);
         SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
         socket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
@@ -225,7 +226,7 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         final HttpHost host = new HttpHost("localhost", 443, "https");
         final HttpContext context = new BasicHttpContext();
         final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
-        final SSLSocketFactory socketFactory = new SSLSocketFactory(clientSSLContext, hostVerifier);
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(clientSSLContext, hostVerifier);
         SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
         socket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
@@ -256,8 +257,8 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         // Use default SSL context
         final SSLContext defaultsslcontext = SSLContexts.createDefault();
 
-        final SSLSocketFactory socketFactory = new SSLSocketFactory(defaultsslcontext,
-                SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(defaultsslcontext,
+                SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
         final SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
@@ -290,9 +291,9 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         final SSLContext sslcontext = SSLContexts.custom()
             .loadTrustMaterial(null, trustStrategy)
             .build();
-        final SSLSocketFactory socketFactory = new SSLSocketFactory(
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
                 sslcontext,
-                SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+                SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
         final SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();

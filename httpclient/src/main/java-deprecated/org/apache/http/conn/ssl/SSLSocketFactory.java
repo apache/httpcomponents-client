@@ -130,9 +130,11 @@ import org.apache.http.util.TextUtils;
  *   </ul>
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) use {@link SSLConnectionSocketFactory}.
  */
-@SuppressWarnings("deprecation")
 @ThreadSafe
+@Deprecated
 public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeLayeredSocketFactory,
                                          LayeredSchemeSocketFactory, LayeredSocketFactory {
 
@@ -193,10 +195,6 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     private final String[] supportedProtocols;
     private final String[] supportedCipherSuites;
 
-    /**
-     * @deprecated (4.1) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)}.
-     */
-    @Deprecated
     public SSLSocketFactory(
             final String algorithm,
             final KeyStore keystore,
@@ -216,11 +214,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
 
     /**
      * @since 4.1
-     *
-     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext,
-     *   X509HostnameVerifier)}
      */
-    @Deprecated
     public SSLSocketFactory(
             final String algorithm,
             final KeyStore keystore,
@@ -241,11 +235,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
 
     /**
      * @since 4.1
-     *
-     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext,
-     *   X509HostnameVerifier)}
      */
-    @Deprecated
     public SSLSocketFactory(
             final String algorithm,
             final KeyStore keystore,
@@ -263,10 +253,6 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
                 hostnameVerifier);
     }
 
-    /**
-     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)}
-     */
-    @Deprecated
     public SSLSocketFactory(
             final KeyStore keystore,
             final String keystorePassword,
@@ -279,10 +265,6 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
                 BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
     }
 
-    /**
-     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)}
-     */
-    @Deprecated
     public SSLSocketFactory(
             final KeyStore keystore,
             final String keystorePassword)
@@ -293,10 +275,6 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
                 BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
     }
 
-    /**
-     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)}
-     */
-    @Deprecated
     public SSLSocketFactory(
             final KeyStore truststore)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
@@ -308,11 +286,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
 
     /**
      * @since 4.1
-     *
-     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext,
-     *   X509HostnameVerifier)}
      */
-    @Deprecated
     public SSLSocketFactory(
             final TrustStrategy trustStrategy,
             final X509HostnameVerifier hostnameVerifier)
@@ -325,10 +299,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
 
     /**
      * @since 4.1
-     *
-     * @deprecated (4.3) Use {@link SSLContextBuilder} and {@link #SSLSocketFactory(SSLContext)}
      */
-    @Deprecated
     public SSLSocketFactory(
             final TrustStrategy trustStrategy)
                 throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, UnrecoverableKeyException {
@@ -342,10 +313,6 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         this(sslContext, BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
     }
 
-    /**
-     * @deprecated (4.1) Use {@link #SSLSocketFactory(SSLContext)}
-     */
-    @Deprecated
     public SSLSocketFactory(
             final SSLContext sslContext, final HostNameResolver nameResolver) {
         super();
@@ -406,29 +373,18 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      * @param params Optional parameters. Parameters passed to this method will have no effect.
      *               This method will create a unconnected instance of {@link Socket} class.
      * @since 4.1
-     *
-     * @deprecated (4.3) use {@link #createSocket(HttpContext)}
      */
-    @Deprecated
     public Socket createSocket(final HttpParams params) throws IOException {
         return createSocket((HttpContext) null);
     }
 
-    /**
-     * @deprecated (4.1) use {@link #createSocket(HttpParams)}
-     */
-    @Deprecated
     public Socket createSocket() throws IOException {
         return createSocket((HttpContext) null);
     }
 
     /**
      * @since 4.1
-     *
-     * @deprecated (4.3) use {@link #connectSocket(int, Socket, HttpHost, InetSocketAddress,
-     *  InetSocketAddress, HttpContext)}
      */
-    @Deprecated
     public Socket connectSocket(
             final Socket socket,
             final InetSocketAddress remoteAddress,
@@ -459,10 +415,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      * @return  <code>true</code>
      *
      * @throws IllegalArgumentException if the argument is invalid
-     *
-     * @deprecated (4.3) no longer used.
      */
-    @Deprecated
     public boolean isSecure(final Socket sock) throws IllegalArgumentException {
         Args.notNull(sock, "Socket");
         Asserts.check(sock instanceof SSLSocket, "Socket not created by this factory");
@@ -472,10 +425,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
 
     /**
      * @since 4.2
-     *
-     * @deprecated (4.3) use {@link #createLayeredSocket(Socket, String, int, HttpContext)}
      */
-    @Deprecated
     public Socket createLayeredSocket(
         final Socket socket,
         final String host,
@@ -484,10 +434,6 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         return createLayeredSocket(socket, host, port, (HttpContext) null);
     }
 
-    /**
-     * @deprecated (4.1) use {@link #createLayeredSocket(Socket, String, int, HttpParams)}
-     */
-    @Deprecated
     public Socket createLayeredSocket(
         final Socket socket,
         final String host,
@@ -496,10 +442,6 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         return createLayeredSocket(socket, host, port, (HttpContext) null);
     }
 
-    /**
-     * @deprecated (4.1) use constructor.
-     */
-    @Deprecated
     public void setHostnameVerifier(final X509HostnameVerifier hostnameVerifier) {
         Args.notNull(hostnameVerifier, "Hostname verifier");
         this.hostnameVerifier = hostnameVerifier;
@@ -509,11 +451,6 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         return this.hostnameVerifier;
     }
 
-    /**
-     * @deprecated (4.1) Use {@link #connectSocket(Socket, InetSocketAddress, InetSocketAddress,
-     *   HttpParams)}
-     */
-    @Deprecated
     public Socket connectSocket(
             final Socket socket,
             final String host, final int port,
@@ -534,10 +471,6 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         return connectSocket(socket, remoteAddress, localAddress, params);
     }
 
-    /**
-     * @deprecated (4.1) Use {@link #createLayeredSocket(Socket, String, int, boolean)}
-     */
-    @Deprecated
     public Socket createSocket(
             final Socket socket,
             final String host, final int port,
@@ -567,22 +500,12 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         prepareSocket(socket);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @since 4.3
-     */
     public Socket createSocket(final HttpContext context) throws IOException {
         final SSLSocket sock = (SSLSocket) this.socketfactory.createSocket();
         internalPrepareSocket(sock);
         return sock;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @since 4.3
-     */
     public Socket connectSocket(
             final int connectTimeout,
             final Socket socket,

@@ -50,7 +50,7 @@ import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLInitializationException;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.auth.BasicScheme;
@@ -89,7 +89,7 @@ public class Executor {
         }
 
         final Registry<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create()
-            .register("http", PlainSocketFactory.getSocketFactory())
+            .register("http", PlainConnectionSocketFactory.getSocketFactory())
             .register("https", ssl != null ? ssl : SSLSocketFactory.getSocketFactory())
             .build();
 

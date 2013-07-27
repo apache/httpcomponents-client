@@ -51,7 +51,7 @@ import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.message.BasicHttpRequest;
@@ -436,7 +436,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
     public void testAbortDuringConnecting() throws Exception {
         final CountDownLatch connectLatch = new CountDownLatch(1);
         final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
-                connectLatch, WaitPolicy.BEFORE_CONNECT, PlainSocketFactory.getSocketFactory());
+                connectLatch, WaitPolicy.BEFORE_CONNECT, PlainConnectionSocketFactory.getSocketFactory());
         final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
             .register("http", stallingSocketFactory)
             .build();
@@ -491,7 +491,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
     public void testAbortBeforeSocketCreate() throws Exception {
         final CountDownLatch connectLatch = new CountDownLatch(1);
         final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
-                connectLatch, WaitPolicy.BEFORE_CREATE, PlainSocketFactory.getSocketFactory());
+                connectLatch, WaitPolicy.BEFORE_CREATE, PlainConnectionSocketFactory.getSocketFactory());
         final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
             .register("http", stallingSocketFactory)
             .build();
@@ -547,7 +547,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
     public void testAbortAfterSocketConnect() throws Exception {
         final CountDownLatch connectLatch = new CountDownLatch(1);
         final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
-                connectLatch, WaitPolicy.AFTER_CONNECT, PlainSocketFactory.getSocketFactory());
+                connectLatch, WaitPolicy.AFTER_CONNECT, PlainConnectionSocketFactory.getSocketFactory());
         final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
             .register("http", stallingSocketFactory)
             .build();

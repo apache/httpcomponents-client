@@ -41,15 +41,15 @@ import org.apache.http.protocol.HttpContext;
  * @since 4.3
  */
 @Immutable
-public class PlainSocketFactory implements ConnectionSocketFactory {
+public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
 
-    public static final PlainSocketFactory INSTANCE = new PlainSocketFactory();
+    public static final PlainConnectionSocketFactory INSTANCE = new PlainConnectionSocketFactory();
 
-    public static PlainSocketFactory getSocketFactory() {
+    public static PlainConnectionSocketFactory getSocketFactory() {
         return INSTANCE;
     }
 
-    public PlainSocketFactory() {
+    public PlainConnectionSocketFactory() {
         super();
     }
 

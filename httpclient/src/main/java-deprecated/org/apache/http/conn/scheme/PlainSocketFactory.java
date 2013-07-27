@@ -45,7 +45,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  *
- * @deprecated (4.3) use {@link org.apache.http.conn.socket.PlainSocketFactory}
+ * @deprecated (4.3) use {@link org.apache.http.conn.socket.PlainConnectionSocketFactory}
  */
 @Immutable
 @Deprecated
