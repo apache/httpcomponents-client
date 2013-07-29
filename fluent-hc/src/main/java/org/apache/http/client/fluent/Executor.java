@@ -51,8 +51,8 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLInitializationException;
-import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -75,13 +75,13 @@ public class Executor {
     static {
         LayeredConnectionSocketFactory ssl = null;
         try {
-            ssl = SSLSocketFactory.getSystemSocketFactory();
+            ssl = SSLConnectionSocketFactory.getSystemSocketFactory();
         } catch (final SSLInitializationException ex) {
-            SSLContext sslcontext;
+            final SSLContext sslcontext;
             try {
-                sslcontext = SSLContext.getInstance(SSLSocketFactory.TLS);
+                sslcontext = SSLContext.getInstance(SSLConnectionSocketFactory.TLS);
                 sslcontext.init(null, null, null);
-                ssl = new SSLSocketFactory(sslcontext);
+                ssl = new SSLConnectionSocketFactory(sslcontext);
             } catch (final SecurityException ignore) {
             } catch (final KeyManagementException ignore) {
             } catch (final NoSuchAlgorithmException ignore) {
@@ -90,7 +90,7 @@ public class Executor {
 
         final Registry<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create()
             .register("http", PlainConnectionSocketFactory.getSocketFactory())
-            .register("https", ssl != null ? ssl : SSLSocketFactory.getSocketFactory())
+            .register("https", ssl != null ? ssl : SSLConnectionSocketFactory.getSocketFactory())
             .build();
 
         CONNMGR = new PoolingHttpClientConnectionManager(sfr);
@@ -138,7 +138,7 @@ public class Executor {
         final BasicScheme basicScheme = new BasicScheme();
         try {
             basicScheme.processChallenge(new BasicHeader(AUTH.WWW_AUTH, "BASIC "));
-        } catch (final MalformedChallengeException ingnore) {
+        } catch (final MalformedChallengeException ignore) {
         }
         this.authCache.put(host, basicScheme);
         return this;
@@ -148,7 +148,7 @@ public class Executor {
         final BasicScheme basicScheme = new BasicScheme();
         try {
             basicScheme.processChallenge(new BasicHeader(AUTH.PROXY_AUTH, "BASIC "));
-        } catch (final MalformedChallengeException ingnore) {
+        } catch (final MalformedChallengeException ignore) {
         }
         this.authCache.put(host, basicScheme);
         return this;
