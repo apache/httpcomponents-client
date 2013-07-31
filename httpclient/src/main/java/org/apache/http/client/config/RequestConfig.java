@@ -189,7 +189,7 @@ public class RequestConfig implements Cloneable {
             .setCircularRedirectsAllowed(config.isCircularRedirectsAllowed())
             .setMaxRedirects(config.getMaxRedirects())
             .setAuthenticationEnabled(config.isAuthenticationEnabled())
-            .setTargetPreferredAuthSchemes(config.getProxyPreferredAuthSchemes())
+            .setTargetPreferredAuthSchemes(config.getTargetPreferredAuthSchemes())
             .setProxyPreferredAuthSchemes(config.getProxyPreferredAuthSchemes())
             .setConnectionRequestTimeout(config.getConnectionRequestTimeout())
             .setConnectTimeout(config.getConnectTimeout())

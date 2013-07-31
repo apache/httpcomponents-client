@@ -27,6 +27,8 @@
 
 package org.apache.http.impl.conn;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +37,10 @@ import java.util.concurrent.TimeoutException;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.Lookup;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.DnsResolver;
@@ -43,38 +48,43 @@ import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 /**
  * {@link PoolingHttpClientConnectionManager} tests.
  */
 public class TestPoolingHttpClientConnectionManager {
 
+    @Mock
     private ManagedHttpClientConnection conn;
-    private Socket socket;
-    private ConnectionSocketFactory plainSocketFactory;
+    @Mock
     private Lookup<ConnectionSocketFactory> socketFactoryRegistry;
+    @Mock
+    private ConnectionSocketFactory plainSocketFactory;
+    @Mock
+    private ConnectionSocketFactory sslSocketFactory;
+    @Mock
+    private Socket socket;
+    @Mock
     private SchemePortResolver schemePortResolver;
+    @Mock
     private DnsResolver dnsResolver;
+    @Mock
     private Future<CPoolEntry> future;
+    @Mock
     private CPool pool;
     private PoolingHttpClientConnectionManager mgr;
 
-    @SuppressWarnings("unchecked")
     @Before
     public void setup() throws Exception {
-        conn = Mockito.mock(ManagedHttpClientConnection.class);
-        socket = Mockito.mock(Socket.class);
-        plainSocketFactory = Mockito.mock(ConnectionSocketFactory.class);
-        socketFactoryRegistry = Mockito.mock(Lookup.class);
-        schemePortResolver = Mockito.mock(SchemePortResolver.class);
-        dnsResolver = Mockito.mock(DnsResolver.class);
-        pool = Mockito.mock(CPool.class);
-        future = Mockito.mock(Future.class);
+        MockitoAnnotations.initMocks(this);
         mgr = new PoolingHttpClientConnectionManager(
                 pool, socketFactoryRegistry, schemePortResolver, dnsResolver);
     }
@@ -216,6 +226,120 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.verify(pool).release(entry, false);
         Mockito.verify(entry, Mockito.never()).setState(Mockito.anyObject());
         Mockito.verify(entry, Mockito.never()).updateExpiry(Mockito.anyLong(), Mockito.eq(TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    public void testTargetConnect() throws Exception {
+        final HttpHost target = new HttpHost("somehost", -1, "https");
+        final InetAddress remote = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
+        final InetAddress local = InetAddress.getByAddress(new byte[]{127, 0, 0, 1});
+        final HttpRoute route = new HttpRoute(target, local, true);
+
+        final CPoolEntry entry = new CPoolEntry(LogFactory.getLog(getClass()), "id", route, conn,
+                -1, TimeUnit.MILLISECONDS);
+        entry.markRouteComplete();
+        Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
+        Mockito.when(conn.isOpen()).thenReturn(true);
+        Mockito.when(future.isCancelled()).thenReturn(false);
+        Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
+        Mockito.when(pool.lease(route, null, null)).thenReturn(future);
+
+        final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
+        final HttpClientConnection conn1 = connRequest1.get(1, TimeUnit.SECONDS);
+        Assert.assertNotNull(conn1);
+
+        final HttpClientContext context = HttpClientContext.create();
+        final SocketConfig sconfig = SocketConfig.custom().build();
+
+        mgr.setDefaultSocketConfig(sconfig);
+
+        Mockito.when(dnsResolver.resolve("somehost")).thenReturn(new InetAddress[]{remote});
+        Mockito.when(schemePortResolver.resolve(target)).thenReturn(8443);
+        Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(plainSocketFactory);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.connectSocket(
+                Mockito.anyInt(),
+                Mockito.eq(socket),
+                Mockito.<HttpHost>any(),
+                Mockito.<InetSocketAddress>any(),
+                Mockito.<InetSocketAddress>any(),
+                Mockito.<HttpContext>any())).thenReturn(socket);
+
+        mgr.connect(conn1, route, 123, context);
+
+        Mockito.verify(dnsResolver, Mockito.times(1)).resolve("somehost");
+        Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target);
+        Mockito.verify(plainSocketFactory, Mockito.times(1)).createSocket(context);
+        Mockito.verify(plainSocketFactory, Mockito.times(1)).connectSocket(123, socket, target,
+                new InetSocketAddress(remote, 8443),
+                new InetSocketAddress(local, 0), context);
+
+        mgr.routeComplete(conn1, route, context);
+    }
+
+    @Test
+    public void testProxyConnectAndUpgrade() throws Exception {
+        final HttpHost target = new HttpHost("somehost", -1, "https");
+        final HttpHost proxy = new HttpHost("someproxy", 8080);
+        final InetAddress remote = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
+        final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
+        final HttpRoute route = new HttpRoute(target, local, proxy, true);
+
+        final CPoolEntry entry = new CPoolEntry(LogFactory.getLog(getClass()), "id", route, conn,
+                -1, TimeUnit.MILLISECONDS);
+        entry.markRouteComplete();
+        Mockito.when(future.isCancelled()).thenReturn(Boolean.FALSE);
+        Mockito.when(conn.isOpen()).thenReturn(true);
+        Mockito.when(future.isCancelled()).thenReturn(false);
+        Mockito.when(future.get(1, TimeUnit.SECONDS)).thenReturn(entry);
+        Mockito.when(pool.lease(route, null, null)).thenReturn(future);
+
+        final ConnectionRequest connRequest1 = mgr.requestConnection(route, null);
+        final HttpClientConnection conn1 = connRequest1.get(1, TimeUnit.SECONDS);
+        Assert.assertNotNull(conn1);
+
+        final ConnectionSocketFactory plainsf = Mockito.mock(ConnectionSocketFactory.class);
+        final LayeredConnectionSocketFactory sslsf = Mockito.mock(LayeredConnectionSocketFactory.class);
+        final Socket socket = Mockito.mock(Socket.class);
+        final HttpClientContext context = HttpClientContext.create();
+        final SocketConfig sconfig = SocketConfig.custom().build();
+        final ConnectionConfig cconfig = ConnectionConfig.custom().build();
+
+        mgr.setDefaultSocketConfig(sconfig);
+        mgr.setDefaultConnectionConfig(cconfig);
+
+        Mockito.when(dnsResolver.resolve("someproxy")).thenReturn(new InetAddress[] {remote});
+        Mockito.when(schemePortResolver.resolve(proxy)).thenReturn(8080);
+        Mockito.when(schemePortResolver.resolve(target)).thenReturn(8443);
+        Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainsf);
+        Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(sslsf);
+        Mockito.when(plainsf.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+        Mockito.when(plainsf.connectSocket(
+                Mockito.anyInt(),
+                Mockito.eq(socket),
+                Mockito.<HttpHost>any(),
+                Mockito.<InetSocketAddress>any(),
+                Mockito.<InetSocketAddress>any(),
+                Mockito.<HttpContext>any())).thenReturn(socket);
+
+        mgr.connect(conn1, route, 123, context);
+
+        Mockito.verify(dnsResolver, Mockito.times(1)).resolve("someproxy");
+        Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(proxy);
+        Mockito.verify(plainsf, Mockito.times(1)).createSocket(context);
+        Mockito.verify(plainsf, Mockito.times(1)).connectSocket(123, socket, proxy,
+                new InetSocketAddress(remote, 8080),
+                new InetSocketAddress(local, 0), context);
+
+        Mockito.when(conn.getSocket()).thenReturn(socket);
+
+        mgr.upgrade(conn1, route, context);
+
+        Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target);
+        Mockito.verify(sslsf, Mockito.times(1)).createLayeredSocket(
+                socket, "somehost", 8443, context);
+
+        mgr.routeComplete(conn1, route, context);
     }
 
 }
