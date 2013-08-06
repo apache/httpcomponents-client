@@ -92,7 +92,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
             final HttpClientConnectionManager mgr,
             final HttpRoute route) throws ConnectionPoolTimeoutException, ExecutionException, InterruptedException {
         final ConnectionRequest connRequest = mgr.requestConnection(route, null);
-        return connRequest.get(0, null);
+        return connRequest.get(0, TimeUnit.MILLISECONDS);
     }
 
     /**
