@@ -193,12 +193,7 @@ public class MainClientExec implements ClientExecChain {
         final ConnectionHolder connHolder = new ConnectionHolder(this.log, this.connManager, managedConn);
         try {
             if (execAware != null) {
-                if (execAware.isAborted()) {
-                    connHolder.close();
-                    throw new RequestAbortedException("Request aborted");
-                } else {
-                    execAware.setCancellable(connHolder);
-                }
+                execAware.setCancellable(connHolder);
             }
 
             HttpResponse response = null;
@@ -340,7 +335,7 @@ public class MainClientExec implements ClientExecChain {
     /**
      * Establishes the target route.
      */
-    private void establishRoute(
+    void establishRoute(
             final AuthState proxyAuthState,
             final HttpClientConnection managedConn,
             final HttpRoute route,
