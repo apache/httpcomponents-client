@@ -226,17 +226,15 @@ public class TestHttpRoute {
 
     @Test
     public void testInvalidArguments() {
-        final HttpHost[] chain0 = { null };
         final HttpHost[] chain1 = { PROXY1 };
-        final HttpHost[] chain4 = { PROXY1, PROXY2, null, PROXY3 };
 
         // for reference: this one should succeed
-        HttpRoute route = new HttpRoute(TARGET1, null, chain1, false,
+        final HttpRoute route = new HttpRoute(TARGET1, null, chain1, false,
                                         TunnelType.TUNNELLED, LayerType.PLAIN);
         Assert.assertNotNull(route);
 
         try {
-            route = new HttpRoute(null, null, chain1, false,
+            new HttpRoute(null, null, chain1, false,
                                   TunnelType.TUNNELLED, LayerType.PLAIN);
             Assert.fail("missing target not detected");
         } catch (final IllegalArgumentException iax) {
@@ -244,26 +242,9 @@ public class TestHttpRoute {
         }
 
         try {
-            route = new HttpRoute(TARGET1, null, (HttpHost[]) null, false,
+            new HttpRoute(TARGET1, null, (HttpHost[]) null, false,
                                   TunnelType.TUNNELLED, LayerType.PLAIN);
             Assert.fail("missing proxy for tunnel not detected");
-        } catch (final IllegalArgumentException iax) {
-            // expected
-        }
-
-        // for the next two, we don't indicate a tunnel anymore
-        try {
-            new HttpRoute(TARGET1, null, chain0, false,
-                                  TunnelType.PLAIN, LayerType.PLAIN);
-            Assert.fail("invalid proxy chain (0) not detected");
-        } catch (final IllegalArgumentException iax) {
-            // expected
-        }
-
-        try {
-            new HttpRoute(TARGET1, null, chain4, false,
-                                  TunnelType.PLAIN, LayerType.PLAIN);
-            Assert.fail("invalid proxy chain (4) not detected");
         } catch (final IllegalArgumentException iax) {
             // expected
         }
