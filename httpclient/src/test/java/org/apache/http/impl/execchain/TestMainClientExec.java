@@ -528,7 +528,6 @@ public class TestMainClientExec {
         final CloseableHttpResponse finalResponse = mainClientExec.execute(
                 route, request, context, execAware);
         Mockito.verify(requestExecutor, Mockito.times(2)).execute(request, managedConn, context);
-        Mockito.verify(instream1).close();
         Mockito.verify(managedConn).close();
         Mockito.verify(instream2, Mockito.never()).close();
 
