@@ -74,6 +74,9 @@ public class TestURIUtils {
                 URI.create("http://ThatHost")).toString());
         Assert.assertEquals("http://That_Host/", URIUtils.rewriteURI(
                 URI.create("http://That_Host")).toString());
+        Assert.assertEquals("http://thishost/Fragment_identifier%23Examples",
+                URIUtils.rewriteURI(
+                        URI.create("http://thishost/Fragment_identifier%23Examples")).toString());
     }
 
     @Test
