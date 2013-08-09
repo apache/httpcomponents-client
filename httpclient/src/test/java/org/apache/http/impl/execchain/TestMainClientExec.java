@@ -594,6 +594,66 @@ public class TestMainClientExec {
         mainClientExec.execute(route, request, context, execAware);
     }
 
+    @Test(expected=RuntimeException.class)
+    public void testExecRuntimeException() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final HttpClientContext context = new HttpClientContext();
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
+
+        Mockito.when(requestExecutor.execute(
+                Mockito.<HttpRequest>any(),
+                Mockito.<HttpClientConnection>any(),
+                Mockito.<HttpClientContext>any())).thenThrow(new RuntimeException("Ka-boom"));
+
+        try {
+            mainClientExec.execute(route, request, context, execAware);
+        } catch (Exception ex) {
+            Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
+
+            throw ex;
+        }
+    }
+
+    @Test(expected=HttpException.class)
+    public void testExecHttpException() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final HttpClientContext context = new HttpClientContext();
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
+
+        Mockito.when(requestExecutor.execute(
+                Mockito.<HttpRequest>any(),
+                Mockito.<HttpClientConnection>any(),
+                Mockito.<HttpClientContext>any())).thenThrow(new HttpException("Ka-boom"));
+
+        try {
+            mainClientExec.execute(route, request, context, execAware);
+        } catch (Exception ex) {
+            Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
+
+            throw ex;
+        }
+    }
+
+    @Test(expected=IOException.class)
+    public void testExecIOException() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final HttpClientContext context = new HttpClientContext();
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
+
+        Mockito.when(requestExecutor.execute(
+                Mockito.<HttpRequest>any(),
+                Mockito.<HttpClientConnection>any(),
+                Mockito.<HttpClientContext>any())).thenThrow(new IOException("Ka-boom"));
+
+        try {
+            mainClientExec.execute(route, request, context, execAware);
+        } catch (Exception ex) {
+            Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
+
+            throw ex;
+        }
+    }
+
     @Test
     public void testEstablishDirectRoute() throws Exception {
         final AuthState authState = new AuthState();

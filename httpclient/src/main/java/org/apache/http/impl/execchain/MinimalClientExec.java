@@ -156,11 +156,10 @@ public class MinimalClientExec implements ClientExecChain {
                     timeout > 0 ? timeout : 0,
                     context);
                 this.connManager.routeComplete(managedConn, route, context);
-            } else {
-                final int timeout = config.getSocketTimeout();
-                if (timeout >= 0) {
-                    managedConn.setSocketTimeout(timeout);
-                }
+            }
+            final int timeout = config.getSocketTimeout();
+            if (timeout >= 0) {
+                managedConn.setSocketTimeout(timeout);
             }
 
             HttpHost target = null;
