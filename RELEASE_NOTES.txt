@@ -1,6 +1,8 @@
 
 Changes since release 4.3 BETA2
 -------------------
+* [HTTPCLIENT-1373] OPTIONS and TRACE should not invalidate cache
+  Contributed by James Leigh <james at 3roundstones dot com>
 
 * [HTTPCLIENT-1383] HttpClient enters an infinite loop during NTLM authentication if the opposite 
   endpoint keeps responding with a type 2 NTLM response after type 3 MTLM message has already been 

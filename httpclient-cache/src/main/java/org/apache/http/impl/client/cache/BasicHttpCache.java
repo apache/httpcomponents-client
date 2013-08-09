@@ -27,9 +27,12 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,6 +55,10 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
 class BasicHttpCache implements HttpCache {
+    private static final Set<String> safeRequestMethods = new HashSet<String>(
+            Arrays.asList(HeaderConstants.HEAD_METHOD,
+                    HeaderConstants.GET_METHOD, HeaderConstants.OPTIONS_METHOD,
+                    HeaderConstants.TRACE_METHOD));
 
     private final CacheKeyGenerator uriExtractor;
     private final ResourceFactory resourceFactory;
@@ -83,12 +90,16 @@ class BasicHttpCache implements HttpCache {
 
     public void flushCacheEntriesFor(final HttpHost host, final HttpRequest request)
             throws IOException {
-        final String uri = uriExtractor.getURI(host, request);
-        storage.removeEntry(uri);
+        if (!safeRequestMethods.contains(request.getRequestLine().getMethod())) {
+            final String uri = uriExtractor.getURI(host, request);
+            storage.removeEntry(uri);
+        }
     }
 
     public void flushInvalidatedCacheEntriesFor(final HttpHost host, final HttpRequest request, final HttpResponse response) {
-        cacheInvalidator.flushInvalidatedCacheEntries(host, request, response);
+        if (!safeRequestMethods.contains(request.getRequestLine().getMethod())) {
+            cacheInvalidator.flushInvalidatedCacheEntries(host, request, response);
+        }
     }
 
     void storeInCache(

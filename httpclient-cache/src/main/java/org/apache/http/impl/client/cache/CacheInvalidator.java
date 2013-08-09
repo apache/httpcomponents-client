@@ -202,11 +202,19 @@ class CacheInvalidator {
         if (reqURL == null) {
             return;
         }
-        final URL canonURL = getContentLocationURL(reqURL, response);
-        if (canonURL == null) {
-            return;
+        final URL contentLocation = getContentLocationURL(reqURL, response);
+        if (contentLocation != null) {
+            flushLocationCacheEntry(reqURL, response, contentLocation);
         }
-        final String cacheKey = cacheKeyGenerator.canonicalizeUri(canonURL.toString());
+        final URL location = getLocationURL(reqURL, response);
+        if (location != null) {
+            flushLocationCacheEntry(reqURL, response, location);
+        }
+    }
+
+    private void flushLocationCacheEntry(final URL reqURL,
+            final HttpResponse response, final URL location) {
+        final String cacheKey = cacheKeyGenerator.canonicalizeUri(location.toString());
         final HttpCacheEntry entry = getEntry(cacheKey);
         if (entry == null) {
             return;
@@ -222,7 +230,7 @@ class CacheInvalidator {
             return;
         }
 
-        flushUriIfSameHost(reqURL, canonURL);
+        flushUriIfSameHost(reqURL, location);
     }
 
     private URL getContentLocationURL(final URL reqURL, final HttpResponse response) {
@@ -236,6 +244,19 @@ class CacheInvalidator {
             return canonURL;
         }
         return getRelativeURL(reqURL, contentLocation);
+    }
+
+    private URL getLocationURL(final URL reqURL, final HttpResponse response) {
+        final Header clHeader = response.getFirstHeader("Location");
+        if (clHeader == null) {
+            return null;
+        }
+        final String location = clHeader.getValue();
+        final URL canonURL = getAbsoluteURL(location);
+        if (canonURL != null) {
+            return canonURL;
+        }
+        return getRelativeURL(reqURL, location);
     }
 
     private boolean responseAndEntryEtagsDiffer(final HttpResponse response,

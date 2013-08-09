@@ -48,13 +48,19 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpOptions;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpTrace;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.client.utils.DateUtils;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
@@ -70,6 +76,105 @@ public class TestBasicHttpCache {
     public void setUp() throws Exception {
         backing = new SimpleHttpCacheStorage();
         impl = new BasicHttpCache(new HeapResourceFactory(), backing, CacheConfig.DEFAULT);
+    }
+
+    @Test
+    public void testDoNotFlushCacheEntriesOnGet() throws Exception {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req = new HttpGet("/bar");
+        final String key = (new CacheKeyGenerator()).getURI(host, req);
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+
+        backing.map.put(key, entry);
+
+        impl.flushCacheEntriesFor(host, req);
+
+        assertEquals(entry, backing.map.get(key));
+    }
+
+    @Test
+    public void testDoNotFlushCacheEntriesOnHead() throws Exception {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req = new HttpHead("/bar");
+        final String key = (new CacheKeyGenerator()).getURI(host, req);
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+
+        backing.map.put(key, entry);
+
+        impl.flushCacheEntriesFor(host, req);
+
+        assertEquals(entry, backing.map.get(key));
+    }
+
+    @Test
+    public void testDoNotFlushCacheEntriesOnOptions() throws Exception {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req = new HttpOptions("/bar");
+        final String key = (new CacheKeyGenerator()).getURI(host, req);
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+
+        backing.map.put(key, entry);
+
+        impl.flushCacheEntriesFor(host, req);
+
+        assertEquals(entry, backing.map.get(key));
+    }
+
+    @Test
+    public void testDoNotFlushCacheEntriesOnTrace() throws Exception {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req = new HttpTrace("/bar");
+        final String key = (new CacheKeyGenerator()).getURI(host, req);
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
+
+        backing.map.put(key, entry);
+
+        impl.flushCacheEntriesFor(host, req);
+
+        assertEquals(entry, backing.map.get(key));
+    }
+
+    @Test
+    public void testFlushContentLocationEntryIfUnSafeRequest()
+            throws Exception {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req = new HttpPost("/foo");
+        final HttpResponse resp = HttpTestUtils.make200Response();
+        resp.setHeader("Content-Location", "/bar");
+        resp.setHeader(HeaderConstants.ETAG, "\"etag\"");
+        final String key = (new CacheKeyGenerator()).getURI(host, new HttpGet("/bar"));
+
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+           new BasicHeader("Date", DateUtils.formatDate(new Date())),
+           new BasicHeader("ETag", "\"old-etag\"")
+        });
+
+        backing.map.put(key, entry);
+
+        impl.flushInvalidatedCacheEntriesFor(host, req, resp);
+
+        assertNull(backing.map.get(key));
+    }
+
+    @Test
+    public void testDoNotFlushContentLocationEntryIfSafeRequest()
+            throws Exception {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req = new HttpGet("/foo");
+        final HttpResponse resp = HttpTestUtils.make200Response();
+        resp.setHeader("Content-Location", "/bar");
+        final String key = (new CacheKeyGenerator()).getURI(host, new HttpGet("/bar"));
+
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+           new BasicHeader("Date", DateUtils.formatDate(new Date())),
+           new BasicHeader("ETag", "\"old-etag\"")
+        });
+
+        backing.map.put(key, entry);
+
+        impl.flushInvalidatedCacheEntriesFor(host, req, resp);
+
+        assertEquals(entry, backing.map.get(key));
     }
 
     @Test

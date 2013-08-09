@@ -51,6 +51,9 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
+import org.easymock.EasyMock;
+import org.easymock.IAnswer;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -298,6 +301,28 @@ public class TestCacheInvalidator {
     }
 
     @Test
+    public void flushesEntryIfFresherAndSpecifiedByLocation()
+            throws Exception {
+        response.setStatusCode(201);
+        response.setHeader("ETag","\"new-etag\"");
+        response.setHeader("Date", DateUtils.formatDate(now));
+        final String theURI = "http://foo.example.com:80/bar";
+        response.setHeader("Location", theURI);
+
+        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
+           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+           new BasicHeader("ETag", "\"old-etag\"")
+        });
+
+        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
+        mockStorage.removeEntry(theURI);
+
+        replayMocks();
+        impl.flushInvalidatedCacheEntries(host, request, response);
+        verifyMocks();
+    }
+
+    @Test
     public void doesNotFlushEntryForUnsuccessfulResponse()
             throws Exception {
         response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_REQUEST, "Bad Request");
@@ -312,6 +337,13 @@ public class TestCacheInvalidator {
         });
 
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
+        mockStorage.removeEntry(theURI);
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            public Void answer() {
+                Assert.fail();
+                return null;
+              }
+          }).anyTimes();
 
         replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
@@ -374,6 +406,13 @@ public class TestCacheInvalidator {
         });
 
         expect(mockStorage.getEntry(cacheKey)).andReturn(entry).anyTimes();
+        mockStorage.removeEntry(cacheKey);
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            public Void answer() {
+                Assert.fail();
+                return null;
+              }
+          }).anyTimes();
 
         replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
@@ -396,6 +435,13 @@ public class TestCacheInvalidator {
         });
 
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
+        mockStorage.removeEntry(theURI);
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            public Void answer() {
+                Assert.fail();
+                return null;
+              }
+          }).anyTimes();
 
         replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
@@ -416,6 +462,13 @@ public class TestCacheInvalidator {
         });
 
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
+        mockStorage.removeEntry(theURI);
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            public Void answer() {
+                Assert.fail();
+                return null;
+              }
+          }).anyTimes();
 
         replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
@@ -431,6 +484,13 @@ public class TestCacheInvalidator {
         response.setHeader("Content-Location", theURI);
 
         expect(mockStorage.getEntry(theURI)).andReturn(null).anyTimes();
+        mockStorage.removeEntry(theURI);
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            public Void answer() {
+                Assert.fail();
+                return null;
+              }
+          }).anyTimes();
 
         replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
@@ -451,6 +511,13 @@ public class TestCacheInvalidator {
         });
 
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
+        mockStorage.removeEntry(theURI);
+        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            public Void answer() {
+                Assert.fail();
+                return null;
+              }
+          }).anyTimes();
 
         replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
