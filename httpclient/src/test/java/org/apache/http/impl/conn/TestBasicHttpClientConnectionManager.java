@@ -223,15 +223,12 @@ public class TestBasicHttpClientConnectionManager {
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
-        mgr.releaseConnection(conn1, null, 1, TimeUnit.MILLISECONDS);
+        mgr.releaseConnection(conn1, null, 10, TimeUnit.MILLISECONDS);
 
         Assert.assertEquals(route, mgr.getRoute());
         Assert.assertEquals(null, mgr.getState());
 
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException ignore) {
-        }
+        Thread.sleep(50);
 
         final ConnectionRequest connRequest2 = mgr.requestConnection(route, null);
         final HttpClientConnection conn2 = connRequest2.get(0, TimeUnit.MILLISECONDS);
