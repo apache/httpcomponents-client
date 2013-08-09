@@ -33,9 +33,9 @@
     <version>4.2.6-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient</artifactId>
-  <name>HttpClient</name>
+  <name>Apache HttpClient</name>
   <description>
-   HttpComponents Client (base module)
+   HttpComponents Client
   </description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>
