@@ -111,24 +111,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>com.atlassian.maven.plugins</groupId>
-        <artifactId>maven-clover2-plugin</artifactId>
-        <configuration>
-          <flushPolicy>threaded</flushPolicy>
-          <flushInterval>100</flushInterval>
-          <targetPercentage>50%</targetPercentage>
-        </configuration>
-        <executions>
-          <execution>
-            <id>site</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>instrument</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
@@ -157,22 +139,13 @@
       </plugin>
 
       <plugin>
-        <groupId>com.atlassian.maven.plugins</groupId>
-        <artifactId>maven-clover2-plugin</artifactId>
-        <version>${clover.version}</version>
-        <configuration>
-          <jdk>1.5</jdk>
-        </configuration>
-      </plugin>
-
-      <plugin>
         <artifactId>maven-jxr-plugin</artifactId>
-         <version>${hc.jxr.version}</version>
+        <version>${hc.jxr.version}</version>
       </plugin>
 
       <plugin>
         <artifactId>maven-surefire-report-plugin</artifactId>
-         <version>${hc.surefire-report.version}</version>
+        <version>${hc.surefire-report.version}</version>
       </plugin>
 
     </plugins>

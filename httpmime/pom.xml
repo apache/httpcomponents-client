@@ -93,24 +93,6 @@
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
-      <plugin>
-        <groupId>com.atlassian.maven.plugins</groupId>
-        <artifactId>maven-clover2-plugin</artifactId>
-        <configuration>
-          <flushPolicy>threaded</flushPolicy>
-          <flushInterval>100</flushInterval>
-          <targetPercentage>50%</targetPercentage>
-        </configuration>
-        <executions>
-          <execution>
-            <id>site</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>instrument</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
@@ -136,15 +118,6 @@
             </reports>
           </reportSet>
         </reportSets>
-      </plugin>
-
-      <plugin>
-        <groupId>com.atlassian.maven.plugins</groupId>
-        <artifactId>maven-clover2-plugin</artifactId>
-        <version>${clover.version}</version>
-        <configuration>
-          <jdk>1.5</jdk>
-        </configuration>
       </plugin>
 
       <plugin>
