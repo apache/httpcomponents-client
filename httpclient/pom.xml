@@ -99,16 +99,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>${maven.compile.source}</source>
-          <target>${maven.compile.target}</target>
-          <optimize>${maven.compile.optimize}</optimize>
-          <showDeprecations>${maven.compile.deprecation}</showDeprecations>
-        </configuration>
-      </plugin>
-      <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
           <execution>
@@ -147,12 +137,12 @@
 
       <plugin>
         <artifactId>maven-jxr-plugin</artifactId>
-         <version>${hc.jxr.version}</version>
+        <version>${hc.jxr.version}</version>
       </plugin>
 
       <plugin>
         <artifactId>maven-surefire-report-plugin</artifactId>
-         <version>${hc.surefire-report.version}</version>
+        <version>${hc.surefire-report.version}</version>
       </plugin>
 
     </plugins>
