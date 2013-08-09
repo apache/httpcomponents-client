@@ -33,7 +33,7 @@
     <version>4.3-beta3-SNAPSHOT</version>
   </parent>
   <artifactId>httpmime</artifactId>
-  <name>HttpMime</name>
+  <name>Apache HttpClient Mime</name>
   <description>
    HttpComponents HttpClient - MIME coded entities
   </description>

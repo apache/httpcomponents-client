@@ -33,7 +33,7 @@
     <version>4.3-beta3-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient-osgi</artifactId>
-  <name>HttpClient OSGi bundle</name>
+  <name>Apache HttpClient OSGi bundle</name>
   <inceptionYear>1999</inceptionYear>
   <description>
    HttpComponents Client (OSGi bundle)

@@ -33,7 +33,7 @@
     <version>4.3-beta3-SNAPSHOT</version>
   </parent>
   <artifactId>fluent-hc</artifactId>
-  <name>Fluent HttpClient</name>
+  <name>Fluent API for Apache HttpClient</name>
   <inceptionYear>2011</inceptionYear>
   <description>
    HttpComponents Client fluent API
