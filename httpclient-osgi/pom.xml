@@ -121,6 +121,7 @@
             org.apache.http.impl.auth.*;version=${project.version},
             org.apache.http.impl.cookie.*;version=${project.version},
             org.apache.http.impl.conn.*;version=${project.version},
+            org.apache.http.impl.execchain.*;version=${project.version}
             org.apache.http.impl.client.*;version=${project.version}
             org.apache.http.osgi.services;version=${project.version}
             </_exportcontents>
@@ -136,6 +137,7 @@
             org.osgi.service.cm,
             org.apache.commons.logging;version=${commons-logging.version},
             org.apache.http;version=${httpcore.version},
+            org.apache.http.config;version=${httpcore.version},
             org.apache.http.concurrent;version=${httpcore.version},
             org.apache.http.entity;version=${httpcore.version},
             org.apache.http.io;version=${httpcore.version},

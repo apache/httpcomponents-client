@@ -26,13 +26,13 @@
  */
 package org.apache.http.client.utils;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -109,7 +109,7 @@ public class HttpClientUtils {
                 } finally {
                     response.close();
                 }
-            } catch (final IOException ex) {
+            } catch (final IOException ignore) {
             }
         }
     }
@@ -121,9 +121,9 @@ public class HttpClientUtils {
      * Example Code:
      *
      * <pre>
-     * HttpClient httpClient = null;
+     * HttpClient httpClient = HttpClients.createDefault();
      * try {
-     *   httpClient = new DefaultHttpClient(...);
+     *   httpClient.execute(request);
      * } catch (Exception e) {
      *   // error handling
      * } finally {
@@ -134,42 +134,14 @@ public class HttpClientUtils {
      * @param httpClient
      *            the HttpClient to close, may be null or already closed.
      * @since 4.2
-     *
-     * @deprecated (4.3) do not use.
      */
-    @Deprecated
     public static void closeQuietly(final HttpClient httpClient) {
         if (httpClient != null) {
-            httpClient.getConnectionManager().shutdown();
-        }
-    }
-
-    /**
-     * Unconditionally close a httpClient. Shuts down the underlying connection
-     * manager and releases the resources.
-     * <p>
-     * Example Code:
-     *
-     * <pre>
-     * CloseableHttpClient httpClient = HttpClients.createDefault();
-     * try {
-     *   ...
-     * } catch (Exception e) {
-     *   // error handling
-     * } finally {
-     *   HttpClientUtils.closeQuietly(httpClient);
-     * }
-     * </pre>
-     *
-     * @param httpClient
-     *            the HttpClient to close, may be null or already closed.
-     * @since 4.3
-     */
-    public static void closeQuietly(final CloseableHttpClient httpClient) {
-        if (httpClient != null) {
-            try {
-                httpClient.close();
-            } catch (final IOException ex) {
+            if (httpClient instanceof Closeable) {
+                try {
+                    ((Closeable) httpClient).close();
+                } catch (final IOException ignore) {
+                }
             }
         }
     }
