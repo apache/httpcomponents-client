@@ -67,8 +67,10 @@ public class HttpHostConnectException extends ConnectException {
             final InetAddress... remoteAddresses) {
         super("Connect to " +
                 (host != null ? host.toHostString() : "remote host") +
-                (remoteAddresses != null ? " " + Arrays.asList(remoteAddresses) : "")
-                + ((cause != null && cause.getMessage() != null) ? " failed: " + cause.getMessage() : " refused"));
+                (remoteAddresses != null && remoteAddresses .length > 0 ?
+                        " " + Arrays.asList(remoteAddresses) : "") +
+                ((cause != null && cause.getMessage() != null) ?
+                        " failed: " + cause.getMessage() : " refused"));
         this.host = host;
         initCause(cause);
     }

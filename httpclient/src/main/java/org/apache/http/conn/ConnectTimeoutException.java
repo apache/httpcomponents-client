@@ -76,8 +76,10 @@ public class ConnectTimeoutException extends InterruptedIOException {
             final InetAddress... remoteAddresses) {
         super("Connect to " +
                 (host != null ? host.toHostString() : "remote host") +
-                (remoteAddresses != null ? " " + Arrays.asList(remoteAddresses) : "")
-                + ((cause != null && cause.getMessage() != null) ? " failed: " + cause.getMessage() : " timed out"));
+                (remoteAddresses != null && remoteAddresses.length > 0 ?
+                        " " + Arrays.asList(remoteAddresses) : "") +
+                ((cause != null && cause.getMessage() != null) ?
+                        " failed: " + cause.getMessage() : " timed out"));
         this.host = host;
         initCause(cause);
     }

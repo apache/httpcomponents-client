@@ -43,6 +43,7 @@ public class TestRFC2617Scheme {
 
     static class TestAuthScheme extends RFC2617Scheme {
 
+        @Deprecated
         public Header authenticate(
                 final Credentials credentials,
                 final HttpRequest request) throws AuthenticationException {

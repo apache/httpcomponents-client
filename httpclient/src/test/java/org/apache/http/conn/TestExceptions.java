@@ -54,14 +54,14 @@ public class TestExceptions {
 
     @Test
     public void testConnectTimeoutExceptionFromNullCause() {
-        final ConnectTimeoutException ctx = new ConnectTimeoutException(null, null, null);
+        final ConnectTimeoutException ctx = new ConnectTimeoutException(null, null);
         Assert.assertEquals("Connect to remote host timed out", ctx.getMessage());
     }
 
     @Test
     public void testConnectTimeoutExceptionFromCause() {
         final IOException cause = new IOException("something awful");
-        final ConnectTimeoutException ctx = new ConnectTimeoutException(cause, null, null);
+        final ConnectTimeoutException ctx = new ConnectTimeoutException(cause, null);
         Assert.assertEquals("Connect to remote host failed: something awful", ctx.getMessage());
     }
 
@@ -69,7 +69,7 @@ public class TestExceptions {
     public void testConnectTimeoutExceptionFromCauseAndHost() {
         final HttpHost target = new HttpHost("localhost");
         final IOException cause = new IOException();
-        final ConnectTimeoutException ctx = new ConnectTimeoutException(cause, target, null);
+        final ConnectTimeoutException ctx = new ConnectTimeoutException(cause, target);
         Assert.assertEquals("Connect to localhost timed out", ctx.getMessage());
     }
 
@@ -84,14 +84,15 @@ public class TestExceptions {
 
     @Test
     public void testHttpHostConnectExceptionFromNullCause() {
-        final HttpHostConnectException ctx = new HttpHostConnectException(null, null, null);
+        final HttpHostConnectException ctx = new HttpHostConnectException(null, null,
+                (InetAddress [])null);
         Assert.assertEquals("Connect to remote host refused", ctx.getMessage());
     }
 
     @Test
     public void testHttpHostConnectExceptionFromCause() {
         final IOException cause = new IOException("something awful");
-        final HttpHostConnectException ctx = new HttpHostConnectException(cause, null, null);
+        final HttpHostConnectException ctx = new HttpHostConnectException(cause, null);
         Assert.assertEquals("Connect to remote host failed: something awful", ctx.getMessage());
     }
 
@@ -99,7 +100,7 @@ public class TestExceptions {
     public void testHttpHostConnectExceptionFromCauseAndHost() {
         final HttpHost target = new HttpHost("localhost");
         final IOException cause = new IOException();
-        final HttpHostConnectException ctx = new HttpHostConnectException(cause, target, null);
+        final HttpHostConnectException ctx = new HttpHostConnectException(cause, target);
         Assert.assertEquals("Connect to localhost refused", ctx.getMessage());
     }
 
