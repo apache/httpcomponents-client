@@ -175,6 +175,18 @@ public final class HttpRoute implements RouteInfo, Cloneable {
              secure ? LayerType.LAYERED    : LayerType.PLAIN);
     }
 
+    /**
+     * Creates a new plain route through a proxy.
+     *
+     * @param target    the host to which to route
+     * @param proxy     the proxy to use
+     *
+     * @since 4.3
+     */
+    public HttpRoute(final HttpHost target, final HttpHost proxy) {
+        this(target, null, proxy, false);
+    }
+
     public final HttpHost getTargetHost() {
         return this.targetHost;
     }

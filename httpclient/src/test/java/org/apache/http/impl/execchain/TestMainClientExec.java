@@ -636,10 +636,9 @@ public class TestMainClientExec {
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
-        final ArgumentCaptor<HttpRequest> reqCaptor = ArgumentCaptor.forClass(HttpRequest.class);
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
         Mockito.when(requestExecutor.execute(
-                reqCaptor.capture(),
+                Mockito.<HttpRequest>any(),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
@@ -647,7 +646,11 @@ public class TestMainClientExec {
 
         Mockito.verify(connManager).connect(managedConn, route, 321, context);
         Mockito.verify(connManager).routeComplete(managedConn, route, context);
-
+        final ArgumentCaptor<HttpRequest> reqCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        Mockito.verify(requestExecutor).execute(
+                reqCaptor.capture(),
+                Mockito.same(managedConn),
+                Mockito.same(context));
         final HttpRequest connect = reqCaptor.getValue();
         Assert.assertNotNull(connect);
         Assert.assertEquals("CONNECT", connect.getRequestLine().getMethod());

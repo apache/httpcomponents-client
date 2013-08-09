@@ -49,6 +49,7 @@ import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.util.Args;
@@ -72,7 +73,7 @@ public class ProtocolExec implements ClientExecChain {
         this.httpProcessor = httpProcessor;
     }
 
-    private void rewriteRequestURI(
+    void rewriteRequestURI(
             final HttpRequestWrapper request,
             final HttpRoute route) throws ProtocolException {
         try {
@@ -101,8 +102,11 @@ public class ProtocolExec implements ClientExecChain {
         }
     }
 
-    public CloseableHttpResponse execute(final HttpRoute route, final HttpRequestWrapper request,
-        final HttpClientContext context, final HttpExecutionAware execAware) throws IOException,
+    public CloseableHttpResponse execute(
+            final HttpRoute route,
+            final HttpRequestWrapper request,
+            final HttpClientContext context,
+            final HttpExecutionAware execAware) throws IOException,
         HttpException {
         Args.notNull(route, "HTTP route");
         Args.notNull(request, "HTTP request");
@@ -159,7 +163,11 @@ public class ProtocolExec implements ClientExecChain {
         if (uri != null) {
             final String userinfo = uri.getUserInfo();
             if (userinfo != null) {
-                final CredentialsProvider credsProvider = context.getCredentialsProvider();
+                CredentialsProvider credsProvider = context.getCredentialsProvider();
+                if (credsProvider == null) {
+                    credsProvider = new BasicCredentialsProvider();
+                    context.setCredentialsProvider(credsProvider);
+                }
                 credsProvider.setCredentials(
                         new AuthScope(target),
                         new UsernamePasswordCredentials(userinfo));
