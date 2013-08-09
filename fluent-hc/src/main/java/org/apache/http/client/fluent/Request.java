@@ -44,6 +44,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -53,19 +54,13 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
-import org.apache.http.client.params.HttpClientParamConfig;
-import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 
-@SuppressWarnings("deprecation")
 public class Request {
 
     public static final String DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
@@ -73,7 +68,7 @@ public class Request {
     public static final TimeZone TIME_ZONE = TimeZone.getTimeZone("GMT");
 
     private final HttpRequestBase request;
-    private final HttpParams localParams;
+    private final RequestConfig.Builder configBuilder;
 
     private SimpleDateFormat dateFormatter;
 
@@ -136,7 +131,7 @@ public class Request {
     Request(final HttpRequestBase request) {
         super();
         this.request = request;
-        this.localParams = request.getParams();
+        this.configBuilder = RequestConfig.custom();
     }
 
     HttpRequestBase getHttpRequest() {
@@ -144,7 +139,7 @@ public class Request {
     }
 
     public Response execute() throws ClientProtocolException, IOException {
-        this.request.setConfig(HttpClientParamConfig.getRequestConfig(this.localParams));
+        this.request.setConfig(this.configBuilder.build());
         return new Response(Executor.CLIENT.execute(this.request));
     }
 
@@ -208,20 +203,22 @@ public class Request {
     }
 
     /**
+     * This method has no effect. Do not use.
+     *
      * @deprecated (4.3)
      */
     @Deprecated
     public Request config(final String param, final Object object) {
-        this.localParams.setParameter(param, object);
         return this;
     }
 
     /**
+     * This method has no effect. Do not use.
+     *
      * @deprecated (4.3)
      */
     @Deprecated
     public Request removeConfig(final String param) {
-        this.localParams.removeParameter(param);
         return this;
     }
 
@@ -234,15 +231,18 @@ public class Request {
 
     /**
      * This parameter can no longer be used at the request level.
+     * <p/>
+     * This method has no effect. Do not use.
      * @deprecated (4.3)
      */
     @Deprecated
     public Request elementCharset(final String charset) {
-        return config(CoreProtocolPNames.HTTP_ELEMENT_CHARSET, charset);
+        return this;
     }
 
     public Request useExpectContinue() {
-        return config(CoreProtocolPNames.USE_EXPECT_CONTINUE, true);
+        this.configBuilder.setExpectContinueEnabled(true);
+        return this;
     }
 
     public Request userAgent(final String agent) {
@@ -253,21 +253,25 @@ public class Request {
     //// HTTP connection parameter operations
 
     public Request socketTimeout(final int timeout) {
-        return config(CoreConnectionPNames.SO_TIMEOUT, timeout);
+        this.configBuilder.setSocketTimeout(timeout);
+        return this;
     }
 
     public Request connectTimeout(final int timeout) {
-        return config(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
+        this.configBuilder.setConnectTimeout(timeout);
+        return this;
     }
 
     public Request staleConnectionCheck(final boolean b) {
-        return config(CoreConnectionPNames.STALE_CONNECTION_CHECK, b);
+        this.configBuilder.setStaleConnectionCheckEnabled(b);
+        return this;
     }
 
     //// HTTP connection route operations
 
     public Request viaProxy(final HttpHost proxy) {
-        return config(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        this.configBuilder.setProxy(proxy);
+        return this;
     }
 
     //// HTTP entity operations
