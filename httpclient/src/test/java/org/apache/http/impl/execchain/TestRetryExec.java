@@ -85,7 +85,7 @@ public class TestRetryExec {
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenAnswer(new Answer<Object>() {
-            @Override
+
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
                 final HttpRequestWrapper wrapper = (HttpRequestWrapper) args[1];
@@ -96,6 +96,7 @@ public class TestRetryExec {
                 wrapper.addHeader("Cookie", "monster");
                 throw new IOException("Ka-boom");
             }
+
         });
         Mockito.when(retryHandler.retryRequest(
                 Mockito.<IOException>any(),
@@ -159,13 +160,14 @@ public class TestRetryExec {
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenAnswer(new Answer<Object>() {
-            @Override
+
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
                 final HttpEntityEnclosingRequest request = (HttpEntityEnclosingRequest) args[1];
                 request.getEntity().writeTo(new ByteArrayOutputStream());
                 throw new IOException("Ka-boom");
             }
+
         });
         Mockito.when(retryHandler.retryRequest(
                 Mockito.<IOException>any(),
