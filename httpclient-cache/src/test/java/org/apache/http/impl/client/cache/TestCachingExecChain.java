@@ -66,6 +66,7 @@ import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpOptions;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -784,6 +785,41 @@ public abstract class TestCachingExecChain {
         verifyMocks();
         Assert.assertEquals(200, result.getStatusLine().getStatusCode());
 
+    }
+
+    @Test
+    public void testReturns200ForOptionsFollowedByGetIfAuthorizationHeaderAndSharedCache()
+            throws Exception {
+        impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.custom().setSharedCache(true).build());
+        final Date now = new Date();
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpOptions("http://foo.example.com/"));
+        req1.setHeader("Authorization", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        req2.setHeader("Authorization", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
+        final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_NO_CONTENT, "No Content");
+        resp1.setHeader("Content-Length", "0");
+        resp1.setHeader("ETag", "\"options-etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+        resp1.setHeader("Last-Modified", DateUtils.formatDate(now));
+        final HttpResponse resp2 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
+                HttpStatus.SC_OK, "OK");
+        resp1.setEntity(HttpTestUtils.makeBody(128));
+        resp1.setHeader("Content-Length", "128");
+        resp1.setHeader("ETag", "\"get-etag\"");
+        resp1.setHeader("Date", DateUtils.formatDate(now));
+        resp1.setHeader("Cache-Control", "public, max-age=3600");
+        resp1.setHeader("Last-Modified", DateUtils.formatDate(now));
+
+        backendExpectsAnyRequestAndReturn(resp1);
+        backendExpectsAnyRequestAndReturn(resp2);
+
+        replayMocks();
+        impl.execute(route, req1, context, null);
+        final HttpResponse result = impl.execute(route, req2, context, null);
+        verifyMocks();
+        Assert.assertEquals(200, result.getStatusLine().getStatusCode());
     }
 
     @Test

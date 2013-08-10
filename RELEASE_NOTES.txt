@@ -1,6 +1,11 @@
 
 Changes since release 4.3 BETA2
 -------------------
+
+* [HTTPCLIENT-1370] Response to non-GET requests should never be cached with the default
+  ResponseCachingPolicy
+  Contributed by James Leigh <james at 3roundstones dot com>
+
 * [HTTPCLIENT-1373] OPTIONS and TRACE should not invalidate cache
   Contributed by James Leigh <james at 3roundstones dot com>
 

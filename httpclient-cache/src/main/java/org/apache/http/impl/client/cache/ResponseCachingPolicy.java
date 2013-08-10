@@ -53,6 +53,9 @@ import org.apache.http.protocol.HTTP;
 @Immutable
 class ResponseCachingPolicy {
 
+    private static final String[] AUTH_CACHEABLE_PARAMS = {
+            "s-maxage", HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE, HeaderConstants.PUBLIC
+    };
     private final long maxObjectSizeBytes;
     private final boolean sharedCache;
     private final boolean neverCache1_0ResponsesWithQueryString;
@@ -258,11 +261,9 @@ class ResponseCachingPolicy {
 
         if (sharedCache) {
             final Header[] authNHeaders = request.getHeaders(HeaderConstants.AUTHORIZATION);
-            if (authNHeaders != null && authNHeaders.length > 0) {
-                final String[] authCacheableParams = {
-                        "s-maxage", HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE, HeaderConstants.PUBLIC
-                };
-                return hasCacheControlParameterFrom(response, authCacheableParams);
+            if (authNHeaders != null && authNHeaders.length > 0
+                    && !hasCacheControlParameterFrom(response, AUTH_CACHEABLE_PARAMS)) {
+                return false;
             }
         }
 
