@@ -428,17 +428,6 @@ public class TestMainClientExec {
     }
 
     @Test(expected=RequestAbortedException.class)
-    public void testExecConnectionRequestInterrupted() throws Exception {
-        final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
-
-        Mockito.when(connRequest.get(Mockito.anyInt(), Mockito.<TimeUnit>any()))
-                .thenThrow(new InterruptedException());
-        mainClientExec.execute(route, request, context, execAware);
-    }
-
-    @Test(expected=RequestAbortedException.class)
     public void testExecConnectionRequestFailed() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();

@@ -49,7 +49,6 @@ import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -207,7 +206,7 @@ public class TestBasicHttpClientConnectionManager {
                 Mockito.eq(route2), Mockito.<ConnectionConfig>any());
     }
 
-    @Test @Ignore
+    @Test
     public void testLeaseExpired() throws Exception {
         final HttpHost target = new HttpHost("somehost");
         final HttpRoute route = new HttpRoute(target);
