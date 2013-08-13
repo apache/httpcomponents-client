@@ -65,6 +65,10 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
         this.proxySelector = proxySelector != null ? proxySelector : ProxySelector.getDefault();
     }
 
+    public SystemDefaultRoutePlanner(final ProxySelector proxySelector) {
+        this(null, proxySelector);
+    }
+
     @Override
     protected HttpHost determineProxy(
             final HttpHost    target,

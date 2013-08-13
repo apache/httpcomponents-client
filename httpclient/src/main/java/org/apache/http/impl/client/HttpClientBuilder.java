@@ -690,11 +690,12 @@ public class HttpClientBuilder {
         if (cookieSpecRegistry == null) {
             cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
                 .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
+                .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
                 .register(CookieSpecs.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
                 .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
-                .register(CookieSpecs.RFC_2109, new RFC2109SpecFactory())
-                .register(CookieSpecs.RFC_2965, new RFC2965SpecFactory())
                 .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory())
+                .register("rfc2109", new RFC2109SpecFactory())
+                .register("rfc2965", new RFC2965SpecFactory())
                 .build();
         }
 

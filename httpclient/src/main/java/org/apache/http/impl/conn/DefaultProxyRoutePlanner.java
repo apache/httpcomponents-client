@@ -51,6 +51,10 @@ public class DefaultProxyRoutePlanner extends DefaultRoutePlanner {
         this.proxy = Args.notNull(proxy, "Proxy host");
     }
 
+    public DefaultProxyRoutePlanner(final HttpHost proxy) {
+        this(proxy, null);
+    }
+
     @Override
     protected HttpHost determineProxy(
         final HttpHost target,

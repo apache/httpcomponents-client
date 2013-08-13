@@ -75,7 +75,7 @@ public class TestRequestConfig {
                 .setRelativeRedirectsAllowed(false)
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(100)
-                .setCookieSpec(CookieSpecs.RFC_2965)
+                .setCookieSpec(CookieSpecs.STANDARD)
                 .setLocalAddress(InetAddress.getLocalHost())
                 .setProxy(new HttpHost("someproxy"))
                 .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM))
@@ -92,7 +92,7 @@ public class TestRequestConfig {
         Assert.assertEquals(false, config.isRelativeRedirectsAllowed());
         Assert.assertEquals(true, config.isCircularRedirectsAllowed());
         Assert.assertEquals(100, config.getMaxRedirects());
-        Assert.assertEquals(CookieSpecs.RFC_2965, config.getCookieSpec());
+        Assert.assertEquals(CookieSpecs.STANDARD, config.getCookieSpec());
         Assert.assertEquals(InetAddress.getLocalHost(), config.getLocalAddress());
         Assert.assertEquals(new HttpHost("someproxy"), config.getProxy());
         Assert.assertEquals(Arrays.asList(AuthSchemes.NTLM), config.getTargetPreferredAuthSchemes());

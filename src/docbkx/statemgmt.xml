@@ -133,15 +133,8 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>RFC 2109:</title>
-                    <para>Older version of the official HTTP state management specification
-                        superseded by RFC 2965.</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title>RFC 2965:</title>
-                    <para>The official HTTP state management specification.</para>
+                    <title>Standard:</title>
+                    <para>RFC 2965 HTTP state management specification.</para>
                 </formalpara>
             </listitem>
             <listitem>
@@ -172,136 +165,60 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
             context.</para>
     </section>
     <section>
-        <title>HTTP cookie and state management parameters</title>
-        <para>These are parameters that be used to customize HTTP state management and the behaviour of
-            individual cookie specifications:</para>
-        <itemizedlist>
-            <listitem>
-                <formalpara>
-                    <title><constant>CookieSpecPNames.DATE_PATTERNS</constant>='http.protocol.cookie-datepatterns':</title>
-                    <para>defines valid date patterns to be used for parsing non-standard
-                            <literal>expires</literal> attribute. Only required for compatibility
-                        with non-compliant servers that still use <literal>expires</literal> defined
-                        in the Netscape draft instead of the standard <literal>max-age</literal>
-                        attribute. This parameter expects a value of type
-                            <interfacename>java.util.Collection</interfacename>. The collection
-                        elements must be of type <classname>java.lang.String</classname> compatible
-                        with the syntax of <classname>java.text.SimpleDateFormat</classname>. If
-                        this parameter is not set the choice of a default value is
-                            <interfacename>CookieSpec</interfacename> implementation specific.</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title><constant>CookieSpecPNames.SINGLE_COOKIE_HEADER</constant>='http.protocol.single-cookie-header':</title>
-                    <para>defines whether cookies should be forced into a single
-                            <literal>Cookie</literal> request header. Otherwise, each cookie is
-                        formatted as a separate <literal>Cookie</literal> header. This parameter
-                        expects a value of type <classname>java.lang.Boolean</classname>. If this
-                        parameter is not set, the choice of a default value is CookieSpec
-                        implementation specific. Please note this parameter applies to strict cookie
-                        specifications (RFC 2109 and RFC 2965) only. Browser compatibility and
-                        netscape draft policies will always put all cookies into one request
-                        header.</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title><constant>ClientPNames.COOKIE_POLICY</constant>='http.protocol.cookie-policy':</title>
-                    <para>defines the name of a cookie specification to be used for HTTP state
-                        management. This parameter expects a value of type
-                            <classname>java.lang.String</classname>. If this parameter is not set,
-                        valid date patterns are <interfacename>CookieSpec</interfacename>
-                        implementation specific.</para>
-                </formalpara>
-            </listitem>
-        </itemizedlist>
-    </section>
-    <section>
-        <title>Cookie specification registry</title>
-        <para>HttpClient maintains a registry of available cookie specifications using
-            the <classname>CookieSpecRegistry</classname> class. The following specifications are
-            registered per default:</para>
-        <itemizedlist>
-            <listitem>
-                <formalpara>
-                    <title>compatibility:</title>
-                    <para> Browser compatibility (lenient policy).</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title>netscape:</title>
-                    <para>Netscape draft.</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title>rfc2109:</title>
-                    <para>RFC 2109 (outdated strict policy).</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title>rfc2965:</title>
-                    <para>RFC 2965 (standard conformant strict policy).</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title>best-match:</title>
-                    <para>Best match meta-policy.</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title>ignoreCookies:</title>
-                    <para>All cookies are ignored.</para>
-                </formalpara>
-            </listitem>
-        </itemizedlist>
-    </section>
-    <section>
         <title>Choosing cookie policy</title>
         <para>Cookie policy can be set at the HTTP client and overridden on the HTTP request level
             if required.</para>
         <programlisting><![CDATA[
-HttpClient httpclient = new DefaultHttpClient();
-// force strict cookie policy per default
-httpclient.getParams().setParameter(
-        ClientPNames.COOKIE_POLICY, CookiePolicy.RFC_2965);
-
-HttpGet httpget = new HttpGet("http://www.broken-server.com/");
-// Override the default policy for this request
-httpget.getParams().setParameter(
-        ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
+RequestConfig globalConfig = RequestConfig.custom()
+        .setCookieSpec(CookieSpecs.BEST_MATCH)
+        .build();
+CloseableHttpClient httpclient = HttpClients.custom()
+        .setDefaultRequestConfig(globalConfig)
+        .build();
+RequestConfig localConfig = RequestConfig.copy(globalConfig)
+        .setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY)
+        .build();
+HttpGet httpGet = new HttpGet("/");
+httpGet.setConfig(localConfig);
 ]]></programlisting>
     </section>
     <section>
         <title>Custom cookie policy</title>
         <para>In order to implement a custom cookie policy one should create a custom implementation
             of the <interfacename>CookieSpec</interfacename> interface, create a
-                <interfacename>CookieSpecFactory</interfacename> implementation to create and
+                <interfacename>CookieSpecProvider</interfacename> implementation to create and
             initialize instances of the custom specification and register the factory with
             HttpClient. Once the custom specification has been registered, it can be activated the
             same way as a standard cookie specification.</para>
         <programlisting><![CDATA[
-CookieSpecFactory csf = new CookieSpecFactory() {
-    public CookieSpec newInstance(HttpParams params) {
-        return new BrowserCompatSpec() {   
+CookieSpecProvider easySpecProvider = new CookieSpecProvider() {
+
+    public CookieSpec create(HttpContext context) {
+
+        return new BrowserCompatSpec() {
             @Override
             public void validate(Cookie cookie, CookieOrigin origin)
-            throws MalformedCookieException {
+                    throws MalformedCookieException {
                 // Oh, I am easy
             }
         };
     }
-};
 
-DefaultHttpClient httpclient = new DefaultHttpClient();
-httpclient.getCookieSpecs().register("easy", csf);
-httpclient.getParams().setParameter(
-     ClientPNames.COOKIE_POLICY, "easy");
+};
+Registry<CookieSpecProvider> cookieSpecReg = RegistryBuilder.<CookieSpecProvider>create()
+        .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
+        .register(CookieSpecs.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
+        .register("easy", easySpecProvider)
+        .build();
+
+RequestConfig requestConfig = RequestConfig.custom()
+        .setCookieSpec("easy")
+        .build();
+
+CloseableHttpClient httpclient = HttpClients.custom()
+        .setDefaultCookieSpecRegistry(cookieSpecReg)
+        .setDefaultRequestConfig(requestConfig)
+        .build();
 ]]></programlisting>
     </section>
     <section>
@@ -315,17 +232,18 @@ httpclient.getParams().setParameter(
             get garbage collected. Users can provide more complex implementations if
             necessary.</para>
         <programlisting><![CDATA[
-DefaultHttpClient httpclient = new DefaultHttpClient();
 // Create a local instance of cookie store
-CookieStore cookieStore = new MyCookieStore();
+CookieStore cookieStore = new BasicCookieStore();
 // Populate cookies if needed
 BasicClientCookie cookie = new BasicClientCookie("name", "value");
 cookie.setVersion(0);
 cookie.setDomain(".mycompany.com");
 cookie.setPath("/");
 cookieStore.addCookie(cookie);
-// Set the store 
-httpclient.setCookieStore(cookieStore);
+// Set the store
+CloseableHttpClient httpclient = HttpClients.custom()
+        .setDefaultCookieStore(cookieStore)
+        .build();
 ]]></programlisting>
     </section>
     <section>
@@ -335,7 +253,6 @@ httpclient.setCookieStore(cookieStore);
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title><constant>ClientContext.COOKIESPEC_REGISTRY</constant>='http.cookiespec-registry':</title>
                     <para><classname>CookieSpecRegistry</classname> instance representing the actual
                         cookie specification registry. The value of this attribute set in the local
                         context takes precedence over the default one.</para>
@@ -343,21 +260,18 @@ httpclient.setCookieStore(cookieStore);
             </listitem>
             <listitem>
                 <formalpara>
-                    <title><constant>ClientContext.COOKIE_SPEC</constant>='http.cookie-spec':</title>
                     <para><interfacename>CookieSpec</interfacename> instance representing the actual
                         cookie specification.</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title><constant>ClientContext.COOKIE_ORIGIN</constant>='http.cookie-origin':</title>
                     <para><classname>CookieOrigin</classname> instance representing the actual
                         details of the origin server.</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title><constant>ClientContext.COOKIE_STORE</constant>='http.cookie-store':</title>
                     <para><interfacename>CookieStore</interfacename> instance representing the actual
                         cookie store. The value of this attribute set in the local context takes
                         precedence over the default one.</para>
@@ -366,38 +280,26 @@ httpclient.setCookieStore(cookieStore);
         </itemizedlist>
         <para>The local <interfacename>HttpContext</interfacename> object can be used to customize
             the HTTP state management context prior to request execution, or to examine its state after
-            the request has been executed:</para>
+            the request has been executed. One can also use separate execution contexts in order
+            to implement per user (or per thread) state management. A cookie specification registry
+            and cookie store defined in the local context will take precedence over the default
+            ones set at the HTTP client level</para>
         <programlisting><![CDATA[
-HttpClient httpclient = new DefaultHttpClient();
-HttpContext localContext = new BasicHttpContext();
-HttpGet httpget = new HttpGet("http://localhost:8080/"); 
-HttpResponse response = httpclient.execute(httpget, localContext);
+CloseableHttpClient httpclient = <...>
 
-CookieOrigin cookieOrigin = (CookieOrigin) localContext.getAttribute(
-        ClientContext.COOKIE_ORIGIN);
-System.out.println("Cookie origin: " + cookieOrigin);
-CookieSpec cookieSpec = (CookieSpec) localContext.getAttribute(
-        ClientContext.COOKIE_SPEC);
-System.out.println("Cookie spec used: " + cookieSpec);
-]]></programlisting>
-    </section>
-    <section>
-        <title>Per user / thread state management</title>
-        <para>One can use an individual local execution context in order to implement per user (or
-            per thread) state management. A cookie specification registry and cookie store defined in
-            the local context will take precedence over the default ones set at the HTTP client
-            level.</para>
-        <programlisting><![CDATA[
-HttpClient httpclient = new DefaultHttpClient();
-// Create a local instance of cookie store
-CookieStore cookieStore = new BasicCookieStore();
-// Create local HTTP context
-HttpContext localContext = new BasicHttpContext();
-// Bind custom cookie store to the local context
-localContext.setAttribute(ClientContext.COOKIE_STORE, cookieStore);
-HttpGet httpget = new HttpGet("http://www.google.com/"); 
-// Pass local context as a parameter
-HttpResponse response = httpclient.execute(httpget, localContext);
+Registry<CookieSpecProvider> cookieSpecReg = <...>
+CookieStore cookieStore = <...>
+
+HttpClientContext context = HttpClientContext.create();
+context.setCookieSpecRegistry(cookieSpecReg);
+context.setCookieStore(cookieStore);
+HttpGet httpget = new HttpGet("http://localhost/1");
+CloseableHttpResponse response1 = httpclient.execute(httpget, context);
+<...>
+// Cookie origin details
+CookieOrigin cookieOrigin = context.getCookieOrigin();
+// Cookie spec used
+CookieSpec cookieSpec = context.getCookieSpec();
 ]]></programlisting>
     </section>
 </chapter>

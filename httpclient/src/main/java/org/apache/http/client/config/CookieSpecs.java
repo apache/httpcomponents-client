@@ -49,14 +49,9 @@ public final class CookieSpecs {
     public static final String NETSCAPE = "netscape";
 
     /**
-     * The RFC 2109 compliant policy.
+     * The RFC 2965 compliant policy (standard).
      */
-    public static final String RFC_2109 = "rfc2109";
-
-    /**
-     * The RFC 2965 compliant policy.
-     */
-    public static final String RFC_2965 = "rfc2965";
+    public static final String STANDARD = "standard";
 
     /**
      * The default 'best match' policy.
