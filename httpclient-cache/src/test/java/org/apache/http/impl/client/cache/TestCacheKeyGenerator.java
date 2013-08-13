@@ -358,6 +358,46 @@ public class TestCacheKeyGenerator {
     }
 
     @Test
+    public void testExtraDotSegmentsAreIgnored() {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpRequest req2 = new HttpGet("http://foo.example.com/./");
+        Assert.assertEquals(extractor.getURI(host, req1), extractor.getURI(host, req2));
+    }
+
+    @Test
+    public void testExtraDotDotSegmentsAreIgnored() {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req1 = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpRequest req2 = new HttpGet("http://foo.example.com/.././../");
+        Assert.assertEquals(extractor.getURI(host, req1), extractor.getURI(host, req2));
+    }
+
+    @Test
+    public void testIntermidateDotDotSegementsAreEquivalent() {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req1 = new BasicHttpRequest("GET", "/home.html", HttpVersion.HTTP_1_1);
+        final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/../home.html", HttpVersion.HTTP_1_1);
+        Assert.assertEquals(extractor.getURI(host, req1), extractor.getURI(host, req2));
+    }
+
+    @Test
+    public void testIntermidateEncodedDotDotSegementsAreEquivalent() {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req1 = new BasicHttpRequest("GET", "/home.html", HttpVersion.HTTP_1_1);
+        final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith%2F../home.html", HttpVersion.HTTP_1_1);
+        Assert.assertEquals(extractor.getURI(host, req1), extractor.getURI(host, req2));
+    }
+
+    @Test
+    public void testIntermidateDotSegementsAreEquivalent() {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html", HttpVersion.HTTP_1_1);
+        final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith/./home.html", HttpVersion.HTTP_1_1);
+        Assert.assertEquals(extractor.getURI(host, req1), extractor.getURI(host, req2));
+    }
+
+    @Test
     public void testEquivalentPathEncodingsAreEquivalent() {
         HttpHost host = new HttpHost("foo.example.com");
         HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html", HttpVersion.HTTP_1_1);
@@ -370,6 +410,14 @@ public class TestCacheKeyGenerator {
         HttpHost host = new HttpHost("foo.example.com");
         HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home.html", HttpVersion.HTTP_1_1);
         HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith%2Fhome.html", HttpVersion.HTTP_1_1);
+        Assert.assertEquals(extractor.getURI(host, req1), extractor.getURI(host, req2));
+    }
+
+    @Test
+    public void testEquivalentExtraPathEncodingsWithPercentAreEquivalent() {
+        final HttpHost host = new HttpHost("foo.example.com");
+        final HttpRequest req1 = new BasicHttpRequest("GET", "/~smith/home%20folder.html", HttpVersion.HTTP_1_1);
+        final HttpRequest req2 = new BasicHttpRequest("GET", "/%7Esmith%2Fhome%20folder.html", HttpVersion.HTTP_1_1);
         Assert.assertEquals(extractor.getURI(host, req1), extractor.getURI(host, req2));
     }
 }

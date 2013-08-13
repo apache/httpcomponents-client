@@ -1,6 +1,9 @@
 Changes since Release 4.2.5
 -------------------
 
+* [HTTPCLIENT-1385] Fixed path normalization in CacheKeyGenerator
+  Contributed by James Leigh <james at 3roundstones dot com>
+
 * [HTTPCLIENT-1383] HttpClient enters an infinite loop during NTLM authentication if the opposite
   endpoint keeps responding with a type 2 NTLM response after type 3 MTLM message has already been 
   sent by the client.

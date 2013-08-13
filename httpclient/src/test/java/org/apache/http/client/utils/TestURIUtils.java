@@ -92,13 +92,23 @@ public class TestURIUtils {
     }
 
     @Test
+    public void testNormalization() {
+        Assert.assertEquals("example://a/b/c/%7Bfoo%7D", URIUtils.resolve(this.baseURI, "eXAMPLE://a/./b/../b/%63/%7bfoo%7d").toString());
+        Assert.assertEquals("http://www.example.com/%3C", URIUtils.resolve(this.baseURI, "http://www.example.com/%3c").toString());
+        Assert.assertEquals("http://www.example.com/", URIUtils.resolve(this.baseURI, "HTTP://www.EXAMPLE.com/").toString());
+        Assert.assertEquals("http://www.example.com/a/", URIUtils.resolve(this.baseURI, "http://www.example.com/a%2f").toString());
+        Assert.assertEquals("http://www.example.com/?q=%26", URIUtils.resolve(this.baseURI, "http://www.example.com/?q=%26").toString());
+        Assert.assertEquals("http://www.example.com/%23?q=%26", URIUtils.resolve(this.baseURI, "http://www.example.com/%23?q=%26").toString());
+    }
+
+    @Test
     public void testResolve() {
         Assert.assertEquals("g:h", URIUtils.resolve(this.baseURI, "g:h").toString());
         Assert.assertEquals("http://a/b/c/g", URIUtils.resolve(this.baseURI, "g").toString());
         Assert.assertEquals("http://a/b/c/g", URIUtils.resolve(this.baseURI, "./g").toString());
         Assert.assertEquals("http://a/b/c/g/", URIUtils.resolve(this.baseURI, "g/").toString());
         Assert.assertEquals("http://a/g", URIUtils.resolve(this.baseURI, "/g").toString());
-        Assert.assertEquals("http://g", URIUtils.resolve(this.baseURI, "//g").toString());
+        Assert.assertEquals("http://g/", URIUtils.resolve(this.baseURI, "//g").toString());
         Assert.assertEquals("http://a/b/c/d;p?y", URIUtils.resolve(this.baseURI, "?y").toString());
         Assert.assertEquals("http://a/b/c/d;p?y#f", URIUtils.resolve(this.baseURI, "?y#f")
                 .toString());

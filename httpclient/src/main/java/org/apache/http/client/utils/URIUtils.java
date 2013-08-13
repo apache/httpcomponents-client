@@ -230,7 +230,7 @@ public class URIUtils {
             resolved = URI.create(resolvedString.substring(0,
                 resolvedString.indexOf('#')));
         }
-        return removeDotSegments(resolved);
+        return normalizeSyntax(resolved);
     }
 
     /**
@@ -249,38 +249,58 @@ public class URIUtils {
     }
 
     /**
-     * Removes dot segments according to RFC 3986, section 5.2.4
+     * Removes dot segments according to RFC 3986, section 5.2.4 and
+     * Syntax-Based Normalization according to RFC 3986, section 6.2.2.
      *
      * @param uri the original URI
      * @return the URI without dot segments
      */
-    private static URI removeDotSegments(URI uri) {
-        String path = uri.getPath();
-        if ((path == null) || (path.indexOf("/.") == -1)) {
-            // No dot segments to remove
+    private static URI normalizeSyntax(final URI uri) {
+        if (uri.isOpaque()) {
             return uri;
         }
+        String path = uri.getPath() == null ? "" : uri.getPath();
         String[] inputSegments = path.split("/");
         Stack<String> outputSegments = new Stack<String>();
-        for (int i = 0; i < inputSegments.length; i++) {
-            if ((inputSegments[i].length() == 0)
-                || (".".equals(inputSegments[i]))) {
+        for (String inputSegment : inputSegments) {
+            if ((inputSegment.length() == 0)
+                    || (".".equals(inputSegment))) {
                 // Do nothing
-            } else if ("..".equals(inputSegments[i])) {
+            } else if ("..".equals(inputSegment)) {
                 if (!outputSegments.isEmpty()) {
                     outputSegments.pop();
                 }
             } else {
-                outputSegments.push(inputSegments[i]);
+                outputSegments.push(inputSegment);
             }
         }
         StringBuilder outputBuffer = new StringBuilder();
         for (String outputSegment : outputSegments) {
             outputBuffer.append('/').append(outputSegment);
         }
+        if (path.lastIndexOf('/') == path.length() - 1) {
+            // path.endsWith("/") || path.equals("")
+            outputBuffer.append('/');
+        }
         try {
-            return new URI(uri.getScheme(), uri.getAuthority(),
-                outputBuffer.toString(), uri.getQuery(), uri.getFragment());
+            String scheme = uri.getScheme().toLowerCase();
+            String auth = uri.getAuthority().toLowerCase();
+            URI ref = new URI(scheme, auth, outputBuffer.toString(),
+                    null, null);
+            if (uri.getQuery() == null && uri.getFragment() == null) {
+                return ref;
+            }
+            StringBuilder normalized = new StringBuilder(
+                    ref.toASCIIString());
+            if (uri.getQuery() != null) {
+                // query string passed through unchanged
+                normalized.append('?').append(uri.getRawQuery());
+            }
+            if (uri.getFragment() != null) {
+                // fragment passed through unchanged
+                normalized.append('#').append(uri.getRawFragment());
+            }
+            return URI.create(normalized.toString());
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }

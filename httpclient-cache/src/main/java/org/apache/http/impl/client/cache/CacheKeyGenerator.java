@@ -29,9 +29,7 @@ package org.apache.http.impl.client.cache;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,12 +43,15 @@ import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.utils.URIUtils;
 
 /**
  * @since 4.1
  */
 @Immutable
 class CacheKeyGenerator {
+
+    private static final URI BASE_URI = URI.create("http://example.com/");
 
     /**
      * For a given {@link HttpHost} and {@link HttpRequest} get a URI from the
@@ -69,32 +70,24 @@ class CacheKeyGenerator {
 
     public String canonicalizeUri(String uri) {
         try {
-            URL u = new URL(uri);
-            String protocol = u.getProtocol().toLowerCase();
-            String hostname = u.getHost().toLowerCase();
+            URI normalized = URIUtils.resolve(BASE_URI, uri);
+            URL u = new URL(normalized.toASCIIString());
+            String protocol = u.getProtocol();
+            String hostname = u.getHost();
             int port = canonicalizePort(u.getPort(), protocol);
-            String path = canonicalizePath(u.getPath());
-            if ("".equals(path)) path = "/";
+            String path = u.getPath();
             String query = u.getQuery();
             String file = (query != null) ? (path + "?" + query) : path;
             URL out = new URL(protocol, hostname, port, file);
             return out.toString();
+        } catch (IllegalArgumentException e) {
+            return uri;
         } catch (MalformedURLException e) {
             return uri;
         }
     }
 
-    private String canonicalizePath(String path) {
-        try {
-            String decoded = URLDecoder.decode(path, "UTF-8");
-            return (new URI(decoded)).getPath();
-        } catch (UnsupportedEncodingException e) {
-        } catch (URISyntaxException e) {
-        }
-        return path;
-    }
-
-    private int canonicalizePort(int port, String protocol) {
+    private int canonicalizePort(final int port, final String protocol) {
         if (port == -1 && "http".equalsIgnoreCase(protocol)) {
             return 80;
         } else if (port == -1 && "https".equalsIgnoreCase(protocol)) {
