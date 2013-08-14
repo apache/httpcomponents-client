@@ -133,100 +133,6 @@ pwd
         </itemizedlist>
     </section>
     <section>
-        <title>HTTP authentication parameters</title>
-        <para>These are parameters that be used to customize the HTTP authentication process and
-            behaviour of individual authentication schemes:</para>
-        <itemizedlist>
-            <listitem>
-                <formalpara>
-                    <title><constant>ClientPNames.HANDLE_AUTHENTICATION</constant>='http.protocol.handle-authentication':</title>
-                    <para>defines whether authentication should be handled automatically. This
-                        parameter expects a value of type <classname>java.lang.Boolean</classname>.
-                        If this parameter is not set, HttpClient will handle authentication
-                        automatically.</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title><constant>AuthPNames.CREDENTIAL_CHARSET</constant>='http.auth.credential-charset':</title>
-                    <para>defines the charset to be used when encoding user credentials. This
-                        parameter expects a value of type <literal>java.lang.String</literal>. If
-                        this parameter is not set, <literal>US-ASCII</literal> will be used.</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title><constant>AuthPNames.TARGET_AUTH_PREF</constant>='http.auth.target-scheme-pref':</title>
-                    <para>Defines the order of preference for supported
-                            <interfacename>AuthScheme</interfacename>s when authenticating with the
-                        target host. This parameter expects a value of type
-                            <interface>java.util.Collection</interface>. The collection is expected
-                        to contain <classname>java.lang.String</classname> instances representing
-                        an id of an authentication scheme.</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title><constant>AuthPNames.PROXY_AUTH_PREF</constant>='http.auth.proxy-scheme-pref':</title>
-                    <para>Defines the order of preference for supported
-                            <interfacename>AuthScheme</interfacename>s when authenticating with the
-                        proxy host. This parameter expects a value of type
-                            <interface>java.util.Collection</interface>. The collection is expected
-                        to contain <classname>java.lang.String</classname> instances representing
-                        an id of an authentication scheme.</para>
-                </formalpara>
-            </listitem>
-        </itemizedlist>
-        <para>For example, one can force HttpClient to use a different order of preference for
-            authentication schemes</para>
-        <programlisting><![CDATA[
-DefaultHttpClient httpclient = new DefaultHttpClient(ccm, params);
-// Choose BASIC over DIGEST for proxy authentication
-List<String> authpref = new ArrayList<String>();
-authpref.add(AuthPolicy.BASIC);
-authpref.add(AuthPolicy.DIGEST);
-httpclient.getParams().setParameter(AuthPNames.PROXY_AUTH_PREF, authpref);
-]]></programlisting>
-    </section>
-    <section>
-        <title>Authentication scheme registry</title>
-        <para>HttpClient maintains a registry of available authentication schemes using
-            the <classname>AuthSchemeRegistry</classname> class. The following schemes are
-            registered per default:</para>
-        <itemizedlist>
-            <listitem>
-                <formalpara>
-                    <title>AuthPolicy.BASIC:</title>
-                    <para>Basic authentication</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title>AuthPolicy.DIGEST:</title>
-                    <para>Digest authentication</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title>AuthPolicy.NTLM:</title>
-                    <para>NTLMv1, NTLMv2, and NTLM2 Session authentication</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title>AuthPolicy.SPNEGO:</title>
-                    <para>SPNEGO authentication</para>
-                </formalpara>
-            </listitem>
-            <listitem>
-                <formalpara>
-                    <title>AuthPolicy.KERBEROS:</title>
-                    <para>Kerberos authentication</para>
-                </formalpara>
-            </listitem>
-        </itemizedlist>
-    </section>
-    <section>
         <title>Credentials provider</title>
         <para>Credentials providers are intended to maintain a set of user credentials and to be
             able to produce user credentials for a particular authentication scope. Authentication
@@ -289,23 +195,20 @@ null
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title><constant>ClientContext.AUTHSCHEME_REGISTRY</constant>='http.authscheme-registry':</title>
-                    <para><classname>AuthSchemeRegistry</classname> instance representing the actual
+                    <para><interfacename>Lookup</interfacename> instance representing the actual
                         authentication scheme registry. The value of this attribute set in the local
                         context takes precedence over the default one.</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title><constant>ClientContext.CREDS_PROVIDER</constant>='http.auth.credentials-provider':</title>
-                    <para><interfacename>CookieSpec</interfacename> instance representing the actual
-                        credentials provider. The value of this attribute set in the local context
-                        takes precedence over the default one.</para>
+                    <para><interfacename>CredentialsProvider</interfacename> instance representing
+                        the actual credentials provider. The value of this attribute set in the
+                        local context takes precedence over the default one.</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title><constant>ClientContext.TARGET_AUTH_STATE</constant>='http.auth.target-scope':</title>
                     <para><classname>AuthState</classname> instance representing the actual target
                         authentication state. The value of this attribute set in the local context
                         takes precedence over the default one.</para>
@@ -313,7 +216,6 @@ null
             </listitem>
             <listitem>
                 <formalpara>
-                    <title><constant>ClientContext.PROXY_AUTH_STATE</constant>='http.auth.proxy-scope':</title>
                     <para><classname>AuthState</classname> instance representing the actual proxy
                         authentication state. The value of this attribute set in the local context
                         takes precedence over the default one.</para>
@@ -321,7 +223,6 @@ null
             </listitem>
             <listitem>
                 <formalpara>
-                    <title><constant>ClientContext.AUTH_CACHE</constant>='http.auth.auth-cache':</title>
                     <para><interfacename>AuthCache</interfacename> instance representing the actual
                         authentication data cache. The value of this attribute set in the local 
                         context takes precedence over the default one.</para>
@@ -332,18 +233,25 @@ null
             the HTTP authentication context prior to request execution, or to examine its state after
             the request has been executed:</para>
         <programlisting><![CDATA[
-HttpClient httpclient = new DefaultHttpClient();
-HttpContext localContext = new BasicHttpContext();
-HttpGet httpget = new HttpGet("http://localhost:8080/"); 
-HttpResponse response = httpclient.execute(httpget, localContext);
+CloseableHttpClient httpclient = <...>
 
-AuthState proxyAuthState = (AuthState) localContext.getAttribute(
-    ClientContext.PROXY_AUTH_STATE);
+CredentialsProvider credsProvider = <...>
+Lookup<AuthSchemeProvider> authRegistry = <...>
+AuthCache authCache = <...>
+
+HttpClientContext context = HttpClientContext.create();
+context.setCredentialsProvider(credsProvider);
+context.setAuthSchemeRegistry(authRegistry);
+context.setAuthCache(authCache);
+HttpGet httpget = new HttpGet("http://somehost/");
+CloseableHttpResponse response1 = httpclient.execute(httpget, context);
+<...>
+
+AuthState proxyAuthState = context.getProxyAuthState();
 System.out.println("Proxy auth state: " + proxyAuthState.getState());
 System.out.println("Proxy auth scheme: " + proxyAuthState.getAuthScheme());
 System.out.println("Proxy auth credentials: " + proxyAuthState.getCredentials());
-AuthState targetAuthState = (AuthState) localContext.getAttribute(
-    ClientContext.TARGET_AUTH_STATE);
+AuthState targetAuthState = context.getTargetAuthState();
 System.out.println("Target auth state: " + targetAuthState.getState());
 System.out.println("Target auth scheme: " + targetAuthState.getAuthScheme());
 System.out.println("Target auth credentials: " + targetAuthState.getCredentials());
@@ -368,12 +276,12 @@ System.out.println("Target auth credentials: " + targetAuthState.getCredentials(
         <para>Nonethess one can configure HttpClient to authenticate preemptively by prepopulating
             the authentication data cache.</para>
         <programlisting><![CDATA[
-HttpHost targetHost = new HttpHost("localhost", 80, "http"); 
+CloseableHttpClient httpclient = <...>
 
-DefaultHttpClient httpclient = new DefaultHttpClient();
-
-httpclient.getCredentialsProvider().setCredentials(
-        new AuthScope(targetHost.getHostName(), targetHost.getPort()), 
+HttpHost targetHost = new HttpHost("localhost", 80, "http");
+CredentialsProvider credsProvider = new BasicCredentialsProvider();
+credsProvider.setCredentials(
+        new AuthScope(targetHost.getHostName(), targetHost.getPort()),
         new UsernamePasswordCredentials("username", "password"));
 
 // Create AuthCache instance
@@ -383,14 +291,19 @@ BasicScheme basicAuth = new BasicScheme();
 authCache.put(targetHost, basicAuth);
 
 // Add AuthCache to the execution context
-BasicHttpContext localcontext = new BasicHttpContext();
-localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);        
+HttpClientContext context = HttpClientContext.create();
+context.setCredentialsProvider(credsProvider);
 
 HttpGet httpget = new HttpGet("/");
 for (int i = 0; i < 3; i++) {
-    HttpResponse response = httpclient.execute(targetHost, httpget, localcontext);
-    HttpEntity entity = response.getEntity();
-    EntityUtils.consume(entity);
+    CloseableHttpResponse response = httpclient.execute(
+            targetHost, httpget, context);
+    try {
+        HttpEntity entity = response.getEntity();
+
+    } finally {
+        response.close();
+    }
 }
 ]]></programlisting>
     </section>
@@ -428,28 +341,36 @@ for (int i = 0; i < 3; i++) {
                 connection to execute more expensive methods, especially those enclose a request
                 entity, such as <literal>POST</literal> or <literal>PUT</literal>. </para>
             <programlisting><![CDATA[
-DefaultHttpClient httpclient = new DefaultHttpClient();
+CloseableHttpClient httpclient = <...>
 
-NTCredentials creds = new NTCredentials("user", "pwd", "myworkstation", "microsoft.com");
-httpclient.getCredentialsProvider().setCredentials(AuthScope.ANY, creds);
+CredentialsProvider credsProvider = new BasicCredentialsProvider();
+credsProvider.setCredentials(AuthScope.ANY,
+        new NTCredentials("user", "pwd", "myworkstation", "microsoft.com"));
 
 HttpHost target = new HttpHost("www.microsoft.com", 80, "http");
 
 // Make sure the same context is used to execute logically related requests
-HttpContext localContext = new BasicHttpContext();
+HttpClientContext context = HttpClientContext.create();
+context.setCredentialsProvider(credsProvider);
 
 // Execute a cheap method first. This will trigger NTLM authentication
 HttpGet httpget = new HttpGet("/ntlm-protected/info");
-HttpResponse response1 = httpclient.execute(target, httpget, localContext);
-HttpEntity entity1 = response1.getEntity();
-EntityUtils.consume(entity1);
+CloseableHttpResponse response1 = httpclient.execute(target, httpget, context);
+try {
+    HttpEntity entity1 = response1.getEntity();
+} finally {
+    response1.close();
+}
 
 // Execute an expensive method next reusing the same context (and connection)
 HttpPost httppost = new HttpPost("/ntlm-protected/form");
 httppost.setEntity(new StringEntity("lots and lots of data"));
-HttpResponse response2 = httpclient.execute(target, httppost, localContext);
-HttpEntity entity2 = response2.getEntity();
-EntityUtils.consume(entity2);
+CloseableHttpResponse response2 = httpclient.execute(target, httppost, context);
+try {
+    HttpEntity entity2 = response2.getEntity();
+} finally {
+    response2.close();
+}
 ]]></programlisting>
         </section>
     </section>

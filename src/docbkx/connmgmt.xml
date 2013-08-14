@@ -415,12 +415,12 @@ sf.connectSocket(timeout, socket, target, remoteAddress, null, clientContext);
             <programlisting><![CDATA[
 ConnectionSocketFactory plainsf = <...>
 LayeredConnectionSocketFactory sslsf = <...>
-Registry<ConnectionSocketFactory> reg =  RegistryBuilder.<ConnectionSocketFactory>create()
+Registry<ConnectionSocketFactory> r = RegistryBuilder.<ConnectionSocketFactory>create()
         .register("http", plainsf)
         .register("https", sslsf)
         .build();
 
-HttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(reg);
+HttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(r);
 HttpClients.custom()
         .setConnectionManager(cm)
         .build();

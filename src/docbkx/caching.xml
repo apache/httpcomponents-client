@@ -29,29 +29,30 @@
 
     <para>HttpClient Cache provides an HTTP/1.1-compliant caching layer to be
     used with HttpClient--the Java equivalent of a browser cache. The
-    implementation follows the Decorator design pattern, where the
-    CachingHttpClient class is a drop-in replacement for
-    a DefaultHttpClient; requests that can be satisfied entirely from the cache
-    will not result in actual origin requests. Stale cache entries are
-    automatically validated with the origin where possible, using conditional GETs
-    and the If-Modified-Since and/or If-None-Match request headers.  
+    implementation follows the Chain of Responsibility design pattern, where the
+    caching HttpClient implementation can serve a drop-in replacement for
+    the default non-caching HttpClient implementation; requests that can be
+    satisfied entirely from the cache will not result in actual origin requests.
+    Stale cache entries are automatically validated with the origin where possible,
+    using conditional GETs and the If-Modified-Since and/or If-None-Match request
+    headers.
     </para>
     
     <para>
     HTTP/1.1 caching in general is designed to be <emphasis>semantically
     transparent</emphasis>; that is, a cache should not change the meaning of 
     the request-response exchange between client and server. As such, it should
-    be safe to drop a CachingHttpClient into an existing compliant client-server
+    be safe to drop a caching HttpClient into an existing compliant client-server
     relationship. Although the caching module is part of the client from an
     HTTP protocol point of view, the implementation aims to be compatible with
     the requirements placed on a transparent caching proxy.
     </para>
     
-    <para>Finally, CachingHttpClient includes support the Cache-Control
+    <para>Finally, caching HttpClient includes support the Cache-Control
     extensions specified by RFC 5861 (stale-if-error and stale-while-revalidate).
     </para>
 
-    <para>When CachingHttpClient executes a request, it goes through the
+    <para>When caching HttpClient executes a request, it goes through the
     following flow:</para>
 
     <orderedlist>
@@ -90,7 +91,7 @@
       </listitem>
     </orderedlist>
 
-    <para>When CachingHttpClient receives a response, it goes through the
+    <para>When caching HttpClient receives a response, it goes through the
     following flow:</para>
 
     <orderedlist>
@@ -114,10 +115,10 @@
       </listitem>
     </orderedlist>
 
-    <para>It is important to note that CachingHttpClient is not, itself, an
-    implementation of HttpClient, but that it decorates an instance of an
-    HttpClient implementation. If you do not provide an implementation, it
-    will use DefaultHttpClient internally by default.</para>
+    <para>It is important to note that caching HttpClient is not, itself,
+    a different implementation of HttpClient, but that it works by inserting
+    itself as an additonal processing component to the request execution
+    pipeline.</para>
   </section>
 
   <section id="rfc2616compliance">
@@ -135,41 +136,50 @@
   <section>
     <title>Example Usage</title>
 
-    <para>This is a simple example of how to set up a basic CachingHttpClient.
+    <para>This is a simple example of how to set up a basic caching HttpClient.
     As configured, it will store a maximum of 1000 cached objects, each of
     which may have a maximum body size of 8192 bytes. The numbers selected
     here are for example only and not intended to be prescriptive or
     considered as recommendations.</para>
 
     <programlisting><![CDATA[
-CacheConfig cacheConfig = new CacheConfig();  
-cacheConfig.setMaxCacheEntries(1000);
-cacheConfig.setMaxObjectSizeBytes(8192);
+CacheConfig cacheConfig = CacheConfig.custom()
+        .setMaxCacheEntries(1000)
+        .setMaxObjectSize(8192)
+        .build();
+RequestConfig requestConfig = RequestConfig.custom()
+        .setConnectTimeout(30000)
+        .setSocketTimeout(30000)
+        .build();
+CloseableHttpClient cachingClient = caching HttpClients.custom()
+        .setCacheConfig(cacheConfig)
+        .setDefaultRequestConfig(requestConfig)
+        .build();
 
-HttpClient cachingClient = new CachingHttpClient(new DefaultHttpClient(), cacheConfig);
-
-HttpContext localContext = new BasicHttpContext();
+HttpCacheContext context = HttpCacheContext.create();
 HttpGet httpget = new HttpGet("http://www.mydomain.com/content/");
-HttpResponse response = cachingClient.execute(httpget, localContext);
-HttpEntity entity = response.getEntity();
-EntityUtils.consume(entity);
-CacheResponseStatus responseStatus = (CacheResponseStatus) localContext.getAttribute(
-        CachingHttpClient.CACHE_RESPONSE_STATUS);
-switch (responseStatus) {
-case CACHE_HIT:
-    System.out.println("A response was generated from the cache with no requests " +
-            "sent upstream");
-    break;
-case CACHE_MODULE_RESPONSE:
-    System.out.println("The response was generated directly by the caching module");
-    break;
-case CACHE_MISS:
-    System.out.println("The response came from an upstream server");
-    break;
-case VALIDATED:
-    System.out.println("The response was generated from the cache after validating " +
-            "the entry with the origin server");
-    break;
+CloseableHttpResponse response = cachingClient.execute(httpget, context);
+try {
+    CacheResponseStatus responseStatus = context.getCacheResponseStatus();
+    switch (responseStatus) {
+        case CACHE_HIT:
+            System.out.println("A response was generated from the cache with " +
+                    "no requests sent upstream");
+            break;
+        case CACHE_MODULE_RESPONSE:
+            System.out.println("The response was generated directly by the " +
+                    "caching module");
+            break;
+        case CACHE_MISS:
+            System.out.println("The response came from an upstream server");
+            break;
+        case VALIDATED:
+            System.out.println("The response was generated from the cache " +
+                    "after validating the entry with the origin server");
+            break;
+    }
+} finally {
+    response.close();
 }
 ]]>
     </programlisting>
@@ -178,11 +188,11 @@ case VALIDATED:
   <section id="configuration">
     <title>Configuration</title>
 
-    <para>As the CachingHttpClient is a decorator, much of the configuration you may
-    want to do can be done on the HttpClient used as the "backend" by the HttpClient
-    (this includes setting options like timeouts and connection pool sizes). For
-    caching-specific configuration, you can provide a CacheConfig instance to
-    customize behavior across the following areas:</para>
+    <para>The caching HttpClient inherits all configuration options and parameters
+    of the default non-caching implementation (this includes setting options like
+    timeouts and connection pool sizes). For caching-specific configuration, you can
+    provide a <classname>CacheConfig</classname> instance to customize behavior
+    across the following areas:</para>
     
     <para><emphasis>Cache size.</emphasis> If the backend storage supports these limits,
     you can specify the maximum number of cache entries as well as the maximum cacheable
@@ -217,7 +227,7 @@ case VALIDATED:
   <section id="storage">
     <title>Storage Backends</title>
 
-    <para>The default implementation of CachingHttpClient stores cache entries and
+    <para>The default implementation of caching HttpClient stores cache entries and
     cached response bodies in memory in the JVM of your application. While this
     offers high performance, it may not be appropriate for your application due to
     the limitation on size or because the cache entries are ephemeral and don't
@@ -227,18 +237,17 @@ case VALIDATED:
     
     <para>If none of those options are suitable for your application, it is
     possible to provide your own storage backend by implementing the HttpCacheStorage
-    interface and then supplying that to CachingHttpClient at construction time. In
+    interface and then supplying that to caching HttpClient at construction time. In
     this case, the cache entries will be stored using your scheme but you will get to
     reuse all of the logic surrounding HTTP/1.1 compliance and cache handling.
     Generally speaking, it should be possible to create an HttpCacheStorage
     implementation out of anything that supports a key/value store (similar to the
     Java Map interface) with the ability to apply atomic updates.</para>
     
-    <para>Finally, because the CachingHttpClient is a decorator for HttpClient,
-    it's entirely possible to set up a multi-tier caching hierarchy; for example,
-    wrapping an in-memory CachingHttpClient around one that stores cache entries on
-    disk or remotely in memcached, following a pattern similar to virtual memory,
-    L1/L2 processor caches, etc.
+    <para>Finally, with some extra efforts it's entirely possible to set up
+    a multi-tier caching hierarchy; for example, wrapping an in-memory caching
+    HttpClient around one that stores cache entries on disk or remotely in memcached,
+    following a pattern similar to virtual memory, L1/L2 processor caches, etc.
     </para>
   </section>
 </chapter>

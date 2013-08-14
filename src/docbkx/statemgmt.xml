@@ -205,9 +205,11 @@ CookieSpecProvider easySpecProvider = new CookieSpecProvider() {
     }
 
 };
-Registry<CookieSpecProvider> cookieSpecReg = RegistryBuilder.<CookieSpecProvider>create()
-        .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
-        .register(CookieSpecs.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
+Registry<CookieSpecProvider> r = RegistryBuilder.<CookieSpecProvider>create()
+        .register(CookieSpecs.BEST_MATCH,
+            new BestMatchSpecFactory())
+        .register(CookieSpecs.BROWSER_COMPATIBILITY,
+            new BrowserCompatSpecFactory())
         .register("easy", easySpecProvider)
         .build();
 
@@ -216,7 +218,7 @@ RequestConfig requestConfig = RequestConfig.custom()
         .build();
 
 CloseableHttpClient httpclient = HttpClients.custom()
-        .setDefaultCookieSpecRegistry(cookieSpecReg)
+        .setDefaultCookieSpecRegistry(r)
         .setDefaultRequestConfig(requestConfig)
         .build();
 ]]></programlisting>
@@ -253,7 +255,7 @@ CloseableHttpClient httpclient = HttpClients.custom()
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <para><classname>CookieSpecRegistry</classname> instance representing the actual
+                    <para><interfacename>Lookup</interfacename> instance representing the actual
                         cookie specification registry. The value of this attribute set in the local
                         context takes precedence over the default one.</para>
                 </formalpara>
@@ -287,13 +289,13 @@ CloseableHttpClient httpclient = HttpClients.custom()
         <programlisting><![CDATA[
 CloseableHttpClient httpclient = <...>
 
-Registry<CookieSpecProvider> cookieSpecReg = <...>
+Lookup<CookieSpecProvider> cookieSpecReg = <...>
 CookieStore cookieStore = <...>
 
 HttpClientContext context = HttpClientContext.create();
 context.setCookieSpecRegistry(cookieSpecReg);
 context.setCookieStore(cookieStore);
-HttpGet httpget = new HttpGet("http://localhost/1");
+HttpGet httpget = new HttpGet("http://somehost/");
 CloseableHttpResponse response1 = httpclient.execute(httpget, context);
 <...>
 // Cookie origin details

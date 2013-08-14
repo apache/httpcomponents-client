@@ -38,7 +38,7 @@ CloseableHttpClient httpclient = HttpClients.createDefault();
 HttpGet httpget = new HttpGet("http://localhost/");
 CloseableHttpResponse response = httpclient.execute(httpget);
 try {
-
+    <...>
 } finally {
     response.close();
 }
@@ -283,7 +283,8 @@ important message
             <para> In order to ensure proper release of system resources one must close either
                 the content stream associated with the entity or the response itself</para>
             <programlisting><![CDATA[
-CloseableHttpClient httpclient = <...>
+CloseableHttpClient httpclient = HttpClients.createDefault();
+HttpGet httpget = new HttpGet("http://localhost/");
 CloseableHttpResponse response = httpclient.execute(httpget);
 try {
     HttpEntity entity = response.getEntity();
@@ -318,7 +319,8 @@ try {
                 remaining content and making the connection reusable is too high, in which case
                 one can terminate the content stream by closing the response.</para>
             <programlisting><![CDATA[
-CloseableHttpClient httpclient = <...>
+CloseableHttpClient httpclient = HttpClients.createDefault();
+HttpGet httpget = new HttpGet("http://localhost/");
 CloseableHttpResponse response = httpclient.execute(httpget);
 try {
     HttpEntity entity = response.getEntity();
@@ -348,7 +350,8 @@ try {
                 strongly discouraged unless the response entities originate from a trusted HTTP
                 server and are known to be of limited length.</para>
             <programlisting><![CDATA[
-CloseableHttpClient httpclient = <...>
+CloseableHttpClient httpclient = HttpClients.createDefault();
+HttpGet httpget = new HttpGet("http://localhost/");
 CloseableHttpResponse response = httpclient.execute(httpget);
 try {
     HttpEntity entity = response.getEntity();
@@ -452,8 +455,8 @@ httppost.setEntity(entity);
                 take care of ensuring release of the connection back to the connection manager
                 regardless whether the request execution succeeds or causes an exception.</para>
             <programlisting><![CDATA[
-HttpClient httpclient = <...>
-HttpRequest request = <...>
+CloseableHttpClient httpclient = HttpClients.createDefault();
+HttpGet httpget = new HttpGet("http://localhost/json");
 
 ResponseHandler<MyJsonObject> rh = new ResponseHandler<MyJsonObject>() {
 
@@ -477,7 +480,64 @@ ResponseHandler<MyJsonObject> rh = new ResponseHandler<MyJsonObject>() {
         return gson.fromJson(reader, MyJsonObject.class);
     }
 };
-MyJsonObject myjson = client.execute(request, rh);
+MyJsonObject myjson = client.execute(httpget, rh);
+]]></programlisting>
+        </section>
+    </section>
+    <section>
+        <title>HttpClient interface</title>
+        <para><interfacename>HttpClient</interfacename> interface represents the most essential
+            contract for HTTP request execution. It imposes no restrictions or particular details on
+            the request execution process and leaves the specifics of connection management, state
+            management, authentication and redirect handling up to individual implementations. This
+            should make it easier to decorate the interface with additional functionality such as
+            response content caching.</para>
+        <para>Generally <interfacename>HttpClient</interfacename> implementations act as a facade
+            to a number of special purpose handler or strategy interface implementations
+            responsible for handling of a particular aspect of the HTTP protocol such as redirect
+            or authentication handling or making decision about connection persistence and keep
+            alive duration. This enables the users to selectively replace default implementation
+            of those aspects with custom, application specific ones.</para>
+        <programlisting><![CDATA[
+ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy() {
+
+    @Override
+    public long getKeepAliveDuration(
+            HttpResponse response,
+            HttpContext context) {
+        long keepAlive = super.getKeepAliveDuration(response, context);
+        if (keepAlive == -1) {
+            // Keep connections alive 5 seconds if a keep-alive value
+            // has not be explicitly set by the server
+            keepAlive = 5000;
+        }
+        return keepAlive;
+    }
+
+};
+CloseableHttpClient httpclient = HttpClients.custom()
+        .setKeepAliveStrategy(keepAliveStrat)
+        .build();
+]]></programlisting>
+        <section>
+            <title>HttpClient thread safety</title>
+            <para><interfacename>HttpClient</interfacename> implementations are expected to be
+                thread safe. It is recommended that the same instance of this class is reused for
+                multiple request executions.</para>
+        </section>
+        <section>
+            <title>HttpClient resource deallocation</title>
+            <para>When an instance <classname>CloseableHttpClient</classname> is no longer needed
+                and is about to go out of scope the connection manager associated with it must
+                be shut down by calling the <methodname>CloseableHttpClient#close()</methodname>
+                method.</para>
+            <programlisting><![CDATA[
+CloseableHttpClient httpclient = HttpClients.createDefault();
+try {
+    <...>
+} finally {
+    httpclient.close();
+}
 ]]></programlisting>
         </section>
     </section>
@@ -497,6 +557,64 @@ MyJsonObject myjson = client.execute(request, rh);
         <para><interfacename>HttpContext</interfacename> can contain arbitrary objects and 
             therefore may be unsafe to share between multiple threads. It is recommended that
             each thread of execution maintains its own context.</para>
+        <para>In the course of HTTP request execution HttpClient adds the following attributes to
+            the execution context:</para>
+        <itemizedlist>
+            <listitem>
+                <formalpara>
+                    <para><interfacename>HttpConnection</interfacename> instance representing the
+                        actual connection to the target server.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <para><classname>HttpHost</classname> instance representing the connection
+                        target.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <para><classname>HttpRoute</classname> instance representing the complete
+                        connection route</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <para><interfacename>HttpRequest</interfacename> instance representing the
+                        actual HTTP request. The final HttpRequest object in the execution context
+                        always represents the state of the message <emphasis>exactly</emphasis>
+                        as it was sent to the target server. Per default HTTP/1.0 and HTTP/1.1
+                        use relative request URIs. However if the request is sent via a proxy
+                        in a non-tunneling mode then the URI will be absolute.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <para><interfacename>HttpResponse</interfacename> instance representing the
+                        actual HTTP response.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <para><classname>java.lang.Boolean</classname> object representing the flag
+                        indicating whether the actual request has been fully transmitted to the
+                        connection target.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <para><classname>RequestConfig</classname> object representing the actual
+                        request configuation.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <para><classname>URICollection</classname> object representing a collection
+                        of all redirect locations received in the process of request
+                        execution.</para>
+                </formalpara>
+            </listitem>
+        </itemizedlist>
         <para>One can use <classname>HttpClientContext</classname> adaptor class to simplify
             interractions with the context state.</para>
         <programlisting><![CDATA[
@@ -505,6 +623,7 @@ HttpClientContext clientContext = HttpClientContext.adapt(context);
 HttpHost target = clientContext.getTargetHost();
 HttpRequest request = clientContext.getRequest();
 HttpResponse response = clientContext.getResponse();
+RequestConfig config = clientContext.getRequestConfig();
 ]]></programlisting>
         <para>Multiple request sequences that represent a logically related session should be
             executed with the same <interfacename>HttpContext</interfacename> instance to ensure
@@ -514,8 +633,7 @@ HttpResponse response = clientContext.getResponse();
             kept in the execution context and get propagatd to the consecutive requests sharing
             the same context.</para>
         <programlisting><![CDATA[
-CloseableHttpClient httpclient = <...>
-
+CloseableHttpClient httpclient = HttpClients.createDefault();
 RequestConfig requestConfig = RequestConfig.custom()
         .setSocketTimeout(1000)
         .setConnectTimeout(1000)
@@ -717,6 +835,46 @@ for (int i = 0; i < 10; i++) {
     } finally {
         response.close();
     }
+}
+]]></programlisting>
+    </section>
+    <section>
+        <title>Redirect handling</title>
+        <para>HttpClient handles all types of redirects automatically, except those explicitly
+            prohibited by the HTTP specification as requiring user intervention. <literal>See
+                Other</literal> (status code 303) redirects on <literal>POST</literal> and
+            <literal>PUT</literal> requests are converted to <literal>GET</literal> requests as
+            required by the HTTP specification. One can use a custom redirect strategy to relaxe
+            restrictions on automatic redirection of POST methods imposed by the HTTP
+            specification.</para>
+        <programlisting><![CDATA[
+LaxRedirectStrategy redirectStrategy = new LaxRedirectStrategy();
+CloseableHttpClient httpclient = HttpClients.custom()
+        .setRedirectStrategy(redirectStrategy)
+        .build();
+]]></programlisting>
+        <para>HttpClient often has to rewrite the request message in the process of its execution.
+            Per default HTTP/1.0 and HTTP/1.1 generally use relative request URIs. Likewise,
+            original request may get redirected from location to another multiple times. The final
+            interpreted absolute HTTP location can be built using the original request and
+            the context. The utility method <classname>URIUtils#resolve</classname> can be used
+            to build the interpreted absolute URI used to generate the final request. This method
+            includes the last fragment identifier from the redirect requests or the original
+            request.</para>
+        <programlisting><![CDATA[
+CloseableHttpClient httpclient = HttpClients.createDefault();
+HttpClientContext context = HttpClientContext.create();
+HttpGet httpget = new HttpGet("http://localhost:8080/");
+CloseableHttpResponse response = httpclient.execute(httpget, context);
+try {
+    HttpHost target = context.getTargetHost();
+    URICollection redirectLocations = context.getRedirectLocations();
+    URI location = URIUtils.resolve(httpget.getURI(), target,
+        redirectLocations != null ? redirectLocations.getAll() : null);
+    System.out.println("Final HTTP location: " + location.toASCIIString());
+    // Expected to be an absolute URI
+} finally {
+    response.close();
 }
 ]]></programlisting>
     </section>
