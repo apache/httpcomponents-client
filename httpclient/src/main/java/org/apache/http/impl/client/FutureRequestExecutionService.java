@@ -41,7 +41,6 @@ import org.apache.http.protocol.HttpContext;
 /**
  * HttpAsyncClientWithFuture wraps calls to execute with a {@link HttpRequestFutureTask}
  * and schedules them using the provided executor service. Scheduled calls may be cancelled.
- * Similar to the non-blockcing HttpAsyncClient, a callback handler api is provided.
  */
 @ThreadSafe
 public class FutureRequestExecutionService implements Closeable {

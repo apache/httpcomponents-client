@@ -43,7 +43,10 @@ import org.apache.http.protocol.HttpContext;
  * send a sequence of requests in order to execute one initial request.
  *
  * @since 4.0
+ *
+ * @deprecated (4.3) No longer used
  */
+@Deprecated
 public interface RequestDirector {
 
 

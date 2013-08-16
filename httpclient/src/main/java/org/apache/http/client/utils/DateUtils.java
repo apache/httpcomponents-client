@@ -45,8 +45,7 @@ import org.apache.http.util.Args;
  * other headers.  This class handles dates as defined by RFC 2616 section
  * 3.3.1 as well as some other common non-standard formats.
  *
- *
- * @since 4.0
+ * @since 4.3
  */
 @Immutable
 public final class DateUtils {

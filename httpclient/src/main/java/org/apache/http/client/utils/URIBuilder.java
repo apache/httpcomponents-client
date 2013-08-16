@@ -40,7 +40,7 @@ import org.apache.http.conn.util.InetAddressUtils;
 import org.apache.http.message.BasicNameValuePair;
 
 /**
- * {@link URI} builder for HTTP requests.
+ * Builder for {@link URI} instances.
  *
  * @since 4.2
  */

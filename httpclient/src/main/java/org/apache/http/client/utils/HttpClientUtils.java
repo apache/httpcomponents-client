@@ -36,7 +36,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 
 /**
- * Static helpers for dealing with {@link HttpResponse}s.
+ * Convenience methods for closing response and client objects.
  *
  * @since 4.2
  */

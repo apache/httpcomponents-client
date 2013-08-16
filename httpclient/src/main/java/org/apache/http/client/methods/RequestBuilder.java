@@ -51,6 +51,14 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.Args;
 
 /**
+ * Builder for {@link HttpUriRequest} instances.
+ * <p/>
+ * Please note that this class treats parameters differently depending on composition
+ * of the request: if the request has a content entity explicitly set with
+ * {@link #setEntity(org.apache.http.HttpEntity)} or it is not an entity enclosing method
+ * (such as POST or PUT), parameters will be added to the query component of the request URI.
+ * Otherwise, parameters will be added as a URL encoded {@link UrlEncodedFormEntity entity}.
+ *
  * @since 4.3
  */
 @NotThreadSafe
@@ -293,8 +301,7 @@ public class RequestBuilder {
             }
         }
         if (entity == null) {
-            final InternalRequest request = new InternalRequest(method);
-            result = request;
+            result = new InternalRequest(method);
         } else {
             final InternalEntityEclosingRequest request = new InternalEntityEclosingRequest(method);
             request.setEntity(entity);

@@ -46,6 +46,20 @@ import org.apache.http.entity.SerializableEntity;
 import org.apache.http.entity.StringEntity;
 
 /**
+ * Builder for {@link HttpEntity} instances.
+ * <p/>
+ * Several setter methods of this builder are mutually exclusive. In case of multiple invocations
+ * of the following methods only the last one will have effect:
+ * <ul>
+ *   <li>{@link #setText(String)}</li>
+ *   <li>{@link #setBinary(byte[])}</li>
+ *   <li>{@link #setStream(java.io.InputStream)}</li>
+ *   <li>{@link #setSerializable(java.io.Serializable)}</li>
+ *   <li>{@link #setParameters(java.util.List)}</li>
+ *   <li>{@link #setParameters(org.apache.http.NameValuePair...)}</li>
+ *   <li>{@link #setFile(java.io.File)}</li>
+ * </ul>
+ *
  * @since 4.3
  */
 @NotThreadSafe
@@ -79,101 +93,210 @@ public class EntityBuilder {
         this.file = null;
     }
 
+    /**
+     * Returns entity content as a string if set using {@link #setText(String)} method.
+     */
     public String getText() {
         return text;
     }
 
+    /**
+     * Sets entity content as a string. This method is mutually exclusive with
+     * {@link #setBinary(byte[])},
+     * {@link #setStream(java.io.InputStream)} ,
+     * {@link #setSerializable(java.io.Serializable)} ,
+     * {@link #setParameters(java.util.List)},
+     * {@link #setParameters(org.apache.http.NameValuePair...)}
+     * {@link #setFile(java.io.File)} methods.
+     */
     public EntityBuilder setText(final String text) {
         clearContent();
         this.text = text;
         return this;
     }
 
+    /**
+     * Returns entity content as a byte array if set using
+     * {@link #setBinary(byte[])} method.
+     */
     public byte[] getBinary() {
         return binary;
     }
 
+    /**
+     * Sets entity content as a byte array. This method is mutually exclusive with
+     * {@link #setText(String)},
+     * {@link #setStream(java.io.InputStream)} ,
+     * {@link #setSerializable(java.io.Serializable)} ,
+     * {@link #setParameters(java.util.List)},
+     * {@link #setParameters(org.apache.http.NameValuePair...)}
+     * {@link #setFile(java.io.File)} methods.
+     */
     public EntityBuilder setBinary(final byte[] binary) {
         clearContent();
         this.binary = binary;
         return this;
     }
 
+    /**
+     * Returns entity content as a {@link InputStream} if set using
+     * {@link #setStream(java.io.InputStream)} method.
+     */
     public InputStream getStream() {
         return stream;
     }
 
+    /**
+     * Sets entity content as a {@link InputStream}. This method is mutually exclusive with
+     * {@link #setText(String)},
+     * {@link #setBinary(byte[])},
+     * {@link #setSerializable(java.io.Serializable)} ,
+     * {@link #setParameters(java.util.List)},
+     * {@link #setParameters(org.apache.http.NameValuePair...)}
+     * {@link #setFile(java.io.File)} methods.
+     */
     public EntityBuilder setStream(final InputStream stream) {
         clearContent();
         this.stream = stream;
         return this;
     }
 
+    /**
+     * Returns entity content as a parameter list if set using
+     * {@link #setParameters(java.util.List)} or
+     * {@link #setParameters(org.apache.http.NameValuePair...)} methods.
+     */
     public List<NameValuePair> getParameters() {
         return parameters;
     }
 
+    /**
+     * Sets entity content as a parameter list. This method is mutually exclusive with
+     * {@link #setText(String)},
+     * {@link #setBinary(byte[])},
+     * {@link #setStream(java.io.InputStream)} ,
+     * {@link #setSerializable(java.io.Serializable)} ,
+     * {@link #setFile(java.io.File)} methods.
+     */
     public EntityBuilder setParameters(final List<NameValuePair> parameters) {
         clearContent();
         this.parameters = parameters;
         return this;
     }
 
+    /**
+     * Sets entity content as a parameter list. This method is mutually exclusive with
+     * {@link #setText(String)},
+     * {@link #setBinary(byte[])},
+     * {@link #setStream(java.io.InputStream)} ,
+     * {@link #setSerializable(java.io.Serializable)} ,
+     * {@link #setFile(java.io.File)} methods.
+     */
     public EntityBuilder setParameters(final NameValuePair... parameters) {
         return setParameters(Arrays.asList(parameters));
     }
 
+    /**
+     * Returns entity content as a {@link Serializable} if set using
+     * {@link #setSerializable(java.io.Serializable)} method.
+     */
     public Serializable getSerializable() {
         return serializable;
     }
 
+    /**
+     * Sets entity content as a {@link Serializable}. This method is mutually exclusive with
+     * {@link #setText(String)},
+     * {@link #setBinary(byte[])},
+     * {@link #setStream(java.io.InputStream)} ,
+     * {@link #setParameters(java.util.List)},
+     * {@link #setParameters(org.apache.http.NameValuePair...)}
+     * {@link #setFile(java.io.File)} methods.
+     */
     public EntityBuilder setSerializable(final Serializable serializable) {
         clearContent();
         this.serializable = serializable;
         return this;
     }
 
+    /**
+     * Returns entity content as a {@link File} if set using
+     * {@link #setFile(java.io.File)} method.
+     */
     public File getFile() {
         return file;
     }
 
+    /**
+     * Sets entity content as a {@link File}. This method is mutually exclusive with
+     * {@link #setText(String)},
+     * {@link #setBinary(byte[])},
+     * {@link #setStream(java.io.InputStream)} ,
+     * {@link #setParameters(java.util.List)},
+     * {@link #setParameters(org.apache.http.NameValuePair...)}
+     * {@link #setSerializable(java.io.Serializable)} methods.
+     */
     public EntityBuilder setFile(final File file) {
         clearContent();
         this.file = file;
         return this;
     }
 
+    /**
+     * Returns {@link ContentType} of the entity, if set.
+     */
     public ContentType getContentType() {
         return contentType;
     }
 
+    /**
+     * Sets {@link ContentType} of the entity.
+     */
     public EntityBuilder setContentType(final ContentType contentType) {
         this.contentType = contentType;
         return this;
     }
 
+    /**
+     * Returns content encoding of the entity, if set.
+     */
     public String getContentEncoding() {
         return contentEncoding;
     }
 
+    /**
+     * Sets content encoding of the entity.
+     */
     public EntityBuilder setContentEncoding(final String contentEncoding) {
         this.contentEncoding = contentEncoding;
         return this;
     }
 
+    /**
+     * Returns <code>true</code> if entity is to be chunk coded, <code>false</code> otherwise.
+     */
     public boolean isChunked() {
         return chunked;
     }
 
+    /**
+     * Makes entity chunk coded.
+     */
     public EntityBuilder chunked() {
         this.chunked = true;
         return this;
     }
 
+    /**
+     * Returns <code>true</code> if entity is to be GZIP compressed, <code>false</code> otherwise.
+     */
     public boolean isGzipCompress() {
         return gzipCompress;
     }
 
+    /**
+     * Makes entity GZIP compressed.
+     */
     public EntityBuilder gzipCompress() {
         this.gzipCompress = true;
         return this;
@@ -183,6 +306,9 @@ public class EntityBuilder {
         return this.contentType != null ? this.contentType : def;
     }
 
+    /**
+     * Creates new instance of {@link HttpEntity} based on the current state.
+     */
     public HttpEntity build() {
         final AbstractHttpEntity e;
         if (this.text != null) {

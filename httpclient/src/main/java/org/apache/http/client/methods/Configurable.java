@@ -36,6 +36,9 @@ import org.apache.http.client.config.RequestConfig;
  */
 public interface Configurable {
 
+    /**
+     * Returns actual request configuration.
+     */
     RequestConfig getConfig();
 
 }
