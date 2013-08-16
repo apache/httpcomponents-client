@@ -29,6 +29,7 @@ package org.apache.http.impl.execchain;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,7 +43,6 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectStrategy;
-import org.apache.http.client.URICollection;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
@@ -88,7 +88,7 @@ public class RedirectExec implements ClientExecChain {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        final URICollection redirectLocations = context.getRedirectLocations();
+        final List<URI> redirectLocations = context.getRedirectLocations();
         if (redirectLocations != null) {
             redirectLocations.clear();
         }

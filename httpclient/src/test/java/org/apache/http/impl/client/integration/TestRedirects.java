@@ -29,6 +29,7 @@ package org.apache.http.impl.client.integration;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HttpException;
@@ -42,7 +43,6 @@ import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.RedirectException;
-import org.apache.http.client.URICollection;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -248,7 +248,7 @@ public class TestRedirects extends IntegrationTestBase {
         Assert.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
 
-        final URICollection redirects = context.getRedirectLocations();
+        final List<URI> redirects = context.getRedirectLocations();
         Assert.assertNull(redirects);
     }
 
@@ -272,9 +272,9 @@ public class TestRedirects extends IntegrationTestBase {
         Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
         Assert.assertEquals(target, host);
 
-        final URICollection redirects = context.getRedirectLocations();
+        final List<URI> redirects = context.getRedirectLocations();
         Assert.assertNotNull(redirects);
-        Assert.assertEquals(1, redirects.getCount());
+        Assert.assertEquals(1, redirects.size());
 
         final URI redirect = URIUtils.rewriteURI(new URI("/newlocation/"), target);
         Assert.assertTrue(redirects.contains(redirect));

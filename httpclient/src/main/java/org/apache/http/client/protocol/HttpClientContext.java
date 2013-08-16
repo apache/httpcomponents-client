@@ -27,13 +27,15 @@
 
 package org.apache.http.client.protocol;
 
+import java.net.URI;
+import java.util.List;
+
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.URICollection;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Lookup;
 import org.apache.http.conn.routing.HttpRoute;
@@ -61,9 +63,8 @@ public class HttpClientContext extends HttpCoreContext {
     public static final String HTTP_ROUTE   = "http.route";
 
     /**
-     * Attribute name of a {@link org.apache.http.client.URICollection} object that
-     * represents a collection of all redirect locations received in the process
-     * of request execution.
+     * Attribute name of a {@link List} object that represents a collection of all
+     * redirect locations received in the process of request execution.
      */
     public static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
@@ -157,8 +158,9 @@ public class HttpClientContext extends HttpCoreContext {
         return getAttribute(HTTP_ROUTE, HttpRoute.class);
     }
 
-    public URICollection getRedirectLocations() {
-        return getAttribute(REDIRECT_LOCATIONS, URICollection.class);
+    @SuppressWarnings("unchecked") // type parameter
+    public List<URI> getRedirectLocations() {
+        return getAttribute(REDIRECT_LOCATIONS, List.class);
     }
 
     public CookieStore getCookieStore() {

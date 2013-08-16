@@ -609,7 +609,7 @@ try {
             </listitem>
             <listitem>
                 <formalpara>
-                    <para><classname>URICollection</classname> object representing a collection
+                    <para><classname>java.util.List&lt;URI&gt;</classname> object representing a collection
                         of all redirect locations received in the process of request
                         execution.</para>
                 </formalpara>
@@ -868,9 +868,8 @@ HttpGet httpget = new HttpGet("http://localhost:8080/");
 CloseableHttpResponse response = httpclient.execute(httpget, context);
 try {
     HttpHost target = context.getTargetHost();
-    URICollection redirectLocations = context.getRedirectLocations();
-    URI location = URIUtils.resolve(httpget.getURI(), target,
-        redirectLocations != null ? redirectLocations.getAll() : null);
+    List<URI> redirectLocations = context.getRedirectLocations();
+    URI location = URIUtils.resolve(httpget.getURI(), target, redirectLocations);
     System.out.println("Final HTTP location: " + location.toASCIIString());
     // Expected to be an absolute URI
 } finally {
