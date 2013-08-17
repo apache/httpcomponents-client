@@ -42,7 +42,6 @@ public class CloneUtils {
     /**
      * @since 4.3
      */
-    @SuppressWarnings("unchecked")
     public static <T> T cloneObject(final T obj) throws CloneNotSupportedException {
         if (obj == null) {
             return null;
@@ -56,7 +55,9 @@ public class CloneUtils {
                 throw new NoSuchMethodError(ex.getMessage());
             }
             try {
-                return (T) m.invoke(obj, (Object []) null);
+                @SuppressWarnings("unchecked") // OK because clone() preserves the class
+                final T result = (T) m.invoke(obj, (Object []) null);
+                return result;
             } catch (final InvocationTargetException ex) {
                 final Throwable cause = ex.getCause();
                 if (cause instanceof CloneNotSupportedException) {
