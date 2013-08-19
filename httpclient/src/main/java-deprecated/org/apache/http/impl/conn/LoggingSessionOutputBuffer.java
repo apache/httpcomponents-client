@@ -36,11 +36,11 @@ import org.apache.http.util.CharArrayBuffer;
 
 /**
  * Logs all data written to the wire LOG.
- *
- *
  * @since 4.0
+ * @deprecated (4.3) no longer used.
  */
 @Immutable
+@Deprecated
 public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
 
     /** Original data transmitter. */

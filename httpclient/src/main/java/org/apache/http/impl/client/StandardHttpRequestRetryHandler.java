@@ -38,7 +38,7 @@ import org.apache.http.annotation.Immutable;
  * {@link org.apache.http.client.HttpRequestRetryHandler} which assumes
  * that all requested HTTP methods which should be idempotent according
  * to RFC-2616 are in fact idempotent and can be retried.
- *
+ * <p/>
  * According to RFC-2616 section 9.1.2 the idempotent HTTP methods are:
  * GET, HEAD, PUT, DELETE, OPTIONS, and TRACE
  *

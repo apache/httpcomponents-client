@@ -38,7 +38,7 @@ import org.apache.http.conn.DnsResolver;
 import org.apache.http.util.Args;
 
 /**
- * In-memory DNS resolver implementation.
+ * In-memory {@link DnsResolver} implementation.
  *
  * @since 4.2
  */

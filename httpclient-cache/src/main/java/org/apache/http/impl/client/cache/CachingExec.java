@@ -68,20 +68,23 @@ import org.apache.http.util.EntityUtils;
 import org.apache.http.util.VersionInfo;
 
 /**
- * <p>CachingExec is intended to transparently add client-side caching
- * to the HttpClient {@link ClientExecChain execution chain}.
- * The current implementation is conditionally compliant with HTTP/1.1
- * (meaning all the MUST and MUST NOTs are obeyed), although quite a lot,
- * though not all, of the SHOULDs and SHOULD NOTs are obeyed too.</p>
- *
- * <p>Folks that would like to experiment with alternative storage backends
+ * Request executor in the request execution chain that is responsible for
+ * transparent client-side caching. The current implementation is conditionally
+ * compliant with HTTP/1.1 (meaning all the MUST and MUST NOTs are obeyed),
+ * although quite a lot, though not all, of the SHOULDs and SHOULD NOTs
+ * are obeyed too.
+ * <p/>
+ * Folks that would like to experiment with alternative storage backends
  * should look at the {@link HttpCacheStorage} interface and the related
  * package documentation there. You may also be interested in the provided
  * {@link org.apache.http.impl.client.cache.ehcache.EhcacheHttpCacheStorage
  * EhCache} and {@link
  * org.apache.http.impl.client.cache.memcached.MemcachedHttpCacheStorage
- * memcached} storage backends.</p>
- * </p>
+ * memcached} storage backends.
+ * <p/>
+ * Further responsibilities such as communication with the opposite
+ * endpoint is delegated to the next executor in the request execution
+ * chain.
  *
  * @since 4.3
  */

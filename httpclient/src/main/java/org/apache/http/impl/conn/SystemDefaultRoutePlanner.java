@@ -43,13 +43,9 @@ import org.apache.http.protocol.HttpContext;
 
 /**
  * {@link org.apache.http.conn.routing.HttpRoutePlanner} implementation
- * based on {@link ProxySelector}.
- * By default, it will pick up the proxy settings of the JVM, either
- * from system properties or from the browser running the application.
- * Additionally, it interprets some
- * {@link org.apache.http.conn.params.ConnRoutePNames parameters},
- * though not the {@link
- * org.apache.http.conn.params.ConnRoutePNames#DEFAULT_PROXY DEFAULT_PROXY}.
+ * based on {@link ProxySelector}. By default, this class will pick up
+ * the proxy settings of the JVM, either from system properties
+ * or from the browser running the application.
  *
  * @since 4.3
  */
@@ -74,14 +70,14 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
             final HttpHost    target,
             final HttpRequest request,
             final HttpContext context) throws HttpException {
-        URI targetURI = null;
+        final URI targetURI;
         try {
             targetURI = new URI(target.toURI());
         } catch (final URISyntaxException ex) {
             throw new HttpException("Cannot convert host to URI: " + target, ex);
         }
         final List<Proxy> proxies = this.proxySelector.select(targetURI);
-        final Proxy p = chooseProxy(proxies, target, request, context);
+        final Proxy p = chooseProxy(proxies);
         HttpHost result = null;
         if (p.type() == Proxy.Type.HTTP) {
             // convert the socket address to an HttpHost
@@ -106,11 +102,7 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
 
     }
 
-    private Proxy chooseProxy(
-            final List<Proxy> proxies,
-            final HttpHost target,
-            final HttpRequest request,
-            final HttpContext context) {
+    private Proxy chooseProxy(final List<Proxy> proxies) {
         Proxy result = null;
         // check the list for one we can use
         for (int i=0; (result == null) && (i < proxies.size()); i++) {

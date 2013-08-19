@@ -113,22 +113,26 @@ import org.apache.http.util.TextUtils;
 import org.apache.http.util.VersionInfo;
 
 /**
- * {@link CloseableHttpClient} builder.
- * <p>
- * The following system properties are taken into account by this class
- *  if the {@link #useSystemProperties()} method is called.
+ * Builder for {@link CloseableHttpClient} instances.
+ * <p/>
+ * When a particular component is not explicitly this class will
+ * use its default implementation. System properties will be taken
+ * into account when configuring the default implementations when
+ * {@link #useSystemProperties()} method is called prior to calling
+ * {@link #build()}.
  * <ul>
  *  <li>ssl.TrustManagerFactory.algorithm</li>
  *  <li>javax.net.ssl.trustStoreType</li>
  *  <li>javax.net.ssl.trustStore</li>
  *  <li>javax.net.ssl.trustStoreProvider</li>
  *  <li>javax.net.ssl.trustStorePassword</li>
- *  <li>java.home</li>
  *  <li>ssl.KeyManagerFactory.algorithm</li>
  *  <li>javax.net.ssl.keyStoreType</li>
  *  <li>javax.net.ssl.keyStore</li>
  *  <li>javax.net.ssl.keyStoreProvider</li>
  *  <li>javax.net.ssl.keyStorePassword</li>
+ *  <li>https.protocols</li>
+ *  <li>https.cipherSuites</li>
  *  <li>http.proxyHost</li>
  *  <li>http.proxyPort</li>
  *  <li>http.nonProxyHosts</li>
@@ -136,7 +140,10 @@ import org.apache.http.util.VersionInfo;
  *  <li>http.maxConnections</li>
  *  <li>http.agent</li>
  * </ul>
- * </p>
+ * <p/>
+ * Please note that some settings used by this class can be mutually
+ * exclusive and may not apply when building {@link CloseableHttpClient}
+ * instances.
  *
  * @since 4.3
  */
@@ -199,83 +206,198 @@ public class HttpClientBuilder {
         super();
     }
 
+    /**
+     * Assigns {@link HttpRequestExecutor} instance.
+     */
     public final HttpClientBuilder setRequestExecutor(final HttpRequestExecutor requestExec) {
         this.requestExec = requestExec;
         return this;
     }
 
+    /**
+     * Assigns {@link X509HostnameVerifier} instance.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setConnectionManager(
+     *   org.apache.http.conn.HttpClientConnectionManager)} and the {@link #setSSLSocketFactory(
+     *   org.apache.http.conn.socket.LayeredConnectionSocketFactory)} methods.
+     */
     public final HttpClientBuilder setHostnameVerifier(final X509HostnameVerifier hostnameVerifier) {
         this.hostnameVerifier = hostnameVerifier;
         return this;
     }
 
+    /**
+     * Assigns {@link SSLContext} instance.
+     * <p/>
+     * <p/>
+     * Please note this value can be overridden by the {@link #setConnectionManager(
+     *   org.apache.http.conn.HttpClientConnectionManager)} and the {@link #setSSLSocketFactory(
+     *   org.apache.http.conn.socket.LayeredConnectionSocketFactory)} methods.
+     */
+    public final HttpClientBuilder setSslcontext(final SSLContext sslcontext) {
+        this.sslcontext = sslcontext;
+        return this;
+    }
+
+    /**
+     * Assigns {@link LayeredConnectionSocketFactory} instance.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setConnectionManager(
+     *   org.apache.http.conn.HttpClientConnectionManager)} method.
+     */
     public final HttpClientBuilder setSSLSocketFactory(
             final LayeredConnectionSocketFactory sslSocketFactory) {
         this.sslSocketFactory = sslSocketFactory;
         return this;
     }
 
-    public final HttpClientBuilder setSslcontext(final SSLContext sslcontext) {
-        this.sslcontext = sslcontext;
+    /**
+     * Assigns maximum total connection value.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setConnectionManager(
+     *   org.apache.http.conn.HttpClientConnectionManager)} method.
+     */
+    public final HttpClientBuilder setMaxConnTotal(final int maxConnTotal) {
+        this.maxConnTotal = maxConnTotal;
         return this;
     }
 
+    /**
+     * Assigns maximum connection per route value.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setConnectionManager(
+     *   org.apache.http.conn.HttpClientConnectionManager)} method.
+     */
+    public final HttpClientBuilder setMaxConnPerRoute(final int maxConnPerRoute) {
+        this.maxConnPerRoute = maxConnPerRoute;
+        return this;
+    }
+
+    /**
+     * Assigns default {@link SocketConfig}.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setConnectionManager(
+     *   org.apache.http.conn.HttpClientConnectionManager)} method.
+     */
+    public final HttpClientBuilder setDefaultSocketConfig(final SocketConfig config) {
+        this.defaultSocketConfig = config;
+        return this;
+    }
+
+    /**
+     * Assigns default {@link ConnectionConfig}.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setConnectionManager(
+     *   org.apache.http.conn.HttpClientConnectionManager)} method.
+     */
+    public final HttpClientBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
+        this.defaultConnectionConfig = config;
+        return this;
+    }
+
+    /**
+     * Assigns {@link HttpClientConnectionManager} instance.
+     */
     public final HttpClientBuilder setConnectionManager(
             final HttpClientConnectionManager connManager) {
         this.connManager = connManager;
         return this;
     }
 
-    public final HttpClientBuilder setSchemePortResolver(
-            final SchemePortResolver schemePortResolver) {
-        this.schemePortResolver = schemePortResolver;
-        return this;
-    }
-
-    public final HttpClientBuilder setMaxConnTotal(final int maxConnTotal) {
-        this.maxConnTotal = maxConnTotal;
-        return this;
-    }
-
-    public final HttpClientBuilder setMaxConnPerRoute(final int maxConnPerRoute) {
-        this.maxConnPerRoute = maxConnPerRoute;
-        return this;
-    }
-
+    /**
+     * Assigns {@link ConnectionReuseStrategy} instance.
+     */
     public final HttpClientBuilder setConnectionReuseStrategy(
             final ConnectionReuseStrategy reuseStrategy) {
         this.reuseStrategy = reuseStrategy;
         return this;
     }
 
+    /**
+     * Assigns {@link ConnectionKeepAliveStrategy} instance.
+     */
     public final HttpClientBuilder setKeepAliveStrategy(
             final ConnectionKeepAliveStrategy keepAliveStrategy) {
         this.keepAliveStrategy = keepAliveStrategy;
         return this;
     }
 
-    public final HttpClientBuilder setUserTokenHandler(final UserTokenHandler userTokenHandler) {
-        this.userTokenHandler = userTokenHandler;
-        return this;
-    }
-
+    /**
+     * Assigns {@link AuthenticationStrategy} instance for proxy
+     * authentication.
+     */
     public final HttpClientBuilder setTargetAuthenticationStrategy(
             final AuthenticationStrategy targetAuthStrategy) {
         this.targetAuthStrategy = targetAuthStrategy;
         return this;
     }
 
+    /**
+     * Assigns {@link AuthenticationStrategy} instance for target
+     * host authentication.
+     */
     public final HttpClientBuilder setProxyAuthenticationStrategy(
             final AuthenticationStrategy proxyAuthStrategy) {
         this.proxyAuthStrategy = proxyAuthStrategy;
         return this;
     }
 
-    public final HttpClientBuilder setHttpProcessor(final HttpProcessor httpprocessor) {
-        this.httpprocessor = httpprocessor;
+    /**
+     * Assigns {@link UserTokenHandler} instance.
+     * <p/>
+     * Please note this value can be overridden by the {@link #disableConnectionState()}
+     * method.
+     */
+    public final HttpClientBuilder setUserTokenHandler(final UserTokenHandler userTokenHandler) {
+        this.userTokenHandler = userTokenHandler;
         return this;
     }
 
+    /**
+     * Disables connection state tracking.
+     */
+    public final HttpClientBuilder disableConnectionState() {
+        connectionStateDisabled = true;
+        return this;
+    }
+
+    /**
+     * Assigns {@link SchemePortResolver} instance.
+     */
+    public final HttpClientBuilder setSchemePortResolver(
+            final SchemePortResolver schemePortResolver) {
+        this.schemePortResolver = schemePortResolver;
+        return this;
+    }
+
+    /**
+     * Assigns <tt>User-Agent</tt> value.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setHttpProcessor(
+     * org.apache.http.protocol.HttpProcessor)} method.
+     */
+    public final HttpClientBuilder setUserAgent(final String userAgent) {
+        this.userAgent = userAgent;
+        return this;
+    }
+
+    /**
+     * Assigns default request header values.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setHttpProcessor(
+     * org.apache.http.protocol.HttpProcessor)} method.
+     */
+    public final HttpClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
+        this.defaultHeaders = defaultHeaders;
+        return this;
+    }
+
+    /**
+     * Adds this protocol interceptor to the head of the protocol processing list.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setHttpProcessor(
+     * org.apache.http.protocol.HttpProcessor)} method.
+     */
     public final HttpClientBuilder addInterceptorFirst(final HttpResponseInterceptor itcp) {
         if (itcp == null) {
             return this;
@@ -287,6 +409,12 @@ public class HttpClientBuilder {
         return this;
     }
 
+    /**
+     * Adds this protocol interceptor to the tail of the protocol processing list.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setHttpProcessor(
+     * org.apache.http.protocol.HttpProcessor)} method.
+     */
     public final HttpClientBuilder addInterceptorLast(final HttpResponseInterceptor itcp) {
         if (itcp == null) {
             return this;
@@ -298,6 +426,12 @@ public class HttpClientBuilder {
         return this;
     }
 
+    /**
+     * Adds this protocol interceptor to the head of the protocol processing list.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setHttpProcessor(
+     * org.apache.http.protocol.HttpProcessor)} method.
+     */
     public final HttpClientBuilder addInterceptorFirst(final HttpRequestInterceptor itcp) {
         if (itcp == null) {
             return this;
@@ -309,6 +443,12 @@ public class HttpClientBuilder {
         return this;
     }
 
+    /**
+     * Adds this protocol interceptor to the tail of the protocol processing list.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setHttpProcessor(
+     * org.apache.http.protocol.HttpProcessor)} method.
+     */
     public final HttpClientBuilder addInterceptorLast(final HttpRequestInterceptor itcp) {
         if (itcp == null) {
             return this;
@@ -320,134 +460,209 @@ public class HttpClientBuilder {
         return this;
     }
 
+    /**
+     * Disables state (cookie) management.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setHttpProcessor(
+     * org.apache.http.protocol.HttpProcessor)} method.
+     */
+    public final HttpClientBuilder disableCookieManagement() {
+        this.cookieManagementDisabled = true;
+        return this;
+    }
+
+    /**
+     * Disables automatic content decompression.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setHttpProcessor(
+     * org.apache.http.protocol.HttpProcessor)} method.
+     */
+    public final HttpClientBuilder disableContentCompression() {
+        contentCompressionDisabled = true;
+        return this;
+    }
+
+    /**
+     * Disables authentication scheme caching.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setHttpProcessor(
+     * org.apache.http.protocol.HttpProcessor)} method.
+     */
+    public final HttpClientBuilder disableAuthCaching() {
+        this.authCachingDisabled = true;
+        return this;
+    }
+
+    /**
+     * Assigns {@link HttpProcessor} instance.
+     */
+    public final HttpClientBuilder setHttpProcessor(final HttpProcessor httpprocessor) {
+        this.httpprocessor = httpprocessor;
+        return this;
+    }
+
+    /**
+     * Assigns {@link HttpRequestRetryHandler} instance.
+     * <p/>
+     * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
+     * method.
+     */
     public final HttpClientBuilder setRetryHandler(final HttpRequestRetryHandler retryHandler) {
         this.retryHandler = retryHandler;
         return this;
     }
 
+    /**
+     * Disables automatic request recovery and re-execution.
+     */
+    public final HttpClientBuilder disableAutomaticRetries() {
+        automaticRetriesDisabled = true;
+        return this;
+    }
+
+    /**
+     * Assigns default proxy value.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setRoutePlanner(
+     *   org.apache.http.conn.routing.HttpRoutePlanner) and
+     * {@link #disableRedirectHandling()} methods.
+     */
+    public final HttpClientBuilder setProxy(final HttpHost proxy) {
+        this.proxy = proxy;
+        return this;
+    }
+
+    /**
+     * Assigns {@link HttpRoutePlanner} instance.
+     * <p/>
+     * Please note this value can be overridden by the {@link #disableRedirectHandling()}
+     * method.
+     */
     public final HttpClientBuilder setRoutePlanner(final HttpRoutePlanner routePlanner) {
         this.routePlanner = routePlanner;
         return this;
     }
 
+    /**
+     * Assigns {@link RedirectStrategy} instance.
+     */
     public final HttpClientBuilder setRedirectStrategy(final RedirectStrategy redirectStrategy) {
         this.redirectStrategy = redirectStrategy;
         return this;
     }
 
+    /**
+     * Disables automatic redirect handling.
+     */
+    public final HttpClientBuilder disableRedirectHandling() {
+        redirectHandlingDisabled = true;
+        return this;
+    }
+
+    /**
+     * Assigns {@link ConnectionBackoffStrategy} instance.
+     */
     public final HttpClientBuilder setConnectionBackoffStrategy(
             final ConnectionBackoffStrategy connectionBackoffStrategy) {
         this.connectionBackoffStrategy = connectionBackoffStrategy;
         return this;
     }
 
+    /**
+     * Assigns {@link BackoffManager} instance.
+     */
     public final HttpClientBuilder setBackoffManager(final BackoffManager backoffManager) {
         this.backoffManager = backoffManager;
         return this;
     }
 
+    /**
+     * Assigns {@link ServiceUnavailableRetryStrategy} instance.
+     */
     public final HttpClientBuilder setServiceUnavailableRetryStrategy(
             final ServiceUnavailableRetryStrategy serviceUnavailStrategy) {
         this.serviceUnavailStrategy = serviceUnavailStrategy;
         return this;
     }
 
+    /**
+     * Assigns default {@link CookieStore} instance which will be used for
+     * request execution if not explicitly set in the client execution context.
+     */
     public final HttpClientBuilder setDefaultCookieStore(final CookieStore cookieStore) {
         this.cookieStore = cookieStore;
         return this;
     }
 
+    /**
+     * Assigns default {@link CredentialsProvider} instance which will be used
+     * for request execution if not explicitly set in the client execution
+     * context.
+     */
     public final HttpClientBuilder setDefaultCredentialsProvider(
             final CredentialsProvider credentialsProvider) {
         this.credentialsProvider = credentialsProvider;
         return this;
     }
 
+    /**
+     * Assigns default {@link org.apache.http.auth.AuthScheme} registry which will
+     * be used for request execution if not explicitly set in the client execution
+     * context.
+     */
     public final HttpClientBuilder setDefaultAuthSchemeRegistry(
             final Lookup<AuthSchemeProvider> authSchemeRegistry) {
         this.authSchemeRegistry = authSchemeRegistry;
         return this;
     }
 
+    /**
+     * Assigns default {@link org.apache.http.cookie.CookieSpec} registry which will
+     * be used for request execution if not explicitly set in the client execution
+     * context.
+     */
     public final HttpClientBuilder setDefaultCookieSpecRegistry(
             final Lookup<CookieSpecProvider> cookieSpecRegistry) {
         this.cookieSpecRegistry = cookieSpecRegistry;
         return this;
     }
 
-    public final HttpClientBuilder setUserAgent(final String userAgent) {
-        this.userAgent = userAgent;
-        return this;
-    }
-
-    public final HttpClientBuilder setProxy(final HttpHost proxy) {
-        this.proxy = proxy;
-        return this;
-    }
-
-    public final HttpClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
-        this.defaultHeaders = defaultHeaders;
-        return this;
-    }
-
-    public final HttpClientBuilder setDefaultSocketConfig(final SocketConfig config) {
-        this.defaultSocketConfig = config;
-        return this;
-    }
-
-    public final HttpClientBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
-        this.defaultConnectionConfig = config;
-        return this;
-    }
-
+    /**
+     * Assigns default {@link RequestConfig} instance which will be used
+     * for request execution if not explicitly set in the client execution
+     * context.
+     */
     public final HttpClientBuilder setDefaultRequestConfig(final RequestConfig config) {
         this.defaultRequestConfig = config;
         return this;
     }
 
-    public final HttpClientBuilder disableRedirectHandling() {
-        redirectHandlingDisabled = true;
-        return this;
-    }
-
-    public final HttpClientBuilder disableAutomaticRetries() {
-        automaticRetriesDisabled = true;
-        return this;
-    }
-
-    public final HttpClientBuilder disableConnectionState() {
-        connectionStateDisabled = true;
-        return this;
-    }
-
-    public final HttpClientBuilder disableContentCompression() {
-        contentCompressionDisabled = true;
-        return this;
-    }
-
-    public final HttpClientBuilder disableCookieManagement() {
-        this.cookieManagementDisabled = true;
-        return this;
-    }
-
-    public final HttpClientBuilder disableAuthCaching() {
-        this.authCachingDisabled = true;
-        return this;
-    }
-
+    /**
+     * Use system properties when creating and configuring default
+     * implementations.
+     */
     public final HttpClientBuilder useSystemProperties() {
         systemProperties = true;
         return this;
     }
 
+    /**
+     * For internal use.
+     */
     protected ClientExecChain decorateMainExec(final ClientExecChain mainExec) {
         return mainExec;
     }
 
+    /**
+     * For internal use.
+     */
     protected ClientExecChain decorateProtocolExec(final ClientExecChain protocolExec) {
         return protocolExec;
     }
 
+    /**
+     * For internal use.
+     */
     protected void addCloseable(final Closeable closeable) {
         if (closeable == null) {
             return;
@@ -511,13 +726,12 @@ public class HttpClientBuilder {
                     poolingmgr.setDefaultMaxPerRoute(max);
                     poolingmgr.setMaxTotal(2 * max);
                 }
-            } else {
-                if (maxConnTotal > 0) {
-                    poolingmgr.setMaxTotal(maxConnTotal);
-                }
-                if (maxConnPerRoute > 0) {
-                    poolingmgr.setDefaultMaxPerRoute(maxConnPerRoute);
-                }
+            }
+            if (maxConnTotal > 0) {
+                poolingmgr.setMaxTotal(maxConnTotal);
+            }
+            if (maxConnPerRoute > 0) {
+                poolingmgr.setDefaultMaxPerRoute(maxConnPerRoute);
             }
             connManager = poolingmgr;
         }
@@ -554,11 +768,6 @@ public class HttpClientBuilder {
                 userTokenHandler = NoopUserTokenHandler.INSTANCE;
             }
         }
-        SchemePortResolver schemePortResolver = this.schemePortResolver;
-        if (schemePortResolver == null) {
-            schemePortResolver = DefaultSchemePortResolver.INSTANCE;
-        }
-
         ClientExecChain execChain = new MainClientExec(
                 requestExec,
                 connManager,
@@ -644,9 +853,12 @@ public class HttpClientBuilder {
             execChain = new RetryExec(execChain, retryHandler);
         }
 
-        // Add redirect executor, if not disabled
         HttpRoutePlanner routePlanner = this.routePlanner;
         if (routePlanner == null) {
+            SchemePortResolver schemePortResolver = this.schemePortResolver;
+            if (schemePortResolver == null) {
+                schemePortResolver = DefaultSchemePortResolver.INSTANCE;
+            }
             if (proxy != null) {
                 routePlanner = new DefaultProxyRoutePlanner(proxy, schemePortResolver);
             } else if (systemProperties) {
@@ -656,6 +868,7 @@ public class HttpClientBuilder {
                 routePlanner = new DefaultRoutePlanner(schemePortResolver);
             }
         }
+        // Add redirect executor, if not disabled
         if (!redirectHandlingDisabled) {
             RedirectStrategy redirectStrategy = this.redirectStrategy;
             if (redirectStrategy == null) {

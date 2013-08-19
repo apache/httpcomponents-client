@@ -41,7 +41,6 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AUTH;
@@ -75,6 +74,13 @@ import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
 /**
+ * The last request executor in the HTTP request execution chain
+ * that is responsible for execution of request / response
+ * exchanges with the opposite endpoint.
+ * This executor will automatically retry the request in case
+ * of an authentication challenge by an intermediate proxy or
+ * by the target server.
+ *
  * @since 4.3
  */
 @Immutable
@@ -110,10 +116,8 @@ public class MainClientExec implements ClientExecChain {
         Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         Args.notNull(userTokenHandler, "User token handler");
         this.authenticator      = new HttpAuthenticator();
-        this.proxyHttpProcessor = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {
-                new RequestClientConnControl(),
-                new RequestUserAgent()
-        } );
+        this.proxyHttpProcessor = new ImmutableHttpProcessor(
+                new RequestClientConnControl(), new RequestUserAgent());
         this.routeDirector      = new BasicRouteDirector();
         this.requestExecutor    = requestExecutor;
         this.connManager        = connManager;
@@ -196,7 +200,7 @@ public class MainClientExec implements ClientExecChain {
                 execAware.setCancellable(connHolder);
             }
 
-            HttpResponse response = null;
+            HttpResponse response;
             for (int execCount = 1;; execCount++) {
 
                 if (execCount > 1 && !Proxies.isRepeatable(request)) {
@@ -268,7 +272,7 @@ public class MainClientExec implements ClientExecChain {
                 }
 
                 if (needAuthentication(
-                        targetAuthState, proxyAuthState, route, request, response, context)) {
+                        targetAuthState, proxyAuthState, route, response, context)) {
                     // Make sure the response body is fully consumed, if present
                     final HttpEntity entity = response.getEntity();
                     if (connHolder.isReusable()) {
@@ -423,7 +427,7 @@ public class MainClientExec implements ClientExecChain {
 
         final HttpHost target = route.getTargetHost();
         final HttpHost proxy = route.getProxyHost();
-        HttpResponse response = null;
+        HttpResponse response;
 
         final String authority = target.toHostString();
         final HttpRequest connect = new BasicHttpRequest("CONNECT", authority, request.getProtocolVersion());
@@ -521,7 +525,6 @@ public class MainClientExec implements ClientExecChain {
             final AuthState targetAuthState,
             final AuthState proxyAuthState,
             final HttpRoute route,
-            final HttpRequestWrapper request,
             final HttpResponse response,
             final HttpClientContext context) {
         final RequestConfig config = context.getRequestConfig();

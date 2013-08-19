@@ -31,8 +31,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.util.Args;
 
 /**
- * Basic implementation of an {@link HttpRouteDirector HttpRouteDirector}.
- * This implementation is stateless and therefore thread-safe.
+ * Basic {@link HttpRouteDirector} implementation.
  *
  * @since 4.0
  */

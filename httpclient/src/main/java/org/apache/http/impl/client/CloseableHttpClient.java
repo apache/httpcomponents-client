@@ -50,7 +50,7 @@ import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
 /**
- * Minimal implementation of {@link HttpClient} that also implements {@link Closeable}.
+ * Base implementation of {@link HttpClient} that also implements {@link Closeable}.
  *
  * @since 4.3
  */

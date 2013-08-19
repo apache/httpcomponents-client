@@ -35,7 +35,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AUTH;
@@ -78,8 +77,11 @@ import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
+/**
+ * ProxyClient can be used to establish a tunnel via an HTTP proxy.
+ */
 @SuppressWarnings("deprecation")
-public class ProxyClient {
+public final class ProxyClient {
 
     private final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory;
     private final ConnectionConfig connectionConfig;
@@ -103,10 +105,8 @@ public class ProxyClient {
         this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
         this.connectionConfig = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
         this.requestConfig = requestConfig != null ? requestConfig : RequestConfig.DEFAULT;
-        this.httpProcessor = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {
-                new RequestClientConnControl(),
-                new RequestUserAgent()
-        } );
+        this.httpProcessor = new ImmutableHttpProcessor(new RequestClientConnControl(),
+                new RequestUserAgent());
         this.requestExec = new HttpRequestExecutor();
         this.proxyAuthStrategy = new ProxyAuthenticationStrategy();
         this.authenticator = new HttpAuthenticator();
@@ -122,7 +122,6 @@ public class ProxyClient {
 
     /**
      * @deprecated (4.3) use {@link ProxyClient#ProxyClient(HttpConnectionFactory, ConnectionConfig, RequestConfig)}
-     * @param params
      */
     @Deprecated
     public ProxyClient(final HttpParams params) {
@@ -177,7 +176,7 @@ public class ProxyClient {
         final ManagedHttpClientConnection conn = this.connFactory.create(
                 route, this.connectionConfig);
         final HttpContext context = new BasicHttpContext();
-        HttpResponse response = null;
+        HttpResponse response;
 
         final HttpRequest connect = new BasicHttpRequest(
                 "CONNECT", host.toHostString(), HttpVersion.HTTP_1_1);

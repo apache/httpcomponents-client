@@ -69,6 +69,8 @@ import org.apache.http.util.Args;
 import org.apache.http.util.Asserts;
 
 /**
+ * Internal class.
+ *
  * @since 4.3
  */
 @ThreadSafe

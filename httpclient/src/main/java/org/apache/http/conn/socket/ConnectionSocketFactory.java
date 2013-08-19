@@ -35,7 +35,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * A factory for creating and connecting sockets.
+ * A factory for creating and connecting connection sockets.
  *
  * @since 4.3
  */
@@ -44,7 +44,7 @@ public interface ConnectionSocketFactory {
     /**
      * Creates new, unconnected socket. The socket should subsequently be passed to
      * {@link #connectSocket(int, Socket, HttpHost, InetSocketAddress, InetSocketAddress,
-     *    HttpContext)}.
+     *    HttpContext) connectSocket} method.
      *
      * @return  a new socket
      *
@@ -53,7 +53,7 @@ public interface ConnectionSocketFactory {
     Socket createSocket(HttpContext context) throws IOException;
 
     /**
-     * Connects a socket to the target host with the given resolved remote address.
+     * Connects the socket to the target host with the given resolved remote address.
      *
      * @param connectTimeout connect timeout.
      * @param sock the socket to connect, as obtained from {@link #createSocket(HttpContext)}.

@@ -34,7 +34,10 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.execchain.ClientExecChain;
 
 /**
- * @since (4.3)
+ * Builder for {@link org.apache.http.impl.client.CloseableHttpClient}
+ * instances capable of client-side caching.
+ *
+ * @since 4.3
  */
 public class CachingHttpClientBuilder extends HttpClientBuilder {
 

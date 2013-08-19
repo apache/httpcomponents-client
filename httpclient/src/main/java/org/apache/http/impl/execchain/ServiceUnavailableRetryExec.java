@@ -43,8 +43,13 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.util.Args;
 
 /**
- * {@link ClientExecChain} implementation that can automatically retry the request in case of
- * a non-2xx response using the {@link ServiceUnavailableRetryStrategy} interface.
+ * Request executor in the request execution chain that is responsible
+ * for making a decision whether a request that received a non-2xx response
+ * from the target server should be re-executed.
+ * <p/>
+ * Further responsibilities such as communication with the opposite
+ * endpoint is delegated to the next executor in the request execution
+ * chain.
  *
  * @since 4.3
  */

@@ -27,13 +27,18 @@
 
 package org.apache.http.impl.conn;
 
+import org.apache.http.annotation.NotThreadSafe;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
+ * Internal class.
+ *
  * @since 4.3
  */
-public class LoggingOutputStream extends OutputStream {
+@NotThreadSafe
+class LoggingOutputStream extends OutputStream {
 
     private final OutputStream out;
     private final Wire wire;

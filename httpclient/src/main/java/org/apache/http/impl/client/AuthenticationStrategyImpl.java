@@ -68,13 +68,11 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
     private final Log log = LogFactory.getLog(getClass());
 
     private static final List<String> DEFAULT_SCHEME_PRIORITY =
-        Collections.unmodifiableList(Arrays.asList(new String[] {
-                AuthSchemes.SPNEGO,
+        Collections.unmodifiableList(Arrays.asList(AuthSchemes.SPNEGO,
                 AuthSchemes.KERBEROS,
                 AuthSchemes.NTLM,
                 AuthSchemes.DIGEST,
-                AuthSchemes.BASIC
-    }));
+                AuthSchemes.BASIC));
 
     private final int challengeCode;
     private final String headerName;

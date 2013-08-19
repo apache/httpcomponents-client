@@ -33,6 +33,9 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.impl.client.CloseableHttpClient;
 
 /**
+ * Factory methods for {@link CloseableHttpClient} instances
+ * capable of client-side caching.
+ *
  * @since 4.3
  */
 @Immutable
@@ -42,14 +45,28 @@ public class CachingHttpClients {
         super();
     }
 
+    /**
+     * Creates builder object for construction of custom
+     * {@link CloseableHttpClient} instances.
+     */
     public static CachingHttpClientBuilder custom() {
         return CachingHttpClientBuilder.create();
     }
 
+    /**
+     * Creates {@link CloseableHttpClient} instance that uses a memory bound
+     * response cache.
+     */
     public static CloseableHttpClient createMemoryBound() {
         return CachingHttpClientBuilder.create().build();
     }
 
+    /**
+     * Creates {@link CloseableHttpClient} instance that uses a file system
+     * bound response cache.
+     *
+     * @param cacheDir location of response cache.
+     */
     public static CloseableHttpClient createFileBound(final File cacheDir) {
         return CachingHttpClientBuilder.create().setCacheDir(cacheDir).build();
     }

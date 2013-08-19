@@ -57,6 +57,8 @@ import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.util.Args;
 
 /**
+ * Internal class.
+ *
  * @since 4.3
  */
 @ThreadSafe

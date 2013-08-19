@@ -29,7 +29,7 @@ package org.apache.http.conn;
 import org.apache.http.HttpHost;
 
 /**
- * Default port resolver for protocol schemes.
+ * Strategy for default port resolution for protocol schemes.
  *
  * @since 4.3
  */

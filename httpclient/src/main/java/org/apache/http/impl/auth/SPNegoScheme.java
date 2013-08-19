@@ -28,6 +28,7 @@ package org.apache.http.impl.auth;
 
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.protocol.HttpContext;
@@ -41,6 +42,7 @@ import org.ietf.jgss.Oid;
  *
  * @since 4.2
  */
+@NotThreadSafe
 public class SPNegoScheme extends GGSSchemeBase {
 
     private static final String SPNEGO_OID = "1.3.6.1.5.5.2";

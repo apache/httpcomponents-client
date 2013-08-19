@@ -41,7 +41,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.config.RequestConfig;
@@ -66,6 +65,12 @@ import org.apache.http.util.Args;
 import org.apache.http.util.VersionInfo;
 
 /**
+ * Request executor that implements the most fundamental aspects of
+ * the HTTP specification and the most straight-forward request / response
+ * exchange with the target server. This executor does not support
+ * execution via proxy and will make no attempts to retry the request
+ * in case of a redirect, authentication challenge or I/O error.
+ *
  * @since 4.3
  */
 @Immutable
@@ -88,13 +93,12 @@ public class MinimalClientExec implements ClientExecChain {
         Args.notNull(connManager, "Client connection manager");
         Args.notNull(reuseStrategy, "Connection reuse strategy");
         Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
-        this.httpProcessor = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {
+        this.httpProcessor = new ImmutableHttpProcessor(
                 new RequestContent(),
                 new RequestTargetHost(),
                 new RequestClientConnControl(),
                 new RequestUserAgent(VersionInfo.getUserAgent(
-                        "Apache-HttpClient", "org.apache.http.client", getClass())),
-        } );
+                        "Apache-HttpClient", "org.apache.http.client", getClass())));
         this.requestExecutor    = requestExecutor;
         this.connManager        = connManager;
         this.reuseStrategy      = reuseStrategy;

@@ -34,7 +34,8 @@ import org.apache.http.HttpClientConnection;
 import org.apache.http.concurrent.Cancellable;
 
 /**
- * Encapsulates a request for a {@link HttpClientConnection}.
+ * Represents a request for a {@link HttpClientConnection} whose life cycle
+ * is managed by a connection manager.
  *
  * @since 4.3
  */
@@ -43,8 +44,7 @@ public interface ConnectionRequest extends Cancellable {
     /**
      * Obtains a connection within a given time.
      * This method will block until a connection becomes available,
-     * the timeout expires, or the connection manager is
-     * {@link ClientConnectionManager#shutdown() shut down}.
+     * the timeout expires, or the connection manager is shut down.
      * Timeouts are handled with millisecond precision.
      *
      * If {@link #cancel()} is called while this is blocking or

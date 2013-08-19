@@ -30,8 +30,8 @@ package org.apache.http.client.methods;
 import org.apache.http.concurrent.Cancellable;
 
 /**
- * Interface to be implemented by any object that wishes to be notified of request execution
- * events.
+ * Interface to be implemented by any object that wishes to be notified of
+ * blocking I/O operations that could be cancelled.
  *
  * @since 4.3
  */

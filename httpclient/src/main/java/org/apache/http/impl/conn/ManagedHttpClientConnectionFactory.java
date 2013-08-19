@@ -47,6 +47,7 @@ import org.apache.http.io.HttpMessageParserFactory;
 import org.apache.http.io.HttpMessageWriterFactory;
 
 /**
+ * Factory for {@link ManagedHttpClientConnection} instances.
  * @since 4.3
  */
 @Immutable

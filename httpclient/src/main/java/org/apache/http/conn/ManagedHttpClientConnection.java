@@ -36,16 +36,34 @@ import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpInetConnection;
 
 /**
- * Extended interface that exposes {@link Socket} bind method and SSL session details.
+ * Represents a managed connection whose state and life cycle is managed by
+ * a connection manager. This interface extends {@link HttpClientConnection}
+ * with methods to bind the connection to an arbitrary socket and
+ * to obtain SSL session details.
  *
  * @since 4.3
  */
 public interface ManagedHttpClientConnection extends HttpClientConnection, HttpInetConnection {
 
+    /**
+     * Returns connection ID which is expected to be unique
+     * for the life span of the connection manager.
+     */
     String getId();
 
+    /**
+     * Binds this connection to the given socket. The connection
+     * is considered open if it is bound and the underlying socket
+     * is connection to a remote host.
+     *
+     * @param socket the socket to bind the connection to.
+     * @throws IOException
+     */
     void bind(Socket socket) throws IOException;
 
+    /**
+     * Returns the underlying socket.
+     */
     Socket getSocket();
 
     /**

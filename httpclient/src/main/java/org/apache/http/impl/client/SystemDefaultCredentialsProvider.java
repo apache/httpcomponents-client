@@ -41,7 +41,8 @@ import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.util.Args;
 
 /**
- * Implementation of {@link CredentialsProvider} backed by system {@link Authenticator}.
+ * Implementation of {@link CredentialsProvider} backed by standard
+ * JRE {@link Authenticator}.
  *
  * @since 4.3
  */

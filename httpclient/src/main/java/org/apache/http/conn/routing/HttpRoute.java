@@ -41,8 +41,6 @@ import org.apache.http.util.LangUtils;
 
 /**
  * The route for a request.
- * Instances of this class are unmodifiable and therefore suitable
- * for use as lookup keys.
  *
  * @since 4.0
  */

@@ -48,8 +48,9 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 
 /**
- * Implementation of {@link HttpContext} that provides convenience
- * setters for user assignable attributes and getter for readable attributes.
+ * Adaptor class that provides convenience type safe setters and getters
+ * for common {@link HttpContext} attributes used in the course
+ * of HTTP request execution.
  *
  * @since 4.3
  */
@@ -158,7 +159,7 @@ public class HttpClientContext extends HttpCoreContext {
         return getAttribute(HTTP_ROUTE, HttpRoute.class);
     }
 
-    @SuppressWarnings("unchecked") // type parameter
+    @SuppressWarnings("unchecked")
     public List<URI> getRedirectLocations() {
         return getAttribute(REDIRECT_LOCATIONS, List.class);
     }
@@ -180,7 +181,7 @@ public class HttpClientContext extends HttpCoreContext {
     }
 
     @SuppressWarnings("unchecked")
-    protected <T> Lookup<T> getLookup(final String name, final Class<T> clazz) {
+    private <T> Lookup<T> getLookup(final String name, final Class<T> clazz) {
         return getAttribute(name, Lookup.class);
     }
 
