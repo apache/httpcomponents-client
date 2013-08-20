@@ -2,6 +2,12 @@
 Changes since release 4.3 BETA2
 -------------------
 
+* [HTTPCLIENT-1384] Expose CacheInvalidator interface.
+  Contributed by Nicolas Richeton <nicolas.richeton at free.fr>
+ 
+* [HTTPCLIENT-1385] Fixed path normalization in CacheKeyGenerator
+  Contributed by James Leigh <james at 3roundstones dot com>
+
 * [HTTPCLIENT-1385] Fixed path normalization in CacheKeyGenerator
   Contributed by James Leigh <james at 3roundstones dot com>
 

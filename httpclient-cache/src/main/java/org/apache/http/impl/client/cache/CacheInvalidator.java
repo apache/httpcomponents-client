@@ -37,9 +37,10 @@ import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheInvalidator;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.protocol.HTTP;
@@ -50,8 +51,8 @@ import org.apache.http.protocol.HTTP;
  *
  * @since 4.1
  */
-@ThreadSafe // so long as the cache implementation is thread-safe
-class CacheInvalidator {
+@Immutable
+class CacheInvalidator implements HttpCacheInvalidator {
 
     private final HttpCacheStorage storage;
     private final CacheKeyGenerator cacheKeyGenerator;

@@ -28,6 +28,7 @@ package org.apache.http.impl.client.cache;
 
 import java.io.File;
 
+import org.apache.http.client.cache.HttpCacheInvalidator;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -46,6 +47,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
     private File cacheDir;
     private CacheConfig cacheConfig;
     private SchedulingStrategy schedulingStrategy;
+    private HttpCacheInvalidator httpCacheInvalidator;
 
     public static CachingHttpClientBuilder create() {
         return new CachingHttpClientBuilder();
@@ -85,6 +87,12 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
         return this;
     }
 
+    public final CachingHttpClientBuilder setHttpCacheInvalidator(
+            final HttpCacheInvalidator cacheInvalidator) {
+        this.httpCacheInvalidator = cacheInvalidator;
+        return this;
+    }
+
     @Override
     protected ClientExecChain decorateMainExec(final ClientExecChain mainExec) {
         final CacheConfig config = this.cacheConfig != null ? this.cacheConfig : CacheConfig.DEFAULT;
@@ -105,17 +113,28 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 addCloseable(managedStorage);
                 storage = managedStorage;
             }
-            storage = new BasicHttpCacheStorage(cacheConfig);
         }
         final AsynchronousValidator revalidator = createAsynchronousRevalidator(config);
+        final CacheKeyGenerator uriExtractor = new CacheKeyGenerator();
+
+        HttpCacheInvalidator cacheInvalidator = this.httpCacheInvalidator;
+        if (cacheInvalidator == null) {
+            cacheInvalidator = new CacheInvalidator(uriExtractor, storage);
+        }
+
         return new CachingExec(mainExec,
-                new BasicHttpCache(resourceFactory, storage, config), config, revalidator);
+                new BasicHttpCache(
+                        resourceFactory,
+                        storage, config,
+                        uriExtractor,
+                        cacheInvalidator), config, revalidator);
     }
 
     private AsynchronousValidator createAsynchronousRevalidator(final CacheConfig config) {
         if (config.getAsynchronousWorkersMax() > 0) {
             final SchedulingStrategy configuredSchedulingStrategy = createSchedulingStrategy(config);
-            final AsynchronousValidator revalidator = new AsynchronousValidator(configuredSchedulingStrategy);
+            final AsynchronousValidator revalidator = new AsynchronousValidator(
+                    configuredSchedulingStrategy);
             addCloseable(revalidator);
             return revalidator;
         }

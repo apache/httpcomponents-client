@@ -44,6 +44,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheInvalidator;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.client.cache.HttpCacheUpdateException;
@@ -65,19 +66,40 @@ class BasicHttpCache implements HttpCache {
     private final long maxObjectSizeBytes;
     private final CacheEntryUpdater cacheEntryUpdater;
     private final CachedHttpResponseGenerator responseGenerator;
-    private final CacheInvalidator cacheInvalidator;
+    private final HttpCacheInvalidator cacheInvalidator;
     private final HttpCacheStorage storage;
 
     private final Log log = LogFactory.getLog(getClass());
 
-    public BasicHttpCache(final ResourceFactory resourceFactory, final HttpCacheStorage storage, final CacheConfig config) {
+    public BasicHttpCache(
+            final ResourceFactory resourceFactory,
+            final HttpCacheStorage storage,
+            final CacheConfig config,
+            final CacheKeyGenerator uriExtractor,
+            final HttpCacheInvalidator cacheInvalidator) {
         this.resourceFactory = resourceFactory;
-        this.uriExtractor = new CacheKeyGenerator();
+        this.uriExtractor = uriExtractor;
         this.cacheEntryUpdater = new CacheEntryUpdater(resourceFactory);
         this.maxObjectSizeBytes = config.getMaxObjectSize();
         this.responseGenerator = new CachedHttpResponseGenerator();
         this.storage = storage;
-        this.cacheInvalidator = new CacheInvalidator(this.uriExtractor, this.storage);
+        this.cacheInvalidator = cacheInvalidator;
+    }
+
+    public BasicHttpCache(
+            final ResourceFactory resourceFactory,
+            final HttpCacheStorage storage,
+            final CacheConfig config,
+            final CacheKeyGenerator uriExtractor) {
+        this( resourceFactory, storage, config, uriExtractor,
+                new CacheInvalidator(uriExtractor, storage));
+    }
+
+    public BasicHttpCache(
+            final ResourceFactory resourceFactory,
+            final HttpCacheStorage storage,
+            final CacheConfig config) {
+        this( resourceFactory, storage, config, new CacheKeyGenerator());
     }
 
     public BasicHttpCache(final CacheConfig config) {
@@ -175,7 +197,7 @@ class BasicHttpCache implements HttpCache {
         if (hdr == null) {
             return false;
         }
-        int contentLength;
+        final int contentLength;
         try {
             contentLength = Integer.parseInt(hdr.getValue());
         } catch (final NumberFormatException nfe) {
