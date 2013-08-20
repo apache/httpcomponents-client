@@ -81,7 +81,7 @@ import org.apache.http.util.EntityUtils;
  * ProxyClient can be used to establish a tunnel via an HTTP proxy.
  */
 @SuppressWarnings("deprecation")
-public final class ProxyClient {
+public class ProxyClient {
 
     private final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory;
     private final ConnectionConfig connectionConfig;
