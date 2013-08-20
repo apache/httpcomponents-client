@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,9 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-The API for client-side state management via cookies.
-</body>
-</html>
+
+/**
+ * Client configuration APIs.
+ */
+package org.apache.http.client.config;

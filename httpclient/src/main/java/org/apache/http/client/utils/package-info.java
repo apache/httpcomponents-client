@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,12 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-{@link org.apache.http.conn.scheme.Scheme} class represents a protocol
-scheme such as "http" or "https" and contains a number of protocol properties
-such as the default port and the socket factory to be used to creating
-{@link java.net.Socket}s for the given protocol
-</body>
-</html>
+
+/**
+ * Client utility classes.
+ */
+package org.apache.http.client.utils;

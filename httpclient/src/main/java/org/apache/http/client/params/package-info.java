@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,9 +24,9 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-A collection of HTTP connection utility classes.
-</body>
-</html>
+
+/**
+ * Deprecated.
+ * @deprecated (4.3).
+ */
+package org.apache.http.client.params;

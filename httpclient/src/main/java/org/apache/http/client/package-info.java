@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,10 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-Helpers and utility classes for <i>HttpClient</i>.
 
-</body>
-</html>
+/**
+ * Client HTTP communication APIs.
+ */
+package org.apache.http.client;

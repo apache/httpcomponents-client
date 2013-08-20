@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,9 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-The API for client-side HTTP authentication against a server.
-</body>
-</html>
+
+/**
+ * Client connection management APIs.
+ */
+package org.apache.http.conn;

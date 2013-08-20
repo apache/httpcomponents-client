@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,10 +24,9 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-Default implementations for interfaces in
-{@link org.apache.http.auth org.apache.http.client}.
-</body>
-</html>
+
+/**
+ * Default implementations of standard and common HTTP state
+ * management policies.
+ */
+package org.apache.http.impl.cookie;

@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,9 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-MIME Multipart content body parts.
-</body>
-</html>
+
+/**
+ * Client specific HTTP protocol handlers.
+ */
+package org.apache.http.client.protocol;

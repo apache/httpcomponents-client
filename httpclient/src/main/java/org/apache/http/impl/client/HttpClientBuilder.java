@@ -524,7 +524,7 @@ public class HttpClientBuilder {
      * Assigns default proxy value.
      * <p/>
      * Please note this value can be overridden by the {@link #setRoutePlanner(
-     *   org.apache.http.conn.routing.HttpRoutePlanner) and
+     *   org.apache.http.conn.routing.HttpRoutePlanner)} and
      * {@link #disableRedirectHandling()} methods.
      */
     public final HttpClientBuilder setProxy(final HttpHost proxy) {

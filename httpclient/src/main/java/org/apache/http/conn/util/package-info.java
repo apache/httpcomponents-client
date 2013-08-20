@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,9 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-Parameters for configuring HTTP state management classes.
-</body>
-</html>
+
+/**
+ * Connection utility classes.
+ */
+package org.apache.http.conn.util;

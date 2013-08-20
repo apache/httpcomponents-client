@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,10 +24,9 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-Additional request and response interceptors for HTTP state and
-authentication management.
-</body>
-</html>
+
+/**
+ * Simple facade APIs for HttpClient based on the concept of
+ * a fluent interface.
+ */
+package org.apache.http.client.fluent;

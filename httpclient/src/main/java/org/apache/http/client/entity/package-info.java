@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,9 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-Support for MIME multipart encoded entities
-</body>
-</html>
+
+/**
+ * Client specific HTTP entity implementations.
+ */
+package org.apache.http.client.entity;

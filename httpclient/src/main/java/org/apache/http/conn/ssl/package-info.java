@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,9 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-TLS/SSL specific API.
-</body>
-</html>
+
+/**
+ * Client TLS/SSL support.
+ */
+package org.apache.http.conn.ssl;

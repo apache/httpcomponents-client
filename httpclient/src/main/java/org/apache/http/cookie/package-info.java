@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,10 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-Request implementations for the various HTTP methods like GET and POST.
 
-</body>
-</html>
+/**
+ * Client HTTP state management APIs.
+ */
+package org.apache.http.cookie;

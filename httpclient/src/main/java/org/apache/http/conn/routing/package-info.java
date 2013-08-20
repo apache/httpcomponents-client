@@ -1,6 +1,3 @@
-<html>
-<head>
-<!--
 /*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,27 +24,8 @@
  * <http://www.apache.org/>.
  *
  */
--->
-</head>
-<body>
-The client-side route representation and tracking API.
-<p>
-An {@link org.apache.http.conn.routing.HttpRoute HttpRoute}
-is the path along which a request has to be sent to the server.
-The route starts at a local network address and may pass
-through one or more proxies before reaching the target.
-Routes through proxies can be tunnelled, and a layered protocol (TLS/SSL)
-might be put on top of the tunnel.
-The {@link org.apache.http.conn.routing.RouteTracker RouteTracker}
-helps in tracking the steps for establishing a route, while an
-{@link org.apache.http.conn.routing.HttpRouteDirector HttpRouteDirector}
-determines the next step to take.
-</p>
-<p>
-The {@link org.apache.http.conn.routing.HttpRoutePlanner HttpRoutePlanner}
-is responsible for determining a route to a given target host.
-Implementations must know about proxies to use, and about exemptions
-for hosts that should be contacted directly without a proxy.
-</p>
-</body>
-</html>
+
+/**
+ * Client connection routing APIs.
+ */
+package org.apache.http.conn.routing;
