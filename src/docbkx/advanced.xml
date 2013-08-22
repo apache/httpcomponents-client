@@ -161,4 +161,115 @@ try {
 ]]></programlisting>
         </section>
     </section>
+    <section>
+        <title>Using the FutureRequestExecutionService</title>
+
+        <para>Using the FutureRequestExecutionService, you can schedule http calls and treat the response
+            as a Future. This is useful when e.g. making multiple calls to a web service. The advantage of using
+            the FutureRequestExecutionService is that you can use multiple threads to schedule requests concurrently, set timeouts on
+            the tasks, or cancel them when a response is no longer necessary.
+        </para>
+
+        <para>FutureRequestExecutionService wraps the request with a HttpRequestFutureTask, which extends FutureTask. This
+        class allows you to cancel the task as well as keep track of various metrics such as request duration.</para>
+
+        <section>
+            <title>Creating the FutureRequestExecutionService</title>
+            <para>The constructor for the futureRequestExecutionService takes any existing httpClient instance and an ExecutorService
+            instance. When configuring both, it is important to align the maximum number of connections with the number of threads
+            you are going to use. When there are more threads than connections, the connections may start timing out because there are no
+            available connections. When there are more connections than threads, the futureRequestExecutionService will not use all of them</para>
+
+            <programlisting><![CDATA[
+HttpClient httpClient = HttpClientBuilder.create().setMaxConnPerRoute(5).build();
+ExecutorService executorService = Executors.newFixedThreadPool(5);
+FutureRequestExecutionService futureRequestExecutionService =
+    new FutureRequestExecutionService(httpClient, executorService);
+]]></programlisting>
+        </section>
+
+        <section>
+            <title>Scheduling requests</title>
+            <para>To schedule a request, simply provide a HttpUriRequest, HttpContext, and a ResponseHandler. Because
+                the request is processed by the executor service, a ResponseHandler is mandatory.</para>
+
+            <programlisting><![CDATA[
+private final class OkidokiHandler implements ResponseHandler<Boolean> {
+    public Boolean handleResponse(
+            final HttpResponse response) throws ClientProtocolException, IOException {
+        return response.getStatusLine().getStatusCode() == 200;
+    }
+}
+
+HttpRequestFutureTask<Boolean> task = futureRequestExecutionService.execute(
+    new HttpGet("http://www.google.com"), HttpClientContext.create(),
+    new OkidokiHandler());
+// blocks until the request complete and then returns true if you can connect to Google
+boolean ok=task.get();
+]]></programlisting>
+        </section>
+        <section>
+            <title>Canceling tasks</title>
+            <para>Scheduled tasks may be cancelled. If the task is not yet executing but merely queued for execution, it simply will never execute. If it is executing and the mayInterruptIfRunning parameter is set to true, abort() will be called on the request; otherwise the response will simply be ignored but the request will be allowed to complete normally. Any subsequent calls to task.get() will fail with an IllegalStateException. It should be noticed that canceling tasks merely frees up the client side resources. The request may actually be handled normally on the server side. </para>
+            <programlisting><![CDATA[
+task.cancel(true)
+task.get() // throws an Exception
+]]></programlisting>
+        </section>
+        <section>
+            <title>Callbacks</title>
+            <para>Instead of manually calling task.get(), you can also use a FutureCallback instance that gets callbacks when the request completes. This is the
+                same interface as is used in HttpAsyncClient</para>
+                <programlisting><![CDATA[
+
+private final class MyCallback implements FutureCallback<Boolean> {
+
+    public void failed(final Exception ex) {
+        // do something
+    }
+
+    public void completed(final Boolean result) {
+        // do something
+    }
+
+    public void cancelled() {
+        // do something
+    }
+}
+
+HttpRequestFutureTask<Boolean> task = futureRequestExecutionService.execute(
+    new HttpGet("http://www.google.com"), HttpClientContext.create(),
+    new OkidokiHandler(), new MyCallback());
+]]></programlisting>
+        </section>
+        <section>
+            <title>Metrics</title>
+            <para>FutureRequestExecutionService is typically used in applications that make large amounts of
+                web service calls. To facilitate e.g. monitoring or configuration tuning, the FutureRequestExecutionService keeps
+                track of several metrics.</para>
+            <para>Each HttpRequestFutureTask provides methods to get the time the task was scheduled,
+                started, and ended. Additionally, request and task duration are available as well. These
+                metrics are aggregated in the FutureRequestExecutionService in a FutureRequestExecutionMetrics
+                instance that may be accessed through FutureRequestExecutionService.metrics().</para>
+            <programlisting><![CDATA[
+task.scheduledTime() // returns the timestamp the task was scheduled
+task.startedTime() // returns the timestamp when the task was started
+task.endedTime() // returns the timestamp when the task was done executing
+task.requestDuration // returns the duration of the http request
+task.taskDuration // returns the duration of the task from the moment it was scheduled
+
+FutureRequestExecutionMetrics metrics = futureRequestExecutionService.metrics()
+metrics.getActiveConnectionCount() // currently active connections
+metrics.getScheduledConnectionCount(); // currently scheduled connections
+metrics.getSuccessfulConnectionCount(); // total number of successful requests
+metrics.getSuccessfulConnectionAverageDuration(); // average request duration
+metrics.getFailedConnectionCount(); // total number of failed tasks
+metrics.getFailedConnectionAverageDuration(); // average duration of failed tasks
+metrics.getTaskCount(); // total number of tasks scheduled
+metrics.getRequestCount(); // total number of requests
+metrics.getRequestAverageDuration(); // average request duration
+metrics.getTaskAverageDuration(); // average task duration
+]]></programlisting>
+        </section>
+    </section>
 </chapter>
