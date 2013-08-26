@@ -37,7 +37,7 @@ public class MinimalField {
     private final String name;
     private final String value;
 
-    MinimalField(final String name, final String value) {
+    public MinimalField(final String name, final String value) {
         super();
         this.name = name;
         this.value = value;
