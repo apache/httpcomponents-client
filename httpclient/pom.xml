@@ -120,7 +120,7 @@
         <configuration>
           <!-- reduce console output. Can override with -Dquiet=false -->
           <quiet>true</quiet>
-          <source>${maven.compile.source}</source>
+          <source>${maven.compiler.source}</source>
           <links>
             <link>http://download.oracle.com/javase/1.5.0/docs/api/</link>
             <link>http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
