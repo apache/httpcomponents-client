@@ -157,6 +157,21 @@
       </plugin>
 
       <plugin>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>${hc.project-info.version}</version>
+        <inherited>false</inherited>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>dependencies</report>
+              <report>dependency-info</report>
+              <report>summary</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+      <plugin>
         <artifactId>maven-jxr-plugin</artifactId>
          <version>${hc.jxr.version}</version>
       </plugin>
