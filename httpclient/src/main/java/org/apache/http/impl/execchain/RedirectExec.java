@@ -116,12 +116,16 @@ public class RedirectExec implements ClientExecChain {
                     }
                     redirectCount++;
 
-                    final HttpRequest redirect = this.redirectStrategy.getRedirect(currentRequest, response, context);
-                    final HttpRequest original = currentRequest.getOriginal();
+                    final HttpRequest redirect = this.redirectStrategy.getRedirect(
+                            currentRequest, response, context);
+                    if (!redirect.headerIterator().hasNext()) {
+                        final HttpRequest original = request.getOriginal();
+                        redirect.setHeaders(original.getAllHeaders());
+                    }
                     currentRequest = HttpRequestWrapper.wrap(redirect);
-                    currentRequest.setHeaders(original.getAllHeaders());
-                    if (original instanceof HttpEntityEnclosingRequest) {
-                        Proxies.enhanceEntity((HttpEntityEnclosingRequest) request);
+
+                    if (currentRequest instanceof HttpEntityEnclosingRequest) {
+                        Proxies.enhanceEntity((HttpEntityEnclosingRequest) currentRequest);
                     }
 
                     final URI uri = currentRequest.getURI();
