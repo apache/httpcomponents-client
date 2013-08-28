@@ -154,8 +154,24 @@ public class Request {
         return this;
     }
 
+    /**
+     * @since 4.3
+     */
+    public Request setHeader(final Header header) {
+        this.request.setHeader(header);
+        return this;
+    }
+
     public Request addHeader(final String name, final String value) {
         this.request.addHeader(name, value);
+        return this;
+    }
+
+    /**
+     * @since 4.3
+     */
+    public Request setHeader(final String name, final String value) {
+        this.request.setHeader(name, value);
         return this;
     }
 
@@ -169,7 +185,7 @@ public class Request {
         return this;
     }
 
-    public Request setHeaders(final Header[] headers) {
+    public Request setHeaders(final Header... headers) {
         this.request.setHeaders(headers);
         return this;
     }
