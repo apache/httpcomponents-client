@@ -1,5 +1,11 @@
-Changes since Release 4.2.5
+Release 4.2.6
 -------------------
+
+HttpClient 4.2.6 (GA) is a maintenance release that addresses a number of issues reported since 
+release 4.2.5. Users of HttpClient 4.2.x are advised to upgrade.
+
+This is likely to be the last release in the 4.2.x branch.
+
 
 * [HTTPCLIENT-1385] Fixed path normalization in CacheKeyGenerator
   Contributed by James Leigh <james at 3roundstones dot com>
