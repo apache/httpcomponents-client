@@ -1,5 +1,38 @@
+Release 4.3 Final
+-------------------
 
-Changes since release 4.3 BETA2
+This is the first stable (GA) release of HttpClient 4.3. The most notable enhancements included 
+in this release are:
+
+* Support for Java 7 try-with-resources for resource management (connection release.)
+
+* Added fluent Builder classes for HttpEntity, HttpRequest, HttpClient and SSLContext instances. 
+
+* Deprecation of preference and configuration API based on HttpParams interface in favor of
+constructor injection and plain configuration objects.
+
+* Reliance on object immutability instead of access synchronization for thread safety. 
+Several old classes whose instances can be shared by multiple request exchanges have
+been replaced by immutable equivalents. 
+
+* DefaultHttpClient,  DecompressingHttpClient, CachingHttpClient and similar classes are 
+deprecated in favor of builder classes that produce immutable HttpClient instances. 
+
+* HttpClient builders now dynamically construct a request execution pipeline tailored 
+specifically to the user configuration by physically excluding unnecessary protocol components.
+
+* There is now an option to construct a minimal HttpClient implementation that can only execute 
+basic HTTP message exchanges without redirects, authentication, state management or proxy support.
+This feature might be of particular use in web crawler development. 
+
+* There is now option to avoid strict URI syntax for request URIs by executing HTTP requests 
+with an explicitly specified target host. HttpClient will no longer attempt to parse the request 
+URI if it does not need to extract the target host from it.
+
+This release also includes all fixes from the stable 4.2.x release branch.
+
+
+Changelog
 -------------------
 
 * [HTTPCLIENT-1384] Expose CacheInvalidator interface.
@@ -37,34 +70,16 @@ Release 4.3 BETA2
 -------------------
 
 This is the second BETA release of HttpClient 4.3. The most notable features and improvements 
-in the 4.3 branch are: 
-
-* Support for Java 7 try-with-resources for resource management (connection release.)
-
-* Added fluent Builder classes for HttpEntity, HttpRequest, HttpClient and SSLContext instances. 
-
-* Deprecation of preference and configuration API based on HttpParams interface in favor of
-constructor injection and plain configuration objects.
-
-* Reliance on object immutability instead of access synchronization for thread safety. 
-Several old classes whose instances can be shared by multiple request exchanges have
-been replaced by immutable equivalents. 
-
-* DefaultHttpClient,  DecompressingHttpClient, CachingHttpClient and similar classes are 
-deprecated in favor of builder classes that produce immutable HttpClient instances. 
-
-* HttpClient builders now dynamically construct a request execution pipeline tailored 
-specifically to the user configuration by physically excluding unnecessary protocol components.
-
-* There is now an option to construct a minimal HttpClient implementation that can only execute 
-basic HTTP message exchanges without redirects, authentication, state management or proxy support.
-This feature might be of particular use in web crawler development. 
-
-* There is now option to avoid strict URI syntax for request URIs by executing HTTP requests 
-with an explicitly specified target host. HttpClient will no longer attempt to parse the request 
-URI if it does not need to extract the target host from it.
+in the 4.3 branch are: Support for Java 7  try-with-resources for resource management (connection 
+release); fluent Builder classes for HttpEntity, HttpRequest and HttpClient instances, deprecation 
+of preference and configuration API based on HttpParams interface in favor of constructor injection 
+and plain configuration objects, reliance on object immutability instead of access synchronization 
+for thread safety. 
 
 This release also includes all fixes from the stable 4.2.x release branch.
+
+Changelog
+-------------------
 
 
 * [HTTPCLIENT-1366] org.apache.http.client.utils.URLEncodedUtils should parse the semicolon as a query parameter separator.
