@@ -182,7 +182,7 @@ public class CachingHttpClient implements HttpClient {
         this.conditionalRequestBuilder = new ConditionalRequestBuilder();
 
         this.responseCompliance = new ResponseProtocolCompliance();
-        this.requestCompliance = new RequestProtocolCompliance();
+        this.requestCompliance = new RequestProtocolCompliance(config.isWeakETagOnPutDeleteAllowed());
 
         this.asynchRevalidator = makeAsynchronousValidator(config);
     }

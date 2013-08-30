@@ -54,6 +54,17 @@ import org.apache.http.protocol.HTTP;
  */
 @Immutable
 class RequestProtocolCompliance {
+    private final boolean weakETagOnPutDeleteAllowed;
+
+    public RequestProtocolCompliance() {
+        super();
+        this.weakETagOnPutDeleteAllowed = false;
+    }
+
+    public RequestProtocolCompliance(final boolean weakETagOnPutDeleteAllowed) {
+        super();
+        this.weakETagOnPutDeleteAllowed = weakETagOnPutDeleteAllowed;
+    }
 
     private static final List<String> disallowedWithNoCache =
         Arrays.asList(HeaderConstants.CACHE_CONTROL_MIN_FRESH, HeaderConstants.CACHE_CONTROL_MAX_STALE, HeaderConstants.CACHE_CONTROL_MAX_AGE);
@@ -73,9 +84,11 @@ class RequestProtocolCompliance {
             theErrors.add(anError);
         }
 
-        anError = requestHasWeekETagForPUTOrDELETEIfMatch(request);
-        if (anError != null) {
-            theErrors.add(anError);
+        if (!weakETagOnPutDeleteAllowed) {
+            anError = requestHasWeekETagForPUTOrDELETEIfMatch(request);
+            if (anError != null) {
+                theErrors.add(anError);
+            }
         }
 
         anError = requestContainsNoCacheDirectiveWithFieldName(request);

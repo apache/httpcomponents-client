@@ -30,10 +30,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
@@ -48,7 +51,35 @@ public class TestRequestProtocolCompliance {
     @Before
     public void setUp() {
         req = HttpTestUtils.makeDefaultRequest();
-        impl = new RequestProtocolCompliance();
+        impl = new RequestProtocolCompliance(false);
+    }
+
+    @Test
+    public void testRequestWithWeakETagAndRange() throws Exception {
+        req.setHeader("Range", "bytes=0-499");
+        req.setHeader("If-Range", "W/\"weak\"");
+        assertEquals(1, impl.requestIsFatallyNonCompliant(req).size());
+    }
+
+    @Test
+    public void testRequestWithWeekETagForPUTOrDELETEIfMatch() throws Exception {
+        req = new HttpPut("http://example.com/");
+        req.setHeader("If-Match", "W/\"weak\"");
+        assertEquals(1, impl.requestIsFatallyNonCompliant(req).size());
+    }
+
+    @Test
+    public void testRequestWithWeekETagForPUTOrDELETEIfMatchAllowed() throws Exception {
+        req = new HttpPut("http://example.com/");
+        req.setHeader("If-Match", "W/\"weak\"");
+        impl = new RequestProtocolCompliance(true);
+        assertEquals(Arrays.asList(), impl.requestIsFatallyNonCompliant(req));
+    }
+
+    @Test
+    public void testRequestContainsNoCacheDirectiveWithFieldName() throws Exception {
+        req.setHeader("Cache-Control", "no-cache=false");
+        assertEquals(1, impl.requestIsFatallyNonCompliant(req).size());
     }
 
     @Test

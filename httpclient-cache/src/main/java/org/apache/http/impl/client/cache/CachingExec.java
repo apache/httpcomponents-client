@@ -139,7 +139,7 @@ public class CachingExec implements ClientExecChain {
         this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy, config);
         this.conditionalRequestBuilder = new ConditionalRequestBuilder();
         this.responseCompliance = new ResponseProtocolCompliance();
-        this.requestCompliance = new RequestProtocolCompliance();
+        this.requestCompliance = new RequestProtocolCompliance(config.isWeakETagOnPutDeleteAllowed());
         this.responseCachingPolicy = new ResponseCachingPolicy(
                 this.cacheConfig.getMaxObjectSize(), this.cacheConfig.isSharedCache(),
                 this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery(), this.cacheConfig.is303CachingEnabled());

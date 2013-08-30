@@ -34,6 +34,8 @@ This release also includes all fixes from the stable 4.2.x release branch.
 
 Changelog
 -------------------
+* [HTTPCLIENT-1371] Weak ETag Validation is Useful On PUT With If-Match
+  Contributed by James Leigh <james at 3roundstones dot com>
 
 * [HTTPCLIENT-1384] Expose CacheInvalidator interface.
   Contributed by Nicolas Richeton <nicolas.richeton at free.fr>

@@ -65,6 +65,14 @@ import org.apache.http.util.Args;
  * adherence to the existing standard, but you may want to
  * {@link Builder#setAllow303Caching(boolean) enable it}.
  *
+ * <p><b>Weak ETags on PUT/DELETE If-Match requests</b>. RFC2616 explicitly
+ * prohibits the use of weak validators in non-GET requests, however, the
+ * HTTPbis working group says while the limitation for weak validators on ranged
+ * requests makes sense, weak ETag validation is useful on full non-GET
+ * requests; e.g., PUT with If-Match. This behavior is off by default, to err on
+ * the side of a conservative adherence to the existing standard, but you may
+ * want to {@link Builder#setWeakETagOnPutDeleteAllowed(boolean) enable it}.
+ *
  * <p><b>Heuristic caching</b>. Per RFC2616, a cache may cache certain cache
  * entries even if no explicit cache control headers are set by the origin.
  * This behavior is off by default, but you may want to turn this on if you
@@ -113,6 +121,10 @@ public class CacheConfig implements Cloneable {
      */
     public final static boolean DEFAULT_303_CACHING_ENABLED = false;
 
+    /** Default setting to allow weak tags on PUT/DELETE methods
+     */
+    public final static boolean DEFAULT_WEAK_ETAG_ON_PUTDELETE_ALLOWED = false;
+
     /** Default setting for heuristic caching
      */
     public final static boolean DEFAULT_HEURISTIC_CACHING_ENABLED = false;
@@ -153,6 +165,7 @@ public class CacheConfig implements Cloneable {
     private int maxCacheEntries;
     private int maxUpdateRetries;
     private boolean allow303Caching;
+    private boolean weakETagOnPutDeleteAllowed;
     private boolean heuristicCachingEnabled;
     private float heuristicCoefficient;
     private long heuristicDefaultLifetime;
@@ -172,8 +185,9 @@ public class CacheConfig implements Cloneable {
         this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
         this.maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
         this.maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
-        this.allow303Caching = false;
-        this.heuristicCachingEnabled = false;
+        this.allow303Caching = DEFAULT_303_CACHING_ENABLED;
+        this.weakETagOnPutDeleteAllowed = DEFAULT_WEAK_ETAG_ON_PUTDELETE_ALLOWED;
+        this.heuristicCachingEnabled = DEFAULT_HEURISTIC_CACHING_ENABLED;
         this.heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
         this.heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
         this.isSharedCache = true;
@@ -188,6 +202,7 @@ public class CacheConfig implements Cloneable {
             final int maxCacheEntries,
             final int maxUpdateRetries,
             final boolean allow303Caching,
+            final boolean weakETagOnPutDeleteAllowed,
             final boolean heuristicCachingEnabled,
             final float heuristicCoefficient,
             final long heuristicDefaultLifetime,
@@ -202,6 +217,7 @@ public class CacheConfig implements Cloneable {
         this.maxCacheEntries = maxCacheEntries;
         this.maxUpdateRetries = maxUpdateRetries;
         this.allow303Caching = allow303Caching;
+        this.weakETagOnPutDeleteAllowed = weakETagOnPutDeleteAllowed;
         this.heuristicCachingEnabled = heuristicCachingEnabled;
         this.heuristicCoefficient = heuristicCoefficient;
         this.heuristicDefaultLifetime = heuristicDefaultLifetime;
@@ -310,6 +326,14 @@ public class CacheConfig implements Cloneable {
      */
     public boolean is303CachingEnabled() {
         return allow303Caching;
+    }
+
+    /**
+     * Returns whether weak etags is allowed with PUT/DELETE methods.
+     * @return {@code true} if it is allowed.
+     */
+    public boolean isWeakETagOnPutDeleteAllowed() {
+        return weakETagOnPutDeleteAllowed;
     }
 
     /**
@@ -519,6 +543,7 @@ public class CacheConfig implements Cloneable {
         private int maxCacheEntries;
         private int maxUpdateRetries;
         private boolean allow303Caching;
+        private boolean weakETagOnPutDeleteAllowed;
         private boolean heuristicCachingEnabled;
         private float heuristicCoefficient;
         private long heuristicDefaultLifetime;
@@ -533,7 +558,8 @@ public class CacheConfig implements Cloneable {
             this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
             this.maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
             this.maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
-            this.allow303Caching = false;
+            this.allow303Caching = DEFAULT_303_CACHING_ENABLED;
+            this.weakETagOnPutDeleteAllowed = DEFAULT_WEAK_ETAG_ON_PUTDELETE_ALLOWED;
             this.heuristicCachingEnabled = false;
             this.heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
             this.heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
@@ -576,6 +602,16 @@ public class CacheConfig implements Cloneable {
          */
         public Builder setAllow303Caching(final boolean allow303Caching) {
             this.allow303Caching = allow303Caching;
+            return this;
+        }
+
+        /**
+         * Allows or disallows weak etags to be used with PUT/DELETE If-Match requests.
+         * @param weakETagOnPutDeleteAllowed should be {@code true} to
+         *   permit weak etags, {@code false} to reject them.
+         */
+        public Builder setWeakETagOnPutDeleteAllowed(final boolean weakETagOnPutDeleteAllowed) {
+            this.weakETagOnPutDeleteAllowed = weakETagOnPutDeleteAllowed;
             return this;
         }
 
@@ -690,6 +726,7 @@ public class CacheConfig implements Cloneable {
                     maxCacheEntries,
                     maxUpdateRetries,
                     allow303Caching,
+                    weakETagOnPutDeleteAllowed,
                     heuristicCachingEnabled,
                     heuristicCoefficient,
                     heuristicDefaultLifetime,
@@ -710,6 +747,7 @@ public class CacheConfig implements Cloneable {
                 .append(", maxCacheEntries=").append(this.maxCacheEntries)
                 .append(", maxUpdateRetries=").append(this.maxUpdateRetries)
                 .append(", 303CachingEnabled=").append(this.allow303Caching)
+                .append(", weakETagOnPutDeleteAllowed=").append(this.weakETagOnPutDeleteAllowed)
                 .append(", heuristicCachingEnabled=").append(this.heuristicCachingEnabled)
                 .append(", heuristicCoefficient=").append(this.heuristicCoefficient)
                 .append(", heuristicDefaultLifetime=").append(this.heuristicDefaultLifetime)
