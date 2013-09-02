@@ -43,9 +43,6 @@ Changelog
 * [HTTPCLIENT-1385] Fixed path normalization in CacheKeyGenerator
   Contributed by James Leigh <james at 3roundstones dot com>
 
-* [HTTPCLIENT-1385] Fixed path normalization in CacheKeyGenerator
-  Contributed by James Leigh <james at 3roundstones dot com>
-
 * [HTTPCLIENT-1370] Response to non-GET requests should never be cached with the default
   ResponseCachingPolicy
   Contributed by James Leigh <james at 3roundstones dot com>
