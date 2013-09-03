@@ -74,6 +74,7 @@
     <junit.version>4.9</junit.version>
     <easymock.version>2.5.2</easymock.version>
     <mockito.version>1.8.5</mockito.version>
+    <jna.version>4.0.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <api.comparison.version>4.2</api.comparison.version>
   </properties>
@@ -123,6 +124,16 @@
         <version>${memcached.version}</version>
       </dependency>
       <dependency>
+        <groupId>net.java.dev.jna</groupId>
+        <artifactId>jna</artifactId>
+        <version>${jna.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.java.dev.jna</groupId>
+        <artifactId>jna-platform</artifactId>
+        <version>${jna.version}</version>
+      </dependency>
+      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${junit.version}</version>
@@ -153,6 +164,7 @@
     <module>httpclient</module>
     <module>httpmime</module>
     <module>httpclient-cache</module>
+    <module>winauth-jni</module>
     <module>fluent-hc</module>
     <module>httpclient-osgi</module>
   </modules>

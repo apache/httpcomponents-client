@@ -37,6 +37,9 @@ Changelog
 * [HTTPCLIENT-1371] Weak ETag Validation is Useful On PUT With If-Match
   Contributed by James Leigh <james at 3roundstones dot com>
 
+* [HTTPCLIENT-1394] Support for Native windows Negotiate/NTLM via JNA
+  Contributed by Ryan McKinley <ryan at apache.org> 
+
 * [HTTPCLIENT-1384] Expose CacheInvalidator interface.
   Contributed by Nicolas Richeton <nicolas.richeton at free.fr>
  
