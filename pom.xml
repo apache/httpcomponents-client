@@ -163,9 +163,9 @@
   <modules>
     <module>httpclient</module>
     <module>httpmime</module>
-    <module>httpclient-cache</module>
-    <!--module>winauth-jni</module-->
     <module>fluent-hc</module>
+    <module>httpclient-cache</module>
+    <!--module>httpclient-win</module-->
     <module>httpclient-osgi</module>
   </modules>
 
