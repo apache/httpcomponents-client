@@ -1,6 +1,9 @@
 Changes since 4.3
 -------------------
 
+* [HTTPCLIENT-1398] Fixed invalid OSGi metadata caused by corrupted Maven bundle plugin metadata.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1399] Fixed NPE in RequestBuilder.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
