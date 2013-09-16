@@ -226,7 +226,7 @@ public class RequestBuilder {
     }
 
     public RequestBuilder setHeader(final Header header) {
-        if (headergroup != null) {
+        if (headergroup == null) {
             headergroup = new HeaderGroup();
         }
         this.headergroup.updateHeader(header);
@@ -234,7 +234,7 @@ public class RequestBuilder {
     }
 
     public RequestBuilder setHeader(final String name, final String value) {
-        if (headergroup != null) {
+        if (headergroup == null) {
             headergroup = new HeaderGroup();
         }
         this.headergroup.updateHeader(new BasicHeader(name, value));

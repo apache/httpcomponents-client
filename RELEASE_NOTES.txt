@@ -1,3 +1,12 @@
+Changes since 4.3
+-------------------
+
+* [HTTPCLIENT-1399] Fixed NPE in RequestBuilder.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
+
 Release 4.3 Final
 -------------------
 

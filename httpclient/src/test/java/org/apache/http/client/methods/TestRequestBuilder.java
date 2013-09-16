@@ -195,6 +195,11 @@ public class TestRequestBuilder {
         Assert.assertEquals(0, builder.getHeaders("header1").length);
         Assert.assertSame(null, builder.getEntity());
         Assert.assertSame(null, builder.getConfig());
+
+        builder.setHeader(h2)
+            .setHeader("header1", "a-lot-more-stuff");
+        Assert.assertSame("a-lot-more-stuff", builder.getLastHeader("header1").getValue());
+        Assert.assertEquals(1, builder.getHeaders("header1").length);
     }
 
     @Test(expected=IllegalArgumentException.class)
