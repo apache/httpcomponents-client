@@ -134,7 +134,7 @@
             org.ietf.jgss,,
             org.osgi.framework,
             org.osgi.service.cm,
-            org.apache.commons.logging;version=${commons-logging.version},
+            org.apache.commons.logging;version="[1.1.1,1.2.0)",
             org.apache.http;version=${httpcore.version},
             org.apache.http.config;version=${httpcore.version},
             org.apache.http.concurrent;version=${httpcore.version},
