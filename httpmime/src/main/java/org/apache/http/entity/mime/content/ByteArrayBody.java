@@ -56,7 +56,7 @@ public class ByteArrayBody extends AbstractContentBody {
      * Creates a new ByteArrayBody.
      *
      * @param data The contents of the file contained in this part.
-     * @param mimeType The mime type of the file contained in this part.
+     * @param mimeType The MIME type of the file contained in this part.
      * @param filename The name of the file contained in this part.
      *
      * @deprecated (4.3) use {@link ByteArrayBody#ByteArrayBody(byte[], ContentType, String)}

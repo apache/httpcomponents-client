@@ -51,7 +51,7 @@ public class HttpMultipart extends AbstractMultipartForm {
     /**
      * Creates an instance with the specified settings.
      *
-     * @param subType mime subtype - must not be {@code null}
+     * @param subType MIME subtype - must not be {@code null}
      * @param charset the character set to use. May be {@code null},
      *  in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
      * @param boundary to use  - must not be {@code null}
@@ -70,7 +70,7 @@ public class HttpMultipart extends AbstractMultipartForm {
      * Creates an instance with the specified settings.
      * Mode is set to {@link HttpMultipartMode#STRICT}
      *
-     * @param subType mime subtype - must not be {@code null}
+     * @param subType MIME subtype - must not be {@code null}
      * @param charset the character set to use. May be {@code null},
      *   in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
      * @param boundary to use  - must not be {@code null}
