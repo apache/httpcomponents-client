@@ -198,6 +198,15 @@ public class HttpClientBuilder {
 
     private List<Closeable> closeables;
 
+    static final String DEFAULT_USER_AGENT;
+    static {
+        final VersionInfo vi = VersionInfo.loadVersionInfo
+                ("org.apache.http.client", HttpClientBuilder.class.getClassLoader());
+        final String release = (vi != null) ?
+                vi.getRelease() : VersionInfo.UNAVAILABLE;
+        DEFAULT_USER_AGENT = "Apache-HttpClient/" + release + " (java 1.5)";
+    }
+
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
     }
@@ -788,10 +797,7 @@ public class HttpClientBuilder {
                     userAgent = System.getProperty("http.agent");
                 }
                 if (userAgent == null) {
-                    final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client",
-                            HttpClientBuilder.class.getClassLoader());
-                    final String release = vi != null ? vi.getRelease() : VersionInfo.UNAVAILABLE;
-                    userAgent = "Apache-HttpClient/" + release + " (java 1.5)";
+                    userAgent = DEFAULT_USER_AGENT;
                 }
             }
 

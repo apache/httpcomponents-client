@@ -47,7 +47,6 @@ import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestExpectContinue;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
-import org.apache.http.util.VersionInfo;
 
 /**
  * Default implementation of {@link org.apache.http.client.HttpClient} pre-configured
@@ -181,14 +180,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
         HttpProtocolParams.setContentCharset(params, HTTP.DEF_CONTENT_CHARSET.name());
         HttpConnectionParams.setTcpNoDelay(params, true);
         HttpConnectionParams.setSocketBufferSize(params, 8192);
-
-        // determine the release version from packaged version info
-        final VersionInfo vi = VersionInfo.loadVersionInfo
-            ("org.apache.http.client", DefaultHttpClient.class.getClassLoader());
-        final String release = (vi != null) ?
-            vi.getRelease() : VersionInfo.UNAVAILABLE;
-        HttpProtocolParams.setUserAgent(params,
-                "Apache-HttpClient/" + release + " (java 1.5)");
+        HttpProtocolParams.setUserAgent(params, HttpClientBuilder.DEFAULT_USER_AGENT);
     }
 
     /**
