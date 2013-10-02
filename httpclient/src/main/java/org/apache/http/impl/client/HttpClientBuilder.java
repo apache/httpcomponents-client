@@ -699,6 +699,10 @@ public class HttpClientBuilder {
         if (connManager == null) {
             LayeredConnectionSocketFactory sslSocketFactory = this.sslSocketFactory;
             if (sslSocketFactory == null) {
+                X509HostnameVerifier hostnameVerifier = this.hostnameVerifier;
+                if (hostnameVerifier == null) {
+                    hostnameVerifier = SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
+                }
                 if (sslcontext != null) {
                     sslSocketFactory = new SSLConnectionSocketFactory(sslcontext, hostnameVerifier);
                 } else {
