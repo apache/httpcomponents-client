@@ -361,11 +361,10 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
             final String[] supportedProtocols,
             final String[] supportedCipherSuites,
             final X509HostnameVerifier hostnameVerifier) {
-        Args.notNull(socketfactory, "SSL socket factory");
-        this.socketfactory = socketfactory;
+        this.socketfactory = Args.notNull(socketfactory, "SSL socket factory");
         this.supportedProtocols = supportedProtocols;
         this.supportedCipherSuites = supportedCipherSuites;
-        this.hostnameVerifier = hostnameVerifier;
+        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
         this.nameResolver = null;
     }
 
@@ -556,15 +555,13 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     }
 
     private void verifyHostname(final SSLSocket sslsock, final String hostname) throws IOException {
-        if (this.hostnameVerifier != null) {
-            try {
-                this.hostnameVerifier.verify(hostname, sslsock);
-                // verifyHostName() didn't blowup - good!
-            } catch (final IOException iox) {
-                // close the socket before re-throwing the exception
-                try { sslsock.close(); } catch (final Exception x) { /*ignore*/ }
-                throw iox;
-            }
+        try {
+            this.hostnameVerifier.verify(hostname, sslsock);
+            // verifyHostName() didn't blowup - good!
+        } catch (final IOException iox) {
+            // close the socket before re-throwing the exception
+            try { sslsock.close(); } catch (final Exception x) { /*ignore*/ }
+            throw iox;
         }
     }
 

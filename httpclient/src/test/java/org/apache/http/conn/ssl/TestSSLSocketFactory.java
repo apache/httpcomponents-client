@@ -300,4 +300,12 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
     }
 
+    @Test
+    public void testDefaultHostnameVerifier() throws Exception {
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
+                SSLContexts.createDefault(),
+                null);
+        Assert.assertNotNull(socketFactory.getHostnameVerifier());
+    }
+
 }
