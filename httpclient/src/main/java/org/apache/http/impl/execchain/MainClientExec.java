@@ -70,7 +70,6 @@ import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
 import org.apache.http.protocol.RequestTargetHost;
-import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
 
@@ -118,7 +117,7 @@ public class MainClientExec implements ClientExecChain {
         Args.notNull(userTokenHandler, "User token handler");
         this.authenticator      = new HttpAuthenticator();
         this.proxyHttpProcessor = new ImmutableHttpProcessor(
-                new RequestTargetHost(), new RequestClientConnControl(), new RequestUserAgent());
+                new RequestTargetHost(), new RequestClientConnControl());
         this.routeDirector      = new BasicRouteDirector();
         this.requestExecutor    = requestExecutor;
         this.connManager        = connManager;
