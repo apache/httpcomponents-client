@@ -1,6 +1,9 @@
 Changes since 4.3
 -------------------
 
+* [HTTPCLIENT-1405] CONNECT HTTP/1.1 requests lack mandatory 'Host' header.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1402] Cache default User-Agent value.
   Contributed by yuexiaojun <junedo at qq.com> 
 

@@ -73,6 +73,7 @@ import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
+import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
@@ -105,8 +106,8 @@ public class ProxyClient {
         this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
         this.connectionConfig = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
         this.requestConfig = requestConfig != null ? requestConfig : RequestConfig.DEFAULT;
-        this.httpProcessor = new ImmutableHttpProcessor(new RequestClientConnControl(),
-                new RequestUserAgent());
+        this.httpProcessor = new ImmutableHttpProcessor(
+                new RequestTargetHost(), new RequestClientConnControl(), new RequestUserAgent());
         this.requestExec = new HttpRequestExecutor();
         this.proxyAuthStrategy = new ProxyAuthenticationStrategy();
         this.authenticator = new HttpAuthenticator();
