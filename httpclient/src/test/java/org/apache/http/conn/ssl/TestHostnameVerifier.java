@@ -150,9 +150,9 @@ public class TestHostnameVerifier {
         // using "*.co.jp".
         DEFAULT.verify("*.co.jp", x509);
         STRICT.verify("*.co.jp", x509);
-        exceptionPlease(DEFAULT, "foo.co.jp", x509);
+        DEFAULT.verify("foo.co.jp", x509);
         exceptionPlease(STRICT, "foo.co.jp", x509);
-        exceptionPlease(DEFAULT, "\u82b1\u5b50.co.jp", x509);
+        DEFAULT.verify("\u82b1\u5b50.co.jp", x509);
         exceptionPlease(STRICT, "\u82b1\u5b50.co.jp", x509);
 
         in = new ByteArrayInputStream(CertificatesToPlayWith.X509_WILD_FOO_BAR_HANAKO);
@@ -285,10 +285,10 @@ public class TestHostnameVerifier {
         checkMatching(shv, "s.a.b.c", cns, alt, true); // subdomain not OK
 
         alt = new String []{"*.gov.uk"};
-        checkMatching(bhv, "a.gov.uk", cns, alt, true); // Bad 2TLD
+        checkMatching(bhv, "a.gov.uk", cns, alt, false); // OK
         checkMatching(shv, "a.gov.uk", cns, alt, true); // Bad 2TLD
 
-        checkMatching(bhv, "s.a.gov.uk", cns, alt, true); // Bad 2TLD
+        checkMatching(bhv, "s.a.gov.uk", cns, alt, false); // OK
         checkMatching(shv, "s.a.gov.uk", cns, alt, true); // Bad 2TLD/no subdomain allowed
 
         alt = new String []{"*.gov.com"};
@@ -299,7 +299,7 @@ public class TestHostnameVerifier {
         checkMatching(shv, "s.a.gov.com", cns, alt, true); // no subdomain allowed
 
         cns = new String []{"a*.gov.uk"}; // 2TLD check applies to wildcards
-        checkMatching(bhv, "a.gov.uk", cns, alt, true); // Bad 2TLD
+        checkMatching(bhv, "a.gov.uk", cns, alt, false); // OK
         checkMatching(shv, "a.gov.uk", cns, alt, true); // Bad 2TLD
 
         checkMatching(bhv, "s.a.gov.uk", cns, alt, true); // Bad 2TLD
@@ -336,10 +336,6 @@ public class TestHostnameVerifier {
 
         checkMatching(bhv, "a.a.b.c", cns, alt, false); // OK
         checkMatching(shv, "a.a.b.c", cns, alt, true); // subdomain not OK
-
-        checkWildcard("s*.co.uk", false); // 2 character TLD, invalid 2TLD
-        checkWildcard("s*.gov.uk", false); // 2 character TLD, invalid 2TLD
-        checkWildcard("s*.gouv.uk", false); // 2 character TLD, invalid 2TLD
     }
 
     @Test
@@ -351,23 +347,6 @@ public class TestHostnameVerifier {
         final String alt[] = {};
         checkMatching(bhv, "mail.a.b.c.com", cns, alt, false); // OK
         checkMatching(shv, "mail.a.b.c.com", cns, alt, false); // OK
-    }
-
-    // Helper
-    private void checkWildcard(final String host, final boolean isOK) {
-        Assert.assertTrue(host+" should be "+isOK, isOK==AbstractVerifier.acceptableCountryWildcard(host));
-    }
-
-    @Test
-    // Various checks of 2TLDs
-    public void testAcceptableCountryWildcards() {
-        checkWildcard("*.co.org", true); // Not a 2 character TLD
-        checkWildcard("s*.co.org", true); // Not a 2 character TLD
-        checkWildcard("*.co.uk", false); // 2 character TLD, invalid 2TLD
-        checkWildcard("*.gov.uk", false); // 2 character TLD, invalid 2TLD
-        checkWildcard("*.gouv.uk", false); // 2 character TLD, invalid 2TLD
-        checkWildcard("*.a.co.uk", true); // 2 character TLD, invalid 2TLD, but using subdomain
-        checkWildcard("s*.a.co.uk", true); // 2 character TLD, invalid 2TLD, but using subdomain
     }
 
     public void testGetCNs() {

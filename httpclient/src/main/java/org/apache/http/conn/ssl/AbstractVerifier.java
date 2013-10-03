@@ -201,10 +201,9 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             // action.  It also can't be [*.co.uk] or [*.co.jp] or
             // [*.org.uk], etc...
             final String parts[] = cn.split("\\.");
-            final boolean doWildcard = parts.length >= 3 &&
-                                 parts[0].endsWith("*") &&
-                                 acceptableCountryWildcard(cn) &&
-                                 !isIPAddress(host);
+            final boolean doWildcard =
+                    parts.length >= 3 && parts[0].endsWith("*") &&
+                    validCountryWildcard(cn) && !isIPAddress(host);
 
             if(doWildcard) {
                 final String firstpart = parts[0];
@@ -233,7 +232,19 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         }
     }
 
+    /**
+     * @deprecated (4.3.1) should not be a part of public APIs.
+     */
+    @Deprecated
     public static boolean acceptableCountryWildcard(final String cn) {
+        final String parts[] = cn.split("\\.");
+        if (parts.length != 3 || parts[2].length() != 2) {
+            return true; // it's not an attempt to wildcard a 2TLD within a country code
+        }
+        return Arrays.binarySearch(BAD_COUNTRY_2LDS, parts[1]) < 0;
+    }
+
+    boolean validCountryWildcard(final String cn) {
         final String parts[] = cn.split("\\.");
         if (parts.length != 3 || parts[2].length() != 2) {
             return true; // it's not an attempt to wildcard a 2TLD within a country code
