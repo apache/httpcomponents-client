@@ -1,4 +1,12 @@
-Changes since 4.3
+Release 4.3.1
+-------------------
+
+HttpClient 4.3.1 (GA) is a bug fix release that addresses a number of issues reported since 
+release 4.3. 
+
+Users of HttpClient 4.3 are strongly encouraged to upgrade.
+
+Changelog
 -------------------
 
 * [HTTPCLIENT-1410] Browser compatible hostname verifier no longer rejects
