@@ -35,6 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Header;
@@ -699,19 +700,22 @@ public class HttpClientBuilder {
         if (connManager == null) {
             LayeredConnectionSocketFactory sslSocketFactory = this.sslSocketFactory;
             if (sslSocketFactory == null) {
+                final String[] supportedProtocols = systemProperties ? split(
+                        System.getProperty("https.protocols")) : null;
+                final String[] supportedCipherSuites = systemProperties ? split(
+                        System.getProperty("https.cipherSuites")) : null;
                 X509HostnameVerifier hostnameVerifier = this.hostnameVerifier;
                 if (hostnameVerifier == null) {
                     hostnameVerifier = SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
                 }
                 if (sslcontext != null) {
-                    sslSocketFactory = new SSLConnectionSocketFactory(sslcontext, hostnameVerifier);
+                    sslSocketFactory = new SSLConnectionSocketFactory(
+                            sslcontext, supportedProtocols, supportedCipherSuites, hostnameVerifier);
                 } else {
                     if (systemProperties) {
                         sslSocketFactory = new SSLConnectionSocketFactory(
-                                (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault(),
-                                split(System.getProperty("https.protocols")),
-                                split(System.getProperty("https.cipherSuites")),
-                                hostnameVerifier);
+                                (SSLSocketFactory) SSLSocketFactory.getDefault(),
+                                supportedProtocols, supportedCipherSuites, hostnameVerifier);
                     } else {
                         sslSocketFactory = new SSLConnectionSocketFactory(
                                 SSLContexts.createDefault(),
