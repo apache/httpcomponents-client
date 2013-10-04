@@ -534,8 +534,7 @@ public class HttpClientBuilder {
      * Assigns default proxy value.
      * <p/>
      * Please note this value can be overridden by the {@link #setRoutePlanner(
-     *   org.apache.http.conn.routing.HttpRoutePlanner)} and
-     * {@link #disableRedirectHandling()} methods.
+     *   org.apache.http.conn.routing.HttpRoutePlanner)} method.
      */
     public final HttpClientBuilder setProxy(final HttpHost proxy) {
         this.proxy = proxy;
@@ -544,9 +543,6 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link HttpRoutePlanner} instance.
-     * <p/>
-     * Please note this value can be overridden by the {@link #disableRedirectHandling()}
-     * method.
      */
     public final HttpClientBuilder setRoutePlanner(final HttpRoutePlanner routePlanner) {
         this.routePlanner = routePlanner;
@@ -555,7 +551,10 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link RedirectStrategy} instance.
-     */
+     * <p/>
+     * Please note this value can be overridden by the {@link #disableRedirectHandling()}
+     * method.
+`     */
     public final HttpClientBuilder setRedirectStrategy(final RedirectStrategy redirectStrategy) {
         this.redirectStrategy = redirectStrategy;
         return this;

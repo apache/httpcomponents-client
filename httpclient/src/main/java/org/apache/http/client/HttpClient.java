@@ -75,7 +75,7 @@ public interface HttpClient {
     ClientConnectionManager getConnectionManager();
 
     /**
-     * Executes a request using the default context.
+     * Executes HTTP request using the default context.
      *
      * @param request   the request to execute
      *
@@ -91,8 +91,7 @@ public interface HttpClient {
         throws IOException, ClientProtocolException;
 
     /**
-     * Executes a request using the given context.
-     * The route to the target will be determined by the HTTP client.
+     * Executes HTTP request using the given context.
      *
      * @param request   the request to execute
      * @param context   the context to use for the execution, or
@@ -110,7 +109,7 @@ public interface HttpClient {
         throws IOException, ClientProtocolException;
 
     /**
-     * Executes a request to the target using the default context.
+     * Executes HTTP request using the default context.
      *
      * @param target    the target host for the request.
      *                  Implementations may accept <code>null</code>
@@ -130,7 +129,7 @@ public interface HttpClient {
         throws IOException, ClientProtocolException;
 
     /**
-     * Executes a request to the target using the given context.
+     * Executes HTTP request using the given context.
      *
      * @param target    the target host for the request.
      *                  Implementations may accept <code>null</code>
@@ -153,7 +152,7 @@ public interface HttpClient {
         throws IOException, ClientProtocolException;
 
     /**
-     * Executes a request using the default context and processes the
+     * Executes HTTP request using the default context and processes the
      * response using the given response handler.
      * <p/>
      * Implementing classes are required to ensure that the content entity
@@ -175,7 +174,7 @@ public interface HttpClient {
         throws IOException, ClientProtocolException;
 
     /**
-     * Executes a request using the given context and processes the
+     * Executes HTTP request using the given context and processes the
      * response using the given response handler.
      * <p/>
      * Implementing classes are required to ensure that the content entity
@@ -200,7 +199,7 @@ public interface HttpClient {
         throws IOException, ClientProtocolException;
 
     /**
-     * Executes a request to the target using the default context and
+     * Executes HTTP request to the target using the default context and
      * processes the response using the given response handler.
      * <p/>
      * Implementing classes are required to ensure that the content entity
@@ -227,7 +226,7 @@ public interface HttpClient {
         throws IOException, ClientProtocolException;
 
     /**
-     * Executes a request to the target using the given context and
+     * Executes HTTP request to the target using the given context and
      * processes the response using the given response handler.
      * <p/>
      * Implementing classes are required to ensure that the content entity
