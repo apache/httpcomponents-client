@@ -139,7 +139,7 @@ public final class FutureRequestExecutionMetrics {
 
         public long averageDuration() {
             final long counter = count.get();
-            return cumulativeDuration.get() / counter;
+            return counter > 0 ? cumulativeDuration.get() / counter : 0;
         }
 
         @Override
