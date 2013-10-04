@@ -82,6 +82,20 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
         internal.setCredentials(authscope, credentials);
     }
 
+    private static PasswordAuthentication getSystemCreds(
+            final AuthScope authscope,
+            final Authenticator.RequestorType requestorType) {
+        return Authenticator.requestPasswordAuthentication(
+                authscope.getHost(),
+                null,
+                authscope.getPort(),
+                "http",
+                null,
+                translateScheme(authscope.getScheme()),
+                null,
+                requestorType);
+    }
+
     public Credentials getCredentials(final AuthScope authscope) {
         Args.notNull(authscope, "Auth scope");
         final Credentials localcreds = internal.getCredentials(authscope);
@@ -89,13 +103,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
             return localcreds;
         }
         if (authscope.getHost() != null) {
-            final PasswordAuthentication systemcreds = Authenticator.requestPasswordAuthentication(
-                    authscope.getHost(),
-                    null,
-                    authscope.getPort(),
-                    "http",
-                    null,
-                    translateScheme(authscope.getScheme()));
+            final PasswordAuthentication systemcreds = getSystemCreds(authscope, null);
             if (systemcreds != null) {
                 return new UsernamePasswordCredentials(
                         systemcreds.getUserName(), new String(systemcreds.getPassword()));
