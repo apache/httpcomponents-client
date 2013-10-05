@@ -28,7 +28,6 @@ package org.apache.http.examples.client;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -47,14 +46,14 @@ public class ClientEvictExpiredConnections {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
         CloseableHttpClient httpclient = HttpClients.custom()
-                .setConnectionManager(cm).build();
+                .setConnectionManager(cm)
+                .build();
         try {
             // create an array of URIs to perform GETs on
             String[] urisToGet = {
-                "http://jakarta.apache.org/",
-                "http://jakarta.apache.org/commons/",
-                "http://jakarta.apache.org/commons/httpclient/",
-                "http://svn.apache.org/viewvc/jakarta/httpcomponents/"
+                "http://hc.apache.org/",
+                "http://hc.apache.org/httpcomponents-core-ga/",
+                "http://hc.apache.org/httpcomponents-client-ga/",
             };
 
             IdleConnectionEvictor connEvictor = new IdleConnectionEvictor(cm);
@@ -64,20 +63,13 @@ public class ClientEvictExpiredConnections {
                 String requestURI = urisToGet[i];
                 HttpGet request = new HttpGet(requestURI);
 
-                System.out.println("executing request " + requestURI);
+                System.out.println("Executing request " + requestURI);
 
                 CloseableHttpResponse response = httpclient.execute(request);
                 try {
-                    HttpEntity entity = response.getEntity();
-
                     System.out.println("----------------------------------------");
                     System.out.println(response.getStatusLine());
-                    if (entity != null) {
-                        System.out.println("Response content length: " + entity.getContentLength());
-                    }
-                    System.out.println("----------------------------------------");
-
-                    EntityUtils.consume(entity);
+                    EntityUtils.consume(response.getEntity());
                 } finally {
                     response.close();
                 }

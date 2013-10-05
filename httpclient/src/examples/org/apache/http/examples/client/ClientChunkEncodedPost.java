@@ -29,9 +29,9 @@ package org.apache.http.examples.client;
 import java.io.File;
 import java.io.FileInputStream;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -49,14 +49,12 @@ public class ClientChunkEncodedPost {
         }
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            HttpPost httppost = new HttpPost("http://localhost:8080" +
-                    "/servlets-examples/servlet/RequestInfoExample");
+            HttpPost httppost = new HttpPost("http://localhost/");
 
             File file = new File(args[0]);
 
             InputStreamEntity reqEntity = new InputStreamEntity(
-                    new FileInputStream(file), -1);
-            reqEntity.setContentType("binary/octet-stream");
+                    new FileInputStream(file), -1, ContentType.APPLICATION_OCTET_STREAM);
             reqEntity.setChunked(true);
             // It may be more appropriate to use FileEntity class in this particular
             // instance but we are using a more generic InputStreamEntity to demonstrate
@@ -66,18 +64,12 @@ public class ClientChunkEncodedPost {
 
             httppost.setEntity(reqEntity);
 
-            System.out.println("executing request " + httppost.getRequestLine());
+            System.out.println("Executing request: " + httppost.getRequestLine());
             CloseableHttpResponse response = httpclient.execute(httppost);
             try {
-                HttpEntity resEntity = response.getEntity();
-
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                if (resEntity != null) {
-                    System.out.println("Response content length: " + resEntity.getContentLength());
-                    System.out.println("Chunked?: " + resEntity.isChunked());
-                }
-                EntityUtils.consume(resEntity);
+                EntityUtils.consume(response.getEntity());
             } finally {
                 response.close();
             }

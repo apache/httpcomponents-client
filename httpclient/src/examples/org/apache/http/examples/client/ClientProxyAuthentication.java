@@ -26,7 +26,6 @@
  */
 package org.apache.http.examples.client;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -53,7 +52,7 @@ public class ClientProxyAuthentication {
         CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider).build();
         try {
-            HttpHost targetHost = new HttpHost("www.verisign.com", 443, "https");
+            HttpHost target = new HttpHost("www.verisign.com", 443, "https");
             HttpHost proxy = new HttpHost("localhost", 8080);
 
             RequestConfig config = RequestConfig.custom()
@@ -62,20 +61,13 @@ public class ClientProxyAuthentication {
             HttpGet httpget = new HttpGet("/");
             httpget.setConfig(config);
 
-            System.out.println("executing request: " + httpget.getRequestLine());
-            System.out.println("via proxy: " + proxy);
-            System.out.println("to target: " + targetHost);
+            System.out.println("Executing request " + httpget.getRequestLine() + " to " + target + " via " + proxy);
 
-            CloseableHttpResponse response = httpclient.execute(targetHost, httpget);
+            CloseableHttpResponse response = httpclient.execute(target, httpget);
             try {
-                HttpEntity entity = response.getEntity();
-
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                if (entity != null) {
-                    System.out.println("Response content length: " + entity.getContentLength());
-                }
-                EntityUtils.consume(entity);
+                EntityUtils.consume(response.getEntity());
             } finally {
                 response.close();
             }

@@ -49,14 +49,15 @@ public class ClientMultiThreadedExecution {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
 
-        CloseableHttpClient httpclient = HttpClients.custom().setConnectionManager(cm).build();
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setConnectionManager(cm)
+                .build();
         try {
             // create an array of URIs to perform GETs on
             String[] urisToGet = {
                 "http://hc.apache.org/",
                 "http://hc.apache.org/httpcomponents-core-ga/",
                 "http://hc.apache.org/httpcomponents-client-ga/",
-                "http://svn.apache.org/viewvc/httpcomponents/"
             };
 
             // create a thread for each URI

@@ -47,9 +47,9 @@ public class ClientWithResponseHandler {
     public final static void main(String[] args) throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            HttpGet httpget = new HttpGet("http://www.google.com/");
+            HttpGet httpget = new HttpGet("http://localhost/");
 
-            System.out.println("executing request " + httpget.getURI());
+            System.out.println("Executing request " + httpget.getRequestLine());
 
             // Create a custom response handler
             ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
@@ -69,8 +69,6 @@ public class ClientWithResponseHandler {
             String responseBody = httpclient.execute(httpget, responseHandler);
             System.out.println("----------------------------------------");
             System.out.println(responseBody);
-            System.out.println("----------------------------------------");
-
         } finally {
             httpclient.close();
         }

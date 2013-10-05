@@ -27,8 +27,6 @@
 
 package org.apache.http.examples.client;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -47,29 +45,22 @@ public class ClientExecuteProxy {
     public static void main(String[] args)throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            HttpHost target = new HttpHost("issues.apache.org", 443, "https");
+            HttpHost target = new HttpHost("localhost", 443, "https");
             HttpHost proxy = new HttpHost("127.0.0.1", 8080, "http");
 
-            RequestConfig config = RequestConfig.custom().setProxy(proxy).build();
+            RequestConfig config = RequestConfig.custom()
+                    .setProxy(proxy)
+                    .build();
             HttpGet request = new HttpGet("/");
             request.setConfig(config);
 
-            System.out.println("executing request to " + target + " via " + proxy);
+            System.out.println("Executing request " + request.getRequestLine() + " to " + target + " via " + proxy);
+
             CloseableHttpResponse response = httpclient.execute(target, request);
             try {
-                HttpEntity entity = response.getEntity();
-
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                Header[] headers = response.getAllHeaders();
-                for (int i = 0; i<headers.length; i++) {
-                    System.out.println(headers[i]);
-                }
-                System.out.println("----------------------------------------");
-
-                if (entity != null) {
-                    System.out.println(EntityUtils.toString(entity));
-                }
+                EntityUtils.consume(response.getEntity());
             } finally {
                 response.close();
             }

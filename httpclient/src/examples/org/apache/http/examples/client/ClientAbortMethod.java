@@ -27,7 +27,6 @@
 
 package org.apache.http.examples.client;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -43,18 +42,11 @@ public class ClientAbortMethod {
         try {
             HttpGet httpget = new HttpGet("http://www.apache.org/");
 
-            System.out.println("executing request " + httpget.getURI());
+            System.out.println("Executing request " + httpget.getURI());
             CloseableHttpResponse response = httpclient.execute(httpget);
             try {
-                HttpEntity entity = response.getEntity();
-
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                if (entity != null) {
-                    System.out.println("Response content length: " + entity.getContentLength());
-                }
-                System.out.println("----------------------------------------");
-
                 // Do not feel like reading the response body
                 // Call abort on the request object
                 httpget.abort();

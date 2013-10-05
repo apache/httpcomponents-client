@@ -26,21 +26,18 @@
  */
 package org.apache.http.examples.client;
 
-import java.util.ArrayList;
+import java.net.URI;
 import java.util.List;
 
-import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -51,10 +48,11 @@ public class ClientFormLogin {
 
     public static void main(String[] args) throws Exception {
         BasicCookieStore cookieStore = new BasicCookieStore();
-        CloseableHttpClient httpclient = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
+        CloseableHttpClient httpclient = HttpClients.custom()
+                .setDefaultCookieStore(cookieStore)
+                .build();
         try {
-            HttpGet httpget = new HttpGet("https://portal.sun.com/portal/dt");
-
+            HttpGet httpget = new HttpGet("https://someportal/");
             CloseableHttpResponse response1 = httpclient.execute(httpget);
             try {
                 HttpEntity entity = response1.getEntity();
@@ -75,17 +73,12 @@ public class ClientFormLogin {
                 response1.close();
             }
 
-            HttpPost httpost = new HttpPost("https://portal.sun.com/amserver/UI/Login?" +
-                    "org=self_registered_users&" +
-                    "goto=/portal/dt&" +
-                    "gotoOnFail=/portal/dt?error=true");
-            List <NameValuePair> nvps = new ArrayList <NameValuePair>();
-            nvps.add(new BasicNameValuePair("IDToken1", "username"));
-            nvps.add(new BasicNameValuePair("IDToken2", "password"));
-
-            httpost.setEntity(new UrlEncodedFormEntity(nvps, Consts.UTF_8));
-
-            CloseableHttpResponse response2 = httpclient.execute(httpost);
+            HttpUriRequest login = RequestBuilder.post()
+                    .setUri(new URI("https://someportal/"))
+                    .addParameter("IDToken1", "username")
+                    .addParameter("IDToken2", "password")
+                    .build();
+            CloseableHttpResponse response2 = httpclient.execute(login);
             try {
                 HttpEntity entity = response2.getEntity();
 

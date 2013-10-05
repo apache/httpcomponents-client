@@ -45,15 +45,13 @@ public class ClientConnectionRelease {
     public final static void main(String[] args) throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            HttpGet httpget = new HttpGet("http://www.apache.org/");
+            HttpGet httpget = new HttpGet("http://localhost/");
 
-            // Execute HTTP request
-            System.out.println("executing request " + httpget.getURI());
+            System.out.println("Executing request " + httpget.getRequestLine());
             CloseableHttpResponse response = httpclient.execute(httpget);
             try {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                System.out.println("----------------------------------------");
 
                 // Get hold of the response entity
                 HttpEntity entity = response.getEntity();

@@ -26,7 +26,6 @@
  */
 package org.apache.http.examples.client;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
@@ -49,21 +48,17 @@ public class ClientAuthentication {
                 new AuthScope("localhost", 443),
                 new UsernamePasswordCredentials("username", "password"));
         CloseableHttpClient httpclient = HttpClients.custom()
-                .setDefaultCredentialsProvider(credsProvider).build();
+                .setDefaultCredentialsProvider(credsProvider)
+                .build();
         try {
-            HttpGet httpget = new HttpGet("https://localhost/protected");
+            HttpGet httpget = new HttpGet("http://localhost/");
 
-            System.out.println("executing request" + httpget.getRequestLine());
+            System.out.println("Executing request " + httpget.getRequestLine());
             CloseableHttpResponse response = httpclient.execute(httpget);
             try {
-                HttpEntity entity = response.getEntity();
-
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                if (entity != null) {
-                    System.out.println("Response content length: " + entity.getContentLength());
-                }
-                EntityUtils.consume(entity);
+                EntityUtils.consume(response.getEntity());
             } finally {
                 response.close();
             }

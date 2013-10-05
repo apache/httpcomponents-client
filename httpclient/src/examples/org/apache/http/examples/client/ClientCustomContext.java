@@ -29,7 +29,6 @@ package org.apache.http.examples.client;
 
 import java.util.List;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -57,29 +56,19 @@ public class ClientCustomContext {
             // Bind custom cookie store to the local context
             localContext.setCookieStore(cookieStore);
 
-            HttpGet httpget = new HttpGet("http://www.google.com/");
-
-            System.out.println("executing request " + httpget.getURI());
+            HttpGet httpget = new HttpGet("http://localhost/");
+            System.out.println("Executing request " + httpget.getRequestLine());
 
             // Pass local context as a parameter
             CloseableHttpResponse response = httpclient.execute(httpget, localContext);
             try {
-                HttpEntity entity = response.getEntity();
-
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                if (entity != null) {
-                    System.out.println("Response content length: " + entity.getContentLength());
-                }
                 List<Cookie> cookies = cookieStore.getCookies();
                 for (int i = 0; i < cookies.size(); i++) {
                     System.out.println("Local cookie: " + cookies.get(i));
                 }
-
-                // Consume response content
-                EntityUtils.consume(entity);
-
-                System.out.println("----------------------------------------");
+                EntityUtils.consume(response.getEntity());
             } finally {
                 response.close();
             }

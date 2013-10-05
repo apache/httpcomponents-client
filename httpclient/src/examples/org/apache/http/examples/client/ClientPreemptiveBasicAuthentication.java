@@ -26,7 +26,6 @@
  */
 package org.apache.http.examples.client;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -53,10 +52,10 @@ import org.apache.http.util.EntityUtils;
 public class ClientPreemptiveBasicAuthentication {
 
     public static void main(String[] args) throws Exception {
-        HttpHost targetHost = new HttpHost("localhost", 80, "http");
+        HttpHost target = new HttpHost("localhost", 80, "http");
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
-                new AuthScope(targetHost.getHostName(), targetHost.getPort()),
+                new AuthScope(target.getHostName(), target.getPort()),
                 new UsernamePasswordCredentials("username", "password"));
         CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider).build();
@@ -67,7 +66,7 @@ public class ClientPreemptiveBasicAuthentication {
             // Generate BASIC scheme object and add it to the local
             // auth cache
             BasicScheme basicAuth = new BasicScheme();
-            authCache.put(targetHost, basicAuth);
+            authCache.put(target, basicAuth);
 
             // Add AuthCache to the execution context
             HttpClientContext localContext = HttpClientContext.create();
@@ -75,20 +74,13 @@ public class ClientPreemptiveBasicAuthentication {
 
             HttpGet httpget = new HttpGet("/");
 
-            System.out.println("executing request: " + httpget.getRequestLine());
-            System.out.println("to target: " + targetHost);
-
+            System.out.println("Executing request " + httpget.getRequestLine() + " to target " + target);
             for (int i = 0; i < 3; i++) {
-                CloseableHttpResponse response = httpclient.execute(targetHost, httpget, localContext);
+                CloseableHttpResponse response = httpclient.execute(target, httpget, localContext);
                 try {
-                    HttpEntity entity = response.getEntity();
-
                     System.out.println("----------------------------------------");
                     System.out.println(response.getStatusLine());
-                    if (entity != null) {
-                        System.out.println("Response content length: " + entity.getContentLength());
-                    }
-                    EntityUtils.consume(entity);
+                    EntityUtils.consume(response.getEntity());
                 } finally {
                     response.close();
                 }
