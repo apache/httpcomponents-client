@@ -103,7 +103,12 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
             return localcreds;
         }
         if (authscope.getHost() != null) {
-            final PasswordAuthentication systemcreds = getSystemCreds(authscope, null);
+            PasswordAuthentication systemcreds = getSystemCreds(
+                    authscope, Authenticator.RequestorType.SERVER);
+            if (systemcreds == null) {
+                systemcreds = getSystemCreds(
+                        authscope, Authenticator.RequestorType.PROXY);
+            }
             if (systemcreds != null) {
                 return new UsernamePasswordCredentials(
                         systemcreds.getUserName(), new String(systemcreds.getPassword()));
