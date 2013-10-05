@@ -314,7 +314,11 @@ public abstract class AbstractHttpClient implements HttpClient {
                 ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME);
         if (className != null) {
             try {
-                final Class<?> clazz = Class.forName(className);
+                ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                if (cl == null) {
+                    cl = getClass().getClassLoader();
+                }
+                final Class<?> clazz = Class.forName(className,true, cl);
                 factory = (ClientConnectionManagerFactory) clazz.newInstance();
             } catch (final ClassNotFoundException ex) {
                 throw new IllegalStateException("Invalid class name: " + className);
