@@ -40,4 +40,9 @@ public class TestCachingHttpClientBuilder {
         CachingHttpClientBuilder.create().setCacheConfig(cacheConfig).build();
     }
 
+    @Test
+    public void testNullCacheConfig() throws Exception {
+        CachingHttpClientBuilder.create().setCacheConfig(null).build();
+    }
+
 }

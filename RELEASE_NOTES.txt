@@ -1,3 +1,11 @@
+Changes sicne 4.3.1
+-------------------
+
+* [HTTPCLIENT-1416] Fixed NPE in CachingHttpClientBuilder#build().
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
 Release 4.3.1
 -------------------
 
