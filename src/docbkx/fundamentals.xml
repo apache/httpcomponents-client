@@ -384,7 +384,7 @@ if (entity != null) {
         <section>
             <title>Producing entity content</title>
             <para>HttpClient provides several classes that can be used to efficiently stream out
-                content though HTTP connections. Instances of those classes can be associated with
+                content throught HTTP connections. Instances of those classes can be associated with
                 entity enclosing requests such as <literal>POST</literal> and <literal>PUT</literal>
                 in order to enclose entity content into outgoing HTTP requests. HttpClient provides
                 several classes for most common data containers such as string, byte array, input
