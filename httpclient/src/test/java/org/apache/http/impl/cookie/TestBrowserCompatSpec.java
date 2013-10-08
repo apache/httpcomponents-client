@@ -922,6 +922,24 @@ public class TestBrowserCompatSpec {
         Assert.assertEquals("name=", headers.get(0).getValue());
     }
 
+    @Test
+    public void testNullCookieValueFormattingCookieVersion1() {
+        final BasicClientCookie cookie = new BasicClientCookie("name", null);
+        cookie.setVersion(1);
+        cookie.setDomain(".whatever.com");
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, cookie.getDomain());
+        cookie.setPath("/");
+        cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
+
+        final CookieSpec cookiespec = new BrowserCompatSpec();
+        final List<Cookie> cookies = new ArrayList<Cookie>(1);
+        cookies.add(cookie);
+        final List<Header> headers = cookiespec.formatCookies(cookies);
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        Assert.assertEquals("name", headers.get(0).getValue());
+    }
+
     /**
      * Tests generic cookie formatting.
      */

@@ -168,6 +168,10 @@ public class BrowserCompatSpec extends CookieSpecBase {
         return parse(helems, origin);
     }
 
+    private static boolean isQuoteEnclosed(final String s) {
+        return s != null && s.startsWith("\"") && s.endsWith("\"");
+    }
+
     public List<Header> formatCookies(final List<Cookie> cookies) {
         Args.notEmpty(cookies, "List of cookies");
         final CharArrayBuffer buffer = new CharArrayBuffer(20 * cookies.size());
@@ -180,8 +184,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
             }
             final String cookieName = cookie.getName();
             final String cookieValue = cookie.getValue();
-            if (cookie.getVersion() > 0 &&
-                    !(cookieValue.startsWith("\"") && cookieValue.endsWith("\""))) {
+            if (cookie.getVersion() > 0 && !isQuoteEnclosed(cookieValue)) {
                 BasicHeaderValueFormatter.INSTANCE.formatHeaderElement(
                         buffer,
                         new BasicHeaderElement(cookieName, cookieValue),

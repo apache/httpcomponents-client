@@ -1,5 +1,9 @@
-Changes sicne 4.3.1
+Changes since 4.3.1
 -------------------
+
+* [HTTPCLIENT-1417] Fixed NPE in BrowserCompatSpec#formatCookies caused by version 1
+  cookies with null cookie value.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-1416] Fixed NPE in CachingHttpClientBuilder#build().
   Contributed by Oleg Kalnichevski <olegk at apache.org>
