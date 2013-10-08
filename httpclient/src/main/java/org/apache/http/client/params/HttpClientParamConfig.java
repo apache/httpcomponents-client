@@ -72,7 +72,7 @@ public final class HttpClientParamConfig {
                         ClientPNames.HANDLE_AUTHENTICATION, true))
                 .setCircularRedirectsAllowed(params.getBooleanParameter(
                         ClientPNames.ALLOW_CIRCULAR_REDIRECTS, false))
-                .setConnectionRequestTimeout(params.getIntParameter(
+                .setConnectionRequestTimeout((int) params.getLongParameter(
                         ClientPNames.CONN_MANAGER_TIMEOUT, 0))
                 .setCookieSpec((String) params.getParameter(
                         ClientPNames.COOKIE_POLICY))
