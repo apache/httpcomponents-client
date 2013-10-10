@@ -630,7 +630,7 @@ RequestConfig config = clientContext.getRequestConfig();
             automatic propagation of conversation context and state information between
             requests.</para>
         <para>In the following example the request configuration set by the initial request will be
-            kept in the execution context and get propagatd to the consecutive requests sharing
+            kept in the execution context and get propagated to the consecutive requests sharing
             the same context.</para>
         <programlisting><![CDATA[
 CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -788,7 +788,7 @@ CloseableHttpClient httpclient = HttpClients.custom()
     </section>
     <section id="protocol_interceptors">
         <title>HTTP protocol interceptors</title>
-        <para>Th HTTP protocol interceptor is a routine that implements a specific aspect of the HTTP
+        <para>The HTTP protocol interceptor is a routine that implements a specific aspect of the HTTP
             protocol. Usually protocol interceptors are expected to act upon one specific header or
             a group of related headers of the incoming message, or populate the outgoing message with
             one specific header or a group of related headers. Protocol interceptors can also
