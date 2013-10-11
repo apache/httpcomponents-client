@@ -100,7 +100,7 @@
                 of <interfacename>ManagedHttpClientConnection</interfacename> acting as a proxy
                 for a real connection that manages connection state and controls execution
                 of I/O operations. If a managed connection is released or get explicitly closed
-                by its consumer the underyling connection gets detached from its proxy and is
+                by its consumer the underlying connection gets detached from its proxy and is
                 returned back to the manager. Even though the service consumer still holds
                 a reference to the proxy instance, it is no longer able to execute any
                 I/O operations or change the state of the real connection either intentionally
