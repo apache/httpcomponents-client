@@ -273,7 +273,7 @@ System.out.println("Target auth credentials: " + targetAuthState.getCredentials(
             party. Therefore, users are expected to evaluate potential benefits of preemptive
             authentication versus security risks in the context of their specific application
             environment.</para>
-        <para>Nonethess one can configure HttpClient to authenticate preemptively by prepopulating
+        <para>Nonetheless one can configure HttpClient to authenticate preemptively by prepopulating
             the authentication data cache.</para>
         <programlisting><![CDATA[
 CloseableHttpClient httpclient = <...>
