@@ -808,13 +808,9 @@ public class CachingExec implements ClientExecChain {
         final boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
         responseCache.flushInvalidatedCacheEntriesFor(target, request, backendResponse);
         if (cacheable && !alreadyHaveNewerCacheEntry(target, request, backendResponse)) {
-            try {
-                storeRequestIfModifiedSinceFor304Response(request, backendResponse);
-                return Proxies.enhanceResponse(responseCache.cacheAndReturnResponse(
-                        target, request, backendResponse, requestDate, responseDate));
-            } finally {
-                backendResponse.close();
-            }
+            storeRequestIfModifiedSinceFor304Response(request, backendResponse);
+            return Proxies.enhanceResponse(responseCache.cacheAndReturnResponse(
+                    target, request, backendResponse, requestDate, responseDate));
         }
         if (!cacheable) {
             try {

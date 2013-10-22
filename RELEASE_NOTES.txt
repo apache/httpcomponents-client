@@ -1,6 +1,10 @@
 Changes since 4.3.1
 -------------------
 
+* [HTTPCLIENT-1425] Fixed socket closed exception thrown by caching HttpClient when the origin 
+  server sends a long chunked response.
+  Contributed by James Leigh <james at 3roundstones dot com>
+
 * [HTTPCLIENT-1417] Fixed NPE in BrowserCompatSpec#formatCookies caused by version 1
   cookies with null cookie value.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

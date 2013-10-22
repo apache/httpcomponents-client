@@ -72,6 +72,11 @@ public abstract class AbstractProtocolTest {
         return null;
     }
 
+    public static CloseableHttpResponse eqCloseableResponse(final CloseableHttpResponse in) {
+        EasyMock.reportMatcher(new ResponseEquivalent(in));
+        return null;
+    }
+
     @Before
     public void setUp() {
         host = new HttpHost("foo.example.com");

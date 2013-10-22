@@ -50,10 +50,10 @@ import org.apache.http.client.cache.HttpCacheUpdateCallback;
 import org.apache.http.client.cache.HttpCacheUpdateException;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.client.cache.ResourceFactory;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EntityUtils;
 
 class BasicHttpCache implements HttpCache {
     private static final Set<String> safeRequestMethods = new HashSet<String>(
@@ -276,12 +276,25 @@ class BasicHttpCache implements HttpCache {
     public HttpResponse cacheAndReturnResponse(final HttpHost host, final HttpRequest request,
             final HttpResponse originResponse, final Date requestSent, final Date responseReceived)
             throws IOException {
+        return cacheAndReturnResponse(host, request,
+                Proxies.enhanceResponse(originResponse), requestSent,
+                responseReceived);
+    }
 
+    public HttpResponse cacheAndReturnResponse(
+            final HttpHost host,
+            final HttpRequest request,
+            final CloseableHttpResponse originResponse,
+            final Date requestSent,
+            final Date responseReceived) throws IOException {
+
+        boolean closeOriginResponse = true;
         final SizeLimitedResponseReader responseReader = getResponseReader(request, originResponse);
         try {
             responseReader.readResponse();
 
             if (responseReader.isLimitReached()) {
+                closeOriginResponse = false;
                 return responseReader.getReconstructedResponse();
             }
 
@@ -298,12 +311,10 @@ class BasicHttpCache implements HttpCache {
                     resource);
             storeInCache(host, request, entry);
             return responseGenerator.generateResponse(entry);
-        } catch (final IOException ex) {
-            EntityUtils.consume(originResponse.getEntity());
-            throw ex;
-        } catch (final RuntimeException ex) {
-            EntityUtils.consumeQuietly(originResponse.getEntity());
-            throw ex;
+        } finally {
+            if (closeOriginResponse) {
+                originResponse.close();
+            }
         }
     }
 

@@ -2899,7 +2899,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         EasyMock.expect(mockCache.cacheAndReturnResponse(
                 EasyMock.isA(HttpHost.class),
                 EasyMock.isA(HttpRequestWrapper.class),
-                eqResponse(validated),
+                eqCloseableResponse(validated),
                 EasyMock.isA(Date.class),
                 EasyMock.isA(Date.class))).andReturn(reconstructed).times(0, 1);
 

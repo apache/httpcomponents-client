@@ -1319,7 +1319,7 @@ public abstract class TestCachingExecChain {
                 isA(HttpRequest.class)))
             .andThrow(new IOException()).anyTimes();
         expect(mockCache.cacheAndReturnResponse(eq(host),
-                isA(HttpRequest.class), isA(HttpResponse.class),
+                isA(HttpRequest.class), isA(CloseableHttpResponse.class),
                 isA(Date.class), isA(Date.class)))
             .andReturn(resp).anyTimes();
         expect(mockBackend.execute(

@@ -36,11 +36,14 @@ import static org.easymock.classextension.EasyMock.createMockBuilder;
 import static org.easymock.classextension.EasyMock.createNiceMock;
 import static org.easymock.classextension.EasyMock.replay;
 import static org.easymock.classextension.EasyMock.verify;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -52,11 +55,14 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
+import org.apache.http.protocol.HTTP;
 import org.easymock.IExpectationSetters;
 import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
@@ -92,7 +98,7 @@ public class TestCachingExec extends TestCachingExecChain {
     }
 
     @Override
-    public ClientExecChain createCachingExecChain(final ClientExecChain mockBackend,
+    public CachingExec createCachingExecChain(final ClientExecChain mockBackend,
             final HttpCache mockCache, final CacheValidityPolicy mockValidityPolicy,
             final ResponseCachingPolicy mockResponsePolicy,
             final CachedHttpResponseGenerator mockResponseGenerator,
@@ -118,7 +124,7 @@ public class TestCachingExec extends TestCachingExecChain {
     }
 
     @Override
-    public ClientExecChain createCachingExecChain(final ClientExecChain backend,
+    public CachingExec createCachingExecChain(final ClientExecChain backend,
             final HttpCache cache, final CacheConfig config) {
         return impl = new CachingExec(backend, cache, config);
     }
@@ -298,6 +304,53 @@ public class TestCachingExec extends TestCachingExecChain {
         replayMocks();
         impl.revalidateCacheEntry(route, request, context, null, entry);
         verifyMocks();
+    }
+
+    @Test
+    public void testEndlessResponsesArePassedThrough() throws Exception {
+        impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+
+        final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp1.setHeader("Date", DateUtils.formatDate(new Date()));
+        resp1.setHeader("Server", "MockOrigin/1.0");
+        resp1.setHeader(HTTP.TRANSFER_ENCODING, HTTP.CHUNK_CODING);
+
+        final AtomicInteger size = new AtomicInteger();
+        final AtomicInteger maxlength = new AtomicInteger(Integer.MAX_VALUE);
+        resp1.setEntity(new InputStreamEntity(new InputStream() {
+            private Throwable closed;
+
+            public void close() throws IOException {
+                closed = new Throwable();
+                super.close();
+            }
+
+            public int read() throws IOException {
+                Thread.yield();
+                if (closed != null) {
+                    throw new IOException("Response has been closed");
+
+                }
+                if (size.incrementAndGet() > maxlength.get())
+                    return -1;
+                return 'y';
+            }
+        }));
+
+        final CloseableHttpResponse resp = mockBackend.execute(
+                EasyMock.isA(HttpRoute.class),
+                EasyMock.isA(HttpRequestWrapper.class),
+                EasyMock.isA(HttpClientContext.class),
+                EasyMock.<HttpExecutionAware>isNull());
+        EasyMock.expect(resp).andReturn(Proxies.enhanceResponse(resp1));
+
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+
+        replayMocks();
+        final CloseableHttpResponse resp2 = impl.execute(route, req1, context, null);
+        maxlength.set(size.get() * 2);
+        verifyMocks();
+        assertTrue(HttpTestUtils.semanticallyTransparent(resp1, resp2));
     }
 
     @Test

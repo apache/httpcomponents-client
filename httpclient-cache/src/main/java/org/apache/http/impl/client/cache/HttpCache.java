@@ -34,6 +34,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.methods.CloseableHttpResponse;
 
 /**
  * @since 4.1
@@ -101,6 +102,21 @@ interface HttpCache {
     HttpResponse cacheAndReturnResponse(
             HttpHost host, HttpRequest request, HttpResponse originResponse,
             Date requestSent, Date responseReceived)
+        throws IOException;
+
+    /**
+     * Store a {@link HttpResponse} in the cache if possible, and return
+     * @param host
+     * @param request
+     * @param originResponse
+     * @param requestSent
+     * @param responseReceived
+     * @return the {@link HttpResponse}
+     * @throws IOException
+     */
+    HttpResponse cacheAndReturnResponse(HttpHost host, HttpRequest request,
+            CloseableHttpResponse originResponse, Date requestSent,
+            Date responseReceived)
         throws IOException;
 
     /**
