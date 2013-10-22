@@ -28,6 +28,7 @@ package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Proxy;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
@@ -36,6 +37,7 @@ import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.cache.InputLimit;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.client.cache.ResourceFactory;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.message.BasicHttpResponse;
 
 /**
@@ -47,7 +49,7 @@ class SizeLimitedResponseReader {
     private final ResourceFactory resourceFactory;
     private final long maxResponseSizeBytes;
     private final HttpRequest request;
-    private final HttpResponse response;
+    private final CloseableHttpResponse response;
 
     private InputStream instream;
     private InputLimit limit;
@@ -62,7 +64,7 @@ class SizeLimitedResponseReader {
             final ResourceFactory resourceFactory,
             final long maxResponseSizeBytes,
             final HttpRequest request,
-            final HttpResponse response) {
+            final CloseableHttpResponse response) {
         super();
         this.resourceFactory = resourceFactory;
         this.maxResponseSizeBytes = maxResponseSizeBytes;
@@ -119,7 +121,7 @@ class SizeLimitedResponseReader {
         return resource;
     }
 
-    HttpResponse getReconstructedResponse() throws IOException {
+    CloseableHttpResponse getReconstructedResponse() throws IOException {
         ensureConsumed();
         final HttpResponse reconstructed = new BasicHttpResponse(response.getStatusLine());
         reconstructed.setHeaders(response.getAllHeaders());
@@ -132,7 +134,16 @@ class SizeLimitedResponseReader {
             combinedEntity.setChunked(entity.isChunked());
         }
         reconstructed.setEntity(combinedEntity);
-        return reconstructed;
+        return (CloseableHttpResponse) Proxy.newProxyInstance(
+                ResponseProxyHandler.class.getClassLoader(),
+                new Class<?>[] { CloseableHttpResponse.class },
+                new ResponseProxyHandler(reconstructed) {
+
+                    public void close() throws IOException {
+                        response.close();
+                    }
+
+                });
     }
 
 }

@@ -2877,7 +2877,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         validated.setHeader("Content-Length", "128");
         validated.setEntity(new ByteArrayEntity(bytes));
 
-        final HttpResponse reconstructed = HttpTestUtils.make200Response();
+        final CloseableHttpResponse reconstructed = Proxies.enhanceResponse(HttpTestUtils.make200Response());
 
         final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
 

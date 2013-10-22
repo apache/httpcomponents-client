@@ -114,9 +114,9 @@ interface HttpCache {
      * @return the {@link HttpResponse}
      * @throws IOException
      */
-    HttpResponse cacheAndReturnResponse(HttpHost host, HttpRequest request,
-            CloseableHttpResponse originResponse, Date requestSent,
-            Date responseReceived)
+    CloseableHttpResponse cacheAndReturnResponse(HttpHost host,
+            HttpRequest request, CloseableHttpResponse originResponse,
+            Date requestSent, Date responseReceived)
         throws IOException;
 
     /**

@@ -278,10 +278,10 @@ public class CachingExec implements ClientExecChain {
         final Date now = getCurrentDate();
         if (suitabilityChecker.canCachedResponseBeUsed(target, request, entry, now)) {
             log.debug("Cache hit");
-            out = Proxies.enhanceResponse(generateCachedResponse(request, context, entry, now));
+            out = generateCachedResponse(request, context, entry, now);
         } else if (!mayCallBackend(request)) {
             log.debug("Cache entry not suitable but only-if-cached requested");
-            out = Proxies.enhanceResponse(generateGatewayTimeout(context));
+            out = generateGatewayTimeout(context);
         } else if (!(entry.getStatusCode() == HttpStatus.SC_NOT_MODIFIED
                 && !suitabilityChecker.isConditional(request))) {
             log.debug("Revalidating cache entry");
@@ -311,14 +311,13 @@ public class CachingExec implements ClientExecChain {
                 && !staleResponseNotAllowed(request, entry, now)
                 && validityPolicy.mayReturnStaleWhileRevalidating(entry, now)) {
                 log.trace("Serving stale with asynchronous revalidation");
-                final HttpResponse resp = generateCachedResponse(request, context, entry, now);
+                final CloseableHttpResponse resp = generateCachedResponse(request, context, entry, now);
                 asynchRevalidator.revalidateCacheEntry(this, route, request, context, execAware, entry);
-                return Proxies.enhanceResponse(resp);
+                return resp;
             }
             return revalidateCacheEntry(route, request, context, execAware, entry);
         } catch (final IOException ioex) {
-            return Proxies.enhanceResponse(
-                    handleRevalidationFailure(request, context, entry, now));
+            return handleRevalidationFailure(request, context, entry, now);
         }
     }
 
@@ -338,8 +337,8 @@ public class CachingExec implements ClientExecChain {
 
         final Map<String, Variant> variants = getExistingCacheVariants(target, request);
         if (variants != null && variants.size() > 0) {
-            return Proxies.enhanceResponse(
-                    negotiateResponseFromVariants(route, request, context, execAware, variants));
+            return negotiateResponseFromVariants(route, request, context,
+                    execAware, variants);
         }
 
         return callBackend(route, request, context, execAware);
@@ -412,9 +411,9 @@ public class CachingExec implements ClientExecChain {
         }
     }
 
-    private HttpResponse generateCachedResponse(final HttpRequestWrapper request,
+    private CloseableHttpResponse generateCachedResponse(final HttpRequestWrapper request,
             final HttpContext context, final HttpCacheEntry entry, final Date now) {
-        final HttpResponse cachedResponse;
+        final CloseableHttpResponse cachedResponse;
         if (request.containsHeader(HeaderConstants.IF_NONE_MATCH)
                 || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
             cachedResponse = responseGenerator.generateNotModifiedResponse(entry);
@@ -428,7 +427,7 @@ public class CachingExec implements ClientExecChain {
         return cachedResponse;
     }
 
-    private HttpResponse handleRevalidationFailure(
+    private CloseableHttpResponse handleRevalidationFailure(
             final HttpRequestWrapper request,
             final HttpContext context,
             final HttpCacheEntry entry,
@@ -440,15 +439,17 @@ public class CachingExec implements ClientExecChain {
         }
     }
 
-    private HttpResponse generateGatewayTimeout(final HttpContext context) {
+    private CloseableHttpResponse generateGatewayTimeout(
+            final HttpContext context) {
         setResponseStatus(context, CacheResponseStatus.CACHE_MODULE_RESPONSE);
-        return new BasicHttpResponse(HttpVersion.HTTP_1_1,
-                HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
+        return Proxies.enhanceResponse(new BasicHttpResponse(
+                HttpVersion.HTTP_1_1, HttpStatus.SC_GATEWAY_TIMEOUT,
+                "Gateway Timeout"));
     }
 
-    private HttpResponse unvalidatedCacheHit(
+    private CloseableHttpResponse unvalidatedCacheHit(
             final HttpContext context, final HttpCacheEntry entry) {
-        final HttpResponse cachedResponse = responseGenerator.generateResponse(entry);
+        final CloseableHttpResponse cachedResponse = responseGenerator.generateResponse(entry);
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
         cachedResponse.addHeader(HeaderConstants.WARNING, "111 localhost \"Revalidation failed\"");
         return cachedResponse;
@@ -607,7 +608,7 @@ public class CachingExec implements ClientExecChain {
         return false;
     }
 
-    HttpResponse negotiateResponseFromVariants(
+    CloseableHttpResponse negotiateResponseFromVariants(
             final HttpRoute route,
             final HttpRequestWrapper request,
             final HttpClientContext context,
@@ -662,7 +663,7 @@ public class CachingExec implements ClientExecChain {
                     backendResponse, matchingVariant, matchedEntry);
             backendResponse.close();
 
-            final HttpResponse resp = responseGenerator.generateResponse(responseEntry);
+            final CloseableHttpResponse resp = responseGenerator.generateResponse(responseEntry);
             tryToUpdateVariantMap(route.getTargetHost(), request, matchingVariant);
 
             if (shouldSendNotModifiedResponse(request, responseEntry)) {
@@ -763,19 +764,19 @@ public class CachingExec implements ClientExecChain {
                     backendResponse, requestDate, responseDate);
             if (suitabilityChecker.isConditional(request)
                     && suitabilityChecker.allConditionalsMatch(request, updatedEntry, new Date())) {
-                return Proxies.enhanceResponse(
-                        responseGenerator.generateNotModifiedResponse(updatedEntry));
+                return responseGenerator
+                        .generateNotModifiedResponse(updatedEntry);
             }
-            return Proxies.enhanceResponse(responseGenerator.generateResponse(updatedEntry));
+            return responseGenerator.generateResponse(updatedEntry);
         }
 
         if (staleIfErrorAppliesTo(statusCode)
             && !staleResponseNotAllowed(request, cacheEntry, getCurrentDate())
             && validityPolicy.mayReturnStaleIfError(request, cacheEntry, responseDate)) {
             try {
-                final HttpResponse cachedResponse = responseGenerator.generateResponse(cacheEntry);
+                final CloseableHttpResponse cachedResponse = responseGenerator.generateResponse(cacheEntry);
                 cachedResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
-                return Proxies.enhanceResponse(cachedResponse);
+                return cachedResponse;
             } finally {
                 backendResponse.close();
             }
@@ -809,8 +810,8 @@ public class CachingExec implements ClientExecChain {
         responseCache.flushInvalidatedCacheEntriesFor(target, request, backendResponse);
         if (cacheable && !alreadyHaveNewerCacheEntry(target, request, backendResponse)) {
             storeRequestIfModifiedSinceFor304Response(request, backendResponse);
-            return Proxies.enhanceResponse(responseCache.cacheAndReturnResponse(
-                    target, request, backendResponse, requestDate, responseDate));
+            return responseCache.cacheAndReturnResponse(target, request,
+                    backendResponse, requestDate, responseDate);
         }
         if (!cacheable) {
             try {

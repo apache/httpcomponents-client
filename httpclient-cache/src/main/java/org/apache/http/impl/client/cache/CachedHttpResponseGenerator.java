@@ -36,6 +36,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
@@ -67,7 +68,7 @@ class CachedHttpResponseGenerator {
      *            {@link CacheEntity} to transform into an {@link HttpResponse}
      * @return {@link HttpResponse} that was constructed
      */
-    HttpResponse generateResponse(final HttpCacheEntry entry) {
+    CloseableHttpResponse generateResponse(final HttpCacheEntry entry) {
 
         final Date now = new Date();
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, entry
@@ -90,17 +91,14 @@ class CachedHttpResponseGenerator {
             }
         }
 
-        return response;
+        return Proxies.enhanceResponse(response);
     }
 
     /**
      * Generate a 304 - Not Modified response from a {@link CacheEntity}.  This should be
      * used to respond to conditional requests, when the entry exists or has been re-validated.
-     *
-     * @param entry
-     * @return
      */
-    HttpResponse generateNotModifiedResponse(final HttpCacheEntry entry) {
+    CloseableHttpResponse generateNotModifiedResponse(final HttpCacheEntry entry) {
 
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_NOT_MODIFIED, "Not Modified");
@@ -145,7 +143,7 @@ class CachedHttpResponseGenerator {
             response.addHeader(varyHeader);
         }
 
-        return response;
+        return Proxies.enhanceResponse(response);
     }
 
     private void addMissingContentLengthHeader(final HttpResponse response, final HttpEntity entity) {

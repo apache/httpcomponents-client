@@ -206,8 +206,8 @@ class BasicHttpCache implements HttpCache {
         return (resource.length() < contentLength);
     }
 
-    HttpResponse generateIncompleteResponseError(final HttpResponse response,
-            final Resource resource) {
+    CloseableHttpResponse generateIncompleteResponseError(
+            final HttpResponse response, final Resource resource) {
         final int contentLength = Integer.parseInt(response.getFirstHeader(HTTP.CONTENT_LEN).getValue());
         final HttpResponse error =
             new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_GATEWAY, "Bad Gateway");
@@ -218,7 +218,7 @@ class BasicHttpCache implements HttpCache {
         final byte[] msgBytes = msg.getBytes();
         error.setHeader("Content-Length", Integer.toString(msgBytes.length));
         error.setEntity(new ByteArrayEntity(msgBytes));
-        return error;
+        return Proxies.enhanceResponse(error);
     }
 
     HttpCacheEntry doGetUpdatedParentEntry(
@@ -281,7 +281,7 @@ class BasicHttpCache implements HttpCache {
                 responseReceived);
     }
 
-    public HttpResponse cacheAndReturnResponse(
+    public CloseableHttpResponse cacheAndReturnResponse(
             final HttpHost host,
             final HttpRequest request,
             final CloseableHttpResponse originResponse,
@@ -318,7 +318,8 @@ class BasicHttpCache implements HttpCache {
         }
     }
 
-    SizeLimitedResponseReader getResponseReader(final HttpRequest request, final HttpResponse backEndResponse) {
+    SizeLimitedResponseReader getResponseReader(final HttpRequest request,
+            final CloseableHttpResponse backEndResponse) {
         return new SizeLimitedResponseReader(
                 resourceFactory, maxObjectSizeBytes, request, backEndResponse);
     }
