@@ -143,7 +143,7 @@ public class MultipartEntityBuilder {
 
     public MultipartEntityBuilder addBinaryBody(
             final String name, final File file) {
-        return addBinaryBody(name, file, ContentType.DEFAULT_BINARY, null);
+        return addBinaryBody(name, file, ContentType.DEFAULT_BINARY, file != null ? file.getName() : null);
     }
 
     public MultipartEntityBuilder addBinaryBody(
