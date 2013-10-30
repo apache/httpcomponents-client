@@ -347,7 +347,7 @@ public class CacheConfig implements Cloneable {
     /**
      * Enables or disables heuristic caching.
      * @param heuristicCachingEnabled should be {@code true} to
-     *   permit heuristic caching, {@code false} to enable it.
+     *   permit heuristic caching, {@code false} to disable it.
      *
      * @deprecated (4.3) use {@link Builder}.
      */
