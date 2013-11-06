@@ -66,12 +66,7 @@ abstract class DecompressingEntity extends HttpEntityWrapper {
 
     private InputStream getDecompressingStream() throws IOException {
         final InputStream in = wrappedEntity.getContent();
-        try {
-            return decorate(in);
-        } catch (final IOException ex) {
-            in.close();
-            throw ex;
-        }
+        return new LazyDecompressingInputStream(in, this);
     }
 
     /**
