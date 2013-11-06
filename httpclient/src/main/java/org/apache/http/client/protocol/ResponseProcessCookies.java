@@ -114,13 +114,12 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
                         cookieStore.addCookie(cookie);
 
                         if (this.log.isDebugEnabled()) {
-                            this.log.debug("Cookie accepted: \""
-                                    + cookie + "\". ");
+                            this.log.debug("Cookie accepted [" + formatCooke(cookie) + "]");
                         }
                     } catch (final MalformedCookieException ex) {
                         if (this.log.isWarnEnabled()) {
-                            this.log.warn("Cookie rejected: \""
-                                    + cookie + "\". " + ex.getMessage());
+                            this.log.warn("Cookie rejected [" + formatCooke(cookie) + "] "
+                                    + ex.getMessage());
                         }
                     }
                 }
@@ -131,6 +130,27 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
                 }
             }
         }
+    }
+
+    private static String formatCooke(final Cookie cookie) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append(cookie.getName());
+        buf.append("=\"");
+        String v = cookie.getValue();
+        if (v.length() > 100) {
+            v = v.substring(0, 100) + "...";
+        }
+        buf.append(v);
+        buf.append("\"");
+        buf.append(", version:");
+        buf.append(Integer.toString(cookie.getVersion()));
+        buf.append(", domain:");
+        buf.append(cookie.getDomain());
+        buf.append(", path:");
+        buf.append(cookie.getPath());
+        buf.append(", expiry:");
+        buf.append(cookie.getExpiryDate());
+        return buf.toString();
     }
 
 }
