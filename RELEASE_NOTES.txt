@@ -1,6 +1,10 @@
 Changes since 4.3.1
 -------------------
 
+* [HTTPCLIENT-1431] (Regression) deprecated connection manager cannot be used with
+  a custom LayeredSchemeSocketFactory.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1425] Fixed socket closed exception thrown by caching HttpClient when the origin 
   server sends a long chunked response.
   Contributed by James Leigh <james at 3roundstones dot com>

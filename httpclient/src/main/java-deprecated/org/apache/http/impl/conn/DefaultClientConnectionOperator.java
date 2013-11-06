@@ -48,7 +48,6 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeLayeredSocketFactory;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.scheme.SchemeSocketFactory;
-import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
@@ -211,7 +210,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
 
         final SchemeRegistry registry = getSchemeRegistry(context);
         final Scheme schm = registry.getScheme(target.getSchemeName());
-        Asserts.check(schm.getSchemeSocketFactory() instanceof LayeredConnectionSocketFactory,
+        Asserts.check(schm.getSchemeSocketFactory() instanceof SchemeLayeredSocketFactory,
             "Socket factory must implement SchemeLayeredSocketFactory");
         final SchemeLayeredSocketFactory lsf = (SchemeLayeredSocketFactory) schm.getSchemeSocketFactory();
         final Socket sock = lsf.createLayeredSocket(
