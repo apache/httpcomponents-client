@@ -291,16 +291,16 @@ public class URIUtils {
             final String auth = uri.getAuthority().toLowerCase();
             final URI ref = new URI(scheme, auth, outputBuffer.toString(),
                     null, null);
-            if (uri.getQuery() == null && uri.getFragment() == null) {
+            if (uri.getRawQuery() == null && uri.getRawFragment() == null) {
                 return ref;
             }
             final StringBuilder normalized = new StringBuilder(
                     ref.toASCIIString());
-            if (uri.getQuery() != null) {
+            if (uri.getRawQuery() != null) {
                 // query string passed through unchanged
                 normalized.append('?').append(uri.getRawQuery());
             }
-            if (uri.getFragment() != null) {
+            if (uri.getRawFragment() != null) {
                 // fragment passed through unchanged
                 normalized.append('#').append(uri.getRawFragment());
             }
