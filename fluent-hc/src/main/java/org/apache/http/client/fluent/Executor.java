@@ -210,7 +210,7 @@ public class Executor {
         this.localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
         this.localContext.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
         this.localContext.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
-        final HttpRequestBase httprequest = request.getHttpRequest();
+        final HttpRequestBase httprequest = request.prepareRequest();
         httprequest.reset();
         return new Response(this.httpclient.execute(httprequest, this.localContext));
     }

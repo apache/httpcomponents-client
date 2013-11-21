@@ -1,6 +1,9 @@
 Changes since 4.3.1
 -------------------
 
+* [HTTPCLIENT-1435] Fluent Executor ignores custom request properties.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1432] Lazy decompressing of HttpEntity#getContent() to avoid EOFException
   in case of an empty response with 'Content-Encoding: gzip' header.
   Contributed by Yihua Huang <code4crafter at gmail.com>

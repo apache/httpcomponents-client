@@ -134,7 +134,8 @@ public class Request {
         this.configBuilder = RequestConfig.custom();
     }
 
-    HttpRequestBase getHttpRequest() {
+    HttpRequestBase prepareRequest() {
+        this.request.setConfig(this.configBuilder.build());
         return this.request;
     }
 
