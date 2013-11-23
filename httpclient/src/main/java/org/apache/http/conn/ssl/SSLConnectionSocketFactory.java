@@ -34,6 +34,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.TextUtils;
 
+import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import java.io.IOException;
@@ -217,20 +218,8 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
     protected void prepareSocket(final SSLSocket socket) throws IOException {
     }
 
-    private void internalPrepareSocket(final SSLSocket socket) throws IOException {
-        if (supportedProtocols != null) {
-            socket.setEnabledProtocols(supportedProtocols);
-        }
-        if (supportedCipherSuites != null) {
-            socket.setEnabledCipherSuites(supportedCipherSuites);
-        }
-        prepareSocket(socket);
-    }
-
     public Socket createSocket(final HttpContext context) throws IOException {
-        final SSLSocket sock = (SSLSocket) this.socketfactory.createSocket();
-        internalPrepareSocket(sock);
-        return sock;
+        return SocketFactory.getDefault().createSocket();
     }
 
     public Socket connectSocket(
@@ -276,7 +265,13 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                 target,
                 port,
                 true);
-        internalPrepareSocket(sslsock);
+        if (supportedProtocols != null) {
+            sslsock.setEnabledProtocols(supportedProtocols);
+        }
+        if (supportedCipherSuites != null) {
+            sslsock.setEnabledCipherSuites(supportedCipherSuites);
+        }
+        prepareSocket(sslsock);
         sslsock.startHandshake();
         verifyHostname(sslsock, target);
         return sslsock;

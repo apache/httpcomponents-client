@@ -126,10 +126,10 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
         final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
                 clientSSLContext, hostVerifier);
-        SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
+        final Socket socket = socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
-        socket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
-        final SSLSession sslsession = socket.getSession();
+        final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
+        final SSLSession sslsession = sslSocket.getSession();
 
         Assert.assertNotNull(sslsession);
         Assert.assertTrue(hostVerifier.isFired());
@@ -156,10 +156,10 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         final HttpContext context = new BasicHttpContext();
         final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
         final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(clientSSLContext, hostVerifier);
-        SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
+        final Socket socket = socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
-        socket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
-        final SSLSession sslsession = socket.getSession();
+        final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
+        final SSLSession sslsession = sslSocket.getSession();
 
         Assert.assertNotNull(sslsession);
         Assert.assertTrue(hostVerifier.isFired());
@@ -185,10 +185,10 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         final HttpContext context = new BasicHttpContext();
         final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
         final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(clientSSLContext, hostVerifier);
-        SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
+        final Socket socket = socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
-        socket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
-        final SSLSession sslsession = socket.getSession();
+        final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
+        final SSLSession sslsession = sslSocket.getSession();
 
         Assert.assertNotNull(sslsession);
         Assert.assertTrue(hostVerifier.isFired());
@@ -227,10 +227,10 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         final HttpContext context = new BasicHttpContext();
         final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
         final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(clientSSLContext, hostVerifier);
-        SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
+        final Socket socket = socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
-        socket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
-        final SSLSession sslsession = socket.getSession();
+        final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
+        final SSLSession sslsession = sslSocket.getSession();
 
         Assert.assertNotNull(sslsession);
         Assert.assertTrue(hostVerifier.isFired());
@@ -242,10 +242,6 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
                 .useProtocol("TLS")
                 .loadTrustMaterial(keystore)
                 .loadKeyMaterial(keystore, "nopassword".toCharArray())
-                .build();
-        final SSLContext clientSSLContext = SSLContexts.custom()
-                .useProtocol("TLS")
-                .loadTrustMaterial(keystore)
                 .build();
 
         this.localServer = new LocalTestServer(serverSSLContext);
@@ -260,7 +256,7 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
         final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(defaultsslcontext,
                 SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
-        final SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
+        final Socket socket = socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
         socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
     }
@@ -295,7 +291,7 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
                 sslcontext,
                 SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
-        final SSLSocket socket = (SSLSocket) socketFactory.createSocket(context);
+        final Socket socket = socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
         socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
     }
