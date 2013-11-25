@@ -59,7 +59,6 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.BasicHttpContext;
 
 /**
  * An Executor for fluent requests
@@ -108,23 +107,19 @@ public class Executor {
     }
 
     private final HttpClient httpclient;
-    private final BasicHttpContext localContext;
     private final AuthCache authCache;
+    private final CredentialsProvider credentialsProvider;
 
-    private CredentialsProvider credentialsProvider;
-    private CookieStore cookieStore;
+    private volatile CookieStore cookieStore;
 
     Executor(final HttpClient httpclient) {
         super();
         this.httpclient = httpclient;
-        this.localContext = new BasicHttpContext();
+        this.credentialsProvider = new BasicCredentialsProvider();
         this.authCache = new BasicAuthCache();
     }
 
     public Executor auth(final AuthScope authScope, final Credentials creds) {
-        if (this.credentialsProvider == null) {
-            this.credentialsProvider = new BasicCredentialsProvider();
-        }
         this.credentialsProvider.setCredentials(authScope, creds);
         return this;
     }
@@ -179,9 +174,7 @@ public class Executor {
     }
 
     public Executor clearAuth() {
-        if (this.credentialsProvider != null) {
-            this.credentialsProvider.clear();
-        }
+        this.credentialsProvider.clear();
         return this;
     }
 
@@ -191,9 +184,7 @@ public class Executor {
     }
 
     public Executor clearCookies() {
-        if (this.cookieStore != null) {
-            this.cookieStore.clear();
-        }
+        this.cookieStore.clear();
         return this;
     }
 
@@ -207,12 +198,13 @@ public class Executor {
      */
     public Response execute(
             final Request request) throws ClientProtocolException, IOException {
-        this.localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
-        this.localContext.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
-        this.localContext.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
+        final HttpClientContext localContext = HttpClientContext.create();
+        localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
+        localContext.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
+        localContext.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         final HttpRequestBase httprequest = request.prepareRequest();
         httprequest.reset();
-        return new Response(this.httpclient.execute(httprequest, this.localContext));
+        return new Response(this.httpclient.execute(httprequest, localContext));
     }
 
     /**

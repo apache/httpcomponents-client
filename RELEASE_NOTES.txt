@@ -1,6 +1,9 @@
 Changes since 4.3.1
 -------------------
 
+* [HTTPCLIENT-1437] Made Executor#execute thread safe.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1119] SNI support (Oracle Java 1.7+ only).
   Contributed by Bruno Harbulot <bruno at distributedmatter.net>  
 
