@@ -259,7 +259,8 @@ public class URIUtils {
      * @return the URI without dot segments
      */
     private static URI normalizeSyntax(final URI uri) {
-        if (uri.isOpaque()) {
+        if (uri.isOpaque() || uri.getAuthority() == null) {
+            // opaque and file: URIs
             return uri;
         }
         Args.check(uri.isAbsolute(), "Base URI must be absolute");

@@ -174,6 +174,20 @@ public class TestURIUtils {
     }
 
     @Test
+    public void testResolveOpaque() {
+        Assert.assertEquals("example://a/b/c/%7Bfoo%7D", URIUtils.resolve(this.baseURI, "eXAMPLE://a/./b/../b/%63/%7bfoo%7d").toString());
+        Assert.assertEquals("file://localhost/etc/fstab", URIUtils.resolve(this.baseURI, "file://localhost/etc/fstab").toString());
+        Assert.assertEquals("file:///etc/fstab", URIUtils.resolve(this.baseURI, "file:///etc/fstab").toString());
+        Assert.assertEquals("file://localhost/c:/WINDOWS/clock.avi", URIUtils.resolve(this.baseURI, "file://localhost/c:/WINDOWS/clock.avi").toString());
+        Assert.assertEquals("file:///c:/WINDOWS/clock.avi", URIUtils.resolve(this.baseURI, "file:///c:/WINDOWS/clock.avi").toString());
+        Assert.assertEquals("file://hostname/path/to/the%20file.txt", URIUtils.resolve(this.baseURI, "file://hostname/path/to/the%20file.txt").toString());
+        Assert.assertEquals("file:///c:/path/to/the%20file.txt", URIUtils.resolve(this.baseURI, "file:///c:/path/to/the%20file.txt").toString());
+        Assert.assertEquals("urn:issn:1535-3613", URIUtils.resolve(this.baseURI, "urn:issn:1535-3613").toString());
+        Assert.assertEquals("mailto:user@example.com", URIUtils.resolve(this.baseURI, "mailto:user@example.com").toString());
+        Assert.assertEquals("ftp://example.org/resource.txt", URIUtils.resolve(this.baseURI, "ftp://example.org/resource.txt").toString());
+    }
+
+    @Test
     public void testExtractHost() throws Exception {
         Assert.assertEquals(new HttpHost("localhost"),
                 URIUtils.extractHost(new URI("http://localhost/abcd")));
