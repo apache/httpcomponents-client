@@ -1,6 +1,9 @@
 Changes since 4.3.1
 -------------------
 
+* [HTTPCLIENT-1441] Caching AsynchronousValidationRequest leaks connections.
+  Contributed by Dominic Tootell <dominic.tootell at gmail.com>
+
 * [HTTPCLIENT-1440] 'file' scheme in redirect location URI causes NPE.
   Contributed by James Leigh <james at 3roundstones dot com>
 

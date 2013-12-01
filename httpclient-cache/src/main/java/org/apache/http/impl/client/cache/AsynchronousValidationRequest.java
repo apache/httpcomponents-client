@@ -37,6 +37,7 @@ import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 
@@ -108,9 +109,13 @@ class AsynchronousValidationRequest implements Runnable {
      */
     protected boolean revalidateCacheEntry() {
         try {
-            final HttpResponse httpResponse = cachingExec.revalidateCacheEntry(route, request, context, execAware, cacheEntry);
-            final int statusCode = httpResponse.getStatusLine().getStatusCode();
-            return isNotServerError(statusCode) && isNotStale(httpResponse);
+            final CloseableHttpResponse httpResponse = cachingExec.revalidateCacheEntry(route, request, context, execAware, cacheEntry);
+            try {
+                final int statusCode = httpResponse.getStatusLine().getStatusCode();
+                return isNotServerError(statusCode) && isNotStale(httpResponse);
+            } finally {
+                httpResponse.close();
+            }
         } catch (final IOException ioe) {
             log.debug("Asynchronous revalidation failed due to I/O error", ioe);
             return false;
