@@ -1,6 +1,10 @@
 Changes since 4.3.1
 -------------------
 
+* [HTTPCLIENT-1442] Authentication header set by the user gets removed in case
+  of proxy authentication (affects plan HTTP requests only).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1441] Caching AsynchronousValidationRequest leaks connections.
   Contributed by Dominic Tootell <dominic.tootell at gmail.com>
 

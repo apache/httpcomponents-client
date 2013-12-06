@@ -293,8 +293,13 @@ public class MainClientExec implements ClientExecChain {
                         }
                     }
                     // discard previous auth headers
-                    request.removeHeaders(AUTH.WWW_AUTH_RESP);
-                    request.removeHeaders(AUTH.PROXY_AUTH_RESP);
+                    final HttpRequest original = request.getOriginal();
+                    if (!original.containsHeader(AUTH.WWW_AUTH_RESP)) {
+                        request.removeHeaders(AUTH.WWW_AUTH_RESP);
+                    }
+                    if (!original.containsHeader(AUTH.PROXY_AUTH_RESP)) {
+                        request.removeHeaders(AUTH.PROXY_AUTH_RESP);
+                    }
                 } else {
                     break;
                 }
