@@ -88,6 +88,7 @@ public abstract class AbstractProtocolTest {
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1));
 
         context = HttpCacheContext.create();
+        context.setTargetHost(host);
 
         originResponse = Proxies.enhanceResponse(HttpTestUtils.make200Response());
 

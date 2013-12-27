@@ -231,7 +231,7 @@ public class CachingExec implements ClientExecChain {
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
 
-        final HttpHost target = route.getTargetHost();
+        final HttpHost target = context.getTargetHost();
         final String via = generateViaHeader(request.getOriginal());
 
         // default response context
@@ -250,7 +250,7 @@ public class CachingExec implements ClientExecChain {
         requestCompliance.makeRequestCompliant(request);
         request.addHeader("Via",via);
 
-        flushEntriesInvalidatedByRequest(route.getTargetHost(), request);
+        flushEntriesInvalidatedByRequest(context.getTargetHost(), request);
 
         if (!cacheableRequestPolicy.isServableFromCache(request)) {
             log.debug("Request is not servable from cache");
@@ -272,7 +272,7 @@ public class CachingExec implements ClientExecChain {
             final HttpClientContext context,
             final HttpExecutionAware execAware,
             final HttpCacheEntry entry) throws IOException, HttpException {
-        final HttpHost target = route.getTargetHost();
+        final HttpHost target = context.getTargetHost();
         recordCacheHit(target, request);
         CloseableHttpResponse out = null;
         final Date now = getCurrentDate();
@@ -326,7 +326,7 @@ public class CachingExec implements ClientExecChain {
             final HttpRequestWrapper request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
-        final HttpHost target = route.getTargetHost();
+        final HttpHost target = context.getTargetHost();
         recordCacheMiss(target, request);
 
         if (!mayCallBackend(request)) {
@@ -659,12 +659,12 @@ public class CachingExec implements ClientExecChain {
             recordCacheUpdate(context);
 
             final HttpCacheEntry responseEntry = getUpdatedVariantEntry(
-                    route.getTargetHost(), conditionalRequest, requestDate, responseDate,
+                context.getTargetHost(), conditionalRequest, requestDate, responseDate,
                     backendResponse, matchingVariant, matchedEntry);
             backendResponse.close();
 
             final CloseableHttpResponse resp = responseGenerator.generateResponse(responseEntry);
-            tryToUpdateVariantMap(route.getTargetHost(), request, matchingVariant);
+            tryToUpdateVariantMap(context.getTargetHost(), request, matchingVariant);
 
             if (shouldSendNotModifiedResponse(request, responseEntry)) {
                 return responseGenerator.generateNotModifiedResponse(responseEntry);
@@ -760,7 +760,7 @@ public class CachingExec implements ClientExecChain {
 
         if (statusCode == HttpStatus.SC_NOT_MODIFIED) {
             final HttpCacheEntry updatedEntry = responseCache.updateCacheEntry(
-                    route.getTargetHost(), request, cacheEntry,
+                    context.getTargetHost(), request, cacheEntry,
                     backendResponse, requestDate, responseDate);
             if (suitabilityChecker.isConditional(request)
                     && suitabilityChecker.allConditionalsMatch(request, updatedEntry, new Date())) {
@@ -805,7 +805,7 @@ public class CachingExec implements ClientExecChain {
         log.trace("Handling Backend response");
         responseCompliance.ensureProtocolCompliance(request, backendResponse);
 
-        final HttpHost target = route.getTargetHost();
+        final HttpHost target = context.getTargetHost();
         final boolean cacheable = responseCachingPolicy.isResponseCacheable(request, backendResponse);
         responseCache.flushInvalidatedCacheEntriesFor(target, request, backendResponse);
         if (cacheable && !alreadyHaveNewerCacheEntry(target, request, backendResponse)) {

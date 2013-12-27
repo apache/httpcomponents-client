@@ -66,6 +66,7 @@ public class TestAsynchronousValidator {
         route = new HttpRoute(new HttpHost("foo.example.com"));
         request = HttpRequestWrapper.wrap(new HttpGet("/"));
         context = HttpClientContext.create();
+        context.setTargetHost(new HttpHost("foo.example.com"));
         mockExecAware = EasyMock.createNiceMock(HttpExecutionAware.class);
         mockCacheEntry = EasyMock.createNiceMock(HttpCacheEntry.class);
         mockSchedulingStrategy = EasyMock.createNiceMock(SchedulingStrategy.class);

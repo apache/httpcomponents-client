@@ -96,7 +96,7 @@ class AsynchronousValidator implements Closeable {
             final HttpExecutionAware execAware,
             final HttpCacheEntry entry) {
         // getVariantURI will fall back on getURI if no variants exist
-        final String uri = cacheKeyGenerator.getVariantURI(route.getTargetHost(), request, entry);
+        final String uri = cacheKeyGenerator.getVariantURI(context.getTargetHost(), request, entry);
 
         if (!queued.contains(uri)) {
             final int consecutiveFailedAttempts = failureCache.getErrorCount(uri);

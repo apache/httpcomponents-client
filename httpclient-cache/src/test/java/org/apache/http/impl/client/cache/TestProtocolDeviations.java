@@ -101,6 +101,7 @@ public class TestProtocolDeviations {
         request = new BasicHttpRequest("GET", "/foo", HTTP_1_1);
 
         context = HttpCacheContext.create();
+        context.setTargetHost(host);
 
         originResponse = Proxies.enhanceResponse(make200Response());
 
