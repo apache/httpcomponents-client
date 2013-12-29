@@ -10,6 +10,9 @@ Users of HttpClient 4.3 are encouraged to upgrade.
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1443] HttpCache uses the physical host instead of the virtual host as a cache key.
+  Contributed by Francois-Xavier Bonnet <fx at apache.org>
+
 * [HTTPCLIENT-1442] Authentication header set by the user gets removed in case
   of proxy authentication (affects plan HTTP requests only).
   Contributed by Oleg Kalnichevski <olegk at apache.org>
