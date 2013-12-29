@@ -1,4 +1,13 @@
-Changes since 4.3.1
+Release 4.3.2
+-------------------
+
+HttpClient 4.3.2 (GA) is a maintenance release that devliers a number of improvements 
+as well as bug fixes for issues reported since 4.3.1 release. SNI support for 
+Oracle JRE 1.7+ is being among the most notable improvements. 
+
+Users of HttpClient 4.3 are encouraged to upgrade.
+
+Changelog:
 -------------------
 
 * [HTTPCLIENT-1442] Authentication header set by the user gets removed in case
