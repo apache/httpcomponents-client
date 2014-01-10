@@ -10,6 +10,10 @@ Users of HttpClient 4.3 are encouraged to upgrade.
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1446] NTLM proxy + BASIC target auth fails with 'Unexpected state:
+  MSG_TYPE3_GENERATED'.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1443] HttpCache uses the physical host instead of the virtual host as a cache key.
   Contributed by Francois-Xavier Bonnet <fx at apache.org>
 

@@ -544,18 +544,22 @@ public class MainClientExec implements ClientExecChain {
                         route.getTargetHost().getPort(),
                         target.getSchemeName());
             }
-            if (this.authenticator.isAuthenticationRequested(target, response,
-                    this.targetAuthStrategy, targetAuthState, context)) {
+            final boolean targetAuthRequested = this.authenticator.isAuthenticationRequested(
+                    target, response, this.targetAuthStrategy, targetAuthState, context);
+
+            HttpHost proxy = route.getProxyHost();
+            // if proxy is not set use target host instead
+            if (proxy == null) {
+                proxy = route.getTargetHost();
+            }
+            final boolean proxyAuthRequested = this.authenticator.isAuthenticationRequested(
+                    proxy, response, this.proxyAuthStrategy, proxyAuthState, context);
+
+            if (targetAuthRequested) {
                 return this.authenticator.handleAuthChallenge(target, response,
                         this.targetAuthStrategy, targetAuthState, context);
             }
-            HttpHost proxy = route.getProxyHost();
-            if (this.authenticator.isAuthenticationRequested(proxy, response,
-                    this.proxyAuthStrategy, proxyAuthState, context)) {
-                // if proxy is not set use target host instead
-                if (proxy == null) {
-                    proxy = route.getTargetHost();
-                }
+            if (proxyAuthRequested) {
                 return this.authenticator.handleAuthChallenge(proxy, response,
                         this.proxyAuthStrategy, proxyAuthState, context);
             }
