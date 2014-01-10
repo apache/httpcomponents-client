@@ -1066,22 +1066,26 @@ public class DefaultRequestDirector implements RequestDirector {
                 Scheme scheme = connManager.getSchemeRegistry().getScheme(target);
                 target = new HttpHost(target.getHostName(), scheme.getDefaultPort(), target.getSchemeName());
             }
-            if (this.authenticator.isAuthenticationRequested(target, response,
-                    this.targetAuthStrategy, this.targetAuthState, context)) {
+
+            final boolean targetAuthRequested = this.authenticator.isAuthenticationRequested(
+                    target, response, this.targetAuthStrategy, targetAuthState, context);
+
+            HttpHost proxy = route.getProxyHost();
+            // if proxy is not set use target host instead
+            if (proxy == null) {
+                proxy = route.getTargetHost();
+            }
+            final boolean proxyAuthRequested = this.authenticator.isAuthenticationRequested(
+                    proxy, response, this.proxyAuthStrategy, proxyAuthState, context);
+
+            if (targetAuthRequested) {
                 if (this.authenticator.authenticate(target, response,
                         this.targetAuthStrategy, this.targetAuthState, context)) {
                     // Re-try the same request via the same route
                     return roureq;
                 }
             }
-
-            HttpHost proxy = route.getProxyHost();
-            if (this.authenticator.isAuthenticationRequested(proxy, response,
-                    this.proxyAuthStrategy, this.proxyAuthState, context)) {
-                // if proxy is not set use target host instead
-                if (proxy == null) {
-                    proxy = route.getTargetHost();
-                }
+            if (proxyAuthRequested) {
                 if (this.authenticator.authenticate(proxy, response,
                         this.proxyAuthStrategy, this.proxyAuthState, context)) {
                     // Re-try the same request via the same route
