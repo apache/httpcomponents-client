@@ -481,7 +481,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      * Performs any custom initialization for a newly created SSLSocket
      * (before the SSL handshake happens).
      *
-     * The default implementation is a no-op, but could be overriden to, e.g.,
+     * The default implementation is a no-op, but could be overridden to, e.g.,
      * call {@link SSLSocket#setEnabledCipherSuites(java.lang.String[])}.
      *
      * @since 4.2
