@@ -134,12 +134,9 @@ public class URLEncodedUtils {
             if (elems.length > 0) {
                 final String contentType = elems[0].getName();
                 return contentType.equalsIgnoreCase(CONTENT_TYPE);
-            } else {
-                return false;
             }
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
