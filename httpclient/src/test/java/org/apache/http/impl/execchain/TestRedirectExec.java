@@ -356,6 +356,7 @@ public class TestRedirectExec {
             super();
             this.original = original;
         }
+        @Override
         public boolean matches(final Object obj) {
             final HttpRequestWrapper wrapper = (HttpRequestWrapper) obj;
             return original == wrapper.getOriginal();
