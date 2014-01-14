@@ -104,7 +104,7 @@ public class TestRetryExec {
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
         try {
             retryExec.execute(route, request, context, execAware);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             Mockito.verify(requestExecutor, Mockito.times(2)).execute(
                     Mockito.eq(route),
                     Mockito.same(request),
@@ -130,7 +130,7 @@ public class TestRetryExec {
         Mockito.when(execAware.isAborted()).thenReturn(Boolean.TRUE);
         try {
             retryExec.execute(route, request, context, execAware);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             Mockito.verify(requestExecutor, Mockito.times(1)).execute(
                     Mockito.eq(route),
                     Mockito.same(request),
@@ -175,7 +175,7 @@ public class TestRetryExec {
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
         try {
             retryExec.execute(route, request, context, execAware);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             Mockito.verify(requestExecutor, Mockito.times(1)).execute(
                     Mockito.eq(route),
                     Mockito.same(request),

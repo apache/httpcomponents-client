@@ -75,7 +75,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         java.security.SecureRandom rnd = null;
         try {
             rnd = java.security.SecureRandom.getInstance("SHA1PRNG");
-        } catch (Exception ignore) {
+        } catch (final Exception ignore) {
         }
         RND_GEN = rnd;
     }
@@ -529,7 +529,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                     lanManagerSessionKey = new byte[16];
                     System.arraycopy(lowPart, 0, lanManagerSessionKey, 0, lowPart.length);
                     System.arraycopy(highPart, 0, lanManagerSessionKey, lowPart.length, highPart.length);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     throw new NTLMEngineException(e.getMessage(), e);
                 }
             }
@@ -552,7 +552,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             final Cipher rc4 = Cipher.getInstance("RC4");
             rc4.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "RC4"));
             return rc4.doFinal(value);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new NTLMEngineException(e.getMessage(), e);
         }
     }
@@ -589,7 +589,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             final byte[] sessionHash = new byte[8];
             System.arraycopy(digest, 0, sessionHash, 0, 8);
             return lmResponse(ntlmHash, sessionHash);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             if (e instanceof NTLMEngineException) {
                 throw (NTLMEngineException) e;
             }
@@ -624,7 +624,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             System.arraycopy(lowHash, 0, lmHash, 0, 8);
             System.arraycopy(highHash, 0, lmHash, 8, 8);
             return lmHash;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new NTLMEngineException(e.getMessage(), e);
         }
     }
@@ -644,7 +644,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             final MD4 md4 = new MD4();
             md4.update(unicodePassword);
             return md4.getOutput();
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             throw new NTLMEngineException("Unicode not supported: " + e.getMessage(), e);
         }
     }
@@ -665,7 +665,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 hmacMD5.update(domain.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
             }
             return hmacMD5.getOutput();
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             throw new NTLMEngineException("Unicode not supported! " + e.getMessage(), e);
         }
     }
@@ -686,7 +686,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 hmacMD5.update(domain.getBytes("UnicodeLittleUnmarked"));
             }
             return hmacMD5.getOutput();
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             throw new NTLMEngineException("Unicode not supported! " + e.getMessage(), e);
         }
     }
@@ -720,7 +720,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             System.arraycopy(middleResponse, 0, lmResponse, 8, 8);
             System.arraycopy(highResponse, 0, lmResponse, 16, 8);
             return lmResponse;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new NTLMEngineException(e.getMessage(), e);
         }
     }
@@ -1010,7 +1010,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 hostBytes = unqualifiedHost != null? unqualifiedHost.getBytes("ASCII") : null;
                 domainBytes = unqualifiedDomain != null ? unqualifiedDomain
                         .toUpperCase(Locale.US).getBytes("ASCII") : null;
-            } catch (UnsupportedEncodingException e) {
+            } catch (final UnsupportedEncodingException e) {
                 throw new NTLMEngineException("Unicode unsupported: " + e.getMessage(), e);
             }
         }
@@ -1134,7 +1134,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 if (bytes.length != 0) {
                     try {
                         target = new String(bytes, "UnicodeLittleUnmarked");
-                    } catch (UnsupportedEncodingException e) {
+                    } catch (final UnsupportedEncodingException e) {
                         throw new NTLMEngineException(e.getMessage(), e);
                     }
                 }
@@ -1239,7 +1239,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                         }
                     }
                 }
-            } catch (NTLMEngineException e) {
+            } catch (final NTLMEngineException e) {
                 // This likely means we couldn't find the MD4 hash algorithm -
                 // fail back to just using LM
                 ntResp = new byte[0];
@@ -1267,7 +1267,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 domainBytes = unqualifiedDomain != null ? unqualifiedDomain
                         .toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked") : null;
                 userBytes = user.getBytes("UnicodeLittleUnmarked");
-            } catch (UnsupportedEncodingException e) {
+            } catch (final UnsupportedEncodingException e) {
                 throw new NTLMEngineException("Unicode not supported: " + e.getMessage(), e);
             }
         }
@@ -1594,7 +1594,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             byte[] key = input;
             try {
                 md5 = MessageDigest.getInstance("MD5");
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 // Umm, the algorithm doesn't exist - throw an
                 // NTLMEngineException!
                 throw new NTLMEngineException(

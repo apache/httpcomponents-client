@@ -640,7 +640,7 @@ public class TestRedirects extends IntegrationTestBase {
 
         try {
             this.httpclient.execute(target, httpget);
-        } catch (ClientProtocolException ex) {
+        } catch (final ClientProtocolException ex) {
             final Throwable cause = ex.getCause();
             Assert.assertTrue(cause instanceof HttpException);
             throw ex;

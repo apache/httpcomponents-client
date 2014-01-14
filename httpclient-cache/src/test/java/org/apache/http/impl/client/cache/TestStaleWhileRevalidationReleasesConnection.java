@@ -114,14 +114,14 @@ public class TestStaleWhileRevalidationReleasesConnection {
         if (this.localServer != null) {
             try {
                 this.localServer.stop();
-            } catch(Exception e) {
+            } catch(final Exception e) {
                 e.printStackTrace();
             }
         }
 
         try {
             client.close();
-        } catch(IOException e) {
+        } catch(final IOException e) {
             e.printStackTrace();
         }
     }
@@ -141,7 +141,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
 
         try {
             Thread.sleep(1000);
-        } catch (Exception e) {
+        } catch (final Exception e) {
 
         }
         // These will be cached
@@ -160,7 +160,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
         // wait, so that max-age is expired
         try {
             Thread.sleep(4000);
-        } catch (Exception e) {
+        } catch (final Exception e) {
 
         }
 
@@ -173,7 +173,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
 
         try {
             Thread.sleep(1000);
-        } catch (Exception e) {
+        } catch (final Exception e) {
 
         }
 
@@ -197,16 +197,16 @@ public class TestStaleWhileRevalidationReleasesConnection {
         try {
             response = cachingClient.execute(httpget, localContext);
             return null;
-        } catch (ClientProtocolException e1) {
+        } catch (final ClientProtocolException e1) {
             return e1;
-        } catch (IOException e1) {
+        } catch (final IOException e1) {
             return e1;
         } finally {
             if(response!=null) {
                 final HttpEntity entity = response.getEntity();
                 try {
                     EntityUtils.consume(entity);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -284,7 +284,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
             if(contentHeader!=null) {
                 try {
                     return contentHeader.getValue().getBytes("UTF-8");
-                } catch(UnsupportedEncodingException e) {
+                } catch(final UnsupportedEncodingException e) {
                     return contentHeader.getValue().getBytes();
                 }
             } else {

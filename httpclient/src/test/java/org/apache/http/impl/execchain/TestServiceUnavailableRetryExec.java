@@ -109,7 +109,7 @@ public class TestServiceUnavailableRetryExec {
                 Mockito.<HttpContext>any());
         try {
             retryExec.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(response).close();
             throw ex;
         }

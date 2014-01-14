@@ -248,7 +248,7 @@ public class TestMinimalClientExec {
         Mockito.when(execAware.isAborted()).thenReturn(Boolean.TRUE);
         try {
             minimalClientExec.execute(route, request, context, execAware);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             Mockito.verify(connRequest, Mockito.times(1)).cancel();
             throw ex;
         }
@@ -292,7 +292,7 @@ public class TestMinimalClientExec {
 
         try {
             minimalClientExec.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
 
             throw ex;
@@ -312,7 +312,7 @@ public class TestMinimalClientExec {
 
         try {
             minimalClientExec.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
 
             throw ex;
@@ -332,7 +332,7 @@ public class TestMinimalClientExec {
 
         try {
             minimalClientExec.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
 
             throw ex;

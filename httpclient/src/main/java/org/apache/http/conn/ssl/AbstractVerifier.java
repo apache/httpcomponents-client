@@ -388,7 +388,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         try {
             final InetAddress inetAddress = InetAddress.getByName(hostname);
             return inetAddress.getHostAddress();
-        } catch (UnknownHostException uhe) { // Should not happen, because we check for IPv6 address above
+        } catch (final UnknownHostException uhe) { // Should not happen, because we check for IPv6 address above
             log.error("Unexpected error converting "+hostname, uhe);
             return hostname;
         }

@@ -306,7 +306,7 @@ public class TestRedirectExec {
 
         try {
             redirectExec.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(response1).close();
             throw ex;
         }
@@ -341,7 +341,7 @@ public class TestRedirectExec {
 
         try {
             redirectExec.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(instream1).close();
             Mockito.verify(response1).close();
             throw ex;

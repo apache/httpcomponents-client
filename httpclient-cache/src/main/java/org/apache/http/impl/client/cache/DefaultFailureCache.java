@@ -130,7 +130,7 @@ public class DefaultFailureCache implements FailureCache {
     private FailureCacheValue findValueWithOldestTimestamp() {
         long oldestTimestamp = Long.MAX_VALUE;
         FailureCacheValue oldestValue = null;
-        for (Map.Entry<String, FailureCacheValue> storageEntry : storage.entrySet()) {
+        for (final Map.Entry<String, FailureCacheValue> storageEntry : storage.entrySet()) {
             final FailureCacheValue value = storageEntry.getValue();
             final long creationTimeInNanos = value.getCreationTimeInNanos();
             if (creationTimeInNanos < oldestTimestamp) {

@@ -378,7 +378,7 @@ public class TestMainClientExec {
         Mockito.when(execAware.isAborted()).thenReturn(Boolean.TRUE);
         try {
             mainClientExec.execute(route, request, context, execAware);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             Mockito.verify(connRequest, Mockito.times(1)).cancel();
             throw ex;
         }
@@ -394,7 +394,7 @@ public class TestMainClientExec {
         Mockito.when(execAware.isAborted()).thenReturn(Boolean.FALSE, Boolean.TRUE);
         try {
             mainClientExec.execute(route, request, context, execAware);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             Mockito.verify(connRequest, Mockito.times(1)).get(0, TimeUnit.MILLISECONDS);
             Mockito.verify(execAware, Mockito.times(2)).setCancellable(Mockito.<Cancellable>any());
             Mockito.verify(connManager, Mockito.never()).connect(
@@ -416,7 +416,7 @@ public class TestMainClientExec {
         Mockito.when(execAware.isAborted()).thenReturn(Boolean.FALSE, Boolean.FALSE, Boolean.TRUE);
         try {
             mainClientExec.execute(route, request, context, execAware);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             Mockito.verify(connRequest, Mockito.times(1)).get(0, TimeUnit.MILLISECONDS);
             Mockito.verify(connManager, Mockito.times(1)).connect(managedConn, route, 0, context);
             Mockito.verify(requestExecutor, Mockito.never()).execute(
@@ -596,7 +596,7 @@ public class TestMainClientExec {
 
         try {
             mainClientExec.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
 
             throw ex;
@@ -616,7 +616,7 @@ public class TestMainClientExec {
 
         try {
             mainClientExec.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
 
             throw ex;
@@ -636,7 +636,7 @@ public class TestMainClientExec {
 
         try {
             mainClientExec.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
 
             throw ex;
@@ -741,7 +741,7 @@ public class TestMainClientExec {
 
         try {
             mainClientExec.establishRoute(authState, managedConn, route, request, context);
-        } catch (TunnelRefusedException ex) {
+        } catch (final TunnelRefusedException ex) {
             final HttpResponse r = ex.getResponse();
             Assert.assertEquals("Ka-boom", EntityUtils.toString(r.getEntity()));
 

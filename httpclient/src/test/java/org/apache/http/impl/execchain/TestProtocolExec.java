@@ -211,7 +211,7 @@ public class TestProtocolExec {
                 Mockito.same(response), Mockito.<HttpContext>any());
         try {
             protocolExec.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(response).close();
             throw ex;
         }
@@ -233,7 +233,7 @@ public class TestProtocolExec {
                 Mockito.same(response), Mockito.<HttpContext>any());
         try {
             protocolExec.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(response).close();
             throw ex;
         }
@@ -255,7 +255,7 @@ public class TestProtocolExec {
                 Mockito.same(response), Mockito.<HttpContext>any());
         try {
             protocolExec.execute(route, request, context, execAware);
-        } catch (Exception ex) {
+        } catch (final Exception ex) {
             Mockito.verify(response).close();
             throw ex;
         }

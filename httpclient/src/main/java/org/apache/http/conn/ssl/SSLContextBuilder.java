@@ -112,7 +112,7 @@ public class SSLContextBuilder {
                     }
                 }
             }
-            for (TrustManager tm : tms) {
+            for (final TrustManager tm : tms) {
                 this.trustmanagers.add(tm);
             }
         }
@@ -151,7 +151,7 @@ public class SSLContextBuilder {
                     }
                 }
             }
-            for (KeyManager km : kms) {
+            for (final KeyManager km : kms) {
                 keymanagers.add(km);
             }
         }
@@ -216,10 +216,10 @@ public class SSLContextBuilder {
         public String chooseClientAlias(
                 final String[] keyTypes, final Principal[] issuers, final Socket socket) {
             final Map<String, PrivateKeyDetails> validAliases = new HashMap<String, PrivateKeyDetails>();
-            for (String keyType: keyTypes) {
+            for (final String keyType: keyTypes) {
                 final String[] aliases = this.keyManager.getClientAliases(keyType, issuers);
                 if (aliases != null) {
-                    for (String alias: aliases) {
+                    for (final String alias: aliases) {
                         validAliases.put(alias,
                                 new PrivateKeyDetails(keyType, this.keyManager.getCertificateChain(alias)));
                     }
@@ -238,7 +238,7 @@ public class SSLContextBuilder {
             final Map<String, PrivateKeyDetails> validAliases = new HashMap<String, PrivateKeyDetails>();
             final String[] aliases = this.keyManager.getServerAliases(keyType, issuers);
             if (aliases != null) {
-                for (String alias: aliases) {
+                for (final String alias: aliases) {
                     validAliases.put(alias,
                             new PrivateKeyDetails(keyType, this.keyManager.getCertificateChain(alias)));
                 }
