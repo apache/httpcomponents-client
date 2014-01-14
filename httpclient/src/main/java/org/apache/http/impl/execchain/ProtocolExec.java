@@ -196,7 +196,7 @@ public class ProtocolExec implements ClientExecChain {
             context, execAware);
         try {
             // Run response protocol interceptors
-            context.setAttribute(HttpClientContext.HTTP_RESPONSE, response);
+            context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
             this.httpProcessor.process(response, context);
             return response;
         } catch (final RuntimeException ex) {
