@@ -1782,7 +1782,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             originResponse.setHeader("Content-Range", "bytes 0-50/128");
             originResponse.setHeader("Cache-Control", "max-age=3600");
             final byte[] bytes = new byte[51];
-            (new Random()).nextBytes(bytes);
+            new Random().nextBytes(bytes);
             originResponse.setEntity(new ByteArrayEntity(bytes));
 
             EasyMock.expect(
@@ -2486,7 +2486,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         };
 
         final byte[] bytes = new byte[128];
-        (new Random()).nextBytes(bytes);
+        new Random().nextBytes(bytes);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
@@ -2544,7 +2544,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         };
 
         final byte[] bytes = new byte[128];
-        (new Random()).nextBytes(bytes);
+        new Random().nextBytes(bytes);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
@@ -2592,7 +2592,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         };
 
         final byte[] bytes = new byte[128];
-        (new Random()).nextBytes(bytes);
+        new Random().nextBytes(bytes);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
@@ -2811,7 +2811,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         };
 
         final byte[] bytes = new byte[128];
-        (new Random()).nextBytes(bytes);
+        new Random().nextBytes(bytes);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
@@ -2862,7 +2862,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         };
 
         final byte[] bytes = new byte[128];
-        (new Random()).nextBytes(bytes);
+        new Random().nextBytes(bytes);
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(requestTime, responseTime, hdrs, bytes);
 

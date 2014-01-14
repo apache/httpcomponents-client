@@ -252,7 +252,7 @@ public class HttpTestUtils {
 
     public static byte[] getRandomBytes(final int nbytes) {
         final byte[] bytes = new byte[nbytes];
-        (new Random()).nextBytes(bytes);
+        new Random().nextBytes(bytes);
         return bytes;
     }
 

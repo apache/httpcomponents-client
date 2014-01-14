@@ -667,7 +667,7 @@ public class TestResponseCachingPolicy {
     }
 
     private int getRandomStatus() {
-        final int rnd = (new Random()).nextInt(acceptableCodes.length);
+        final int rnd = new Random().nextInt(acceptableCodes.length);
 
         return acceptableCodes[rnd];
     }

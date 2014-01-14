@@ -145,7 +145,7 @@ public class TestProtocolDeviations {
 
     private HttpEntity makeBody(final int nbytes) {
         final byte[] bytes = new byte[nbytes];
-        (new Random()).nextBytes(bytes);
+        new Random().nextBytes(bytes);
         return new ByteArrayEntity(bytes);
     }
 
@@ -218,7 +218,7 @@ public class TestProtocolDeviations {
                 HTTP_1_1);
 
         final byte[] bytes = new byte[128];
-        (new Random()).nextBytes(bytes);
+        new Random().nextBytes(bytes);
 
         final HttpEntity mockBody = EasyMock.createMockBuilder(ByteArrayEntity.class).withConstructor(
                 new Object[] { bytes }).addMockedMethods("getContentLength").createNiceMock();
