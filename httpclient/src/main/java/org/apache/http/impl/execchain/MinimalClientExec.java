@@ -55,6 +55,7 @@ import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.ConnectionShutdownException;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
@@ -178,9 +179,9 @@ public class MinimalClientExec implements ClientExecChain {
                 target = route.getTargetHost();
             }
 
-            context.setAttribute(HttpClientContext.HTTP_TARGET_HOST, target);
-            context.setAttribute(HttpClientContext.HTTP_REQUEST, request);
-            context.setAttribute(HttpClientContext.HTTP_CONNECTION, managedConn);
+            context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
+            context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
+            context.setAttribute(HttpCoreContext.HTTP_CONNECTION, managedConn);
             context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
 
             httpProcessor.process(request, context);
