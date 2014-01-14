@@ -66,6 +66,7 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.auth.HttpAuthenticator;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.protocol.ImmutableHttpProcessor;
@@ -181,7 +182,7 @@ public class MainClientExec implements ClientExecChain {
             throw new RequestAbortedException("Request execution failed", cause);
         }
 
-        context.setAttribute(HttpClientContext.HTTP_CONNECTION, managedConn);
+        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, managedConn);
 
         if (config.isStaleConnectionCheckEnabled()) {
             // validate connection
