@@ -132,8 +132,9 @@ public class HttpCacheEntry implements Serializable {
      */
     private Date parseDate() {
         final Header dateHdr = getFirstHeader(HTTP.DATE_HEADER);
-        if (dateHdr == null)
+        if (dateHdr == null) {
             return null;
+        }
         return DateUtils.parseDate(dateHdr.getValue());
     }
 

@@ -331,8 +331,9 @@ public class TestCachingExec extends TestCachingExecChain {
                     throw new IOException("Response has been closed");
 
                 }
-                if (size.incrementAndGet() > maxlength.get())
+                if (size.incrementAndGet() > maxlength.get()) {
                     return -1;
+                }
                 return 'y';
             }
         }));
