@@ -112,8 +112,8 @@ public class SSLContextBuilder {
                     }
                 }
             }
-            for (int i = 0; i < tms.length; i++) {
-                this.trustmanagers.add(tms[i]);
+            for (TrustManager tm : tms) {
+                this.trustmanagers.add(tm);
             }
         }
         return this;
@@ -151,8 +151,8 @@ public class SSLContextBuilder {
                     }
                 }
             }
-            for (int i = 0; i < kms.length; i++) {
-                keymanagers.add(kms[i]);
+            for (KeyManager km : kms) {
+                keymanagers.add(km);
             }
         }
         return this;
