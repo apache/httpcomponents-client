@@ -139,6 +139,7 @@ class SizeLimitedResponseReader {
                 new Class<?>[] { CloseableHttpResponse.class },
                 new ResponseProxyHandler(reconstructed) {
 
+                    @Override
                     public void close() throws IOException {
                         response.close();
                     }

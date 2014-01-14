@@ -146,6 +146,7 @@ public class TestSizeLimitedResponseReader {
                         new Class<?>[] { CloseableHttpResponse.class },
                         new ResponseProxyHandler(new BasicHttpResponse(
                                 HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK")) {
+                            @Override
                             public void close() throws IOException {
                                 closed.set(true);
                             }

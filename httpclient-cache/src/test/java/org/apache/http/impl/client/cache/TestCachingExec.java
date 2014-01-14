@@ -87,6 +87,7 @@ public class TestCachingExec extends TestCachingExecChain {
     private Date requestDate;
     private Date responseDate;
 
+    @Override
     @Before
     public void setUp() {
         super.setUp();
@@ -129,6 +130,7 @@ public class TestCachingExec extends TestCachingExecChain {
         return impl = new CachingExec(backend, cache, config);
     }
 
+    @Override
     protected void replayMocks() {
         super.replayMocks();
         replay(mockBackendResponse);
@@ -137,6 +139,7 @@ public class TestCachingExec extends TestCachingExecChain {
         }
     }
 
+    @Override
     protected void verifyMocks() {
         super.verifyMocks();
         verify(mockBackendResponse);
@@ -320,11 +323,13 @@ public class TestCachingExec extends TestCachingExecChain {
         resp1.setEntity(new InputStreamEntity(new InputStream() {
             private Throwable closed;
 
+            @Override
             public void close() throws IOException {
                 closed = new Throwable();
                 super.close();
             }
 
+            @Override
             public int read() throws IOException {
                 Thread.yield();
                 if (closed != null) {
