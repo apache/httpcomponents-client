@@ -51,6 +51,7 @@ import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.util.Args;
 
@@ -185,9 +186,9 @@ public class ProtocolExec implements ClientExecChain {
         }
 
         // Run request protocol interceptors
-        context.setAttribute(HttpClientContext.HTTP_TARGET_HOST, target);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
-        context.setAttribute(HttpClientContext.HTTP_REQUEST, request);
+        context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
 
         this.httpProcessor.process(request, context);
 
