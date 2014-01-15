@@ -39,6 +39,11 @@
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>bundle</packaging>
 
+  <properties>
+    <httpcore.osgi.import.version>"[4.3.0, 4.4.0)"</httpcore.osgi.import.version>
+    <commons-logging.osgi.import.version>"[1.1.0, 1.2.0)"</commons-logging.osgi.import.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -121,7 +126,6 @@
             org.apache.http.impl.conn.*;version=${project.version},
             org.apache.http.impl.execchain.*;version=${project.version},
             org.apache.http.impl.client.*;version=${project.version},
-            org.apache.http.impl.client.cache.*;version=${project.version},
             org.apache.http.osgi.services.*;version=${project.version}
             </_exportcontents>
             <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
@@ -134,21 +138,21 @@
             org.ietf.jgss,,
             org.osgi.framework,
             org.osgi.service.cm,
-            org.apache.commons.logging;version="[1.1.1,1.2.0)",
-            org.apache.http;version=${httpcore.version},
-            org.apache.http.config;version=${httpcore.version},
-            org.apache.http.concurrent;version=${httpcore.version},
-            org.apache.http.entity;version=${httpcore.version},
-            org.apache.http.io;version=${httpcore.version},
-            org.apache.http.message;version=${httpcore.version},
-            org.apache.http.params;version=${httpcore.version},
-            org.apache.http.pool;version=${httpcore.version},
-            org.apache.http.protocol;version=${httpcore.version},
-            org.apache.http.util;version=${httpcore.version},
-            org.apache.http.impl;version=${httpcore.version},
-            org.apache.http.impl.entity;version=${httpcore.version},
-            org.apache.http.impl.io;version=${httpcore.version},
-            org.apache.http.impl.pool;version=${httpcore.version},
+            org.apache.commons.logging;version=${commons-logging.osgi.import.version},
+            org.apache.http;version=${httpcore.osgi.import.version},
+            org.apache.http.config;version=${httpcore.osgi.import.version},
+            org.apache.http.concurrent;version=${httpcore.osgi.import.version},
+            org.apache.http.entity;version=${httpcore.osgi.import.version},
+            org.apache.http.io;version=${httpcore.osgi.import.version},
+            org.apache.http.message;version=${httpcore.osgi.import.version},
+            org.apache.http.params;version=${httpcore.osgi.import.version},
+            org.apache.http.pool;version=${httpcore.osgi.import.version},
+            org.apache.http.protocol;version=${httpcore.osgi.import.version},
+            org.apache.http.util;version=${httpcore.osgi.import.version},
+            org.apache.http.impl;version=${httpcore.osgi.import.version},
+            org.apache.http.impl.entity;version=${httpcore.osgi.import.version},
+            org.apache.http.impl.io;version=${httpcore.osgi.import.version},
+            org.apache.http.impl.pool;version=${httpcore.osgi.import.version},
             net.sf.ehcache.*;resolution:=optional,
             net.spy.memcached.*;resolution:=optional
             </Import-Package>
