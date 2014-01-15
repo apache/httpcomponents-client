@@ -10,6 +10,9 @@ Users of HttpClient 4.3 are encouraged to upgrade.
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1447] Clients created with HttpClients.createMinimal do not work with absolute URIs
+  Contributed by Joseph Walton <joe at kafsemo dot org>
+  
 * [HTTPCLIENT-1446] NTLM proxy + BASIC target auth fails with 'Unexpected state:
   MSG_TYPE3_GENERATED'.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
