@@ -27,6 +27,7 @@
 package org.apache.http.impl.execchain;
 
 import junit.framework.Assert;
+
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpException;
@@ -51,9 +52,12 @@ import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+
+import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -339,4 +343,23 @@ public class TestMinimalClientExec {
         }
     }
 
+    @Test
+    public void absoluteUriIsRewrittenToRelativeBeforeBeingPassedInRequestLine() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+        final HttpClientContext context = new HttpClientContext();
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
+
+        final HttpResponse response = Mockito.mock(HttpResponse.class);
+        Mockito.when(requestExecutor.execute(
+                Mockito.<HttpRequest>any(),
+                Mockito.<HttpClientConnection>any(),
+                Mockito.<HttpClientContext>any())).thenReturn(response);
+
+        minimalClientExec.execute(route, request, context, execAware);
+
+        final ArgumentCaptor<HttpRequest> reqCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        Mockito.verify(requestExecutor).execute(reqCaptor.capture(), Mockito.<HttpClientConnection>any(), Mockito.<HttpClientContext>any());
+
+        assertEquals("/test", reqCaptor.getValue().getRequestLine().getUri());
+    }
 }
