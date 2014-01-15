@@ -30,6 +30,7 @@ package org.apache.http.impl.execchain;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -42,6 +43,7 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolException;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -50,6 +52,7 @@ import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.protocol.RequestClientConnControl;
+import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -106,6 +109,25 @@ public class MinimalClientExec implements ClientExecChain {
         this.keepAliveStrategy  = keepAliveStrategy;
     }
 
+    static void rewriteRequestURI(
+            final HttpRequestWrapper request,
+            final HttpRoute route) throws ProtocolException {
+        try {
+            URI uri = request.getURI();
+            if (uri != null) {
+                // Make sure the request URI is relative
+                if (uri.isAbsolute()) {
+                    uri = URIUtils.rewriteURI(uri, null, true);
+                } else {
+                    uri = URIUtils.rewriteURI(uri);
+                }
+                request.setURI(uri);
+            }
+        } catch (final URISyntaxException ex) {
+            throw new ProtocolException("Invalid URI: " + request.getRequestLine().getUri(), ex);
+        }
+    }
+
     public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,
@@ -114,6 +136,8 @@ public class MinimalClientExec implements ClientExecChain {
         Args.notNull(route, "HTTP route");
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
+
+        rewriteRequestURI(request, route);
 
         final ConnectionRequest connRequest = connManager.requestConnection(route, null);
         if (execAware != null) {
