@@ -655,11 +655,13 @@ public class DefaultRequestDirector implements RequestDirector {
                     if (this.log.isInfoEnabled()) {
                         this.log.info("I/O exception ("+ ex.getClass().getName() +
                                 ") caught when connecting to the target host: "
+                                + req.getRoute().toString() +
+                                ": "
                                 + ex.getMessage());
                         if (this.log.isDebugEnabled()) {
                             this.log.debug(ex.getMessage(), ex);
                         }
-                        this.log.info("Retrying connect");
+                        this.log.info("Retrying connect to target " + req.getRoute().getTargetHost());
                     }
                 } else {
                     throw ex;
@@ -725,12 +727,14 @@ public class DefaultRequestDirector implements RequestDirector {
                     if (this.log.isInfoEnabled()) {
                         this.log.info("I/O exception ("+ ex.getClass().getName() +
                                 ") caught when processing request: "
+                                + req.getRoute().toString() +
+                                ": "
                                 + ex.getMessage());
                     }
                     if (this.log.isDebugEnabled()) {
                         this.log.debug(ex.getMessage(), ex);
                     }
-                    this.log.info("Retrying request");
+                    this.log.info("Retrying request to target " + req.getRoute().getTargetHost());
                     retryReason = ex;
                 } else {
                     throw ex;
