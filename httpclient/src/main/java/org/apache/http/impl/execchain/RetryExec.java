@@ -33,6 +33,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpException;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
@@ -91,7 +92,9 @@ public class RetryExec implements ClientExecChain {
                 if (retryHandler.retryRequest(ex, execCount, context)) {
                     if (this.log.isInfoEnabled()) {
                         this.log.info("I/O exception ("+ ex.getClass().getName() +
-                                ") caught when processing request: "
+                                ") caught when processing request to "
+                                + route +
+                                ": "
                                 + ex.getMessage());
                     }
                     if (this.log.isDebugEnabled()) {
@@ -103,9 +106,18 @@ public class RetryExec implements ClientExecChain {
                                 "with a non-repeatable request entity", ex);
                     }
                     request.setHeaders(origheaders);
-                    this.log.info("Retrying request");
+                    if (this.log.isInfoEnabled()) {
+                        this.log.info("Retrying request to " + route);
+                    }
                 } else {
-                    throw ex;
+                    if (ex instanceof NoHttpResponseException) {
+                        final NoHttpResponseException updatedex = new NoHttpResponseException(
+                                route.getTargetHost().toHostString() + " failed to respond");
+                        updatedex.setStackTrace(ex.getStackTrace());
+                        throw updatedex;
+                    } else {
+                        throw ex;
+                    }
                 }
             }
         }
