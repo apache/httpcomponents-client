@@ -128,7 +128,7 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
                 break;
             }
             domain = "*" + domain.substring(nextdot);
-        } while (domain.length() > 0);
+        } while (!domain.isEmpty());
 
         return false;
     }

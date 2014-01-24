@@ -50,7 +50,7 @@ public class CloneUtils {
             final Class<?> clazz = obj.getClass ();
             final Method m;
             try {
-                m = clazz.getMethod("clone", (Class[]) null);
+                m = clazz.getMethod("clone", (Class<?>[]) null);
             } catch (final NoSuchMethodException ex) {
                 throw new NoSuchMethodError(ex.getMessage());
             }

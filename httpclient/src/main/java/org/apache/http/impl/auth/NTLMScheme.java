@@ -104,7 +104,7 @@ public class NTLMScheme extends AuthSchemeBase {
             final CharArrayBuffer buffer,
             final int beginIndex, final int endIndex) throws MalformedChallengeException {
         this.challenge = buffer.substringTrimmed(beginIndex, endIndex);
-        if (this.challenge.length() == 0) {
+        if (this.challenge.isEmpty()) {
             if (this.state == State.UNINITIATED) {
                 this.state = State.CHALLENGE_RECEIVED;
             } else {

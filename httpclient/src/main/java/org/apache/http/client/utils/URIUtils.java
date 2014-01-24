@@ -223,7 +223,7 @@ public class URIUtils {
         if (s.startsWith("?")) {
             return resolveReferenceStartingWithQueryString(baseURI, ref);
         }
-        final boolean emptyReference = s.length() == 0;
+        final boolean emptyReference = s.isEmpty();
         if (emptyReference) {
             ref = URI.create("#");
         }
@@ -268,7 +268,7 @@ public class URIUtils {
         final String[] inputSegments = path.split("/");
         final Stack<String> outputSegments = new Stack<String>();
         for (final String inputSegment : inputSegments) {
-            if ((inputSegment.length() == 0)
+            if ((inputSegment.isEmpty())
                 || (".".equals(inputSegment))) {
                 // Do nothing
             } else if ("..".equals(inputSegment)) {

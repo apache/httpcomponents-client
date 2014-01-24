@@ -66,7 +66,7 @@ public class PublicSuffixListParser {
         while (more) {
             more = readLine(r, sb);
             String line = sb.toString();
-            if (line.length() == 0) {
+            if (line.isEmpty()) {
                 continue;
             }
             if (line.startsWith("//"))

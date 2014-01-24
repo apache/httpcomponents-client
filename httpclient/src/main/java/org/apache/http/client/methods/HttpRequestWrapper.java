@@ -110,7 +110,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
         } else {
             requestUri = this.original.getRequestLine().getUri();
         }
-        if (requestUri == null || requestUri.length() == 0) {
+        if (requestUri == null || requestUri.isEmpty()) {
             requestUri = "/";
         }
         return new BasicRequestLine(this.method, requestUri, getProtocolVersion());

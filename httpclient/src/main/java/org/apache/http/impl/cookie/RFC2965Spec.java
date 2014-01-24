@@ -99,7 +99,7 @@ public class RFC2965Spec extends RFC2109Spec {
         for (final HeaderElement headerelement : elems) {
             final String name = headerelement.getName();
             final String value = headerelement.getValue();
-            if (name == null || name.length() == 0) {
+            if (name == null || name.isEmpty()) {
                 throw new MalformedCookieException("Cookie name may not be empty");
             }
 
@@ -163,7 +163,7 @@ public class RFC2965Spec extends RFC2109Spec {
             if (s != null) {
                 buffer.append("; $Port");
                 buffer.append("=\"");
-                if (s.trim().length() > 0) {
+                if (!s.trim().isEmpty()) {
                     final int[] ports = cookie.getPorts();
                     if (ports != null) {
                         final int len = ports.length;

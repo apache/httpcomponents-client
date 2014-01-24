@@ -188,7 +188,7 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
         }
 
         private static int toInt(final String value, final int max) {
-            if (value == null || value.length() == 0) {
+            if (value == null || value.isEmpty()) {
                 return max;
             }
 

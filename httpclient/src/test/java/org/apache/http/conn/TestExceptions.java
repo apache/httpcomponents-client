@@ -119,7 +119,7 @@ public class TestExceptions {
     public void testConnectionPoolTimeoutException() {
         final String msg = "sample exception message";
         ConnectionPoolTimeoutException cptx = new ConnectionPoolTimeoutException(msg);
-        Assert.assertFalse(cptx.toString().indexOf(msg) < 0);
+        Assert.assertFalse(!cptx.toString().contains(msg));
         Assert.assertSame(msg, cptx.getMessage());
 
         cptx = new ConnectionPoolTimeoutException();

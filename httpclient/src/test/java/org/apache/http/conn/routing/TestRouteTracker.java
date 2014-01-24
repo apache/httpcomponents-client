@@ -701,13 +701,13 @@ public class TestRouteTracker {
         if (rt.getLocalAddress() != null) {
             final String las = rt.getLocalAddress().toString();
             Assert.assertFalse("no local address in toString(): " + rts,
-                        rts.indexOf(las) < 0);
+                    !rts.contains(las));
         }
 
         for (int i=0; i<rt.getHopCount(); i++) {
             final String hts = rt.getHopTarget(i).toString();
             Assert.assertFalse("hop "+i+" ("+hts+") missing in toString(): " + rts,
-                        rts.indexOf(hts) < 0);
+                    !rts.contains(hts));
         }
 
         return rts;

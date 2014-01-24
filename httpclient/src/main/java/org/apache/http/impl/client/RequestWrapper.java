@@ -135,7 +135,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
         if (uri != null) {
             uritext = uri.toASCIIString();
         }
-        if (uritext == null || uritext.length() == 0) {
+        if (uritext == null || uritext.isEmpty()) {
             uritext = "/";
         }
         return new BasicRequestLine(method, uritext, ver);

@@ -52,7 +52,7 @@ public final class CookieOrigin {
         Args.notNull(path, "Path");
         this.host = host.toLowerCase(Locale.ENGLISH);
         this.port = port;
-        if (path.trim().length() != 0) {
+        if (!path.trim().isEmpty()) {
             this.path = path;
         } else {
             this.path = "/";

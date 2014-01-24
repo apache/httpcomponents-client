@@ -50,6 +50,6 @@ public enum CacheResponseStatus {
     /** The response was generated from the cache after validating the
      * entry with the origin server.
      */
-    VALIDATED;
+    VALIDATED
 
 }

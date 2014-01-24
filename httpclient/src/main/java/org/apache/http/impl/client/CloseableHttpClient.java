@@ -116,7 +116,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     public CloseableHttpResponse execute(
             final HttpHost target,
             final HttpRequest request) throws IOException, ClientProtocolException {
-        return doExecute(target, request, (HttpContext) null);
+        return doExecute(target, request, null);
     }
 
     /**

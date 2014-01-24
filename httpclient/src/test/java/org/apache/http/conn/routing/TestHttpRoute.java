@@ -111,15 +111,15 @@ public class TestHttpRoute {
 
         final String routestr = route.toString();
         Assert.assertTrue("missing target in toString",
-                   routestr.indexOf(TARGET1.getHostName()) >= 0);
+                routestr.contains(TARGET1.getHostName()));
         Assert.assertTrue("missing local address in toString",
-                   routestr.indexOf(LOCAL41.toString()) >= 0);
+                routestr.contains(LOCAL41.toString()));
         Assert.assertTrue("missing proxy 1 in toString",
-                   routestr.indexOf(PROXY1.getHostName()) >= 0);
+                routestr.contains(PROXY1.getHostName()));
         Assert.assertTrue("missing proxy 2 in toString",
-                   routestr.indexOf(PROXY2.getHostName()) >= 0);
+                routestr.contains(PROXY2.getHostName()));
         Assert.assertTrue("missing proxy 3 in toString",
-                   routestr.indexOf(PROXY3.getHostName()) >= 0);
+                routestr.contains(PROXY3.getHostName()));
     }
 
     @Test

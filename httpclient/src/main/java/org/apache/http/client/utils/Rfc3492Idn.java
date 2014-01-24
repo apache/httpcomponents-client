@@ -105,11 +105,11 @@ public class Rfc3492Idn implements Idn {
             input = input.substring(lastdelim + 1);
         }
 
-        while (input.length() > 0) {
+        while (!input.isEmpty()) {
             final int oldi = i;
             int w = 1;
             for (int k = base;; k += base) {
-                if (input.length() == 0) {
+                if (input.isEmpty()) {
                     break;
                 }
                 final char c = input.charAt(0);

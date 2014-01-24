@@ -63,7 +63,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
             throw new MalformedCookieException(
                     "Missing value for domain attribute");
         }
-        if (domain.trim().length() == 0) {
+        if (domain.trim().isEmpty()) {
             throw new MalformedCookieException(
                     "Blank value for domain attribute");
         }

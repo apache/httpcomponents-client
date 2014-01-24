@@ -59,7 +59,7 @@ public class NTUserPrincipal implements Principal, Serializable {
         } else {
             this.domain = null;
         }
-        if (this.domain != null && this.domain.length() > 0) {
+        if (this.domain != null && !this.domain.isEmpty()) {
             final StringBuilder buffer = new StringBuilder();
             buffer.append(this.domain);
             buffer.append('\\');

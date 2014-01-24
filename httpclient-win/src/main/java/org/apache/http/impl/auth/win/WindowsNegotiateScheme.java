@@ -148,7 +148,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
             final int endIndex) throws MalformedChallengeException {
         this.challenge = buffer.substringTrimmed(beginIndex, endIndex);
 
-        if (this.challenge.length() == 0) {
+        if (this.challenge.isEmpty()) {
             if (clientCred != null) {
                 if (continueNeeded) {
                     throw new RuntimeException("Unexpected token");
@@ -192,7 +192,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
                 dispose();
                 throw new AuthenticationException("Authentication Failed", t);
             }
-        } else if (this.challenge == null || this.challenge.length() == 0) {
+        } else if (this.challenge == null || this.challenge.isEmpty()) {
             dispose();
             throw new AuthenticationException("Authentication Failed");
         } else {

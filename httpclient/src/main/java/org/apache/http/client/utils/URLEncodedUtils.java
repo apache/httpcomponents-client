@@ -86,7 +86,7 @@ public class URLEncodedUtils {
      */
     public static List <NameValuePair> parse(final URI uri, final String charset) {
         final String query = uri.getRawQuery();
-        if (query != null && query.length() > 0) {
+        if (query != null && !query.isEmpty()) {
             final List<NameValuePair> result = new ArrayList<NameValuePair>();
             final Scanner scanner = new Scanner(query);
             parse(result, scanner, QP_SEP_PATTERN, charset);
@@ -112,7 +112,7 @@ public class URLEncodedUtils {
         final ContentType contentType = ContentType.get(entity);
         if (contentType != null && contentType.getMimeType().equalsIgnoreCase(CONTENT_TYPE)) {
             final String content = EntityUtils.toString(entity, Consts.ASCII);
-            if (content != null && content.length() > 0) {
+            if (content != null && !content.isEmpty()) {
                 Charset charset = contentType.getCharset();
                 if (charset == null) {
                     charset = HTTP.DEF_CONTENT_CHARSET;
@@ -247,7 +247,7 @@ public class URLEncodedUtils {
         final List<NameValuePair> list = new ArrayList<NameValuePair>();
         while (!cursor.atEnd()) {
             final NameValuePair nvp = parser.parseNameValuePair(buffer, cursor, parameterSeparator);
-            if (nvp.getName().length() > 0) {
+            if (!nvp.getName().isEmpty()) {
                 list.add(new BasicNameValuePair(
                         decodeFormFields(nvp.getName(), charset),
                         decodeFormFields(nvp.getValue(), charset)));

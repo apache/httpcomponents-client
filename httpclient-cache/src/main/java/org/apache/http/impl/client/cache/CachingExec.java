@@ -337,7 +337,7 @@ public class CachingExec implements ClientExecChain {
         }
 
         final Map<String, Variant> variants = getExistingCacheVariants(target, request);
-        if (variants != null && variants.size() > 0) {
+        if (variants != null && !variants.isEmpty()) {
             return negotiateResponseFromVariants(route, request, context,
                     execAware, variants);
         }
