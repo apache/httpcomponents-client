@@ -39,7 +39,7 @@ import org.apache.http.protocol.HttpContext;
  * <p/>
  * EXPERIMENTAL
  *
- * @since 4.3
+ * @since 4.4
  */
 @Immutable
 public class WindowsNTLMSchemeFactory implements AuthSchemeProvider {

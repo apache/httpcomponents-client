@@ -60,7 +60,7 @@ import com.sun.jna.ptr.IntByReference;
  * <p/>
  * EXPERIMENTAL
  *
- * @since 4.3
+ * @since 4.4
  */
 @NotThreadSafe
 public class WindowsNegotiateScheme extends AuthSchemeBase {

@@ -41,7 +41,7 @@ import com.sun.jna.platform.win32.Secur32.EXTENDED_NAME_FORMAT;
  * <p/>
  * EXPERIMENTAL
  *
- * @since 4.3
+ * @since 4.4
  */
 @Immutable
 public class CurrentWindowsCredentials implements Credentials, Serializable, Principal {
