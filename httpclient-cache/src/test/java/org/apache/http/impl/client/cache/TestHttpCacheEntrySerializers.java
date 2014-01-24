@@ -32,7 +32,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Date;
@@ -80,7 +79,7 @@ public class TestHttpCacheEntrySerializers {
         assertTrue(areEqual(readEntry, writeEntry));
     }
 
-    private HttpCacheEntry makeCacheEntryWithVariantMap() throws UnsupportedEncodingException {
+    private HttpCacheEntry makeCacheEntryWithVariantMap() {
         final Header[] headers = new Header[5];
         for (int i = 0; i < headers.length; i++) {
             headers[i] = new BasicHeader("header" + i, "value" + i);
@@ -94,7 +93,7 @@ public class TestHttpCacheEntrySerializers {
         variantMap.put("test variant 2","true");
         final HttpCacheEntry cacheEntry = new HttpCacheEntry(new Date(), new Date(),
                 slObj, headers, new HeapResource(Base64.decodeBase64(body
-                        .getBytes(UTF8.name()))), variantMap);
+                        .getBytes(UTF8))), variantMap);
 
         return cacheEntry;
     }

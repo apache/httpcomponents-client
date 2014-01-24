@@ -27,6 +27,7 @@
 package org.apache.http.impl.auth;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.util.Arrays;
@@ -36,7 +37,9 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.Consts;
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.util.CharsetUtils;
 import org.apache.http.util.EncodingUtils;
 
 /**
@@ -47,6 +50,8 @@ import org.apache.http.util.EncodingUtils;
  */
 @NotThreadSafe
 final class NTLMEngineImpl implements NTLMEngine {
+
+    private static final Charset UNICODE_LITTLE_UNMARKED = CharsetUtils.lookup("UnicodeLittleUnmarked");
 
     // Flags we use; descriptions according to:
     // http://davenport.sourceforge.net/ntlm.html
@@ -81,16 +86,13 @@ final class NTLMEngineImpl implements NTLMEngine {
     }
 
     /** Character encoding */
-    static final String DEFAULT_CHARSET = "ASCII";
-
-    /** The character set to use for encoding the credentials */
-    private String credentialCharset = DEFAULT_CHARSET;
+    static final Charset DEFAULT_CHARSET = Consts.ASCII;
 
     /** The signature string as bytes in the default encoding */
     private static final byte[] SIGNATURE;
 
     static {
-        final byte[] bytesWithoutNull = EncodingUtils.getBytes("NTLMSSP", "ASCII");
+        final byte[] bytesWithoutNull = "NTLMSSP".getBytes(Consts.ASCII);
         SIGNATURE = new byte[bytesWithoutNull.length + 1];
         System.arraycopy(bytesWithoutNull, 0, SIGNATURE, 0, bytesWithoutNull.length);
         SIGNATURE[bytesWithoutNull.length] = (byte) 0x00;
@@ -167,21 +169,6 @@ final class NTLMEngineImpl implements NTLMEngine {
             throws NTLMEngineException {
         return new Type3Message(domain, host, user, password, nonce, type2Flags, target,
                 targetInformation).getResponse();
-    }
-
-    /**
-     * @return Returns the credentialCharset.
-     */
-    String getCredentialCharset() {
-        return credentialCharset;
-    }
-
-    /**
-     * @param credentialCharset
-     *            The credentialCharset to set.
-     */
-    void setCredentialCharset(final String credentialCharset) {
-        this.credentialCharset = credentialCharset;
     }
 
     /** Strip dot suffix from a name */
@@ -608,13 +595,13 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     private static byte[] lmHash(final String password) throws NTLMEngineException {
         try {
-            final byte[] oemPassword = password.toUpperCase(Locale.US).getBytes("US-ASCII");
+            final byte[] oemPassword = password.toUpperCase(Locale.US).getBytes(Consts.ASCII);
             final int length = Math.min(oemPassword.length, 14);
             final byte[] keyBytes = new byte[14];
             System.arraycopy(oemPassword, 0, keyBytes, 0, length);
             final Key lowKey = createDESKey(keyBytes, 0);
             final Key highKey = createDESKey(keyBytes, 7);
-            final byte[] magicConstant = "KGS!@#$%".getBytes("US-ASCII");
+            final byte[] magicConstant = "KGS!@#$%".getBytes(Consts.ASCII);
             final Cipher des = Cipher.getInstance("DES/ECB/NoPadding");
             des.init(Cipher.ENCRYPT_MODE, lowKey);
             final byte[] lowHash = des.doFinal(magicConstant);
@@ -639,14 +626,13 @@ final class NTLMEngineImpl implements NTLMEngine {
      *         the NTLM Response and the NTLMv2 and LMv2 Hashes.
      */
     private static byte[] ntlmHash(final String password) throws NTLMEngineException {
-        try {
-            final byte[] unicodePassword = password.getBytes("UnicodeLittleUnmarked");
-            final MD4 md4 = new MD4();
-            md4.update(unicodePassword);
-            return md4.getOutput();
-        } catch (final UnsupportedEncodingException e) {
-            throw new NTLMEngineException("Unicode not supported: " + e.getMessage(), e);
+        if (UNICODE_LITTLE_UNMARKED == null) {
+            throw new NTLMEngineException("Unicode not supported");
         }
+        final byte[] unicodePassword = password.getBytes(UNICODE_LITTLE_UNMARKED);
+        final MD4 md4 = new MD4();
+        md4.update(unicodePassword);
+        return md4.getOutput();
     }
 
     /**
@@ -657,17 +643,16 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     private static byte[] lmv2Hash(final String domain, final String user, final byte[] ntlmHash)
             throws NTLMEngineException {
-        try {
-            final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
-            // Upper case username, upper case domain!
-            hmacMD5.update(user.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
-            if (domain != null) {
-                hmacMD5.update(domain.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
-            }
-            return hmacMD5.getOutput();
-        } catch (final UnsupportedEncodingException e) {
-            throw new NTLMEngineException("Unicode not supported! " + e.getMessage(), e);
+        if (UNICODE_LITTLE_UNMARKED == null) {
+            throw new NTLMEngineException("Unicode not supported");
         }
+        final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
+        // Upper case username, upper case domain!
+        hmacMD5.update(user.toUpperCase(Locale.US).getBytes(UNICODE_LITTLE_UNMARKED));
+        if (domain != null) {
+            hmacMD5.update(domain.toUpperCase(Locale.US).getBytes(UNICODE_LITTLE_UNMARKED));
+        }
+        return hmacMD5.getOutput();
     }
 
     /**
@@ -678,17 +663,16 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     private static byte[] ntlmv2Hash(final String domain, final String user, final byte[] ntlmHash)
             throws NTLMEngineException {
-        try {
-            final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
-            // Upper case username, mixed case target!!
-            hmacMD5.update(user.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
-            if (domain != null) {
-                hmacMD5.update(domain.getBytes("UnicodeLittleUnmarked"));
-            }
-            return hmacMD5.getOutput();
-        } catch (final UnsupportedEncodingException e) {
-            throw new NTLMEngineException("Unicode not supported! " + e.getMessage(), e);
+        if (UNICODE_LITTLE_UNMARKED == null) {
+            throw new NTLMEngineException("Unicode not supported");
         }
+        final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
+        // Upper case username, mixed case target!!
+        hmacMD5.update(user.toUpperCase(Locale.US).getBytes(UNICODE_LITTLE_UNMARKED));
+        if (domain != null) {
+            hmacMD5.update(domain.getBytes(UNICODE_LITTLE_UNMARKED));
+        }
+        return hmacMD5.getOutput();
     }
 
     /**
@@ -848,8 +832,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
         /** Constructor to use when message contents are known */
         NTLMMessage(final String messageBody, final int expectedType) throws NTLMEngineException {
-            messageContents = Base64.decodeBase64(EncodingUtils.getBytes(messageBody,
-                    DEFAULT_CHARSET));
+            messageContents = Base64.decodeBase64(messageBody.getBytes(DEFAULT_CHARSET));
             // Look for NTLM message
             if (messageContents.length < SIGNATURE.length) {
                 throw new NTLMEngineException("NTLM message decoding error - packet too short");
@@ -1001,18 +984,14 @@ final class NTLMEngineImpl implements NTLMEngine {
         /** Constructor. Include the arguments the message will need */
         Type1Message(final String domain, final String host) throws NTLMEngineException {
             super();
-            try {
-                // Strip off domain name from the host!
-                final String unqualifiedHost = convertHost(host);
-                // Use only the base domain name!
-                final String unqualifiedDomain = convertDomain(domain);
+            // Strip off domain name from the host!
+            final String unqualifiedHost = convertHost(host);
+            // Use only the base domain name!
+            final String unqualifiedDomain = convertDomain(domain);
 
-                hostBytes = unqualifiedHost != null? unqualifiedHost.getBytes("ASCII") : null;
-                domainBytes = unqualifiedDomain != null ? unqualifiedDomain
-                        .toUpperCase(Locale.US).getBytes("ASCII") : null;
-            } catch (final UnsupportedEncodingException e) {
-                throw new NTLMEngineException("Unicode unsupported: " + e.getMessage(), e);
-            }
+            hostBytes = unqualifiedHost != null? unqualifiedHost.getBytes(Consts.ASCII) : null;
+            domainBytes = unqualifiedDomain != null ? unqualifiedDomain
+                    .toUpperCase(Locale.US).getBytes(Consts.ASCII) : null;
         }
 
         /**
@@ -1260,16 +1239,13 @@ final class NTLMEngineImpl implements NTLMEngine {
             } else {
                 sessionKey = null;
             }
-
-            try {
-                hostBytes = unqualifiedHost != null ? unqualifiedHost
-                        .getBytes("UnicodeLittleUnmarked") : null;
-                domainBytes = unqualifiedDomain != null ? unqualifiedDomain
-                        .toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked") : null;
-                userBytes = user.getBytes("UnicodeLittleUnmarked");
-            } catch (final UnsupportedEncodingException e) {
-                throw new NTLMEngineException("Unicode not supported: " + e.getMessage(), e);
+            if (UNICODE_LITTLE_UNMARKED == null) {
+                throw new NTLMEngineException("Unicode not supported");
             }
+            hostBytes = unqualifiedHost != null ? unqualifiedHost.getBytes(UNICODE_LITTLE_UNMARKED) : null;
+            domainBytes = unqualifiedDomain != null ? unqualifiedDomain
+                    .toUpperCase(Locale.US).getBytes(UNICODE_LITTLE_UNMARKED) : null;
+            userBytes = user.getBytes(UNICODE_LITTLE_UNMARKED);
         }
 
         /** Assemble the response */

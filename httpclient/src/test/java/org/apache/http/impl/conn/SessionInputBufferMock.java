@@ -100,7 +100,7 @@ public class SessionInputBufferMock extends SessionInputBufferImpl {
     public SessionInputBufferMock(
             final String s,
             final Charset charset) throws UnsupportedEncodingException {
-        this(s.getBytes(charset.name()), charset);
+        this(s.getBytes(charset), charset);
     }
 
     @Override

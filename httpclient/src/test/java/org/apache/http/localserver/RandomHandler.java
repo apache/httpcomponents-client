@@ -30,9 +30,9 @@ package org.apache.http.localserver;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 
+import org.apache.http.Consts;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -42,19 +42,10 @@ import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
-
-
 /**
  * A handler that generates random data.
- *
- *
- *
- * <!-- empty lines to avoid 'svn diff' problems -->
  */
-public class RandomHandler
-    implements HttpRequestHandler {
-
-    // public default constructor
+public class RandomHandler implements HttpRequestHandler {
 
     /**
      * Handles a request by generating random data.
@@ -131,19 +122,8 @@ public class RandomHandler
     public static class RandomEntity extends AbstractHttpEntity {
 
         /** The range from which to generate random data. */
-        private final static byte[] RANGE;
-        static {
-            byte[] range = null;
-            try {
-                range = ("abcdefghijklmnopqrstuvwxyz" +
-                         "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "0123456789"
-                    ).getBytes("US-ASCII");
-            } catch (final UnsupportedEncodingException uex) {
-                // never, US-ASCII is guaranteed
-            }
-            RANGE = range;
-        }
-
+        private final static byte[] RANGE = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+                .getBytes(Consts.ASCII);
 
         /** The length of the random data to generate. */
         protected final long length;

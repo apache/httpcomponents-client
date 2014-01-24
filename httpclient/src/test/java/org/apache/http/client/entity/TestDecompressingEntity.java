@@ -35,6 +35,7 @@ import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.Checksum;
 
+import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
@@ -61,7 +62,7 @@ public class TestDecompressingEntity {
     @Test
     public void testStreaming() throws Exception {
         final CRC32 crc32 = new CRC32();
-        final ByteArrayInputStream in = new ByteArrayInputStream("1234567890".getBytes("ASCII"));
+        final ByteArrayInputStream in = new ByteArrayInputStream("1234567890".getBytes(Consts.ASCII));
         final InputStreamEntity wrapped = new InputStreamEntity(in, -1);
         final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
         Assert.assertTrue(entity.isStreaming());

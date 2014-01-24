@@ -39,6 +39,7 @@ import java.util.concurrent.Executors;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpException;
@@ -310,7 +311,7 @@ public class TestContentCodings extends IntegrationTestBase {
                             // response.setEntity(new InputStreamEntity(new DeflaterInputStream(new
                             // ByteArrayInputStream(
                             // entityText.getBytes("utf-8"))), -1));
-                            final byte[] uncompressed = entityText.getBytes("utf-8");
+                            final byte[] uncompressed = entityText.getBytes(Consts.UTF_8);
                             final Deflater compressor = new Deflater(Deflater.DEFAULT_COMPRESSION, rfc1951);
                             compressor.setInput(uncompressed);
                             compressor.finish();
@@ -368,7 +369,7 @@ public class TestContentCodings extends IntegrationTestBase {
                             final OutputStream out = new GZIPOutputStream(bytes);
 
                             final ByteArrayInputStream uncompressed = new ByteArrayInputStream(
-                                    entityText.getBytes("utf-8"));
+                                    entityText.getBytes(Consts.UTF_8));
 
                             final byte[] buf = new byte[60];
 

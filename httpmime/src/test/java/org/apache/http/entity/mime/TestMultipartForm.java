@@ -341,17 +341,17 @@ public class TestMultipartForm {
             "Content-Disposition: form-data; name=\"field1\"\r\n" +
             "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
-            "\r\n").getBytes("US-ASCII"));
-        out2.write(s1.getBytes("ISO-8859-1"));
+            "\r\n").getBytes(Consts.ASCII));
+        out2.write(s1.getBytes(Consts.ISO_8859_1));
         out2.write(("\r\n" +
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field2\"\r\n" +
             "Content-Type: text/plain; charset=KOI8-R\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
-            "\r\n").getBytes("US-ASCII"));
-        out2.write(s2.getBytes("KOI8-R"));
+            "\r\n").getBytes(Consts.ASCII));
+        out2.write(s2.getBytes(Charset.forName("KOI8-R")));
         out2.write(("\r\n" +
-            "--foo--\r\n").getBytes("US-ASCII"));
+            "--foo--\r\n").getBytes(Consts.ASCII));
         out2.close();
 
         final byte[] actual = out1.toByteArray();

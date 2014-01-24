@@ -35,7 +35,6 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
 
 import org.apache.http.Consts;
 import org.apache.http.entity.ContentType;
@@ -154,13 +153,7 @@ public class StringBody extends AbstractContentBody {
     public StringBody(final String text, final ContentType contentType) {
         super(contentType);
         final Charset charset = contentType.getCharset();
-        final String csname = charset != null ? charset.name() : Consts.ASCII.name();
-        try {
-            this.content = text.getBytes(csname);
-        } catch (final UnsupportedEncodingException ex) {
-            // Should never happen
-            throw new UnsupportedCharsetException(csname);
-        }
+        this.content = text.getBytes(charset != null ? charset : Consts.ASCII);
     }
 
     public Reader getReader() {

@@ -29,6 +29,7 @@ package org.apache.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
 
+import org.apache.http.Consts;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
@@ -66,7 +67,7 @@ public class TestMultipartContentBody {
 
     @Test
     public void testInputStreamBody() throws Exception {
-        final byte[] stuff = "Stuff".getBytes("US-ASCII");
+        final byte[] stuff = "Stuff".getBytes(Consts.ASCII);
         final InputStreamBody b1 = new InputStreamBody(new ByteArrayInputStream(stuff), "stuff");
         Assert.assertEquals(-1, b1.getContentLength());
 

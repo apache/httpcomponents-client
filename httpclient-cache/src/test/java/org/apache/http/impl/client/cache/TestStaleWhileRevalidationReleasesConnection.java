@@ -26,6 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
+import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -50,7 +51,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 
 
@@ -283,11 +283,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
         public byte[] getHeaderContent(final HttpRequest request) {
             final Header contentHeader = request.getFirstHeader(DEFAULT_CLIENT_CONTROLLED_CONTENT_HEADER);
             if(contentHeader!=null) {
-                try {
-                    return contentHeader.getValue().getBytes("UTF-8");
-                } catch(final UnsupportedEncodingException e) {
-                    return contentHeader.getValue().getBytes();
-                }
+                return contentHeader.getValue().getBytes(Consts.UTF_8);
             } else {
                 return DEFAULT_CONTENT;
             }
