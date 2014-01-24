@@ -58,9 +58,9 @@
   </issueManagement>
 
   <scm>
-    <connection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</developerConnection>
-    <url>https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</url>
+    <connection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.3.x</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.3.x</developerConnection>
+    <url>https://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.3.x</url>
   </scm>
 
   <properties>
@@ -164,7 +164,6 @@
     <module>httpmime</module>
     <module>fluent-hc</module>
     <module>httpclient-cache</module>
-    <!--module>httpclient-win</module-->
     <module>httpclient-osgi</module>
   </modules>
 
