@@ -105,6 +105,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
       * @return an array of <tt>Cookie</tt>s parsed from the Set-Cookie value
       * @throws MalformedCookieException if an exception occurs during parsing
       */
+    @Override
     public List<Cookie> parse(final Header header, final CookieOrigin origin)
             throws MalformedCookieException {
         Args.notNull(header, "Header");
@@ -133,6 +134,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
         return parse(new HeaderElement[] { parser.parseHeader(buffer, cursor) }, origin);
     }
 
+    @Override
     public List<Header> formatCookies(final List<Cookie> cookies) {
         Args.notEmpty(cookies, "List of cookies");
         final CharArrayBuffer buffer = new CharArrayBuffer(20 * cookies.size());
@@ -155,10 +157,12 @@ public class NetscapeDraftSpec extends CookieSpecBase {
         return headers;
     }
 
+    @Override
     public int getVersion() {
         return 0;
     }
 
+    @Override
     public Header getVersionHeader() {
         return null;
     }

@@ -60,10 +60,12 @@ public class BasicSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider
         this(null);
     }
 
+    @Override
     public AuthScheme newInstance(final HttpParams params) {
         return new BasicScheme();
     }
 
+    @Override
     public AuthScheme create(final HttpContext context) {
         return new BasicScheme(this.charset);
     }

@@ -115,6 +115,7 @@ public class TestConnectionReuse {
 
     private static class AlwaysCloseConn implements HttpResponseInterceptor {
 
+        @Override
         public void process(
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
@@ -327,6 +328,7 @@ public class TestConnectionReuse {
     // A very basic keep-alive header interceptor, to add Keep-Alive: timeout=1
     // if there is no Connection: close header.
     private static class ResponseKeepAlive implements HttpResponseInterceptor {
+        @Override
         public void process(final HttpResponse response, final HttpContext context)
                 throws HttpException, IOException {
             final Header connection = response.getFirstHeader(HTTP.CONN_DIRECTIVE);

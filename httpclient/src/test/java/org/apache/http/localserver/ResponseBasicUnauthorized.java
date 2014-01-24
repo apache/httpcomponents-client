@@ -38,6 +38,7 @@ import org.apache.http.protocol.HttpContext;
 
 public class ResponseBasicUnauthorized implements HttpResponseInterceptor {
 
+    @Override
     public void process(
             final HttpResponse response,
             final HttpContext context) throws HttpException, IOException {

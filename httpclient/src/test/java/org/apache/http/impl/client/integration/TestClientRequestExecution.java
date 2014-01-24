@@ -75,6 +75,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
             super();
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -119,6 +120,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
 
         final HttpRequestInterceptor interceptor = new HttpRequestInterceptor() {
 
+            @Override
             public void process(
                     final HttpRequest request,
                     final HttpContext context) throws HttpException, IOException {
@@ -129,6 +131,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
 
         final HttpRequestRetryHandler requestRetryHandler = new HttpRequestRetryHandler() {
 
+            @Override
             public boolean retryRequest(
                     final IOException exception,
                     final int executionCount,
@@ -168,6 +171,7 @@ public class TestClientRequestExecution extends IntegrationTestBase {
 
         final HttpRequestRetryHandler requestRetryHandler = new HttpRequestRetryHandler() {
 
+            @Override
             public boolean retryRequest(
                     final IOException exception,
                     final int executionCount,

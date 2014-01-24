@@ -42,18 +42,22 @@ class SimpleHttpCacheStorage implements HttpCacheStorage {
         map = new HashMap<String,HttpCacheEntry>();
     }
 
+    @Override
     public void putEntry(final String key, final HttpCacheEntry entry) throws IOException {
         map.put(key, entry);
     }
 
+    @Override
     public HttpCacheEntry getEntry(final String key) throws IOException {
         return map.get(key);
     }
 
+    @Override
     public void removeEntry(final String key) throws IOException {
         map.remove(key);
     }
 
+    @Override
     public void updateEntry(final String key, final HttpCacheUpdateCallback callback)
             throws IOException {
         final HttpCacheEntry v1 = map.get(key);

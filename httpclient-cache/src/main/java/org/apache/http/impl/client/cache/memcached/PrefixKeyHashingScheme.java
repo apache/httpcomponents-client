@@ -52,6 +52,7 @@ public class PrefixKeyHashingScheme implements KeyHashingScheme {
         this.backingScheme = backingScheme;
     }
 
+    @Override
     public String hash(final String storageKey) {
         return prefix + backingScheme.hash(storageKey);
     }

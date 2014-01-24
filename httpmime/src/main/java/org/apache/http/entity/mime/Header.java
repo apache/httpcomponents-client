@@ -132,6 +132,7 @@ public class Header implements Iterable<MinimalField> {
         this.fields.add(firstOccurrence, field);
     }
 
+    @Override
     public Iterator<MinimalField> iterator() {
         return Collections.unmodifiableList(fields).iterator();
     }

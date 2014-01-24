@@ -50,6 +50,7 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
         this.abortLock = new ReentrantLock();
     }
 
+    @Override
     @Deprecated
     public void setConnectionRequest(final ClientConnectionRequest connRequest) {
         if (this.aborted) {
@@ -59,6 +60,7 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
         try {
             this.cancellable = new Cancellable() {
 
+                @Override
                 public boolean cancel() {
                     connRequest.abortRequest();
                     return true;
@@ -70,6 +72,7 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
         }
     }
 
+    @Override
     @Deprecated
     public void setReleaseTrigger(final ConnectionReleaseTrigger releaseTrigger) {
         if (this.aborted) {
@@ -79,6 +82,7 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
         try {
             this.cancellable = new Cancellable() {
 
+                @Override
                 public boolean cancel() {
                     try {
                         releaseTrigger.abortConnection();
@@ -101,6 +105,7 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
         }
     }
 
+    @Override
     public void abort() {
         if (this.aborted) {
             return;
@@ -114,6 +119,7 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
         }
     }
 
+    @Override
     public boolean isAborted() {
         return this.aborted;
     }
@@ -121,6 +127,7 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
     /**
      * @since 4.2
      */
+    @Override
     public void setCancellable(final Cancellable cancellable) {
         if (this.aborted) {
             return;

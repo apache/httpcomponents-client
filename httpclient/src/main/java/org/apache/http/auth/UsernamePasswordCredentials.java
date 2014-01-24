@@ -80,6 +80,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
         this.password = password;
     }
 
+    @Override
     public Principal getUserPrincipal() {
         return this.principal;
     }
@@ -88,6 +89,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
         return this.principal.getName();
     }
 
+    @Override
     public String getPassword() {
         return password;
     }

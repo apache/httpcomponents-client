@@ -47,10 +47,12 @@ public class IgnoreSpecFactory implements CookieSpecFactory, CookieSpecProvider 
         super();
     }
 
+    @Override
     public CookieSpec newInstance(final HttpParams params) {
         return new IgnoreSpec();
     }
 
+    @Override
     public CookieSpec create(final HttpContext context) {
         return new IgnoreSpec();
     }

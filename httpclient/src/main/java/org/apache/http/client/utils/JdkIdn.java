@@ -57,6 +57,7 @@ public class JdkIdn implements Idn {
         }
     }
 
+    @Override
     public String toUnicode(final String punycode) {
         try {
             return (String) toUnicode.invoke(null, punycode);

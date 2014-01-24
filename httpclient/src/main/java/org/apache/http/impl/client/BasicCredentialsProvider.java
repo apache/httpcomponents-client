@@ -53,6 +53,7 @@ public class BasicCredentialsProvider implements CredentialsProvider {
         this.credMap = new ConcurrentHashMap<AuthScope, Credentials>();
     }
 
+    @Override
     public void setCredentials(
             final AuthScope authscope,
             final Credentials credentials) {
@@ -92,11 +93,13 @@ public class BasicCredentialsProvider implements CredentialsProvider {
         return creds;
     }
 
+    @Override
     public Credentials getCredentials(final AuthScope authscope) {
         Args.notNull(authscope, "Authentication scope");
         return matchCredentials(this.credMap, authscope);
     }
 
+    @Override
     public void clear() {
         this.credMap.clear();
     }

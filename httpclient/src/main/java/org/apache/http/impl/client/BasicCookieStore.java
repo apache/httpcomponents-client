@@ -68,6 +68,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
      * @see #addCookies(Cookie[])
      *
      */
+    @Override
     public synchronized void addCookie(final Cookie cookie) {
         if (cookie != null) {
             // first remove any old cookie that is equivalent
@@ -102,6 +103,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
      *
      * @return an array of {@link Cookie cookies}.
      */
+    @Override
     public synchronized List<Cookie> getCookies() {
         //create defensive copy so it won't be concurrently modified
         return new ArrayList<Cookie>(cookies);
@@ -115,6 +117,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
      *
      * @see Cookie#isExpired(Date)
      */
+    @Override
     public synchronized boolean clearExpired(final Date date) {
         if (date == null) {
             return false;
@@ -132,6 +135,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
     /**
      * Clears all cookies.
      */
+    @Override
     public synchronized void clear() {
         cookies.clear();
     }

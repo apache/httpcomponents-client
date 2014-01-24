@@ -50,22 +50,27 @@ class CombinedEntity extends AbstractHttpEntity {
                 new ResourceStream(resource.getInputStream()), instream);
     }
 
+    @Override
     public long getContentLength() {
         return -1;
     }
 
+    @Override
     public boolean isRepeatable() {
         return false;
     }
 
+    @Override
     public boolean isStreaming() {
         return true;
     }
 
+    @Override
     public InputStream getContent() throws IOException, IllegalStateException {
         return this.combinedStream;
     }
 
+    @Override
     public void writeTo(final OutputStream outstream) throws IOException {
         Args.notNull(outstream, "Output stream");
         final InputStream instream = getContent();

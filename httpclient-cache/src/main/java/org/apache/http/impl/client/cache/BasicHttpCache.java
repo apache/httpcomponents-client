@@ -110,6 +110,7 @@ class BasicHttpCache implements HttpCache {
         this(CacheConfig.DEFAULT);
     }
 
+    @Override
     public void flushCacheEntriesFor(final HttpHost host, final HttpRequest request)
             throws IOException {
         if (!safeRequestMethods.contains(request.getRequestLine().getMethod())) {
@@ -118,6 +119,7 @@ class BasicHttpCache implements HttpCache {
         }
     }
 
+    @Override
     public void flushInvalidatedCacheEntriesFor(final HttpHost host, final HttpRequest request, final HttpResponse response) {
         if (!safeRequestMethods.contains(request.getRequestLine().getMethod())) {
             cacheInvalidator.flushInvalidatedCacheEntries(host, request, response);
@@ -149,6 +151,7 @@ class BasicHttpCache implements HttpCache {
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
 
+            @Override
             public HttpCacheEntry update(final HttpCacheEntry existing) throws IOException {
                 return doGetUpdatedParentEntry(
                         req.getRequestLine().getUri(), existing, entry,
@@ -165,6 +168,7 @@ class BasicHttpCache implements HttpCache {
         }
     }
 
+    @Override
     public void reuseVariantEntryFor(final HttpHost target, final HttpRequest req,
             final Variant variant) throws IOException {
         final String parentCacheKey = uriExtractor.getURI(target, req);
@@ -173,6 +177,7 @@ class BasicHttpCache implements HttpCache {
         final String variantCacheKey = variant.getCacheKey();
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+            @Override
             public HttpCacheEntry update(final HttpCacheEntry existing)
                     throws IOException {
                 return doGetUpdatedParentEntry(req.getRequestLine().getUri(),
@@ -247,6 +252,7 @@ class BasicHttpCache implements HttpCache {
                 variantMap);
     }
 
+    @Override
     public HttpCacheEntry updateCacheEntry(final HttpHost target, final HttpRequest request,
             final HttpCacheEntry stale, final HttpResponse originResponse,
             final Date requestSent, final Date responseReceived) throws IOException {
@@ -260,6 +266,7 @@ class BasicHttpCache implements HttpCache {
         return updatedEntry;
     }
 
+    @Override
     public HttpCacheEntry updateVariantCacheEntry(final HttpHost target, final HttpRequest request,
             final HttpCacheEntry stale, final HttpResponse originResponse,
             final Date requestSent, final Date responseReceived, final String cacheKey) throws IOException {
@@ -273,6 +280,7 @@ class BasicHttpCache implements HttpCache {
         return updatedEntry;
     }
 
+    @Override
     public HttpResponse cacheAndReturnResponse(final HttpHost host, final HttpRequest request,
             final HttpResponse originResponse, final Date requestSent, final Date responseReceived)
             throws IOException {
@@ -281,6 +289,7 @@ class BasicHttpCache implements HttpCache {
                 responseReceived);
     }
 
+    @Override
     public CloseableHttpResponse cacheAndReturnResponse(
             final HttpHost host,
             final HttpRequest request,
@@ -324,6 +333,7 @@ class BasicHttpCache implements HttpCache {
                 resourceFactory, maxObjectSizeBytes, request, backEndResponse);
     }
 
+    @Override
     public HttpCacheEntry getCacheEntry(final HttpHost host, final HttpRequest request) throws IOException {
         final HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
         if (root == null) {
@@ -339,11 +349,13 @@ class BasicHttpCache implements HttpCache {
         return storage.getEntry(variantCacheKey);
     }
 
+    @Override
     public void flushInvalidatedCacheEntriesFor(final HttpHost host,
             final HttpRequest request) throws IOException {
         cacheInvalidator.flushInvalidatedCacheEntries(host, request);
     }
 
+    @Override
     public Map<String, Variant> getVariantCacheEntriesWithEtags(final HttpHost host, final HttpRequest request)
             throws IOException {
         final Map<String,Variant> variants = new HashMap<String,Variant>();

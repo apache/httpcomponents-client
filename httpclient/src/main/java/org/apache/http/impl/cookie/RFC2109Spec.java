@@ -93,6 +93,7 @@ public class RFC2109Spec extends CookieSpecBase {
         this(null, false);
     }
 
+    @Override
     public List<Cookie> parse(final Header header, final CookieOrigin origin)
             throws MalformedCookieException {
         Args.notNull(header, "Header");
@@ -119,6 +120,7 @@ public class RFC2109Spec extends CookieSpecBase {
         super.validate(cookie, origin);
     }
 
+    @Override
     public List<Header> formatCookies(final List<Cookie> cookies) {
         Args.notEmpty(cookies, "List of cookies");
         List<Cookie> cookieList;
@@ -224,10 +226,12 @@ public class RFC2109Spec extends CookieSpecBase {
         }
     }
 
+    @Override
     public int getVersion() {
         return 1;
     }
 
+    @Override
     public Header getVersionHeader() {
         return null;
     }

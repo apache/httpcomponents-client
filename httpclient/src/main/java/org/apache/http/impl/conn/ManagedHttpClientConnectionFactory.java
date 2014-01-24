@@ -84,6 +84,7 @@ public class ManagedHttpClientConnectionFactory
         this(null, null);
     }
 
+    @Override
     public ManagedHttpClientConnection create(final HttpRoute route, final ConnectionConfig config) {
         final ConnectionConfig cconfig = config != null ? config : ConnectionConfig.DEFAULT;
         CharsetDecoder chardecoder = null;

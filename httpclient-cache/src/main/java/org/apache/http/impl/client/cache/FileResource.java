@@ -58,14 +58,17 @@ public class FileResource implements Resource {
         return this.file;
     }
 
+    @Override
     public synchronized InputStream getInputStream() throws IOException {
         return new FileInputStream(this.file);
     }
 
+    @Override
     public synchronized long length() {
         return this.file.length();
     }
 
+    @Override
     public synchronized void dispose() {
         if (this.disposed) {
             return;

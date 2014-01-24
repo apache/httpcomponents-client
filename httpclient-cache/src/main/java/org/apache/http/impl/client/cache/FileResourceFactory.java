@@ -69,6 +69,7 @@ public class FileResourceFactory implements ResourceFactory {
         return new File(this.cacheDir, buffer.toString());
     }
 
+    @Override
     public Resource generate(
             final String requestId,
             final InputStream instream,
@@ -93,6 +94,7 @@ public class FileResourceFactory implements ResourceFactory {
         return new FileResource(file);
     }
 
+    @Override
     public Resource copy(
             final String requestId,
             final Resource resource) throws IOException {

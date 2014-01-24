@@ -45,10 +45,12 @@ import org.apache.http.protocol.HttpContext;
 @SuppressWarnings("deprecation")
 public class NTLMSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider {
 
+    @Override
     public AuthScheme newInstance(final HttpParams params) {
         return new NTLMScheme();
     }
 
+    @Override
     public AuthScheme create(final HttpContext context) {
         return new NTLMScheme();
     }

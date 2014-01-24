@@ -44,6 +44,7 @@ public class BasicSecureHandler extends AbstractCookieAttributeHandler {
         super();
     }
 
+    @Override
     public void parse(final SetCookie cookie, final String value)
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");

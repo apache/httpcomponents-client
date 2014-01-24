@@ -54,6 +54,7 @@ public class KerberosScheme extends GGSSchemeBase {
         super(false);
     }
 
+    @Override
     public String getSchemeName() {
         return "Kerberos";
     }
@@ -89,6 +90,7 @@ public class KerberosScheme extends GGSSchemeBase {
      *
      * @return <code>null</code>
      */
+    @Override
     public String getParameter(final String name) {
         Args.notNull(name, "Parameter name");
         return null;
@@ -100,6 +102,7 @@ public class KerberosScheme extends GGSSchemeBase {
      *
      * @return <code>null</code>
      */
+    @Override
     public String getRealm() {
         return null;
     }
@@ -109,6 +112,7 @@ public class KerberosScheme extends GGSSchemeBase {
      *
      * @return <tt>true</tt>.
      */
+    @Override
     public boolean isConnectionBased() {
         return true;
     }

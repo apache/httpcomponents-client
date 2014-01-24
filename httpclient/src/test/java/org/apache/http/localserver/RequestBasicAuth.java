@@ -43,6 +43,7 @@ public class RequestBasicAuth implements HttpRequestInterceptor {
         this.authTokenExtractor = new BasicAuthTokenExtractor();
     }
 
+    @Override
     public void process(
             final HttpRequest request,
             final HttpContext context) throws HttpException, IOException {

@@ -155,6 +155,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
+    @Override
     public void close() {
         shutdown();
     }
@@ -183,17 +184,20 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.connConfig = connConfig != null ? connConfig : ConnectionConfig.DEFAULT;
     }
 
+    @Override
     public final ConnectionRequest requestConnection(
             final HttpRoute route,
             final Object state) {
         Args.notNull(route, "Route");
         return new ConnectionRequest() {
 
+            @Override
             public boolean cancel() {
                 // Nothing to abort, since requests are immediate.
                 return false;
             }
 
+            @Override
             public HttpClientConnection get(final long timeout, final TimeUnit tunit) {
                 return BasicHttpClientConnectionManager.this.getConnection(
                         route, state);
@@ -258,6 +262,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         return this.conn;
     }
 
+    @Override
     public synchronized void releaseConnection(
             final HttpClientConnection conn,
             final Object state,
@@ -300,6 +305,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
+    @Override
     public void connect(
             final HttpClientConnection conn,
             final HttpRoute route,
@@ -319,6 +325,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 connectTimeout, this.socketConfig, context);
     }
 
+    @Override
     public void upgrade(
             final HttpClientConnection conn,
             final HttpRoute route,
@@ -329,12 +336,14 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.connectionOperator.upgrade(this.conn, route.getTargetHost(), context);
     }
 
+    @Override
     public void routeComplete(
             final HttpClientConnection conn,
             final HttpRoute route,
             final HttpContext context) throws IOException {
     }
 
+    @Override
     public synchronized void closeExpiredConnections() {
         if (this.shutdown) {
             return;
@@ -344,6 +353,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
+    @Override
     public synchronized void closeIdleConnections(final long idletime, final TimeUnit tunit) {
         Args.notNull(tunit, "Time unit");
         if (this.shutdown) {
@@ -361,6 +371,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
     }
 
+    @Override
     public synchronized void shutdown() {
         if (this.shutdown) {
             return;

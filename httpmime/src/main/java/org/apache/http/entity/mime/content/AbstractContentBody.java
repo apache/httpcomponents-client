@@ -64,10 +64,12 @@ public abstract class AbstractContentBody implements ContentBody {
         return this.contentType;
     }
 
+    @Override
     public String getMimeType() {
         return this.contentType.getMimeType();
     }
 
+    @Override
     public String getMediaType() {
         final String mimeType = this.contentType.getMimeType();
         final int i = mimeType.indexOf('/');
@@ -78,6 +80,7 @@ public abstract class AbstractContentBody implements ContentBody {
         }
     }
 
+    @Override
     public String getSubType() {
         final String mimeType = this.contentType.getMimeType();
         final int i = mimeType.indexOf('/');
@@ -88,6 +91,7 @@ public abstract class AbstractContentBody implements ContentBody {
         }
     }
 
+    @Override
     public String getCharset() {
         final Charset charset = this.contentType.getCharset();
         return charset != null ? charset.name() : null;

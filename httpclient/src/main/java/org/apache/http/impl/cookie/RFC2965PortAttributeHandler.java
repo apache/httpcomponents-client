@@ -104,6 +104,7 @@ public class RFC2965PortAttributeHandler implements CookieAttributeHandler {
     /**
      * Parse cookie port attribute.
      */
+    @Override
     public void parse(final SetCookie cookie, final String portValue)
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
@@ -120,6 +121,7 @@ public class RFC2965PortAttributeHandler implements CookieAttributeHandler {
      * Validate cookie port attribute. If the Port attribute was specified
      * in header, the request port must be in cookie's port list.
      */
+    @Override
     public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
@@ -140,6 +142,7 @@ public class RFC2965PortAttributeHandler implements CookieAttributeHandler {
      * in header, the cookie can be sent to any port. Otherwise, the request port
      * must be in the cookie's port list.
      */
+    @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");

@@ -72,6 +72,7 @@ public class RetryExec implements ClientExecChain {
         this.retryHandler = retryHandler;
     }
 
+    @Override
     public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,

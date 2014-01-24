@@ -55,6 +55,7 @@ public final class OSGiClientBuilderFactory implements HttpClientBuilderFactory 
         this.trackedHttpClients = trackedHttpClients;
     }
 
+    @Override
     public HttpClientBuilder newBuilder() {
         return new OSGiHttpClientBuilder(bundleContext, registeredConfigurations, trackedHttpClients);
     }

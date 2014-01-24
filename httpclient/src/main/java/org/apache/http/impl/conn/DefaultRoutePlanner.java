@@ -59,6 +59,7 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
             DefaultSchemePortResolver.INSTANCE;
     }
 
+    @Override
     public HttpRoute determineRoute(
             final HttpHost host,
             final HttpRequest request,

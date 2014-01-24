@@ -43,6 +43,7 @@ import org.apache.http.client.cache.ResourceFactory;
 @Immutable
 public class HeapResourceFactory implements ResourceFactory {
 
+    @Override
     public Resource generate(
             final String requestId,
             final InputStream instream,
@@ -62,6 +63,7 @@ public class HeapResourceFactory implements ResourceFactory {
         return createResource(outstream.toByteArray());
     }
 
+    @Override
     public Resource copy(
             final String requestId,
             final Resource resource) throws IOException {

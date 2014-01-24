@@ -87,10 +87,12 @@ public class ByteArrayBody extends AbstractContentBody {
         this(data, "application/octet-stream", filename);
     }
 
+    @Override
     public String getFilename() {
         return filename;
     }
 
+    @Override
     public void writeTo(final OutputStream out) throws IOException {
         out.write(data);
     }
@@ -100,10 +102,12 @@ public class ByteArrayBody extends AbstractContentBody {
         return null;
     }
 
+    @Override
     public String getTransferEncoding() {
         return MIME.ENC_BINARY;
     }
 
+    @Override
     public long getContentLength() {
         return data.length;
     }

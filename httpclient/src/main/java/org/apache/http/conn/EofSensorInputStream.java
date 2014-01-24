@@ -268,6 +268,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
     /**
      * Same as {@link #close close()}.
      */
+    @Override
     public void releaseConnection() throws IOException {
         close();
     }
@@ -279,6 +280,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
      * indicates that there should be no attempt to read until the end of
      * the stream.
      */
+    @Override
     public void abortConnection() throws IOException {
         // tolerate multiple calls
         selfClosed = true;

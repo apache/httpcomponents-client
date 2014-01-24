@@ -182,6 +182,7 @@ public class TestConnectionAutoRelease extends IntegrationTestBase {
     public void testReleaseOnIOException() throws Exception {
         this.localServer.register("/dropdead", new HttpRequestHandler() {
 
+            @Override
             public void handle(
                     final HttpRequest request,
                     final HttpResponse response,

@@ -51,6 +51,7 @@ public final class BasicUserPrincipal implements Principal, Serializable {
         this.username = username;
     }
 
+    @Override
     public String getName() {
         return this.username;
     }

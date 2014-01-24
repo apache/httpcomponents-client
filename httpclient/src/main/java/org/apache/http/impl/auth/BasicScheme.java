@@ -89,6 +89,7 @@ public class BasicScheme extends RFC2617Scheme {
      *
      * @return <code>basic</code>
      */
+    @Override
     public String getSchemeName() {
         return "basic";
     }
@@ -114,6 +115,7 @@ public class BasicScheme extends RFC2617Scheme {
      * @return <tt>true</tt> if Basic authorization has been processed,
      *   <tt>false</tt> otherwise.
      */
+    @Override
     public boolean isComplete() {
         return this.complete;
     }
@@ -123,6 +125,7 @@ public class BasicScheme extends RFC2617Scheme {
      *
      * @return <tt>false</tt>.
      */
+    @Override
     public boolean isConnectionBased() {
         return false;
     }
@@ -131,6 +134,7 @@ public class BasicScheme extends RFC2617Scheme {
      * @deprecated (4.2) Use {@link org.apache.http.auth.ContextAwareAuthScheme#authenticate(
      *   Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
      */
+    @Override
     @Deprecated
     public Header authenticate(
             final Credentials credentials, final HttpRequest request) throws AuthenticationException {

@@ -110,41 +110,50 @@ class MinimalHttpClient extends CloseableHttpClient {
         }
     }
 
+    @Override
     public HttpParams getParams() {
         return this.params;
     }
 
+    @Override
     public void close() {
         this.connManager.shutdown();
     }
 
+    @Override
     public ClientConnectionManager getConnectionManager() {
 
         return new ClientConnectionManager() {
 
+            @Override
             public void shutdown() {
                 connManager.shutdown();
             }
 
+            @Override
             public ClientConnectionRequest requestConnection(
                     final HttpRoute route, final Object state) {
                 throw new UnsupportedOperationException();
             }
 
+            @Override
             public void releaseConnection(
                     final ManagedClientConnection conn,
                     final long validDuration, final TimeUnit timeUnit) {
                 throw new UnsupportedOperationException();
             }
 
+            @Override
             public SchemeRegistry getSchemeRegistry() {
                 throw new UnsupportedOperationException();
             }
 
+            @Override
             public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
                 connManager.closeIdleConnections(idletime, tunit);
             }
 
+            @Override
             public void closeExpiredConnections() {
                 connManager.closeExpiredConnections();
             }

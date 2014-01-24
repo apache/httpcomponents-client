@@ -39,6 +39,7 @@ import org.apache.http.util.EntityUtils;
 
 class ContentResponseHandler implements ResponseHandler<Content> {
 
+    @Override
     public Content handleResponse(
             final HttpResponse response) throws ClientProtocolException, IOException {
         final StatusLine statusLine = response.getStatusLine();

@@ -530,6 +530,7 @@ public class TestBasicHttpCache {
             return this.b;
         }
 
+        @Override
         public InputStream getInputStream() throws IOException {
             if (dispoased) {
                 throw new IOException("Already dispoased");
@@ -537,10 +538,12 @@ public class TestBasicHttpCache {
             return new ByteArrayInputStream(this.b);
         }
 
+        @Override
         public long length() {
             return this.b.length;
         }
 
+        @Override
         public void dispose() {
             this.dispoased = true;
         }

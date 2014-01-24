@@ -76,6 +76,7 @@ public class Rfc3492Idn implements Idn {
         throw new IllegalArgumentException("illegal digit: "+ c);
     }
 
+    @Override
     public String toUnicode(final String punycode) {
         final StringBuilder unicode = new StringBuilder(punycode.length());
         final StringTokenizer tok = new StringTokenizer(punycode, ".");

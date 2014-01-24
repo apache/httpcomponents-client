@@ -60,6 +60,7 @@ public class BestMatchSpecFactory implements CookieSpecFactory, CookieSpecProvid
         this(null, false);
     }
 
+    @Override
     public CookieSpec newInstance(final HttpParams params) {
         if (params != null) {
 
@@ -79,6 +80,7 @@ public class BestMatchSpecFactory implements CookieSpecFactory, CookieSpecProvid
         }
     }
 
+    @Override
     public CookieSpec create(final HttpContext context) {
         return new BestMatchSpec(this.datepatterns, this.oneHeader);
     }

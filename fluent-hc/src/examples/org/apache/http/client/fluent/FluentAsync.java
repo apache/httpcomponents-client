@@ -59,14 +59,17 @@ public class FluentAsync {
         for (final Request request: requests) {
             Future<Content> future = async.execute(request, new FutureCallback<Content>() {
 
+                @Override
                 public void failed(final Exception ex) {
                     System.out.println(ex.getMessage() + ": " + request);
                 }
 
+                @Override
                 public void completed(final Content content) {
                     System.out.println("Request completed: " + request);
                 }
 
+                @Override
                 public void cancelled() {
                 }
 

@@ -107,6 +107,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     protected abstract byte[] generateToken(
             byte[] input, final String authServer) throws GSSException;
 
+    @Override
     public boolean isComplete() {
         return this.state == State.TOKEN_GENERATED || this.state == State.FAILED;
     }
@@ -115,6 +116,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
      * @deprecated (4.2) Use {@link org.apache.http.auth.ContextAwareAuthScheme#authenticate(
      *   Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
      */
+    @Override
     @Deprecated
     public Header authenticate(
             final Credentials credentials,

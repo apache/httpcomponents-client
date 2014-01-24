@@ -56,6 +56,7 @@ public class ClientWithRequestFuture {
         try {
             // Because things are asynchronous, you must provide a ResponseHandler
             ResponseHandler<Boolean> handler = new ResponseHandler<Boolean>() {
+                @Override
                 public Boolean handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
                     // simply return true if the status was OK
                     return response.getStatusLine().getStatusCode() == 200;
@@ -89,14 +90,17 @@ public class ClientWithRequestFuture {
             System.out.println("It was ok? "  + wasItOk3);
 
             FutureCallback<Boolean> callback = new FutureCallback<Boolean>() {
+                @Override
                 public void completed(Boolean result) {
                     System.out.println("completed with " + result);
                 }
 
+                @Override
                 public void failed(Exception ex) {
                     System.out.println("failed with " + ex.getMessage());
                 }
 
+                @Override
                 public void cancelled() {
                     System.out.println("cancelled");
                 }

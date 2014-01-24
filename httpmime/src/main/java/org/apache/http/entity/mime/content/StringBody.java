@@ -170,6 +170,7 @@ public class StringBody extends AbstractContentBody {
                 charset != null ? charset : Consts.ASCII);
     }
 
+    @Override
     public void writeTo(final OutputStream out) throws IOException {
         Args.notNull(out, "Output stream");
         final InputStream in = new ByteArrayInputStream(this.content);
@@ -181,14 +182,17 @@ public class StringBody extends AbstractContentBody {
         out.flush();
     }
 
+    @Override
     public String getTransferEncoding() {
         return MIME.ENC_8BIT;
     }
 
+    @Override
     public long getContentLength() {
         return this.content.length;
     }
 
+    @Override
     public String getFilename() {
         return null;
     }

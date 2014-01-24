@@ -179,11 +179,13 @@ public class SSLContextBuilder {
             this.trustStrategy = trustStrategy;
         }
 
+        @Override
         public void checkClientTrusted(
                 final X509Certificate[] chain, final String authType) throws CertificateException {
             this.trustManager.checkClientTrusted(chain, authType);
         }
 
+        @Override
         public void checkServerTrusted(
                 final X509Certificate[] chain, final String authType) throws CertificateException {
             if (!this.trustStrategy.isTrusted(chain, authType)) {
@@ -191,6 +193,7 @@ public class SSLContextBuilder {
             }
         }
 
+        @Override
         public X509Certificate[] getAcceptedIssuers() {
             return this.trustManager.getAcceptedIssuers();
         }
@@ -208,11 +211,13 @@ public class SSLContextBuilder {
             this.aliasStrategy = aliasStrategy;
         }
 
+        @Override
         public String[] getClientAliases(
                 final String keyType, final Principal[] issuers) {
             return this.keyManager.getClientAliases(keyType, issuers);
         }
 
+        @Override
         public String chooseClientAlias(
                 final String[] keyTypes, final Principal[] issuers, final Socket socket) {
             final Map<String, PrivateKeyDetails> validAliases = new HashMap<String, PrivateKeyDetails>();
@@ -228,11 +233,13 @@ public class SSLContextBuilder {
             return this.aliasStrategy.chooseAlias(validAliases, socket);
         }
 
+        @Override
         public String[] getServerAliases(
                 final String keyType, final Principal[] issuers) {
             return this.keyManager.getServerAliases(keyType, issuers);
         }
 
+        @Override
         public String chooseServerAlias(
                 final String keyType, final Principal[] issuers, final Socket socket) {
             final Map<String, PrivateKeyDetails> validAliases = new HashMap<String, PrivateKeyDetails>();
@@ -246,10 +253,12 @@ public class SSLContextBuilder {
             return this.aliasStrategy.chooseAlias(validAliases, socket);
         }
 
+        @Override
         public X509Certificate[] getCertificateChain(final String alias) {
             return this.keyManager.getCertificateChain(alias);
         }
 
+        @Override
         public PrivateKey getPrivateKey(final String alias) {
             return this.keyManager.getPrivateKey(alias);
         }

@@ -60,10 +60,12 @@ public class DigestSchemeFactory implements AuthSchemeFactory, AuthSchemeProvide
         this(null);
     }
 
+    @Override
     public AuthScheme newInstance(final HttpParams params) {
         return new DigestScheme();
     }
 
+    @Override
     public AuthScheme create(final HttpContext context) {
         return new DigestScheme(this.charset);
     }

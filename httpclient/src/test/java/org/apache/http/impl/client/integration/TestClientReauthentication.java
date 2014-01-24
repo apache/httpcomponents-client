@@ -73,6 +73,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
 
     public class ResponseBasicUnauthorized implements HttpResponseInterceptor {
 
+        @Override
         public void process(
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
@@ -101,6 +102,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
 
         private final AtomicLong count = new AtomicLong(0);
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -132,14 +134,17 @@ public class TestClientReauthentication extends IntegrationTestBase {
             this.creds = creds;
         }
 
+        @Override
         public void clear() {
         }
 
+        @Override
         public Credentials getCredentials(final AuthScope authscope) {
             this.authscope = authscope;
             return this.creds;
         }
 
+        @Override
         public void setCredentials(final AuthScope authscope, final Credentials credentials) {
         }
 

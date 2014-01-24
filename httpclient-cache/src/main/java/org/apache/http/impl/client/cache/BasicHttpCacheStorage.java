@@ -61,6 +61,7 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
      * @param entry
      *            HttpCacheEntry to place in the cache
      */
+    @Override
     public synchronized void putEntry(final String url, final HttpCacheEntry entry) throws IOException {
         entries.put(url, entry);
     }
@@ -72,6 +73,7 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
      *            Url that is the cache key
      * @return HttpCacheEntry if one exists, or null for cache miss
      */
+    @Override
     public synchronized HttpCacheEntry getEntry(final String url) throws IOException {
         return entries.get(url);
     }
@@ -82,10 +84,12 @@ public class BasicHttpCacheStorage implements HttpCacheStorage {
      * @param url
      *            Url that is the cache key
      */
+    @Override
     public synchronized void removeEntry(final String url) throws IOException {
         entries.remove(url);
     }
 
+    @Override
     public synchronized void updateEntry(
             final String url,
             final HttpCacheUpdateCallback callback) throws IOException {

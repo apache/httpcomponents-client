@@ -77,6 +77,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         final CountDownLatch wait = new CountDownLatch(1);
 
         this.localServer.register("*", new HttpRequestHandler(){
+            @Override
             public void handle(final HttpRequest request, final HttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
                 try {
@@ -132,6 +133,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         this.httpclient = client;
 
         new Thread(new Runnable() {
+            @Override
             public void run() {
                 try {
                     client.execute(httpget, context);
@@ -172,6 +174,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         this.httpclient = client;
 
         new Thread(new Runnable() {
+            @Override
             public void run() {
                 try {
                     client.execute(getServerHttp(), httpget, context);
@@ -212,6 +215,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         this.httpclient = client;
 
         new Thread(new Runnable() {
+            @Override
             public void run() {
                 try {
                     try {
@@ -259,6 +263,7 @@ public class TestAbortHandling extends IntegrationTestBase {
         this.httpclient = client;
 
         new Thread(new Runnable() {
+            @Override
             public void run() {
                 try {
                     final HttpHost host = new HttpHost("127.0.0.1", port);
@@ -316,6 +321,7 @@ public class TestAbortHandling extends IntegrationTestBase {
     }
 
     private static class BasicService implements HttpRequestHandler {
+        @Override
         public void handle(final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
@@ -332,6 +338,7 @@ public class TestAbortHandling extends IntegrationTestBase {
             this.port = port;
         }
 
+        @Override
         public void handle(final HttpRequest request,
                 final HttpResponse response, final HttpContext context)
                 throws HttpException, IOException {
@@ -362,11 +369,13 @@ public class TestAbortHandling extends IntegrationTestBase {
 
                 return new ConnectionRequest() {
 
+                    @Override
                     public boolean cancel() {
                         currentThread.interrupt();
                         return true;
                     }
 
+                    @Override
                     public HttpClientConnection get(
                             final long timeout,
                             final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
@@ -396,10 +405,12 @@ public class TestAbortHandling extends IntegrationTestBase {
             this.awaitLatch = awaitLatch;
         }
 
+        @Override
         public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
             throw new UnsupportedOperationException("just a mockup");
         }
 
+        @Override
         public void closeExpiredConnections() {
             throw new UnsupportedOperationException("just a mockup");
         }
@@ -409,6 +420,7 @@ public class TestAbortHandling extends IntegrationTestBase {
             throw new UnsupportedOperationException("just a mockup");
         }
 
+        @Override
         public ConnectionRequest requestConnection(
                 final HttpRoute route,
                 final Object state) {
@@ -417,11 +429,13 @@ public class TestAbortHandling extends IntegrationTestBase {
 
             return new ConnectionRequest() {
 
+                @Override
                 public boolean cancel() {
                     currentThread.interrupt();
                     return true;
                 }
 
+                @Override
                 public HttpClientConnection get(
                         final long timeout,
                         final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
@@ -438,12 +452,14 @@ public class TestAbortHandling extends IntegrationTestBase {
             };
         }
 
+        @Override
         public void shutdown() {
         }
 
         public void close() {
         }
 
+        @Override
         public void releaseConnection(
                 final HttpClientConnection conn,
                 final Object newState,
@@ -451,6 +467,7 @@ public class TestAbortHandling extends IntegrationTestBase {
             throw new UnsupportedOperationException("just a mockup");
         }
 
+        @Override
         public void connect(
                 final HttpClientConnection conn,
                 final HttpRoute route,
@@ -459,6 +476,7 @@ public class TestAbortHandling extends IntegrationTestBase {
             throw new UnsupportedOperationException("just a mockup");
         }
 
+        @Override
         public void upgrade(
                 final HttpClientConnection conn,
                 final HttpRoute route,
@@ -466,6 +484,7 @@ public class TestAbortHandling extends IntegrationTestBase {
             throw new UnsupportedOperationException("just a mockup");
         }
 
+        @Override
         public void routeComplete(
                 final HttpClientConnection conn,
                 final HttpRoute route,

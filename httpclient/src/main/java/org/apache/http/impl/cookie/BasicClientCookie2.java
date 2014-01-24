@@ -61,6 +61,7 @@ public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2 
         return this.ports;
     }
 
+    @Override
     public void setPorts(final int[] ports) {
         this.ports = ports;
     }
@@ -70,10 +71,12 @@ public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2 
         return this.commentURL;
     }
 
+    @Override
     public void setCommentURL(final String commentURL) {
         this.commentURL = commentURL;
     }
 
+    @Override
     public void setDiscard(final boolean discard) {
         this.discard = discard;
     }

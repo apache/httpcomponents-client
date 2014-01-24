@@ -80,6 +80,7 @@ public class InMemoryDnsResolver implements DnsResolver {
     /**
      * {@inheritDoc}
      */
+    @Override
     public InetAddress[] resolve(final String host) throws UnknownHostException {
         final InetAddress[] resolvedAddresses = dnsMap.get(host);
         if (log.isInfoEnabled()) {

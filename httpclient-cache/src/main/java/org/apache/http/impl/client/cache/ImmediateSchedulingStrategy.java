@@ -67,6 +67,7 @@ public class ImmediateSchedulingStrategy implements SchedulingStrategy {
         this.executor = executor;
     }
 
+    @Override
     public void schedule(final AsynchronousValidationRequest revalidationRequest) {
         if (revalidationRequest == null) {
             throw new IllegalArgumentException("AsynchronousValidationRequest may not be null");
@@ -75,6 +76,7 @@ public class ImmediateSchedulingStrategy implements SchedulingStrategy {
         executor.execute(revalidationRequest);
     }
 
+    @Override
     public void close() {
         executor.shutdown();
     }

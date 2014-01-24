@@ -83,6 +83,7 @@ public class InputStreamBody extends AbstractContentBody {
         return this.in;
     }
 
+    @Override
     public void writeTo(final OutputStream out) throws IOException {
         Args.notNull(out, "Output stream");
         try {
@@ -97,14 +98,17 @@ public class InputStreamBody extends AbstractContentBody {
         }
     }
 
+    @Override
     public String getTransferEncoding() {
         return MIME.ENC_BINARY;
     }
 
+    @Override
     public long getContentLength() {
         return -1;
     }
 
+    @Override
     public String getFilename() {
         return this.filename;
     }

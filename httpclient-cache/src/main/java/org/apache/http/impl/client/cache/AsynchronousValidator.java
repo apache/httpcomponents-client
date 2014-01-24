@@ -81,6 +81,7 @@ class AsynchronousValidator implements Closeable {
         this.failureCache = new DefaultFailureCache();
     }
 
+    @Override
     public void close() throws IOException {
         schedulingStrategy.close();
     }

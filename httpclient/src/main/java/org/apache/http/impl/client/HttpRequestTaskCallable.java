@@ -78,6 +78,7 @@ class HttpRequestTaskCallable<V> implements Callable<V> {
         return ended;
     }
 
+    @Override
     public V call() throws Exception {
         if (!cancelled.get()) {
             try {

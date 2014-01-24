@@ -132,6 +132,7 @@ public class FutureRequestExecutionService implements Closeable {
         return metrics;
     }
 
+    @Override
     public void close() throws IOException {
         closed.set(true);
         executorService.shutdownNow();

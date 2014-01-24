@@ -42,6 +42,7 @@ public class TestPrefixKeyHashingScheme {
     @Before
     public void setUp() {
         scheme = new KeyHashingScheme() {
+            @Override
             public String hash(final String storageKey) {
                 assertEquals(KEY, storageKey);
                 return "hash";

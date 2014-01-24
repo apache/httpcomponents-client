@@ -55,6 +55,7 @@ final class OSGiCredentialsProvider implements CredentialsProvider {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setCredentials(final AuthScope authscope, final Credentials credentials) {
         // do nothing, not used in this version
     }
@@ -62,6 +63,7 @@ final class OSGiCredentialsProvider implements CredentialsProvider {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Credentials getCredentials(final AuthScope authscope) {
         // iterate over all active proxy configurations at the moment of getting the credential
         for (final ServiceRegistration registration : registeredConfigurations.values()) {
@@ -85,6 +87,7 @@ final class OSGiCredentialsProvider implements CredentialsProvider {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void clear() {
         // do nothing, not used in this version
     }

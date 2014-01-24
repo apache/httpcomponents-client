@@ -68,6 +68,7 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
      *
      * @throws HttpException if the {@code Content-Encoding} is none of the above
      */
+    @Override
     public void process(
             final HttpResponse response,
             final HttpContext context) throws HttpException, IOException {

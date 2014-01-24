@@ -101,12 +101,14 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
         this.serializer = serializer;
     }
 
+    @Override
     public synchronized void putEntry(final String key, final HttpCacheEntry entry) throws IOException {
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         serializer.writeTo(entry, bos);
         cache.put(new Element(key, bos.toByteArray()));
     }
 
+    @Override
     public synchronized HttpCacheEntry getEntry(final String key) throws IOException {
         final Element e = cache.get(key);
         if(e == null){
@@ -117,10 +119,12 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
         return serializer.readFrom(new ByteArrayInputStream(data));
     }
 
+    @Override
     public synchronized void removeEntry(final String key) {
         cache.remove(key);
     }
 
+    @Override
     public synchronized void updateEntry(final String key, final HttpCacheUpdateCallback callback)
             throws IOException, HttpCacheUpdateException {
         int numRetries = 0;

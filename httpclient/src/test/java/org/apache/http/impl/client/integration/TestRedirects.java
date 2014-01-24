@@ -87,6 +87,7 @@ public class TestRedirects extends IntegrationTestBase {
             this(-1);
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -117,6 +118,7 @@ public class TestRedirects extends IntegrationTestBase {
             super();
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -140,6 +142,7 @@ public class TestRedirects extends IntegrationTestBase {
             super();
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -164,6 +167,7 @@ public class TestRedirects extends IntegrationTestBase {
             super();
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -188,6 +192,7 @@ public class TestRedirects extends IntegrationTestBase {
             super();
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -212,6 +217,7 @@ public class TestRedirects extends IntegrationTestBase {
             this.url = redirectUrl;
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -306,6 +312,7 @@ public class TestRedirects extends IntegrationTestBase {
         final HttpHost target = getServerHttp();
         this.localServer.register("*", new HttpRequestHandler() {
 
+            @Override
             public void handle(
                     final HttpRequest request,
                     final HttpResponse response,

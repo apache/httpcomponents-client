@@ -67,6 +67,7 @@ public class EchoHandler
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
+    @Override
     public void handle(final HttpRequest request,
                        final HttpResponse response,
                        final HttpContext context)

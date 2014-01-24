@@ -55,6 +55,7 @@ public class DummyBackend implements ClientExecChain {
         return request;
     }
 
+    @Override
     public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,

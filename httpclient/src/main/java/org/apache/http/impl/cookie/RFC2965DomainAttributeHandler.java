@@ -55,6 +55,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
     /**
      * Parse cookie domain attribute.
      */
+    @Override
     public void parse(
             final SetCookie cookie, final String domain) throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
@@ -104,6 +105,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
     /**
      * Validate cookie domain attribute.
      */
+    @Override
     public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
@@ -165,6 +167,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
     /**
      * Match cookie domain attribute.
      */
+    @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");

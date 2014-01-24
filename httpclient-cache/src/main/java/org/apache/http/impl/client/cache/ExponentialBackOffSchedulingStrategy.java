@@ -123,6 +123,7 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
         this.maxExpiryInMillis = checkNotNegative("maxExpiryInMillis", maxExpiryInMillis);
     }
 
+    @Override
     public void schedule(
             final AsynchronousValidationRequest revalidationRequest) {
         checkNotNull("revalidationRequest", revalidationRequest);
@@ -131,6 +132,7 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
         executor.schedule(revalidationRequest, delayInMillis, TimeUnit.MILLISECONDS);
     }
 
+    @Override
     public void close() {
         executor.shutdown();
     }

@@ -94,6 +94,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         super();
     }
 
+    @Override
     public boolean isRedirected(
             final HttpRequest request,
             final HttpResponse response,
@@ -210,6 +211,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         return false;
     }
 
+    @Override
     public HttpUriRequest getRedirect(
             final HttpRequest request,
             final HttpResponse response,

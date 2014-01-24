@@ -123,6 +123,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
         this(null, BrowserCompatSpecFactory.SecurityLevel.SECURITYLEVEL_DEFAULT);
     }
 
+    @Override
     public List<Cookie> parse(final Header header, final CookieOrigin origin)
             throws MalformedCookieException {
         Args.notNull(header, "Header");
@@ -172,6 +173,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
         return s != null && s.startsWith("\"") && s.endsWith("\"");
     }
 
+    @Override
     public List<Header> formatCookies(final List<Cookie> cookies) {
         Args.notEmpty(cookies, "List of cookies");
         final CharArrayBuffer buffer = new CharArrayBuffer(20 * cookies.size());
@@ -203,10 +205,12 @@ public class BrowserCompatSpec extends CookieSpecBase {
         return headers;
     }
 
+    @Override
     public int getVersion() {
         return 0;
     }
 
+    @Override
     public Header getVersionHeader() {
         return null;
     }

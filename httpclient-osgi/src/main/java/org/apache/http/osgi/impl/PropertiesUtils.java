@@ -119,6 +119,7 @@ final class PropertiesUtils {
 
     private static class BooleanPropertyConverter implements PropertyConverter<Boolean> {
 
+        @Override
         public Boolean to(final Object propValue) {
             return Boolean.valueOf(String.valueOf(propValue));
         }
@@ -127,6 +128,7 @@ final class PropertiesUtils {
 
     private static class StringPropertyConverter implements PropertyConverter<String> {
 
+        @Override
         public String to(final Object propValue) {
             return String.valueOf(propValue);
         }
@@ -135,6 +137,7 @@ final class PropertiesUtils {
 
     private static class StringArrayPropertyConverter implements PropertyConverter<String[]> {
 
+        @Override
         public String[] to(final Object propValue) {
             if (propValue instanceof String) {
                 // single string
@@ -174,6 +177,7 @@ final class PropertiesUtils {
 
     private static class IntegerPropertyConverter implements PropertyConverter<Integer> {
 
+        @Override
         public Integer to(final Object propValue) {
             return Integer.valueOf(String.valueOf(propValue));
         }
@@ -182,6 +186,7 @@ final class PropertiesUtils {
 
     private static class LongPropertyConverter implements PropertyConverter<Long> {
 
+        @Override
         public Long to(final Object propValue) {
             return Long.valueOf(String.valueOf(propValue));
         }
@@ -190,6 +195,7 @@ final class PropertiesUtils {
 
     private static class DoublePropertyConverter implements PropertyConverter<Double> {
 
+        @Override
         public Double to(final Object propValue) {
             return Double.valueOf(String.valueOf(propValue));
         }

@@ -99,6 +99,7 @@ class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatche
         }
     }
 
+    @Override
     public boolean eofDetected(final InputStream wrapped) throws IOException {
         try {
             // there may be some cleanup required, such as
@@ -111,6 +112,7 @@ class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatche
         return false;
     }
 
+    @Override
     public boolean streamClosed(final InputStream wrapped) throws IOException {
         try {
             final boolean open = connReleaseTrigger != null && !connReleaseTrigger.isReleased();
@@ -130,6 +132,7 @@ class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatche
         return false;
     }
 
+    @Override
     public boolean streamAbort(final InputStream wrapped) throws IOException {
         cleanup();
         return false;

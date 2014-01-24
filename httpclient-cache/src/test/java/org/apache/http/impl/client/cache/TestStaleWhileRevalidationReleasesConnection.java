@@ -254,6 +254,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
          * @throws org.apache.http.HttpException    in case of a problem
          * @throws java.io.IOException      in case of an IO problem
          */
+        @Override
         public void handle(final HttpRequest request,
                            final HttpResponse response,
                            final HttpContext context)

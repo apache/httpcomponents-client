@@ -53,46 +53,57 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
             HttpStatus.SC_NOT_IMPLEMENTED, "");
     private final ProtocolVersion version = HttpVersion.HTTP_1_1;
 
+    @Override
     public StatusLine getStatusLine() {
         return statusLine;
     }
 
+    @Override
     public void setStatusLine(final StatusLine statusline) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public void setStatusLine(final ProtocolVersion ver, final int code) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public void setStatusLine(final ProtocolVersion ver, final int code, final String reason) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public void setStatusCode(final int code) throws IllegalStateException {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public void setReasonPhrase(final String reason) throws IllegalStateException {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public HttpEntity getEntity() {
         return null;
     }
 
+    @Override
     public void setEntity(final HttpEntity entity) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public Locale getLocale() {
         return null;
     }
 
+    @Override
     public void setLocale(final Locale loc) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
+    @Override
     public ProtocolVersion getProtocolVersion() {
         return version;
     }

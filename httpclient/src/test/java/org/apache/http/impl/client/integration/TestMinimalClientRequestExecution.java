@@ -63,6 +63,7 @@ public class TestMinimalClientRequestExecution extends IntegrationTestBase {
             super();
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,

@@ -85,6 +85,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         }
     }
 
+    @Override
     public void putEntry(final String url, final HttpCacheEntry entry) throws IOException {
         Args.notNull(url, "URL");
         Args.notNull(entry, "Cache entry");
@@ -95,6 +96,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         }
     }
 
+    @Override
     public HttpCacheEntry getEntry(final String url) throws IOException {
         Args.notNull(url, "URL");
         ensureValidState();
@@ -103,6 +105,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         }
     }
 
+    @Override
     public void removeEntry(final String url) throws IOException {
         Args.notNull(url, "URL");
         ensureValidState();
@@ -113,6 +116,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         }
     }
 
+    @Override
     public void updateEntry(
             final String url,
             final HttpCacheUpdateCallback callback) throws IOException {
@@ -158,6 +162,7 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
         }
     }
 
+    @Override
     public void close() {
         shutdown();
     }

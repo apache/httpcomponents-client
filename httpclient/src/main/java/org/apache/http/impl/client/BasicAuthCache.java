@@ -78,21 +78,25 @@ public class BasicAuthCache implements AuthCache {
         }
     }
 
+    @Override
     public void put(final HttpHost host, final AuthScheme authScheme) {
         Args.notNull(host, "HTTP host");
         this.map.put(getKey(host), authScheme);
     }
 
+    @Override
     public AuthScheme get(final HttpHost host) {
         Args.notNull(host, "HTTP host");
         return this.map.get(getKey(host));
     }
 
+    @Override
     public void remove(final HttpHost host) {
         Args.notNull(host, "HTTP host");
         this.map.remove(getKey(host));
     }
 
+    @Override
     public void clear() {
         this.map.clear();
     }

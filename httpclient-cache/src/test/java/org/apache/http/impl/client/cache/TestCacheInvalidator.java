@@ -339,6 +339,7 @@ public class TestCacheInvalidator {
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
         mockStorage.removeEntry(theURI);
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            @Override
             public Void answer() {
                 Assert.fail();
                 return null;
@@ -408,6 +409,7 @@ public class TestCacheInvalidator {
         expect(mockStorage.getEntry(cacheKey)).andReturn(entry).anyTimes();
         mockStorage.removeEntry(cacheKey);
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            @Override
             public Void answer() {
                 Assert.fail();
                 return null;
@@ -437,6 +439,7 @@ public class TestCacheInvalidator {
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
         mockStorage.removeEntry(theURI);
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            @Override
             public Void answer() {
                 Assert.fail();
                 return null;
@@ -464,6 +467,7 @@ public class TestCacheInvalidator {
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
         mockStorage.removeEntry(theURI);
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            @Override
             public Void answer() {
                 Assert.fail();
                 return null;
@@ -486,6 +490,7 @@ public class TestCacheInvalidator {
         expect(mockStorage.getEntry(theURI)).andReturn(null).anyTimes();
         mockStorage.removeEntry(theURI);
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            @Override
             public Void answer() {
                 Assert.fail();
                 return null;
@@ -513,6 +518,7 @@ public class TestCacheInvalidator {
         expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
         mockStorage.removeEntry(theURI);
         EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
+            @Override
             public Void answer() {
                 Assert.fail();
                 return null;

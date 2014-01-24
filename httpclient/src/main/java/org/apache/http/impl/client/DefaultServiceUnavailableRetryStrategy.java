@@ -68,11 +68,13 @@ public class DefaultServiceUnavailableRetryStrategy implements ServiceUnavailabl
         this(1, 1000);
     }
 
+    @Override
     public boolean retryRequest(final HttpResponse response, final int executionCount, final HttpContext context) {
         return executionCount <= maxRetries &&
             response.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 
+    @Override
     public long getRetryInterval() {
         return retryInterval;
     }

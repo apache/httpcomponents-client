@@ -145,6 +145,7 @@ public class DigestScheme extends RFC2617Scheme {
      * @return <tt>true</tt> if Digest authorization has been processed,
      *   <tt>false</tt> otherwise.
      */
+    @Override
     public boolean isComplete() {
         final String s = getParameter("stale");
         if ("true".equalsIgnoreCase(s)) {
@@ -159,6 +160,7 @@ public class DigestScheme extends RFC2617Scheme {
      *
      * @return <code>digest</code>
      */
+    @Override
     public String getSchemeName() {
         return "digest";
     }
@@ -168,6 +170,7 @@ public class DigestScheme extends RFC2617Scheme {
      *
      * @return <tt>false</tt>.
      */
+    @Override
     public boolean isConnectionBased() {
         return false;
     }
@@ -180,6 +183,7 @@ public class DigestScheme extends RFC2617Scheme {
      * @deprecated (4.2) Use {@link org.apache.http.auth.ContextAwareAuthScheme#authenticate(
      *   Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
      */
+    @Override
     @Deprecated
     public Header authenticate(
             final Credentials credentials, final HttpRequest request) throws AuthenticationException {

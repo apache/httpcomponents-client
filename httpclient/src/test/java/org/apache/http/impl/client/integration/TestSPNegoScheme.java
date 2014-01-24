@@ -77,6 +77,7 @@ public class TestSPNegoScheme extends IntegrationTestBase {
      */
     private static class PleaseNegotiateService implements HttpRequestHandler {
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -122,10 +123,12 @@ public class TestSPNegoScheme extends IntegrationTestBase {
 
     private static class UseJaasCredentials implements Credentials {
 
+        @Override
         public String getPassword() {
             return null;
         }
 
+        @Override
         public Principal getUserPrincipal() {
             return null;
         }
@@ -140,6 +143,7 @@ public class TestSPNegoScheme extends IntegrationTestBase {
             scheme = new NegotiateSchemeWithMockGssManager();
         }
 
+        @Override
         public AuthScheme create(final HttpContext context) {
             return scheme;
         }

@@ -33,10 +33,12 @@ import org.apache.http.client.cache.HttpCacheEntry;
  */
 public class MemcachedCacheEntryFactoryImpl implements MemcachedCacheEntryFactory {
 
+    @Override
     public MemcachedCacheEntry getMemcachedCacheEntry(final String key, final HttpCacheEntry entry) {
         return new MemcachedCacheEntryImpl(key, entry);
     }
 
+    @Override
     public MemcachedCacheEntry getUnsetCacheEntry() {
         return new MemcachedCacheEntryImpl(null, null);
     }

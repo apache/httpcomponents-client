@@ -118,20 +118,24 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
         super.finalize();
     }
 
+    @Override
     public String getSchemeName() {
         return scheme;
     }
 
     // String parameters not supported
+    @Override
     public String getParameter(final String name) {
         return null;
     }
 
     // NTLM/Negotiate do not support authentication realms
+    @Override
     public String getRealm() {
         return null;
     }
 
+    @Override
     public boolean isConnectionBased() {
         return true;
     }
@@ -247,10 +251,12 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
         return Base64.encodeBase64String(token.getBytes());
     }
 
+    @Override
     public boolean isComplete() {
         return !continueNeeded;
     }
 
+    @Override
     @Deprecated
     public Header authenticate(
             final Credentials credentials,

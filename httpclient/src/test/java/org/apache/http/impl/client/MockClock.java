@@ -30,6 +30,7 @@ public class MockClock implements Clock {
 
     private long t = System.currentTimeMillis();
 
+    @Override
     public long getCurrentTime() {
         return t;
     }

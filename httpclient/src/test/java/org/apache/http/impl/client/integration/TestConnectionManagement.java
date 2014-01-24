@@ -452,6 +452,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         final Thread abortingThread = new Thread(new Runnable() {
+            @Override
             public void run() {
                 try {
                     stallingSocketFactory.waitForState();
@@ -507,6 +508,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         final Thread abortingThread = new Thread(new Runnable() {
+            @Override
             public void run() {
                 try {
                     stallingSocketFactory.waitForState();
@@ -563,6 +565,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         final Thread abortingThread = new Thread(new Runnable() {
+            @Override
             public void run() {
                 try {
                     stallingSocketFactory.waitForState();
@@ -648,6 +651,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
             this.delegate = delegate;
         }
 
+        @Override
         public Socket connectSocket(
                 final int connectTimeout,
                 final Socket sock,
@@ -669,6 +673,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
             return socket;
         }
 
+        @Override
         public Socket createSocket(final HttpContext context) throws IOException {
             if(waitPolicy == WaitPolicy.BEFORE_CREATE) {
                 latch();

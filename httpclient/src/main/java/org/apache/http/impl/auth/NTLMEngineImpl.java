@@ -1649,12 +1649,14 @@ final class NTLMEngineImpl implements NTLMEngine {
 
     }
 
+    @Override
     public String generateType1Msg(
             final String domain,
             final String workstation) throws NTLMEngineException {
         return getType1Message(workstation, domain);
     }
 
+    @Override
     public String generateType3Msg(
             final String username,
             final String password,

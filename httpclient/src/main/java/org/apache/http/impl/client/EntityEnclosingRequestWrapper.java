@@ -65,15 +65,18 @@ public class EntityEnclosingRequestWrapper extends RequestWrapper
         setEntity(request.getEntity());
     }
 
+    @Override
     public HttpEntity getEntity() {
         return this.entity;
     }
 
+    @Override
     public void setEntity(final HttpEntity entity) {
         this.entity = entity != null ? new EntityWrapper(entity) : null;
         this.consumed = false;
     }
 
+    @Override
     public boolean expectContinue() {
         final Header expect = getFirstHeader(HTTP.EXPECT_DIRECTIVE);
         return expect != null && HTTP.EXPECT_CONTINUE.equalsIgnoreCase(expect.getValue());

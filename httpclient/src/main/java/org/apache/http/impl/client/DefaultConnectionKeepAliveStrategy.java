@@ -50,6 +50,7 @@ public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveSt
 
     public static final DefaultConnectionKeepAliveStrategy INSTANCE = new DefaultConnectionKeepAliveStrategy();
 
+    @Override
     public long getKeepAliveDuration(final HttpResponse response, final HttpContext context) {
         Args.notNull(response, "HTTP response");
         final HeaderElementIterator it = new BasicHeaderElementIterator(

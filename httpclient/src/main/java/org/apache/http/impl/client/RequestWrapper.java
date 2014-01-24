@@ -95,6 +95,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
         setHeaders(this.original.getAllHeaders());
     }
 
+    @Override
     public String getMethod() {
         return this.method;
     }
@@ -104,6 +105,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
         this.method = method;
     }
 
+    @Override
     public ProtocolVersion getProtocolVersion() {
         if (this.version == null) {
             this.version = HttpProtocolParams.getVersion(getParams());
@@ -116,6 +118,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
     }
 
 
+    @Override
     public URI getURI() {
         return this.uri;
     }
@@ -124,6 +127,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
         this.uri = uri;
     }
 
+    @Override
     public RequestLine getRequestLine() {
         final String method = getMethod();
         final ProtocolVersion ver = getProtocolVersion();
@@ -137,10 +141,12 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
         return new BasicRequestLine(method, uritext, ver);
     }
 
+    @Override
     public void abort() throws UnsupportedOperationException {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean isAborted() {
         return false;
     }

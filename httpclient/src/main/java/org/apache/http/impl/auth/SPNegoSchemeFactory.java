@@ -58,10 +58,12 @@ public class SPNegoSchemeFactory implements AuthSchemeFactory, AuthSchemeProvide
         return stripPort;
     }
 
+    @Override
     public AuthScheme newInstance(final HttpParams params) {
         return new SPNegoScheme(this.stripPort);
     }
 
+    @Override
     public AuthScheme create(final HttpContext context) {
         return new SPNegoScheme(this.stripPort);
     }

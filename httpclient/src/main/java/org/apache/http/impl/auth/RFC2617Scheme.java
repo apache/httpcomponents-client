@@ -132,6 +132,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
      *
      * @return the parameter with the given name
      */
+    @Override
     public String getParameter(final String name) {
         if (name == null) {
             return null;
@@ -144,6 +145,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
      *
      * @return the authentication realm
      */
+    @Override
     public String getRealm() {
         return getParameter("realm");
     }

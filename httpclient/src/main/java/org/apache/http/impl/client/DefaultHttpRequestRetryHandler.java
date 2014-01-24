@@ -124,6 +124,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
      * Used <code>retryCount</code> and <code>requestSentRetryEnabled</code> to determine
      * if the given method should be retried.
      */
+    @Override
     public boolean retryRequest(
             final IOException exception,
             final int executionCount,

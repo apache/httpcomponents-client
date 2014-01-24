@@ -48,10 +48,12 @@ class SchemeLayeredSocketFactoryAdaptor2 implements SchemeLayeredSocketFactory {
         this.factory = factory;
     }
 
+    @Override
     public Socket createSocket(final HttpParams params) throws IOException {
         return this.factory.createSocket(params);
     }
 
+    @Override
     public Socket connectSocket(
             final Socket sock,
             final InetSocketAddress remoteAddress,
@@ -60,10 +62,12 @@ class SchemeLayeredSocketFactoryAdaptor2 implements SchemeLayeredSocketFactory {
         return this.factory.connectSocket(sock, remoteAddress, localAddress, params);
     }
 
+    @Override
     public boolean isSecure(final Socket sock) throws IllegalArgumentException {
         return this.factory.isSecure(sock);
     }
 
+    @Override
     public Socket createLayeredSocket(
             final Socket socket,
             final String target, final int port,

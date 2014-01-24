@@ -86,6 +86,7 @@ public class TestRetryExec {
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenAnswer(new Answer<Object>() {
 
+            @Override
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
                 final HttpRequestWrapper wrapper = (HttpRequestWrapper) args[1];
@@ -161,6 +162,7 @@ public class TestRetryExec {
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenAnswer(new Answer<Object>() {
 
+            @Override
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
                 final HttpEntityEnclosingRequest request = (HttpEntityEnclosingRequest) args[1];

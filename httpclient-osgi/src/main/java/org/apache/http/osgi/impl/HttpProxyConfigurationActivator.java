@@ -67,6 +67,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
     /**
      * {@inheritDoc}
      */
+    @Override
     public void start(final BundleContext context) throws Exception {
         this.context = context;
 
@@ -85,6 +86,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
     /**
      * {@inheritDoc}
      */
+    @Override
     public void stop(final BundleContext context) throws Exception {
         // unregister services
         for (final ServiceRegistration registeredConfiguration : registeredConfigurations.values()) {
@@ -116,6 +118,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
     /**
      * {@inheritDoc}
      */
+    @Override
     public String getName() {
         return SERVICE_PID;
     }
@@ -123,6 +126,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
     /**
      * {@inheritDoc}
      */
+    @Override
     public void updated(final String pid, @SuppressWarnings("rawtypes") final Dictionary config) throws ConfigurationException {
         final ServiceRegistration registration = registeredConfigurations.get(pid);
         OSGiProxyConfiguration proxyConfiguration;
@@ -146,6 +150,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
     /**
      * {@inheritDoc}
      */
+    @Override
     public void deleted(final String pid) {
         final ServiceRegistration registeredConfiguration = registeredConfigurations.get(pid);
         if (null != registeredConfiguration) {

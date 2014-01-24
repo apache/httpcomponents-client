@@ -85,17 +85,21 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
 
         private boolean fired = false;
 
+        @Override
         public boolean verify(final String host, final SSLSession session) {
             return true;
         }
 
+        @Override
         public void verify(final String host, final SSLSocket ssl) throws IOException {
             this.fired = true;
         }
 
+        @Override
         public void verify(final String host, final String[] cns, final String[] subjectAlts) throws SSLException {
         }
 
+        @Override
         public void verify(final String host, final X509Certificate cert) throws SSLException {
         }
 
@@ -198,6 +202,7 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
     public void testClientAuthSSLAliasChoice() throws Exception {
         final PrivateKeyStrategy aliasStrategy = new PrivateKeyStrategy() {
 
+            @Override
             public String chooseAlias(
                     final Map<String, PrivateKeyDetails> aliases, final Socket socket) {
                 Assert.assertEquals(2, aliases.size());
@@ -278,6 +283,7 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
 
         final TrustStrategy trustStrategy = new TrustStrategy() {
 
+            @Override
             public boolean isTrusted(
                     final X509Certificate[] chain, final String authType) throws CertificateException {
                 return chain.length == 1;

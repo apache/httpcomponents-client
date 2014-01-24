@@ -85,6 +85,7 @@ public class TestContentCodings extends IntegrationTestBase {
             /**
              * {@inheritDoc}
              */
+            @Override
             public void handle(
                     final HttpRequest request,
                     final HttpResponse response,
@@ -291,6 +292,7 @@ public class TestContentCodings extends IntegrationTestBase {
             /**
              * {@inheritDoc}
              */
+            @Override
             public void handle(
                     final HttpRequest request,
                     final HttpResponse response,
@@ -340,6 +342,7 @@ public class TestContentCodings extends IntegrationTestBase {
             /**
              * {@inheritDoc}
              */
+            @Override
             public void handle(
                     final HttpRequest request,
                     final HttpResponse response,
@@ -448,6 +451,7 @@ public class TestContentCodings extends IntegrationTestBase {
         /**
          * {@inheritDoc}
          */
+        @Override
         public void run() {
             try {
                 startGate.await();

@@ -65,6 +65,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public CloseableHttpResponse execute(
             final HttpHost target,
             final HttpRequest request,
@@ -75,6 +76,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public CloseableHttpResponse execute(
             final HttpUriRequest request,
             final HttpContext context) throws IOException, ClientProtocolException {
@@ -101,6 +103,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public CloseableHttpResponse execute(
             final HttpUriRequest request) throws IOException, ClientProtocolException {
         return execute(request, (HttpContext) null);
@@ -109,6 +112,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     /**
      * {@inheritDoc}
      */
+    @Override
     public CloseableHttpResponse execute(
             final HttpHost target,
             final HttpRequest request) throws IOException, ClientProtocolException {
@@ -130,6 +134,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
      * @throws IOException in case of a problem or the connection was aborted
      * @throws ClientProtocolException in case of an http protocol error
      */
+    @Override
     public <T> T execute(final HttpUriRequest request,
             final ResponseHandler<? extends T> responseHandler) throws IOException,
             ClientProtocolException {
@@ -153,6 +158,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
      * @throws IOException in case of a problem or the connection was aborted
      * @throws ClientProtocolException in case of an http protocol error
      */
+    @Override
     public <T> T execute(final HttpUriRequest request,
             final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException, ClientProtocolException {
@@ -179,6 +185,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
      * @throws IOException in case of a problem or the connection was aborted
      * @throws ClientProtocolException in case of an http protocol error
      */
+    @Override
     public <T> T execute(final HttpHost target, final HttpRequest request,
             final ResponseHandler<? extends T> responseHandler) throws IOException,
             ClientProtocolException {
@@ -206,6 +213,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
      * @throws IOException in case of a problem or the connection was aborted
      * @throws ClientProtocolException in case of an http protocol error
      */
+    @Override
     public <T> T execute(final HttpHost target, final HttpRequest request,
             final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException, ClientProtocolException {

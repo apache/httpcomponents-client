@@ -86,6 +86,7 @@ public class RedirectExec implements ClientExecChain {
         this.redirectStrategy = redirectStrategy;
     }
 
+    @Override
     public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,

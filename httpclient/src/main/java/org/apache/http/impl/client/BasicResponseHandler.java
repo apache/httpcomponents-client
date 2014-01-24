@@ -58,6 +58,7 @@ public class BasicResponseHandler implements ResponseHandler<String> {
      * response was unsuccessful (>= 300 status code), throws an
      * {@link HttpResponseException}.
      */
+    @Override
     public String handleResponse(final HttpResponse response)
             throws HttpResponseException, IOException {
         final StatusLine statusLine = response.getStatusLine();

@@ -78,6 +78,7 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
     /**
      * Never matches if the cookie's domain is from the blacklist.
      */
+    @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         if (isForPublicSuffix(cookie)) {
             return false;
@@ -85,10 +86,12 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
         return wrapped.match(cookie, origin);
     }
 
+    @Override
     public void parse(final SetCookie cookie, final String value) throws MalformedCookieException {
         wrapped.parse(cookie, value);
     }
 
+    @Override
     public void validate(final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
         wrapped.validate(cookie, origin);
     }

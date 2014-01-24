@@ -47,11 +47,13 @@ class SocketFactoryAdaptor implements SocketFactory {
         this.factory = factory;
     }
 
+    @Override
     public Socket createSocket() throws IOException {
         final HttpParams params = new BasicHttpParams();
         return this.factory.createSocket(params);
     }
 
+    @Override
     public Socket connectSocket(
             final Socket socket,
             final String host, final int port,
@@ -66,6 +68,7 @@ class SocketFactoryAdaptor implements SocketFactory {
         return this.factory.connectSocket(socket, remote, local, params);
     }
 
+    @Override
     public boolean isSecure(final Socket socket) throws IllegalArgumentException {
         return this.factory.isSecure(socket);
     }

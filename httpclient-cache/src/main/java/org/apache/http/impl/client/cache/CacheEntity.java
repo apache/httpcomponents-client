@@ -50,30 +50,37 @@ class CacheEntity implements HttpEntity, Serializable {
         this.cacheEntry = cacheEntry;
     }
 
+    @Override
     public Header getContentType() {
         return this.cacheEntry.getFirstHeader(HTTP.CONTENT_TYPE);
     }
 
+    @Override
     public Header getContentEncoding() {
         return this.cacheEntry.getFirstHeader(HTTP.CONTENT_ENCODING);
     }
 
+    @Override
     public boolean isChunked() {
         return false;
     }
 
+    @Override
     public boolean isRepeatable() {
         return true;
     }
 
+    @Override
     public long getContentLength() {
         return this.cacheEntry.getResource().length();
     }
 
+    @Override
     public InputStream getContent() throws IOException {
         return this.cacheEntry.getResource().getInputStream();
     }
 
+    @Override
     public void writeTo(final OutputStream outstream) throws IOException {
         Args.notNull(outstream, "Output stream");
         final InputStream instream = this.cacheEntry.getResource().getInputStream();
@@ -84,10 +91,12 @@ class CacheEntity implements HttpEntity, Serializable {
         }
     }
 
+    @Override
     public boolean isStreaming() {
         return false;
     }
 
+    @Override
     public void consumeContent() throws IOException {
     }
 

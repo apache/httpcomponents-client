@@ -98,6 +98,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
     static class AuthHandler implements HttpRequestHandler {
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -123,6 +124,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
             this.authTokenExtractor = new BasicAuthTokenExtractor();
         }
 
+        @Override
         public void verify(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -147,14 +149,17 @@ public class TestClientAuthentication extends IntegrationTestBase {
             this.creds = creds;
         }
 
+        @Override
         public void clear() {
         }
 
+        @Override
         public Credentials getCredentials(final AuthScope authscope) {
             this.authscope = authscope;
             return this.creds;
         }
 
+        @Override
         public void setCredentials(final AuthScope authscope, final Credentials credentials) {
         }
 
@@ -431,6 +436,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
             super();
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -471,6 +477,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
             this.count = new AtomicLong();
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -556,6 +563,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
     static class ProxyAuthHandler implements HttpRequestHandler {
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -590,6 +598,7 @@ public class TestClientAuthentication extends IntegrationTestBase {
 
     static class ClosingAuthHandler implements HttpRequestHandler {
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,

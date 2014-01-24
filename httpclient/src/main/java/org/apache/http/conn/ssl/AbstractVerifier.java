@@ -85,6 +85,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         super();
     }
 
+    @Override
     public final void verify(final String host, final SSLSocket ssl)
           throws IOException {
         if(host == null) {
@@ -133,6 +134,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         verify(host, x509);
     }
 
+    @Override
     public final boolean verify(final String host, final SSLSession session) {
         try {
             final Certificate[] certs = session.getPeerCertificates();
@@ -145,6 +147,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         }
     }
 
+    @Override
     public final void verify(final String host, final X509Certificate cert)
           throws SSLException {
         final String[] cns = getCNs(cert);

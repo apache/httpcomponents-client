@@ -86,6 +86,7 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
         this(id, buffersize, buffersize, null, null, null, null, null, null, null);
     }
 
+    @Override
     public String getId() {
         return this.id;
     }
@@ -96,14 +97,17 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
         super.shutdown();
     }
 
+    @Override
     public Object getAttribute(final String id) {
         return this.attributes.get(id);
     }
 
+    @Override
     public Object removeAttribute(final String id) {
         return this.attributes.remove(id);
     }
 
+    @Override
     public void setAttribute(final String id, final Object obj) {
         this.attributes.put(id, obj);
     }
@@ -123,6 +127,7 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
         return super.getSocket();
     }
 
+    @Override
     public SSLSession getSSLSession() {
         final Socket socket = super.getSocket();
         if (socket instanceof SSLSocket) {

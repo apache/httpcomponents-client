@@ -63,6 +63,7 @@ public class CookiePathComparator implements Serializable, Comparator<Cookie> {
         return path;
     }
 
+    @Override
     public int compare(final Cookie c1, final Cookie c2) {
         final String path1 = normalizePath(c1);
         final String path2 = normalizePath(c2);

@@ -80,6 +80,7 @@ class CacheInvalidator implements HttpCacheInvalidator {
      * @param host The backend host we are talking to
      * @param req The HttpRequest to that host
      */
+    @Override
     public void flushInvalidatedCacheEntries(final HttpHost host, final HttpRequest req)  {
         if (requestShouldNotBeCached(req)) {
             log.debug("Request should not be cached");
@@ -193,6 +194,7 @@ class CacheInvalidator implements HttpCacheInvalidator {
     /** Flushes entries that were invalidated by the given response
      * received for the given host/request pair.
      */
+    @Override
     public void flushInvalidatedCacheEntries(final HttpHost host,
             final HttpRequest request, final HttpResponse response) {
         final int status = response.getStatusLine().getStatusCode();

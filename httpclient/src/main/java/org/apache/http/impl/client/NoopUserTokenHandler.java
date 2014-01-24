@@ -40,6 +40,7 @@ public class NoopUserTokenHandler implements UserTokenHandler {
 
     public static final NoopUserTokenHandler INSTANCE = new NoopUserTokenHandler();
 
+    @Override
     public Object getUserToken(final HttpContext context) {
         return null;
     }

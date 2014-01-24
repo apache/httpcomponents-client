@@ -66,6 +66,7 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
     @Test
     public void testCookieMatchingWithVirtualHosts() throws Exception {
         this.localServer.register("*", new HttpRequestHandler() {
+            @Override
             public void handle(
                     final HttpRequest request,
                     final HttpResponse response,

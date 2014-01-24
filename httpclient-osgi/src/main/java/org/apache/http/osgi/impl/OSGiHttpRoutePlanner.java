@@ -120,6 +120,7 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
             this.hostName = hostName;
         }
 
+        @Override
         public boolean matches(final String host) {
             return hostName.equalsIgnoreCase(host);
         }
@@ -133,6 +134,7 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
             this.domainName = domainName.toLowerCase(Locale.ENGLISH);
         }
 
+        @Override
         public boolean matches(final String host) {
             return host.toLowerCase(Locale.ENGLISH).endsWith(domainName);
         }
@@ -146,6 +148,7 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
             this.address = address;
         }
 
+        @Override
         public boolean matches(final String host) {
             final NetworkAddress hostAddress = NetworkAddress.parse(host);
             return hostAddress != null && address.address == (hostAddress.address & address.mask);

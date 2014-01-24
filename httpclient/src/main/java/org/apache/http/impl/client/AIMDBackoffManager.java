@@ -82,6 +82,7 @@ public class AIMDBackoffManager implements BackoffManager {
         this.lastRouteBackoffs = new HashMap<HttpRoute,Long>();
     }
 
+    @Override
     public void backOff(final HttpRoute route) {
         synchronized(connPerRoute) {
             final int curr = connPerRoute.getMaxPerRoute(route);
@@ -102,6 +103,7 @@ public class AIMDBackoffManager implements BackoffManager {
         return (int)(Math.floor(backoffFactor * curr));
     }
 
+    @Override
     public void probe(final HttpRoute route) {
         synchronized(connPerRoute) {
             final int curr = connPerRoute.getMaxPerRoute(route);

@@ -59,6 +59,7 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
 
     public static final DefaultUserTokenHandler INSTANCE = new DefaultUserTokenHandler();
 
+    @Override
     public Object getUserToken(final HttpContext context) {
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);

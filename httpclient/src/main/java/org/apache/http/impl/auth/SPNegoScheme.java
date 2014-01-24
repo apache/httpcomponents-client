@@ -55,6 +55,7 @@ public class SPNegoScheme extends GGSSchemeBase {
         super(false);
     }
 
+    @Override
     public String getSchemeName() {
         return "Negotiate";
     }
@@ -90,6 +91,7 @@ public class SPNegoScheme extends GGSSchemeBase {
      *
      * @return <code>null</code>
      */
+    @Override
     public String getParameter(final String name) {
         Args.notNull(name, "Parameter name");
         return null;
@@ -101,6 +103,7 @@ public class SPNegoScheme extends GGSSchemeBase {
      *
      * @return <code>null</code>
      */
+    @Override
     public String getRealm() {
         return null;
     }
@@ -110,6 +113,7 @@ public class SPNegoScheme extends GGSSchemeBase {
      *
      * @return <tt>true</tt>.
      */
+    @Override
     public boolean isConnectionBased() {
         return true;
     }

@@ -64,6 +64,7 @@ public class DefaultFailureCache implements FailureCache {
         this.storage = new ConcurrentHashMap<String, FailureCacheValue>();
     }
 
+    @Override
     public int getErrorCount(final String identifier) {
         if (identifier == null) {
             throw new IllegalArgumentException("identifier may not be null");
@@ -72,6 +73,7 @@ public class DefaultFailureCache implements FailureCache {
         return storedErrorCode != null ? storedErrorCode.getErrorCount() : 0;
     }
 
+    @Override
     public void resetErrorCount(final String identifier) {
         if (identifier == null) {
             throw new IllegalArgumentException("identifier may not be null");
@@ -79,6 +81,7 @@ public class DefaultFailureCache implements FailureCache {
         storage.remove(identifier);
     }
 
+    @Override
     public void increaseErrorCount(final String identifier) {
         if (identifier == null) {
             throw new IllegalArgumentException("identifier may not be null");

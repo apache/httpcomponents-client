@@ -42,6 +42,7 @@ public class DefaultSchemePortResolver implements SchemePortResolver {
 
     public static final DefaultSchemePortResolver INSTANCE = new DefaultSchemePortResolver();
 
+    @Override
     public int resolve(final HttpHost host) throws UnsupportedSchemeException {
         Args.notNull(host, "HTTP host");
         final int port = host.getPort();

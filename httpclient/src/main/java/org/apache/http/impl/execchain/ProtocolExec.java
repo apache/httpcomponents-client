@@ -113,6 +113,7 @@ public class ProtocolExec implements ClientExecChain {
         }
     }
 
+    @Override
     public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,

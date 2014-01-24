@@ -90,6 +90,7 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
         }
     }
 
+    @Override
     public void releaseConnection() {
         synchronized (this.managedConn) {
             if (this.released) {
@@ -115,6 +116,7 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
         }
     }
 
+    @Override
     public void abortConnection() {
         synchronized (this.managedConn) {
             if (this.released) {
@@ -135,6 +137,7 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
         }
     }
 
+    @Override
     public boolean cancel() {
         final boolean alreadyReleased = this.released;
         log.debug("Cancelling request execution");
@@ -146,6 +149,7 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
         return this.released;
     }
 
+    @Override
     public void close() throws IOException {
         abortConnection();
     }

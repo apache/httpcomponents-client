@@ -218,10 +218,12 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
     protected void prepareSocket(final SSLSocket socket) throws IOException {
     }
 
+    @Override
     public Socket createSocket(final HttpContext context) throws IOException {
         return SocketFactory.getDefault().createSocket();
     }
 
+    @Override
     public Socket connectSocket(
             final int connectTimeout,
             final Socket socket,
@@ -255,6 +257,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         }
     }
 
+    @Override
     public Socket createLayeredSocket(
             final Socket socket,
             final String target,

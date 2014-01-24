@@ -44,6 +44,7 @@ public class SHA256KeyHashingScheme implements KeyHashingScheme {
 
     private static final Log log = LogFactory.getLog(SHA256KeyHashingScheme.class);
 
+    @Override
     public String hash(final String key) {
         final MessageDigest md = getDigest();
         md.update(key.getBytes());

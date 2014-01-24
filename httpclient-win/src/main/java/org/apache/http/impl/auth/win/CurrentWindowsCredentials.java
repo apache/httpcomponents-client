@@ -68,6 +68,7 @@ public class CurrentWindowsCredentials implements Credentials, Serializable, Pri
         return LazyHolder.INSTANCE;
     }
 
+    @Override
     public Principal getUserPrincipal() {
         return this;
     }
@@ -94,10 +95,12 @@ public class CurrentWindowsCredentials implements Credentials, Serializable, Pri
     /**
      * Returns an empty password
      */
+    @Override
     public String getPassword() {
         return "";
     }
 
+    @Override
     public String getName() {
         return getCurrentUsername();
     }

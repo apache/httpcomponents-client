@@ -67,6 +67,7 @@ class ResponseProxyHandler implements InvocationHandler {
         EntityUtils.consume(original.getEntity());
     }
 
+    @Override
     public Object invoke(
             final Object proxy, final Method method, final Object[] args) throws Throwable {
         if (method.equals(CLOSE_METHOD)) {

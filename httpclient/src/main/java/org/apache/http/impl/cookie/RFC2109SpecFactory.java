@@ -60,6 +60,7 @@ public class RFC2109SpecFactory implements CookieSpecFactory, CookieSpecProvider
         this(null, false);
     }
 
+    @Override
     public CookieSpec newInstance(final HttpParams params) {
         if (params != null) {
 
@@ -79,6 +80,7 @@ public class RFC2109SpecFactory implements CookieSpecFactory, CookieSpecProvider
         }
     }
 
+    @Override
     public CookieSpec create(final HttpContext context) {
         return new RFC2109Spec(this.datepatterns, this.oneHeader);
     }

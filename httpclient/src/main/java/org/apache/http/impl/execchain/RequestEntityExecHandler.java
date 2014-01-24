@@ -68,6 +68,7 @@ class RequestEntityExecHandler implements InvocationHandler  {
         return consumed;
     }
 
+    @Override
     public Object invoke(
             final Object proxy, final Method method, final Object[] args) throws Throwable {
         try {

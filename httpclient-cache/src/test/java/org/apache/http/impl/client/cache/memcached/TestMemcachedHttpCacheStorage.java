@@ -321,6 +321,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final byte[] serialized = HttpTestUtils.getRandomBytes(128);
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+            @Override
             public HttpCacheEntry update(final HttpCacheEntry old) {
                 assertNull(old);
                 return updatedValue;
@@ -353,6 +354,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final byte[] newBytes = HttpTestUtils.getRandomBytes(128);
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+            @Override
             public HttpCacheEntry update(final HttpCacheEntry old) {
                 assertNull(old);
                 return updatedValue;
@@ -392,6 +394,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
 
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+            @Override
             public HttpCacheEntry update(final HttpCacheEntry old) {
                 assertSame(existingValue, old);
                 return updatedValue;
@@ -435,6 +438,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
                 mockMemcachedCacheEntryFactory, mockKeyHashingScheme);
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+            @Override
             public HttpCacheEntry update(final HttpCacheEntry old) {
                 assertSame(existingValue, old);
                 return updatedValue;
@@ -485,6 +489,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final byte[] newBytes2 = HttpTestUtils.getRandomBytes(128);
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+            @Override
             public HttpCacheEntry update(final HttpCacheEntry old) {
                 if (old == existingValue) {
                     return updatedValue;
@@ -539,6 +544,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
         final HttpCacheEntry updatedValue = HttpTestUtils.makeCacheEntry();
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
+            @Override
             public HttpCacheEntry update(final HttpCacheEntry old) {
                 assertNull(old);
                 return updatedValue;

@@ -58,10 +58,12 @@ public class KerberosSchemeFactory implements AuthSchemeFactory, AuthSchemeProvi
         return stripPort;
     }
 
+    @Override
     public AuthScheme newInstance(final HttpParams params) {
         return new KerberosScheme(this.stripPort);
     }
 
+    @Override
     public AuthScheme create(final HttpContext context) {
         return new KerberosScheme(this.stripPort);
     }

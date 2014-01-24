@@ -65,6 +65,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
             super();
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -92,6 +93,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
 
         final UserTokenHandler userTokenHandler = new UserTokenHandler() {
 
+            @Override
             public Object getUserToken(final HttpContext context) {
                 final String id = (String) context.getAttribute("user");
                 return id;
@@ -222,6 +224,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
 
         final UserTokenHandler userTokenHandler = new UserTokenHandler() {
 
+            @Override
             public Object getUserToken(final HttpContext context) {
                 return context.getAttribute("user");
             }

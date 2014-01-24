@@ -86,12 +86,14 @@ public class ClientExecuteSOCKS {
 
     static class MyConnectionSocketFactory implements ConnectionSocketFactory {
 
+        @Override
         public Socket createSocket(final HttpContext context) throws IOException {
             InetSocketAddress socksaddr = (InetSocketAddress) context.getAttribute("socks.address");
             Proxy proxy = new Proxy(Proxy.Type.SOCKS, socksaddr);
             return new Socket(proxy);
         }
 
+        @Override
         public Socket connectSocket(
                 final int connectTimeout,
                 final Socket socket,

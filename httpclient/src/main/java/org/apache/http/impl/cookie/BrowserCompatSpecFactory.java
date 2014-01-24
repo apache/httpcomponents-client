@@ -69,6 +69,7 @@ public class BrowserCompatSpecFactory implements CookieSpecFactory, CookieSpecPr
         this(null, SecurityLevel.SECURITYLEVEL_DEFAULT);
     }
 
+    @Override
     public CookieSpec newInstance(final HttpParams params) {
         if (params != null) {
 
@@ -85,6 +86,7 @@ public class BrowserCompatSpecFactory implements CookieSpecFactory, CookieSpecPr
         }
     }
 
+    @Override
     public CookieSpec create(final HttpContext context) {
         return new BrowserCompatSpec(this.datepatterns);
     }

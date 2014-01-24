@@ -43,25 +43,31 @@ public class TestAbstractCookieSpec {
 
     private static class DummyCookieSpec extends AbstractCookieSpec {
 
+        @Override
         public List<Header> formatCookies(final List<Cookie> cookies) {
             return null;
         }
 
+        @Override
         public boolean match(final Cookie cookie, final CookieOrigin origin) {
             return true;
         }
 
+        @Override
         public List<Cookie> parse(final Header header, final CookieOrigin origin) throws MalformedCookieException {
             return null;
         }
 
+        @Override
         public void validate(final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
         }
 
+        @Override
         public int getVersion() {
             return 0;
         }
 
+        @Override
         public Header getVersionHeader() {
             return null;
         }
@@ -70,13 +76,16 @@ public class TestAbstractCookieSpec {
 
     private static class DummyCookieAttribHandler implements CookieAttributeHandler {
 
+        @Override
         public boolean match(final Cookie cookie, final CookieOrigin origin) {
             return true;
         }
 
+        @Override
         public void parse(final SetCookie cookie, final String value) throws MalformedCookieException {
         }
 
+        @Override
         public void validate(final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
         }
 

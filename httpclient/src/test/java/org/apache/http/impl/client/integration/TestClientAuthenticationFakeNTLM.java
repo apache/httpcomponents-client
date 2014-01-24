@@ -62,6 +62,7 @@ public class TestClientAuthenticationFakeNTLM extends IntegrationTestBase {
 
     static class NtlmResponseHandler implements HttpRequestHandler {
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -107,6 +108,7 @@ public class TestClientAuthenticationFakeNTLM extends IntegrationTestBase {
             this.authenticateHeaderValue = "NTLM " + type2Message;
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -184,6 +186,7 @@ public class TestClientAuthenticationFakeNTLM extends IntegrationTestBase {
             this.authenticateHeaderValue = "NTLM " + type2Message;
         }
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,

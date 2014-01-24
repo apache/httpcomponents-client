@@ -49,6 +49,7 @@ class SchemeSocketFactoryAdaptor implements SchemeSocketFactory {
         this.factory = factory;
     }
 
+    @Override
     public Socket connectSocket(
             final Socket sock,
             final InetSocketAddress remoteAddress,
@@ -65,10 +66,12 @@ class SchemeSocketFactoryAdaptor implements SchemeSocketFactory {
         return this.factory.connectSocket(sock, host, port, local, localPort, params);
     }
 
+    @Override
     public Socket createSocket(final HttpParams params) throws IOException {
         return this.factory.createSocket();
     }
 
+    @Override
     public boolean isSecure(final Socket sock) throws IllegalArgumentException {
         return this.factory.isSecure(sock);
     }

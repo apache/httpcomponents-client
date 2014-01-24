@@ -57,6 +57,7 @@ class CloseableHttpResponseProxy implements InvocationHandler {
         EntityUtils.consume(entity);
     }
 
+    @Override
     public Object invoke(
             final Object proxy, final Method method, final Object[] args) throws Throwable {
         final String mname = method.getName();

@@ -64,6 +64,7 @@ public class BackoffStrategyExec implements ClientExecChain {
         this.backoffManager = backoffManager;
     }
 
+    @Override
     public CloseableHttpResponse execute(
             final HttpRoute route,
             final HttpRequestWrapper request,

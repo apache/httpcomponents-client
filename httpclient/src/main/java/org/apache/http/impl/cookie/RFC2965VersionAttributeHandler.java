@@ -53,6 +53,7 @@ public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
     /**
      * Parse cookie version attribute.
      */
+    @Override
     public void parse(final SetCookie cookie, final String value)
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
@@ -75,6 +76,7 @@ public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
     /**
      * validate cookie version attribute. Version attribute is REQUIRED.
      */
+    @Override
     public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
@@ -87,6 +89,7 @@ public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
         }
     }
 
+    @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         return true;
     }

@@ -44,6 +44,7 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class WindowsNTLMSchemeFactory implements AuthSchemeProvider {
 
+    @Override
     public AuthScheme create(final HttpContext context) {
         return new WindowsNegotiateScheme(AuthSchemes.NTLM);
     }

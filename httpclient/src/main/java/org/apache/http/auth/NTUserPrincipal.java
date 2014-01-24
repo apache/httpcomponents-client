@@ -70,6 +70,7 @@ public class NTUserPrincipal implements Principal, Serializable {
         }
     }
 
+    @Override
     public String getName() {
         return this.ntname;
     }

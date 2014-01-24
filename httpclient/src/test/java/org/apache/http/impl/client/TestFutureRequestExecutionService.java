@@ -71,6 +71,7 @@ public class TestFutureRequestExecutionService {
             this.localServer = new LocalTestServer(null, null);
             this.localServer.register("/wait", new HttpRequestHandler() {
 
+                @Override
                 public void handle(
                         final HttpRequest request, final HttpResponse response,
                         final HttpContext context) throws HttpException, IOException {
@@ -168,14 +169,17 @@ public class TestFutureRequestExecutionService {
             this.latch = latch;
         }
 
+        @Override
         public void failed(final Exception ex) {
             latch.countDown();
         }
 
+        @Override
         public void completed(final Boolean result) {
             latch.countDown();
         }
 
+        @Override
         public void cancelled() {
             latch.countDown();
         }
@@ -183,6 +187,7 @@ public class TestFutureRequestExecutionService {
 
 
     private final class OkidokiHandler implements ResponseHandler<Boolean> {
+        @Override
         public Boolean handleResponse(
                 final HttpResponse response) throws ClientProtocolException, IOException {
             return response.getStatusLine().getStatusCode() == 200;

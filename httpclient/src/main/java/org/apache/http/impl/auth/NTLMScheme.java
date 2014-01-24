@@ -77,20 +77,24 @@ public class NTLMScheme extends AuthSchemeBase {
         this(new NTLMEngineImpl());
     }
 
+    @Override
     public String getSchemeName() {
         return "ntlm";
     }
 
+    @Override
     public String getParameter(final String name) {
         // String parameters not supported
         return null;
     }
 
+    @Override
     public String getRealm() {
         // NTLM does not support the concept of an authentication realm
         return null;
     }
 
+    @Override
     public boolean isConnectionBased() {
         return true;
     }
@@ -116,6 +120,7 @@ public class NTLMScheme extends AuthSchemeBase {
         }
     }
 
+    @Override
     public Header authenticate(
             final Credentials credentials,
             final HttpRequest request) throws AuthenticationException {
@@ -157,6 +162,7 @@ public class NTLMScheme extends AuthSchemeBase {
         return new BufferedHeader(buffer);
     }
 
+    @Override
     public boolean isComplete() {
         return this.state == State.MSG_TYPE3_GENERATED || this.state == State.FAILED;
     }

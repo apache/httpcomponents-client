@@ -58,6 +58,7 @@ public interface ManagedClientConnection extends
      * @return  <code>true</code> if this connection is secure,
      *          <code>false</code> otherwise
      */
+    @Override
     boolean isSecure();
 
     /**
@@ -66,6 +67,7 @@ public interface ManagedClientConnection extends
      * @return  the route established so far, or
      *          <code>null</code> if not connected
      */
+    @Override
     HttpRoute getRoute();
 
     /**
@@ -84,6 +86,7 @@ public interface ManagedClientConnection extends
      * @return  the underlying SSL session if available,
      *          <code>null</code> otherwise
      */
+    @Override
     SSLSession getSSLSession();
 
     /**

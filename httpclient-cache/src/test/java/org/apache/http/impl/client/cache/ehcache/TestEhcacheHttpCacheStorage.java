@@ -133,6 +133,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         final Element element = new Element(key, new byte[]{});
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
+            @Override
             public HttpCacheEntry update(final HttpCacheEntry old){
                 assertNull(old);
                 return updatedValue;
@@ -160,6 +161,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         final Element existingElement = new Element(key, new byte[]{});
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
+            @Override
             public HttpCacheEntry update(final HttpCacheEntry old){
                 assertEquals(existingValue, old);
                 return updatedValue;
@@ -188,6 +190,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         final Element existingElement = new Element(key, new byte[]{});
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
+            @Override
             public HttpCacheEntry update(final HttpCacheEntry old){
                 assertEquals(existingValue, old);
                 return updatedValue;
@@ -220,6 +223,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         final Element existingElement = new Element(key, new byte[]{});
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback(){
+            @Override
             public HttpCacheEntry update(final HttpCacheEntry old){
                 assertEquals(existingValue, old);
                 return updatedValue;

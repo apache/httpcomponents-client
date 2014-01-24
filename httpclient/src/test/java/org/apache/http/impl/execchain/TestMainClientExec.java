@@ -550,6 +550,7 @@ public class TestMainClientExec {
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenAnswer(new Answer<HttpResponse>() {
 
+            @Override
             public HttpResponse answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
                 final HttpEntityEnclosingRequest request = (HttpEntityEnclosingRequest) args[0];

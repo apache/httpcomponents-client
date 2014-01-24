@@ -43,6 +43,7 @@ public class TestRFC2617Scheme {
 
     static class TestAuthScheme extends RFC2617Scheme {
 
+        @Override
         @Deprecated
         public Header authenticate(
                 final Credentials credentials,
@@ -50,14 +51,17 @@ public class TestRFC2617Scheme {
             return null;
         }
 
+        @Override
         public String getSchemeName() {
             return "test";
         }
 
+        @Override
         public boolean isComplete() {
             return false;
         }
 
+        @Override
         public boolean isConnectionBased() {
             return false;
         }

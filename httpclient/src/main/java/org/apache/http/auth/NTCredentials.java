@@ -110,6 +110,7 @@ public class NTCredentials implements Credentials, Serializable {
         }
     }
 
+    @Override
     public Principal getUserPrincipal() {
         return this.principal;
     }
@@ -118,6 +119,7 @@ public class NTCredentials implements Credentials, Serializable {
         return this.principal.getUsername();
     }
 
+    @Override
     public String getPassword() {
         return this.password;
     }

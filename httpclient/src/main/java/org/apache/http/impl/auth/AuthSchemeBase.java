@@ -86,6 +86,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
      * @throws MalformedChallengeException is thrown if the authentication challenge
      * is malformed
      */
+    @Override
     public void processChallenge(final Header header) throws MalformedChallengeException {
         Args.notNull(header, "Header");
         final String authheader = header.getName();
@@ -128,6 +129,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
     }
 
 
+    @Override
     @SuppressWarnings("deprecation")
     public Header authenticate(
             final Credentials credentials,

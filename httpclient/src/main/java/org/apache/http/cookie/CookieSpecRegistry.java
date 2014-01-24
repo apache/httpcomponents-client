@@ -152,9 +152,11 @@ public final class CookieSpecRegistry implements Lookup<CookieSpecProvider> {
         registeredSpecs.putAll(map);
     }
 
+    @Override
     public CookieSpecProvider lookup(final String name) {
         return new CookieSpecProvider() {
 
+            @Override
             public CookieSpec create(final HttpContext context) {
                 final HttpRequest request = (HttpRequest) context.getAttribute(
                         ExecutionContext.HTTP_REQUEST);

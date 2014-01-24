@@ -39,6 +39,7 @@ import org.apache.http.annotation.Immutable;
 @Immutable
 public class AllowAllHostnameVerifier extends AbstractVerifier {
 
+    @Override
     public final void verify(
             final String host,
             final String[] cns,

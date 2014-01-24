@@ -53,14 +53,17 @@ public class HeapResource implements Resource {
         return this.b;
     }
 
+    @Override
     public InputStream getInputStream() {
         return new ByteArrayInputStream(this.b);
     }
 
+    @Override
     public long length() {
         return this.b.length;
     }
 
+    @Override
     public void dispose() {
     }
 

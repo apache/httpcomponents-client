@@ -91,6 +91,7 @@ public class BestMatchSpec implements CookieSpec {
         return compat;
     }
 
+    @Override
     public List<Cookie> parse(
             final Header header,
             final CookieOrigin origin) throws MalformedCookieException {
@@ -138,6 +139,7 @@ public class BestMatchSpec implements CookieSpec {
         }
     }
 
+    @Override
     public void validate(
             final Cookie cookie,
             final CookieOrigin origin) throws MalformedCookieException {
@@ -154,6 +156,7 @@ public class BestMatchSpec implements CookieSpec {
         }
     }
 
+    @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
@@ -168,6 +171,7 @@ public class BestMatchSpec implements CookieSpec {
         }
     }
 
+    @Override
     public List<Header> formatCookies(final List<Cookie> cookies) {
         Args.notNull(cookies, "List of cookies");
         int version = Integer.MAX_VALUE;
@@ -191,10 +195,12 @@ public class BestMatchSpec implements CookieSpec {
         }
     }
 
+    @Override
     public int getVersion() {
         return getStrict().getVersion();
     }
 
+    @Override
     public Header getVersionHeader() {
         return getStrict().getVersionHeader();
     }

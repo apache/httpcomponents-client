@@ -49,6 +49,7 @@ public class RequestAcceptEncoding implements HttpRequestInterceptor {
     /**
      * Adds the header {@code "Accept-Encoding: gzip,deflate"} to the request.
      */
+    @Override
     public void process(
             final HttpRequest request,
             final HttpContext context) throws HttpException, IOException {

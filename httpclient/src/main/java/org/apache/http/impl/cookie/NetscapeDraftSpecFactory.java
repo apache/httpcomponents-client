@@ -58,6 +58,7 @@ public class NetscapeDraftSpecFactory implements CookieSpecFactory, CookieSpecPr
         this(null);
     }
 
+    @Override
     public CookieSpec newInstance(final HttpParams params) {
         if (params != null) {
 
@@ -74,6 +75,7 @@ public class NetscapeDraftSpecFactory implements CookieSpecFactory, CookieSpecPr
         }
     }
 
+    @Override
     public CookieSpec create(final HttpContext context) {
         return new NetscapeDraftSpec(this.datepatterns);
     }

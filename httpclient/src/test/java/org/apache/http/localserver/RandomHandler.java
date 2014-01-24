@@ -71,6 +71,7 @@ public class RandomHandler
      * @throws HttpException    in case of a problem
      * @throws IOException      in case of an IO problem
      */
+    @Override
     public void handle(final HttpRequest request,
                        final HttpResponse response,
                        final HttpContext context)
@@ -163,6 +164,7 @@ public class RandomHandler
          *
          * @return      false
          */
+        @Override
         public final boolean isStreaming() {
             return false;
         }
@@ -174,6 +176,7 @@ public class RandomHandler
          *
          * @return      <code>true</code>
          */
+        @Override
         public boolean isRepeatable() {
             return true;
         }
@@ -183,6 +186,7 @@ public class RandomHandler
          *
          * @return      the number of random bytes to generate
          */
+        @Override
         public long getContentLength() {
             return length;
         }
@@ -194,6 +198,7 @@ public class RandomHandler
          *
          * @return      never anything
          */
+        @Override
         public InputStream getContent() {
             throw new UnsupportedOperationException();
         }
@@ -204,6 +209,7 @@ public class RandomHandler
          *
          * @param out   where to write the content to
          */
+        @Override
         public void writeTo(final OutputStream out) throws IOException {
 
             final int blocksize = 2048;

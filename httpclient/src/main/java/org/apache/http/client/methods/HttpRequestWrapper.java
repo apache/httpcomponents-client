@@ -69,6 +69,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
         setHeaders(request.getAllHeaders());
     }
 
+    @Override
     public ProtocolVersion getProtocolVersion() {
         return this.version != null ? this.version : this.original.getProtocolVersion();
     }
@@ -77,6 +78,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
         this.version = version;
     }
 
+    @Override
     public URI getURI() {
         return this.uri;
     }
@@ -85,18 +87,22 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
         this.uri = uri;
     }
 
+    @Override
     public String getMethod() {
         return method;
     }
 
+    @Override
     public void abort() throws UnsupportedOperationException {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean isAborted() {
         return false;
     }
 
+    @Override
     public RequestLine getRequestLine() {
         String requestUri = null;
         if (this.uri != null) {
@@ -129,14 +135,17 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
             this.entity = request.getEntity();
         }
 
+        @Override
         public HttpEntity getEntity() {
             return this.entity;
         }
 
+        @Override
         public void setEntity(final HttpEntity entity) {
             this.entity = entity;
         }
 
+        @Override
         public boolean expectContinue() {
             final Header expect = getFirstHeader(HTTP.EXPECT_DIRECTIVE);
             return expect != null && HTTP.EXPECT_CONTINUE.equalsIgnoreCase(expect.getValue());

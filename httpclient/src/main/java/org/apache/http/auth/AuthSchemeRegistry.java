@@ -140,9 +140,11 @@ public final class AuthSchemeRegistry implements Lookup<AuthSchemeProvider> {
         registeredSchemes.putAll(map);
     }
 
+    @Override
     public AuthSchemeProvider lookup(final String name) {
         return new AuthSchemeProvider() {
 
+            @Override
             public AuthScheme create(final HttpContext context) {
                 final HttpRequest request = (HttpRequest) context.getAttribute(
                         ExecutionContext.HTTP_REQUEST);

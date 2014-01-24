@@ -158,6 +158,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         this.keyHashingScheme = keyHashingScheme;
     }
 
+    @Override
     public void putEntry(final String url, final HttpCacheEntry entry) throws IOException  {
         final byte[] bytes = serializeEntry(url, entry);
         final String key = getCacheKey(url);
@@ -215,6 +216,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         return mce;
     }
 
+    @Override
     public HttpCacheEntry getEntry(final String url) throws IOException {
         final String key = getCacheKey(url);
         if (key == null) {
@@ -231,6 +233,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         }
     }
 
+    @Override
     public void removeEntry(final String url) throws IOException {
         final String key = getCacheKey(url);
         if (key == null) {
@@ -243,6 +246,7 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
         }
     }
 
+    @Override
     public void updateEntry(final String url, final HttpCacheUpdateCallback callback)
             throws HttpCacheUpdateException, IOException {
         int numRetries = 0;

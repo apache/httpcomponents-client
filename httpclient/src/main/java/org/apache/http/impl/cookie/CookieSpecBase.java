@@ -98,6 +98,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
         return cookies;
     }
 
+    @Override
     public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
@@ -107,6 +108,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
         }
     }
 
+    @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");

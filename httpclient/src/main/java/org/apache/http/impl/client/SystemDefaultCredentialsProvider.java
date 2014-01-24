@@ -78,6 +78,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
         this.internal = new BasicCredentialsProvider();
     }
 
+    @Override
     public void setCredentials(final AuthScope authscope, final Credentials credentials) {
         internal.setCredentials(authscope, credentials);
     }
@@ -96,6 +97,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
                 requestorType);
     }
 
+    @Override
     public Credentials getCredentials(final AuthScope authscope) {
         Args.notNull(authscope, "Auth scope");
         final Credentials localcreds = internal.getCredentials(authscope);
@@ -117,6 +119,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
         return null;
     }
 
+    @Override
     public void clear() {
         internal.clear();
     }

@@ -66,6 +66,7 @@ public class TestCookie2Support extends IntegrationTestBase {
 
     private static class CookieVer0Service implements HttpRequestHandler {
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -110,6 +111,7 @@ public class TestCookie2Support extends IntegrationTestBase {
 
     private static class CookieVer1Service implements HttpRequestHandler {
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -155,6 +157,7 @@ public class TestCookie2Support extends IntegrationTestBase {
 
     private static class CookieVer2Service implements HttpRequestHandler {
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,
@@ -199,6 +202,7 @@ public class TestCookie2Support extends IntegrationTestBase {
 
     private static class SetCookieVersionMixService implements HttpRequestHandler {
 
+        @Override
         public void handle(
                 final HttpRequest request,
                 final HttpResponse response,

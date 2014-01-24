@@ -53,10 +53,12 @@ public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
         super();
     }
 
+    @Override
     public Socket createSocket(final HttpContext context) throws IOException {
         return new Socket();
     }
 
+    @Override
     public Socket connectSocket(
             final int connectTimeout,
             final Socket socket,

@@ -185,10 +185,12 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         this(target, null, proxy, false);
     }
 
+    @Override
     public final HttpHost getTargetHost() {
         return this.targetHost;
     }
 
+    @Override
     public final InetAddress getLocalAddress() {
         return this.localAddress;
     }
@@ -197,10 +199,12 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         return this.localAddress != null ? new InetSocketAddress(this.localAddress, 0) : null;
     }
 
+    @Override
     public final int getHopCount() {
         return proxyChain != null ? proxyChain.size() + 1 : 1;
     }
 
+    @Override
     public final HttpHost getHopTarget(final int hop) {
         Args.notNegative(hop, "Hop index");
         final int hopcount = getHopCount();
@@ -212,26 +216,32 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         }
     }
 
+    @Override
     public final HttpHost getProxyHost() {
         return proxyChain != null && !this.proxyChain.isEmpty() ? this.proxyChain.get(0) : null;
     }
 
+    @Override
     public final TunnelType getTunnelType() {
         return this.tunnelled;
     }
 
+    @Override
     public final boolean isTunnelled() {
         return (this.tunnelled == TunnelType.TUNNELLED);
     }
 
+    @Override
     public final LayerType getLayerType() {
         return this.layered;
     }
 
+    @Override
     public final boolean isLayered() {
         return (this.layered == LayerType.LAYERED);
     }
 
+    @Override
     public final boolean isSecure() {
         return this.secure;
     }

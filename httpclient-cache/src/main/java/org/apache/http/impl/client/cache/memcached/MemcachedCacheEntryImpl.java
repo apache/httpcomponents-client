@@ -55,6 +55,7 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
     /* (non-Javadoc)
      * @see org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry#toByteArray()
      */
+    @Override
     synchronized public byte[] toByteArray() {
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos;
@@ -72,6 +73,7 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
     /* (non-Javadoc)
      * @see org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry#getKey()
      */
+    @Override
     public synchronized String getStorageKey() {
         return key;
     }
@@ -79,6 +81,7 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
     /* (non-Javadoc)
      * @see org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry#getHttpCacheEntry()
      */
+    @Override
     public synchronized HttpCacheEntry getHttpCacheEntry() {
         return httpCacheEntry;
     }
@@ -86,6 +89,7 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
     /* (non-Javadoc)
      * @see org.apache.http.impl.client.cache.memcached.MemcachedCacheEntry#set(byte[])
      */
+    @Override
     synchronized public void set(final byte[] bytes) {
         final ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
         ObjectInputStream ois;

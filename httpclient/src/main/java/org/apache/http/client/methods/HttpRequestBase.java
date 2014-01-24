@@ -50,6 +50,7 @@ public abstract class HttpRequestBase extends AbstractExecutionAwareRequest
     private URI uri;
     private RequestConfig config;
 
+    @Override
     public abstract String getMethod();
 
     /**
@@ -59,6 +60,7 @@ public abstract class HttpRequestBase extends AbstractExecutionAwareRequest
         this.version = version;
     }
 
+    @Override
     public ProtocolVersion getProtocolVersion() {
         return version != null ? version : HttpProtocolParams.getVersion(getParams());
     }
@@ -69,10 +71,12 @@ public abstract class HttpRequestBase extends AbstractExecutionAwareRequest
      * Please note URI remains unchanged in the course of request execution and
      * is not updated if the request is redirected to another location.
      */
+    @Override
     public URI getURI() {
         return this.uri;
     }
 
+    @Override
     public RequestLine getRequestLine() {
         final String method = getMethod();
         final ProtocolVersion ver = getProtocolVersion();
@@ -88,6 +92,7 @@ public abstract class HttpRequestBase extends AbstractExecutionAwareRequest
     }
 
 
+    @Override
     public RequestConfig getConfig() {
         return config;
     }

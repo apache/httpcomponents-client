@@ -44,6 +44,7 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class WindowsNegotiateSchemeFactory implements AuthSchemeProvider {
 
+    @Override
     public AuthScheme create(final HttpContext context) {
         return new WindowsNegotiateScheme(AuthSchemes.SPNEGO);
     }

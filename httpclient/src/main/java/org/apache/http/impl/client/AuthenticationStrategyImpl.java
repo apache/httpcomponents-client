@@ -83,6 +83,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
         this.headerName = headerName;
     }
 
+    @Override
     public boolean isAuthenticationRequested(
             final HttpHost authhost,
             final HttpResponse response,
@@ -92,6 +93,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
         return status == this.challengeCode;
     }
 
+    @Override
     public Map<String, Header> getChallenges(
             final HttpHost authhost,
             final HttpResponse response,
@@ -130,6 +132,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
 
     abstract Collection<String> getPreferredAuthSchemes(RequestConfig config);
 
+    @Override
     public Queue<AuthOption> select(
             final Map<String, Header> challenges,
             final HttpHost authhost,
@@ -195,6 +198,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
         return options;
     }
 
+    @Override
     public void authSucceeded(
             final HttpHost authhost, final AuthScheme authScheme, final HttpContext context) {
         Args.notNull(authhost, "Host");
@@ -226,6 +230,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
                 schemeName.equalsIgnoreCase(AuthSchemes.DIGEST);
     }
 
+    @Override
     public void authFailed(
             final HttpHost authhost, final AuthScheme authScheme, final HttpContext context) {
         Args.notNull(authhost, "Host");
