@@ -37,6 +37,7 @@ import org.apache.http.util.TextUtils;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -131,6 +132,23 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         = new StrictHostnameVerifier();
 
     /**
+     * Creates a {@link SSLSocketFactorySelector} that always delivers the same {@link javax.net.ssl.SSLSocketFactory}.
+     * This is the most common scenario used in HttpClient.
+     *
+     * @since 4.3.3
+     */
+    public static SSLSocketFactorySelector single(final javax.net.ssl.SSLSocketFactory socketFactory) {
+      Args.notNull(socketFactory, "SSL socket factory");
+      return new SSLSocketFactorySelector()
+      {
+        @Override
+        public javax.net.ssl.SSLSocketFactory select(final HttpContext httpContext) {
+          return socketFactory;
+        }
+      };
+    }
+
+    /**
      * Obtains default SSL socket factory with an SSL context based on the standard JSSE
      * trust material (<code>cacerts</code> file in the security properties directory).
      * System properties are not taken into consideration.
@@ -167,7 +185,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
     }
 
-    private final javax.net.ssl.SSLSocketFactory socketfactory;
+    private final SSLSocketFactorySelector socketFactorySelector;
     private final X509HostnameVerifier hostnameVerifier;
     private final String[] supportedProtocols;
     private final String[] supportedCipherSuites;
@@ -197,15 +215,21 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         this(socketfactory, null, null, hostnameVerifier);
     }
 
-    public SSLConnectionSocketFactory(
-            final javax.net.ssl.SSLSocketFactory socketfactory,
-            final String[] supportedProtocols,
-            final String[] supportedCipherSuites,
-            final X509HostnameVerifier hostnameVerifier) {
-        this.socketfactory = Args.notNull(socketfactory, "SSL socket factory");
-        this.supportedProtocols = supportedProtocols;
-        this.supportedCipherSuites = supportedCipherSuites;
-        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
+    public SSLConnectionSocketFactory(final javax.net.ssl.SSLSocketFactory socketFactory,
+                                      final String[] supportedProtocols,
+                                      final String[] supportedCipherSuites,
+                                      final X509HostnameVerifier hostnameVerifier) {
+      this(single(socketFactory), supportedProtocols, supportedCipherSuites, hostnameVerifier);
+    }
+
+    public SSLConnectionSocketFactory(final SSLSocketFactorySelector socketFactorySelector,
+                                      final String[] supportedProtocols,
+                                      final String[] supportedCipherSuites,
+                                      final X509HostnameVerifier hostnameVerifier) {
+      this.socketFactorySelector = Args.notNull(socketFactorySelector, "SSL socket factory selector");
+      this.supportedProtocols = supportedProtocols;
+      this.supportedCipherSuites = supportedCipherSuites;
+      this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
     }
 
     /**
@@ -260,7 +284,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             final String target,
             final int port,
             final HttpContext context) throws IOException {
-        final SSLSocket sslsock = (SSLSocket) this.socketfactory.createSocket(
+        final SSLSocket sslsock = (SSLSocket) socketFactorySelector.select(context).createSocket(
                 socket,
                 target,
                 port,
