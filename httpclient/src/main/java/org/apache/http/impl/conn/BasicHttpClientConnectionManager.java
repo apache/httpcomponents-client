@@ -47,6 +47,7 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionOperator;
 import org.apache.http.conn.HttpConnectionFactory;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.ManagedHttpClientConnection;
@@ -80,7 +81,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     private final Log log = LogFactory.getLog(getClass());
 
-    private final HttpClientConnectionOperator connectionOperator;
+    private final org.apache.http.conn.HttpClientConnectionOperator connectionOperator;
     private final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory;
 
     @GuardedBy("this")
@@ -118,13 +119,24 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     public BasicHttpClientConnectionManager(
-            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
-            final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory,
-            final SchemePortResolver schemePortResolver,
-            final DnsResolver dnsResolver) {
+        final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
+        final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory,
+        final SchemePortResolver schemePortResolver,
+        final DnsResolver dnsResolver) {
+      this(
+          new DefaultHttpClientConnectionOperator(socketFactoryRegistry, schemePortResolver, dnsResolver),
+          connFactory
+      );
+    }
+
+    /**
+     * @since 4.4
+     */
+    public BasicHttpClientConnectionManager(
+            final HttpClientConnectionOperator httpClientConnectionOperator,
+            final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory) {
         super();
-        this.connectionOperator = new HttpClientConnectionOperator(
-                socketFactoryRegistry, schemePortResolver, dnsResolver);
+        this.connectionOperator = Args.notNull(httpClientConnectionOperator, "HttpClientConnectionOperator");
         this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
         this.expiry = Long.MAX_VALUE;
         this.socketConfig = SocketConfig.DEFAULT;

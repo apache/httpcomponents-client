@@ -43,6 +43,7 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionOperator;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.SchemePortResolver;
@@ -52,8 +53,16 @@ import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 
+/**
+ * Default implementation of {@link HttpClientConnectionOperator} used as default in Http client,
+ * when no instance provided by user to {@link BasicHttpClientConnectionManager} or {@link
+ * PoolingHttpClientConnectionManager} constructor.
+ *
+ * @since 4.4
+ */
 @Immutable
-class HttpClientConnectionOperator {
+public class DefaultHttpClientConnectionOperator implements HttpClientConnectionOperator
+{
 
     static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";
 
@@ -63,10 +72,10 @@ class HttpClientConnectionOperator {
     private final SchemePortResolver schemePortResolver;
     private final DnsResolver dnsResolver;
 
-    HttpClientConnectionOperator(
-            final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
-            final SchemePortResolver schemePortResolver,
-            final DnsResolver dnsResolver) {
+    DefaultHttpClientConnectionOperator(
+        final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
+        final SchemePortResolver schemePortResolver,
+        final DnsResolver dnsResolver) {
         super();
         Args.notNull(socketFactoryRegistry, "Socket factory registry");
         this.socketFactoryRegistry = socketFactoryRegistry;
@@ -86,6 +95,7 @@ class HttpClientConnectionOperator {
         return reg;
     }
 
+    @Override
     public void connect(
             final ManagedHttpClientConnection conn,
             final HttpHost host,
@@ -146,6 +156,7 @@ class HttpClientConnectionOperator {
         }
     }
 
+    @Override
     public void upgrade(
             final ManagedHttpClientConnection conn,
             final HttpHost host,
