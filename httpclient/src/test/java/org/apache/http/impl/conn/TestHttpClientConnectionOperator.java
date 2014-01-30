@@ -59,7 +59,7 @@ public class TestHttpClientConnectionOperator {
     private Lookup<ConnectionSocketFactory> socketFactoryRegistry;
     private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
-    private HttpClientConnectionOperator connectionOperator;
+    private DefaultHttpClientConnectionOperator connectionOperator;
 
     @SuppressWarnings("unchecked")
     @Before
@@ -71,7 +71,7 @@ public class TestHttpClientConnectionOperator {
         socketFactoryRegistry = Mockito.mock(Lookup.class);
         schemePortResolver = Mockito.mock(SchemePortResolver.class);
         dnsResolver = Mockito.mock(DnsResolver.class);
-        connectionOperator = new HttpClientConnectionOperator(
+        connectionOperator = new DefaultHttpClientConnectionOperator(
                 socketFactoryRegistry, schemePortResolver, dnsResolver);
     }
 

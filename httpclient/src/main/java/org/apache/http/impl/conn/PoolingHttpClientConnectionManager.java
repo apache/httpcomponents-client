@@ -50,6 +50,7 @@ import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.HttpClientConnectionOperator;
 import org.apache.http.conn.HttpConnectionFactory;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.ManagedHttpClientConnection;
@@ -142,14 +143,30 @@ public class PoolingHttpClientConnectionManager
             final SchemePortResolver schemePortResolver,
             final DnsResolver dnsResolver,
             final long timeToLive, final TimeUnit tunit) {
-        super();
-        this.configData = new ConfigData();
-        this.pool = new CPool(
-                new InternalConnectionFactory(this.configData, connFactory), 2, 20, timeToLive, tunit);
-        this.connectionOperator = new HttpClientConnectionOperator(
-                socketFactoryRegistry, schemePortResolver, dnsResolver);
+        this(
+            new DefaultHttpClientConnectionOperator(socketFactoryRegistry, schemePortResolver, dnsResolver),
+            connFactory,
+            timeToLive, tunit
+        );
     }
 
+    /**
+     * @since 4.4
+     */
+    public PoolingHttpClientConnectionManager(
+        final HttpClientConnectionOperator httpClientConnectionOperator,
+        final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory,
+        final long timeToLive, final TimeUnit tunit) {
+      super();
+      this.configData = new ConfigData();
+      this.pool = new CPool(
+          new InternalConnectionFactory(this.configData, connFactory), 2, 20, timeToLive, tunit);
+      this.connectionOperator = Args.notNull(httpClientConnectionOperator, "HttpClientConnectionOperator");
+    }
+
+    /**
+     * Visible for test.
+     */
     PoolingHttpClientConnectionManager(
             final CPool pool,
             final Lookup<ConnectionSocketFactory> socketFactoryRegistry,
@@ -158,7 +175,7 @@ public class PoolingHttpClientConnectionManager
         super();
         this.configData = new ConfigData();
         this.pool = pool;
-        this.connectionOperator = new HttpClientConnectionOperator(
+        this.connectionOperator = new DefaultHttpClientConnectionOperator(
                 socketFactoryRegistry, schemePortResolver, dnsResolver);
     }
 

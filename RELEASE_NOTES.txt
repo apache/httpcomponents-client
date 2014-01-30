@@ -1,3 +1,13 @@
+Changes for 4.4-alpha1
+-------------------
+
+Changelog:
+-------------------
+
+* [HTTPCLIENT-1454] Make connection operator APIs public.
+  Contributed by Tamas Cservenak <tamas at cservenak.net>
+
+
 Release 4.3.2
 -------------------
 
