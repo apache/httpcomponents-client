@@ -4,6 +4,10 @@ Changes for 4.4-alpha1
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1457] Incorrect handling of Windows (NT) credentials by
+  SystemDefaultCredentialsProvider.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1456] Request retrial after status 503 causes ClientProtocolException.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

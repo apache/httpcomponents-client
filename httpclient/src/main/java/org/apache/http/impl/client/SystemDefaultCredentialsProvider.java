@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
+import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
@@ -112,8 +113,25 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
                         authscope, Authenticator.RequestorType.PROXY);
             }
             if (systemcreds != null) {
-                return new UsernamePasswordCredentials(
-                        systemcreds.getUserName(), new String(systemcreds.getPassword()));
+                final String domain = System.getProperty("http.auth.ntlm.domain");
+                if (domain != null) {
+                    return new NTCredentials(
+                            systemcreds.getUserName(),
+                            new String(systemcreds.getPassword()),
+                            null, domain);
+                } else {
+                    if (AuthSchemes.NTLM.equalsIgnoreCase(authscope.getScheme())) {
+                        // Domian may be specified in a fully qualified user name
+                        return new NTCredentials(
+                                systemcreds.getUserName(),
+                                new String(systemcreds.getPassword()),
+                                null, null);
+                    } else {
+                        return new UsernamePasswordCredentials(
+                                systemcreds.getUserName(),
+                                new String(systemcreds.getPassword()));
+                    }
+                }
             }
         }
         return null;
