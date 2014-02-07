@@ -1,3 +1,14 @@
+Changes since 4.3.2
+-------------------
+
+Changelog:
+-------------------
+
+* [HTTPCLIENT-1456] Request retrial after status 503 causes ClientProtocolException.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
 Release 4.3.2
 -------------------
 
