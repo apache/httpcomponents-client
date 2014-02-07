@@ -32,6 +32,7 @@ import java.io.InterruptedIOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
 import org.apache.http.HttpException;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
@@ -77,6 +78,7 @@ public class ServiceUnavailableRetryExec implements ClientExecChain {
             final HttpRequestWrapper request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
+        final Header[] origheaders = request.getAllHeaders();
         for (int c = 1;; c++) {
             final CloseableHttpResponse response = this.requestExecutor.execute(
                     route, request, context, execAware);
@@ -93,6 +95,7 @@ public class ServiceUnavailableRetryExec implements ClientExecChain {
                             throw new InterruptedIOException();
                         }
                     }
+                    request.setHeaders(origheaders);
                 } else {
                     return response;
                 }

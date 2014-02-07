@@ -4,6 +4,9 @@ Changes for 4.4-alpha1
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1456] Request retrial after status 503 causes ClientProtocolException.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1454] Make connection operator APIs public.
   Contributed by Tamas Cservenak <tamas at cservenak.net>
 
