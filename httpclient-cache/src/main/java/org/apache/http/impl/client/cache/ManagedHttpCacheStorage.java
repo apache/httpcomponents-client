@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.lang.ref.ReferenceQueue;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.cache.HttpCacheEntry;
@@ -60,18 +61,18 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
     private final CacheMap entries;
     private final ReferenceQueue<HttpCacheEntry> morque;
     private final Set<ResourceReference> resources;
-
-    private volatile boolean shutdown;
+    private final AtomicBoolean active;
 
     public ManagedHttpCacheStorage(final CacheConfig config) {
         super();
         this.entries = new CacheMap(config.getMaxCacheEntries());
         this.morque = new ReferenceQueue<HttpCacheEntry>();
         this.resources = new HashSet<ResourceReference>();
+        this.active = new AtomicBoolean(true);
     }
 
     private void ensureValidState() throws IllegalStateException {
-        if (this.shutdown) {
+        if (!this.active.get()) {
             throw new IllegalStateException("Cache has been shut down");
         }
     }
@@ -134,30 +135,27 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
     }
 
     public void cleanResources() {
-        if (this.shutdown) {
-            return;
-        }
-        ResourceReference ref;
-        while ((ref = (ResourceReference) this.morque.poll()) != null) {
-            synchronized (this) {
-                this.resources.remove(ref);
+        if (this.active.get()) {
+            ResourceReference ref;
+            while ((ref = (ResourceReference) this.morque.poll()) != null) {
+                synchronized (this) {
+                    this.resources.remove(ref);
+                }
+                ref.getResource().dispose();
             }
-            ref.getResource().dispose();
         }
     }
 
     public void shutdown() {
-        if (this.shutdown) {
-            return;
-        }
-        this.shutdown = true;
-        synchronized (this) {
-            this.entries.clear();
-            for (final ResourceReference ref: this.resources) {
-                ref.getResource().dispose();
-            }
-            this.resources.clear();
-            while (this.morque.poll() != null) {
+        if (this.active.compareAndSet(true, false)) {
+            synchronized (this) {
+                this.entries.clear();
+                for (final ResourceReference ref: this.resources) {
+                    ref.getResource().dispose();
+                }
+                this.resources.clear();
+                while (this.morque.poll() != null) {
+                }
             }
         }
     }
