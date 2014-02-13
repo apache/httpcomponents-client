@@ -49,9 +49,17 @@ import org.apache.http.util.Args;
  * call {@link #cleanResources()} method to trigger resource deallocation. The cache can be
  * permanently shut down using {@link #shutdown()} method. All resources associated with
  * the entries used by the cache will be deallocated.
- *
+ * <p/>
  * This {@link HttpCacheStorage} implementation is intended for use with {@link FileResource}
  * and similar.
+ * <p/>
+ * Compatibility note. Prior to version 4.4 this storage implementation used to dispose of
+ * all resource entries upon {@link #close()}. As of version 4.4 the {@link #close()} method
+ * disposes only of those resources that have been explicitly removed from the cache with
+ * {@link #removeEntry(String)} method.
+ * <p/>
+ * The {@link #shutdown()} ()} method can still be used to shut down the storage and dispose of
+ * all resources currently managed by it.
  *
  * @since 4.1
  */
@@ -162,7 +170,15 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
 
     @Override
     public void close() {
-        shutdown();
+        if (this.active.compareAndSet(true, false)) {
+            synchronized (this) {
+                ResourceReference ref;
+                while ((ref = (ResourceReference) this.morque.poll()) != null) {
+                    this.resources.remove(ref);
+                    ref.getResource().dispose();
+                }
+            }
+        }
     }
 
 }

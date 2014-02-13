@@ -26,7 +26,9 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.http.client.cache.HttpCacheInvalidator;
 import org.apache.http.client.cache.HttpCacheStorage;
@@ -48,6 +50,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
     private CacheConfig cacheConfig;
     private SchedulingStrategy schedulingStrategy;
     private HttpCacheInvalidator httpCacheInvalidator;
+    private boolean deleteCache;
 
     public static CachingHttpClientBuilder create() {
         return new CachingHttpClientBuilder();
@@ -55,6 +58,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
 
     protected CachingHttpClientBuilder() {
         super();
+        this.deleteCache = true;
     }
 
     public final CachingHttpClientBuilder setResourceFactory(
@@ -93,6 +97,11 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
         return this;
     }
 
+    public CachingHttpClientBuilder setDeleteCache(final boolean deleteCache) {
+        this.deleteCache = deleteCache;
+        return this;
+    }
+
     @Override
     protected ClientExecChain decorateMainExec(final ClientExecChain mainExec) {
         final CacheConfig config = this.cacheConfig != null ? this.cacheConfig : CacheConfig.DEFAULT;
@@ -110,7 +119,18 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 storage = new BasicHttpCacheStorage(config);
             } else {
                 final ManagedHttpCacheStorage managedStorage = new ManagedHttpCacheStorage(config);
-                addCloseable(managedStorage);
+                if (this.deleteCache) {
+                    addCloseable(new Closeable() {
+
+                        @Override
+                        public void close() throws IOException {
+                            managedStorage.shutdown();
+                        }
+
+                    });
+                } else {
+                    addCloseable(managedStorage);
+                }
                 storage = managedStorage;
             }
         }
