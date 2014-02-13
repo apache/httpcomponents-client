@@ -34,10 +34,11 @@ import org.apache.http.util.Args;
 import org.apache.http.util.LangUtils;
 
 /**
- * The class represents an authentication scope consisting of a host name,
- * a port number, a realm name and an authentication scheme name which
- * {@link Credentials Credentials} apply to.
- *
+ * <tt>AuthScope</tt> represents an authentication scope consisting of a host name,
+ * a port number, a realm name and an authentication scheme name.
+ * <p/>
+ * This class can also optionally contain a host of origin, if created in response
+ * to authentication challenge from a specific host.
  *
  * @since 4.0
  */
@@ -84,74 +85,89 @@ public class AuthScope {
     /** The port the credentials apply to. */
     private final int port;
 
-    /** Creates a new credentials scope for the given
-     * <tt>host</tt>, <tt>port</tt>, <tt>realm</tt>, and
+    /** The original host, if known */
+    private final HttpHost origin;
+
+    /**
+     * Defines auth scope with the given <tt>host</tt>, <tt>port</tt>, <tt>realm</tt>, and
      * <tt>authentication scheme</tt>.
      *
-     * @param host the host the credentials apply to. May be set
-     *   to <tt>null</tt> if credentials are applicable to
-     *   any host.
-     * @param port the port the credentials apply to. May be set
-     *   to negative value if credentials are applicable to
-     *   any port.
-     * @param realm the realm the credentials apply to. May be set
-     *   to <tt>null</tt> if credentials are applicable to
-     *   any realm.
-     * @param scheme the authentication scheme the credentials apply to.
-     *   May be set to <tt>null</tt> if credentials are applicable to
-     *   any authentication scheme.
+     * @param host authentication host. May be {@link #ANY_HOST} if applies
+     *   to any host.
+     * @param port authentication port. May be {@link #ANY_PORT} if applies
+     *   to any port of the host.
+     * @param realm authentication realm. May be {@link #ANY_REALM} if applies
+     *   to any realm on the host.
+     * @param scheme authentication scheme. May be {@link #ANY_SCHEME} if applies
+     *   to any scheme supported by the host.
      */
-    public AuthScope(final String host, final int port,
-        final String realm, final String scheme)
-    {
-        this.host =   (host == null)   ? ANY_HOST: host.toLowerCase(Locale.ROOT);
-        this.port =   (port < 0)       ? ANY_PORT: port;
-        this.realm =  (realm == null)  ? ANY_REALM: realm;
-        this.scheme = (scheme == null) ? ANY_SCHEME: scheme.toUpperCase(Locale.ROOT);
+    public AuthScope(
+            final String host,
+            final int port,
+            final String realm,
+            final String schemeName) {
+        this.host = host == null ? ANY_HOST: host.toLowerCase(Locale.ROOT);
+        this.port = port < 0 ? ANY_PORT : port;
+        this.realm = realm == null ? ANY_REALM : realm;
+        this.scheme = schemeName == null ? ANY_SCHEME : schemeName.toUpperCase(Locale.ROOT);
+        this.origin = null;
     }
 
     /**
-     * @since 4.2
-     */
-    public AuthScope(final HttpHost host, final String realm, final String schemeName) {
-        this(host.getHostName(), host.getPort(), realm, schemeName);
-    }
-
-    /**
-     * @since 4.2
-     */
-    public AuthScope(final HttpHost host) {
-        this(host, ANY_REALM, ANY_SCHEME);
-    }
-
-    /** Creates a new credentials scope for the given
-     * <tt>host</tt>, <tt>port</tt>, <tt>realm</tt>, and any
-     * authentication scheme.
+     * Defines auth scope for a specific host of origin.
      *
-     * @param host the host the credentials apply to. May be set
-     *   to <tt>null</tt> if credentials are applicable to
-     *   any host.
-     * @param port the port the credentials apply to. May be set
-     *   to negative value if credentials are applicable to
-     *   any port.
-     * @param realm the realm the credentials apply to. May be set
-     *   to <tt>null</tt> if credentials are applicable to
-     *   any realm.
+     * @param origin host of origin
+     * @param realm authentication realm. May be {@link #ANY_REALM} if applies
+     *   to any realm on the host.
+     * @param scheme authentication scheme. May be {@link #ANY_SCHEME} if applies
+     *   to any scheme supported by the host.
+     *
+     * @since 4.2
+     */
+    public AuthScope(
+            final HttpHost origin,
+            final String realm,
+            final String schemeName) {
+        Args.notNull(origin, "Host");
+        this.host = origin.getHostName();
+        this.port = origin.getPort() < 0 ? ANY_PORT : origin.getPort();
+        this.realm = realm == null ? ANY_REALM : realm;
+        this.scheme = schemeName == null ? ANY_SCHEME : schemeName.toUpperCase(Locale.ROOT);
+        this.origin = origin;
+    }
+
+    /**
+     * Defines auth scope for a specific host of origin.
+     *
+     * @param origin host of origin
+     *
+     * @since 4.2
+     */
+    public AuthScope(final HttpHost origin) {
+        this(origin, ANY_REALM, ANY_SCHEME);
+    }
+
+    /**
+     * Defines auth scope with the given <tt>host</tt>, <tt>port</tt> and <tt>realm</tt>.
+     *
+     * @param host authentication host. May be {@link #ANY_HOST} if applies
+     *   to any host.
+     * @param port authentication port. May be {@link #ANY_PORT} if applies
+     *   to any port of the host.
+     * @param realm authentication realm. May be {@link #ANY_REALM} if applies
+     *   to any realm on the host.
      */
     public AuthScope(final String host, final int port, final String realm) {
         this(host, port, realm, ANY_SCHEME);
     }
 
-    /** Creates a new credentials scope for the given
-     * <tt>host</tt>, <tt>port</tt>, any realm name, and any
-     * authentication scheme.
+    /**
+     * Defines auth scope with the given <tt>host</tt> and <tt>port</tt>.
      *
-     * @param host the host the credentials apply to. May be set
-     *   to <tt>null</tt> if credentials are applicable to
-     *   any host.
-     * @param port the port the credentials apply to. May be set
-     *   to negative value if credentials are applicable to
-     *   any port.
+     * @param host authentication host. May be {@link #ANY_HOST} if applies
+     *   to any host.
+     * @param port authentication port. May be {@link #ANY_PORT} if applies
+     *   to any port of the host.
      */
     public AuthScope(final String host, final int port) {
         this(host, port, ANY_REALM, ANY_SCHEME);
@@ -167,6 +183,16 @@ public class AuthScope {
         this.port = authscope.getPort();
         this.realm = authscope.getRealm();
         this.scheme = authscope.getScheme();
+        this.origin = authscope.getOrigin();
+    }
+
+    /**
+     * @return host of origin. If unknown returns @null,
+     *
+     * @since 4.4
+     */
+    public HttpHost getOrigin() {
+        return this.origin;
     }
 
     /**
