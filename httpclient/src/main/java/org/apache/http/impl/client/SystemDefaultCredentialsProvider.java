@@ -32,6 +32,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.http.HttpHost;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
@@ -87,11 +88,16 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
     private static PasswordAuthentication getSystemCreds(
             final AuthScope authscope,
             final Authenticator.RequestorType requestorType) {
+        final String hostname = authscope.getHost();
+        final int port = authscope.getPort();
+        final HttpHost origin = authscope.getOrigin();
+        final String protocol = origin != null ? origin.getSchemeName() :
+                (port == 443 ? "https" : "http");
         return Authenticator.requestPasswordAuthentication(
-                authscope.getHost(),
+                hostname,
                 null,
-                authscope.getPort(),
-                "http",
+                port,
+                protocol,
                 null,
                 translateScheme(authscope.getScheme()),
                 null,
