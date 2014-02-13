@@ -92,7 +92,7 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
                     + domain
                     + "\" violates RFC 2109: domain must contain an embedded dot");
             }
-            host = host.toLowerCase(Locale.ENGLISH);
+            host = host.toLowerCase(Locale.ROOT);
             if (!host.endsWith(domain)) {
                 throw new CookieRestrictionViolationException(
                     "Illegal domain attribute \"" + domain

@@ -137,7 +137,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
         if (name == null) {
             return null;
         }
-        return this.params.get(name.toLowerCase(Locale.ENGLISH));
+        return this.params.get(name.toLowerCase(Locale.ROOT));
     }
 
     /**

@@ -68,7 +68,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
                     "Blank value for domain attribute");
         }
         String s = domain;
-        s = s.toLowerCase(Locale.ENGLISH);
+        s = s.toLowerCase(Locale.ROOT);
         if (!domain.startsWith(".")) {
             // Per RFC 2965 section 3.2.2
             // "... If an explicitly specified value does not start with
@@ -110,12 +110,12 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
             throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
-        final String host = origin.getHost().toLowerCase(Locale.ENGLISH);
+        final String host = origin.getHost().toLowerCase(Locale.ROOT);
         if (cookie.getDomain() == null) {
             throw new CookieRestrictionViolationException("Invalid cookie state: " +
                                                "domain not specified");
         }
-        final String cookieDomain = cookie.getDomain().toLowerCase(Locale.ENGLISH);
+        final String cookieDomain = cookie.getDomain().toLowerCase(Locale.ROOT);
 
         if (cookie instanceof ClientCookie
                 && ((ClientCookie) cookie).containsAttribute(ClientCookie.DOMAIN_ATTR)) {
@@ -171,7 +171,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
-        final String host = origin.getHost().toLowerCase(Locale.ENGLISH);
+        final String host = origin.getHost().toLowerCase(Locale.ROOT);
         final String cookieDomain = cookie.getDomain();
 
         // The effective host name MUST domain-match the Domain

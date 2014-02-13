@@ -116,11 +116,11 @@ public class RFC2965Spec extends RFC2109Spec {
                     new HashMap<String, NameValuePair>(attribs.length);
             for (int j = attribs.length - 1; j >= 0; j--) {
                 final NameValuePair param = attribs[j];
-                attribmap.put(param.getName().toLowerCase(Locale.ENGLISH), param);
+                attribmap.put(param.getName().toLowerCase(Locale.ROOT), param);
             }
             for (final Map.Entry<String, NameValuePair> entry : attribmap.entrySet()) {
                 final NameValuePair attrib = entry.getValue();
-                final String s = attrib.getName().toLowerCase(Locale.ENGLISH);
+                final String s = attrib.getName().toLowerCase(Locale.ROOT);
 
                 cookie.setAttribute(s, attrib.getValue());
 

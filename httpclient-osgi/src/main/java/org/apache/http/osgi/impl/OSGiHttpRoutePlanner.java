@@ -131,12 +131,12 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
         private final String domainName;
 
         DomainNameMatcher(final String domainName) {
-            this.domainName = domainName.toLowerCase(Locale.ENGLISH);
+            this.domainName = domainName.toLowerCase(Locale.ROOT);
         }
 
         @Override
         public boolean matches(final String host) {
-            return host.toLowerCase(Locale.ENGLISH).endsWith(domainName);
+            return host.toLowerCase(Locale.ROOT).endsWith(domainName);
         }
     }
 

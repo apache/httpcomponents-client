@@ -50,7 +50,7 @@ public final class CookieOrigin {
         Args.notBlank(host, "Host");
         Args.notNegative(port, "Port");
         Args.notNull(path, "Path");
-        this.host = host.toLowerCase(Locale.ENGLISH);
+        this.host = host.toLowerCase(Locale.ROOT);
         this.port = port;
         if (!path.trim().isEmpty()) {
             this.path = path;

@@ -55,7 +55,7 @@ public class NTUserPrincipal implements Principal, Serializable {
         Args.notNull(username, "User name");
         this.username = username;
         if (domain != null) {
-            this.domain = domain.toUpperCase(Locale.ENGLISH);
+            this.domain = domain.toUpperCase(Locale.ROOT);
         } else {
             this.domain = null;
         }

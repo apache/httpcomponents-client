@@ -189,7 +189,7 @@ public class URIUtils {
             uribuilder.setPath("/");
         }
         if (uribuilder.getHost() != null) {
-            uribuilder.setHost(uribuilder.getHost().toLowerCase(Locale.ENGLISH));
+            uribuilder.setHost(uribuilder.getHost().toLowerCase(Locale.ROOT));
         }
         uribuilder.setFragment(null);
         return uribuilder.build();

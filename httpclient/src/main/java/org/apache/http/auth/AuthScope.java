@@ -104,10 +104,10 @@ public class AuthScope {
     public AuthScope(final String host, final int port,
         final String realm, final String scheme)
     {
-        this.host =   (host == null)   ? ANY_HOST: host.toLowerCase(Locale.ENGLISH);
+        this.host =   (host == null)   ? ANY_HOST: host.toLowerCase(Locale.ROOT);
         this.port =   (port < 0)       ? ANY_PORT: port;
         this.realm =  (realm == null)  ? ANY_REALM: realm;
-        this.scheme = (scheme == null) ? ANY_SCHEME: scheme.toUpperCase(Locale.ENGLISH);
+        this.scheme = (scheme == null) ? ANY_SCHEME: scheme.toUpperCase(Locale.ROOT);
     }
 
     /**
@@ -266,7 +266,7 @@ public class AuthScope {
     public String toString() {
         final StringBuilder buffer = new StringBuilder();
         if (this.scheme != null) {
-            buffer.append(this.scheme.toUpperCase(Locale.ENGLISH));
+            buffer.append(this.scheme.toUpperCase(Locale.ROOT));
             buffer.append(' ');
         }
         if (this.realm != null) {

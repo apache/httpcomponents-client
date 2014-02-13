@@ -68,7 +68,7 @@ public class RandomHandler implements HttpRequestHandler {
                        final HttpContext context)
         throws HttpException, IOException {
 
-        final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
+        final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
         if (!"GET".equals(method) && !"HEAD".equals(method)) {
             throw new MethodNotSupportedException
                 (method + " not supported by " + getClass().getName());

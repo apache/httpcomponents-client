@@ -260,7 +260,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
                            final HttpContext context)
                 throws HttpException, IOException {
 
-            final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
+            final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
             if (!"GET".equals(method) &&
                     !"POST".equals(method) &&
                     !"PUT".equals(method)

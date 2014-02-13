@@ -84,7 +84,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
             final NameValuePair[] attribs = headerelement.getParameters();
             for (int j = attribs.length - 1; j >= 0; j--) {
                 final NameValuePair attrib = attribs[j];
-                final String s = attrib.getName().toLowerCase(Locale.ENGLISH);
+                final String s = attrib.getName().toLowerCase(Locale.ROOT);
 
                 cookie.setAttribute(s, attrib.getValue());
 

@@ -81,7 +81,7 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
     * @return True if the specified domain is "special"
     */
    private static boolean isSpecialDomain(final String domain) {
-       final String ucDomain = domain.toUpperCase(Locale.ENGLISH);
+       final String ucDomain = domain.toUpperCase(Locale.ROOT);
        return ucDomain.endsWith(".COM")
                || ucDomain.endsWith(".EDU")
                || ucDomain.endsWith(".NET")
