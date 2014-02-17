@@ -64,7 +64,6 @@ import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
-import org.apache.http.util.EntityUtils;
 import org.apache.http.util.VersionInfo;
 
 /**
@@ -634,7 +633,7 @@ public class CachingExec implements ClientExecChain {
             final Header resultEtagHeader = backendResponse.getFirstHeader(HeaderConstants.ETAG);
             if (resultEtagHeader == null) {
                 log.warn("304 response did not contain ETag");
-                EntityUtils.consume(backendResponse.getEntity());
+                IOUtils.consume(backendResponse.getEntity());
                 backendResponse.close();
                 return callBackend(route, request, context, execAware);
             }
@@ -643,7 +642,7 @@ public class CachingExec implements ClientExecChain {
             final Variant matchingVariant = variants.get(resultEtag);
             if (matchingVariant == null) {
                 log.debug("304 response did not contain ETag matching one sent in If-None-Match");
-                EntityUtils.consume(backendResponse.getEntity());
+                IOUtils.consume(backendResponse.getEntity());
                 backendResponse.close();
                 return callBackend(route, request, context, execAware);
             }
@@ -651,7 +650,7 @@ public class CachingExec implements ClientExecChain {
             final HttpCacheEntry matchedEntry = matchingVariant.getEntry();
 
             if (revalidationResponseIsTooOld(backendResponse, matchedEntry)) {
-                EntityUtils.consume(backendResponse.getEntity());
+                IOUtils.consume(backendResponse.getEntity());
                 backendResponse.close();
                 return retryRequestUnconditionally(route, request, context, execAware, matchedEntry);
             }

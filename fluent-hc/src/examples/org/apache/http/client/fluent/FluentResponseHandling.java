@@ -33,6 +33,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -40,7 +41,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.entity.ContentType;
-import org.apache.http.protocol.HTTP;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -74,7 +74,7 @@ public class FluentResponseHandling {
                     }
                     Charset charset = contentType.getCharset();
                     if (charset == null) {
-                        charset = HTTP.DEF_CONTENT_CHARSET;
+                        charset = Consts.ISO_8859_1;
                     }
                     return docBuilder.parse(entity.getContent(), charset.name());
                 } catch (ParserConfigurationException ex) {

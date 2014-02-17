@@ -35,7 +35,6 @@ import java.lang.reflect.Method;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.util.EntityUtils;
 
 /**
  * A proxy class that can enhance an arbitrary {@link HttpResponse} with
@@ -64,7 +63,7 @@ class ResponseProxyHandler implements InvocationHandler {
     }
 
     public void close() throws IOException {
-        EntityUtils.consume(original.getEntity());
+        IOUtils.consume(original.getEntity());
     }
 
     public Object invoke(

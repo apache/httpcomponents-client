@@ -341,7 +341,7 @@ public class TestCachingExec extends TestCachingExecChain {
                 }
                 return 'y';
             }
-        }));
+        }, -1));
 
         final CloseableHttpResponse resp = mockBackend.execute(
                 EasyMock.isA(HttpRoute.class),

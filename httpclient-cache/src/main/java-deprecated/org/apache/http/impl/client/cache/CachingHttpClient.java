@@ -78,7 +78,6 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
-import org.apache.http.util.EntityUtils;
 import org.apache.http.util.VersionInfo;
 
 /**
@@ -381,7 +380,7 @@ public class CachingHttpClient implements HttpClient {
         } catch (final Exception t) {
             final HttpEntity entity = response.getEntity();
             try {
-                EntityUtils.consume(entity);
+                IOUtils.consume(entity);
             } catch (final Exception t2) {
                 // Log this exception. The original exception is more
                 // important and will be thrown to the caller.
@@ -399,7 +398,7 @@ public class CachingHttpClient implements HttpClient {
         // Handling the response was successful. Ensure that the content has
         // been fully consumed.
         final HttpEntity entity = response.getEntity();
-        EntityUtils.consume(entity);
+        IOUtils.consume(entity);
         return result;
     }
 
@@ -804,7 +803,7 @@ public class CachingHttpClient implements HttpClient {
         final HttpCacheEntry matchedEntry = matchingVariant.getEntry();
 
         if (revalidationResponseIsTooOld(backendResponse, matchedEntry)) {
-            EntityUtils.consume(backendResponse.getEntity());
+            IOUtils.consume(backendResponse.getEntity());
             return retryRequestUnconditionally(target, request, context,
                     matchedEntry);
         }
@@ -875,7 +874,7 @@ public class CachingHttpClient implements HttpClient {
         Date responseDate = getCurrentDate();
 
         if (revalidationResponseIsTooOld(backendResponse, cacheEntry)) {
-            EntityUtils.consume(backendResponse.getEntity());
+            IOUtils.consume(backendResponse.getEntity());
             final HttpRequest unconditional = conditionalRequestBuilder
                 .buildUnconditionalRequest(request, cacheEntry);
             requestDate = getCurrentDate();
@@ -907,7 +906,7 @@ public class CachingHttpClient implements HttpClient {
             cachedResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
             final HttpEntity errorBody = backendResponse.getEntity();
             if (errorBody != null) {
-                EntityUtils.consume(errorBody);
+                IOUtils.consume(errorBody);
             }
             return cachedResponse;
         }

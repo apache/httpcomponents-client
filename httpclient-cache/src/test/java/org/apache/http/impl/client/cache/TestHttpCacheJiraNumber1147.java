@@ -38,11 +38,10 @@ import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.client.utils.DateUtils;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.util.EntityUtils;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
@@ -116,7 +115,7 @@ public class TestHttpCacheJiraNumber1147 {
 
         final HttpResponse response1 = t.execute(route, get, context, null);
         Assert.assertEquals(200, response1.getStatusLine().getStatusCode());
-        EntityUtils.consume(response1.getEntity());
+        IOUtils.consume(response1.getEntity());
 
         EasyMock.verify(backend);
 
@@ -132,7 +131,7 @@ public class TestHttpCacheJiraNumber1147 {
 
         final HttpResponse response2 = t.execute(route, get, context, null);
         Assert.assertEquals(200, response2.getStatusLine().getStatusCode());
-        EntityUtils.consume(response2.getEntity());
+        IOUtils.consume(response2.getEntity());
 
         EasyMock.verify(backend);
     }

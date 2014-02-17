@@ -44,7 +44,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -125,7 +124,8 @@ public class Executor {
     }
 
     public Executor auth(final HttpHost host, final Credentials creds) {
-        final AuthScope authScope = host != null ? new AuthScope(host) : AuthScope.ANY;
+        final AuthScope authScope = host != null ?
+                new AuthScope(host.getHostName(), host.getPort()) : AuthScope.ANY;
         return auth(authScope, creds);
     }
 
@@ -202,8 +202,7 @@ public class Executor {
         localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
         localContext.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
         localContext.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
-        final HttpRequestBase httprequest = request.prepareRequest();
-        httprequest.reset();
+        final InternalHttpRequest httprequest = request.prepareRequest();
         return new Response(this.httpclient.execute(httprequest, localContext));
     }
 

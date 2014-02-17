@@ -29,6 +29,7 @@ package org.apache.http.client.fluent;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -61,7 +62,11 @@ public class Response {
             return;
         }
         try {
-            EntityUtils.consume(this.response.getEntity());
+            final HttpEntity entity = this.response.getEntity();
+            final InputStream content = entity.getContent();
+            if (content != null) {
+                content.close();
+            }
         } catch (final Exception ignore) {
         } finally {
             this.consumed = true;
@@ -97,8 +102,11 @@ public class Response {
         try {
             final HttpEntity entity = this.response.getEntity();
             if (entity != null) {
-                this.response.setEntity(new ByteArrayEntity(EntityUtils.toByteArray(entity),
-                                ContentType.getOrDefault(entity)));
+                final ByteArrayEntity byteArrayEntity = new ByteArrayEntity(
+                        EntityUtils.toByteArray(entity));
+                final ContentType contentType = ContentType.getOrDefault(entity);
+                byteArrayEntity.setContentType(contentType.toString());
+                this.response.setEntity(byteArrayEntity);
             }
             return this.response;
         } finally {

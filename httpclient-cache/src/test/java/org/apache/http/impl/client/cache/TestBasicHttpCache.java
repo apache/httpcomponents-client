@@ -62,7 +62,6 @@ import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -510,7 +509,7 @@ public class TestBasicHttpCache {
         originResponse.setHeader("ETag", "\"etag\"");
 
         final HttpResponse result = impl.cacheAndReturnResponse(host, request, originResponse, requestSent, responseReceived);
-        EntityUtils.consume(result.getEntity());
+        IOUtils.consume(result.getEntity());
         assertTrue(inputStream.wasClosed());
     }
 
