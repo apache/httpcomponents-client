@@ -32,10 +32,10 @@
     <artifactId>httpcomponents-client</artifactId>
     <version>4.4-alpha1-SNAPSHOT</version>
   </parent>
-  <artifactId>winauth-jni</artifactId>
-  <name>Windows Integrated Auth</name>
+  <artifactId>httpclient-win</artifactId>
+  <name>Windows features for Apache HttpClient</name>
   <description>
-   Windows Integrated Authentication for Apache HttpClient via JNI
+   Windows specific functionality for Apache HttpClient
   </description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>
