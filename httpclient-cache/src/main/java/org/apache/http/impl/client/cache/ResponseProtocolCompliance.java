@@ -46,7 +46,6 @@ import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EntityUtils;
 
 /**
  * @since 4.1
@@ -94,7 +93,7 @@ class ResponseProtocolCompliance {
     private void consumeBody(final HttpResponse response) throws IOException {
         final HttpEntity body = response.getEntity();
         if (body != null) {
-            EntityUtils.consume(body);
+            IOUtils.consume(body);
         }
     }
 

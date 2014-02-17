@@ -24,56 +24,60 @@
  * <http://www.apache.org/>.
  *
  */
+
 package org.apache.http.client.fluent;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
+import java.io.OutputStream;
 
-import org.apache.http.Consts;
+import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ContentType;
+import org.apache.http.util.Args;
 
-public class Content {
+class InternalFileEntity extends AbstractHttpEntity implements Cloneable {
 
-    public static final Content NO_CONTENT = new Content(new byte[] {}, ContentType.DEFAULT_BINARY);
+    private final File file;
 
-    private final byte[] raw;
-    private final ContentType type;
-
-    Content(final byte[] raw, final ContentType type) {
+    public InternalFileEntity(final File file, final ContentType contentType) {
         super();
-        this.raw = raw;
-        this.type = type;
-    }
-
-    public ContentType getType() {
-        return this.type;
-    }
-
-    public byte[] asBytes() {
-        return this.raw.clone();
-    }
-
-    public String asString() {
-        Charset charset = this.type.getCharset();
-        if (charset == null) {
-            charset = Consts.ISO_8859_1;
+        this.file = Args.notNull(file, "File");
+        if (contentType != null) {
+            setContentType(contentType.toString());
         }
+    }
+
+    public boolean isRepeatable() {
+        return true;
+    }
+
+    public long getContentLength() {
+        return this.file.length();
+    }
+
+    public InputStream getContent() throws IOException {
+        return new FileInputStream(this.file);
+    }
+
+    public void writeTo(final OutputStream outstream) throws IOException {
+        Args.notNull(outstream, "Output stream");
+        final InputStream instream = new FileInputStream(this.file);
         try {
-            return new String(this.raw, charset.name());
-        } catch (final UnsupportedEncodingException ex) {
-            return new String(this.raw);
+            final byte[] tmp = new byte[4096];
+            int l;
+            while ((l = instream.read(tmp)) != -1) {
+                outstream.write(tmp, 0, l);
+            }
+            outstream.flush();
+        } finally {
+            instream.close();
         }
     }
 
-    public InputStream asStream() {
-        return new ByteArrayInputStream(this.raw);
-    }
-
-    @Override
-    public String toString() {
-        return asString();
+    public boolean isStreaming() {
+        return false;
     }
 
 }

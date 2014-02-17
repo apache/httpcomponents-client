@@ -26,13 +26,19 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+import java.io.IOException;
+import java.util.Locale;
+
 import org.apache.http.Consts;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.MethodNotSupportedException;
-import org.apache.http.Header;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.CacheResponseStatus;
@@ -42,21 +48,13 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
-import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.util.Locale;
-
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import org.apache.http.localserver.LocalTestServer;
 
 /**
  * Test that after background validation that a subsequent request for non cached
@@ -205,7 +203,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
             if(response!=null) {
                 final HttpEntity entity = response.getEntity();
                 try {
-                    EntityUtils.consume(entity);
+                    IOUtils.consume(entity);
                 } catch (final IOException e) {
                     e.printStackTrace();
                 }

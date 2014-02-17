@@ -32,11 +32,14 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -45,20 +48,15 @@ import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
-import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.FileEntity;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.HTTP;
 
 public class Request {
@@ -67,74 +65,74 @@ public class Request {
     public static final Locale DATE_LOCALE = Locale.US;
     public static final TimeZone TIME_ZONE = TimeZone.getTimeZone("GMT");
 
-    private final HttpRequestBase request;
+    private final InternalHttpRequest request;
     private final RequestConfig.Builder configBuilder;
 
     private SimpleDateFormat dateFormatter;
 
     public static Request Get(final URI uri) {
-        return new Request(new HttpGet(uri));
+        return new Request(HttpGet.METHOD_NAME, uri);
     }
 
     public static Request Get(final String uri) {
-        return new Request(new HttpGet(uri));
+        return new Request(HttpGet.METHOD_NAME, URI.create(uri));
     }
 
     public static Request Head(final URI uri) {
-        return new Request(new HttpHead(uri));
+        return new Request(HttpHead.METHOD_NAME, uri);
     }
 
     public static Request Head(final String uri) {
-        return new Request(new HttpHead(uri));
+        return new Request(HttpHead.METHOD_NAME, URI.create(uri));
     }
 
     public static Request Post(final URI uri) {
-        return new Request(new HttpPost(uri));
+        return new Request(HttpPost.METHOD_NAME, uri);
     }
 
     public static Request Post(final String uri) {
-        return new Request(new HttpPost(uri));
+        return new Request(HttpPost.METHOD_NAME, URI.create(uri));
     }
 
     public static Request Put(final URI uri) {
-        return new Request(new HttpPut(uri));
+        return new Request(HttpPut.METHOD_NAME, uri);
     }
 
     public static Request Put(final String uri) {
-        return new Request(new HttpPut(uri));
+        return new Request(HttpPut.METHOD_NAME, URI.create(uri));
     }
 
     public static Request Trace(final URI uri) {
-        return new Request(new HttpTrace(uri));
+        return new Request(HttpTrace.METHOD_NAME, uri);
     }
 
     public static Request Trace(final String uri) {
-        return new Request(new HttpTrace(uri));
+        return new Request(HttpTrace.METHOD_NAME, URI.create(uri));
     }
 
     public static Request Delete(final URI uri) {
-        return new Request(new HttpDelete(uri));
+        return new Request(HttpDelete.METHOD_NAME, uri);
     }
 
     public static Request Delete(final String uri) {
-        return new Request(new HttpDelete(uri));
+        return new Request(HttpDelete.METHOD_NAME, URI.create(uri));
     }
 
     public static Request Options(final URI uri) {
-        return new Request(new HttpOptions(uri));
+        return new Request(HttpOptions.METHOD_NAME, uri);
     }
 
     public static Request Options(final String uri) {
-        return new Request(new HttpOptions(uri));
+        return new Request(HttpOptions.METHOD_NAME, URI.create(uri));
     }
 
-    Request(final HttpRequestBase request) {
+    Request(final String method, final URI requestURI) {
         super();
-        this.request = request;
+        this.request = new InternalHttpRequest(method, requestURI);
         this.configBuilder = RequestConfig.custom();
     }
 
-    HttpRequestBase prepareRequest() {
+    InternalHttpRequest prepareRequest() {
         this.request.setConfig(this.configBuilder.build());
         return this.request;
     }
@@ -304,39 +302,47 @@ public class Request {
     }
 
     public Request bodyForm(final Iterable <? extends NameValuePair> formParams, final Charset charset) {
-        return body(new UrlEncodedFormEntity(formParams, charset));
+        final List<NameValuePair> paramList = new ArrayList<NameValuePair>();
+        for (NameValuePair param : formParams) {
+            paramList.add(param);
+        }
+        final ContentType contentType = ContentType.create(URLEncodedUtils.CONTENT_TYPE, charset);
+        final String s = URLEncodedUtils.format(paramList, charset != null ? charset.name() : null);
+        return bodyString(s, contentType);
     }
 
     public Request bodyForm(final Iterable <? extends NameValuePair> formParams) {
-        return bodyForm(formParams, HTTP.DEF_CONTENT_CHARSET);
+        return bodyForm(formParams, Consts.ISO_8859_1);
     }
 
     public Request bodyForm(final NameValuePair... formParams) {
-        return bodyForm(Arrays.asList(formParams), HTTP.DEF_CONTENT_CHARSET);
+        return bodyForm(Arrays.asList(formParams), Consts.ISO_8859_1);
     }
 
     public Request bodyString(final String s, final ContentType contentType) {
-        return body(new StringEntity(s, contentType));
+        final Charset charset = contentType != null ? contentType.getCharset() : null;
+        final byte[] raw = charset != null ? s.getBytes(charset) : s.getBytes();
+        return body(new InternalByteArrayEntity(raw, contentType));
     }
 
     public Request bodyFile(final File file, final ContentType contentType) {
-        return body(new FileEntity(file, contentType));
+        return body(new InternalFileEntity(file, contentType));
     }
 
     public Request bodyByteArray(final byte[] b) {
-        return body(new ByteArrayEntity(b));
+        return body(new InternalByteArrayEntity(b));
     }
 
     public Request bodyByteArray(final byte[] b, final int off, final int len) {
-        return body(new ByteArrayEntity(b, off, len));
+        return body(new InternalByteArrayEntity(b, off, len));
     }
 
     public Request bodyStream(final InputStream instream) {
-        return body(new InputStreamEntity(instream, -1));
+        return body(new InternalInputStreamEntity(instream, -1, null));
     }
 
     public Request bodyStream(final InputStream instream, final ContentType contentType) {
-        return body(new InputStreamEntity(instream, -1, contentType));
+        return body(new InternalInputStreamEntity(instream, -1, contentType));
     }
 
     @Override

@@ -34,10 +34,23 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.annotation.Immutable;
 
 @Immutable
 class IOUtils {
+
+    static void consume(final HttpEntity entity) throws IOException {
+        if (entity == null) {
+            return;
+        }
+        if (entity.isStreaming()) {
+            final InputStream instream = entity.getContent();
+            if (instream != null) {
+                instream.close();
+            }
+        }
+    }
 
     static void copy(final InputStream in, final OutputStream out) throws IOException {
         final byte[] buf = new byte[2048];
