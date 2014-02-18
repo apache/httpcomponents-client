@@ -4,6 +4,10 @@ Changes since 4.3.2
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1461] fixed performance degradation in gzip encoded content processing
+  introduced by HTTPCLIENT-1432.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1457] Incorrect handling of Windows (NT) credentials by
   SystemDefaultCredentialsProvider.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

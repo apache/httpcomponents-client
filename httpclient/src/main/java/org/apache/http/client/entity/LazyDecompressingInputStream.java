@@ -50,10 +50,39 @@ class LazyDecompressingInputStream extends InputStream {
         this.decompressingEntity = decompressingEntity;
     }
 
+    private void initWrapper() throws IOException {
+        if (wrapperStream == null) {
+            wrapperStream = decompressingEntity.decorate(wrappedStream);
+        }
+    }
+
     @Override
     public int read() throws IOException {
         initWrapper();
         return wrapperStream.read();
+    }
+
+    @Override
+    public int read(final byte[] b) throws IOException {
+        initWrapper();
+        return wrapperStream.read(b);
+    }
+
+    @Override
+    public int read(final byte[] b, final int off, final int len) throws IOException {
+        initWrapper();
+        return wrapperStream.read(b, off, len);
+    }
+
+    @Override
+    public long skip(final long n) throws IOException {
+        initWrapper();
+        return wrapperStream.skip(n);
+    }
+
+    @Override
+    public boolean markSupported() {
+        return false;
     }
 
     @Override
@@ -62,18 +91,15 @@ class LazyDecompressingInputStream extends InputStream {
         return wrapperStream.available();
     }
 
-    private void initWrapper() throws IOException {
-        if (wrapperStream == null) {
-            wrapperStream = decompressingEntity.decorate(wrappedStream);
-        }
-    }
-
     @Override
     public void close() throws IOException {
-        if (wrapperStream != null) {
-            wrapperStream.close();
+        try {
+            if (wrapperStream != null) {
+                wrapperStream.close();
+            }
+        } finally {
+            wrappedStream.close();
         }
-        wrappedStream.close();
     }
 
 }
