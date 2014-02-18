@@ -42,7 +42,6 @@ import org.apache.http.config.Lookup;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.DnsResolver;
-import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.SchemePortResolver;
@@ -57,7 +56,7 @@ class HttpClientConnectionOperator {
 
     static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";
 
-    private final Log log = LogFactory.getLog(HttpClientConnectionManager.class);
+    private final Log log = LogFactory.getLog(getClass());
 
     private final Lookup<ConnectionSocketFactory> socketFactoryRegistry;
     private final SchemePortResolver schemePortResolver;
@@ -124,6 +123,9 @@ class HttpClientConnectionOperator {
                     sock.setSoLinger(linger > 0, linger);
                 }
                 conn.bind(sock);
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug("Connection established " + conn);
+                }
                 return;
             } catch (final SocketTimeoutException ex) {
                 if (last) {
