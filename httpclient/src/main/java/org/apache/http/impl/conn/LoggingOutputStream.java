@@ -51,29 +51,54 @@ class LoggingOutputStream extends OutputStream {
 
     @Override
     public void write(final int b) throws IOException {
-        wire.output(b);
+        try {
+            wire.output(b);
+        } catch (IOException ex) {
+            wire.input("I/O error: " + ex.getMessage());
+            throw ex;
+        }
     }
 
     @Override
     public void write(final byte[] b) throws IOException {
-        wire.output(b);
-        out.write(b);
+        try {
+            wire.output(b);
+            out.write(b);
+        } catch (IOException ex) {
+            wire.input("I/O error: " + ex.getMessage());
+            throw ex;
+        }
     }
 
     @Override
     public void write(final byte[] b, final int off, final int len) throws IOException {
-        wire.output(b, off, len);
-        out.write(b, off, len);
+        try {
+            wire.output(b, off, len);
+            out.write(b, off, len);
+        } catch (IOException ex) {
+            wire.input("I/O error: " + ex.getMessage());
+            throw ex;
+        }
     }
 
     @Override
     public void flush() throws IOException {
-        out.flush();
+        try {
+            out.flush();
+        } catch (IOException ex) {
+            wire.input("I/O error: " + ex.getMessage());
+            throw ex;
+        }
     }
 
     @Override
     public void close() throws IOException {
-        out.close();
+        try {
+            out.close();
+        } catch (IOException ex) {
+            wire.input("I/O error: " + ex.getMessage());
+            throw ex;
+        }
     }
 
 }

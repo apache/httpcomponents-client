@@ -138,20 +138,12 @@ public class Wire {
         input(new byte[] {(byte) b});
     }
 
-    /**
-     * @deprecated (4.1)  do not use
-     */
-    @Deprecated
     public void output(final String s)
       throws IOException {
         Args.notNull(s, "Output");
         output(s.getBytes());
     }
 
-    /**
-     * @deprecated (4.1)  do not use
-     */
-    @Deprecated
     public void input(final String s)
       throws IOException {
         Args.notNull(s, "Input");
