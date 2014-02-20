@@ -31,6 +31,7 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.DeflateDecompressingEntity;
 import org.apache.http.client.entity.GzipDecompressingEntity;
 import org.apache.http.entity.StringEntity;
@@ -152,6 +153,27 @@ public class TestResponseContentEncoding {
 
         final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
         interceptor.process(response, context);
+    }
+
+    @Test
+    public void testContentEncodingRequestParameter() throws Exception {
+        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final StringEntity original = new StringEntity("encoded stuff");
+        original.setContentEncoding("GZip");
+        response.setEntity(original);
+
+        final RequestConfig config = RequestConfig.custom()
+                .setDecompressionEnabled(false)
+                .build();
+
+        final HttpContext context = new BasicHttpContext();
+        context.setAttribute(HttpClientContext.REQUEST_CONFIG, config);
+
+        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
+        interceptor.process(response, context);
+        final HttpEntity entity = response.getEntity();
+        Assert.assertNotNull(entity);
+        Assert.assertFalse(entity instanceof GzipDecompressingEntity);
     }
 
 }

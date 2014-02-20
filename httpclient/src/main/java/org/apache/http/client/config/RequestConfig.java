@@ -51,6 +51,7 @@ public class RequestConfig implements Cloneable {
     private final int connectionRequestTimeout;
     private final int connectTimeout;
     private final int socketTimeout;
+    private final boolean decompressionEnabled;
 
     RequestConfig(
             final boolean expectContinueEnabled,
@@ -67,7 +68,8 @@ public class RequestConfig implements Cloneable {
             final Collection<String> proxyPreferredAuthSchemes,
             final int connectionRequestTimeout,
             final int connectTimeout,
-            final int socketTimeout) {
+            final int socketTimeout,
+            final boolean decompressionEnabled) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
         this.proxy = proxy;
@@ -84,6 +86,7 @@ public class RequestConfig implements Cloneable {
         this.connectionRequestTimeout = connectionRequestTimeout;
         this.connectTimeout = connectTimeout;
         this.socketTimeout = socketTimeout;
+        this.decompressionEnabled = decompressionEnabled;
     }
 
     /**
@@ -263,6 +266,17 @@ public class RequestConfig implements Cloneable {
         return socketTimeout;
     }
 
+    /**
+     * Determines whether compressed entities should be decompressed automatically.
+     * <p/>
+     * Default: <code>true</code>
+     *
+     * @since 4.4
+     */
+    public boolean isDecompressionEnabled() {
+        return decompressionEnabled;
+    }
+
     @Override
     protected RequestConfig clone() throws CloneNotSupportedException {
         return (RequestConfig) super.clone();
@@ -286,6 +300,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", connectionRequestTimeout=").append(connectionRequestTimeout);
         builder.append(", connectTimeout=").append(connectTimeout);
         builder.append(", socketTimeout=").append(socketTimeout);
+        builder.append(", decompressionEnabled=").append(decompressionEnabled);
         builder.append("]");
         return builder.toString();
     }
@@ -310,7 +325,8 @@ public class RequestConfig implements Cloneable {
             .setProxyPreferredAuthSchemes(config.getProxyPreferredAuthSchemes())
             .setConnectionRequestTimeout(config.getConnectionRequestTimeout())
             .setConnectTimeout(config.getConnectTimeout())
-            .setSocketTimeout(config.getSocketTimeout());
+            .setSocketTimeout(config.getSocketTimeout())
+            .setDecompressionEnabled(config.isDecompressionEnabled());
     }
 
     public static class Builder {
@@ -330,6 +346,7 @@ public class RequestConfig implements Cloneable {
         private int connectionRequestTimeout;
         private int connectTimeout;
         private int socketTimeout;
+        private boolean decompressionEnabled;
 
         Builder() {
             super();
@@ -341,6 +358,7 @@ public class RequestConfig implements Cloneable {
             this.connectionRequestTimeout = -1;
             this.connectTimeout = -1;
             this.socketTimeout = -1;
+            this.decompressionEnabled = true;
         }
 
         public Builder setExpectContinueEnabled(final boolean expectContinueEnabled) {
@@ -418,6 +436,11 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
+        public Builder setDecompressionEnabled(final boolean decompressionEnabled) {
+            this.decompressionEnabled = decompressionEnabled;
+            return this;
+        }
+
         public RequestConfig build() {
             return new RequestConfig(
                     expectContinueEnabled,
@@ -434,7 +457,8 @@ public class RequestConfig implements Cloneable {
                     proxyPreferredAuthSchemes,
                     connectionRequestTimeout,
                     connectTimeout,
-                    socketTimeout);
+                    socketTimeout,
+                    decompressionEnabled);
         }
 
     }

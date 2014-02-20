@@ -36,6 +36,7 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.DeflateDecompressingEntity;
 import org.apache.http.client.entity.GzipDecompressingEntity;
 import org.apache.http.protocol.HttpContext;
@@ -74,9 +75,11 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
             final HttpContext context) throws HttpException, IOException {
         final HttpEntity entity = response.getEntity();
 
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final RequestConfig requestConfig = clientContext.getRequestConfig();
         // entity can be null in case of 304 Not Modified, 204 No Content or similar
         // check for zero length entity.
-        if (entity != null && entity.getContentLength() != 0) {
+        if (requestConfig.isDecompressionEnabled() && entity != null && entity.getContentLength() != 0) {
             final Header ceheader = entity.getContentEncoding();
             if (ceheader != null) {
                 final HeaderElement[] codecs = ceheader.getElements();
