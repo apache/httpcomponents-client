@@ -51,48 +51,79 @@ class LoggingInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        final int b = in.read();
-        if (b != -1) {
-            wire.input(b);
+        try {
+            final int b = in.read();
+            if (b == -1) {
+                wire.input("end of stream");
+            } else {
+                wire.input(b);
+            }
+            return b;
+        } catch (IOException ex) {
+            wire.input("I/O error: " + ex.getMessage());
+            throw ex;
         }
-        return b;
     }
 
     @Override
     public int read(final byte[] b) throws IOException {
-        final int bytesRead = in.read(b);
-        if (bytesRead != -1) {
-            wire.input(b, 0, bytesRead);
+        try {
+            final int bytesRead = in.read(b);
+            if (bytesRead == -1) {
+                wire.input("end of stream");
+            } else if (bytesRead > 0) {
+                wire.input(b, 0, bytesRead);
+            }
+            return bytesRead;
+        } catch (IOException ex) {
+            wire.input("I/O error: " + ex.getMessage());
+            throw ex;
         }
-        return bytesRead;
     }
 
     @Override
     public int read(final byte[] b, final int off, final int len) throws IOException {
-        final int bytesRead = in.read(b, off, len);
-        if (bytesRead != -1) {
-            wire.input(b, off, bytesRead);
+        try {
+            final int bytesRead = in.read(b, off, len);
+            if (bytesRead == -1) {
+                wire.input("end of stream");
+            } else if (bytesRead > 0) {
+                wire.input(b, off, bytesRead);
+            }
+            return bytesRead;
+        } catch (IOException ex) {
+            wire.input("I/O error: " + ex.getMessage());
+            throw ex;
         }
-        return bytesRead;
     }
 
     @Override
     public long skip(final long n) throws IOException {
-        return super.skip(n);
+        try {
+            return super.skip(n);
+        } catch (IOException ex) {
+            wire.input("I/O error: " + ex.getMessage());
+            throw ex;
+        }
     }
 
     @Override
     public int available() throws IOException {
-        return in.available();
+        try {
+            return in.available();
+        } catch (IOException ex) {
+            wire.input("I/O error: " + ex.getMessage());
+            throw ex;
+        }
     }
 
     @Override
-    public synchronized void mark(final int readlimit) {
+    public void mark(final int readlimit) {
         super.mark(readlimit);
     }
 
     @Override
-    public synchronized void reset() throws IOException {
+    public void reset() throws IOException {
         super.reset();
     }
 
@@ -103,7 +134,12 @@ class LoggingInputStream extends InputStream {
 
     @Override
     public void close() throws IOException {
-        in.close();
+        try {
+            in.close();
+        } catch (IOException ex) {
+            wire.input("I/O error: " + ex.getMessage());
+            throw ex;
+        }
     }
 
 }
