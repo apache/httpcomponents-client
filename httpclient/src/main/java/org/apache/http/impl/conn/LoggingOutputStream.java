@@ -54,7 +54,7 @@ class LoggingOutputStream extends OutputStream {
         try {
             wire.output(b);
         } catch (IOException ex) {
-            wire.input("I/O error: " + ex.getMessage());
+            wire.output("[write] I/O error: " + ex.getMessage());
             throw ex;
         }
     }
@@ -65,7 +65,7 @@ class LoggingOutputStream extends OutputStream {
             wire.output(b);
             out.write(b);
         } catch (IOException ex) {
-            wire.input("I/O error: " + ex.getMessage());
+            wire.output("[write] I/O error: " + ex.getMessage());
             throw ex;
         }
     }
@@ -76,7 +76,7 @@ class LoggingOutputStream extends OutputStream {
             wire.output(b, off, len);
             out.write(b, off, len);
         } catch (IOException ex) {
-            wire.input("I/O error: " + ex.getMessage());
+            wire.output("[write] I/O error: " + ex.getMessage());
             throw ex;
         }
     }
@@ -86,7 +86,7 @@ class LoggingOutputStream extends OutputStream {
         try {
             out.flush();
         } catch (IOException ex) {
-            wire.input("I/O error: " + ex.getMessage());
+            wire.output("[flush] I/O error: " + ex.getMessage());
             throw ex;
         }
     }
@@ -96,7 +96,7 @@ class LoggingOutputStream extends OutputStream {
         try {
             out.close();
         } catch (IOException ex) {
-            wire.input("I/O error: " + ex.getMessage());
+            wire.output("[close] I/O error: " + ex.getMessage());
             throw ex;
         }
     }
