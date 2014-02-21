@@ -4,6 +4,9 @@ Changes for 4.4-alpha1
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1466] FileBodyPart#generateContentType() ignores custom ContentType values.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1461] fixed performance degradation in gzip encoded content processing
   introduced by HTTPCLIENT-1432.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

@@ -27,6 +27,8 @@
 
 package org.apache.http.entity.mime;
 
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.content.AbstractContentBody;
 import org.apache.http.entity.mime.content.ContentBody;
 import org.apache.http.util.Args;
 
@@ -88,13 +90,23 @@ public class FormBodyPart {
     }
 
     protected void generateContentType(final ContentBody body) {
-        final StringBuilder buffer = new StringBuilder();
-        buffer.append(body.getMimeType()); // MimeType cannot be null
-        if (body.getCharset() != null) { // charset may legitimately be null
-            buffer.append("; charset=");
-            buffer.append(body.getCharset());
+        final ContentType contentType;
+        if (body instanceof AbstractContentBody) {
+            contentType = ((AbstractContentBody) body).getContentType();
+        } else {
+            contentType = null;
         }
-        addField(MIME.CONTENT_TYPE, buffer.toString());
+        if (contentType != null) {
+            addField(MIME.CONTENT_TYPE, contentType.toString());
+        } else {
+            final StringBuilder buffer = new StringBuilder();
+            buffer.append(body.getMimeType()); // MimeType cannot be null
+            if (body.getCharset() != null) { // charset may legitimately be null
+                buffer.append("; charset=");
+                buffer.append(body.getCharset());
+            }
+            addField(MIME.CONTENT_TYPE, buffer.toString());
+        }
     }
 
     protected void generateTransferEncoding(final ContentBody body) {
