@@ -99,7 +99,10 @@ public class MultipartEntityBuilder {
         return this;
     }
 
-    MultipartEntityBuilder addPart(final FormBodyPart bodyPart) {
+    /**
+     * @since 4.4
+     */
+    public MultipartEntityBuilder addPart(final FormBodyPart bodyPart) {
         if (bodyPart == null) {
             return this;
         }
