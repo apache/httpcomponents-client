@@ -394,7 +394,8 @@ if (entity != null) {
                 <classname>FileEntity</classname>.</para>
             <programlisting><![CDATA[
 File file = new File("somefile.txt");
-FileEntity entity = new FileEntity(file, ContentType.create("text/plain", "UTF-8"));        
+FileEntity entity = new FileEntity(file, 
+    ContentType.create("text/plain", "UTF-8"));        
 
 HttpPost httppost = new HttpPost("http://localhost/action.do");
 httppost.setEntity(entity);
