@@ -100,6 +100,40 @@ public class TestMultipartForm {
     }
 
     @Test
+    public void testMultipartFormCustomContentType() throws Exception {
+        final FormBodyPart p1 = new FormBodyPart(
+                "field1",
+                new StringBody("this stuff", ContentType.DEFAULT_TEXT));
+        final FormBodyPart p2 = new FormBodyPart(
+                "field2",
+                new StringBody("that stuff", ContentType.parse("stuff/plain; param=value")));
+        final HttpStrictMultipart multipart = new HttpStrictMultipart("form-data", null, "foo",
+                Arrays.asList(p1, p2));
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        multipart.writeTo(out);
+        out.close();
+
+        final String expected =
+                "--foo\r\n" +
+                        "Content-Disposition: form-data; name=\"field1\"\r\n" +
+                        "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
+                        "Content-Transfer-Encoding: 8bit\r\n" +
+                        "\r\n" +
+                        "this stuff\r\n" +
+                        "--foo\r\n" +
+                        "Content-Disposition: form-data; name=\"field2\"\r\n" +
+                        "Content-Type: stuff/plain; param=value\r\n" +
+                        "Content-Transfer-Encoding: 8bit\r\n" +
+                        "\r\n" +
+                        "that stuff\r\n" +
+                        "--foo--\r\n";
+        final String s = out.toString("US-ASCII");
+        Assert.assertEquals(expected, s);
+        Assert.assertEquals(s.length(), multipart.getTotalLength());
+    }
+
+    @Test
     public void testMultipartFormBinaryParts() throws Exception {
         tmpfile = File.createTempFile("tmp", ".bin");
         final Writer writer = new FileWriter(tmpfile);

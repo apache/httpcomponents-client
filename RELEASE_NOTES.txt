@@ -9,6 +9,9 @@ Users of HttpClient 4.3 are encouraged to upgrade.
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1466] FileBodyPart#generateContentType() ignores custom ContentType values.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1453] Thread safety regression in PoolingHttpClientConnectionManager
   #closeExpiredConnections that can lead to ConcurrentModificationException. 
   Contributed by Oleg Kalnichevski <olegk at apache.org>
