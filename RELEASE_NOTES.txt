@@ -4,6 +4,8 @@ Changes for 4.4-alpha1
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1470] CachingExec(ClientExecChain, HttpCache, CacheConfig, AsynchronousValidator) throws NPE if config is null
+
 * [HTTPCLIENT-1466] FileBodyPart#generateContentType() ignores custom ContentType values.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 

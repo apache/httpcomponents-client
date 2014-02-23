@@ -367,6 +367,11 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     }
 
     @Test
+    public void testHTTPCLIENT1470() {
+        impl = new CachingExec(mockBackend, cache, null, new AsynchronousValidator(config));
+    }
+
+    @Test
     public void testStaleWhileRevalidateReturnsStaleNonRevalidatableEntryWithWarning()
         throws Exception {
         config = CacheConfig.custom().setMaxCacheEntries(MAX_ENTRIES).setMaxObjectSize(MAX_BYTES)
