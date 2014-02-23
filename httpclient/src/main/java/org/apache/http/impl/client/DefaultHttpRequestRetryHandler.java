@@ -96,7 +96,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
      * <li>SSLException</li>
      * </ul>
      * @param retryCount how many times to retry; 0 means no retries
-     * @param requestSentRetryEnabled true if it's OK to retry requests that have been sent
+     * @param requestSentRetryEnabled true if it's OK to retry non-idempotent requests that have been sent
      */
     @SuppressWarnings("unchecked")
     public DefaultHttpRequestRetryHandler(final int retryCount, final boolean requestSentRetryEnabled) {
