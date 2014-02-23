@@ -63,6 +63,7 @@ import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.VersionInfo;
 
@@ -291,10 +292,10 @@ public class CachingExec implements ClientExecChain {
             return callBackend(route, request, context, execAware);
         }
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
-        context.setAttribute(HttpClientContext.HTTP_TARGET_HOST, target);
-        context.setAttribute(HttpClientContext.HTTP_REQUEST, request);
-        context.setAttribute(HttpClientContext.HTTP_RESPONSE, out);
-        context.setAttribute(HttpClientContext.HTTP_REQ_SENT, Boolean.TRUE);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
+        context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
+        context.setAttribute(HttpCoreContext.HTTP_RESPONSE, out);
+        context.setAttribute(HttpCoreContext.HTTP_REQ_SENT, Boolean.TRUE);
         return out;
     }
 
