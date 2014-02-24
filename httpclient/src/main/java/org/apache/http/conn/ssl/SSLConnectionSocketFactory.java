@@ -214,6 +214,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      *
      * The default implementation is a no-op, but could be overridden to, e.g.,
      * call {@link javax.net.ssl.SSLSocket#setEnabledCipherSuites(String[])}.
+     * @throws IOException may be thrown if overridden
      */
     protected void prepareSocket(final SSLSocket socket) throws IOException {
     }
