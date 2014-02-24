@@ -311,7 +311,7 @@ public class DigestScheme extends RFC2617Scheme {
         }
         final StringBuilder sb = new StringBuilder(256);
         final Formatter formatter = new Formatter(sb, Locale.US);
-        formatter.format("%08x", nounceCount);
+        formatter.format("%08x", Long.valueOf(nounceCount));
         formatter.close();
         final String nc = sb.toString();
 

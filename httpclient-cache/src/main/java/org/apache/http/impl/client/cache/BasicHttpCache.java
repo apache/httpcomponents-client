@@ -219,7 +219,7 @@ class BasicHttpCache implements HttpCache {
         error.setHeader("Content-Type","text/plain;charset=UTF-8");
         final String msg = String.format("Received incomplete response " +
                 "with Content-Length %d but actual body length %d",
-                contentLength, resource.length());
+                contentLength, Long.valueOf(resource.length()));
         final byte[] msgBytes = msg.getBytes();
         error.setHeader("Content-Length", Integer.toString(msgBytes.length));
         error.setEntity(new ByteArrayEntity(msgBytes));

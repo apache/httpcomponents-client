@@ -515,12 +515,14 @@ public class CachingExec implements ClientExecChain {
         final String release = (vi != null) ? vi.getRelease() : VersionInfo.UNAVAILABLE;
 
         String value;
+        final Integer major = Integer.valueOf(pv.getMajor());
+        final Integer minor = Integer.valueOf(pv.getMinor());
         if ("http".equalsIgnoreCase(pv.getProtocol())) {
-            value = String.format("%d.%d localhost (Apache-HttpClient/%s (cache))", pv.getMajor(), pv.getMinor(),
+            value = String.format("%d.%d localhost (Apache-HttpClient/%s (cache))", major, minor,
                     release);
         } else {
-            value = String.format("%s/%d.%d localhost (Apache-HttpClient/%s (cache))", pv.getProtocol(), pv.getMajor(),
-                    pv.getMinor(), release);
+            value = String.format("%s/%d.%d localhost (Apache-HttpClient/%s (cache))", pv.getProtocol(), major,
+                    minor, release);
         }
         viaHeaders.put(pv, value);
 
