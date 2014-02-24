@@ -136,10 +136,10 @@ abstract class AbstractMultipartForm {
         final OutputStream out,
         final boolean writeContent) throws IOException {
 
-        final ByteArrayBuffer boundary = encode(this.charset, getBoundary());
+        final ByteArrayBuffer boundaryEncoded = encode(this.charset, getBoundary());
         for (final FormBodyPart part: getBodyParts()) {
             writeBytes(TWO_DASHES, out);
-            writeBytes(boundary, out);
+            writeBytes(boundaryEncoded, out);
             writeBytes(CR_LF, out);
 
             formatMultipartHeader(part, out);
@@ -152,7 +152,7 @@ abstract class AbstractMultipartForm {
             writeBytes(CR_LF, out);
         }
         writeBytes(TWO_DASHES, out);
-        writeBytes(boundary, out);
+        writeBytes(boundaryEncoded, out);
         writeBytes(TWO_DASHES, out);
         writeBytes(CR_LF, out);
     }
