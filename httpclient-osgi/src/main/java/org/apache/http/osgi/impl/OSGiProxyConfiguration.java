@@ -43,7 +43,7 @@ public final class OSGiProxyConfiguration implements ProxyConfiguration {
      */
     private static final String PROPERTYNAME_PROXY_ENABLED = "proxy.enabled";
 
-    private static final boolean PROPERTYDEFAULT_PROXY_ENABLED = true;
+    private static final Boolean PROPERTYDEFAULT_PROXY_ENABLED = Boolean.TRUE;
 
     /**
      * Property representing the hostname of the proxy. Defaults to empty.
@@ -57,7 +57,7 @@ public final class OSGiProxyConfiguration implements ProxyConfiguration {
      */
     private static final String PROPERTYNAME_PROXY_PORT = "proxy.port";
 
-    private static final int PROPERTYDEFAULT_PROXY_PORT = 0;
+    private static final Integer PROPERTYDEFAULT_PROXY_PORT = Integer.valueOf(0);
 
     /**
      * Property representing the username to authenticate with towards the proxy. Defaults to empty.
@@ -124,9 +124,9 @@ public final class OSGiProxyConfiguration implements ProxyConfiguration {
     }
 
     public void update(final Dictionary<String, Object> config) {
-        enabled = to(config.get(PROPERTYNAME_PROXY_ENABLED), boolean.class, PROPERTYDEFAULT_PROXY_ENABLED);
+        enabled = to(config.get(PROPERTYNAME_PROXY_ENABLED), boolean.class, PROPERTYDEFAULT_PROXY_ENABLED).booleanValue();
         hostname = to(config.get(PROPERTYNAME_PROXY_HOSTNAME), String.class, PROPERTYDEFAULT_PROXY_HOSTNAME);
-        port = to(config.get(PROPERTYNAME_PROXY_PORT), int.class, PROPERTYDEFAULT_PROXY_PORT);
+        port = to(config.get(PROPERTYNAME_PROXY_PORT), int.class, PROPERTYDEFAULT_PROXY_PORT).intValue();
         username = to(config.get(PROPERTYNAME_PROXY_USERNAME), String.class, PROPERTYDEFAULT_PROXY_USERNAME);
         password = to(config.get(PROPERTYNAME_PROXY_PASSWORD), String.class, PROPERTYDEFAULT_PROXY_PASSWORD);
         proxyExceptions = to(config.get(PROPERTYNAME_PROXY_EXCEPTIONS), String[].class, PROPERTYDEFAULT_PROXY_EXCEPTIONS);
