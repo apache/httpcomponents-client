@@ -96,7 +96,7 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         impl = new CacheValidityPolicy() {
             @Override
-            protected long getApparentAgeSecs(final HttpCacheEntry entry) {
+            protected long getApparentAgeSecs(final HttpCacheEntry ent) {
                 return 6;
             }
         };
@@ -109,7 +109,7 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
         impl = new CacheValidityPolicy() {
             @Override
-            protected long getApparentAgeSecs(final HttpCacheEntry entry) {
+            protected long getApparentAgeSecs(final HttpCacheEntry ent) {
                 return 10;
             }
         };
@@ -127,12 +127,12 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            protected long getCorrectedReceivedAgeSecs(final HttpCacheEntry entry) {
+            protected long getCorrectedReceivedAgeSecs(final HttpCacheEntry ent) {
                 return 7;
             }
 
             @Override
-            protected long getResponseDelaySecs(final HttpCacheEntry entry) {
+            protected long getResponseDelaySecs(final HttpCacheEntry ent) {
                 return 13;
             }
         };
@@ -150,11 +150,11 @@ public class TestCacheValidityPolicy {
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry();
         impl = new CacheValidityPolicy() {
             @Override
-            protected long getCorrectedInitialAgeSecs(final HttpCacheEntry entry) {
+            protected long getCorrectedInitialAgeSecs(final HttpCacheEntry ent) {
                 return 11;
             }
             @Override
-            protected long getResidentTimeSecs(final HttpCacheEntry entry, final Date d) {
+            protected long getResidentTimeSecs(final HttpCacheEntry ent, final Date d) {
                 return 17;
             }
         };

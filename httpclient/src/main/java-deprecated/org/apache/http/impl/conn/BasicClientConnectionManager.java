@@ -164,8 +164,8 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
             }
             if (this.poolEntry == null) {
                 final String id = Long.toString(COUNTER.getAndIncrement());
-                final OperatedClientConnection conn = this.connOperator.createConnection();
-                this.poolEntry = new HttpPoolEntry(this.log, id, route, conn, 0, TimeUnit.MILLISECONDS);
+                final OperatedClientConnection opconn = this.connOperator.createConnection();
+                this.poolEntry = new HttpPoolEntry(this.log, id, route, opconn, 0, TimeUnit.MILLISECONDS);
             }
             final long now = System.currentTimeMillis();
             if (this.poolEntry.isExpired(now)) {

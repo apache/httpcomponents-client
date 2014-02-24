@@ -80,10 +80,10 @@ public abstract class HttpRequestBase extends AbstractExecutionAwareRequest
     public RequestLine getRequestLine() {
         final String method = getMethod();
         final ProtocolVersion ver = getProtocolVersion();
-        final URI uri = getURI();
+        final URI uriCopy = getURI(); // avoids possible window where URI could be changed
         String uritext = null;
-        if (uri != null) {
-            uritext = uri.toASCIIString();
+        if (uriCopy != null) {
+            uritext = uriCopy.toASCIIString();
         }
         if (uritext == null || uritext.isEmpty()) {
             uritext = "/";

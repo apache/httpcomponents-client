@@ -287,11 +287,11 @@ public class RequestBuilder {
     public HttpUriRequest build() {
         final HttpRequestBase result;
         URI uriNotNull = this.uri != null ? this.uri : URI.create("/");
-        HttpEntity entity = this.entity;
+        HttpEntity entityCopy = this.entity;
         if (parameters != null && !parameters.isEmpty()) {
-            if (entity == null && (HttpPost.METHOD_NAME.equalsIgnoreCase(method)
+            if (entityCopy == null && (HttpPost.METHOD_NAME.equalsIgnoreCase(method)
                     || HttpPut.METHOD_NAME.equalsIgnoreCase(method))) {
-                entity = new UrlEncodedFormEntity(parameters, HTTP.DEF_CONTENT_CHARSET);
+                entityCopy = new UrlEncodedFormEntity(parameters, HTTP.DEF_CONTENT_CHARSET);
             } else {
                 try {
                     uriNotNull = new URIBuilder(uriNotNull).addParameters(parameters).build();
@@ -300,11 +300,11 @@ public class RequestBuilder {
                 }
             }
         }
-        if (entity == null) {
+        if (entityCopy == null) {
             result = new InternalRequest(method);
         } else {
             final InternalEntityEclosingRequest request = new InternalEntityEclosingRequest(method);
-            request.setEntity(entity);
+            request.setEntity(entityCopy);
             result = request;
         }
         result.setProtocolVersion(this.version);
