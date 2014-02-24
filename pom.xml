@@ -229,6 +229,7 @@
             <link>http://download.oracle.com/javase/1.5.0/docs/api/</link>
             <link>http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
           </links>
+          <bootclasspath>${java.home}/lib/rt.jar:${java.home}/lib/jsse.jar:${java.home}/lib/jce.jar</bootclasspath>
         </configuration>
       </plugin>
       <plugin>
