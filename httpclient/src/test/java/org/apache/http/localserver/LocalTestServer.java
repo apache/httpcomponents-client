@@ -310,7 +310,7 @@ public class LocalTestServer {
      */
     public InetSocketAddress getServiceAddress() {
         final ServerSocket ssock = servicedSocket; // avoid synchronization
-        Asserts.check(ssock != null, "Not running");
+        Asserts.notNull(ssock, "Not running");
         return (InetSocketAddress) ssock.getLocalSocketAddress();
     }
 
