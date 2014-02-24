@@ -160,7 +160,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      *            the 8 byte array the server sent.
      * @return The type 3 message.
      * @throws NTLMEngineException
-     *             If {@encrypt(byte[],byte[])} fails.
+     *             If {@link encrypt(byte[],byte[])} fails.
      */
     String getType3Message(final String user, final String password, final String host, final String domain,
             final byte[] nonce, final int type2Flags, final String target, final byte[] targetInformation)
