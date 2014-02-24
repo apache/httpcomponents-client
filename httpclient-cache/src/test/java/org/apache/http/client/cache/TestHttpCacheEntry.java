@@ -324,9 +324,9 @@ public class TestHttpCacheEntry {
 
     @Test
     public void testValidDateHeaderIsParsed() {
-        final long now = System.currentTimeMillis();
+        final long nowMs = System.currentTimeMillis();
         // round down to nearest second to make comparison easier
-        final Date date = new Date(now - (now % 1000L));
+        final Date date = new Date(nowMs - (nowMs % 1000L));
         final Header[] headers = new Header[] { new BasicHeader("Date", DateUtils.formatDate(date)) };
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
                                    headers, mockResource);
