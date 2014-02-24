@@ -95,6 +95,11 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         }
     }
 
+    /**
+     * This implementation returns null.
+     *
+     * @throws HttpException may be thrown if overridden
+     */
     protected HttpHost determineProxy(
             final HttpHost target,
             final HttpRequest request,
