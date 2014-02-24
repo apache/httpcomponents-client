@@ -81,11 +81,11 @@ public final class OSGiProxyConfiguration implements ProxyConfiguration {
 
     private static final String[] PROPERTYDEFAULT_PROXY_EXCEPTIONS = new String[]{"localhost", "127.0.0.1"};
 
-    private boolean enabled;
+    private Boolean enabled = Boolean.FALSE; // fewer boxing conversions needed when stored as an object
 
     private String hostname;
 
-    private int port;
+    private Integer port = Integer.valueOf(0); // fewer boxing conversions needed when stored as an object
 
     private String username;
 
@@ -95,7 +95,7 @@ public final class OSGiProxyConfiguration implements ProxyConfiguration {
 
     @Override
     public boolean isEnabled() {
-        return enabled;
+        return enabled.booleanValue();
     }
 
     @Override
@@ -105,7 +105,7 @@ public final class OSGiProxyConfiguration implements ProxyConfiguration {
 
     @Override
     public int getPort() {
-        return port;
+        return port.intValue();
     }
 
     @Override
@@ -124,9 +124,9 @@ public final class OSGiProxyConfiguration implements ProxyConfiguration {
     }
 
     public void update(final Dictionary<String, Object> config) {
-        enabled = to(config.get(PROPERTYNAME_PROXY_ENABLED), boolean.class, PROPERTYDEFAULT_PROXY_ENABLED).booleanValue();
+        enabled = to(config.get(PROPERTYNAME_PROXY_ENABLED), boolean.class, PROPERTYDEFAULT_PROXY_ENABLED);
         hostname = to(config.get(PROPERTYNAME_PROXY_HOSTNAME), String.class, PROPERTYDEFAULT_PROXY_HOSTNAME);
-        port = to(config.get(PROPERTYNAME_PROXY_PORT), int.class, PROPERTYDEFAULT_PROXY_PORT).intValue();
+        port = to(config.get(PROPERTYNAME_PROXY_PORT), int.class, PROPERTYDEFAULT_PROXY_PORT);
         username = to(config.get(PROPERTYNAME_PROXY_USERNAME), String.class, PROPERTYDEFAULT_PROXY_USERNAME);
         password = to(config.get(PROPERTYNAME_PROXY_PASSWORD), String.class, PROPERTYDEFAULT_PROXY_PASSWORD);
         proxyExceptions = to(config.get(PROPERTYNAME_PROXY_EXCEPTIONS), String[].class, PROPERTYDEFAULT_PROXY_EXCEPTIONS);
