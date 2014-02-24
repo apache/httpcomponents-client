@@ -26,7 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
-import org.easymock.EasyMock;
+import org.easymock.classextension.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 

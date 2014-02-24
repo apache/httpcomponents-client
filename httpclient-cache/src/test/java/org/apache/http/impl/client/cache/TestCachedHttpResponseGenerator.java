@@ -33,12 +33,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.BasicHeader;
-import org.easymock.EasyMock;
+import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-@SuppressWarnings("boxing") // test code
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestCachedHttpResponseGenerator {
 
     private HttpCacheEntry entry;

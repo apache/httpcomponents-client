@@ -34,12 +34,12 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
-import org.easymock.EasyMock;
+import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-@SuppressWarnings("boxing") // this is test code
+@SuppressWarnings({"boxing","static-access"}) // this is test code
 public class TestCacheKeyGenerator {
 
     private static final BasicHttpRequest REQUEST_FULL_EPISODES = new BasicHttpRequest("GET",

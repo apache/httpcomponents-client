@@ -41,11 +41,11 @@ import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.message.BasicHeader;
-import org.easymock.EasyMock;
+import org.easymock.classextension.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-@SuppressWarnings("boxing") // test code
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestAsynchronousValidationRequest {
 
     private AsynchronousValidator mockParent;
