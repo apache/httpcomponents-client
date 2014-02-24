@@ -213,7 +213,7 @@ class BasicHttpCache implements HttpCache {
 
     CloseableHttpResponse generateIncompleteResponseError(
             final HttpResponse response, final Resource resource) {
-        final int contentLength = Integer.parseInt(response.getFirstHeader(HTTP.CONTENT_LEN).getValue());
+        final Integer contentLength = Integer.valueOf(response.getFirstHeader(HTTP.CONTENT_LEN).getValue());
         final HttpResponse error =
             new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_GATEWAY, "Bad Gateway");
         error.setHeader("Content-Type","text/plain;charset=UTF-8");
