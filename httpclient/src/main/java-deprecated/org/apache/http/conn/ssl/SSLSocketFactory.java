@@ -483,6 +483,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      *
      * The default implementation is a no-op, but could be overridden to, e.g.,
      * call {@link SSLSocket#setEnabledCipherSuites(java.lang.String[])}.
+     * @throws IOException (only if overridden)
      *
      * @since 4.2
      */
