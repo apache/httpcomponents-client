@@ -174,7 +174,7 @@ class CacheValidityPolicy {
     /**
      * @deprecated (4.3) use {@link HttpCacheEntry#getDate()}.
      * @param entry
-     * @return
+     * @return the Date of the entry
      */
     @Deprecated
     protected Date getDateValue(final HttpCacheEntry entry) {
