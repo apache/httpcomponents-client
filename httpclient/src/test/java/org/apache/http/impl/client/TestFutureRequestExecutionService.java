@@ -58,6 +58,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings("boxing") // test code
 public class TestFutureRequestExecutionService {
 
     private LocalTestServer localServer;

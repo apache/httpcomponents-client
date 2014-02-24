@@ -37,6 +37,7 @@ import org.mockito.Mockito;
 /**
  * Unit tests for {@link BasicAuthCache}.
  */
+@SuppressWarnings("boxing") // test code
 public class TestBasicAuthCache {
 
     @Test

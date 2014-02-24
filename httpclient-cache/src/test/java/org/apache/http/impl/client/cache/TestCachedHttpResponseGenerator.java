@@ -38,6 +38,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings("boxing") // test code
 public class TestCachedHttpResponseGenerator {
 
     private HttpCacheEntry entry;

@@ -45,6 +45,7 @@ import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings("boxing") // test code
 public class TestAsynchronousValidationRequest {
 
     private AsynchronousValidator mockParent;
