@@ -1108,12 +1108,12 @@ public class CachingHttpClient implements HttpClient {
         /**
          * Used internally by {@link AsynchronousValidator} to schedule a
          * revalidation.
+         * @param parent
          * @param cachingClient
          * @param target
          * @param request
          * @param context
          * @param cacheEntry
-         * @param bookKeeping
          * @param identifier
          */
         AsynchronousValidationRequest(final AsynchronousValidator parent,
