@@ -448,10 +448,10 @@ final class NTLMEngineImpl implements NTLMEngine {
         public byte[] getLM2SessionResponse()
             throws NTLMEngineException {
             if (lm2SessionResponse == null) {
-                final byte[] clientChallenge = getClientChallenge();
+                final byte[] clChallenge = getClientChallenge();
                 lm2SessionResponse = new byte[24];
-                System.arraycopy(clientChallenge, 0, lm2SessionResponse, 0, clientChallenge.length);
-                Arrays.fill(lm2SessionResponse, clientChallenge.length, lm2SessionResponse.length, (byte) 0x00);
+                System.arraycopy(clChallenge, 0, lm2SessionResponse, 0, clChallenge.length);
+                Arrays.fill(lm2SessionResponse, clChallenge.length, lm2SessionResponse.length, (byte) 0x00);
             }
             return lm2SessionResponse;
         }
@@ -460,9 +460,8 @@ final class NTLMEngineImpl implements NTLMEngine {
         public byte[] getLMUserSessionKey()
             throws NTLMEngineException {
             if (lmUserSessionKey == null) {
-                final byte[] lmHash = getLMHash();
                 lmUserSessionKey = new byte[16];
-                System.arraycopy(lmHash, 0, lmUserSessionKey, 0, 8);
+                System.arraycopy(getLMHash(), 0, lmUserSessionKey, 0, 8);
                 Arrays.fill(lmUserSessionKey, 8, 16, (byte) 0x00);
             }
             return lmUserSessionKey;
@@ -472,9 +471,8 @@ final class NTLMEngineImpl implements NTLMEngine {
         public byte[] getNTLMUserSessionKey()
             throws NTLMEngineException {
             if (ntlmUserSessionKey == null) {
-                final byte[] ntlmHash = getNTLMHash();
                 final MD4 md4 = new MD4();
-                md4.update(ntlmHash);
+                md4.update(getNTLMHash());
                 ntlmUserSessionKey = md4.getOutput();
             }
             return ntlmUserSessionKey;
@@ -496,12 +494,11 @@ final class NTLMEngineImpl implements NTLMEngine {
         public byte[] getNTLM2SessionResponseUserSessionKey()
             throws NTLMEngineException {
             if (ntlm2SessionResponseUserSessionKey == null) {
-                final byte[] ntlmUserSessionKey = getNTLMUserSessionKey();
                 final byte[] ntlm2SessionResponseNonce = getLM2SessionResponse();
                 final byte[] sessionNonce = new byte[challenge.length + ntlm2SessionResponseNonce.length];
                 System.arraycopy(challenge, 0, sessionNonce, 0, challenge.length);
                 System.arraycopy(ntlm2SessionResponseNonce, 0, sessionNonce, challenge.length, ntlm2SessionResponseNonce.length);
-                ntlm2SessionResponseUserSessionKey = hmacMD5(sessionNonce,ntlmUserSessionKey);
+                ntlm2SessionResponseUserSessionKey = hmacMD5(sessionNonce,getNTLMUserSessionKey());
             }
             return ntlm2SessionResponseUserSessionKey;
         }
@@ -510,16 +507,14 @@ final class NTLMEngineImpl implements NTLMEngine {
         public byte[] getLanManagerSessionKey()
             throws NTLMEngineException {
             if (lanManagerSessionKey == null) {
-                final byte[] lmHash = getLMHash();
-                final byte[] lmResponse = getLMResponse();
                 try {
                     final byte[] keyBytes = new byte[14];
-                    System.arraycopy(lmHash, 0, keyBytes, 0, 8);
+                    System.arraycopy(getLMHash(), 0, keyBytes, 0, 8);
                     Arrays.fill(keyBytes, 8, keyBytes.length, (byte)0xbd);
                     final Key lowKey = createDESKey(keyBytes, 0);
                     final Key highKey = createDESKey(keyBytes, 7);
                     final byte[] truncatedResponse = new byte[8];
-                    System.arraycopy(lmResponse, 0, truncatedResponse, 0, truncatedResponse.length);
+                    System.arraycopy(getLMResponse(), 0, truncatedResponse, 0, truncatedResponse.length);
                     Cipher des = Cipher.getInstance("DES/ECB/NoPadding");
                     des.init(Cipher.ENCRYPT_MODE, lowKey);
                     final byte[] lowPart = des.doFinal(truncatedResponse);
