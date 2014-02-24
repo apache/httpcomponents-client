@@ -407,8 +407,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         final HttpResponse resp1 = HttpTestUtils.make200Response();
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","public,max-age=5");
         resp1.setHeader("Etag","\"etag\"");
@@ -552,8 +550,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         final HttpResponse resp1 = HttpTestUtils.make200Response();
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         resp1.setHeader("Cache-Control", "public, max-age=5");
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
@@ -598,8 +594,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     @Test
     public void testDoesNotAddNewWarningHeaderIfResponseArrivesStale()
         throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         originResponse.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         originResponse.setHeader("Cache-Control","public, max-age=5");
         originResponse.setHeader("ETag","\"etag\"");
@@ -616,8 +610,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     @Test
     public void testForwardsExistingWarningHeadersOnResponseThatArrivesStale()
         throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         originResponse.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         originResponse.setHeader("Cache-Control","public, max-age=5");
         originResponse.setHeader("ETag","\"etag\"");
@@ -927,8 +919,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     @Test
     public void testUsesLastModifiedDateForCacheConditionalRequests()
             throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         final Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
         final String lmDate = DateUtils.formatDate(twentySecondsAgo);
 
@@ -976,8 +966,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     @Test
     public void testUsesBothLastModifiedAndETagForConditionalRequestsIfAvailable()
             throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         final Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
         final String lmDate = DateUtils.formatDate(twentySecondsAgo);
         final String etag = "\"etag\"";
@@ -1030,7 +1018,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     @Test
     public void testRevalidatesCachedResponseWithExpirationInThePast()
             throws Exception {
-        final Date now = new Date();
         final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         final Date oneSecondFromNow = new Date(now.getTime() + 1 * 1000L);
         final Date twoSecondsFromNow = new Date(now.getTime() + 2 * 1000L);
@@ -1089,8 +1076,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     @Test
     public void testRetriesValidationThatResultsInAnOlderDated304Response()
         throws Exception {
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         final Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
@@ -1233,9 +1218,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     public void testResponseToExistingVariantsUpdatesEntry()
         throws Exception {
 
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         req1.setHeader("User-Agent", "agent1");
@@ -1291,9 +1273,6 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     @Test
     public void testResponseToExistingVariantsIsCachedForFutureResponses()
         throws Exception {
-
-        final Date now = new Date();
-        final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
