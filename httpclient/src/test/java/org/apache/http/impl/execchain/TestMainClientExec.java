@@ -91,7 +91,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-@SuppressWarnings("boxing") // test code
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestMainClientExec {
 
     @Mock

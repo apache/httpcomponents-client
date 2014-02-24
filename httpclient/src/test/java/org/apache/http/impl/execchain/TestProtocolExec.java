@@ -50,6 +50,7 @@ import org.mockito.MockitoAnnotations;
 import java.io.IOException;
 import java.net.URI;
 
+@SuppressWarnings({"static-access"}) // test code
 public class TestProtocolExec {
 
     @Mock

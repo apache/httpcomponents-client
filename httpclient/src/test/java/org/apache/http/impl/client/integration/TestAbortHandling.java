@@ -64,6 +64,7 @@ import org.mockito.Mockito;
 /**
  *  Tests for Abort handling.
  */
+@SuppressWarnings("static-access") // test code
 public class TestAbortHandling extends IntegrationTestBase {
 
     @Before
@@ -497,14 +498,14 @@ public class TestAbortHandling extends IntegrationTestBase {
                 final HttpHost host,
                 final InetSocketAddress localAddress,
                 final int connectTimeout,
-                final HttpContext context) throws IOException {
+                final HttpContext context) {
             throw new UnsupportedOperationException("just a mockup");
         }
 
         public void upgrade(
                 final HttpClientConnection conn,
                 final HttpHost host,
-                final HttpContext context) throws IOException {
+                final HttpContext context) {
             throw new UnsupportedOperationException("just a mockup");
         }
     }

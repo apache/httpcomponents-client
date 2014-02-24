@@ -37,6 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+@SuppressWarnings({"static-access"}) // test code
 public class TestConnectionHolder {
 
     private Log log;

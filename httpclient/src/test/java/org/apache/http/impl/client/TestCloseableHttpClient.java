@@ -46,7 +46,7 @@ import org.mockito.Mockito;
 /**
  *  Simple tests for {@link CloseableHttpClient}.
  */
-@SuppressWarnings("boxing") // test code
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestCloseableHttpClient {
 
     static abstract class NoopCloseableHttpClient extends CloseableHttpClient {

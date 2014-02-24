@@ -50,7 +50,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-@SuppressWarnings("boxing") // test code
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestHttpClientConnectionOperator {
 
     private ManagedHttpClientConnection conn;

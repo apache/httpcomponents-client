@@ -27,6 +27,7 @@
 package org.apache.http.impl.client.integration;
 
 import junit.framework.Assert;
+
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -43,6 +44,7 @@ import java.net.InetSocketAddress;
 
 public class TestBasicConnectionManager extends IntegrationTestBase {
 
+    @SuppressWarnings("resource") // BasicHttpClientConnectionManager
     @Before
     public void setUp() throws Exception {
         this.localServer = new LocalTestServer(null, null);

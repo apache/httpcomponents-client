@@ -42,7 +42,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-@SuppressWarnings("boxing") // test code
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestServiceUnavailableRetryExec {
 
     @Mock

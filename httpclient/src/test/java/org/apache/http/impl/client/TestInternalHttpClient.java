@@ -55,7 +55,7 @@ import org.mockito.Mockito;
 /**
  *  Simple tests for {@link InternalHttpClient}.
  */
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"static-access"}) // test code
 public class TestInternalHttpClient {
 
     private ClientExecChain execChain;

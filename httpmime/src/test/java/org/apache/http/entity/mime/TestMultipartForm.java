@@ -146,6 +146,7 @@ public class TestMultipartForm {
         final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new FileBody(tmpfile));
+        @SuppressWarnings("resource")
         final FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
@@ -193,6 +194,7 @@ public class TestMultipartForm {
         final FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new FileBody(tmpfile, ContentType.create("text/plain", "ANSI_X3.4-1968"), "test-file"));
+        @SuppressWarnings("resource")
         final FormBodyPart p3 = new FormBodyPart(
                 "field3",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
@@ -247,6 +249,7 @@ public class TestMultipartForm {
         final FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new FileBody(tmpfile, ContentType.create("text/plain", "ANSI_X3.4-1968"), "test-file"));
+        @SuppressWarnings("resource")
         final FormBodyPart p3 = new FormBodyPart(
                 "field3",
                 new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
@@ -317,9 +320,11 @@ public class TestMultipartForm {
             writer.close();
         }
 
+        @SuppressWarnings("resource")
         final FormBodyPart p1 = new FormBodyPart(
                 "field1",
                 new InputStreamBody(new FileInputStream(tmpfile), s1 + ".tmp"));
+        @SuppressWarnings("resource")
         final FormBodyPart p2 = new FormBodyPart(
                 "field2",
                 new InputStreamBody(new FileInputStream(tmpfile), s2 + ".tmp"));

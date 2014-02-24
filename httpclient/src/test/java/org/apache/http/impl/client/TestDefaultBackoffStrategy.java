@@ -42,7 +42,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 
-@SuppressWarnings("boxing") // test code
 public class TestDefaultBackoffStrategy {
 
     private DefaultBackoffStrategy impl;
