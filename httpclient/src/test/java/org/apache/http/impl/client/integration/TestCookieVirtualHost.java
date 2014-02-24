@@ -107,6 +107,9 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
                     response.setStatusLine(HttpVersion.HTTP_1_1,
                             HttpStatus.SC_OK);
                     break;
+                default:
+                    Assert.fail("Unexpected value: " + n);
+                    break;
                 }
             }
 
@@ -122,6 +125,7 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
         URI uri = new URI("http://app.mydomain.fr");
         HttpRequest httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "1");
+        @SuppressWarnings("resource")
         final HttpResponse response1 = this.httpclient.execute(getServerHttp(),
                 httpRequest, context);
         final HttpEntity e1 = response1.getEntity();
@@ -137,6 +141,7 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
         uri = new URI("http://app.mydomain.fr");
         httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "2");
+        @SuppressWarnings("resource")
         final HttpResponse response2 = this.httpclient.execute(getServerHttp(),
                 httpRequest, context);
         final HttpEntity e2 = response2.getEntity();
@@ -146,6 +151,7 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
         uri = new URI("http://app.mydomain.fr");
         httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "3");
+        @SuppressWarnings("resource")
         final HttpResponse response3 = this.httpclient.execute(getServerHttp(),
                 httpRequest, context);
         final HttpEntity e3 = response3.getEntity();

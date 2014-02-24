@@ -46,6 +46,7 @@ import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 /**
@@ -76,7 +77,7 @@ public class TestSystemDefaultRoutePlanner {
         Assert.assertEquals(target, route.getTargetHost());
         Assert.assertEquals(1, route.getHopCount());
         Assert.assertFalse(route.isSecure());
-        Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.<HttpHost>any());
+        Mockito.verify(schemePortResolver, Mockito.never()).resolve(Matchers.<HttpHost>any());
     }
 
     @Test
