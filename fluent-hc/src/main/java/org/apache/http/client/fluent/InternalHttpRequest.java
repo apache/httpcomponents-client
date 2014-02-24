@@ -85,17 +85,16 @@ class InternalHttpRequest extends AbstractHttpMessage implements HttpUriRequest,
 
     @Override
     public RequestLine getRequestLine() {
-        final String method = getMethod();
         final ProtocolVersion ver = getProtocolVersion();
-        final URI uri = getURI();
+        final URI uriCopy = getURI();
         String uritext = null;
-        if (uri != null) {
-            uritext = uri.toASCIIString();
+        if (uriCopy != null) {
+            uritext = uriCopy.toASCIIString();
         }
         if (uritext == null || uritext.isEmpty()) {
             uritext = "/";
         }
-        return new BasicRequestLine(method, uritext, ver);
+        return new BasicRequestLine(getMethod(), uritext, ver);
     }
 
 
