@@ -691,34 +691,35 @@ public class HttpClientBuilder {
 
     public CloseableHttpClient build() {
         // Create main request executor
-        HttpRequestExecutor requestExec = this.requestExec;
-        if (requestExec == null) {
-            requestExec = new HttpRequestExecutor();
+        // We copy the instance fields to avoid changing them, and rename to avoid accidental use of the wrong version
+        HttpRequestExecutor requestExecCopy = this.requestExec;
+        if (requestExecCopy == null) {
+            requestExecCopy = new HttpRequestExecutor();
         }
-        HttpClientConnectionManager connManager = this.connManager;
-        if (connManager == null) {
-            LayeredConnectionSocketFactory sslSocketFactory = this.sslSocketFactory;
-            if (sslSocketFactory == null) {
+        HttpClientConnectionManager connManagerCopy = this.connManager;
+        if (connManagerCopy == null) {
+            LayeredConnectionSocketFactory sslSocketFactoryCopy = this.sslSocketFactory;
+            if (sslSocketFactoryCopy == null) {
                 final String[] supportedProtocols = systemProperties ? split(
                         System.getProperty("https.protocols")) : null;
                 final String[] supportedCipherSuites = systemProperties ? split(
                         System.getProperty("https.cipherSuites")) : null;
-                X509HostnameVerifier hostnameVerifier = this.hostnameVerifier;
-                if (hostnameVerifier == null) {
-                    hostnameVerifier = SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
+                X509HostnameVerifier hostnameVerifierCopy = this.hostnameVerifier;
+                if (hostnameVerifierCopy == null) {
+                    hostnameVerifierCopy = SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
                 }
                 if (sslcontext != null) {
-                    sslSocketFactory = new SSLConnectionSocketFactory(
-                            sslcontext, supportedProtocols, supportedCipherSuites, hostnameVerifier);
+                    sslSocketFactoryCopy = new SSLConnectionSocketFactory(
+                            sslcontext, supportedProtocols, supportedCipherSuites, hostnameVerifierCopy);
                 } else {
                     if (systemProperties) {
-                        sslSocketFactory = new SSLConnectionSocketFactory(
+                        sslSocketFactoryCopy = new SSLConnectionSocketFactory(
                                 (SSLSocketFactory) SSLSocketFactory.getDefault(),
-                                supportedProtocols, supportedCipherSuites, hostnameVerifier);
+                                supportedProtocols, supportedCipherSuites, hostnameVerifierCopy);
                     } else {
-                        sslSocketFactory = new SSLConnectionSocketFactory(
+                        sslSocketFactoryCopy = new SSLConnectionSocketFactory(
                                 SSLContexts.createDefault(),
-                                hostnameVerifier);
+                                hostnameVerifierCopy);
                     }
                 }
             }
@@ -726,7 +727,7 @@ public class HttpClientBuilder {
             final PoolingHttpClientConnectionManager poolingmgr = new PoolingHttpClientConnectionManager(
                     RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("http", PlainConnectionSocketFactory.getSocketFactory())
-                        .register("https", sslSocketFactory)
+                        .register("https", sslSocketFactoryCopy)
                         .build());
             if (defaultSocketConfig != null) {
                 poolingmgr.setDefaultSocketConfig(defaultSocketConfig);
@@ -749,62 +750,62 @@ public class HttpClientBuilder {
             if (maxConnPerRoute > 0) {
                 poolingmgr.setDefaultMaxPerRoute(maxConnPerRoute);
             }
-            connManager = poolingmgr;
+            connManagerCopy = poolingmgr;
         }
-        ConnectionReuseStrategy reuseStrategy = this.reuseStrategy;
-        if (reuseStrategy == null) {
+        ConnectionReuseStrategy reuseStrategyCopy = this.reuseStrategy;
+        if (reuseStrategyCopy == null) {
             if (systemProperties) {
                 final String s = System.getProperty("http.keepAlive", "true");
                 if ("true".equalsIgnoreCase(s)) {
-                    reuseStrategy = DefaultConnectionReuseStrategy.INSTANCE;
+                    reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
                 } else {
-                    reuseStrategy = NoConnectionReuseStrategy.INSTANCE;
+                    reuseStrategyCopy = NoConnectionReuseStrategy.INSTANCE;
                 }
             } else {
-                reuseStrategy = DefaultConnectionReuseStrategy.INSTANCE;
+                reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
             }
         }
-        ConnectionKeepAliveStrategy keepAliveStrategy = this.keepAliveStrategy;
-        if (keepAliveStrategy == null) {
-            keepAliveStrategy = DefaultConnectionKeepAliveStrategy.INSTANCE;
+        ConnectionKeepAliveStrategy keepAliveStrategyCopy = this.keepAliveStrategy;
+        if (keepAliveStrategyCopy == null) {
+            keepAliveStrategyCopy = DefaultConnectionKeepAliveStrategy.INSTANCE;
         }
-        AuthenticationStrategy targetAuthStrategy = this.targetAuthStrategy;
-        if (targetAuthStrategy == null) {
-            targetAuthStrategy = TargetAuthenticationStrategy.INSTANCE;
+        AuthenticationStrategy targetAuthStrategyCopy = this.targetAuthStrategy;
+        if (targetAuthStrategyCopy == null) {
+            targetAuthStrategyCopy = TargetAuthenticationStrategy.INSTANCE;
         }
-        AuthenticationStrategy proxyAuthStrategy = this.proxyAuthStrategy;
-        if (proxyAuthStrategy == null) {
-            proxyAuthStrategy = ProxyAuthenticationStrategy.INSTANCE;
+        AuthenticationStrategy proxyAuthStrategyCopy = this.proxyAuthStrategy;
+        if (proxyAuthStrategyCopy == null) {
+            proxyAuthStrategyCopy = ProxyAuthenticationStrategy.INSTANCE;
         }
-        UserTokenHandler userTokenHandler = this.userTokenHandler;
-        if (userTokenHandler == null) {
+        UserTokenHandler userTokenHandlerCopy = this.userTokenHandler;
+        if (userTokenHandlerCopy == null) {
             if (!connectionStateDisabled) {
-                userTokenHandler = DefaultUserTokenHandler.INSTANCE;
+                userTokenHandlerCopy = DefaultUserTokenHandler.INSTANCE;
             } else {
-                userTokenHandler = NoopUserTokenHandler.INSTANCE;
+                userTokenHandlerCopy = NoopUserTokenHandler.INSTANCE;
             }
         }
         ClientExecChain execChain = new MainClientExec(
-                requestExec,
-                connManager,
-                reuseStrategy,
-                keepAliveStrategy,
-                targetAuthStrategy,
-                proxyAuthStrategy,
-                userTokenHandler);
+                requestExecCopy,
+                connManagerCopy,
+                reuseStrategyCopy,
+                keepAliveStrategyCopy,
+                targetAuthStrategyCopy,
+                proxyAuthStrategyCopy,
+                userTokenHandlerCopy);
 
         execChain = decorateMainExec(execChain);
 
-        HttpProcessor httpprocessor = this.httpprocessor;
-        if (httpprocessor == null) {
+        HttpProcessor httpprocessorCopy = this.httpprocessor;
+        if (httpprocessorCopy == null) {
 
-            String userAgent = this.userAgent;
-            if (userAgent == null) {
+            String userAgentCopy = this.userAgent;
+            if (userAgentCopy == null) {
                 if (systemProperties) {
-                    userAgent = System.getProperty("http.agent");
+                    userAgentCopy = System.getProperty("http.agent");
                 }
-                if (userAgent == null) {
-                    userAgent = DEFAULT_USER_AGENT;
+                if (userAgentCopy == null) {
+                    userAgentCopy = DEFAULT_USER_AGENT;
                 }
             }
 
@@ -824,7 +825,7 @@ public class HttpClientBuilder {
                     new RequestContent(),
                     new RequestTargetHost(),
                     new RequestClientConnControl(),
-                    new RequestUserAgent(userAgent),
+                    new RequestUserAgent(userAgentCopy),
                     new RequestExpectContinue());
             if (!cookieManagementDisabled) {
                 b.add(new RequestAddCookies());
@@ -851,60 +852,58 @@ public class HttpClientBuilder {
                     b.addLast(i);
                 }
             }
-            httpprocessor = b.build();
+            httpprocessorCopy = b.build();
         }
-        execChain = new ProtocolExec(execChain, httpprocessor);
+        execChain = new ProtocolExec(execChain, httpprocessorCopy);
 
         execChain = decorateProtocolExec(execChain);
 
         // Add request retry executor, if not disabled
         if (!automaticRetriesDisabled) {
-            HttpRequestRetryHandler retryHandler = this.retryHandler;
-            if (retryHandler == null) {
-                retryHandler = DefaultHttpRequestRetryHandler.INSTANCE;
+            HttpRequestRetryHandler retryHandlerCopy = this.retryHandler;
+            if (retryHandlerCopy == null) {
+                retryHandlerCopy = DefaultHttpRequestRetryHandler.INSTANCE;
             }
-            execChain = new RetryExec(execChain, retryHandler);
+            execChain = new RetryExec(execChain, retryHandlerCopy);
         }
 
-        HttpRoutePlanner routePlanner = this.routePlanner;
-        if (routePlanner == null) {
-            SchemePortResolver schemePortResolver = this.schemePortResolver;
-            if (schemePortResolver == null) {
-                schemePortResolver = DefaultSchemePortResolver.INSTANCE;
+        HttpRoutePlanner routePlannerCopy = this.routePlanner;
+        if (routePlannerCopy == null) {
+            SchemePortResolver schemePortResolverCopy = this.schemePortResolver;
+            if (schemePortResolverCopy == null) {
+                schemePortResolverCopy = DefaultSchemePortResolver.INSTANCE;
             }
             if (proxy != null) {
-                routePlanner = new DefaultProxyRoutePlanner(proxy, schemePortResolver);
+                routePlannerCopy = new DefaultProxyRoutePlanner(proxy, schemePortResolverCopy);
             } else if (systemProperties) {
-                routePlanner = new SystemDefaultRoutePlanner(
-                        schemePortResolver, ProxySelector.getDefault());
+                routePlannerCopy = new SystemDefaultRoutePlanner(
+                        schemePortResolverCopy, ProxySelector.getDefault());
             } else {
-                routePlanner = new DefaultRoutePlanner(schemePortResolver);
+                routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
             }
         }
         // Add redirect executor, if not disabled
         if (!redirectHandlingDisabled) {
-            RedirectStrategy redirectStrategy = this.redirectStrategy;
-            if (redirectStrategy == null) {
-                redirectStrategy = DefaultRedirectStrategy.INSTANCE;
+            RedirectStrategy redirectStrategyCopy = this.redirectStrategy;
+            if (redirectStrategyCopy == null) {
+                redirectStrategyCopy = DefaultRedirectStrategy.INSTANCE;
             }
-            execChain = new RedirectExec(execChain, routePlanner, redirectStrategy);
+            execChain = new RedirectExec(execChain, routePlannerCopy, redirectStrategyCopy);
         }
 
         // Optionally, add service unavailable retry executor
-        final ServiceUnavailableRetryStrategy serviceUnavailStrategy = this.serviceUnavailStrategy;
-        if (serviceUnavailStrategy != null) {
-            execChain = new ServiceUnavailableRetryExec(execChain, serviceUnavailStrategy);
+        final ServiceUnavailableRetryStrategy serviceUnavailStrategyCopy = this.serviceUnavailStrategy;
+        if (serviceUnavailStrategyCopy != null) {
+            execChain = new ServiceUnavailableRetryExec(execChain, serviceUnavailStrategyCopy);
         }
         // Optionally, add connection back-off executor
-        final BackoffManager backoffManager = this.backoffManager;
-        final ConnectionBackoffStrategy connectionBackoffStrategy = this.connectionBackoffStrategy;
-        if (backoffManager != null && connectionBackoffStrategy != null) {
-            execChain = new BackoffStrategyExec(execChain, connectionBackoffStrategy, backoffManager);
+        if (this.backoffManager != null && this.connectionBackoffStrategy != null) {
+            execChain = new BackoffStrategyExec(execChain, this.connectionBackoffStrategy, this.backoffManager);
         }
 
-        Lookup<AuthSchemeProvider> authSchemeRegistry = this.authSchemeRegistry;
-        if (authSchemeRegistry == null) {
-            authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+        Lookup<AuthSchemeProvider> authSchemeRegistryCopy = this.authSchemeRegistry;
+        if (authSchemeRegistryCopy == null) {
+            authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeProvider>create()
                 .register(AuthSchemes.BASIC, new BasicSchemeFactory())
                 .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
                 .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
@@ -912,9 +911,9 @@ public class HttpClientBuilder {
                 .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory())
                 .build();
         }
-        Lookup<CookieSpecProvider> cookieSpecRegistry = this.cookieSpecRegistry;
-        if (cookieSpecRegistry == null) {
-            cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
+        Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
+        if (cookieSpecRegistryCopy == null) {
+            cookieSpecRegistryCopy = RegistryBuilder.<CookieSpecProvider>create()
                 .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
                 .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
                 .register(CookieSpecs.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
@@ -941,10 +940,10 @@ public class HttpClientBuilder {
 
         return new InternalHttpClient(
                 execChain,
-                connManager,
-                routePlanner,
-                cookieSpecRegistry,
-                authSchemeRegistry,
+                connManagerCopy,
+                routePlannerCopy,
+                cookieSpecRegistryCopy,
+                authSchemeRegistryCopy,
                 defaultCookieStore,
                 defaultCredentialsProvider,
                 defaultRequestConfig != null ? defaultRequestConfig : RequestConfig.DEFAULT,

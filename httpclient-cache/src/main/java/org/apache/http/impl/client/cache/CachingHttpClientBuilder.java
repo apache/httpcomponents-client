@@ -105,18 +105,19 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
     @Override
     protected ClientExecChain decorateMainExec(final ClientExecChain mainExec) {
         final CacheConfig config = this.cacheConfig != null ? this.cacheConfig : CacheConfig.DEFAULT;
-        ResourceFactory resourceFactory = this.resourceFactory;
-        if (resourceFactory == null) {
+        // We copy the instance fields to avoid changing them, and rename to avoid accidental use of the wrong version
+        ResourceFactory resourceFactoryCopy = this.resourceFactory;
+        if (resourceFactoryCopy == null) {
             if (this.cacheDir == null) {
-                resourceFactory = new HeapResourceFactory();
+                resourceFactoryCopy = new HeapResourceFactory();
             } else {
-                resourceFactory = new FileResourceFactory(cacheDir);
+                resourceFactoryCopy = new FileResourceFactory(cacheDir);
             }
         }
-        HttpCacheStorage storage = this.storage;
-        if (storage == null) {
+        HttpCacheStorage storageCopy = this.storage;
+        if (storageCopy == null) {
             if (this.cacheDir == null) {
-                storage = new BasicHttpCacheStorage(config);
+                storageCopy = new BasicHttpCacheStorage(config);
             } else {
                 final ManagedHttpCacheStorage managedStorage = new ManagedHttpCacheStorage(config);
                 if (this.deleteCache) {
@@ -131,7 +132,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 } else {
                     addCloseable(managedStorage);
                 }
-                storage = managedStorage;
+                storageCopy = managedStorage;
             }
         }
         final AsynchronousValidator revalidator = createAsynchronousRevalidator(config);
@@ -139,13 +140,13 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
 
         HttpCacheInvalidator cacheInvalidator = this.httpCacheInvalidator;
         if (cacheInvalidator == null) {
-            cacheInvalidator = new CacheInvalidator(uriExtractor, storage);
+            cacheInvalidator = new CacheInvalidator(uriExtractor, storageCopy);
         }
 
         return new CachingExec(mainExec,
                 new BasicHttpCache(
-                        resourceFactory,
-                        storage, config,
+                        resourceFactoryCopy,
+                        storageCopy, config,
                         uriExtractor,
                         cacheInvalidator), config, revalidator);
     }
