@@ -101,8 +101,8 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
 
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         final HttpResponse resp2 = HttpTestUtils.make500Response();
-        final byte[] body = HttpTestUtils.getRandomBytes(101);
-        final ByteArrayInputStream buf = new ByteArrayInputStream(body);
+        final byte[] body101 = HttpTestUtils.getRandomBytes(101);
+        final ByteArrayInputStream buf = new ByteArrayInputStream(body101);
         final ConsumableInputStream cis = new ConsumableInputStream(buf);
         final HttpEntity entity = new InputStreamEntity(cis, 101);
         resp2.setEntity(entity);
@@ -167,9 +167,9 @@ public class TestRFC5861Compliance extends AbstractProtocolTest {
     @Test
     public void testStaleIfErrorInResponseNeedNotYieldToProxyRevalidateForPrivateCache()
             throws Exception{
-        final CacheConfig config = CacheConfig.custom()
+        final CacheConfig configUnshared = CacheConfig.custom()
                 .setSharedCache(false).build();
-        impl = new CachingExec(mockBackend, new BasicHttpCache(config), config);
+        impl = new CachingExec(mockBackend, new BasicHttpCache(configUnshared), configUnshared);
 
         final Date tenSecondsAgo = new Date(new Date().getTime() - 10 * 1000L);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());

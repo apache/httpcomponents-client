@@ -91,10 +91,10 @@ public class TestRequestProtocolCompliance {
 
     @Test
     public void removesEntityFromTRACERequest() throws Exception {
-        final HttpEntityEnclosingRequest req =
+        final HttpEntityEnclosingRequest reqst =
             new BasicHttpEntityEnclosingRequest("TRACE", "/", HttpVersion.HTTP_1_1);
-        req.setEntity(HttpTestUtils.makeBody(50));
-        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+        reqst.setEntity(HttpTestUtils.makeBody(50));
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(reqst);
         impl.makeRequestCompliant(wrapper);
         if (wrapper instanceof HttpEntityEnclosingRequest) {
             assertNull(((HttpEntityEnclosingRequest) wrapper).getEntity());

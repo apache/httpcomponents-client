@@ -68,9 +68,9 @@ public class TestCachedHttpResponseGenerator {
     @Test
     public void testResponseHasContentLength() {
         final byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(buf);
+        final HttpCacheEntry entry1 = HttpTestUtils.makeCacheEntry(buf);
 
-        final HttpResponse response = impl.generateResponse(entry);
+        final HttpResponse response = impl.generateResponse(entry1);
 
         final Header length = response.getFirstHeader("Content-Length");
         Assert.assertNotNull("Content-Length Header is missing", length);
@@ -84,9 +84,9 @@ public class TestCachedHttpResponseGenerator {
 
         final Header[] hdrs = new Header[] { new BasicHeader("Transfer-Encoding", "chunked") };
         final byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(hdrs, buf);
+        final HttpCacheEntry entry1 = HttpTestUtils.makeCacheEntry(hdrs, buf);
 
-        final HttpResponse response = impl.generateResponse(entry);
+        final HttpResponse response = impl.generateResponse(entry1);
 
         final Header length = response.getFirstHeader("Content-Length");
 

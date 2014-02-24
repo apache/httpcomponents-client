@@ -4842,12 +4842,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     protected HttpRequestWrapper makeRequestWithBody(final String method, final String requestUri) {
-        final HttpEntityEnclosingRequest request =
+        final HttpEntityEnclosingRequest req =
             new BasicHttpEntityEnclosingRequest(method, requestUri, HttpVersion.HTTP_1_1);
         final int nbytes = 128;
-        request.setEntity(HttpTestUtils.makeBody(nbytes));
-        request.setHeader("Content-Length",""+nbytes);
-        return HttpRequestWrapper.wrap(request);
+        req.setEntity(HttpTestUtils.makeBody(nbytes));
+        req.setHeader("Content-Length",""+nbytes);
+        return HttpRequestWrapper.wrap(req);
     }
 
     @Test

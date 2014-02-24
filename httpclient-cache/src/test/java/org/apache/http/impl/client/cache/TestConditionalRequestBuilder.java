@@ -65,9 +65,9 @@ public class TestConditionalRequestBuilder {
         final String theUri = "/theuri";
         final String lastModified = "this is my last modified date";
 
-        final HttpRequest request = new BasicHttpRequest(theMethod, theUri);
-        request.addHeader("Accept-Encoding", "gzip");
-        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(request);
+        final HttpRequest basicRequest = new BasicHttpRequest(theMethod, theUri);
+        basicRequest.addHeader("Accept-Encoding", "gzip");
+        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(basicRequest);
 
         final Header[] headers = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(new Date())),
@@ -76,11 +76,11 @@ public class TestConditionalRequestBuilder {
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
         final HttpRequestWrapper newRequest = impl.buildConditionalRequest(requestWrapper, cacheEntry);
 
-        Assert.assertNotSame(request, newRequest);
+        Assert.assertNotSame(basicRequest, newRequest);
 
         Assert.assertEquals(theMethod, newRequest.getRequestLine().getMethod());
         Assert.assertEquals(theUri, newRequest.getRequestLine().getUri());
-        Assert.assertEquals(request.getRequestLine().getProtocolVersion(), newRequest
+        Assert.assertEquals(basicRequest.getRequestLine().getProtocolVersion(), newRequest
                 .getRequestLine().getProtocolVersion());
         Assert.assertEquals(2, newRequest.getAllHeaders().length);
 
@@ -104,10 +104,10 @@ public class TestConditionalRequestBuilder {
             new BasicHeader("Last-Modified", lmDate),
             new BasicHeader("ETag", etag)
         };
-        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
-        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(request);
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);
-        final HttpRequest result = impl.buildConditionalRequest(requestWrapper, entry);
+        final HttpRequest basicRequest = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(basicRequest);
+        final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
+        final HttpRequest result = impl.buildConditionalRequest(requestWrapper, cacheEntry);
         Assert.assertEquals(lmDate,
                 result.getFirstHeader("If-Modified-Since").getValue());
         Assert.assertEquals(etag,
@@ -120,9 +120,9 @@ public class TestConditionalRequestBuilder {
         final String theUri = "/theuri";
         final String theETag = "this is my eTag";
 
-        final HttpRequest request = new BasicHttpRequest(theMethod, theUri);
-        request.addHeader("Accept-Encoding", "gzip");
-        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(request);
+        final HttpRequest basicRequest = new BasicHttpRequest(theMethod, theUri);
+        basicRequest.addHeader("Accept-Encoding", "gzip");
+        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(basicRequest);
 
         final Header[] headers = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(new Date())),
@@ -133,11 +133,11 @@ public class TestConditionalRequestBuilder {
 
         final HttpRequest newRequest = impl.buildConditionalRequest(requestWrapper, cacheEntry);
 
-        Assert.assertNotSame(request, newRequest);
+        Assert.assertNotSame(basicRequest, newRequest);
 
         Assert.assertEquals(theMethod, newRequest.getRequestLine().getMethod());
         Assert.assertEquals(theUri, newRequest.getRequestLine().getUri());
-        Assert.assertEquals(request.getRequestLine().getProtocolVersion(), newRequest
+        Assert.assertEquals(basicRequest.getRequestLine().getProtocolVersion(), newRequest
                 .getRequestLine().getProtocolVersion());
 
         Assert.assertEquals(3, newRequest.getAllHeaders().length);
@@ -151,8 +151,8 @@ public class TestConditionalRequestBuilder {
 
     @Test
     public void testCacheEntryWithMustRevalidateDoesEndToEndRevalidation() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
-        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(request);
+        final HttpRequest basicRequest = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(basicRequest);
         final Date now = new Date();
         final Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
@@ -180,8 +180,8 @@ public class TestConditionalRequestBuilder {
 
     @Test
     public void testCacheEntryWithProxyRevalidateDoesEndToEndRevalidation() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
-        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(request);
+        final HttpRequest basicRequest = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(basicRequest);
         final Date now = new Date();
         final Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);

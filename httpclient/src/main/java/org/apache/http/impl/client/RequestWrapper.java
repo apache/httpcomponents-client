@@ -129,7 +129,6 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
 
     @Override
     public RequestLine getRequestLine() {
-        final String method = getMethod();
         final ProtocolVersion ver = getProtocolVersion();
         String uritext = null;
         if (uri != null) {
@@ -138,7 +137,7 @@ public class RequestWrapper extends AbstractHttpMessage implements HttpUriReques
         if (uritext == null || uritext.isEmpty()) {
             uritext = "/";
         }
-        return new BasicRequestLine(method, uritext, ver);
+        return new BasicRequestLine(getMethod(), uritext, ver);
     }
 
     @Override

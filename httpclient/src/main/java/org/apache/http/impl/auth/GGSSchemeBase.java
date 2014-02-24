@@ -91,9 +91,9 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
 
     protected byte[] generateGSSToken(
             final byte[] input, final Oid oid, final String authServer) throws GSSException {
-        byte[] token = input;
-        if (token == null) {
-            token = new byte[0];
+        byte[] inputBuff = input;
+        if (inputBuff == null) {
+            inputBuff = new byte[0];
         }
         final GSSManager manager = getManager();
         final GSSName serverName = manager.createName("HTTP@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
@@ -101,7 +101,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                 serverName.canonicalize(oid), oid, null, GSSContext.DEFAULT_LIFETIME);
         gssContext.requestMutualAuth(true);
         gssContext.requestCredDeleg(true);
-        return gssContext.initSecContext(token, 0, token.length);
+        return gssContext.initSecContext(inputBuff, 0, inputBuff.length);
     }
 
     protected abstract byte[] generateToken(

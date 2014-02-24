@@ -286,7 +286,7 @@ public class RequestBuilder {
 
     public HttpUriRequest build() {
         final HttpRequestBase result;
-        URI uri = this.uri != null ? this.uri : URI.create("/");
+        URI uriNotNull = this.uri != null ? this.uri : URI.create("/");
         HttpEntity entity = this.entity;
         if (parameters != null && !parameters.isEmpty()) {
             if (entity == null && (HttpPost.METHOD_NAME.equalsIgnoreCase(method)
@@ -294,7 +294,7 @@ public class RequestBuilder {
                 entity = new UrlEncodedFormEntity(parameters, HTTP.DEF_CONTENT_CHARSET);
             } else {
                 try {
-                    uri = new URIBuilder(uri).addParameters(parameters).build();
+                    uriNotNull = new URIBuilder(uriNotNull).addParameters(parameters).build();
                 } catch (final URISyntaxException ex) {
                     // should never happen
                 }
@@ -308,7 +308,7 @@ public class RequestBuilder {
             result = request;
         }
         result.setProtocolVersion(this.version);
-        result.setURI(uri);
+        result.setURI(uriNotNull);
         if (this.headergroup != null) {
             result.setHeaders(this.headergroup.getAllHeaders());
         }

@@ -79,13 +79,13 @@ public class TestMemcachedCacheEntryImpl {
     @Test
     public void canBeReconstitutedFromByteArray() throws Exception {
         final String key = impl.getStorageKey();
-        final HttpCacheEntry entry = impl.getHttpCacheEntry();
+        final HttpCacheEntry entry1 = impl.getHttpCacheEntry();
         final byte[] bytes = impl.toByteArray();
         impl = new MemcachedCacheEntryImpl();
         impl.set(bytes);
 
         assertEquals(key, impl.getStorageKey());
-        assertEquivalent(entry, impl.getHttpCacheEntry());
+        assertEquivalent(entry1, impl.getHttpCacheEntry());
     }
 
     @Test(expected=MemcachedSerializationException.class)

@@ -27,6 +27,7 @@
 package org.apache.http.impl.execchain;
 
 import junit.framework.Assert;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
@@ -52,6 +53,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+@SuppressWarnings({"boxing","static-access","resource"}) // test code
 public class TestRetryExec {
 
     @Mock
@@ -165,8 +167,8 @@ public class TestRetryExec {
             @Override
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
-                final HttpEntityEnclosingRequest request = (HttpEntityEnclosingRequest) args[1];
-                request.getEntity().writeTo(new ByteArrayOutputStream());
+                final HttpEntityEnclosingRequest req = (HttpEntityEnclosingRequest) args[1];
+                req.getEntity().writeTo(new ByteArrayOutputStream());
                 throw new IOException("Ka-boom");
             }
 

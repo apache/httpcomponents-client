@@ -60,6 +60,7 @@ import org.mockito.MockitoAnnotations;
 /**
  * {@link PoolingHttpClientConnectionManager} tests.
  */
+@SuppressWarnings({"boxing","static-access","resource"}) // test code
 public class TestPoolingHttpClientConnectionManager {
 
     @Mock
@@ -300,7 +301,7 @@ public class TestPoolingHttpClientConnectionManager {
 
         final ConnectionSocketFactory plainsf = Mockito.mock(ConnectionSocketFactory.class);
         final LayeredConnectionSocketFactory sslsf = Mockito.mock(LayeredConnectionSocketFactory.class);
-        final Socket socket = Mockito.mock(Socket.class);
+        final Socket mockSock = Mockito.mock(Socket.class);
         final HttpClientContext context = HttpClientContext.create();
         final SocketConfig sconfig = SocketConfig.custom().build();
         final ConnectionConfig cconfig = ConnectionConfig.custom().build();
@@ -313,31 +314,31 @@ public class TestPoolingHttpClientConnectionManager {
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(8443);
         Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainsf);
         Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(sslsf);
-        Mockito.when(plainsf.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+        Mockito.when(plainsf.createSocket(Mockito.<HttpContext>any())).thenReturn(mockSock);
         Mockito.when(plainsf.connectSocket(
                 Mockito.anyInt(),
-                Mockito.eq(socket),
+                Mockito.eq(mockSock),
                 Mockito.<HttpHost>any(),
                 Mockito.<InetSocketAddress>any(),
                 Mockito.<InetSocketAddress>any(),
-                Mockito.<HttpContext>any())).thenReturn(socket);
+                Mockito.<HttpContext>any())).thenReturn(mockSock);
 
         mgr.connect(conn1, route, 123, context);
 
         Mockito.verify(dnsResolver, Mockito.times(1)).resolve("someproxy");
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(proxy);
         Mockito.verify(plainsf, Mockito.times(1)).createSocket(context);
-        Mockito.verify(plainsf, Mockito.times(1)).connectSocket(123, socket, proxy,
+        Mockito.verify(plainsf, Mockito.times(1)).connectSocket(123, mockSock, proxy,
                 new InetSocketAddress(remote, 8080),
                 new InetSocketAddress(local, 0), context);
 
-        Mockito.when(conn.getSocket()).thenReturn(socket);
+        Mockito.when(conn.getSocket()).thenReturn(mockSock);
 
         mgr.upgrade(conn1, route, context);
 
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target);
         Mockito.verify(sslsf, Mockito.times(1)).createLayeredSocket(
-                socket, "somehost", 8443, context);
+                mockSock, "somehost", 8443, context);
 
         mgr.routeComplete(conn1, route, context);
     }

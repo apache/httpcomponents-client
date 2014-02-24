@@ -327,9 +327,9 @@ public abstract class TestCachingExecChain {
 
     @Test
     public void testNonCacheableResponseIsNotCachedAndIsReturnedAsIs() throws Exception {
-        final CacheConfig config = CacheConfig.DEFAULT;
+        final CacheConfig configDefault = CacheConfig.DEFAULT;
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(new HeapResourceFactory(),
-            mockStorage, config), config);
+            mockStorage, configDefault), configDefault);
 
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
         final HttpResponse resp1 = HttpTestUtils.make200Response();

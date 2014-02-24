@@ -39,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings("boxing") // this is test code
 public class TestCacheKeyGenerator {
 
     private static final BasicHttpRequest REQUEST_FULL_EPISODES = new BasicHttpRequest("GET",
@@ -46,13 +47,13 @@ public class TestCacheKeyGenerator {
     private static final BasicHttpRequest REQUEST_ROOT = new BasicHttpRequest("GET", "/");
 
     CacheKeyGenerator extractor;
-    private HttpHost host;
+    private HttpHost defaultHost;
     private HttpCacheEntry mockEntry;
     private HttpRequest mockRequest;
 
     @Before
     public void setUp() throws Exception {
-        host = new HttpHost("foo.example.com");
+        defaultHost = new HttpHost("foo.example.com");
         mockEntry = EasyMock.createNiceMock(HttpCacheEntry.class);
         mockRequest = EasyMock.createNiceMock(HttpRequest.class);
         extractor = new CacheKeyGenerator();
@@ -127,14 +128,14 @@ public class TestCacheKeyGenerator {
         extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(final HttpHost h, final HttpRequest req) {
-                Assert.assertSame(host, h);
+                Assert.assertSame(defaultHost, h);
                 Assert.assertSame(mockRequest, req);
                 return theURI;
             }
         };
 
         replayMocks();
-        final String result = extractor.getVariantURI(host, mockRequest, mockEntry);
+        final String result = extractor.getVariantURI(defaultHost, mockRequest, mockEntry);
         verifyMocks();
         Assert.assertSame(theURI, result);
     }
@@ -148,7 +149,7 @@ public class TestCacheKeyGenerator {
         extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(final HttpHost h, final HttpRequest req) {
-                Assert.assertSame(host, h);
+                Assert.assertSame(defaultHost, h);
                 Assert.assertSame(mockRequest, req);
                 return theURI;
             }
@@ -159,7 +160,7 @@ public class TestCacheKeyGenerator {
                 encHeaders);
         replayMocks();
 
-        final String result = extractor.getVariantURI(host, mockRequest, mockEntry);
+        final String result = extractor.getVariantURI(defaultHost, mockRequest, mockEntry);
 
         verifyMocks();
         Assert.assertEquals("{Accept-Encoding=gzip}" + theURI, result);
@@ -173,7 +174,7 @@ public class TestCacheKeyGenerator {
         extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(final HttpHost h, final HttpRequest req) {
-                Assert.assertSame(host, h);
+                Assert.assertSame(defaultHost, h);
                 Assert.assertSame(mockRequest, req);
                 return theURI;
             }
@@ -184,7 +185,7 @@ public class TestCacheKeyGenerator {
                 .andReturn(noHeaders);
         replayMocks();
 
-        final String result = extractor.getVariantURI(host, mockRequest, mockEntry);
+        final String result = extractor.getVariantURI(defaultHost, mockRequest, mockEntry);
 
         verifyMocks();
         Assert.assertEquals("{Accept-Encoding=}" + theURI, result);
@@ -199,7 +200,7 @@ public class TestCacheKeyGenerator {
         extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(final HttpHost h, final HttpRequest req) {
-                Assert.assertSame(host, h);
+                Assert.assertSame(defaultHost, h);
                 Assert.assertSame(mockRequest, req);
                 return theURI;
             }
@@ -211,7 +212,7 @@ public class TestCacheKeyGenerator {
         EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
         replayMocks();
 
-        final String result = extractor.getVariantURI(host, mockRequest, mockEntry);
+        final String result = extractor.getVariantURI(defaultHost, mockRequest, mockEntry);
 
         verifyMocks();
         Assert.assertEquals("{Accept-Encoding=gzip&User-Agent=browser}" + theURI, result);
@@ -227,7 +228,7 @@ public class TestCacheKeyGenerator {
         extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(final HttpHost h, final HttpRequest req) {
-                Assert.assertSame(host, h);
+                Assert.assertSame(defaultHost, h);
                 Assert.assertSame(mockRequest, req);
                 return theURI;
             }
@@ -238,7 +239,7 @@ public class TestCacheKeyGenerator {
         EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
         replayMocks();
 
-        final String result = extractor.getVariantURI(host, mockRequest, mockEntry);
+        final String result = extractor.getVariantURI(defaultHost, mockRequest, mockEntry);
 
         verifyMocks();
         Assert.assertEquals("{Accept-Encoding=gzip&User-Agent=browser}" + theURI, result);
@@ -254,7 +255,7 @@ public class TestCacheKeyGenerator {
         extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(final HttpHost h, final HttpRequest req) {
-                Assert.assertSame(host, h);
+                Assert.assertSame(defaultHost, h);
                 Assert.assertSame(mockRequest, req);
                 return theURI;
             }
@@ -265,7 +266,7 @@ public class TestCacheKeyGenerator {
         EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
         replayMocks();
 
-        final String result = extractor.getVariantURI(host, mockRequest, mockEntry);
+        final String result = extractor.getVariantURI(defaultHost, mockRequest, mockEntry);
 
         verifyMocks();
         Assert

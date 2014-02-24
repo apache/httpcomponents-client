@@ -116,12 +116,12 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesUrisInContentLocationHeadersOnPUTs() throws Exception {
-        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
-        request.setEntity(HttpTestUtils.makeBody(128));
-        request.setHeader("Content-Length","128");
+        final HttpEntityEnclosingRequest putRequest = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        putRequest.setEntity(HttpTestUtils.makeBody(128));
+        putRequest.setHeader("Content-Length","128");
 
         final String contentLocation = "http://foo.example.com/content";
-        request.setHeader("Content-Location", contentLocation);
+        putRequest.setHeader("Content-Location", contentLocation);
 
         final String theUri = "http://foo.example.com:80/";
         cacheEntryHasVariantMap(new HashMap<String,String>());
@@ -132,19 +132,19 @@ public class TestCacheInvalidator {
 
         replayMocks();
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, putRequest);
 
         verifyMocks();
     }
 
     @Test
     public void testInvalidatesUrisInLocationHeadersOnPUTs() throws Exception {
-        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
-        request.setEntity(HttpTestUtils.makeBody(128));
-        request.setHeader("Content-Length","128");
+        final HttpEntityEnclosingRequest putRequest = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        putRequest.setEntity(HttpTestUtils.makeBody(128));
+        putRequest.setHeader("Content-Length","128");
 
         final String contentLocation = "http://foo.example.com/content";
-        request.setHeader("Location",contentLocation);
+        putRequest.setHeader("Location",contentLocation);
 
         final String theUri = "http://foo.example.com:80/";
         cacheEntryHasVariantMap(new HashMap<String,String>());
@@ -155,19 +155,19 @@ public class TestCacheInvalidator {
 
         replayMocks();
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, putRequest);
 
         verifyMocks();
     }
 
     @Test
     public void testInvalidatesRelativeUrisInContentLocationHeadersOnPUTs() throws Exception {
-        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
-        request.setEntity(HttpTestUtils.makeBody(128));
-        request.setHeader("Content-Length","128");
+        final HttpEntityEnclosingRequest putRequest = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        putRequest.setEntity(HttpTestUtils.makeBody(128));
+        putRequest.setHeader("Content-Length","128");
 
         final String relativePath = "/content";
-        request.setHeader("Content-Location",relativePath);
+        putRequest.setHeader("Content-Location",relativePath);
 
         final String theUri = "http://foo.example.com:80/";
         cacheEntryHasVariantMap(new HashMap<String,String>());
@@ -178,19 +178,19 @@ public class TestCacheInvalidator {
 
         replayMocks();
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, putRequest);
 
         verifyMocks();
     }
 
     @Test
     public void testDoesNotInvalidateUrisInContentLocationHeadersOnPUTsToDifferentHosts() throws Exception {
-        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
-        request.setEntity(HttpTestUtils.makeBody(128));
-        request.setHeader("Content-Length","128");
+        final HttpEntityEnclosingRequest putRequest = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        putRequest.setEntity(HttpTestUtils.makeBody(128));
+        putRequest.setHeader("Content-Length","128");
 
         final String contentLocation = "http://bar.example.com/content";
-        request.setHeader("Content-Location",contentLocation);
+        putRequest.setHeader("Content-Location",contentLocation);
 
         final String theUri = "http://foo.example.com:80/";
         cacheEntryHasVariantMap(new HashMap<String,String>());
@@ -200,7 +200,7 @@ public class TestCacheInvalidator {
 
         replayMocks();
 
-        impl.flushInvalidatedCacheEntries(host, request);
+        impl.flushInvalidatedCacheEntries(host, putRequest);
 
         verifyMocks();
     }
