@@ -43,6 +43,7 @@ import org.mockito.Mockito;
 /**
  * Unit tests for {@link BasicResponseHandler}.
  */
+@SuppressWarnings("boxing") // test code
 public class TestBasicResponseHandler {
 
     @Test

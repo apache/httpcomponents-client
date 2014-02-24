@@ -35,6 +35,7 @@ import org.junit.Test;
 /**
  * @since 4.3
  */
+@SuppressWarnings("boxing") // test code
 public final class TestPropertiesUtils {
 
     @Test

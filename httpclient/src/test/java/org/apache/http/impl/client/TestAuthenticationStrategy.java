@@ -62,6 +62,7 @@ import org.mockito.Mockito;
 /**
  * Simple tests for {@link AuthenticationStrategyImpl}.
  */
+@SuppressWarnings("boxing") // test code
 public class TestAuthenticationStrategy {
 
     @Test(expected=IllegalArgumentException.class)

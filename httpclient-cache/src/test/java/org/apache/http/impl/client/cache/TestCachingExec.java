@@ -69,6 +69,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings("boxing") // test code
 public class TestCachingExec extends TestCachingExecChain {
 
     private static final String GET_CURRENT_DATE = "getCurrentDate";

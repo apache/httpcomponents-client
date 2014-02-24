@@ -27,6 +27,7 @@
 package org.apache.http.impl.execchain;
 
 import junit.framework.Assert;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
@@ -64,6 +65,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 
+@SuppressWarnings("boxing") // test code
 public class TestRedirectExec {
 
     @Mock

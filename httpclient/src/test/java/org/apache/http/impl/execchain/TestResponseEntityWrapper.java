@@ -38,6 +38,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+@SuppressWarnings("boxing") // test code
 public class TestResponseEntityWrapper {
 
     private InputStream instream;
