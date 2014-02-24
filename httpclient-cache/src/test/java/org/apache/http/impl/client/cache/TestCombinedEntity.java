@@ -30,7 +30,7 @@ import java.io.ByteArrayInputStream;
 
 import org.apache.http.client.cache.Resource;
 import org.apache.http.util.EntityUtils;
-import org.easymock.classextension.EasyMock;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 

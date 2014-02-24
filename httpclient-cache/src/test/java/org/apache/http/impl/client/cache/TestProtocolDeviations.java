@@ -50,7 +50,7 @@ import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
 import org.easymock.Capture;
-import org.easymock.classextension.EasyMock;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -220,7 +220,7 @@ public class TestProtocolDeviations {
         final byte[] bytes = new byte[128];
         new Random().nextBytes(bytes);
 
-        final HttpEntity mockBody = EasyMock.createMockBuilder(ByteArrayEntity.class).withConstructor(
+        final HttpEntity mockBody = org.easymock.classextension.EasyMock.createMockBuilder(ByteArrayEntity.class).withConstructor(
                 new Object[] { bytes }).addMockedMethods("getContentLength").createNiceMock();
         org.easymock.EasyMock.expect(mockBody.getContentLength()).andReturn(-1L).anyTimes();
         post.setEntity(mockBody);

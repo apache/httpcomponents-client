@@ -80,7 +80,7 @@ import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.easymock.Capture;
 import org.easymock.IExpectationSetters;
-import org.easymock.classextension.EasyMock;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

@@ -37,7 +37,7 @@ import org.apache.http.impl.client.cache.CachingExec;
 import org.apache.http.impl.client.cache.HeapResourceFactory;
 import org.apache.http.impl.client.cache.TestProtocolRequirements;
 import org.apache.http.impl.execchain.ClientExecChain;
-import org.easymock.classextension.EasyMock;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

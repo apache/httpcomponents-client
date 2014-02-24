@@ -42,7 +42,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.message.BasicHttpRequest;
 import org.easymock.IExpectationSetters;
-import org.easymock.classextension.EasyMock;
+import org.easymock.EasyMock;
 import org.junit.Before;
 
 public abstract class AbstractProtocolTest {
