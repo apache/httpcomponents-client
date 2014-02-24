@@ -53,7 +53,7 @@ public class HttpHostConnectException extends ConnectException {
      */
     @Deprecated
     public HttpHostConnectException(final HttpHost host, final ConnectException cause) {
-        this(cause, host, null);
+        this(cause, host, (InetAddress[]) null);
     }
 
     /**
