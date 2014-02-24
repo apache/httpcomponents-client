@@ -982,7 +982,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         protected byte[] domainBytes;
 
         /** Constructor. Include the arguments the message will need */
-        Type1Message(final String domain, final String host) throws NTLMEngineException {
+        Type1Message(final String domain, final String host) {
             super();
             // Strip off domain name from the host!
             final String unqualifiedHost = convertHost(host);
