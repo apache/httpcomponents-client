@@ -98,7 +98,7 @@ public class AuthScope {
      *   to any port of the host.
      * @param realm authentication realm. May be {@link #ANY_REALM} if applies
      *   to any realm on the host.
-     * @param scheme authentication scheme. May be {@link #ANY_SCHEME} if applies
+     * @param schemeName authentication scheme. May be {@link #ANY_SCHEME} if applies
      *   to any scheme supported by the host.
      */
     public AuthScope(
@@ -119,7 +119,7 @@ public class AuthScope {
      * @param origin host of origin
      * @param realm authentication realm. May be {@link #ANY_REALM} if applies
      *   to any realm on the host.
-     * @param scheme authentication scheme. May be {@link #ANY_SCHEME} if applies
+     * @param schemeName authentication scheme. May be {@link #ANY_SCHEME} if applies
      *   to any scheme supported by the host.
      *
      * @since 4.2
