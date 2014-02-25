@@ -555,8 +555,8 @@ public class TestMainClientExec {
             @Override
             public HttpResponse answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
-                final HttpEntityEnclosingRequest request = (HttpEntityEnclosingRequest) args[0];
-                request.getEntity().writeTo(new ByteArrayOutputStream());
+                final HttpEntityEnclosingRequest requestEE = (HttpEntityEnclosingRequest) args[0];
+                requestEE.getEntity().writeTo(new ByteArrayOutputStream());
                 return response1;
             }
 
