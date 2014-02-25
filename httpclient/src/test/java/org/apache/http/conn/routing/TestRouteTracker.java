@@ -82,6 +82,7 @@ public class TestRouteTracker {
         }
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testCstrTargetLocal() {
 
@@ -122,6 +123,7 @@ public class TestRouteTracker {
         }
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testCstrRoute() {
 
