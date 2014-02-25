@@ -143,6 +143,7 @@ public class TestHttpCacheEntry {
         assertTrue(entry.hasVariants());
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void mustProvideRequestDate() {
         try {
@@ -153,6 +154,7 @@ public class TestHttpCacheEntry {
         }
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void mustProvideResponseDate() {
         try {
@@ -163,6 +165,7 @@ public class TestHttpCacheEntry {
         }
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void mustProvideStatusLine() {
         try {
@@ -173,6 +176,7 @@ public class TestHttpCacheEntry {
         }
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void mustProvideResponseHeaders() {
         try {
@@ -250,12 +254,14 @@ public class TestHttpCacheEntry {
         }
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void canConstructWithoutVariants() {
         new HttpCacheEntry(new Date(), new Date(), statusLine,
                 new Header[]{}, mockResource);
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void canProvideVariantMap() {
         new HttpCacheEntry(new Date(), new Date(), statusLine,
