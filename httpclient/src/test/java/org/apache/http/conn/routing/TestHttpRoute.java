@@ -224,6 +224,7 @@ public class TestHttpRoute {
                      8, routestrings.size());
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testInvalidArguments() {
         final HttpHost[] chain1 = { PROXY1 };
@@ -510,6 +511,7 @@ public class TestHttpRoute {
         Assert.assertEquals("bad convenience route 3/secure", route, should);
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testCstr4() {
         // test convenience constructor with 4 arguments
