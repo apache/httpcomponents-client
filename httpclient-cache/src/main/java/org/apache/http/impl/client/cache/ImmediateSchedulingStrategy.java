@@ -27,6 +27,7 @@
 package org.apache.http.impl.client.cache;
 
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.util.Args;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -69,10 +70,7 @@ public class ImmediateSchedulingStrategy implements SchedulingStrategy {
 
     @Override
     public void schedule(final AsynchronousValidationRequest revalidationRequest) {
-        if (revalidationRequest == null) {
-            throw new IllegalArgumentException("AsynchronousValidationRequest may not be null");
-        }
-
+        Args.notNull(revalidationRequest, "AsynchronousValidationRequest");
         executor.execute(revalidationRequest);
     }
 

@@ -27,6 +27,7 @@
 package org.apache.http.impl.client.cache;
 
 import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.util.Args;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -48,7 +49,8 @@ import java.util.concurrent.TimeUnit;
  *
  * The following equation is used to calculate the delay for a specific revalidation request:
  * <pre>
- *     delay = {@link #getInitialExpiryInMillis()} * Math.pow({@link #getBackOffRate()}, {@link AsynchronousValidationRequest#getConsecutiveFailedAttempts()} - 1))
+ *     delay = {@link #getInitialExpiryInMillis()} * Math.pow({@link #getBackOffRate()},
+ *     {@link AsynchronousValidationRequest#getConsecutiveFailedAttempts()} - 1))
  * </pre>
  * The resulting delay won't exceed {@link #getMaxExpiryInMillis()}.
  *
@@ -117,16 +119,16 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
             final long backOffRate,
             final long initialExpiryInMillis,
             final long maxExpiryInMillis) {
-        this.executor = checkNotNull("executor", executor);
-        this.backOffRate = checkNotNegative("backOffRate", backOffRate);
-        this.initialExpiryInMillis = checkNotNegative("initialExpiryInMillis", initialExpiryInMillis);
-        this.maxExpiryInMillis = checkNotNegative("maxExpiryInMillis", maxExpiryInMillis);
+        this.executor = Args.notNull(executor, "Executor");
+        this.backOffRate = Args.notNegative(backOffRate, "BackOffRate");
+        this.initialExpiryInMillis = Args.notNegative(initialExpiryInMillis, "InitialExpiryInMillis");
+        this.maxExpiryInMillis = Args.notNegative(maxExpiryInMillis, "MaxExpiryInMillis");
     }
 
     @Override
     public void schedule(
             final AsynchronousValidationRequest revalidationRequest) {
-        checkNotNull("revalidationRequest", revalidationRequest);
+        Args.notNull(revalidationRequest, "RevalidationRequest");
         final int consecutiveFailedAttempts = revalidationRequest.getConsecutiveFailedAttempts();
         final long delayInMillis = calculateDelayInMillis(consecutiveFailedAttempts);
         executor.schedule(revalidationRequest, delayInMillis, TimeUnit.MILLISECONDS);
@@ -160,6 +162,10 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
         }
     }
 
+    /**
+     * @deprecated Use {@link org.apache.http.util.Args#notNull(Object, String)}
+     */
+    @Deprecated
     protected static <T> T checkNotNull(final String parameterName, final T value) {
         if (value == null) {
             throw new IllegalArgumentException(parameterName + " may not be null");
@@ -167,6 +173,10 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
         return value;
     }
 
+    /**
+     * @deprecated Use {@link org.apache.http.util.Args#notNegative(long, String)}
+     */
+    @Deprecated
     protected static long checkNotNegative(final String parameterName, final long value) {
         if (value < 0) {
             throw new IllegalArgumentException(parameterName + " may not be negative");
