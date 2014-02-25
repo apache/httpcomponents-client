@@ -40,6 +40,7 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,7 +99,7 @@ public class TestRequestAuthCache {
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credProvider);
-        context.setAttribute(HttpClientContext.HTTP_TARGET_HOST, this.target);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
         context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, this.proxyState);
@@ -123,7 +124,7 @@ public class TestRequestAuthCache {
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, null);
-        context.setAttribute(HttpClientContext.HTTP_TARGET_HOST, this.target);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
         context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, this.proxyState);
@@ -148,7 +149,7 @@ public class TestRequestAuthCache {
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credProvider);
-        context.setAttribute(HttpClientContext.HTTP_TARGET_HOST, this.target);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
         context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, this.proxyState);
@@ -168,7 +169,7 @@ public class TestRequestAuthCache {
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credProvider);
-        context.setAttribute(HttpClientContext.HTTP_TARGET_HOST, this.target);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
         context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, this.proxyState);
@@ -192,7 +193,7 @@ public class TestRequestAuthCache {
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credProvider);
-        context.setAttribute(HttpClientContext.HTTP_TARGET_HOST, this.target);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
         context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, this.proxyState);
@@ -217,7 +218,7 @@ public class TestRequestAuthCache {
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credProvider);
-        context.setAttribute(HttpClientContext.HTTP_TARGET_HOST, this.target);
+        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
         context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, this.targetState);
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, this.proxyState);
