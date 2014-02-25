@@ -46,6 +46,7 @@ import org.junit.Test;
  */
 public class TestCookieRFC2109Spec {
 
+    @SuppressWarnings("unused")
     @Test
     public void testConstructor() throws Exception {
         new RFC2109Spec();

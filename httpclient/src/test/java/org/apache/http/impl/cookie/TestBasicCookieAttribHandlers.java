@@ -450,6 +450,7 @@ public class TestBasicCookieAttribHandlers {
         }
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testBasicExpiresInvalidInput() throws Exception {
         try {

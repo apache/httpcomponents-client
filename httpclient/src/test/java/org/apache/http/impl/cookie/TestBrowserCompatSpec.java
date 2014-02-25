@@ -48,6 +48,7 @@ import org.junit.Test;
  */
 public class TestBrowserCompatSpec {
 
+    @SuppressWarnings("unused")
     @Test
     public void testConstructor() throws Exception {
         new BrowserCompatSpec();
@@ -956,6 +957,7 @@ public class TestBrowserCompatSpec {
         Assert.assertEquals("name1=value1; name2=value2", headers.get(0).getValue());
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void testKeepCloverHappy() throws Exception {
         new MalformedCookieException();

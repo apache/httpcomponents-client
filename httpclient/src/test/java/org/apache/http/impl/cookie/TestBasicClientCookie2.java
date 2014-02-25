@@ -40,6 +40,7 @@ import org.junit.Test;
  */
 public class TestBasicClientCookie2 {
 
+    @SuppressWarnings("unused")
     @Test
     public void testConstructor() {
         final BasicClientCookie2 cookie = new BasicClientCookie2("name", "value");

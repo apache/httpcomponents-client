@@ -44,21 +44,25 @@ public class TestCookieOrigin {
         Assert.assertFalse(origin.isSecure());
     }
 
+    @SuppressWarnings("unused")
     @Test(expected=IllegalArgumentException.class)
     public void testNullHost() {
         new CookieOrigin(null, 80, "/", false);
     }
 
+    @SuppressWarnings("unused")
     @Test(expected=IllegalArgumentException.class)
     public void testEmptyHost() {
         new CookieOrigin("   ", 80, "/", false);
     }
 
+    @SuppressWarnings("unused")
     @Test(expected=IllegalArgumentException.class)
     public void testNegativePort() {
         new CookieOrigin("www.apache.org", -80, "/", false);
     }
 
+    @SuppressWarnings("unused")
     @Test(expected=IllegalArgumentException.class)
     public void testNullPath() {
         new CookieOrigin("www.apache.org", 80, null, false);
