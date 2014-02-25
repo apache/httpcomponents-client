@@ -45,7 +45,7 @@ import org.apache.http.conn.routing.HttpRoute;
  * Class used to represent an asynchronous revalidation event, such as with
  * "stale-while-revalidate"
  */
-class AsynchronousValidationRequest implements Runnable {
+public class AsynchronousValidationRequest implements Runnable {
     private final AsynchronousValidator parent;
     private final CachingExec cachingExec;
     private final HttpRoute route;
@@ -108,7 +108,7 @@ class AsynchronousValidationRequest implements Runnable {
      * @return <code>true</code> if the cache entry was successfully validated;
      * otherwise <code>false</code>
      */
-    protected boolean revalidateCacheEntry() {
+    private boolean revalidateCacheEntry() {
         try {
             final CloseableHttpResponse httpResponse = cachingExec.revalidateCacheEntry(route, request, context, execAware, cacheEntry);
             try {
@@ -164,7 +164,7 @@ class AsynchronousValidationRequest implements Runnable {
         return true;
     }
 
-    String getIdentifier() {
+    public String getIdentifier() {
         return identifier;
     }
 
