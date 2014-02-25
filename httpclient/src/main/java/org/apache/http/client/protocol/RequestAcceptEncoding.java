@@ -27,6 +27,7 @@
 package org.apache.http.client.protocol;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -46,9 +47,30 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class RequestAcceptEncoding implements HttpRequestInterceptor {
 
+    private final String acceptEncoding;
+
     /**
-     * Adds the header {@code "Accept-Encoding: gzip,deflate"} to the request.
+     * @since 4.4
      */
+    public RequestAcceptEncoding(final List<String> encodings) {
+        if (encodings != null && !encodings.isEmpty()) {
+            final StringBuilder buf = new StringBuilder();
+            for (int i = 0; i < encodings.size(); i++) {
+                if (i > 0) {
+                    buf.append(",");
+                }
+                buf.append(encodings.get(i));
+            }
+            this.acceptEncoding = buf.toString();
+        } else {
+            this.acceptEncoding = "gzip,deflate";
+        }
+    }
+
+    public RequestAcceptEncoding() {
+        this(null);
+    }
+
     @Override
     public void process(
             final HttpRequest request,
@@ -56,7 +78,7 @@ public class RequestAcceptEncoding implements HttpRequestInterceptor {
 
         /* Signal support for Accept-Encoding transfer encodings. */
         if (!request.containsHeader("Accept-Encoding")) {
-            request.addHeader("Accept-Encoding", "gzip,deflate");
+            request.addHeader("Accept-Encoding", acceptEncoding);
         }
     }
 

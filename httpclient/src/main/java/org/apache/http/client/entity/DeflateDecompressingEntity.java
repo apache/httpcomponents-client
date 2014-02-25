@@ -29,7 +29,6 @@ package org.apache.http.client.entity;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 
 /**
@@ -58,39 +57,14 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
      *            a non-null {@link HttpEntity} to be wrapped
      */
     public DeflateDecompressingEntity(final HttpEntity entity) {
-        super(entity);
-    }
+        super(entity, new InputStreamFactory() {
 
-    /**
-     * Returns the non-null InputStream that should be returned to by all requests to
-     * {@link #getContent()}.
-     *
-     * @return a non-null InputStream
-     * @throws IOException if there was a problem
-     */
-    @Override
-    InputStream decorate(final InputStream wrapped) throws IOException {
-        return new DeflateInputStream(wrapped);
-    }
+            @Override
+            public InputStream create(final InputStream instream) throws IOException {
+                return new DeflateInputStream(instream);
+            }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Header getContentEncoding() {
-
-        /* This HttpEntityWrapper has dealt with the Content-Encoding. */
-        return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public long getContentLength() {
-
-        /* Length of inflated content is unknown. */
-        return -1;
+        });
     }
 
 }

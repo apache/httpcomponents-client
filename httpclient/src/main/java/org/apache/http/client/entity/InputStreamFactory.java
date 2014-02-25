@@ -28,34 +28,14 @@ package org.apache.http.client.entity;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.zip.GZIPInputStream;
-
-import org.apache.http.HttpEntity;
 
 /**
- * {@link org.apache.http.entity.HttpEntityWrapper} for handling gzip
- * Content Coded responses.
+ * Factory for decorated {@link java.io.InputStream}s.
  *
- * @since 4.1
+ * @since 4.4
  */
-public class GzipDecompressingEntity extends DecompressingEntity {
+public interface InputStreamFactory {
 
-    /**
-     * Creates a new {@link GzipDecompressingEntity} which will wrap the specified
-     * {@link HttpEntity}.
-     *
-     * @param entity
-     *            the non-null {@link HttpEntity} to be wrapped
-     */
-    public GzipDecompressingEntity(final HttpEntity entity) {
-        super(entity, new InputStreamFactory() {
-
-            @Override
-            public InputStream create(final InputStream instream) throws IOException {
-                return new GZIPInputStream(instream);
-            }
-
-        });
-    }
+    InputStream create(InputStream instream) throws IOException;
 
 }

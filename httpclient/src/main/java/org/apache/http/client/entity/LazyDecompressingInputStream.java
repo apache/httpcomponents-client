@@ -26,10 +26,10 @@
  */
 package org.apache.http.client.entity;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.apache.http.annotation.NotThreadSafe;
 
 /**
  * Lazy init InputStream wrapper.
@@ -38,21 +38,20 @@ import java.io.InputStream;
 class LazyDecompressingInputStream extends InputStream {
 
     private final InputStream wrappedStream;
-
-    private final DecompressingEntity decompressingEntity;
+    private final InputStreamFactory inputStreamFactory;
 
     private InputStream wrapperStream;
 
     public LazyDecompressingInputStream(
             final InputStream wrappedStream,
-            final DecompressingEntity decompressingEntity) {
+            final InputStreamFactory inputStreamFactory) {
         this.wrappedStream = wrappedStream;
-        this.decompressingEntity = decompressingEntity;
+        this.inputStreamFactory = inputStreamFactory;
     }
 
     private void initWrapper() throws IOException {
         if (wrapperStream == null) {
-            wrapperStream = decompressingEntity.decorate(wrappedStream);
+            wrapperStream = inputStreamFactory.create(wrappedStream);
         }
     }
 

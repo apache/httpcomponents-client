@@ -31,8 +31,10 @@ import java.io.Closeable;
 import java.net.ProxySelector;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -56,6 +58,7 @@ import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.InputStreamFactory;
 import org.apache.http.client.protocol.RequestAcceptEncoding;
 import org.apache.http.client.protocol.RequestAddCookies;
 import org.apache.http.client.protocol.RequestAuthCache;
@@ -177,6 +180,7 @@ public class HttpClientBuilder {
     private ServiceUnavailableRetryStrategy serviceUnavailStrategy;
     private Lookup<AuthSchemeProvider> authSchemeRegistry;
     private Lookup<CookieSpecProvider> cookieSpecRegistry;
+    private Map<String, InputStreamFactory> contentDecoderMap;
     private CookieStore cookieStore;
     private CredentialsProvider credentialsProvider;
     private String userAgent;
@@ -636,6 +640,17 @@ public class HttpClientBuilder {
         return this;
     }
 
+
+    /**
+     * Assigns a map of {@link org.apache.http.client.entity.InputStreamFactory}s
+     * to be used for automatic content decompression.
+     */
+    public final HttpClientBuilder setContentDecoderRegistry(
+            final Map<String, InputStreamFactory> contentDecoderMap) {
+        this.contentDecoderMap = contentDecoderMap;
+        return this;
+    }
+
     /**
      * Assigns default {@link RequestConfig} instance which will be used
      * for request execution if not explicitly set in the client execution
@@ -831,7 +846,13 @@ public class HttpClientBuilder {
                 b.add(new RequestAddCookies());
             }
             if (!contentCompressionDisabled) {
-                b.add(new RequestAcceptEncoding());
+                if (contentDecoderMap != null) {
+                    final List<String> encodings = new ArrayList<String>(contentDecoderMap.keySet());
+                    Collections.sort(encodings);
+                    b.add(new RequestAcceptEncoding(encodings));
+                } else {
+                    b.add(new RequestAcceptEncoding());
+                }
             }
             if (!authCachingDisabled) {
                 b.add(new RequestAuthCache());
@@ -840,7 +861,15 @@ public class HttpClientBuilder {
                 b.add(new ResponseProcessCookies());
             }
             if (!contentCompressionDisabled) {
-                b.add(new ResponseContentEncoding());
+                if (contentDecoderMap != null) {
+                    final RegistryBuilder<InputStreamFactory> b2 = RegistryBuilder.create();
+                    for (Map.Entry<String, InputStreamFactory> entry: contentDecoderMap.entrySet()) {
+                        b2.register(entry.getKey(), entry.getValue());
+                    }
+                    b.add(new ResponseContentEncoding(b2.build()));
+                } else {
+                    b.add(new ResponseContentEncoding());
+                }
             }
             if (requestLast != null) {
                 for (final HttpRequestInterceptor i: requestLast) {

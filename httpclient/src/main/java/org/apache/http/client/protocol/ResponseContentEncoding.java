@@ -27,7 +27,9 @@
 package org.apache.http.client.protocol;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Locale;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
@@ -37,8 +39,11 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.DeflateDecompressingEntity;
-import org.apache.http.client.entity.GzipDecompressingEntity;
+import org.apache.http.client.entity.DecompressingEntity;
+import org.apache.http.client.entity.DeflateInputStream;
+import org.apache.http.client.entity.InputStreamFactory;
+import org.apache.http.config.Lookup;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -55,20 +60,49 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
 
     public static final String UNCOMPRESSED = "http.client.response.uncompressed";
 
+    private final static InputStreamFactory GZIP = new InputStreamFactory() {
+
+        @Override
+        public InputStream create(final InputStream instream) throws IOException {
+            return new GZIPInputStream(instream);
+        }
+    };
+
+    private final static InputStreamFactory DEFLATE = new InputStreamFactory() {
+
+        @Override
+        public InputStream create(final InputStream instream) throws IOException {
+            return new DeflateInputStream(instream);
+        }
+
+    };
+
+    private final Lookup<InputStreamFactory> decoderRegistry;
+
     /**
-     * Handles the following {@code Content-Encoding}s by
-     * using the appropriate decompressor to wrap the response Entity:
-     * <ul>
-     * <li>gzip - see {@link GzipDecompressingEntity}</li>
-     * <li>deflate - see {@link DeflateDecompressingEntity}</li>
-     * <li>identity - no action needed</li>
-     * </ul>
-     *
-     * @param response the response which contains the entity
-     * @param  context not currently used
-     *
-     * @throws HttpException if the {@code Content-Encoding} is none of the above
+     * @since 4.4
      */
+    public ResponseContentEncoding(final Lookup<InputStreamFactory> decoderRegistry) {
+        this.decoderRegistry = decoderRegistry != null ? decoderRegistry :
+            RegistryBuilder.<InputStreamFactory>create()
+                    .register("gzip", GZIP)
+                    .register("x-gzip", GZIP)
+                    .register("deflate", DEFLATE)
+                    .build();
+    }
+
+    /**
+     * Handles <tt>gzip</tt> and <tt>deflate</tt> compressed entities by using the following
+     * decoders:
+     * <ul>
+     * <li>gzip - see {@link GZIPInputStream}</li>
+     * <li>deflate - see {@link DeflateInputStream}</li>
+     * </ul>
+     */
+    public ResponseContentEncoding() {
+        this(null);
+    }
+
     @Override
     public void process(
             final HttpResponse response,
@@ -83,29 +117,19 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
             final Header ceheader = entity.getContentEncoding();
             if (ceheader != null) {
                 final HeaderElement[] codecs = ceheader.getElements();
-                boolean uncompressed = false;
                 for (final HeaderElement codec : codecs) {
-                    final String codecname = codec.getName().toLowerCase(Locale.US);
-                    if ("gzip".equals(codecname) || "x-gzip".equals(codecname)) {
-                        response.setEntity(new GzipDecompressingEntity(response.getEntity()));
-                        uncompressed = true;
-                        break;
-                    } else if ("deflate".equals(codecname)) {
-                        response.setEntity(new DeflateDecompressingEntity(response.getEntity()));
-                        uncompressed = true;
-                        break;
-                    } else if ("identity".equals(codecname)) {
-
-                        /* Don't need to transform the content - no-op */
-                        return;
+                    final String codecname = codec.getName().toLowerCase(Locale.ROOT);
+                    final InputStreamFactory decoderFactory = decoderRegistry.lookup(codecname);
+                    if (decoderFactory != null) {
+                        response.setEntity(new DecompressingEntity(response.getEntity(), decoderFactory));
+                        response.removeHeaders("Content-Length");
+                        response.removeHeaders("Content-Encoding");
+                        response.removeHeaders("Content-MD5");
                     } else {
-                        throw new HttpException("Unsupported Content-Coding: " + codec.getName());
+                        if (!"identity".equals(codecname)) {
+                            throw new HttpException("Unsupported Content-Coding: " + codec.getName());
+                        }
                     }
-                }
-                if (uncompressed) {
-                    response.removeHeaders("Content-Length");
-                    response.removeHeaders("Content-Encoding");
-                    response.removeHeaders("Content-MD5");
                 }
             }
         }

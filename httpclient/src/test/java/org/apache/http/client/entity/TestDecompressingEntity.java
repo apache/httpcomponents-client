@@ -93,16 +93,15 @@ public class TestDecompressingEntity {
 
     static class ChecksumEntity extends DecompressingEntity {
 
-        private final Checksum checksum;
-
         public ChecksumEntity(final HttpEntity wrapped, final Checksum checksum) {
-            super(wrapped);
-            this.checksum = checksum;
-        }
+            super(wrapped, new InputStreamFactory() {
 
-        @Override
-        InputStream decorate(final InputStream wrapped) throws IOException {
-            return new CheckedInputStream(wrapped, this.checksum);
+                @Override
+                public InputStream create(final InputStream instream) throws IOException {
+                    return new CheckedInputStream(instream, checksum);
+                }
+
+            });
         }
 
     }

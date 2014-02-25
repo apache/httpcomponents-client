@@ -32,7 +32,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.DeflateDecompressingEntity;
+import org.apache.http.client.entity.DecompressingEntity;
 import org.apache.http.client.entity.GzipDecompressingEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpResponse;
@@ -80,7 +80,7 @@ public class TestResponseContentEncoding {
         interceptor.process(response, context);
         final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
-        Assert.assertTrue(entity instanceof GzipDecompressingEntity);
+        Assert.assertTrue(entity instanceof DecompressingEntity);
     }
 
     @Test
@@ -110,7 +110,7 @@ public class TestResponseContentEncoding {
         interceptor.process(response, context);
         final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
-        Assert.assertTrue(entity instanceof GzipDecompressingEntity);
+        Assert.assertTrue(entity instanceof DecompressingEntity);
     }
 
     @Test
@@ -125,7 +125,7 @@ public class TestResponseContentEncoding {
         interceptor.process(response, context);
         final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
-        Assert.assertTrue(entity instanceof DeflateDecompressingEntity);
+        Assert.assertTrue(entity instanceof DecompressingEntity);
     }
 
     @Test
