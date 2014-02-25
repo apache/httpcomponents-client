@@ -235,7 +235,6 @@ public class TestStaleWhileRevalidationReleasesConnection {
 
         /**
          * Return the header the user can set the content that will be returned by the server
-         * @return
          */
         public String getUserContentHeader() {
             return DEFAULT_CLIENT_CONTROLLED_CONTENT_HEADER;
