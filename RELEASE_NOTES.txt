@@ -28,6 +28,36 @@ Changelog:
   Contributed by Tamas Cservenak <tamas at cservenak.net>
 
 
+Release 4.3.3
+-------------------
+
+HttpClient 4.3.3 (GA) is a bug fix release that fixes a regression introduced by the previous
+release causing a significant performance degradation in compressed content processing.
+
+Users of HttpClient 4.3 are encouraged to upgrade.
+
+Changelog:
+-------------------
+
+* [HTTPCLIENT-1466] FileBodyPart#generateContentType() ignores custom ContentType values.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1453] Thread safety regression in PoolingHttpClientConnectionManager
+  #closeExpiredConnections that can lead to ConcurrentModificationException. 
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1461] fixed performance degradation in compressed content processing
+  introduced by HTTPCLIENT-1432.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1457] Incorrect handling of Windows (NT) credentials by
+  SystemDefaultCredentialsProvider.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1456] Request retrial after status 503 causes ClientProtocolException.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
 Release 4.3.2
 -------------------
 
