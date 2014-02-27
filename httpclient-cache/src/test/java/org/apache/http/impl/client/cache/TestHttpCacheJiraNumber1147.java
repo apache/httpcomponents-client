@@ -106,7 +106,7 @@ public class TestHttpCacheJiraNumber1147 {
         EasyMock.expect(backend.execute(
                 EasyMock.eq(route),
                 EasyMock.isA(HttpRequestWrapper.class),
-                EasyMock.same(context),
+                EasyMock.isA(HttpClientContext.class),
                 EasyMock.<HttpExecutionAware>isNull())).andReturn(Proxies.enhanceResponse(response));
         EasyMock.replay(backend);
 
@@ -125,7 +125,7 @@ public class TestHttpCacheJiraNumber1147 {
         EasyMock.expect(backend.execute(
                 EasyMock.eq(route),
                 EasyMock.isA(HttpRequestWrapper.class),
-                EasyMock.same(context),
+                EasyMock.isA(HttpClientContext.class),
                 EasyMock.<HttpExecutionAware>isNull())).andReturn(Proxies.enhanceResponse(response));
         EasyMock.replay(backend);
 

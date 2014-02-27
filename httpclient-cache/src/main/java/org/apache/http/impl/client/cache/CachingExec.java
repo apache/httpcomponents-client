@@ -579,8 +579,8 @@ public class CachingExec implements ClientExecChain {
         final CloseableHttpResponse backendResponse = backend.execute(route, request, context, execAware);
         try {
             backendResponse.addHeader("Via", generateViaHeader(backendResponse));
-            return handleBackendResponse(route, request, context, execAware,
-                    requestDate, getCurrentDate(), backendResponse);
+            return handleBackendResponse(request, context, requestDate, getCurrentDate(),
+                    backendResponse);
         } catch (final IOException ex) {
             backendResponse.close();
             throw ex;
@@ -629,9 +629,8 @@ public class CachingExec implements ClientExecChain {
             backendResponse.addHeader("Via", generateViaHeader(backendResponse));
 
             if (backendResponse.getStatusLine().getStatusCode() != HttpStatus.SC_NOT_MODIFIED) {
-                return handleBackendResponse(
-                        route, request, context, execAware,
-                        requestDate, responseDate, backendResponse);
+                return handleBackendResponse(request, context, requestDate, responseDate,
+                        backendResponse);
             }
 
             final Header resultEtagHeader = backendResponse.getFirstHeader(HeaderConstants.ETAG);
@@ -784,9 +783,8 @@ public class CachingExec implements ClientExecChain {
                 backendResponse.close();
             }
         }
-        return handleBackendResponse(
-                route, conditionalRequest, context, execAware,
-                requestDate, responseDate, backendResponse);
+        return handleBackendResponse(conditionalRequest, context, requestDate, responseDate,
+                backendResponse);
     }
 
     private boolean staleIfErrorAppliesTo(final int statusCode) {
@@ -797,10 +795,8 @@ public class CachingExec implements ClientExecChain {
     }
 
     CloseableHttpResponse handleBackendResponse(
-            final HttpRoute route,
             final HttpRequestWrapper request,
             final HttpClientContext context,
-            final HttpExecutionAware execAware,
             final Date requestDate,
             final Date responseDate,
             final CloseableHttpResponse backendResponse) throws IOException {

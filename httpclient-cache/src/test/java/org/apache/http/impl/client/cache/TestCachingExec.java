@@ -262,10 +262,8 @@ public class TestCachingExec extends TestCachingExecChain {
         backendExpectsRequestAndReturn(validate, originResponse);
         getCurrentDateReturns(responseDate);
         expect(impl.handleBackendResponse(
-                eq(route),
                 same(validate),
                 same(context),
-                (HttpExecutionAware) isNull(),
                 eq(requestDate),
                 eq(responseDate),
                 same(originResponse))).andReturn(finalResponse);
@@ -404,10 +402,8 @@ public class TestCachingExec extends TestCachingExecChain {
             throws IOException {
         expect(
                 impl.handleBackendResponse(
-                        isA(HttpRoute.class),
                         same(request),
                         isA(HttpClientContext.class),
-                        (HttpExecutionAware) isNull(),
                         isA(Date.class),
                         isA(Date.class),
                         isA(CloseableHttpResponse.class))).andReturn(
