@@ -428,13 +428,12 @@ HttpClients.custom()
         </section>
         <section>
             <title>SSL/TLS customization</title>
-            <para>HttpClient makes use of SSLSocketFactory to create SSL connections.
-                <classname>SSLSocketFactory</classname> allows for a high degree of
-                customization. It can take an instance of
+            <para>HttpClient makes use of <classname>SSLConnectionSocketFactory</classname>
+                to create SSL connections. <classname>SSLConnectionSocketFactory</classname> allows
+                for a high degree of customization. It can take an instance of
                 <interfacename>javax.net.ssl.SSLContext</interfacename> as a parameter and use
                 it to create custom configured SSL connections.</para>
             <programlisting><![CDATA[
-HttpClientContext clientContext = HttpClientContext.create();
 KeyStore myTrustStore = <...>
 SSLContext sslContext = SSLContexts.custom()
         .useTLS()
@@ -442,11 +441,12 @@ SSLContext sslContext = SSLContexts.custom()
         .build();
 SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext);
 ]]></programlisting>
-            <para>Customization of SSLSocketFactory implies a certain degree of familiarity with the
-                concepts of the SSL/TLS protocol, a detailed explanation of which is out of scope
-                for this document. Please refer to the <ulink
-                        url="http://java.sun.com/j2se/1.5.0/docs/guide/security/jsse/JSSERefGuide.html"
-                        >Java Secure Socket Extension</ulink> for a detailed description of
+            <para>Customization of <classname>SSLConnectionSocketFactory</classname> implies
+                a certain degree of familiarity with the concepts of the SSL/TLS protocol,
+                a detailed explanation of which is out of scope for this document. Please refer
+                to the <ulink
+                url="http://java.sun.com/j2se/1.5.0/docs/guide/security/jsse/JSSERefGuide.html">
+                Java Secure Socket Extension</ulink> for a detailed description of
                 <interfacename>javax.net.ssl.SSLContext</interfacename> and related
                 tools.</para>
         </section>
