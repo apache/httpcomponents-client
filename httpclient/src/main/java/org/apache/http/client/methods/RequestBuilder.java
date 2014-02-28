@@ -128,7 +128,7 @@ public class RequestBuilder {
         if (request instanceof HttpUriRequest) {
             uri = ((HttpUriRequest) request).getURI();
         } else {
-            uri = URI.create(request.getRequestLine().getMethod());
+            uri = URI.create(request.getRequestLine().getUri());
         }
         if (headergroup == null) {
             headergroup = new HeaderGroup();
