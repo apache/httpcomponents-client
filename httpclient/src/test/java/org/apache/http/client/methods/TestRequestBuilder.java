@@ -28,13 +28,16 @@
 package org.apache.http.client.methods;
 
 import java.net.URI;
+import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpVersion;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
@@ -157,6 +160,46 @@ public class TestRequestBuilder {
         Assert.assertSame(entity, ((HttpEntityEnclosingRequest) copy).getEntity());
         Assert.assertTrue(copy instanceof Configurable);
         Assert.assertSame(config, ((Configurable) copy).getConfig());
+    }
+
+    @Test
+    public void testCopyWithQueryParams() throws Exception {
+        final HttpGet get = new HttpGet("/stuff?p1=this&p2=that");
+        final RequestBuilder builder = RequestBuilder.copy(get);
+        final List<NameValuePair> parameters = builder.getParameters();
+        Assert.assertNotNull(parameters);
+        Assert.assertEquals(2, parameters.size());
+        Assert.assertEquals(new BasicNameValuePair("p1", "this"), parameters.get(0));
+        Assert.assertEquals(new BasicNameValuePair("p2", "that"), parameters.get(1));
+        Assert.assertEquals(new URI("/stuff"), builder.getUri());
+    }
+
+    @Test
+    public void testCopyWithFormParams() throws Exception {
+        final HttpPost post = new HttpPost("/stuff?p1=wtf");
+        post.setEntity(new StringEntity("p1=this&p2=that", ContentType.APPLICATION_FORM_URLENCODED));
+        final RequestBuilder builder = RequestBuilder.copy(post);
+        final List<NameValuePair> parameters = builder.getParameters();
+        Assert.assertNotNull(parameters);
+        Assert.assertEquals(2, parameters.size());
+        Assert.assertEquals(new BasicNameValuePair("p1", "this"), parameters.get(0));
+        Assert.assertEquals(new BasicNameValuePair("p2", "that"), parameters.get(1));
+        Assert.assertEquals(new URI("/stuff?p1=wtf"), builder.getUri());
+        Assert.assertNull(builder.getEntity());
+    }
+
+    @Test
+    public void testCopyWithStringEntity() throws Exception {
+        final HttpPost post = new HttpPost("/stuff?p1=wtf");
+        final HttpEntity entity = new StringEntity("p1=this&p2=that", ContentType.TEXT_PLAIN);
+        post.setEntity(entity);
+        final RequestBuilder builder = RequestBuilder.copy(post);
+        final List<NameValuePair> parameters = builder.getParameters();
+        Assert.assertNotNull(parameters);
+        Assert.assertEquals(1, parameters.size());
+        Assert.assertEquals(new BasicNameValuePair("p1", "wtf"), parameters.get(0));
+        Assert.assertEquals(new URI("/stuff"), builder.getUri());
+        Assert.assertSame(entity, builder.getEntity());
     }
 
     @Test
