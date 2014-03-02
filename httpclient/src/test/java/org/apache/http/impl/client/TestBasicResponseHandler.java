@@ -58,6 +58,7 @@ public class TestBasicResponseHandler {
         Assert.assertEquals("stuff", s);
     }
 
+    @SuppressWarnings("boxing")
     @Test
     public void testUnsuccessfulResponse() throws Exception {
         final InputStream instream = Mockito.mock(InputStream.class);

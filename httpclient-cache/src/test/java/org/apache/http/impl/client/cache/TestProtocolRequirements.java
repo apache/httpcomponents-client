@@ -73,6 +73,7 @@ import org.junit.Test;
  * pass downstream to the backend HttpClient are are conditionally compliant
  * with the rules for an HTTP/1.1 client.
  */
+@SuppressWarnings({"static-access"}) // test code
 public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test

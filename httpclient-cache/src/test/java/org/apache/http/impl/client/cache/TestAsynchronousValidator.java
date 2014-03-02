@@ -47,6 +47,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestAsynchronousValidator {
 
     private AsynchronousValidator impl;

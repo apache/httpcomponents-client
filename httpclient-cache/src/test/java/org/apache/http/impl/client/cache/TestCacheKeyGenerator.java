@@ -39,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestCacheKeyGenerator {
 
     private static final BasicHttpRequest REQUEST_FULL_EPISODES = new BasicHttpRequest("GET",

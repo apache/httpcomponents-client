@@ -36,6 +36,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+@SuppressWarnings({"boxing"}) // test code
 public class TestHttpClientUtils {
 
     @Test

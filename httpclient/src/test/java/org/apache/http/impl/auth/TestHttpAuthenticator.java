@@ -64,6 +64,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestHttpAuthenticator {
 
     private AuthenticationStrategy authStrategy;

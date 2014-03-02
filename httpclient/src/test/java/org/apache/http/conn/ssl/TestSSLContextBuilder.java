@@ -82,7 +82,7 @@ public class TestSSLContextBuilder {
         final KeyStore keystore = load("test-keypasswd.keystore", "nopassword".toCharArray());
         final String keyPassword = "password";
         new SSLContextBuilder()
-                .loadKeyMaterial(keystore, keyPassword != null ? keyPassword.toCharArray() : null)
+                .loadKeyMaterial(keystore, keyPassword.toCharArray())
                 .loadTrustMaterial(keystore)
                 .build();
     }

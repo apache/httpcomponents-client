@@ -66,6 +66,7 @@ import java.lang.reflect.Proxy;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestMinimalClientExec {
 
     @Mock

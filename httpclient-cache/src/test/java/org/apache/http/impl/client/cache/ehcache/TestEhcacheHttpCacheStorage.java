@@ -43,6 +43,7 @@ import org.apache.http.impl.client.cache.HttpTestUtils;
 import org.easymock.EasyMock;
 import org.junit.Test;
 
+@SuppressWarnings({"boxing"}) // test code
 public class TestEhcacheHttpCacheStorage extends TestCase {
 
     private Ehcache mockCache;

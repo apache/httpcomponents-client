@@ -64,6 +64,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestRedirectExec {
 
     @Mock

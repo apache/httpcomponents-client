@@ -40,6 +40,7 @@ import org.junit.Test;
 /**
  * Tests for {@link RouteTracker}.
  */
+@SuppressWarnings({"boxing"}) // test code
 public class TestRouteTracker {
 
     // a selection of constants for generating routes

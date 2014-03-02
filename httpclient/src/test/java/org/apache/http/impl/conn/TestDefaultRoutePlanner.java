@@ -45,6 +45,7 @@ import org.mockito.Mockito;
 /**
  * Tests for {@link DefaultRoutePlanner}.
  */
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestDefaultRoutePlanner {
 
     private SchemePortResolver schemePortResolver;

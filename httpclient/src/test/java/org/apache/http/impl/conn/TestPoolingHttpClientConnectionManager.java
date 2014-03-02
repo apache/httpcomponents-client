@@ -60,6 +60,7 @@ import org.mockito.MockitoAnnotations;
 /**
  * {@link PoolingHttpClientConnectionManager} tests.
  */
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestPoolingHttpClientConnectionManager {
 
     @Mock

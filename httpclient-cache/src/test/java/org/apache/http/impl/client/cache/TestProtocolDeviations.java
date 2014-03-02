@@ -70,6 +70,7 @@ import org.junit.Test;
  * and are expected to be a drop-in replacement. The test cases captured here
  * document the places where we differ from the HTTP RFC.
  */
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestProtocolDeviations {
 
     private static ProtocolVersion HTTP_1_1 = new ProtocolVersion("HTTP", 1, 1);

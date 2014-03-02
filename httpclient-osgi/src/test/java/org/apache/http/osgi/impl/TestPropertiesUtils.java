@@ -40,14 +40,15 @@ public final class TestPropertiesUtils {
     @Test
     public void toBoolean() {
         assertConverted(true, null, boolean.class, true);
-        assertConverted(true, null, Boolean.class, true);
+        assertConverted(true, null, Boolean.class, true); // TODO should these be Boolean.TRUE?
         assertConverted(false, "false", boolean.class, null);
-        assertConverted(false, "false", Boolean.class, null);
+        assertConverted(false, "false", Boolean.class, null); // TODO should these be Boolean.FALSE?
         // whatever value is interpreted as `false` by Boolean.valueOf
         assertConverted(false, "not a boolean", boolean.class, true);
-        assertConverted(false, "not a boolean", Boolean.class, true);
+        assertConverted(false, "not a boolean", Boolean.class, true); // TODO should these be Boolean.FALSE/TRUE?
     }
 
+    @SuppressWarnings("boxing")
     @Test
     public void toSingleString() {
         assertConverted("fallback to default value", null, String.class, "fallback to default value");
@@ -59,6 +60,7 @@ public final class TestPropertiesUtils {
         assertConverted("456789", 456789, String.class, null);
     }
 
+    @SuppressWarnings("boxing")
     @Test
     public void toStringArray() {
         assertConvertedArray(new String[]{"fallback to default value"},
@@ -86,6 +88,7 @@ public final class TestPropertiesUtils {
                              new String[]{"fallback to default value"});
     }
 
+    @SuppressWarnings("boxing")
     @Test
     public void toInt() {
         assertConverted(123, null, int.class, 123);
@@ -96,6 +99,7 @@ public final class TestPropertiesUtils {
         assertConverted(789, "not an integer", Integer.class, 789);
     }
 
+    @SuppressWarnings("boxing")
     @Test
     public void toLong() {
         assertConverted(123l, null, long.class, 123l);
@@ -106,6 +110,7 @@ public final class TestPropertiesUtils {
         assertConverted(789l, "not a long", Long.class, 789l);
     }
 
+    @SuppressWarnings("boxing")
     @Test
     public void toDouble() {
         assertConverted(123d, null, double.class, 123d);

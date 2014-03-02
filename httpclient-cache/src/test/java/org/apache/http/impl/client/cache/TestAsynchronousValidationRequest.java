@@ -45,6 +45,7 @@ import org.easymock.classextension.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestAsynchronousValidationRequest {
 
     private AsynchronousValidator mockParent;

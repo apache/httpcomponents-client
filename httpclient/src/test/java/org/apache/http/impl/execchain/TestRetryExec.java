@@ -52,6 +52,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+@SuppressWarnings({"boxing","static-access"}) // test code
 public class TestRetryExec {
 
     @Mock
