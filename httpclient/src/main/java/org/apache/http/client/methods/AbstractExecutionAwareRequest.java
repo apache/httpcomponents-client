@@ -27,8 +27,8 @@
 package org.apache.http.client.methods;
 
 import java.io.IOException;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.client.utils.CloneUtils;
@@ -41,95 +41,62 @@ import org.apache.http.message.AbstractHttpMessage;
 public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage implements
         HttpExecutionAware, AbortableHttpRequest, Cloneable, HttpRequest {
 
-    private Lock abortLock;
-    private volatile boolean aborted;
-    private volatile Cancellable cancellable;
+    private final AtomicBoolean aborted;
+    private final AtomicReference<Cancellable> cancellableRef;
 
     protected AbstractExecutionAwareRequest() {
         super();
-        this.abortLock = new ReentrantLock();
+        this.aborted = new AtomicBoolean(false);
+        this.cancellableRef = new AtomicReference<Cancellable>(null);
     }
 
     @Deprecated
     public void setConnectionRequest(final ClientConnectionRequest connRequest) {
-        if (this.aborted) {
-            return;
-        }
-        this.abortLock.lock();
-        try {
-            this.cancellable = new Cancellable() {
+        setCancellable(new Cancellable() {
 
-                public boolean cancel() {
-                    connRequest.abortRequest();
-                    return true;
-                }
+            public boolean cancel() {
+                connRequest.abortRequest();
+                return true;
+            }
 
-            };
-        } finally {
-            this.abortLock.unlock();
-        }
+        });
     }
 
     @Deprecated
     public void setReleaseTrigger(final ConnectionReleaseTrigger releaseTrigger) {
-        if (this.aborted) {
-            return;
-        }
-        this.abortLock.lock();
-        try {
-            this.cancellable = new Cancellable() {
+        setCancellable(new Cancellable() {
 
-                public boolean cancel() {
-                    try {
-                        releaseTrigger.abortConnection();
-                        return true;
-                    } catch (final IOException ex) {
-                        return false;
-                    }
+            public boolean cancel() {
+                try {
+                    releaseTrigger.abortConnection();
+                    return true;
+                } catch (final IOException ex) {
+                    return false;
                 }
+            }
 
-            };
-        } finally {
-            this.abortLock.unlock();
-        }
-    }
-
-    private void cancelExecution() {
-        if (this.cancellable != null) {
-            this.cancellable.cancel();
-            this.cancellable = null;
-        }
+        });
     }
 
     public void abort() {
-        if (this.aborted) {
-            return;
-        }
-        this.abortLock.lock();
-        try {
-            this.aborted = true;
-            cancelExecution();
-        } finally {
-            this.abortLock.unlock();
+        if (this.aborted.compareAndSet(false, true)) {
+            final Cancellable cancellable = this.cancellableRef.getAndSet(null);
+            if (cancellable != null) {
+                cancellable.cancel();
+            }
         }
     }
 
     public boolean isAborted() {
-        return this.aborted;
+        return this.aborted.get();
     }
 
     /**
      * @since 4.2
      */
     public void setCancellable(final Cancellable cancellable) {
-        if (this.aborted) {
-            return;
-        }
-        this.abortLock.lock();
-        try {
-            this.cancellable = cancellable;
-        } finally {
-            this.abortLock.unlock();
+        if (!this.aborted.get()) {
+            this.cancellableRef.set(cancellable);
         }
     }
 
@@ -138,9 +105,6 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
         final AbstractExecutionAwareRequest clone = (AbstractExecutionAwareRequest) super.clone();
         clone.headergroup = CloneUtils.cloneObject(this.headergroup);
         clone.params = CloneUtils.cloneObject(this.params);
-        clone.abortLock = new ReentrantLock();
-        clone.cancellable = null;
-        clone.aborted = false;
         return clone;
     }
 
@@ -148,12 +112,7 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
      * @since 4.2
      */
     public void completed() {
-        this.abortLock.lock();
-        try {
-            this.cancellable = null;
-        } finally {
-            this.abortLock.unlock();
-        }
+        this.cancellableRef.set(null);
     }
 
     /**
@@ -162,13 +121,11 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
      * @since 4.2
      */
     public void reset() {
-        this.abortLock.lock();
-        try {
-            cancelExecution();
-            this.aborted = false;
-        } finally {
-            this.abortLock.unlock();
+        final Cancellable cancellable = this.cancellableRef.getAndSet(null);
+        if (cancellable != null) {
+            cancellable.cancel();
         }
+        this.aborted.set(false);
     }
 
 }
