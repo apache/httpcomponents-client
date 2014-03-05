@@ -28,6 +28,8 @@
 package org.apache.http.client.fluent;
 
 import java.net.URI;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
@@ -35,24 +37,32 @@ import org.apache.http.RequestLine;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.Configurable;
+import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.concurrent.Cancellable;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.util.Args;
 
 @NotThreadSafe
-class InternalHttpRequest extends AbstractHttpMessage implements HttpUriRequest, Configurable {
+class InternalHttpRequest extends AbstractHttpMessage
+        implements HttpUriRequest, HttpExecutionAware, Configurable {
 
     private final String method;
     private ProtocolVersion version;
     private URI uri;
     private RequestConfig config;
 
+    private final AtomicBoolean aborted;
+    private final AtomicReference<Cancellable> cancellableRef;
+
     InternalHttpRequest(final String method, final URI requestURI) {
         Args.notBlank(method, "Method");
         Args.notNull(requestURI, "Request URI");
         this.method = method;
         this.uri = requestURI;
+        this.aborted = new AtomicBoolean(false);
+        this.cancellableRef = new AtomicReference<Cancellable>(null);
     }
 
     public void setProtocolVersion(final ProtocolVersion version) {
@@ -76,11 +86,24 @@ class InternalHttpRequest extends AbstractHttpMessage implements HttpUriRequest,
 
     @Override
     public void abort() throws UnsupportedOperationException {
+        if (this.aborted.compareAndSet(false, true)) {
+            final Cancellable cancellable = this.cancellableRef.getAndSet(null);
+            if (cancellable != null) {
+                cancellable.cancel();
+            }
+        }
     }
 
     @Override
     public boolean isAborted() {
-        return false;
+        return this.aborted.get();
+    }
+
+    @Override
+    public void setCancellable(final Cancellable cancellable) {
+        if (!this.aborted.get()) {
+            this.cancellableRef.set(cancellable);
+        }
     }
 
     @Override
@@ -96,7 +119,6 @@ class InternalHttpRequest extends AbstractHttpMessage implements HttpUriRequest,
         }
         return new BasicRequestLine(getMethod(), uritext, ver);
     }
-
 
     @Override
     public RequestConfig getConfig() {

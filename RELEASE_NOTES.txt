@@ -4,6 +4,9 @@ Changes for 4.4-alpha1
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1474] Fixed broken entity enclosing requests in HC Fluent.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1403] Pluggable content decoders.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
