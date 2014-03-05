@@ -27,6 +27,9 @@ Changelog:
 * [HTTPCLIENT-1454] Make connection operator APIs public.
   Contributed by Tamas Cservenak <tamas at cservenak.net>
 
+* Update JUnit to version 4.11 from 4.9  
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 
 Release 4.3.3
 -------------------
