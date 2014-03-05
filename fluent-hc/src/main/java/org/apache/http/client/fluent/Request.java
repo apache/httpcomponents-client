@@ -72,64 +72,64 @@ public class Request {
     private SimpleDateFormat dateFormatter;
 
     public static Request Get(final URI uri) {
-        return new Request(HttpGet.METHOD_NAME, uri);
+        return new Request(new InternalHttpRequest(HttpGet.METHOD_NAME, uri));
     }
 
     public static Request Get(final String uri) {
-        return new Request(HttpGet.METHOD_NAME, URI.create(uri));
+        return new Request(new InternalHttpRequest(HttpGet.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Head(final URI uri) {
-        return new Request(HttpHead.METHOD_NAME, uri);
+        return new Request(new InternalHttpRequest(HttpHead.METHOD_NAME, uri));
     }
 
     public static Request Head(final String uri) {
-        return new Request(HttpHead.METHOD_NAME, URI.create(uri));
+        return new Request(new InternalHttpRequest(HttpHead.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Post(final URI uri) {
-        return new Request(HttpPost.METHOD_NAME, uri);
+        return new Request(new InternalEntityEnclosingHttpRequest(HttpPost.METHOD_NAME, uri));
     }
 
     public static Request Post(final String uri) {
-        return new Request(HttpPost.METHOD_NAME, URI.create(uri));
+        return new Request(new InternalEntityEnclosingHttpRequest(HttpPost.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Put(final URI uri) {
-        return new Request(HttpPut.METHOD_NAME, uri);
+        return new Request(new InternalEntityEnclosingHttpRequest(HttpPut.METHOD_NAME, uri));
     }
 
     public static Request Put(final String uri) {
-        return new Request(HttpPut.METHOD_NAME, URI.create(uri));
+        return new Request(new InternalEntityEnclosingHttpRequest(HttpPut.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Trace(final URI uri) {
-        return new Request(HttpTrace.METHOD_NAME, uri);
+        return new Request(new InternalHttpRequest(HttpTrace.METHOD_NAME, uri));
     }
 
     public static Request Trace(final String uri) {
-        return new Request(HttpTrace.METHOD_NAME, URI.create(uri));
+        return new Request(new InternalHttpRequest(HttpTrace.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Delete(final URI uri) {
-        return new Request(HttpDelete.METHOD_NAME, uri);
+        return new Request(new InternalHttpRequest(HttpDelete.METHOD_NAME, uri));
     }
 
     public static Request Delete(final String uri) {
-        return new Request(HttpDelete.METHOD_NAME, URI.create(uri));
+        return new Request(new InternalHttpRequest(HttpDelete.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Options(final URI uri) {
-        return new Request(HttpOptions.METHOD_NAME, uri);
+        return new Request(new InternalHttpRequest(HttpOptions.METHOD_NAME, uri));
     }
 
     public static Request Options(final String uri) {
-        return new Request(HttpOptions.METHOD_NAME, URI.create(uri));
+        return new Request(new InternalHttpRequest(HttpOptions.METHOD_NAME, URI.create(uri)));
     }
 
-    Request(final String method, final URI requestURI) {
+    Request(final InternalHttpRequest request) {
         super();
-        this.request = new InternalHttpRequest(method, requestURI);
+        this.request = request;
         this.configBuilder = RequestConfig.custom();
     }
 
