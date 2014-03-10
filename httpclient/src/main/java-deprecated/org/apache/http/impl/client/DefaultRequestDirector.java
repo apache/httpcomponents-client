@@ -867,6 +867,7 @@ public class DefaultRequestDirector implements RequestDirector {
 
             // Populate the execution context
             context.setAttribute(ExecutionContext.HTTP_TARGET_HOST, target);
+            context.setAttribute(ClientContext.ROUTE, route);
             context.setAttribute(ExecutionContext.HTTP_PROXY_HOST, proxy);
             context.setAttribute(ExecutionContext.HTTP_CONNECTION, managedConn);
             context.setAttribute(ExecutionContext.HTTP_REQUEST, connect);
