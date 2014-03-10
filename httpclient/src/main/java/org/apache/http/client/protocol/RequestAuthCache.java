@@ -84,7 +84,17 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         }
 
         final RouteInfo route = clientContext.getHttpRoute();
+        if (route == null) {
+            this.log.debug("Route info not set in the context");
+            return;
+        }
+
         HttpHost target = clientContext.getTargetHost();
+        if (target == null) {
+            this.log.debug("Target host not set in the context");
+            return;
+        }
+
         if (target.getPort() < 0) {
             target = new HttpHost(
                     target.getHostName(),
