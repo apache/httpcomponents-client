@@ -397,7 +397,9 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         } else {
             host = new HttpHost(remoteAddress.getHostName(), remoteAddress.getPort(), "https");
         }
+        final int socketTimeout = HttpConnectionParams.getSoTimeout(params);
         final int connectTimeout = HttpConnectionParams.getConnectionTimeout(params);
+        socket.setSoTimeout(socketTimeout);
         return connectSocket(connectTimeout, socket, host, remoteAddress, localAddress, null);
     }
 
