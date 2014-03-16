@@ -4,6 +4,10 @@ Changes for 4.3.TBA
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1484] GzipCompressingEntity should not close the underlying output stream
+  if the entity has not been fully written out due to an exception.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1474] Fixed broken entity enclosing requests in HC Fluent.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
