@@ -30,6 +30,7 @@ package org.apache.http.client.entity;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.http.Consts;
@@ -41,6 +42,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class TestGZip {
 
@@ -90,6 +92,19 @@ public class TestGZip {
             // As I cannot get the content, GzipDecompressingEntity is supposed
             // to have released everything
             Assert.assertTrue(inputStreamIsClosed.get());
+        }
+    }
+
+    @Test
+    public void testCompressionIOExceptionLeavesOutputStreamOpen() throws Exception {
+        final HttpEntity in = Mockito.mock(HttpEntity.class);
+        Mockito.doThrow(new IOException("Ooopsie")).when(in).writeTo(Mockito.<OutputStream>any());
+        final GzipCompressingEntity gzipe = new GzipCompressingEntity(in);
+        final OutputStream out = Mockito.mock(OutputStream.class);
+        try {
+            gzipe.writeTo(out);
+        } catch (IOException ex) {
+            Mockito.verify(out, Mockito.never()).close();
         }
     }
 
