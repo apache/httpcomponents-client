@@ -288,8 +288,8 @@ public class URIUtils {
             outputBuffer.append('/');
         }
         try {
-            final String scheme = uri.getScheme().toLowerCase();
-            final String auth = uri.getAuthority().toLowerCase();
+            final String scheme = uri.getScheme().toLowerCase(Locale.ENGLISH);
+            final String auth = uri.getAuthority().toLowerCase(Locale.ENGLISH);
             final URI ref = new URI(scheme, auth, outputBuffer.toString(),
                     null, null);
             if (uri.getQuery() == null && uri.getFragment() == null) {
