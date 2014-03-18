@@ -104,7 +104,7 @@ public final class SchemeRegistry {
     public final Scheme get(final String name) {
         Args.notNull(name, "Scheme name");
         // leave it to the caller to use the correct name - all lowercase
-        //name = name.toLowerCase();
+        //name = name.toLowerCase(Locale.ENGLISH);
         final Scheme found = registeredSchemes.get(name);
         return found;
     }
@@ -136,7 +136,7 @@ public final class SchemeRegistry {
     public final Scheme unregister(final String name) {
         Args.notNull(name, "Scheme name");
         // leave it to the caller to use the correct name - all lowercase
-        //name = name.toLowerCase();
+        //name = name.toLowerCase(Locale.ENGLISH);
         final Scheme gone = registeredSchemes.remove(name);
         return gone;
     }
