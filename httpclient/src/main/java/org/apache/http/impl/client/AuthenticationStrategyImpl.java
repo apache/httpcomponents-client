@@ -125,7 +125,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
             }
             final int endIndex = pos;
             final String s = buffer.substring(beginIndex, endIndex);
-            map.put(s.toLowerCase(Locale.US), header);
+            map.put(s.toLowerCase(Locale.ROOT), header);
         }
         return map;
     }
@@ -165,7 +165,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
         }
 
         for (final String id: authPrefs) {
-            final Header challenge = challenges.get(id.toLowerCase(Locale.US));
+            final Header challenge = challenges.get(id.toLowerCase(Locale.ROOT));
             if (challenge != null) {
                 final AuthSchemeProvider authSchemeProvider = registry.lookup(id);
                 if (authSchemeProvider == null) {

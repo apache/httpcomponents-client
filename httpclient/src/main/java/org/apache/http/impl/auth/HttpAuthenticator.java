@@ -131,7 +131,7 @@ public class HttpAuthenticator {
             case UNCHALLENGED:
                 if (authScheme != null) {
                     final String id = authScheme.getSchemeName();
-                    final Header challenge = challenges.get(id.toLowerCase(Locale.US));
+                    final Header challenge = challenges.get(id.toLowerCase(Locale.ROOT));
                     if (challenge != null) {
                         this.log.debug("Authorization challenge processed");
                         authScheme.processChallenge(challenge);

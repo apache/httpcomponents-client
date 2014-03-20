@@ -92,7 +92,7 @@ public class TestMinimalClientRequestExecution extends IntegrationTestBase {
             final Header[] headers = reqWrapper.getAllHeaders();
             final Set<String> headerSet = new HashSet<String>();
             for (final Header header: headers) {
-                headerSet.add(header.getName().toLowerCase(Locale.US));
+                headerSet.add(header.getName().toLowerCase(Locale.ROOT));
             }
             Assert.assertEquals(3, headerSet.size());
             Assert.assertTrue(headerSet.contains("connection"));

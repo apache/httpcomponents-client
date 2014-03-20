@@ -187,7 +187,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             final URIBuilder b = new URIBuilder(new URI(location).normalize());
             final String host = b.getHost();
             if (host != null) {
-                b.setHost(host.toLowerCase(Locale.US));
+                b.setHost(host.toLowerCase(Locale.ROOT));
             }
             final String path = b.getPath();
             if (TextUtils.isEmpty(path)) {

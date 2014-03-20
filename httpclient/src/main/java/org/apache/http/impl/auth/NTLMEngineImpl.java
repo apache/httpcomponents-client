@@ -590,7 +590,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     private static byte[] lmHash(final String password) throws NTLMEngineException {
         try {
-            final byte[] oemPassword = password.toUpperCase(Locale.US).getBytes(Consts.ASCII);
+            final byte[] oemPassword = password.toUpperCase(Locale.ROOT).getBytes(Consts.ASCII);
             final int length = Math.min(oemPassword.length, 14);
             final byte[] keyBytes = new byte[14];
             System.arraycopy(oemPassword, 0, keyBytes, 0, length);
@@ -643,9 +643,9 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
         final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
         // Upper case username, upper case domain!
-        hmacMD5.update(user.toUpperCase(Locale.US).getBytes(UNICODE_LITTLE_UNMARKED));
+        hmacMD5.update(user.toUpperCase(Locale.ROOT).getBytes(UNICODE_LITTLE_UNMARKED));
         if (domain != null) {
-            hmacMD5.update(domain.toUpperCase(Locale.US).getBytes(UNICODE_LITTLE_UNMARKED));
+            hmacMD5.update(domain.toUpperCase(Locale.ROOT).getBytes(UNICODE_LITTLE_UNMARKED));
         }
         return hmacMD5.getOutput();
     }
@@ -663,7 +663,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
         final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
         // Upper case username, mixed case target!!
-        hmacMD5.update(user.toUpperCase(Locale.US).getBytes(UNICODE_LITTLE_UNMARKED));
+        hmacMD5.update(user.toUpperCase(Locale.ROOT).getBytes(UNICODE_LITTLE_UNMARKED));
         if (domain != null) {
             hmacMD5.update(domain.getBytes(UNICODE_LITTLE_UNMARKED));
         }
@@ -986,7 +986,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
             hostBytes = unqualifiedHost != null? unqualifiedHost.getBytes(Consts.ASCII) : null;
             domainBytes = unqualifiedDomain != null ? unqualifiedDomain
-                    .toUpperCase(Locale.US).getBytes(Consts.ASCII) : null;
+                    .toUpperCase(Locale.ROOT).getBytes(Consts.ASCII) : null;
         }
 
         /**
@@ -1239,7 +1239,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             }
             hostBytes = unqualifiedHost != null ? unqualifiedHost.getBytes(UNICODE_LITTLE_UNMARKED) : null;
             domainBytes = unqualifiedDomain != null ? unqualifiedDomain
-                    .toUpperCase(Locale.US).getBytes(UNICODE_LITTLE_UNMARKED) : null;
+                    .toUpperCase(Locale.ROOT).getBytes(UNICODE_LITTLE_UNMARKED) : null;
             userBytes = user.getBytes(UNICODE_LITTLE_UNMARKED);
         }
 

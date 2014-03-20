@@ -267,7 +267,7 @@ public class DigestScheme extends RFC2617Scheme {
             final StringTokenizer tok = new StringTokenizer(qoplist, ",");
             while (tok.hasMoreTokens()) {
                 final String variant = tok.nextToken().trim();
-                qopset.add(variant.toLowerCase(Locale.US));
+                qopset.add(variant.toLowerCase(Locale.ROOT));
             }
             if (request instanceof HttpEntityEnclosingRequest && qopset.contains("auth-int")) {
                 qop = QOP_AUTH_INT;
