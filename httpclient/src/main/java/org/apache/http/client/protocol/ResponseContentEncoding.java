@@ -81,7 +81,7 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
                 final HeaderElement[] codecs = ceheader.getElements();
                 boolean uncompressed = false;
                 for (final HeaderElement codec : codecs) {
-                    final String codecname = codec.getName().toLowerCase(Locale.US);
+                    final String codecname = codec.getName().toLowerCase(Locale.ENGLISH);
                     if ("gzip".equals(codecname) || "x-gzip".equals(codecname)) {
                         response.setEntity(new GzipDecompressingEntity(response.getEntity()));
                         uncompressed = true;

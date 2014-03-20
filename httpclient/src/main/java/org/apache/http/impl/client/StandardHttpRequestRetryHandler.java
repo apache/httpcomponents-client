@@ -72,7 +72,7 @@ public class StandardHttpRequestRetryHandler extends DefaultHttpRequestRetryHand
 
     @Override
     protected boolean handleAsIdempotent(final HttpRequest request) {
-        final String method = request.getRequestLine().getMethod().toUpperCase(Locale.US);
+        final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ENGLISH);
         final Boolean b = this.idempotentMethods.get(method);
         return b != null && b.booleanValue();
     }

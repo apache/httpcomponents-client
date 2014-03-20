@@ -603,7 +603,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     private static byte[] lmHash(final String password) throws NTLMEngineException {
         try {
-            final byte[] oemPassword = password.toUpperCase(Locale.US).getBytes("US-ASCII");
+            final byte[] oemPassword = password.toUpperCase(Locale.ENGLISH).getBytes("US-ASCII");
             final int length = Math.min(oemPassword.length, 14);
             final byte[] keyBytes = new byte[14];
             System.arraycopy(oemPassword, 0, keyBytes, 0, length);
@@ -655,9 +655,9 @@ final class NTLMEngineImpl implements NTLMEngine {
         try {
             final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
             // Upper case username, upper case domain!
-            hmacMD5.update(user.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
+            hmacMD5.update(user.toUpperCase(Locale.ENGLISH).getBytes("UnicodeLittleUnmarked"));
             if (domain != null) {
-                hmacMD5.update(domain.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
+                hmacMD5.update(domain.toUpperCase(Locale.ENGLISH).getBytes("UnicodeLittleUnmarked"));
             }
             return hmacMD5.getOutput();
         } catch (final UnsupportedEncodingException e) {
@@ -676,7 +676,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         try {
             final HMACMD5 hmacMD5 = new HMACMD5(ntlmHash);
             // Upper case username, mixed case target!!
-            hmacMD5.update(user.toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked"));
+            hmacMD5.update(user.toUpperCase(Locale.ENGLISH).getBytes("UnicodeLittleUnmarked"));
             if (domain != null) {
                 hmacMD5.update(domain.getBytes("UnicodeLittleUnmarked"));
             }
@@ -1004,7 +1004,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
                 hostBytes = unqualifiedHost != null? unqualifiedHost.getBytes("ASCII") : null;
                 domainBytes = unqualifiedDomain != null ? unqualifiedDomain
-                        .toUpperCase(Locale.US).getBytes("ASCII") : null;
+                        .toUpperCase(Locale.ENGLISH).getBytes("ASCII") : null;
             } catch (final UnsupportedEncodingException e) {
                 throw new NTLMEngineException("Unicode unsupported: " + e.getMessage(), e);
             }
@@ -1260,7 +1260,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 hostBytes = unqualifiedHost != null ? unqualifiedHost
                         .getBytes("UnicodeLittleUnmarked") : null;
                 domainBytes = unqualifiedDomain != null ? unqualifiedDomain
-                        .toUpperCase(Locale.US).getBytes("UnicodeLittleUnmarked") : null;
+                        .toUpperCase(Locale.ENGLISH).getBytes("UnicodeLittleUnmarked") : null;
                 userBytes = user.getBytes("UnicodeLittleUnmarked");
             } catch (final UnsupportedEncodingException e) {
                 throw new NTLMEngineException("Unicode not supported: " + e.getMessage(), e);

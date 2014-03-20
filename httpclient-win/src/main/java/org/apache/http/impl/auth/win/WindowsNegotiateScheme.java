@@ -67,7 +67,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
 
     public static boolean isAvaliable() {
         String os = System.getProperty("os.name");
-        os = os != null ? os.toLowerCase(Locale.US) : null;
+        os = os != null ? os.toLowerCase(Locale.ENGLISH) : null;
         if (os != null && os.contains("windows")) {
             try {
                 return Sspi.MAX_TOKEN_SIZE > 0;

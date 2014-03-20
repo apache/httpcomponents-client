@@ -54,7 +54,7 @@ public class Header implements Iterable<MinimalField> {
         if (field == null) {
             return;
         }
-        final String key = field.getName().toLowerCase(Locale.US);
+        final String key = field.getName().toLowerCase(Locale.ENGLISH);
         List<MinimalField> values = this.fieldMap.get(key);
         if (values == null) {
             values = new LinkedList<MinimalField>();
@@ -72,7 +72,7 @@ public class Header implements Iterable<MinimalField> {
         if (name == null) {
             return null;
         }
-        final String key = name.toLowerCase(Locale.US);
+        final String key = name.toLowerCase(Locale.ENGLISH);
         final List<MinimalField> list = this.fieldMap.get(key);
         if (list != null && !list.isEmpty()) {
             return list.get(0);
@@ -84,7 +84,7 @@ public class Header implements Iterable<MinimalField> {
         if (name == null) {
             return null;
         }
-        final String key = name.toLowerCase(Locale.US);
+        final String key = name.toLowerCase(Locale.ENGLISH);
         final List<MinimalField> list = this.fieldMap.get(key);
         if (list == null || list.isEmpty()) {
             return Collections.emptyList();
@@ -97,7 +97,7 @@ public class Header implements Iterable<MinimalField> {
         if (name == null) {
             return 0;
         }
-        final String key = name.toLowerCase(Locale.US);
+        final String key = name.toLowerCase(Locale.ENGLISH);
         final List<MinimalField> removed = fieldMap.remove(key);
         if (removed == null || removed.isEmpty()) {
             return 0;
@@ -110,7 +110,7 @@ public class Header implements Iterable<MinimalField> {
         if (field == null) {
             return;
         }
-        final String key = field.getName().toLowerCase(Locale.US);
+        final String key = field.getName().toLowerCase(Locale.ENGLISH);
         final List<MinimalField> list = fieldMap.get(key);
         if (list == null || list.isEmpty()) {
             addField(field);

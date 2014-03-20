@@ -183,12 +183,12 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
 
         // We're can be case-insensitive when comparing the host we used to
         // establish the socket to the hostname in the certificate.
-        final String hostName = normaliseIPv6Address(host.trim().toLowerCase(Locale.US));
+        final String hostName = normaliseIPv6Address(host.trim().toLowerCase(Locale.ENGLISH));
         boolean match = false;
         for(final Iterator<String> it = names.iterator(); it.hasNext();) {
             // Don't trim the CN, though!
             String cn = it.next();
-            cn = cn.toLowerCase(Locale.US);
+            cn = cn.toLowerCase(Locale.ENGLISH);
             // Store CN in StringBuilder in case we need to report an error.
             buf.append(" <");
             buf.append(cn);

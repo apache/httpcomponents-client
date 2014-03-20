@@ -111,7 +111,7 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
             return options;
         }
         final String id = authScheme.getSchemeName();
-        final Header challenge = challenges.get(id.toLowerCase(Locale.US));
+        final Header challenge = challenges.get(id.toLowerCase(Locale.ENGLISH));
         authScheme.processChallenge(challenge);
 
         final AuthScope authScope = new AuthScope(
