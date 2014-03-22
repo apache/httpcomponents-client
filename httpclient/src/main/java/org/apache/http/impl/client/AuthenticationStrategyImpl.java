@@ -78,6 +78,10 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
     private final int challengeCode;
     private final String headerName;
 
+    /**
+     * @param challengeCode for example SC_PROXY_AUTHENTICATION_REQUIRED or SC_UNAUTHORIZED
+     * @param headerName for example "Proxy-Authenticate" or "WWW-Authenticate"
+     */
     AuthenticationStrategyImpl(final int challengeCode, final String headerName) {
         super();
         this.challengeCode = challengeCode;
