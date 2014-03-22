@@ -98,6 +98,10 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
         return status == this.challengeCode;
     }
 
+    /**
+     * Generates a map of challenge auth-scheme => Header entries
+     * @return map: key=lower-cased auth-scheme name, value=Header that contains the challenge
+     */
     @Override
     public Map<String, Header> getChallenges(
             final HttpHost authhost,
