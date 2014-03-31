@@ -85,13 +85,15 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
     private CtxtHandle sppicontext;
     private boolean continueNeeded;
     private String challenge;
+    private String servicePrincipalName;
 
-    public WindowsNegotiateScheme(final String scheme) {
+    public WindowsNegotiateScheme(final String scheme, final String servicePrincipalName) {
         super();
 
         this.scheme = (scheme == null) ? AuthSchemes.SPNEGO : scheme;
         this.challenge = null;
         this.continueNeeded = true;
+        this.servicePrincipalName = servicePrincipalName;
     }
 
     public void dispose() {
@@ -187,7 +189,8 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
                     throw new Win32Exception(rc);
                 }
 
-                response = getToken(null, null, username);
+                response = getToken(null, null,
+                        this.servicePrincipalName != null ? this.servicePrincipalName : username);
             } catch (Throwable t) {
                 dispose();
                 throw new AuthenticationException("Authentication Failed", t);
@@ -200,7 +203,8 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
                 final byte[] continueTokenBytes = Base64.decodeBase64(this.challenge);
                 final SecBufferDesc continueTokenBuffer = new SecBufferDesc(
                         Sspi.SECBUFFER_TOKEN, continueTokenBytes);
-                response = getToken(this.sppicontext, continueTokenBuffer, "localhost");
+                response = getToken(this.sppicontext, continueTokenBuffer,
+                        this.servicePrincipalName != null ? this.servicePrincipalName : "localhost");
             } catch (Throwable t) {
                 dispose();
                 throw new AuthenticationException("Authentication Failed", t);

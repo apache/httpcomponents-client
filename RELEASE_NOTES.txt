@@ -4,6 +4,10 @@ Changes for 4.4-alpha1
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1491] Enable provision of Service Principal Name in Windows native
+  auth scheme.
+  Contributed by Malcolm Smith <malcolmfsmith at gmail.com>
+
 * [HTTPCLIENT-1484] GzipCompressingEntity should not close the underlying output stream
   if the entity has not been fully written out due to an exception.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

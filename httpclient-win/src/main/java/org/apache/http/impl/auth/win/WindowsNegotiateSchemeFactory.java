@@ -44,9 +44,16 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class WindowsNegotiateSchemeFactory implements AuthSchemeProvider {
 
+    private String servicePrincipalName;
+
+    public WindowsNegotiateSchemeFactory(final String servicePrincipalName) {
+        super();
+        this.servicePrincipalName = servicePrincipalName;
+    }
+
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new WindowsNegotiateScheme(AuthSchemes.SPNEGO);
+        return new WindowsNegotiateScheme(AuthSchemes.SPNEGO, servicePrincipalName);
     }
 
 }
