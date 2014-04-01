@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
@@ -201,6 +202,9 @@ public class HttpClientBuilder {
     private int maxConnTotal = 0;
     private int maxConnPerRoute = 0;
 
+    private long connTimeToLive = -1;
+    private TimeUnit connTimeToLiveTimeUnit = TimeUnit.MILLISECONDS;
+
     private List<Closeable> closeables;
 
     static final String DEFAULT_USER_AGENT;
@@ -306,6 +310,20 @@ public class HttpClientBuilder {
      */
     public final HttpClientBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
         this.defaultConnectionConfig = config;
+        return this;
+    }
+
+    /**
+     * Sets maximum time to live for persistent connections
+     * <p/>
+     * Please note this value can be overridden by the {@link #setConnectionManager(
+     *   org.apache.http.conn.HttpClientConnectionManager)} method.
+     *
+     * @since 4.4
+     */
+    public final HttpClientBuilder setConnectionTimeToLive(final long connTimeToLive, final TimeUnit connTimeToLiveTimeUnit) {
+        this.connTimeToLive = connTimeToLive;
+        this.connTimeToLiveTimeUnit = connTimeToLiveTimeUnit;
         return this;
     }
 
@@ -743,7 +761,12 @@ public class HttpClientBuilder {
                     RegistryBuilder.<ConnectionSocketFactory>create()
                         .register("http", PlainConnectionSocketFactory.getSocketFactory())
                         .register("https", sslSocketFactoryCopy)
-                        .build());
+                        .build(),
+                    null,
+                    null,
+                    null,
+                    connTimeToLive,
+                    connTimeToLiveTimeUnit != null ? connTimeToLiveTimeUnit : TimeUnit.MILLISECONDS);
             if (defaultSocketConfig != null) {
                 poolingmgr.setDefaultSocketConfig(defaultSocketConfig);
             }
