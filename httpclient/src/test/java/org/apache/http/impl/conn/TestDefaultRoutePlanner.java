@@ -30,6 +30,7 @@ package org.apache.http.impl.conn;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
+import org.apache.http.ProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.SchemePortResolver;
@@ -100,6 +101,14 @@ public class TestDefaultRoutePlanner {
         Assert.assertEquals(2, route.getHopCount());
         Assert.assertFalse(route.isSecure());
         Mockito.verify(schemePortResolver, Mockito.never()).resolve(Mockito.<HttpHost>any());
+    }
+
+    @Test(expected= ProtocolException.class)
+    public void testNullTarget() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+
+        final HttpContext context = new BasicHttpContext();
+        routePlanner.determineRoute(null, request, context);
     }
 
 }

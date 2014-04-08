@@ -32,6 +32,7 @@ import java.net.InetAddress;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.ProtocolException;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -63,8 +64,10 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
             final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws HttpException {
-        Args.notNull(host, "Target host");
         Args.notNull(request, "Request");
+        if (host == null) {
+            throw new ProtocolException("Target host is not specified");
+        }
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final RequestConfig config = clientContext.getRequestConfig();
         final InetAddress local = config.getLocalAddress();
