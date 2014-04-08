@@ -66,7 +66,6 @@ import org.apache.http.params.HttpParamsNames;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
-import org.apache.http.util.Asserts;
 
 /**
  * Internal class.
@@ -122,7 +121,6 @@ class InternalHttpClient extends CloseableHttpClient {
         if (host == null) {
             host = (HttpHost) request.getParams().getParameter(ClientPNames.DEFAULT_HOST);
         }
-        Asserts.notNull(host, "Target host");
         return this.routePlanner.determineRoute(host, request, context);
     }
 
