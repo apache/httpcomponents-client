@@ -153,6 +153,7 @@ public class StringBody extends AbstractContentBody {
      */
     public StringBody(final String text, final ContentType contentType) {
         super(contentType);
+        Args.notNull(text, "Text");
         final Charset charset = contentType.getCharset();
         final String csname = charset != null ? charset.name() : Consts.ASCII.name();
         try {
