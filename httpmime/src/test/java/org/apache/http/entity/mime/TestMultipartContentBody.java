@@ -65,6 +65,16 @@ public class TestMultipartContentBody {
         Assert.assertEquals(MIME.ENC_8BIT, b2.getTransferEncoding());
     }
 
+    @Test(expected=IllegalArgumentException.class)
+    public void testStringBodyInvalidConstruction1() throws Exception {
+        new StringBody(null, ContentType.DEFAULT_TEXT);
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void testStringBodyInvalidConstruction2() throws Exception {
+        new StringBody("stuff", (ContentType) null);
+    }
+
     @Test
     public void testInputStreamBody() throws Exception {
         final byte[] stuff = "Stuff".getBytes(Consts.ASCII);

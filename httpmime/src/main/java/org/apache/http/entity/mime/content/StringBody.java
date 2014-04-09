@@ -152,6 +152,7 @@ public class StringBody extends AbstractContentBody {
      */
     public StringBody(final String text, final ContentType contentType) {
         super(contentType);
+        Args.notNull(text, "Text");
         final Charset charset = contentType.getCharset();
         this.content = text.getBytes(charset != null ? charset : Consts.ASCII);
     }
