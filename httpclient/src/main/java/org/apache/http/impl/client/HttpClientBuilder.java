@@ -28,6 +28,7 @@
 package org.apache.http.impl.client;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.ProxySelector;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -160,6 +161,7 @@ public class HttpClientBuilder {
     private LayeredConnectionSocketFactory sslSocketFactory;
     private SSLContext sslcontext;
     private HttpClientConnectionManager connManager;
+    private boolean connManagerShared;
     private SchemePortResolver schemePortResolver;
     private ConnectionReuseStrategy reuseStrategy;
     private ConnectionKeepAliveStrategy keepAliveStrategy;
@@ -332,7 +334,26 @@ public class HttpClientBuilder {
      */
     public final HttpClientBuilder setConnectionManager(
             final HttpClientConnectionManager connManager) {
+        return setConnectionManager(connManager, false);
+    }
+
+    /**
+     * Assigns {@link HttpClientConnectionManager} instance.
+     * <p/>
+     * If the connection manager is shared its life-cycle is expected
+     * to be managed by the caller and it will not be shut down
+     * if the client is closed.
+     *
+     * @param connManager connection manager
+     * @param shared defines whether or not the connection manager can be shared
+     *  by multiple clients.
+     *
+     * @since 4.4
+     */
+    public final HttpClientBuilder setConnectionManager(
+            final HttpClientConnectionManager connManager, final boolean shared) {
         this.connManager = connManager;
+        this.connManagerShared = shared;
         return this;
     }
 
@@ -990,6 +1011,22 @@ public class HttpClientBuilder {
             }
         }
 
+        List<Closeable> closeablesCopy = closeables != null ? new ArrayList<Closeable>(closeables) : null;
+        if (!this.connManagerShared) {
+            if (closeablesCopy == null) {
+                closeablesCopy = new ArrayList<Closeable>(1);
+            }
+            final HttpClientConnectionManager cm = connManagerCopy;
+            closeablesCopy.add(new Closeable() {
+
+                @Override
+                public void close() throws IOException {
+                    cm.shutdown();
+                }
+
+            });
+        }
+
         return new InternalHttpClient(
                 execChain,
                 connManagerCopy,
@@ -999,7 +1036,7 @@ public class HttpClientBuilder {
                 defaultCookieStore,
                 defaultCredentialsProvider,
                 defaultRequestConfig != null ? defaultRequestConfig : RequestConfig.DEFAULT,
-                closeables != null ? new ArrayList<Closeable>(closeables) : null);
+                closeablesCopy);
     }
 
 }

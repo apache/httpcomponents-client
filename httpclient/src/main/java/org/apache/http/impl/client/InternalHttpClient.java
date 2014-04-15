@@ -189,7 +189,6 @@ class InternalHttpClient extends CloseableHttpClient {
 
     @Override
     public void close() {
-        this.connManager.shutdown();
         if (this.closeables != null) {
             for (final Closeable closeable: this.closeables) {
                 try {

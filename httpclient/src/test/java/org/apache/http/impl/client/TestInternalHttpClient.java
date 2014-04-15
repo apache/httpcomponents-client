@@ -188,7 +188,6 @@ public class TestInternalHttpClient {
     public void testClientClose() throws Exception {
         client.close();
 
-        Mockito.verify(connManager).shutdown();
         Mockito.verify(closeable1).close();
         Mockito.verify(closeable2).close();
     }
@@ -199,7 +198,6 @@ public class TestInternalHttpClient {
 
         client.close();
 
-        Mockito.verify(connManager).shutdown();
         Mockito.verify(closeable1).close();
         Mockito.verify(closeable2).close();
     }
