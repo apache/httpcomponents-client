@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -91,6 +92,7 @@ public class PoolingHttpClientConnectionManager
     private final ConfigData configData;
     private final CPool pool;
     private final HttpClientConnectionOperator connectionOperator;
+    private final AtomicBoolean isShutDown;
 
     private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
         return RegistryBuilder.<ConnectionSocketFactory>create()
@@ -148,6 +150,7 @@ public class PoolingHttpClientConnectionManager
                 new InternalConnectionFactory(this.configData, connFactory), 2, 20, timeToLive, tunit);
         this.connectionOperator = new HttpClientConnectionOperator(
                 socketFactoryRegistry, schemePortResolver, dnsResolver);
+        this.isShutDown = new AtomicBoolean(false);
     }
 
     PoolingHttpClientConnectionManager(
@@ -160,6 +163,7 @@ public class PoolingHttpClientConnectionManager
         this.pool = pool;
         this.connectionOperator = new HttpClientConnectionOperator(
                 socketFactoryRegistry, schemePortResolver, dnsResolver);
+        this.isShutDown = new AtomicBoolean(false);
     }
 
     @Override
@@ -342,13 +346,15 @@ public class PoolingHttpClientConnectionManager
     }
 
     public void shutdown() {
-        this.log.debug("Connection manager is shutting down");
-        try {
-            this.pool.shutdown();
-        } catch (final IOException ex) {
-            this.log.debug("I/O exception shutting down connection manager", ex);
+        if (this.isShutDown.compareAndSet(false, true)) {
+            this.log.debug("Connection manager is shutting down");
+            try {
+                this.pool.shutdown();
+            } catch (final IOException ex) {
+                this.log.debug("I/O exception shutting down connection manager", ex);
+            }
+            this.log.debug("Connection manager shut down");
         }
-        this.log.debug("Connection manager shut down");
     }
 
     public void closeIdleConnections(final long idleTimeout, final TimeUnit tunit) {
