@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -92,6 +93,7 @@ public class PoolingHttpClientConnectionManager
     private final ConfigData configData;
     private final CPool pool;
     private final HttpClientConnectionOperator connectionOperator;
+    private final AtomicBoolean isShutDown;
 
     private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
         return RegistryBuilder.<ConnectionSocketFactory>create()
@@ -157,11 +159,12 @@ public class PoolingHttpClientConnectionManager
         final HttpClientConnectionOperator httpClientConnectionOperator,
         final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory,
         final long timeToLive, final TimeUnit tunit) {
-      super();
-      this.configData = new ConfigData();
-      this.pool = new CPool(
-          new InternalConnectionFactory(this.configData, connFactory), 2, 20, timeToLive, tunit);
-      this.connectionOperator = Args.notNull(httpClientConnectionOperator, "HttpClientConnectionOperator");
+        super();
+        this.configData = new ConfigData();
+        this.pool = new CPool(new InternalConnectionFactory(
+                this.configData, connFactory), 2, 20, timeToLive, tunit);
+        this.connectionOperator = Args.notNull(httpClientConnectionOperator, "HttpClientConnectionOperator");
+        this.isShutDown = new AtomicBoolean(false);
     }
 
     /**
@@ -177,6 +180,7 @@ public class PoolingHttpClientConnectionManager
         this.pool = pool;
         this.connectionOperator = new DefaultHttpClientConnectionOperator(
                 socketFactoryRegistry, schemePortResolver, dnsResolver);
+        this.isShutDown = new AtomicBoolean(false);
     }
 
     @Override
@@ -368,13 +372,15 @@ public class PoolingHttpClientConnectionManager
 
     @Override
     public void shutdown() {
-        this.log.debug("Connection manager is shutting down");
-        try {
-            this.pool.shutdown();
-        } catch (final IOException ex) {
-            this.log.debug("I/O exception shutting down connection manager", ex);
+        if (this.isShutDown.compareAndSet(false, true)) {
+            this.log.debug("Connection manager is shutting down");
+            try {
+                this.pool.shutdown();
+            } catch (final IOException ex) {
+                this.log.debug("I/O exception shutting down connection manager", ex);
+            }
+            this.log.debug("Connection manager shut down");
         }
-        this.log.debug("Connection manager shut down");
     }
 
     @Override

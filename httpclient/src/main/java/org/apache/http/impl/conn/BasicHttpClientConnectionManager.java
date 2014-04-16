@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -108,8 +109,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     @GuardedBy("this")
     private ConnectionConfig connConfig;
 
-    @GuardedBy("this")
-    private volatile boolean shutdown;
+    private final AtomicBoolean isShutdown;
 
     private static Registry<ConnectionSocketFactory> getDefaultRegistry() {
         return RegistryBuilder.<ConnectionSocketFactory>create()
@@ -141,6 +141,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         this.expiry = Long.MAX_VALUE;
         this.socketConfig = SocketConfig.DEFAULT;
         this.connConfig = ConnectionConfig.DEFAULT;
+        this.isShutdown = new AtomicBoolean(false);
     }
 
     public BasicHttpClientConnectionManager(
@@ -256,7 +257,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     synchronized HttpClientConnection getConnection(final HttpRoute route, final Object state) {
-        Asserts.check(!this.shutdown, "Connection manager has been shut down");
+        Asserts.check(!this.isShutdown.get(), "Connection manager has been shut down");
         if (this.log.isDebugEnabled()) {
             this.log.debug("Get connection for route " + route);
         }
@@ -284,8 +285,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         if (this.log.isDebugEnabled()) {
             this.log.debug("Releasing connection " + conn);
         }
-        if (this.shutdown) {
-            shutdownConnection();
+        if (this.isShutdown.get()) {
             return;
         }
         try {
@@ -357,7 +357,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     @Override
     public synchronized void closeExpiredConnections() {
-        if (this.shutdown) {
+        if (this.isShutdown.get()) {
             return;
         }
         if (!this.leased) {
@@ -368,7 +368,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     @Override
     public synchronized void closeIdleConnections(final long idletime, final TimeUnit tunit) {
         Args.notNull(tunit, "Time unit");
-        if (this.shutdown) {
+        if (this.isShutdown.get()) {
             return;
         }
         if (!this.leased) {
@@ -385,11 +385,9 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
 
     @Override
     public synchronized void shutdown() {
-        if (this.shutdown) {
-            return;
+        if (this.isShutdown.compareAndSet(false, true)) {
+            shutdownConnection();
         }
-        this.shutdown = true;
-        shutdownConnection();
     }
 
 }
