@@ -129,7 +129,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 sock.setKeepAlive(socketConfig.isSoKeepAlive());
                 final int linger = socketConfig.getSoLinger();
                 if (linger >= 0) {
-                    sock.setSoLinger(linger > 0, linger);
+                    sock.setSoLinger(true, linger);
                 }
                 conn.bind(sock);
                 if (this.log.isDebugEnabled()) {
