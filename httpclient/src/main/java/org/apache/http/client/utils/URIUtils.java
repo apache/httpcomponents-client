@@ -366,7 +366,7 @@ public class URIUtils {
                 }
             }
             final String scheme = uri.getScheme();
-            if (host != null) {
+            if (!TextUtils.isBlank(host)) {
                 target = new HttpHost(host, port, scheme);
             }
         }
