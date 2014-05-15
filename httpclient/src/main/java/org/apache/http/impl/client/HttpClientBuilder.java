@@ -35,8 +35,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -208,15 +208,6 @@ public class HttpClientBuilder {
     private TimeUnit connTimeToLiveTimeUnit = TimeUnit.MILLISECONDS;
 
     private List<Closeable> closeables;
-
-    static final String DEFAULT_USER_AGENT;
-    static {
-        final VersionInfo vi = VersionInfo.loadVersionInfo
-                ("org.apache.http.client", HttpClientBuilder.class.getClassLoader());
-        final String release = (vi != null) ?
-                vi.getRelease() : VersionInfo.UNAVAILABLE;
-        DEFAULT_USER_AGENT = "Apache-HttpClient/" + release + " (java 1.5)";
-    }
 
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
@@ -864,7 +855,8 @@ public class HttpClientBuilder {
                     userAgentCopy = System.getProperty("http.agent");
                 }
                 if (userAgentCopy == null) {
-                    userAgentCopy = DEFAULT_USER_AGENT;
+                    userAgentCopy = VersionInfo.getUserAgent("Apache-HttpClient",
+                            "org.apache.http.client", getClass());
                 }
             }
 

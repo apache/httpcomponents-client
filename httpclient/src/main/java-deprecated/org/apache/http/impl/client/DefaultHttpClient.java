@@ -47,6 +47,7 @@ import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestExpectContinue;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
+import org.apache.http.util.VersionInfo;
 
 /**
  * Default implementation of {@link org.apache.http.client.HttpClient} pre-configured
@@ -180,7 +181,8 @@ public class DefaultHttpClient extends AbstractHttpClient {
         HttpProtocolParams.setContentCharset(params, HTTP.DEF_CONTENT_CHARSET.name());
         HttpConnectionParams.setTcpNoDelay(params, true);
         HttpConnectionParams.setSocketBufferSize(params, 8192);
-        HttpProtocolParams.setUserAgent(params, HttpClientBuilder.DEFAULT_USER_AGENT);
+        HttpProtocolParams.setUserAgent(params, VersionInfo.getUserAgent("Apache-HttpClient",
+                "org.apache.http.client", DefaultHttpClient.class));
     }
 
     /**
