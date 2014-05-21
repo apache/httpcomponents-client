@@ -26,7 +26,13 @@
  */
 package org.apache.http.impl.execchain;
 
-import junit.framework.Assert;
+import static org.junit.Assert.assertEquals;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpClientConnection;
@@ -57,14 +63,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.lang.reflect.Proxy;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import junit.framework.Assert;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
 public class TestMinimalClientExec {
@@ -132,7 +131,7 @@ public class TestMinimalClientExec {
 
         Assert.assertSame(managedConn, context.getConnection());
         Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(Proxy.isProxyClass(finalResponse.getClass()));
+        Assert.assertTrue(finalResponse instanceof HttpResponseProxy);
     }
 
     @Test
@@ -164,7 +163,7 @@ public class TestMinimalClientExec {
         Mockito.verify(managedConn, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(Proxy.isProxyClass(finalResponse.getClass()));
+        Assert.assertTrue(finalResponse instanceof HttpResponseProxy);
     }
 
     @Test
@@ -201,7 +200,7 @@ public class TestMinimalClientExec {
         Mockito.verify(managedConn, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(Proxy.isProxyClass(finalResponse.getClass()));
+        Assert.assertTrue(finalResponse instanceof HttpResponseProxy);
         finalResponse.close();
 
         Mockito.verify(connManager, Mockito.times(1)).releaseConnection(

@@ -101,7 +101,7 @@ public class RetryExec implements ClientExecChain {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug(ex.getMessage(), ex);
                     }
-                    if (!Proxies.isRepeatable(request)) {
+                    if (!RequestEntityProxy.isRepeatable(request)) {
                         this.log.debug("Cannot retry non-repeatable request");
                         throw new NonRepeatableRequestException("Cannot retry request " +
                                 "with a non-repeatable request entity", ex);

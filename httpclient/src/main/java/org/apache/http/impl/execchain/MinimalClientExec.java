@@ -228,9 +228,9 @@ public class MinimalClientExec implements ClientExecChain {
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
                 releaseTrigger.releaseConnection();
-                return Proxies.enhanceResponse(response, null);
+                return new HttpResponseProxy(response, null);
             } else {
-                return Proxies.enhanceResponse(response, releaseTrigger);
+                return new HttpResponseProxy(response, releaseTrigger);
             }
         } catch (final ConnectionShutdownException ex) {
             final InterruptedIOException ioex = new InterruptedIOException(

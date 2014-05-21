@@ -4,6 +4,9 @@ Changes for 4.4-alpha1
 Changelog:
 -------------------
 
+* Replaced dynamic proxies with custom proxy classes to reduce thread contention.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1491] Enable provision of Service Principal Name in Windows native
   auth scheme.
   Contributed by Malcolm Smith <malcolmfsmith at gmail.com>

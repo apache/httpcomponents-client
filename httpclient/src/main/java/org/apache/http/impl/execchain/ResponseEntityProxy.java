@@ -33,6 +33,7 @@ import java.io.OutputStream;
 import java.net.SocketException;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.EofSensorInputStream;
 import org.apache.http.conn.EofSensorWatcher;
@@ -44,28 +45,33 @@ import org.apache.http.entity.HttpEntityWrapper;
  * @since 4.3
  */
 @NotThreadSafe
-class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatcher {
+class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher {
 
-    private final ConnectionHolder connReleaseTrigger;
+    private final ConnectionHolder connHolder;
 
-    public ResponseEntityWrapper(
-            final HttpEntity entity,
-            final ConnectionHolder connReleaseTrigger) {
+    public static void enchance(final HttpResponse response, final ConnectionHolder connHolder) {
+        final HttpEntity entity = response.getEntity();
+        if (entity != null && entity.isStreaming() && connHolder != null) {
+            response.setEntity(new ResponseEntityProxy(entity, connHolder));
+        }
+    }
+
+    ResponseEntityProxy(final HttpEntity entity, final ConnectionHolder connHolder) {
         super(entity);
-        this.connReleaseTrigger = connReleaseTrigger;
+        this.connHolder = connHolder;
     }
 
     private void cleanup() {
-        if (this.connReleaseTrigger != null) {
-            this.connReleaseTrigger.abortConnection();
+        if (this.connHolder != null) {
+            this.connHolder.abortConnection();
         }
     }
 
     public void releaseConnection() throws IOException {
-        if (this.connReleaseTrigger != null) {
+        if (this.connHolder != null) {
             try {
-                if (this.connReleaseTrigger.isReusable()) {
-                    this.connReleaseTrigger.releaseConnection();
+                if (this.connHolder.isReusable()) {
+                    this.connHolder.releaseConnection();
                 }
             } finally {
                 cleanup();
@@ -115,7 +121,7 @@ class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatche
     @Override
     public boolean streamClosed(final InputStream wrapped) throws IOException {
         try {
-            final boolean open = connReleaseTrigger != null && !connReleaseTrigger.isReleased();
+            final boolean open = connHolder != null && !connHolder.isReleased();
             // this assumes that closing the stream will
             // consume the remainder of the response body:
             try {
@@ -136,6 +142,14 @@ class ResponseEntityWrapper extends HttpEntityWrapper implements EofSensorWatche
     public boolean streamAbort(final InputStream wrapped) throws IOException {
         cleanup();
         return false;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ResponseEntityProxy{");
+        sb.append(wrappedEntity);
+        sb.append('}');
+        return sb.toString();
     }
 
 }

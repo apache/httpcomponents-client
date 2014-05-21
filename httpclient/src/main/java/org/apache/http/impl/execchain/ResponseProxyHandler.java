@@ -67,7 +67,7 @@ class ResponseProxyHandler implements InvocationHandler {
         this.connHolder = connHolder;
         final HttpEntity entity = original.getEntity();
         if (entity != null && entity.isStreaming() && connHolder != null) {
-            this.original.setEntity(new ResponseEntityWrapper(entity, connHolder));
+            this.original.setEntity(new ResponseEntityProxy(entity, connHolder));
         }
     }
 
