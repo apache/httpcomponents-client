@@ -44,7 +44,7 @@ public class TestResponseEntityWrapper {
     private InputStream instream;
     private HttpEntity entity;
     private ConnectionHolder connHolder;
-    private ResponseEntityWrapper wrapper;
+    private ResponseEntityProxy wrapper;
 
     @Before
     public void setup() throws Exception {
@@ -52,7 +52,7 @@ public class TestResponseEntityWrapper {
         entity = Mockito.mock(HttpEntity.class);
         Mockito.when(entity.getContent()).thenReturn(instream);
         connHolder = Mockito.mock(ConnectionHolder.class);
-        wrapper = new ResponseEntityWrapper(entity, connHolder);
+        wrapper = new ResponseEntityProxy(entity, connHolder);
     }
 
     @Test

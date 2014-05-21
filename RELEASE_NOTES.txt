@@ -4,6 +4,9 @@ Changes for 4.3.TBA
 Changelog:
 -------------------
 
+* Replaced dynamic proxies with custom proxy classes to reduce thread contention.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1484] GzipCompressingEntity should not close the underlying output stream
   if the entity has not been fully written out due to an exception.
   Contributed by Oleg Kalnichevski <olegk at apache.org>

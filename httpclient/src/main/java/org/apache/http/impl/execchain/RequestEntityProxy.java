@@ -26,42 +26,33 @@
  */
 package org.apache.http.impl.execchain;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Proxy;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.client.methods.CloseableHttpResponse;
 
 /**
- * Execution proxies for HTTP message objects.
+ * A Proxy class for {@link org.apache.http.HttpEntity} enclosed in a request message.
  *
  * @since 4.3
  */
 @NotThreadSafe
-class Proxies {
+class RequestEntityProxy implements HttpEntity  {
 
-    static void enhanceEntity(final HttpEntityEnclosingRequest request) {
+    static void enhance(final HttpEntityEnclosingRequest request) {
         final HttpEntity entity = request.getEntity();
         if (entity != null && !entity.isRepeatable() && !isEnhanced(entity)) {
-            final HttpEntity proxy = (HttpEntity) Proxy.newProxyInstance(
-                    HttpEntity.class.getClassLoader(),
-                    new Class<?>[] { HttpEntity.class },
-                    new RequestEntityExecHandler(entity));
-            request.setEntity(proxy);
+            request.setEntity(new RequestEntityProxy(entity));
         }
     }
 
     static boolean isEnhanced(final HttpEntity entity) {
-        if (entity != null && Proxy.isProxyClass(entity.getClass())) {
-            final InvocationHandler handler = Proxy.getInvocationHandler(entity);
-            return handler instanceof RequestEntityExecHandler;
-        } else {
-            return false;
-        }
+        return entity instanceof RequestEntityProxy;
     }
 
     static boolean isRepeatable(final HttpRequest request) {
@@ -69,9 +60,8 @@ class Proxies {
             final HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
             if (entity != null) {
                 if (isEnhanced(entity)) {
-                    final RequestEntityExecHandler handler = (RequestEntityExecHandler)
-                            Proxy.getInvocationHandler(entity);
-                    if (!handler.isConsumed()) {
+                    final RequestEntityProxy proxy = (RequestEntityProxy) entity;
+                    if (!proxy.isConsumed()) {
                         return true;
                     }
                 }
@@ -81,13 +71,67 @@ class Proxies {
         return true;
     }
 
-    public static CloseableHttpResponse enhanceResponse(
-            final HttpResponse original,
-            final ConnectionHolder connHolder) {
-        return (CloseableHttpResponse) Proxy.newProxyInstance(
-                ResponseProxyHandler.class.getClassLoader(),
-                new Class<?>[] { CloseableHttpResponse.class },
-                new ResponseProxyHandler(original, connHolder));
+    private final HttpEntity original;
+    private boolean consumed = false;
+
+    RequestEntityProxy(final HttpEntity original) {
+        super();
+        this.original = original;
+    }
+
+    public HttpEntity getOriginal() {
+        return original;
+    }
+
+    public boolean isConsumed() {
+        return consumed;
+    }
+
+    public boolean isRepeatable() {
+        return original.isRepeatable();
+    }
+
+    public boolean isChunked() {
+        return original.isChunked();
+    }
+
+    public long getContentLength() {
+        return original.getContentLength();
+    }
+
+    public Header getContentType() {
+        return original.getContentType();
+    }
+
+    public Header getContentEncoding() {
+        return original.getContentEncoding();
+    }
+
+    public InputStream getContent() throws IOException, IllegalStateException {
+        return original.getContent();
+    }
+
+    public void writeTo(final OutputStream outstream) throws IOException {
+        consumed = true;
+        original.writeTo(outstream);
+    }
+
+    public boolean isStreaming() {
+        return original.isStreaming();
+    }
+
+    @Deprecated
+    public void consumeContent() throws IOException {
+        consumed = true;
+        original.consumeContent();
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("RequestEntityProxy{");
+        sb.append(original);
+        sb.append('}');
+        return sb.toString();
     }
 
 }

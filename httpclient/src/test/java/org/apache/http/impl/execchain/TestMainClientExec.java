@@ -31,7 +31,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
-import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -39,7 +38,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import junit.framework.Assert;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Header;
 import org.apache.http.HttpClientConnection;
@@ -89,6 +87,8 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import junit.framework.Assert;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
 public class TestMainClientExec {
@@ -200,7 +200,7 @@ public class TestMainClientExec {
         Assert.assertSame(managedConn, context.getConnection());
         Assert.assertNull(context.getUserToken());
         Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(Proxy.isProxyClass(finalResponse.getClass()));
+        Assert.assertTrue(finalResponse instanceof HttpResponseProxy);
     }
 
     @Test
@@ -232,7 +232,7 @@ public class TestMainClientExec {
         Mockito.verify(managedConn, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(Proxy.isProxyClass(finalResponse.getClass()));
+        Assert.assertTrue(finalResponse instanceof HttpResponseProxy);
     }
 
     @Test
@@ -298,7 +298,7 @@ public class TestMainClientExec {
         Mockito.verify(managedConn, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(Proxy.isProxyClass(finalResponse.getClass()));
+        Assert.assertTrue(finalResponse instanceof HttpResponseProxy);
         finalResponse.close();
 
         Mockito.verify(connManager, Mockito.times(1)).releaseConnection(
@@ -332,7 +332,7 @@ public class TestMainClientExec {
         Mockito.verify(managedConn, Mockito.times(1)).close();
 
         Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(Proxy.isProxyClass(finalResponse.getClass()));
+        Assert.assertTrue(finalResponse instanceof HttpResponseProxy);
     }
 
     @Test
