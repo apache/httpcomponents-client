@@ -105,7 +105,14 @@ class HttpClientConnectionOperator {
             final boolean last = i == addresses.length - 1;
 
             Socket sock = sf.createSocket(context);
+            sock.setSoTimeout(socketConfig.getSoTimeout());
             sock.setReuseAddress(socketConfig.isSoReuseAddress());
+            sock.setTcpNoDelay(socketConfig.isTcpNoDelay());
+            sock.setKeepAlive(socketConfig.isSoKeepAlive());
+            final int linger = socketConfig.getSoLinger();
+            if (linger >= 0) {
+                sock.setSoLinger(linger > 0, linger);
+            }
             conn.bind(sock);
 
             final InetSocketAddress remoteAddress = new InetSocketAddress(address, port);
@@ -113,15 +120,8 @@ class HttpClientConnectionOperator {
                 this.log.debug("Connecting to " + remoteAddress);
             }
             try {
-                sock.setSoTimeout(socketConfig.getSoTimeout());
                 sock = sf.connectSocket(
                         connectTimeout, sock, host, remoteAddress, localAddress, context);
-                sock.setTcpNoDelay(socketConfig.isTcpNoDelay());
-                sock.setKeepAlive(socketConfig.isSoKeepAlive());
-                final int linger = socketConfig.getSoLinger();
-                if (linger >= 0) {
-                    sock.setSoLinger(linger > 0, linger);
-                }
                 conn.bind(sock);
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("Connection established " + conn);
