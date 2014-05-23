@@ -230,6 +230,19 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
         }
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("CPoolProxy{");
+        final ManagedHttpClientConnection conn = getConnection();
+        if (conn != null) {
+            sb.append(conn);
+        } else {
+            sb.append("detached");
+        }
+        sb.append('}');
+        return sb.toString();
+    }
+
     public static HttpClientConnection newProxy(final CPoolEntry poolEntry) {
         return new CPoolProxy(poolEntry);
     }
