@@ -28,7 +28,6 @@ package org.apache.http.client.fluent;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
 import org.apache.http.Consts;
@@ -60,11 +59,11 @@ public class Content {
         if (charset == null) {
             charset = Consts.ISO_8859_1;
         }
-        try {
-            return new String(this.raw, charset.name());
-        } catch (final UnsupportedEncodingException ex) {
-            return new String(this.raw);
-        }
+        return asString(charset);
+    }
+
+    public String asString(final Charset charset) {
+        return new String(this.raw, charset);
     }
 
     public InputStream asStream() {

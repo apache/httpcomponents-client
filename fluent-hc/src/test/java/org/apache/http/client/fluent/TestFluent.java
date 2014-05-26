@@ -29,6 +29,7 @@ package org.apache.http.client.fluent;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -119,6 +120,17 @@ public class TestFluent extends LocalServerTestBase {
                 .bodyByteArray(new byte[]{1, 2, 3}, ContentType.APPLICATION_OCTET_STREAM)
                 .execute().returnContent().asString();
         Assert.assertEquals("echo", message2);
+    }
+
+    @Test
+    public void testContentAsStringWithCharset() throws Exception {
+        final InetSocketAddress serviceAddress = this.localServer.getServiceAddress();
+        final String baseURL = "http://localhost:" + serviceAddress.getPort();
+        final Content content = Request.Post(baseURL + "/echo").bodyByteArray("Ü".getBytes("utf-8")).execute()
+                .returnContent();
+        Assert.assertEquals((byte)-61, content.asBytes()[0]);
+        Assert.assertEquals((byte)-100, content.asBytes()[1]);
+        Assert.assertEquals("Ü", content.asString(Charset.forName("utf-8")));
     }
 
     @Test
