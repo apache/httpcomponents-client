@@ -62,6 +62,9 @@ public class Content {
         return asString(charset);
     }
 
+    /**
+     * @since 4.4
+     */
     public String asString(final Charset charset) {
         return new String(this.raw, charset);
     }
