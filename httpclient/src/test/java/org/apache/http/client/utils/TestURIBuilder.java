@@ -27,7 +27,14 @@
 package org.apache.http.client.utils;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.http.Consts;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -230,6 +237,59 @@ public class TestURIBuilder {
 
         Assert.assertEquals(uri.getRawFragment(), bld.getRawFragment());
 
+    }
+
+    @Test
+    public void testBuildAddParametersUTF8() throws Exception {
+      assertAddParameters(Consts.UTF_8);
+    }
+
+    @Test
+    public void testBuildAddParametersISO88591() throws Exception {
+      assertAddParameters(Consts.ISO_8859_1);
+    }
+
+    public void assertAddParameters(Charset charset) throws Exception {
+      final URI uri = new URIBuilder("https://somehost.com/stuff")
+                          .setCharset(charset)
+                          .addParameters(createParameters()).build();
+
+      assertBuild(charset, uri);
+    }
+
+    @Test
+    public void testBuildSetParametersUTF8() throws Exception {
+      assertSetParameters(Consts.UTF_8);
+    }
+
+    @Test
+    public void testBuildSetParametersISO88591() throws Exception {
+      assertSetParameters(Consts.ISO_8859_1);
+    }
+
+    public void assertSetParameters(Charset charset) throws Exception {
+      final URI uri = new URIBuilder("https://somehost.com/stuff")
+                          .setCharset(charset)
+                          .setParameters(createParameters()).build();
+
+      assertBuild(charset, uri);
+    }
+
+    public void assertBuild(Charset charset, URI uri) throws Exception {
+      String encodedData1 = URLEncoder.encode("\"1ª position\"", charset.displayName());
+      String encodedData2 = URLEncoder.encode("José Abraão", charset.displayName());
+
+      String uriExpected = String.format("https://somehost.com/stuff?parameter1=value1&parameter2=%s&parameter3=%s", encodedData1, encodedData2);
+      
+      Assert.assertEquals(uriExpected, uri.toString());
+    }
+
+    private List<NameValuePair> createParameters() {
+      List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+      parameters.add(new BasicNameValuePair("parameter1", "value1"));
+      parameters.add(new BasicNameValuePair("parameter2", "\"1ª position\""));
+      parameters.add(new BasicNameValuePair("parameter3", "José Abraão"));
+      return parameters;
     }
 
 }

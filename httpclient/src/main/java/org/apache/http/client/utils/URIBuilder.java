@@ -59,6 +59,7 @@ public class URIBuilder {
     private String encodedQuery;
     private List<NameValuePair> queryParams;
     private String query;
+    private Charset charset = Consts.UTF_8;
     private String fragment;
     private String encodedFragment;
 
@@ -88,6 +89,15 @@ public class URIBuilder {
     public URIBuilder(final URI uri) {
         super();
         digestURI(uri);
+    }
+
+    public URIBuilder setCharset(Charset charset) {
+      this.charset = charset;
+      return this;
+    }
+
+    public Charset getCharset() {
+      return charset;
     }
 
     private List <NameValuePair> parseQuery(final String query, final Charset charset) {
@@ -162,25 +172,25 @@ public class URIBuilder {
         this.encodedPath = uri.getRawPath();
         this.path = uri.getPath();
         this.encodedQuery = uri.getRawQuery();
-        this.queryParams = parseQuery(uri.getRawQuery(), Consts.UTF_8);
+        this.queryParams = parseQuery(uri.getRawQuery(), this.charset);
         this.encodedFragment = uri.getRawFragment();
         this.fragment = uri.getFragment();
     }
 
     private String encodeUserInfo(final String userInfo) {
-        return URLEncodedUtils.encUserInfo(userInfo, Consts.UTF_8);
+        return URLEncodedUtils.encUserInfo(userInfo, this.charset);
     }
 
     private String encodePath(final String path) {
-        return URLEncodedUtils.encPath(path, Consts.UTF_8);
+        return URLEncodedUtils.encPath(path, this.charset);
     }
 
     private String encodeUrlForm(final List<NameValuePair> params) {
-        return URLEncodedUtils.format(params, Consts.UTF_8);
+        return URLEncodedUtils.format(params, this.charset);
     }
 
     private String encodeUric(final String fragment) {
-        return URLEncodedUtils.encUric(fragment, Consts.UTF_8);
+        return URLEncodedUtils.encUric(fragment, this.charset);
     }
 
     /**
@@ -263,7 +273,7 @@ public class URIBuilder {
      */
     @Deprecated
     public URIBuilder setQuery(final String query) {
-        this.queryParams = parseQuery(query, Consts.UTF_8);
+        this.queryParams = parseQuery(query, this.charset);
         this.query = null;
         this.encodedQuery = null;
         this.encodedSchemeSpecificPart = null;
