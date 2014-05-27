@@ -27,7 +27,14 @@
 package org.apache.http.client.utils;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.http.Consts;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -230,6 +237,34 @@ public class TestURIBuilder {
 
         Assert.assertEquals(uri.getRawFragment(), bld.getRawFragment());
 
+    }
+
+    @Test
+    public void testBuildUTF8() throws Exception {
+      assertBuild(Consts.UTF_8);
+    }
+
+    @Test
+    public void testBuildISO88591() throws Exception {
+      assertBuild(Consts.ISO_8859_1);
+    }
+
+    public void assertBuild(Charset charset) throws Exception {
+      final URI uri = new URIBuilder("https://somehost.com/stuff", charset).addParameters(createParameters()).build();
+
+      String encodedData1 = URLEncoder.encode("\"1ª position\"", charset.displayName());
+      String encodedData2 = URLEncoder.encode("José Abraão", charset.displayName());
+
+      String uriExpected = String.format("https://somehost.com/stuff?parameter1=value1&parameter2=%s&parameter3=%s", encodedData1, encodedData2);
+      Assert.assertEquals(uriExpected, uri.toString());
+    }
+
+    private List<NameValuePair> createParameters() {
+      List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+      parameters.add(new BasicNameValuePair("parameter1", "value1"));
+      parameters.add(new BasicNameValuePair("parameter2", "\"1ª position\""));
+      parameters.add(new BasicNameValuePair("parameter3", "José Abraão"));
+      return parameters;
     }
 
 }
