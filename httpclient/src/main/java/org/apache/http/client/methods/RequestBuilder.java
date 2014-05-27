@@ -30,10 +30,12 @@ package org.apache.http.client.methods;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
@@ -68,6 +70,7 @@ import org.apache.http.util.Args;
 public class RequestBuilder {
 
     private String method;
+    private Charset charset = Consts.UTF_8;
     private ProtocolVersion version;
     private URI uri;
     private HeaderGroup headergroup;
@@ -297,6 +300,15 @@ public class RequestBuilder {
         return this;
     }
 
+    public RequestBuilder setCharset(Charset charset) {
+      this.charset = charset;
+      return this;
+    }
+
+    public Charset getCharset() {
+      return charset;
+    }
+
     public String getMethod() {
         return method;
     }
@@ -442,7 +454,10 @@ public class RequestBuilder {
                 entityCopy = new UrlEncodedFormEntity(parameters, HTTP.DEF_CONTENT_CHARSET);
             } else {
                 try {
-                    uriNotNull = new URIBuilder(uriNotNull).addParameters(parameters).build();
+                    uriNotNull = new URIBuilder(uriNotNull)
+                      .setCharset(this.charset)
+                      .addParameters(parameters)
+                      .build();
                 } catch (final URISyntaxException ex) {
                     // should never happen
                 }
