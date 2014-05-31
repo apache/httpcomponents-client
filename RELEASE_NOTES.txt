@@ -1,5 +1,11 @@
-Changes for 4.3.TBA
+Release 4.3.4
 -------------------
+
+HttpClient 4.3.4 (GA) is a maintenance release that improves performance in high concurrency 
+scenarios. This version replaces dynamic proxies with custom proxy classes and eliminates thread 
+contention in java.reflect.Proxy.newInstance() when leasing connections from the connection pool 
+and processing response messages.
+
 
 Changelog:
 -------------------
@@ -14,7 +20,8 @@ Changelog:
 * [HTTPCLIENT-1474] Fixed broken entity enclosing requests in HC Fluent.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
-* [HTTPCLIENT-1470] CachingExec(ClientExecChain, HttpCache, CacheConfig, AsynchronousValidator) throws NPE if config is null
+* [HTTPCLIENT-1470] CachingExec(ClientExecChain, HttpCache, CacheConfig, AsynchronousValidator) 
+  throws NPE if config is null
 
 
 Release 4.3.3
