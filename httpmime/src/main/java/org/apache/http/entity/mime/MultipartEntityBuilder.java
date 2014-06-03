@@ -94,6 +94,15 @@ public class MultipartEntityBuilder {
         return this;
     }
 
+    /**
+     * @since 4.4
+     */
+    public MultipartEntityBuilder setMimeSubtype(final String subType) {
+        Args.notBlank(subType, "MIME subtype");
+        this.subType = subType;
+        return this;
+    }
+
     public MultipartEntityBuilder setCharset(final Charset charset) {
         this.charset = charset;
         return this;
@@ -161,9 +170,10 @@ public class MultipartEntityBuilder {
 
     private String generateContentType(
             final String boundary,
+            final String subType,
             final Charset charset) {
         final StringBuilder buffer = new StringBuilder();
-        buffer.append("multipart/form-data; boundary=");
+        buffer.append("multipart/").append(subType).append("; boundary=");
         buffer.append(boundary);
         if (charset != null) {
             buffer.append("; charset=");
@@ -200,7 +210,7 @@ public class MultipartEntityBuilder {
             default:
                 form = new HttpStrictMultipart(st, cs, b, bps);
         }
-        return new MultipartFormEntity(form, generateContentType(b, cs), form.getTotalLength());
+        return new MultipartFormEntity(form, generateContentType(b, st, cs), form.getTotalLength());
     }
 
     public HttpEntity build() {
