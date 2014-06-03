@@ -91,13 +91,19 @@ public class URIBuilder {
         digestURI(uri);
     }
 
-    public URIBuilder setCharset(Charset charset) {
-      this.charset = charset;
-      return this;
+    /**
+     * @since 4.4
+     */
+    public URIBuilder setCharset(final Charset charset) {
+        this.charset = charset;
+        return this;
     }
 
+    /**
+     * @since 4.4
+     */
     public Charset getCharset() {
-      return charset;
+        return charset;
     }
 
     private List <NameValuePair> parseQuery(final String query, final Charset charset) {

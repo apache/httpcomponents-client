@@ -300,13 +300,19 @@ public class RequestBuilder {
         return this;
     }
 
-    public RequestBuilder setCharset(Charset charset) {
-      this.charset = charset;
-      return this;
+    /**
+     * @since 4.4
+     */
+    public RequestBuilder setCharset(final Charset charset) {
+        this.charset = charset;
+        return this;
     }
 
+    /**
+     * @since 4.4
+     */
     public Charset getCharset() {
-      return charset;
+        return charset;
     }
 
     public String getMethod() {
