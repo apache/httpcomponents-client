@@ -47,6 +47,8 @@ import org.apache.http.annotation.Immutable;
 @Immutable
 public class BrowserCompatHostnameVerifier extends AbstractVerifier {
 
+    public static final BrowserCompatHostnameVerifier INSTANCE = new BrowserCompatHostnameVerifier();
+
     @Override
     public final void verify(
             final String host,

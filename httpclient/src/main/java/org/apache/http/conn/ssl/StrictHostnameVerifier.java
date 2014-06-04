@@ -54,6 +54,8 @@ import org.apache.http.annotation.Immutable;
 @Immutable
 public class StrictHostnameVerifier extends AbstractVerifier {
 
+    public static final StrictHostnameVerifier INSTANCE = new StrictHostnameVerifier();
+
     @Override
     public final void verify(
             final String host,

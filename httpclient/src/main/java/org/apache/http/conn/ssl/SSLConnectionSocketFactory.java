@@ -112,7 +112,7 @@ import java.net.Socket;
  *     </li>
  *   </ul>
  *
- * @since 4.0
+ * @since 4.3
  */
 @ThreadSafe
 public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactory {
@@ -122,13 +122,13 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
     public static final String SSLV2 = "SSLv2";
 
     public static final X509HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER
-        = new AllowAllHostnameVerifier();
+        = AllowAllHostnameVerifier.INSTANCE;
 
     public static final X509HostnameVerifier BROWSER_COMPATIBLE_HOSTNAME_VERIFIER
-        = new BrowserCompatHostnameVerifier();
+        = BrowserCompatHostnameVerifier.INSTANCE;
 
     public static final X509HostnameVerifier STRICT_HOSTNAME_VERIFIER
-        = new StrictHostnameVerifier();
+        = StrictHostnameVerifier.INSTANCE;
 
     /**
      * Obtains default SSL socket factory with an SSL context based on the standard JSSE

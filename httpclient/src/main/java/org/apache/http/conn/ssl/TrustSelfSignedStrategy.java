@@ -37,6 +37,8 @@ import java.security.cert.X509Certificate;
  */
 public class TrustSelfSignedStrategy implements TrustStrategy {
 
+    public static final TrustSelfSignedStrategy INSTANCE = new TrustSelfSignedStrategy();
+
     @Override
     public boolean isTrusted(
             final X509Certificate[] chain, final String authType) throws CertificateException {
