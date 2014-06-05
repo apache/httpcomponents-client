@@ -38,6 +38,7 @@ import org.apache.http.HttpInetConnection;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -396,6 +397,82 @@ public class TestClientAuthentication extends IntegrationTestBase {
         EntityUtils.consume(entity2);
 
         Assert.assertEquals(1, authStrategy.getCount());
+    }
+
+    static class RealmAuthHandler implements HttpRequestHandler {
+
+        final String realm;
+        final String realmCreds;
+
+        public RealmAuthHandler(final String realm, final String realmCreds) {
+            this.realm = realm;
+            this.realmCreds = realmCreds;
+        }
+
+        @Override
+        public void handle(
+                final HttpRequest request,
+                final HttpResponse response,
+                final HttpContext context) throws HttpException, IOException {
+            final String givenCreds = (String) context.getAttribute("creds");
+            if (givenCreds == null || !givenCreds.equals(this.realmCreds)) {
+                response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
+                response.addHeader(AUTH.WWW_AUTH, "Basic realm=\"" + this.realm + "\"");
+            } else {
+                response.setStatusCode(HttpStatus.SC_OK);
+                final StringEntity entity = new StringEntity("success", Consts.ASCII);
+                response.setEntity(entity);
+            }
+        }
+
+    }
+
+    @Test
+    public void testAuthenticationCredentialsCachingReauthenticationOnDifferentRealm() throws Exception {
+        this.localServer.register("/this", new RealmAuthHandler("this realm", "test:this"));
+        this.localServer.register("/that", new RealmAuthHandler("that realm", "test:that"));
+
+        final HttpHost targethost = getServerHttp();
+
+        final TestTargetAuthenticationStrategy authStrategy = new TestTargetAuthenticationStrategy();
+        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(new AuthScope(targethost, "this realm", null),
+                new UsernamePasswordCredentials("test", "this"));
+        credsProvider.setCredentials(new AuthScope(targethost, "that realm", null),
+                new UsernamePasswordCredentials("test", "that"));
+
+        this.httpclient = HttpClients.custom()
+                .setDefaultCredentialsProvider(credsProvider)
+                .setTargetAuthenticationStrategy(authStrategy)
+                .build();
+
+        final HttpClientContext context = HttpClientContext.create();
+
+        final HttpGet httpget1 = new HttpGet("/this");
+
+        final HttpResponse response1 = this.httpclient.execute(targethost, httpget1, context);
+        final HttpEntity entity1 = response1.getEntity();
+        Assert.assertEquals(HttpStatus.SC_OK, response1.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity1);
+        EntityUtils.consume(entity1);
+
+        final HttpGet httpget2 = new HttpGet("/this");
+
+        final HttpResponse response2 = this.httpclient.execute(targethost, httpget2, context);
+        final HttpEntity entity2 = response1.getEntity();
+        Assert.assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity2);
+        EntityUtils.consume(entity2);
+
+        final HttpGet httpget3 = new HttpGet("/that");
+
+        final HttpResponse response3 = this.httpclient.execute(targethost, httpget3, context);
+        final HttpEntity entity3 = response1.getEntity();
+        Assert.assertEquals(HttpStatus.SC_OK, response3.getStatusLine().getStatusCode());
+        Assert.assertNotNull(entity3);
+        EntityUtils.consume(entity3);
+
+        Assert.assertEquals(2, authStrategy.getCount());
     }
 
     @Test

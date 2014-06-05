@@ -43,7 +43,9 @@ public class ResponseBasicUnauthorized implements HttpResponseInterceptor {
             final HttpResponse response,
             final HttpContext context) throws HttpException, IOException {
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-            response.addHeader(AUTH.WWW_AUTH, "Basic realm=\"test realm\"");
+            if (!response.containsHeader(AUTH.WWW_AUTH)) {
+                response.addHeader(AUTH.WWW_AUTH, "Basic realm=\"test realm\"");
+            }
         }
     }
 
