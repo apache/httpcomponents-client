@@ -27,7 +27,10 @@
 package org.apache.http.impl.auth;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
@@ -616,6 +619,30 @@ public class TestDigestScheme {
         final HttpContext context = new BasicHttpContext();
         authscheme.processChallenge(authChallenge);
         authscheme.authenticate(cred, request, context);
+    }
+
+    @Test
+    public void testSerialization() throws Exception {
+        final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
+                "qop=\"auth,auth-int\"";
+        final Header authChallenge = new BasicHeader(AUTH.WWW_AUTH, challenge);
+        final DigestScheme digestScheme = new DigestScheme();
+        digestScheme.processChallenge(authChallenge);
+
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        final ObjectOutputStream out = new ObjectOutputStream(buffer);
+        out.writeObject(digestScheme);
+        out.flush();
+        final byte[] raw = buffer.toByteArray();
+        final ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
+        final DigestScheme authScheme = (DigestScheme) in.readObject();
+
+        Assert.assertEquals(digestScheme.getSchemeName(), authScheme.getSchemeName());
+        Assert.assertEquals(digestScheme.getRealm(), authScheme.getRealm());
+        Assert.assertEquals(digestScheme.isComplete(), authScheme.isComplete());
+        Assert.assertEquals(digestScheme.getA1(), authScheme.getA1());
+        Assert.assertEquals(digestScheme.getA2(), authScheme.getA2());
+        Assert.assertEquals(digestScheme.getCnonce(), authScheme.getCnonce());
     }
 
 }

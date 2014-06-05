@@ -74,6 +74,8 @@ import org.apache.http.util.EncodingUtils;
 @NotThreadSafe
 public class DigestScheme extends RFC2617Scheme {
 
+    private static final long serialVersionUID = 3883908186234566916L;
+
     /**
      * Hexa values used when creating 32 character long digest in HTTP DigestScheme
      * in case of authentication.

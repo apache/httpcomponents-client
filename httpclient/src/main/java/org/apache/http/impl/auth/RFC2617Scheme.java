@@ -26,6 +26,11 @@
  */
 package org.apache.http.impl.auth;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Locale;
@@ -42,6 +47,7 @@ import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.HeaderValueParser;
 import org.apache.http.message.ParserCursor;
 import org.apache.http.util.CharArrayBuffer;
+import org.apache.http.util.CharsetUtils;
 
 /**
  * Abstract authentication scheme class that lays foundation for all
@@ -52,10 +58,12 @@ import org.apache.http.util.CharArrayBuffer;
  */
 @SuppressWarnings("deprecation")
 @NotThreadSafe // AuthSchemeBase, params
-public abstract class RFC2617Scheme extends AuthSchemeBase {
+public abstract class RFC2617Scheme extends AuthSchemeBase implements Serializable {
+
+    private static final long serialVersionUID = -2845454858205884623L;
 
     private final Map<String, String> params;
-    private final Charset credentialsCharset;
+    private transient Charset credentialsCharset;
 
     /**
      * Creates an instance of <tt>RFC2617Scheme</tt> with the given challenge
@@ -90,7 +98,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
      * @since 4.3
      */
     public Charset getCredentialsCharset() {
-        return credentialsCharset;
+        return credentialsCharset != null ? credentialsCharset : Consts.ASCII;
     }
 
     String getCredentialsCharset(final HttpRequest request) {
@@ -148,6 +156,23 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
     @Override
     public String getRealm() {
         return getParameter("realm");
+    }
+
+    private void writeObject(final ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeUTF(this.credentialsCharset.name());
+    }
+
+    @SuppressWarnings("unchecked")
+    private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        this.credentialsCharset = CharsetUtils.get(in.readUTF());
+        if (this.credentialsCharset == null) {
+            this.credentialsCharset = Consts.ASCII;
+        }
+    }
+
+    private void readObjectNoData() throws ObjectStreamException {
     }
 
 }

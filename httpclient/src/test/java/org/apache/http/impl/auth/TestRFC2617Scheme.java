@@ -27,6 +27,13 @@
 
 package org.apache.http.impl.auth;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.nio.charset.Charset;
+
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AUTH;
@@ -42,6 +49,14 @@ import org.junit.Test;
 public class TestRFC2617Scheme {
 
     static class TestAuthScheme extends RFC2617Scheme {
+
+        public TestAuthScheme() {
+            super();
+        }
+
+        public TestAuthScheme(final Charset charset) {
+            super(charset);
+        }
 
         @Override
         @Deprecated
@@ -137,6 +152,27 @@ public class TestRFC2617Scheme {
         final TestAuthScheme authscheme = new TestAuthScheme();
         final Header header = new BasicHeader("whatever", "whatever");
         authscheme.processChallenge(header);
+    }
+
+    @Test
+    public void testSerialization() throws Exception {
+        final Header challenge = new BasicHeader(AUTH.WWW_AUTH, "test realm=\"test\", blah=blah, yada=\"yada yada\"");
+
+        final TestAuthScheme testScheme = new TestAuthScheme(Consts.ISO_8859_1);
+        testScheme.processChallenge(challenge);
+
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        final ObjectOutputStream out = new ObjectOutputStream(buffer);
+        out.writeObject(testScheme);
+        out.flush();
+        final byte[] raw = buffer.toByteArray();
+        final ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
+        final TestAuthScheme authScheme = (TestAuthScheme) in.readObject();
+
+        Assert.assertEquals(Consts.ISO_8859_1, authScheme.getCredentialsCharset());
+        Assert.assertEquals("test", authScheme.getParameter("realm"));
+        Assert.assertEquals("blah", authScheme.getParameter("blah"));
+        Assert.assertEquals("yada yada", authScheme.getParameter("yada"));
     }
 
 }

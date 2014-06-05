@@ -53,7 +53,8 @@ import org.apache.http.util.EncodingUtils;
 @NotThreadSafe
 public class BasicScheme extends RFC2617Scheme {
 
-    private final Base64 base64codec;
+    private static final long serialVersionUID = -1931571557597830536L;
+
     /** Whether the basic authentication process is complete */
     private boolean complete;
 
@@ -62,7 +63,6 @@ public class BasicScheme extends RFC2617Scheme {
      */
     public BasicScheme(final Charset credentialsCharset) {
         super(credentialsCharset);
-        this.base64codec = new Base64(0);
         this.complete = false;
     }
 
@@ -77,7 +77,6 @@ public class BasicScheme extends RFC2617Scheme {
     @Deprecated
     public BasicScheme(final ChallengeState challengeState) {
         super(challengeState);
-        this.base64codec = new Base64(0);
     }
 
     public BasicScheme() {
@@ -166,6 +165,7 @@ public class BasicScheme extends RFC2617Scheme {
         tmp.append(":");
         tmp.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
 
+        final Base64 base64codec = new Base64(0);
         final byte[] base64password = base64codec.encode(
                 EncodingUtils.getBytes(tmp.toString(), getCredentialsCharset(request)));
 
@@ -220,4 +220,11 @@ public class BasicScheme extends RFC2617Scheme {
         return new BufferedHeader(buffer);
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("BASIC [complete=").append(complete)
+                .append("]");
+        return builder.toString();
+    }
 }

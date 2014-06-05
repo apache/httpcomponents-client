@@ -26,6 +26,11 @@
  */
 package org.apache.http.impl.auth;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Consts;
 import org.apache.http.Header;
@@ -116,6 +121,27 @@ public class TestBasicScheme {
         Assert.assertEquals("test", authscheme.getRealm());
         Assert.assertTrue(authscheme.isComplete());
         Assert.assertFalse(authscheme.isConnectionBased());
+    }
+
+    @Test
+    public void testSerialization() throws Exception {
+        final Header challenge = new BasicHeader(AUTH.PROXY_AUTH, "Basic realm=\"test\"");
+
+        final BasicScheme basicScheme = new BasicScheme();
+        basicScheme.processChallenge(challenge);
+
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        final ObjectOutputStream out = new ObjectOutputStream(buffer);
+        out.writeObject(basicScheme);
+        out.flush();
+        final byte[] raw = buffer.toByteArray();
+        final ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
+        final BasicScheme authScheme = (BasicScheme) in.readObject();
+
+        Assert.assertEquals(basicScheme.getSchemeName(), authScheme.getSchemeName());
+        Assert.assertEquals(basicScheme.getRealm(), authScheme.getRealm());
+        Assert.assertEquals(basicScheme.isComplete(), authScheme.isComplete());
+
     }
 
 }
