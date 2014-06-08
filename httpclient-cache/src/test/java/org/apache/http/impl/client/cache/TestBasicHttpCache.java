@@ -263,6 +263,15 @@ public class TestBasicHttpCache {
     }
 
     @Test
+    public void testNullResourcesAreComplete()
+        throws Exception {
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        resp.setHeader("Content-Length","256");
+
+        assertFalse(impl.isIncompleteResponse(resp, null));
+    }
+
+    @Test
     public void testIncompleteResponseErrorProvidesPlainTextErrorMessage()
         throws Exception {
         final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");

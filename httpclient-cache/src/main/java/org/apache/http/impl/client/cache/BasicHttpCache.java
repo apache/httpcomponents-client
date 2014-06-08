@@ -208,6 +208,9 @@ class BasicHttpCache implements HttpCache {
         } catch (final NumberFormatException nfe) {
             return false;
         }
+        if (resource == null) {
+            return false;
+        }
         return (resource.length() < contentLength);
     }
 
@@ -249,7 +252,8 @@ class BasicHttpCache implements HttpCache {
                 src.getStatusLine(),
                 src.getAllHeaders(),
                 resource,
-                variantMap);
+                variantMap,
+                src.getMethod());
     }
 
     @Override
@@ -317,7 +321,8 @@ class BasicHttpCache implements HttpCache {
                     responseReceived,
                     originResponse.getStatusLine(),
                     originResponse.getAllHeaders(),
-                    resource);
+                    resource,
+                    request.getRequestLine().getMethod());
             storeInCache(host, request, entry);
             return responseGenerator.generateResponse(entry);
         } finally {

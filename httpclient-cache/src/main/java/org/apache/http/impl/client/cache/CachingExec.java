@@ -412,17 +412,21 @@ public class CachingExec implements ClientExecChain {
         }
     }
 
-    private CloseableHttpResponse generateCachedResponse(final HttpRequestWrapper request,
-            final HttpContext context, final HttpCacheEntry entry, final Date now) {
+    private CloseableHttpResponse generateCachedResponse(
+            final HttpRequestWrapper request,
+            final HttpContext context,
+            final HttpCacheEntry entry,
+            final Date now) {
         final CloseableHttpResponse cachedResponse;
+        final HttpCacheEntry cacheEntry = responseCompliance.ensureProtocolCompliance(request, entry);
         if (request.containsHeader(HeaderConstants.IF_NONE_MATCH)
                 || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
-            cachedResponse = responseGenerator.generateNotModifiedResponse(entry);
+            cachedResponse = responseGenerator.generateNotModifiedResponse(cacheEntry);
         } else {
-            cachedResponse = responseGenerator.generateResponse(entry);
+            cachedResponse = responseGenerator.generateResponse(cacheEntry);
         }
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
-        if (validityPolicy.getStalenessSecs(entry, now) > 0L) {
+        if (validityPolicy.getStalenessSecs(cacheEntry, now) > 0L) {
             cachedResponse.addHeader(HeaderConstants.WARNING,"110 localhost \"Response is stale\"");
         }
         return cachedResponse;

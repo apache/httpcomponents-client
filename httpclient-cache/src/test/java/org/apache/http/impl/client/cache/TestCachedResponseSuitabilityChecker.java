@@ -261,4 +261,17 @@ public class TestCachedResponseSuitabilityChecker {
 
         Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
     }
+
+    @Test
+    public void testSuitableIfRequestMethodisHEAD() {
+        final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo", HttpVersion.HTTP_1_1);
+        final Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = getEntry(headers);
+
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, headRequest, entry, now));
+    }
 }

@@ -143,13 +143,14 @@ class CachedResponseSuitabilityChecker {
      * @return boolean yes/no answer
      */
     public boolean canCachedResponseBeUsed(final HttpHost host, final HttpRequest request, final HttpCacheEntry entry, final Date now) {
+        final String method = request.getRequestLine().getMethod();
 
         if (!isFreshEnough(entry, request, now)) {
             log.trace("Cache entry was not fresh enough");
             return false;
         }
 
-        if (!validityStrategy.contentLengthHeaderMatchesActualLength(entry)) {
+        if (method.equals(HeaderConstants.GET_METHOD) && !validityStrategy.contentLengthHeaderMatchesActualLength(entry)) {
             log.debug("Cache entry Content-Length and header information do not match");
             return false;
         }

@@ -216,6 +216,54 @@ public class TestCachingExec extends TestCachingExecChain {
     }
 
     @Test
+    public void testProtocolComplianceReturnsCacheEntryForHEADWithoutResource() throws Exception {
+        final HttpRequestWrapper headRequest = HttpRequestWrapper.wrap(
+                new BasicHttpRequest("HEAD", "/stuff", HttpVersion.HTTP_1_1));
+        final HttpCacheEntry headCacheEntry = HttpTestUtils.makeHeadCacheEntry();
+
+        mockImplMethods(CALL_BACKEND);
+        cacheInvalidatorWasCalled();
+        requestPolicyAllowsCaching(true);
+        cacheEntrySuitable(true);
+        cacheEntryValidatable(false);
+        getCacheEntryReturns(mockCacheEntry, headRequest);
+        requestIsFatallyNonCompliant(null, headRequest);
+
+        expect(mockResponseProtocolCompliance.ensureProtocolCompliance(headRequest, mockCacheEntry))
+                .andReturn(headCacheEntry);
+        expect(mockResponseGenerator.generateResponse(headCacheEntry)).andReturn(mockBackendResponse);
+
+        replayMocks();
+        impl.execute(route, headRequest, context);
+        verifyMocks();
+
+        Assert.assertEquals(0, impl.getCacheMisses());
+        Assert.assertEquals(1, impl.getCacheHits());
+    }
+
+    @Test
+    public void testProtocolComplianceReturnsUnmodifiedCacheEntryForGET() throws Exception {
+        mockImplMethods(CALL_BACKEND);
+        cacheInvalidatorWasCalled();
+        requestPolicyAllowsCaching(true);
+        cacheEntrySuitable(true);
+        cacheEntryValidatable(false);
+        getCacheEntryReturns(mockCacheEntry);
+        requestIsFatallyNonCompliant(null);
+
+        expect(mockResponseProtocolCompliance.ensureProtocolCompliance(request, mockCacheEntry))
+                .andReturn(mockCacheEntry);
+        expect(mockResponseGenerator.generateResponse(mockCacheEntry)).andReturn(mockBackendResponse);
+
+        replayMocks();
+        impl.execute(route, request, context);
+        verifyMocks();
+
+        Assert.assertEquals(0, impl.getCacheMisses());
+        Assert.assertEquals(1, impl.getCacheHits());
+    }
+
+    @Test
     public void testUnsuitableValidatableCacheEntryCausesRevalidation() throws Exception {
         mockImplMethods(REVALIDATE_CACHE_ENTRY);
         cacheInvalidatorWasCalled();

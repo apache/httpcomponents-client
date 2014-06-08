@@ -26,11 +26,16 @@
  */
 package org.apache.http.impl.client.cache;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertSame;
+import static junit.framework.TestCase.assertNotSame;
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -38,6 +43,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.cache.HeaderConstants;
+import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestWrapper;
@@ -150,5 +157,75 @@ public class TestResponseProtocolCompliance {
         } catch (final ClientProtocolException expected) {
         }
         assertTrue(closed.set || bais.read() == -1);
+    }
+
+    @Test
+    public void returnsNewCacheEntryWithNullResourceToServeHEADRequest() throws Exception {
+        final HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("HEAD", "/", HttpVersion.HTTP_1_1);
+        final int nbytes = 128;
+        req.setHeader("Content-Length","" + nbytes);
+        req.setHeader("Content-Type", "application/octet-stream");
+        final HttpEntity entity = new ByteArrayEntity(HttpTestUtils.getRandomBytes(nbytes));
+        req.setEntity(entity);
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final Flag closed = new Flag();
+        final ByteArrayInputStream bais = makeTrackableBody(nbytes, closed);
+        resp.setEntity(new InputStreamEntity(bais, -1));
+        final Date now = new Date();
+        final HttpCacheEntry storedCacheEntry = new HttpCacheEntry(now,
+                now,
+                HttpTestUtils.makeStatusLine(),
+                HttpTestUtils.getStockHeaders(now),
+                new HeapResource(new byte[0]),
+                new HashMap<String, String>(),
+                HeaderConstants.GET_METHOD);
+
+        final HttpCacheEntry returnedCacheEntry = impl.ensureProtocolCompliance(wrapper, storedCacheEntry);
+
+        assertNull(returnedCacheEntry.getResource());
+        assertNotSame(storedCacheEntry, returnedCacheEntry);
+
+        assertEquals(storedCacheEntry.getFirstHeader("Content-Length"), returnedCacheEntry.getFirstHeader("Content-Length"));
+        assertEquals(storedCacheEntry.getFirstHeader("Content-Type"), returnedCacheEntry.getFirstHeader("Content-Type"));
+        assertEquals(storedCacheEntry.getDate(), returnedCacheEntry.getDate());
+        assertEquals(storedCacheEntry.getRequestDate(), returnedCacheEntry.getRequestDate());
+        assertEquals(storedCacheEntry.getResponseDate(), returnedCacheEntry.getResponseDate());
+        assertEquals(storedCacheEntry.getMethod(), returnedCacheEntry.getMethod());
+        assertEquals(storedCacheEntry.getProtocolVersion(), returnedCacheEntry.getProtocolVersion());
+        assertEquals(storedCacheEntry.getReasonPhrase(), returnedCacheEntry.getReasonPhrase());
+        assertEquals(storedCacheEntry.getStatusLine(), returnedCacheEntry.getStatusLine());
+        assertEquals(storedCacheEntry.getStatusCode(), returnedCacheEntry.getStatusCode());
+        assertEquals(storedCacheEntry.getVariantMap(), returnedCacheEntry.getVariantMap());
+    }
+
+    @Test
+    public void returnsSameGETCacheEntryToServeGETRequest() throws Exception {
+        final HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final int nbytes = 128;
+        req.setHeader("Content-Length","" + nbytes);
+        req.setHeader("Content-Type", "application/octet-stream");
+        final HttpEntity entity = new ByteArrayEntity(HttpTestUtils.getRandomBytes(nbytes));
+        req.setEntity(entity);
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+
+        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+        final Flag closed = new Flag();
+        final ByteArrayInputStream bais = makeTrackableBody(nbytes, closed);
+        resp.setEntity(new InputStreamEntity(bais, -1));
+        final Date now = new Date();
+        final HttpCacheEntry storedCacheEntry = new HttpCacheEntry(now,
+                now,
+                HttpTestUtils.makeStatusLine(),
+                HttpTestUtils.getStockHeaders(now),
+                new HeapResource(new byte[0]),
+                new HashMap<String, String>(),
+                HeaderConstants.GET_METHOD);
+
+        final HttpCacheEntry returnedCacheEntry = impl.ensureProtocolCompliance(wrapper, storedCacheEntry);
+
+        assertNotNull(returnedCacheEntry.getResource());
+        assertSame(returnedCacheEntry, storedCacheEntry);
     }
 }

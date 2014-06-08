@@ -309,6 +309,15 @@ public abstract class TestCachingExecChain {
             .andReturn(errors);
     }
 
+    protected void requestIsFatallyNonCompliant(final RequestProtocolError error, final HttpRequestWrapper httpRequest) {
+        final List<RequestProtocolError> errors = new ArrayList<RequestProtocolError>();
+        if (error != null) {
+            errors.add(error);
+        }
+        expect(mockRequestProtocolCompliance.requestIsFatallyNonCompliant(eqRequest(httpRequest)))
+            .andReturn(errors);
+    }
+
     @Test
     public void testSuitableCacheEntryDoesNotCauseBackendRequest() throws Exception {
         cacheInvalidatorWasCalled();
@@ -1731,6 +1740,10 @@ public abstract class TestCachingExecChain {
 
     protected void getCacheEntryReturns(final HttpCacheEntry result) throws IOException {
         expect(mockCache.getCacheEntry(eq(host), eqRequest(request))).andReturn(result);
+    }
+
+    protected void getCacheEntryReturns(final HttpCacheEntry result, final HttpRequestWrapper httpRequest) throws IOException {
+        expect(mockCache.getCacheEntry(eq(host), eqRequest(httpRequest))).andReturn(result);
     }
 
     private void cacheInvalidatorWasCalled() throws IOException {

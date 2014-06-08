@@ -82,15 +82,11 @@ class CacheInvalidator implements HttpCacheInvalidator {
      */
     @Override
     public void flushInvalidatedCacheEntries(final HttpHost host, final HttpRequest req)  {
-        if (requestShouldNotBeCached(req)) {
-            log.debug("Request should not be cached");
+        final String theUri = cacheKeyGenerator.getURI(host, req);
+        final HttpCacheEntry parent = getEntry(theUri);
 
-            final String theUri = cacheKeyGenerator.getURI(host, req);
-
-            final HttpCacheEntry parent = getEntry(theUri);
-
-            log.debug("parent entry: " + parent);
-
+        if (requestShouldNotBeCached(req) || shouldInvalidateHeadCacheEntry(req, parent)) {
+            log.debug("Invalidating parent cache entry: " + parent);
             if (parent != null) {
                 for (final String variantURI : parent.getVariantMap().values()) {
                     flushEntry(variantURI);
@@ -114,6 +110,18 @@ class CacheInvalidator implements HttpCacheInvalidator {
                 flushAbsoluteUriFromSameHost(reqURL, lHdr.getValue());
             }
         }
+    }
+
+    private boolean shouldInvalidateHeadCacheEntry(final HttpRequest req, final HttpCacheEntry parentCacheEntry) {
+        return requestIsGet(req) && isAHeadCacheEntry(parentCacheEntry);
+    }
+
+    private boolean requestIsGet(final HttpRequest req) {
+        return req.getRequestLine().getMethod().equals((HeaderConstants.GET_METHOD));
+    }
+
+    private boolean isAHeadCacheEntry(final HttpCacheEntry parentCacheEntry) {
+        return parentCacheEntry != null && parentCacheEntry.getMethod().equals(HeaderConstants.HEAD_METHOD);
     }
 
     private void flushEntry(final String uri) {

@@ -28,6 +28,7 @@ package org.apache.http.impl.client.cache;
 
 import java.io.InputStream;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -41,6 +42,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.StatusLine;
+import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.entity.ByteArrayEntity;
@@ -299,8 +301,7 @@ public class HttpTestUtils {
     public static HttpCacheEntry makeCacheEntry(final Date requestDate,
             final Date responseDate, final Header[] headers, final byte[] bytes,
             final Map<String,String> variantMap) {
-        final StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-        return new HttpCacheEntry(requestDate, responseDate, statusLine, headers, new HeapResource(bytes), variantMap);
+        return new HttpCacheEntry(requestDate, responseDate, makeStatusLine(), headers, new HeapResource(bytes), variantMap, HeaderConstants.GET_METHOD);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Header[] headers, final byte[] bytes) {
@@ -319,6 +320,15 @@ public class HttpTestUtils {
     public static HttpCacheEntry makeCacheEntry() {
         final Date now = new Date();
         return makeCacheEntry(now, now);
+    }
+
+    public static HttpCacheEntry makeHeadCacheEntry() {
+        final Date now = new Date();
+        return new HttpCacheEntry(now, now, makeStatusLine(), getStockHeaders(now), null, null, HeaderConstants.HEAD_METHOD);
+    }
+
+    public static StatusLine makeStatusLine() {
+        return new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
     }
 
     public static HttpResponse make200Response() {
@@ -359,5 +369,12 @@ public class HttpTestUtils {
     public static HttpResponse make500Response() {
         return new BasicHttpResponse(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_INTERNAL_SERVER_ERROR, "Internal Server Error");
+    }
+
+    public static Map<String, String> makeDefaultVariantMap(final String key, final String value) {
+        final Map<String, String> variants = new HashMap<String, String>();
+        variants.put(key, value);
+
+        return variants;
     }
 }
