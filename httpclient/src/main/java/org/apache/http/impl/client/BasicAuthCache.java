@@ -26,10 +26,19 @@
  */
 package org.apache.http.impl.client;
 
-import java.util.HashMap;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.client.AuthCache;
 import org.apache.http.conn.SchemePortResolver;
@@ -38,14 +47,20 @@ import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.util.Args;
 
 /**
- * Default implementation of {@link AuthCache}.
+ * Default implementation of {@link org.apache.http.client.AuthCache}. This implements
+ * expects {@link org.apache.http.auth.AuthScheme} to be {@link java.io.Serializable}
+ * in order to be cacheable.
+ * <p/>
+ * Instances of this class are thread safe as of version 4.4.
  *
- * @since 4.0
+ * @since 4.1
  */
-@NotThreadSafe
+@ThreadSafe
 public class BasicAuthCache implements AuthCache {
 
-    private final HashMap<HttpHost, AuthScheme> map;
+    private final Log log = LogFactory.getLog(getClass());
+
+    private final Map<HttpHost, byte[]> map;
     private final SchemePortResolver schemePortResolver;
 
     /**
@@ -55,7 +70,7 @@ public class BasicAuthCache implements AuthCache {
      */
     public BasicAuthCache(final SchemePortResolver schemePortResolver) {
         super();
-        this.map = new HashMap<HttpHost, AuthScheme>();
+        this.map = new ConcurrentHashMap<HttpHost, byte[]>();
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver :
             DefaultSchemePortResolver.INSTANCE;
     }
@@ -81,13 +96,53 @@ public class BasicAuthCache implements AuthCache {
     @Override
     public void put(final HttpHost host, final AuthScheme authScheme) {
         Args.notNull(host, "HTTP host");
-        this.map.put(getKey(host), authScheme);
+        if (authScheme == null) {
+            return;
+        }
+        if (authScheme instanceof Serializable) {
+            try {
+                final ByteArrayOutputStream buf = new ByteArrayOutputStream();
+                final ObjectOutputStream out = new ObjectOutputStream(buf);
+                out.writeObject(authScheme);
+                out.close();
+                this.map.put(getKey(host), buf.toByteArray());
+            } catch (IOException ex) {
+                if (log.isWarnEnabled()) {
+                    log.warn("Unexpected I/O error while serializing auth scheme", ex);
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Auth scheme " + authScheme.getClass() + " is not serializable");
+            }
+        }
     }
 
     @Override
     public AuthScheme get(final HttpHost host) {
         Args.notNull(host, "HTTP host");
-        return this.map.get(getKey(host));
+        final byte[] bytes = this.map.get(getKey(host));
+        if (bytes != null) {
+            try {
+                final ByteArrayInputStream buf = new ByteArrayInputStream(bytes);
+                final ObjectInputStream in = new ObjectInputStream(buf);
+                final AuthScheme authScheme = (AuthScheme) in.readObject();
+                in.close();
+                return authScheme;
+            } catch (IOException ex) {
+                if (log.isWarnEnabled()) {
+                    log.warn("Unexpected I/O error while de-serializing auth scheme", ex);
+                }
+                return null;
+            } catch (ClassNotFoundException ex) {
+                if (log.isWarnEnabled()) {
+                    log.warn("Unexpected error while de-serializing auth scheme", ex);
+                }
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
 
     @Override

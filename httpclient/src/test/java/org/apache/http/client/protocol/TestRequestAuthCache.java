@@ -112,9 +112,9 @@ public class TestRequestAuthCache {
 
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
-        Assert.assertSame(this.authscheme1, this.targetState.getAuthScheme());
+        Assert.assertNotNull(this.targetState.getAuthScheme());
         Assert.assertSame(this.creds1, this.targetState.getCredentials());
-        Assert.assertSame(this.authscheme2, this.proxyState.getAuthScheme());
+        Assert.assertNotNull(this.proxyState.getAuthScheme());
         Assert.assertSame(this.creds2, this.proxyState.getCredentials());
     }
 
