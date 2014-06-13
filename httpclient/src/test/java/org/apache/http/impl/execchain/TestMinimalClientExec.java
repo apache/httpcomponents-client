@@ -26,8 +26,6 @@
  */
 package org.apache.http.impl.execchain;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -56,14 +54,13 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HttpRequestExecutor;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import junit.framework.Assert;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
 public class TestMinimalClientExec {
@@ -360,6 +357,6 @@ public class TestMinimalClientExec {
         final ArgumentCaptor<HttpRequest> reqCaptor = ArgumentCaptor.forClass(HttpRequest.class);
         Mockito.verify(requestExecutor).execute(reqCaptor.capture(), Mockito.<HttpClientConnection>any(), Mockito.<HttpClientContext>any());
 
-        assertEquals("/test", reqCaptor.getValue().getRequestLine().getUri());
+        Assert.assertEquals("/test", reqCaptor.getValue().getRequestLine().getUri());
     }
 }
