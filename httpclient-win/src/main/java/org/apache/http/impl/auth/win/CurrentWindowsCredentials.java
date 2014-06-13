@@ -33,8 +33,8 @@ import java.security.Principal;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.Credentials;
 
-import com.sun.jna.platform.win32.Secur32Util;
 import com.sun.jna.platform.win32.Secur32.EXTENDED_NAME_FORMAT;
+import com.sun.jna.platform.win32.Secur32Util;
 
 /**
  * Returns the current Windows user credentials
@@ -44,9 +44,11 @@ import com.sun.jna.platform.win32.Secur32.EXTENDED_NAME_FORMAT;
  * @since 4.4
  */
 @Immutable
-public class CurrentWindowsCredentials implements Credentials, Serializable, Principal {
+public final class CurrentWindowsCredentials implements Credentials, Serializable, Principal {
 
     private static final long serialVersionUID = 4361166468529298169L;
+
+    public static final CurrentWindowsCredentials INSTANCE = new CurrentWindowsCredentials();
 
     /**
      * Get the SAM-compatible username of the currently logged-on user.
@@ -60,14 +62,6 @@ public class CurrentWindowsCredentials implements Credentials, Serializable, Pri
     private CurrentWindowsCredentials() {
     }
 
-    private static class LazyHolder {
-        private static final CurrentWindowsCredentials INSTANCE = new CurrentWindowsCredentials();
-    }
-
-    public static CurrentWindowsCredentials get() {
-        return LazyHolder.INSTANCE;
-    }
-
     @Override
     public Principal getUserPrincipal() {
         return this;
@@ -75,16 +69,18 @@ public class CurrentWindowsCredentials implements Credentials, Serializable, Pri
 
     @Override
     public int hashCode() {
-        return 245678; // always the same?
+        return getClass().hashCode();
     }
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o instanceof CurrentWindowsCredentials) {
+        if (this == o) {
             return true;
         }
-        return false;
+        if (o == null) {
+            return false;
+        }
+        return getClass().equals(o.getClass());
     }
 
     @Override

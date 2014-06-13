@@ -48,7 +48,7 @@ public class WindowsCredentialsProvider extends BasicCredentialsProvider {
     public Credentials getCredentials(final AuthScope authscope) {
         final String scheme = authscope.getScheme();
         if (AuthSchemes.NTLM.equalsIgnoreCase(scheme) || AuthSchemes.SPNEGO.equalsIgnoreCase(scheme)) {
-            return CurrentWindowsCredentials.get();
+            return CurrentWindowsCredentials.INSTANCE;
         } else {
             return super.getCredentials(authscope);
         }
