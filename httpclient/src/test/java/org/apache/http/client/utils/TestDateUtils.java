@@ -30,7 +30,6 @@ package org.apache.http.client.utils;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.apache.http.impl.cookie.DateParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -138,10 +137,4 @@ public class TestDateUtils {
         Assert.assertEquals("Fri, 14 Oct 2005 00:00:00 GMT", DateUtils.formatDate(date, DateUtils.PATTERN_RFC1123));
     }
 
-    @SuppressWarnings("unused")
-    @Test
-    public void testConstructor() {
-        new DateParseException();
-        new DateParseException("Oppsie");
-    }
 }
