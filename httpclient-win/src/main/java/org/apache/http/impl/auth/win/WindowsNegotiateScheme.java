@@ -26,8 +26,6 @@
  */
 package org.apache.http.impl.auth.win;
 
-import java.util.Locale;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
@@ -64,19 +62,6 @@ import com.sun.jna.ptr.IntByReference;
  */
 @NotThreadSafe
 public class WindowsNegotiateScheme extends AuthSchemeBase {
-
-    public static boolean isAvaliable() {
-        String os = System.getProperty("os.name");
-        os = os != null ? os.toLowerCase(Locale.ROOT) : null;
-        if (os != null && os.contains("windows")) {
-            try {
-                return Sspi.MAX_TOKEN_SIZE > 0;
-            } catch (Exception ignore) { // Likely ClassNotFound
-                return false;
-            }
-        }
-        return false;
-    }
 
     // NTLM or Negotiate
     private final String scheme;
