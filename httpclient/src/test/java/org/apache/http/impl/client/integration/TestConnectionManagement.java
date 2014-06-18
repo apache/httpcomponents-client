@@ -65,7 +65,6 @@ import org.apache.http.protocol.RequestConnControl;
 import org.apache.http.protocol.RequestContent;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -73,11 +72,6 @@ import org.junit.Test;
  * to communicate with.
  */
 public class TestConnectionManagement extends LocalServerTestBase {
-
-    @Before
-    public void setup() throws Exception {
-        startServer();
-    }
 
     private static HttpClientConnection getConnection(
             final HttpClientConnectionManager mgr,
@@ -101,10 +95,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
     @Test
     public void testReleaseConnection() throws Exception {
 
-        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
-        mgr.setMaxTotal(1);
+        this.connManager.setMaxTotal(1);
 
-        final HttpHost target = getServerHttp();
+        final HttpHost target = start();
         final HttpRoute route = new HttpRoute(target, null, false);
         final int      rsplen = 8;
         final String      uri = "/random/" + rsplen;
@@ -112,9 +105,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpRequest request = new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
         final HttpContext context = new BasicHttpContext();
 
-        HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route, 0, context);
-        mgr.routeComplete(conn, route, context);
+        HttpClientConnection conn = getConnection(this.connManager, route);
+        this.connManager.connect(conn, route, 0, context);
+        this.connManager.routeComplete(conn, route, context);
 
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
@@ -137,19 +130,19 @@ public class TestConnectionManagement extends LocalServerTestBase {
         // check that there is no auto-release by default
         try {
             // this should fail quickly, connection has not been released
-            getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
+            getConnection(this.connManager, route, 10L, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (final ConnectionPoolTimeoutException e) {
             // expected
         }
 
         conn.close();
-        mgr.releaseConnection(conn, null, -1, null);
-        conn = getConnection(mgr, route);
+        this.connManager.releaseConnection(conn, null, -1, null);
+        conn = getConnection(this.connManager, route);
         Assert.assertFalse("connection should have been closed", conn.isOpen());
 
-        mgr.connect(conn, route, 0, context);
-        mgr.routeComplete(conn, route, context);
+        this.connManager.connect(conn, route, 0, context);
+        this.connManager.routeComplete(conn, route, context);
 
         // repeat the communication, no need to prepare the request again
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
@@ -165,8 +158,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         // release connection after marking it for re-use
         // expect the next connection obtained to be open
-        mgr.releaseConnection(conn, null, -1, null);
-        conn = getConnection(mgr, route);
+        this.connManager.releaseConnection(conn, null, -1, null);
+        conn = getConnection(this.connManager, route);
         Assert.assertTrue("connection should have been open", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
@@ -181,8 +174,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
                      rsplen, data.length);
         // ignore data, but it must be read
 
-        mgr.releaseConnection(conn, null, -1, null);
-        mgr.shutdown();
+        this.connManager.releaseConnection(conn, null, -1, null);
+        this.connManager.shutdown();
     }
 
     /**
@@ -191,10 +184,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
     @Test
     public void testReleaseConnectionWithTimeLimits() throws Exception {
 
-        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
-        mgr.setMaxTotal(1);
+        this.connManager.setMaxTotal(1);
 
-        final HttpHost target = getServerHttp();
+        final HttpHost target = start();
         final HttpRoute route = new HttpRoute(target, null, false);
         final int      rsplen = 8;
         final String      uri = "/random/" + rsplen;
@@ -202,9 +194,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpRequest request = new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
         final HttpContext context = new BasicHttpContext();
 
-        HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route, 0, context);
-        mgr.routeComplete(conn, route, context);
+        HttpClientConnection conn = getConnection(this.connManager, route);
+        this.connManager.connect(conn, route, 0, context);
+        this.connManager.routeComplete(conn, route, context);
 
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
@@ -227,20 +219,20 @@ public class TestConnectionManagement extends LocalServerTestBase {
         // check that there is no auto-release by default
         try {
             // this should fail quickly, connection has not been released
-            getConnection(mgr, route, 10L, TimeUnit.MILLISECONDS);
+            getConnection(this.connManager, route, 10L, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (final ConnectionPoolTimeoutException e) {
             // expected
         }
 
         conn.close();
-        mgr.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
-        conn = getConnection(mgr, route);
+        this.connManager.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
+        conn = getConnection(this.connManager, route);
         Assert.assertFalse("connection should have been closed", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        mgr.connect(conn, route, 0, context);
-        mgr.routeComplete(conn, route, context);
+        this.connManager.connect(conn, route, 0, context);
+        this.connManager.routeComplete(conn, route, context);
 
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
         response = exec.execute(request, conn, context);
@@ -253,8 +245,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
                      rsplen, data.length);
         // ignore data, but it must be read
 
-        mgr.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
-        conn = getConnection(mgr, route);
+        this.connManager.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
+        conn = getConnection(this.connManager, route);
         Assert.assertTrue("connection should have been open", conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
@@ -269,14 +261,14 @@ public class TestConnectionManagement extends LocalServerTestBase {
                      rsplen, data.length);
         // ignore data, but it must be read
 
-        mgr.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
+        this.connManager.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
         Thread.sleep(150);
-        conn = getConnection(mgr, route);
+        conn = getConnection(this.connManager, route);
         Assert.assertTrue("connection should have been closed", !conn.isOpen());
 
         // repeat the communication, no need to prepare the request again
-        mgr.connect(conn, route, 0, context);
-        mgr.routeComplete(conn, route, context);
+        this.connManager.connect(conn, route, 0, context);
+        this.connManager.routeComplete(conn, route, context);
 
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
         response = exec.execute(request, conn, context);
@@ -289,88 +281,89 @@ public class TestConnectionManagement extends LocalServerTestBase {
                      rsplen, data.length);
         // ignore data, but it must be read
 
-        mgr.shutdown();
+        this.connManager.shutdown();
     }
 
     @Test
     public void testCloseExpiredIdleConnections() throws Exception {
 
-        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
-        mgr.setMaxTotal(1);
+        this.connManager.setMaxTotal(1);
 
-        final HttpHost target = getServerHttp();
+        final HttpHost target = start();
         final HttpRoute route = new HttpRoute(target, null, false);
         final HttpContext context = new BasicHttpContext();
 
-        final HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route, 0, context);
-        mgr.routeComplete(conn, route, context);
+        final HttpClientConnection conn = getConnection(this.connManager, route);
+        this.connManager.connect(conn, route, 0, context);
+        this.connManager.routeComplete(conn, route, context);
 
-        Assert.assertEquals(1, mgr.getTotalStats().getLeased());
-        Assert.assertEquals(1, mgr.getStats(route).getLeased());
+        Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
+        Assert.assertEquals(1, this.connManager.getStats(route).getLeased());
 
-        mgr.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
+        this.connManager.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
 
         // Released, still active.
-        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
-        Assert.assertEquals(1, mgr.getStats(route).getAvailable());
+        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
-        mgr.closeExpiredConnections();
+        this.connManager.closeExpiredConnections();
 
         // Time has not expired yet.
-        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
-        Assert.assertEquals(1, mgr.getStats(route).getAvailable());
+        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
         Thread.sleep(150);
 
-        mgr.closeExpiredConnections();
+        this.connManager.closeExpiredConnections();
 
         // Time expired now, connections are destroyed.
-        Assert.assertEquals(0, mgr.getTotalStats().getAvailable());
-        Assert.assertEquals(0, mgr.getStats(route).getAvailable());
+        Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
+        Assert.assertEquals(0, this.connManager.getStats(route).getAvailable());
 
-        mgr.shutdown();
+        this.connManager.shutdown();
     }
 
     @Test
     public void testCloseExpiredTTLConnections() throws Exception {
 
-        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager(
+        this.connManager = new PoolingHttpClientConnectionManager(
                 100, TimeUnit.MILLISECONDS);
-        mgr.setMaxTotal(1);
+        this.clientBuilder.setConnectionManager(this.connManager);
 
-        final HttpHost target = getServerHttp();
+        this.connManager.setMaxTotal(1);
+
+        final HttpHost target = start();
         final HttpRoute route = new HttpRoute(target, null, false);
         final HttpContext context = new BasicHttpContext();
 
-        final HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route, 0, context);
-        mgr.routeComplete(conn, route, context);
+        final HttpClientConnection conn = getConnection(this.connManager, route);
+        this.connManager.connect(conn, route, 0, context);
+        this.connManager.routeComplete(conn, route, context);
 
-        Assert.assertEquals(1, mgr.getTotalStats().getLeased());
-        Assert.assertEquals(1, mgr.getStats(route).getLeased());
+        Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
+        Assert.assertEquals(1, this.connManager.getStats(route).getLeased());
         // Release, let remain idle for forever
-        mgr.releaseConnection(conn, null, -1, TimeUnit.MILLISECONDS);
+        this.connManager.releaseConnection(conn, null, -1, TimeUnit.MILLISECONDS);
 
         // Released, still active.
-        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
-        Assert.assertEquals(1, mgr.getStats(route).getAvailable());
+        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
-        mgr.closeExpiredConnections();
+        this.connManager.closeExpiredConnections();
 
         // Time has not expired yet.
-        Assert.assertEquals(1, mgr.getTotalStats().getAvailable());
-        Assert.assertEquals(1, mgr.getStats(route).getAvailable());
+        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
+        Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
         Thread.sleep(150);
 
-        mgr.closeExpiredConnections();
+        this.connManager.closeExpiredConnections();
 
         // TTL expired now, connections are destroyed.
-        Assert.assertEquals(0, mgr.getTotalStats().getAvailable());
-        Assert.assertEquals(0, mgr.getStats(route).getAvailable());
+        Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
+        Assert.assertEquals(0, this.connManager.getStats(route).getAvailable());
 
-        mgr.shutdown();
+        this.connManager.shutdown();
     }
 
     /**
@@ -380,10 +373,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
     @Test
     public void testReleaseConnectionOnAbort() throws Exception {
 
-        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
-        mgr.setMaxTotal(1);
+        this.connManager.setMaxTotal(1);
 
-        final HttpHost target = getServerHttp();
+        final HttpHost target = start();
         final HttpRoute route = new HttpRoute(target, null, false);
         final int      rsplen = 8;
         final String      uri = "/random/" + rsplen;
@@ -392,9 +384,9 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpRequest request =
             new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
 
-        HttpClientConnection conn = getConnection(mgr, route);
-        mgr.connect(conn, route, 0, context);
-        mgr.routeComplete(conn, route, context);
+        HttpClientConnection conn = getConnection(this.connManager, route);
+        this.connManager.connect(conn, route, 0, context);
+        this.connManager.routeComplete(conn, route, context);
 
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
@@ -413,7 +405,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         // check that there are no connections available
         try {
             // this should fail quickly, connection has not been released
-            getConnection(mgr, route, 100L, TimeUnit.MILLISECONDS);
+            getConnection(this.connManager, route, 100L, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
         } catch (final ConnectionPoolTimeoutException e) {
             // expected
@@ -422,14 +414,14 @@ public class TestConnectionManagement extends LocalServerTestBase {
         // abort the connection
         Assert.assertTrue(conn instanceof HttpClientConnection);
         conn.shutdown();
-        mgr.releaseConnection(conn, null, -1, null);
+        this.connManager.releaseConnection(conn, null, -1, null);
 
         // the connection is expected to be released back to the manager
-        conn = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
+        conn = getConnection(this.connManager, route, 5L, TimeUnit.SECONDS);
         Assert.assertFalse("connection should have been closed", conn.isOpen());
 
-        mgr.releaseConnection(conn, null, -1, null);
-        mgr.shutdown();
+        this.connManager.releaseConnection(conn, null, -1, null);
+        this.connManager.shutdown();
     }
 
     @Test
@@ -441,14 +433,16 @@ public class TestConnectionManagement extends LocalServerTestBase {
             .register("http", stallingSocketFactory)
             .build();
 
-        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager(registry);
-        mgr.setMaxTotal(1);
+        this.connManager = new PoolingHttpClientConnectionManager(registry);
+        this.clientBuilder.setConnectionManager(this.connManager);
 
-        final HttpHost target = getServerHttp();
+        this.connManager.setMaxTotal(1);
+
+        final HttpHost target = start();
         final HttpRoute route = new HttpRoute(target, null, false);
         final HttpContext context = new BasicHttpContext();
 
-        final HttpClientConnection conn = getConnection(mgr, route);
+        final HttpClientConnection conn = getConnection(this.connManager, route);
 
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         final Thread abortingThread = new Thread(new Runnable() {
@@ -457,7 +451,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
                 try {
                     stallingSocketFactory.waitForState();
                     conn.shutdown();
-                    mgr.releaseConnection(conn, null, -1, null);
+                    connManager.releaseConnection(conn, null, -1, null);
                     connectLatch.countDown();
                 } catch (final Throwable e) {
                     throwRef.set(e);
@@ -467,8 +461,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         abortingThread.start();
 
         try {
-            mgr.connect(conn, route, 0, context);
-            mgr.routeComplete(conn, route, context);
+            this.connManager.connect(conn, route, 0, context);
+            this.connManager.routeComplete(conn, route, context);
             Assert.fail("expected SocketException");
         } catch(final SocketException expected) {}
 
@@ -478,14 +472,13 @@ public class TestConnectionManagement extends LocalServerTestBase {
         }
 
         Assert.assertFalse(conn.isOpen());
-        Assert.assertEquals(0, localServer.getAcceptedConnectionCount());
 
         // the connection is expected to be released back to the manager
-        final HttpClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
+        final HttpClientConnection conn2 = getConnection(this.connManager, route, 5L, TimeUnit.SECONDS);
         Assert.assertFalse("connection should have been closed", conn2.isOpen());
 
-        mgr.releaseConnection(conn2, null, -1, null);
-        mgr.shutdown();
+        this.connManager.releaseConnection(conn2, null, -1, null);
+        this.connManager.shutdown();
     }
 
     @Test
@@ -497,14 +490,16 @@ public class TestConnectionManagement extends LocalServerTestBase {
             .register("http", stallingSocketFactory)
             .build();
 
-        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager(registry);
-        mgr.setMaxTotal(1);
+        this.connManager = new PoolingHttpClientConnectionManager(registry);
+        this.clientBuilder.setConnectionManager(this.connManager);
 
-        final HttpHost target = getServerHttp();
+        this.connManager.setMaxTotal(1);
+
+        final HttpHost target = start();
         final HttpRoute route = new HttpRoute(target, null, false);
         final HttpContext context = new BasicHttpContext();
 
-        final HttpClientConnection conn = getConnection(mgr, route);
+        final HttpClientConnection conn = getConnection(this.connManager, route);
 
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         final Thread abortingThread = new Thread(new Runnable() {
@@ -513,7 +508,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
                 try {
                     stallingSocketFactory.waitForState();
                     conn.shutdown();
-                    mgr.releaseConnection(conn, null, -1, null);
+                    connManager.releaseConnection(conn, null, -1, null);
                     connectLatch.countDown();
                 } catch (final Throwable e) {
                     throwRef.set(e);
@@ -523,8 +518,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         abortingThread.start();
 
         try {
-            mgr.connect(conn, route, 0, context);
-            mgr.routeComplete(conn, route, context);
+            this.connManager.connect(conn, route, 0, context);
+            this.connManager.routeComplete(conn, route, context);
             Assert.fail("IOException expected");
         } catch(final IOException expected) {
         }
@@ -535,14 +530,13 @@ public class TestConnectionManagement extends LocalServerTestBase {
         }
 
         Assert.assertFalse(conn.isOpen());
-        Assert.assertEquals(0, localServer.getAcceptedConnectionCount());
 
         // the connection is expected to be released back to the manager
-        final HttpClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
+        final HttpClientConnection conn2 = getConnection(this.connManager, route, 5L, TimeUnit.SECONDS);
         Assert.assertFalse("connection should have been closed", conn2.isOpen());
 
-        mgr.releaseConnection(conn2, null, -1, null);
-        mgr.shutdown();
+        this.connManager.releaseConnection(conn2, null, -1, null);
+        this.connManager.shutdown();
     }
 
     @Test
@@ -554,14 +548,16 @@ public class TestConnectionManagement extends LocalServerTestBase {
             .register("http", stallingSocketFactory)
             .build();
 
-        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager(registry);
-        mgr.setMaxTotal(1);
+        this.connManager = new PoolingHttpClientConnectionManager(registry);
+        this.clientBuilder.setConnectionManager(this.connManager);
 
-        final HttpHost target = getServerHttp();
+        this.connManager.setMaxTotal(1);
+
+        final HttpHost target = start();
         final HttpRoute route = new HttpRoute(target, null, false);
         final HttpContext context = new BasicHttpContext();
 
-        final HttpClientConnection conn = getConnection(mgr, route);
+        final HttpClientConnection conn = getConnection(this.connManager, route);
 
         final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
         final Thread abortingThread = new Thread(new Runnable() {
@@ -570,7 +566,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
                 try {
                     stallingSocketFactory.waitForState();
                     conn.shutdown();
-                    mgr.releaseConnection(conn, null, -1, null);
+                    connManager.releaseConnection(conn, null, -1, null);
                     connectLatch.countDown();
                 } catch (final Throwable e) {
                     throwRef.set(e);
@@ -580,8 +576,8 @@ public class TestConnectionManagement extends LocalServerTestBase {
         abortingThread.start();
 
         try {
-            mgr.connect(conn, route, 0, context);
-            mgr.routeComplete(conn, route, context);
+            this.connManager.connect(conn, route, 0, context);
+            this.connManager.routeComplete(conn, route, context);
             Assert.fail("IOException expected");
         } catch(final IOException expected) {
         }
@@ -592,22 +588,13 @@ public class TestConnectionManagement extends LocalServerTestBase {
         }
 
         Assert.assertFalse(conn.isOpen());
-        // Give the server a bit of time to accept the connection, but
-        // ensure that it can accept it.
-        for(int i = 0; i < 10; i++) {
-            if(localServer.getAcceptedConnectionCount() == 1) {
-                break;
-            }
-            Thread.sleep(100);
-        }
-        Assert.assertEquals(1, localServer.getAcceptedConnectionCount());
 
         // the connection is expected to be released back to the manager
-        final HttpClientConnection conn2 = getConnection(mgr, route, 5L, TimeUnit.SECONDS);
+        final HttpClientConnection conn2 = getConnection(this.connManager, route, 5L, TimeUnit.SECONDS);
         Assert.assertFalse("connection should have been closed", conn2.isOpen());
 
-        mgr.releaseConnection(conn2, null, -1, null);
-        mgr.shutdown();
+        this.connManager.releaseConnection(conn2, null, -1, null);
+        this.connManager.shutdown();
     }
 
     static class LatchSupport {

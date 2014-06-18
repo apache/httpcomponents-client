@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -41,31 +42,22 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.localserver.LocalTestServer;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * This class tests cookie matching when using Virtual Host.
  */
-public class TestCookieVirtualHost extends IntegrationTestBase {
-
-    @Before
-    public void setUp() throws Exception {
-        this.localServer = new LocalTestServer(null, null);
-        this.localServer.registerDefaultHandlers();
-        this.localServer.start();
-    }
+public class TestCookieVirtualHost extends LocalServerTestBase {
 
     @Test
     public void testCookieMatchingWithVirtualHosts() throws Exception {
-        this.localServer.register("*", new HttpRequestHandler() {
+        this.serverBootstrap.registerHandler("*", new HttpRequestHandler() {
             @Override
             public void handle(
                     final HttpRequest request,
@@ -115,7 +107,7 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
 
         });
 
-        this.httpclient = HttpClients.createDefault();
+        final HttpHost target = start();
 
         final CookieStore cookieStore = new BasicCookieStore();
         final HttpClientContext context = HttpClientContext.create();
@@ -126,8 +118,7 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
         HttpRequest httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "1");
         @SuppressWarnings("resource")
-        final HttpResponse response1 = this.httpclient.execute(getServerHttp(),
-                httpRequest, context);
+        final HttpResponse response1 = this.httpclient.execute(target, httpRequest, context);
         final HttpEntity e1 = response1.getEntity();
         EntityUtils.consume(e1);
 
@@ -142,8 +133,7 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
         httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "2");
         @SuppressWarnings("resource")
-        final HttpResponse response2 = this.httpclient.execute(getServerHttp(),
-                httpRequest, context);
+        final HttpResponse response2 = this.httpclient.execute(target, httpRequest, context);
         final HttpEntity e2 = response2.getEntity();
         EntityUtils.consume(e2);
 
@@ -152,8 +142,7 @@ public class TestCookieVirtualHost extends IntegrationTestBase {
         httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "3");
         @SuppressWarnings("resource")
-        final HttpResponse response3 = this.httpclient.execute(getServerHttp(),
-                httpRequest, context);
+        final HttpResponse response3 = this.httpclient.execute(target, httpRequest, context);
         final HttpEntity e3 = response3.getEntity();
         EntityUtils.consume(e3);
     }

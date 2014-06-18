@@ -49,15 +49,15 @@ import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -65,22 +65,16 @@ import org.mockito.Mockito;
  *  Tests for Abort handling.
  */
 @SuppressWarnings("static-access") // test code
-public class TestAbortHandling extends IntegrationTestBase {
-
-    @Before
-    public void setUp() throws Exception {
-        startServer();
-    }
+public class TestAbortHandling extends LocalServerTestBase {
 
     @Test
     public void testAbortRetry_HTTPCLIENT_1120() throws Exception {
-        final int port = this.localServer.getServiceAddress().getPort();
         final CountDownLatch wait = new CountDownLatch(1);
 
-        this.localServer.register("*", new HttpRequestHandler(){
+        this.serverBootstrap.registerHandler("*", new HttpRequestHandler() {
             @Override
             public void handle(final HttpRequest request, final HttpResponse response,
-                    final HttpContext context) throws HttpException, IOException {
+                               final HttpContext context) throws HttpException, IOException {
                 try {
                     wait.countDown(); // trigger abort
                     Thread.sleep(2000); // allow time for abort to happen
@@ -90,10 +84,11 @@ public class TestAbortHandling extends IntegrationTestBase {
                 } catch (final Exception e) {
                     response.setStatusCode(HttpStatus.SC_REQUEST_TIMEOUT);
                 }
-            }});
+            }
+        });
 
-        final String s = "http://localhost:" + port + "/path";
-        final HttpGet httpget = new HttpGet(s);
+        final HttpHost target = start();
+        final HttpGet httpget = new HttpGet("/");
 
         final Thread t = new Thread() {
              @Override
@@ -108,11 +103,9 @@ public class TestAbortHandling extends IntegrationTestBase {
 
         t.start();
 
-        this.httpclient = HttpClients.createDefault();
-
         final HttpClientContext context = HttpClientContext.create();
         try {
-            this.httpclient.execute(getServerHttp(), httpget, context);
+            this.httpclient.execute(target, httpget, context);
         } catch (final IllegalStateException e) {
         } catch (final IOException e) {
         }
@@ -128,16 +121,17 @@ public class TestAbortHandling extends IntegrationTestBase {
         final ConMan conMan = new ConMan(connLatch, awaitLatch);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
-        final CloseableHttpClient client = HttpClients.custom().setConnectionManager(conMan).build();
+        this.clientBuilder.setConnectionManager(conMan);
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("http://www.example.com/a");
-        this.httpclient = client;
+
+        start();
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    client.execute(httpget, context);
+                    httpclient.execute(httpget, context);
                 } catch(final Throwable t) {
                     throwableRef.set(t);
                 } finally {
@@ -163,22 +157,21 @@ public class TestAbortHandling extends IntegrationTestBase {
      */
     @Test
     public void testAbortAfterAllocateBeforeRequest() throws Exception {
-        this.localServer.register("*", new BasicService());
+        this.serverBootstrap.registerHandler("*", new BasicService());
 
         final CountDownLatch releaseLatch = new CountDownLatch(1);
-        final PoolingHttpClientConnectionManager conMan = new PoolingHttpClientConnectionManager();
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
-        final CloseableHttpClient client = HttpClients.custom().setConnectionManager(conMan).build();
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new CustomGet("a", releaseLatch);
-        this.httpclient = client;
+
+        final HttpHost target = start();
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    client.execute(getServerHttp(), httpget, context);
+                    httpclient.execute(target, httpget, context);
                 } catch(final Throwable t) {
                     throwableRef.set(t);
                 } finally {
@@ -204,16 +197,15 @@ public class TestAbortHandling extends IntegrationTestBase {
      */
     @Test
     public void testAbortBeforeExecute() throws Exception {
-        this.localServer.register("*", new BasicService());
+        this.serverBootstrap.registerHandler("*", new BasicService());
 
-        final PoolingHttpClientConnectionManager conMan = new PoolingHttpClientConnectionManager();
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final CountDownLatch startLatch = new CountDownLatch(1);
-        final CloseableHttpClient client = HttpClients.custom().setConnectionManager(conMan).build();
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("a");
-        this.httpclient = client;
+
+        final HttpHost target = start();
 
         new Thread(new Runnable() {
             @Override
@@ -226,7 +218,7 @@ public class TestAbortHandling extends IntegrationTestBase {
                     } catch(final InterruptedException interrupted) {
                         throw new RuntimeException("Never started!", interrupted);
                     }
-                    client.execute(getServerHttp(), httpget, context);
+                    httpclient.execute(target, httpget, context);
                 } catch(final Throwable t) {
                     throwableRef.set(t);
                 } finally {
@@ -250,25 +242,27 @@ public class TestAbortHandling extends IntegrationTestBase {
      */
     @Test
     public void testAbortAfterRedirectedRoute() throws Exception {
-        final int port = this.localServer.getServiceAddress().getPort();
-        this.localServer.register("*", new BasicRedirectService(port));
+        final UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
+        this.serverBootstrap.setHandlerMapper(reqistry);
 
         final CountDownLatch connLatch = new CountDownLatch(1);
         final CountDownLatch awaitLatch = new CountDownLatch(1);
         final ConnMan4 conMan = new ConnMan4(connLatch, awaitLatch);
         final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
         final CountDownLatch getLatch = new CountDownLatch(1);
-        final CloseableHttpClient client = HttpClients.custom().setConnectionManager(conMan).build();
+        this.clientBuilder.setConnectionManager(conMan);
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new HttpGet("a");
-        this.httpclient = client;
+
+        final HttpHost target = start();
+        reqistry.register("*", new BasicRedirectService(target.getPort()));
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    final HttpHost host = new HttpHost("127.0.0.1", port);
-                    client.execute(host, httpget, context);
+                    final HttpHost host = new HttpHost("127.0.0.1", target.getPort());
+                    httpclient.execute(host, httpget, context);
                 } catch(final Throwable t) {
                     throwableRef.set(t);
                 } finally {

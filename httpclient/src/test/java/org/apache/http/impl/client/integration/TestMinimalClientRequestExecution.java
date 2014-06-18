@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -40,22 +41,17 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Client protocol handling tests.
  */
-public class TestMinimalClientRequestExecution extends IntegrationTestBase {
-
-    @Before
-    public void setUp() throws Exception {
-        startServer();
-    }
+public class TestMinimalClientRequestExecution extends LocalServerTestBase {
 
     private static class SimpleService implements HttpRequestHandler {
 
@@ -76,13 +72,14 @@ public class TestMinimalClientRequestExecution extends IntegrationTestBase {
 
     @Test
     public void testNonCompliantURI() throws Exception {
-        this.localServer.register("*", new SimpleService());
+        this.serverBootstrap.registerHandler("*", new SimpleService());
         this.httpclient = HttpClients.createMinimal();
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
         for (int i = 0; i < 10; i++) {
             final HttpGet request = new HttpGet("/");
-            final HttpResponse response = this.httpclient.execute(getServerHttp(), request, context);
+            final HttpResponse response = this.httpclient.execute(target, request, context);
             EntityUtils.consume(response.getEntity());
             Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 

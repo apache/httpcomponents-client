@@ -31,6 +31,7 @@ import java.io.IOException;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
@@ -41,9 +42,9 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.localserver.LocalTestServer;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
@@ -58,7 +59,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestClientAuthenticationFallBack extends IntegrationTestBase {
+public class TestClientAuthenticationFallBack extends LocalServerTestBase {
 
     public class ResponseBasicUnauthorized implements HttpResponseInterceptor {
 
@@ -74,17 +75,17 @@ public class TestClientAuthenticationFallBack extends IntegrationTestBase {
 
     }
 
-    @Before
+    @Before @Override
     public void setUp() throws Exception {
+        super.setUp();
         final HttpProcessor httpproc = HttpProcessorBuilder.create()
             .add(new ResponseDate())
-            .add(new ResponseServer(LocalTestServer.ORIGIN))
+            .add(new ResponseServer(LocalServerTestBase.ORIGIN))
             .add(new ResponseContent())
             .add(new ResponseConnControl())
             .add(new RequestBasicAuth())
             .add(new ResponseBasicUnauthorized()).build();
-        this.localServer = new LocalTestServer(httpproc, null);
-        startServer();
+        this.serverBootstrap.setHttpProcessor(httpproc);
     }
 
     static class AuthHandler implements HttpRequestHandler {
@@ -138,16 +139,17 @@ public class TestClientAuthenticationFallBack extends IntegrationTestBase {
 
     @Test
     public void testBasicAuthenticationSuccess() throws Exception {
-        this.localServer.register("*", new AuthHandler());
+        this.serverBootstrap.registerHandler("*", new AuthHandler());
 
+        final HttpHost target = start();
+
+        final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
-
-        this.httpclient = HttpClients.custom().setDefaultCredentialsProvider(credsProvider).build();
-
+        context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 
-        final HttpResponse response = this.httpclient.execute(getServerHttp(), httpget);
+        final HttpResponse response = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertNotNull(entity);

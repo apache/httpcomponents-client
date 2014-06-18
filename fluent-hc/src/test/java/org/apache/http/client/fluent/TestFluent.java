@@ -28,12 +28,13 @@ package org.apache.http.client.fluent;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -41,20 +42,20 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.LocalServerTestBase;
-import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 public class TestFluent extends LocalServerTestBase {
 
-    @Before
+    @Before @Override
     public void setUp() throws Exception {
-        this.localServer = new LocalTestServer(null, null);
-        localServer.register("/", new HttpRequestHandler() {
+        super.setUp();
+        this.serverBootstrap.registerHandler("/", new HttpRequestHandler() {
 
             @Override
             public void handle(
@@ -65,7 +66,7 @@ public class TestFluent extends LocalServerTestBase {
             }
 
         });
-        localServer.register("/echo", new HttpRequestHandler() {
+        this.serverBootstrap.registerHandler("/echo", new HttpRequestHandler() {
 
             @Override
             public void handle(
@@ -90,28 +91,35 @@ public class TestFluent extends LocalServerTestBase {
             }
 
         });
-        startServer();
+    }
+
+    @After @Override
+    public void shutDown() throws Exception {
+        if (this.server != null) {
+            this.server.shutdown(100, TimeUnit.MILLISECONDS);
+            this.server = null;
+        }
     }
 
     @Test
     public void testGetRequest() throws Exception {
-        final InetSocketAddress serviceAddress = this.localServer.getServiceAddress();
-        final String baseURL = "http://localhost:" + serviceAddress.getPort();
+        final HttpHost target = start();
+        final String baseURL = "http://localhost:" + target.getPort();
         final String message = Request.Get(baseURL + "/").execute().returnContent().asString();
         Assert.assertEquals("All is well", message);
     }
 
     @Test(expected = ClientProtocolException.class)
     public void testGetRequestFailure() throws Exception {
-        final InetSocketAddress serviceAddress = this.localServer.getServiceAddress();
-        final String baseURL = "http://localhost:" + serviceAddress.getPort();
+        final HttpHost target = start();
+        final String baseURL = "http://localhost:" + target.getPort();
         Request.Get(baseURL + "/boom").execute().returnContent().asString();
     }
 
     @Test
     public void testPostRequest() throws Exception {
-        final InetSocketAddress serviceAddress = this.localServer.getServiceAddress();
-        final String baseURL = "http://localhost:" + serviceAddress.getPort();
+        final HttpHost target = start();
+        final String baseURL = "http://localhost:" + target.getPort();
         final String message1 = Request.Post(baseURL + "/echo")
                 .bodyString("what is up?", ContentType.TEXT_PLAIN)
                 .execute().returnContent().asString();
@@ -124,8 +132,8 @@ public class TestFluent extends LocalServerTestBase {
 
     @Test
     public void testContentAsStringWithCharset() throws Exception {
-        final InetSocketAddress serviceAddress = this.localServer.getServiceAddress();
-        final String baseURL = "http://localhost:" + serviceAddress.getPort();
+        final HttpHost target = start();
+        final String baseURL = "http://localhost:" + target.getPort();
         final Content content = Request.Post(baseURL + "/echo").bodyByteArray("Ü".getBytes("utf-8")).execute()
                 .returnContent();
         Assert.assertEquals((byte)-61, content.asBytes()[0]);
@@ -135,8 +143,8 @@ public class TestFluent extends LocalServerTestBase {
 
     @Test
     public void testConnectionRelease() throws Exception {
-        final InetSocketAddress serviceAddress = this.localServer.getServiceAddress();
-        final String baseURL = "http://localhost:" + serviceAddress.getPort();
+        final HttpHost target = start();
+        final String baseURL = "http://localhost:" + target.getPort();
         for (int i = 0; i < 20; i++) {
             Request.Get(baseURL + "/").execute().returnContent();
             Request.Get(baseURL + "/").execute().returnResponse();

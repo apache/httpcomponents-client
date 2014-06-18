@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
@@ -52,9 +53,8 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.BasicSchemeFactory;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.TargetAuthenticationStrategy;
-import org.apache.http.localserver.LocalTestServer;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
@@ -69,7 +69,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestClientReauthentication extends IntegrationTestBase {
+public class TestClientReauthentication extends LocalServerTestBase {
 
     public class ResponseBasicUnauthorized implements HttpResponseInterceptor {
 
@@ -84,18 +84,17 @@ public class TestClientReauthentication extends IntegrationTestBase {
 
     }
 
-    @Before
+    @Before @Override
     public void setUp() throws Exception {
+        super.setUp();
         final HttpProcessor httpproc = HttpProcessorBuilder.create()
             .add(new ResponseDate())
-            .add(new ResponseServer(LocalTestServer.ORIGIN))
+            .add(new ResponseServer(LocalServerTestBase.ORIGIN))
             .add(new ResponseContent())
             .add(new ResponseConnControl())
             .add(new RequestBasicAuth())
             .add(new ResponseBasicUnauthorized()).build();
-
-        this.localServer = new LocalTestServer(httpproc, null);
-        startServer();
+        this.serverBootstrap.setHttpProcessor(httpproc);
     }
 
     static class AuthHandler implements HttpRequestHandler {
@@ -156,7 +155,7 @@ public class TestClientReauthentication extends IntegrationTestBase {
 
     @Test
     public void testBasicAuthenticationSuccess() throws Exception {
-        this.localServer.register("*", new AuthHandler());
+        this.serverBootstrap.registerHandler("*", new AuthHandler());
 
         final BasicSchemeFactory myBasicAuthSchemeFactory = new BasicSchemeFactory() {
 
@@ -192,17 +191,19 @@ public class TestClientReauthentication extends IntegrationTestBase {
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register("MyBasic", myBasicAuthSchemeFactory)
             .build();
-        this.httpclient = HttpClients.custom()
+        this.httpclient = this.clientBuilder
             .setDefaultAuthSchemeRegistry(authSchemeRegistry)
             .setTargetAuthenticationStrategy(myAuthStrategy)
             .setDefaultCredentialsProvider(credsProvider)
             .build();
 
+        final HttpHost target = start();
+
         final HttpClientContext context = HttpClientContext.create();
         for (int i = 0; i < 10; i++) {
             final HttpGet httpget = new HttpGet("/");
             httpget.setConfig(config);
-            final HttpResponse response = this.httpclient.execute(getServerHttp(), httpget, context);
+            final HttpResponse response = this.httpclient.execute(target, httpget, context);
             final HttpEntity entity = response.getEntity();
             Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
             Assert.assertNotNull(entity);

@@ -45,10 +45,12 @@ import org.apache.http.client.cache.CacheResponseStatus;
 import org.apache.http.client.cache.HttpCacheContext;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.bootstrap.HttpServer;
+import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -65,7 +67,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
 
     private static final EchoViaHeaderHandler cacheHandler = new EchoViaHeaderHandler();
 
-    protected LocalTestServer localServer;
+    protected HttpServer localServer;
     private int port;
     private CloseableHttpClient client;
     private final String url = "/static/dom";
@@ -74,12 +76,15 @@ public class TestStaleWhileRevalidationReleasesConnection {
 
     @Before
     public void start() throws Exception  {
-        this.localServer = new LocalTestServer(null, null);
-        this.localServer.register(url +"*", new EchoViaHeaderHandler());
-        localServer.setTimeout(5000);
+        this.localServer = ServerBootstrap.bootstrap()
+                .setSocketConfig(SocketConfig.custom()
+                        .setSoTimeout(5000)
+                        .build())
+                .registerHandler(url + "*", new EchoViaHeaderHandler())
+                .create();
         this.localServer.start();
 
-        port = this.localServer.getServiceAddress().getPort();
+        port = this.localServer.getLocalPort();
 
         final CacheConfig cacheConfig = CacheConfig.custom()
                 .setMaxCacheEntries(100)

@@ -39,25 +39,18 @@ import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Test cases for state-ful connections.
  */
-public class TestStatefulConnManagement extends IntegrationTestBase {
-
-    @Before
-    public void setUp() throws Exception {
-        startServer();
-    }
+public class TestStatefulConnManagement extends LocalServerTestBase {
 
     private static class SimpleService implements HttpRequestHandler {
 
@@ -82,14 +75,10 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
         final int workerCount = 5;
         final int requestCount = 5;
 
-        final int port = this.localServer.getServiceAddress().getPort();
-        this.localServer.register("*", new SimpleService());
+        this.serverBootstrap.registerHandler("*", new SimpleService());
 
-        final HttpHost target = new HttpHost("localhost", port);
-
-        final PoolingHttpClientConnectionManager mgr = new PoolingHttpClientConnectionManager();
-        mgr.setMaxTotal(workerCount);
-        mgr.setDefaultMaxPerRoute(workerCount);
+        this.connManager.setMaxTotal(workerCount);
+        this.connManager.setDefaultMaxPerRoute(workerCount);
 
         final UserTokenHandler userTokenHandler = new UserTokenHandler() {
 
@@ -100,11 +89,9 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
             }
 
         };
+        this.clientBuilder.setUserTokenHandler(userTokenHandler);
 
-        this.httpclient = HttpClients.custom()
-            .setConnectionManager(mgr)
-            .setUserTokenHandler(userTokenHandler)
-            .build();
+        final HttpHost target = start();
 
         final HttpClientContext[] contexts = new HttpClientContext[workerCount];
         final HttpWorker[] workers = new HttpWorker[workerCount];
@@ -214,13 +201,10 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
 
         final int maxConn = 2;
 
-        final int port = this.localServer.getServiceAddress().getPort();
-        this.localServer.register("*", new SimpleService());
+        this.serverBootstrap.registerHandler("*", new SimpleService());
 
-        // We build a client with 2 max active // connections, and 2 max per route.
-        final PoolingHttpClientConnectionManager connMngr = new PoolingHttpClientConnectionManager();
-        connMngr.setMaxTotal(maxConn);
-        connMngr.setDefaultMaxPerRoute(maxConn);
+        this.connManager.setMaxTotal(maxConn);
+        this.connManager.setDefaultMaxPerRoute(maxConn);
 
         final UserTokenHandler userTokenHandler = new UserTokenHandler() {
 
@@ -231,16 +215,15 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
 
         };
 
-        this.httpclient = HttpClients.custom()
-            .setConnectionManager(connMngr)
-            .setUserTokenHandler(userTokenHandler)
-            .build();
+        this.clientBuilder.setUserTokenHandler(userTokenHandler);
+
+        final HttpHost target = start();
 
         // Bottom of the pool : a *keep alive* connection to Route 1.
         final HttpContext context1 = new BasicHttpContext();
         context1.setAttribute("user", "stuff");
         final HttpResponse response1 = this.httpclient.execute(
-                new HttpHost("localhost", port), new HttpGet("/"), context1);
+                target, new HttpGet("/"), context1);
         EntityUtils.consume(response1.getEntity());
 
         // The ConnPoolByRoute now has 1 free connection, out of 2 max
@@ -253,7 +236,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
         // Send it to another route. Must be a keepalive.
         final HttpContext context2 = new BasicHttpContext();
         final HttpResponse response2 = this.httpclient.execute(
-                new HttpHost("127.0.0.1", port), new HttpGet("/"), context2);
+                new HttpHost("127.0.0.1", this.server.getLocalPort()), new HttpGet("/"), context2);
         EntityUtils.consume(response2.getEntity());
         // ConnPoolByRoute now has 2 free connexions, out of its 2 max.
         // The [localhost][stuff] RouteSpcfcPool is the same as earlier
@@ -268,7 +251,7 @@ public class TestStatefulConnManagement extends IntegrationTestBase {
         // When this happens, the RouteSpecificPool becomes empty.
         final HttpContext context3 = new BasicHttpContext();
         final HttpResponse response3 = this.httpclient.execute(
-                new HttpHost("localhost", port), new HttpGet("/"), context3);
+                target, new HttpGet("/"), context3);
 
         // If the ConnPoolByRoute did not behave coherently with the RouteSpecificPool
         // this may fail. Ex : if the ConnPool discared the route pool because it was empty,
