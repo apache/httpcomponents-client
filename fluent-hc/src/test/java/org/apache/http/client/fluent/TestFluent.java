@@ -29,7 +29,6 @@ package org.apache.http.client.fluent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -95,10 +94,8 @@ public class TestFluent extends LocalServerTestBase {
 
     @After @Override
     public void shutDown() throws Exception {
-        if (this.server != null) {
-            this.server.shutdown(100, TimeUnit.MILLISECONDS);
-            this.server = null;
-        }
+        Executor.closeIdleConnections();
+        super.shutDown();
     }
 
     @Test

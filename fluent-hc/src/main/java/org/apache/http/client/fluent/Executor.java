@@ -29,6 +29,7 @@ package org.apache.http.client.fluent;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
@@ -218,6 +219,14 @@ public class Executor {
      */
     @Deprecated
     public static void unregisterScheme(final String name) {
+    }
+
+    /**
+     * Closes all idle persistent connections used by the internal pool.
+     * @since 4.4
+     */
+    public static void closeIdleConnections() {
+        CONNMGR.closeIdleConnections(0, TimeUnit.MICROSECONDS);
     }
 
 }
