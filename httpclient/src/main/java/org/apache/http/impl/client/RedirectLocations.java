@@ -106,7 +106,7 @@ public class RedirectLocations extends AbstractList<Object> {
      * @return the URI at the specified position in this list
      * @throws IndexOutOfBoundsException
      *             if the index is out of range (
-     *             <tt>index &lt; 0 || index &gt;= size()</tt>)
+     *             {@code index &lt; 0 || index &gt;= size()})
      * @since 4.3
      */
     @Override
@@ -116,8 +116,8 @@ public class RedirectLocations extends AbstractList<Object> {
 
     /**
      * Returns the number of elements in this list. If this list contains more
-     * than <tt>Integer.MAX_VALUE</tt> elements, returns
-     * <tt>Integer.MAX_VALUE</tt>.
+     * than {@code Integer.MAX_VALUE} elements, returns
+     * {@code Integer.MAX_VALUE}.
      *
      * @return the number of elements in this list
      * @since 4.3
@@ -137,7 +137,7 @@ public class RedirectLocations extends AbstractList<Object> {
      *            URI to be stored at the specified position
      * @return the URI previously at the specified position
      * @throws UnsupportedOperationException
-     *             if the <tt>set</tt> operation is not supported by this list
+     *             if the {@code set} operation is not supported by this list
      * @throws ClassCastException
      *             if the element is not a {@link URI}
      * @throws NullPointerException
@@ -145,7 +145,7 @@ public class RedirectLocations extends AbstractList<Object> {
      *             permit null elements
      * @throws IndexOutOfBoundsException
      *             if the index is out of range (
-     *             <tt>index &lt; 0 || index &gt;= size()</tt>)
+     *             {@code index &lt; 0 || index &gt;= size()})
      * @since 4.3
      */
     @Override
@@ -169,7 +169,7 @@ public class RedirectLocations extends AbstractList<Object> {
      * @param element
      *            URI to be inserted
      * @throws UnsupportedOperationException
-     *             if the <tt>add</tt> operation is not supported by this list
+     *             if the {@code add} operation is not supported by this list
      * @throws ClassCastException
      *             if the element is not a {@link URI}
      * @throws NullPointerException
@@ -177,7 +177,7 @@ public class RedirectLocations extends AbstractList<Object> {
      *             permit null elements
      * @throws IndexOutOfBoundsException
      *             if the index is out of range (
-     *             <tt>index &lt; 0 || index &gt; size()</tt>)
+     *             {@code index &lt; 0 || index &gt; size()})
      * @since 4.3
      */
     @Override
@@ -196,7 +196,7 @@ public class RedirectLocations extends AbstractList<Object> {
      * @return the URI previously at the specified position
      * @throws IndexOutOfBoundsException
      *             if the index is out of range (
-     *             <tt>index &lt; 0 || index &gt;= size()</tt>)
+     *             {@code index &lt; 0 || index &gt;= size()})
      * @since 4.3
      */
     @Override
@@ -210,13 +210,13 @@ public class RedirectLocations extends AbstractList<Object> {
     }
 
     /**
-     * Returns <tt>true</tt> if this collection contains the specified element.
-     * More formally, returns <tt>true</tt> if and only if this collection
-     * contains at least one element <tt>e</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
+     * Returns {@code true} if this collection contains the specified element.
+     * More formally, returns {@code true} if and only if this collection
+     * contains at least one element {@code e} such that
+     * {@code (o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))}.
      *
      * @param o element whose presence in this collection is to be tested
-     * @return <tt>true</tt> if this collection contains the specified
+     * @return {@code true} if this collection contains the specified
      *         element
      */
     @Override

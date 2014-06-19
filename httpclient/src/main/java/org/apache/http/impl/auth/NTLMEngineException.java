@@ -57,8 +57,8 @@ public class NTLMEngineException extends AuthenticationException {
      * Creates a new NTLMEngineException with the specified detail message and cause.
      *
      * @param message the exception detail message
-     * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
-     * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
+     * @param cause the {@code Throwable</tt> that caused this exception, or <tt>null}
+     * if the cause is unavailable, unknown, or not a {@code Throwable}
      */
     public NTLMEngineException(final String message, final Throwable cause) {
         super(message, cause);

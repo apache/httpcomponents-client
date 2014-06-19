@@ -36,7 +36,7 @@ import org.apache.http.cookie.SetCookie;
 import org.apache.http.cookie.SetCookie2;
 
 /**
- * <tt>"CommentURL"</tt> cookie attribute handler for RFC 2965 cookie spec.
+ * {@code "CommentURL"} cookie attribute handler for RFC 2965 cookie spec.
  *
  * @since 4.0
  */

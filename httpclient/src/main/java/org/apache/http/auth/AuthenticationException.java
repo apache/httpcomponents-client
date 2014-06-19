@@ -41,7 +41,7 @@ public class AuthenticationException extends ProtocolException {
     private static final long serialVersionUID = -6794031905674764776L;
 
     /**
-     * Creates a new AuthenticationException with a <tt>null</tt> detail message.
+     * Creates a new AuthenticationException with a {@code null} detail message.
      */
     public AuthenticationException() {
         super();
@@ -60,8 +60,8 @@ public class AuthenticationException extends ProtocolException {
      * Creates a new AuthenticationException with the specified detail message and cause.
      *
      * @param message the exception detail message
-     * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
-     * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
+     * @param cause the {@code Throwable</tt> that caused this exception, or <tt>null}
+     * if the cause is unavailable, unknown, or not a {@code Throwable}
      */
     public AuthenticationException(final String message, final Throwable cause) {
         super(message, cause);

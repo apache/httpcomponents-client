@@ -55,7 +55,7 @@ public interface Cookie {
 
     /**
      * Returns the comment describing the purpose of this cookie, or
-     * <tt>null</tt> if no such comment has been defined.
+     * {@code null} if no such comment has been defined.
      *
      * @return comment
      */
@@ -68,21 +68,21 @@ public interface Cookie {
     String getCommentURL();
 
     /**
-     * Returns the expiration {@link Date} of the cookie, or <tt>null</tt>
+     * Returns the expiration {@link Date} of the cookie, or {@code null}
      * if none exists.
      * <p><strong>Note:</strong> the object returned by this method is
      * considered immutable. Changing it (e.g. using setTime()) could result
      * in undefined behaviour. Do so at your peril. </p>
-     * @return Expiration {@link Date}, or <tt>null</tt>.
+     * @return Expiration {@link Date}, or {@code null}.
      */
     Date getExpiryDate();
 
     /**
-     * Returns <tt>false</tt> if the cookie should be discarded at the end
-     * of the "session"; <tt>true</tt> otherwise.
+     * Returns {@code false} if the cookie should be discarded at the end
+     * of the "session"; {@code true} otherwise.
      *
-     * @return <tt>false</tt> if the cookie should be discarded at the end
-     *         of the "session"; <tt>true</tt> otherwise
+     * @return {@code false} if the cookie should be discarded at the end
+     *         of the "session"; {@code true} otherwise
      */
     boolean isPersistent();
 
@@ -129,7 +129,7 @@ public interface Cookie {
      * Returns true if this cookie has expired.
      * @param date Current time
      *
-     * @return <tt>true</tt> if the cookie has expired.
+     * @return {@code true} if the cookie has expired.
      */
     boolean isExpired(final Date date);
 

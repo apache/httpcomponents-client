@@ -39,7 +39,7 @@ import org.apache.http.cookie.SetCookie2;
 import org.apache.http.util.Args;
 
 /**
- * <tt>"Version"</tt> cookie attribute handler for RFC 2965 cookie spec.
+ * {@code "Version"} cookie attribute handler for RFC 2965 cookie spec.
  *
  * @since 4.0
  */

@@ -55,16 +55,16 @@ public interface CookieSpec {
     int getVersion();
 
     /**
-      * Parse the <tt>"Set-Cookie"</tt> Header into an array of Cookies.
+      * Parse the {@code "Set-Cookie"} Header into an array of Cookies.
       *
       * <p>This method will not perform the validation of the resultant
       * {@link Cookie}s</p>
       *
       * @see #validate
       *
-      * @param header the <tt>Set-Cookie</tt> received from the server
+      * @param header the {@code Set-Cookie} received from the server
       * @param origin details of the cookie origin
-      * @return an array of <tt>Cookie</tt>s parsed from the header
+      * @return an array of {@code Cookie}s parsed from the header
       * @throws MalformedCookieException if an exception occurs during parsing
       */
     List<Cookie> parse(Header header, CookieOrigin origin) throws MalformedCookieException;
@@ -85,13 +85,13 @@ public interface CookieSpec {
      * @param cookie the Cookie to be matched
      * @param origin the target to test against
      *
-     * @return <tt>true</tt> if the cookie should be submitted with a request
-     *  with given attributes, <tt>false</tt> otherwise.
+     * @return {@code true} if the cookie should be submitted with a request
+     *  with given attributes, {@code false} otherwise.
      */
     boolean match(Cookie cookie, CookieOrigin origin);
 
     /**
-     * Create <tt>"Cookie"</tt> headers for an array of Cookies.
+     * Create {@code "Cookie"} headers for an array of Cookies.
      *
      * @param cookies the Cookies format into a Cookie header
      * @return a Header for the given Cookies.
@@ -102,7 +102,7 @@ public interface CookieSpec {
     /**
      * Returns a request header identifying what version of the state management
      * specification is understood. May be <code>null</code> if the cookie
-     * specification does not support <tt>Cookie2</tt> header.
+     * specification does not support {@code Cookie2} header.
      */
     Header getVersionHeader();
 

@@ -95,7 +95,7 @@ public interface AuthScheme {
      * Tests if the authentication scheme is provides authorization on a per
      * connection basis instead of usual per request basis
      *
-     * @return <tt>true</tt> if the scheme is connection based, <tt>false</tt>
+     * @return {@code true</tt> if the scheme is connection based, <tt>false}
      * if the scheme is request based.
      */
     boolean isConnectionBased();
@@ -106,8 +106,8 @@ public interface AuthScheme {
      * successfully or unsuccessfully, that is, all the required authorization
      * challenges have been processed in their entirety.
      *
-     * @return <tt>true</tt> if the authentication process has been completed,
-     * <tt>false</tt> otherwise.
+     * @return {@code true} if the authentication process has been completed,
+     * {@code false} otherwise.
      */
     boolean isComplete();
 

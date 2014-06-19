@@ -41,7 +41,7 @@ import org.apache.http.cookie.SetCookie2;
 import org.apache.http.util.Args;
 
 /**
- * <tt>"Port"</tt> cookie attribute handler for RFC 2965 cookie spec.
+ * {@code "Port"} cookie attribute handler for RFC 2965 cookie spec.
  *
  * @since 4.0
  */
@@ -82,13 +82,13 @@ public class RFC2965PortAttributeHandler implements CookieAttributeHandler {
     }
 
     /**
-     * Returns <tt>true</tt> if the given port exists in the given
+     * Returns {@code true} if the given port exists in the given
      * ports list.
      *
      * @param port port of host where cookie was received from or being sent to.
      * @param ports port list
-     * @return true returns <tt>true</tt> if the given port exists in
-     *         the given ports list; <tt>false</tt> otherwise.
+     * @return true returns {@code true} if the given port exists in
+     *         the given ports list; {@code false} otherwise.
      */
     private static boolean portMatch(final int port, final int[] ports) {
         boolean portInList = false;

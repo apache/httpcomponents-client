@@ -110,7 +110,7 @@ public class DigestScheme extends RFC2617Scheme {
     }
 
     /**
-     * Creates an instance of <tt>DigestScheme</tt> with the given challenge
+     * Creates an instance of {@code DigestScheme} with the given challenge
      * state.
      *
      * @since 4.2
@@ -144,8 +144,8 @@ public class DigestScheme extends RFC2617Scheme {
     /**
      * Tests if the Digest authentication process has been completed.
      *
-     * @return <tt>true</tt> if Digest authorization has been processed,
-     *   <tt>false</tt> otherwise.
+     * @return {@code true} if Digest authorization has been processed,
+     *   {@code false} otherwise.
      */
     @Override
     public boolean isComplete() {
@@ -168,9 +168,9 @@ public class DigestScheme extends RFC2617Scheme {
     }
 
     /**
-     * Returns <tt>false</tt>. Digest authentication scheme is request based.
+     * Returns {@code false}. Digest authentication scheme is request based.
      *
-     * @return <tt>false</tt>.
+     * @return {@code false}.
      */
     @Override
     public boolean isConnectionBased() {

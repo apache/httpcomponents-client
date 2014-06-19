@@ -84,7 +84,7 @@ public interface SetCookie extends Cookie {
     /**
      * Sets the secure attribute of the cookie.
      * <p>
-     * When <tt>true</tt> the cookie should only be sent
+     * When {@code true} the cookie should only be sent
      * using a secure protocol (https).  This should only be set when
      * the cookie's originating server used a secure protocol to set the
      * cookie's value.

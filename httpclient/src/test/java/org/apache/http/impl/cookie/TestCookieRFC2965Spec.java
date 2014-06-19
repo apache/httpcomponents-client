@@ -46,7 +46,7 @@ import org.junit.Test;
 public class TestCookieRFC2965Spec {
 
     /**
-     * Test parsing cookie <tt>"Path"</tt> attribute.
+     * Test parsing cookie {@code "Path"} attribute.
      */
     @Test
     public void testParsePath() throws Exception {
@@ -103,7 +103,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * Test parsing cookie <tt>"Domain"</tt> attribute.
+     * Test parsing cookie {@code "Domain"} attribute.
      */
     @Test
     public void testParseDomain() throws Exception {
@@ -169,7 +169,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * Test parsing cookie <tt>"Port"</tt> attribute.
+     * Test parsing cookie {@code "Port"} attribute.
      */
     @Test
     public void testParsePort() throws Exception {
@@ -280,7 +280,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * test parsing cookie <tt>"Version"</tt> attribute.
+     * test parsing cookie {@code "Version"} attribute.
      */
     @Test
     public void testParseVersion() throws Exception {
@@ -322,7 +322,7 @@ public class TestCookieRFC2965Spec {
         }
     }
     /**
-     * test parsing cookie <tt>"Max-age"</tt> attribute.
+     * test parsing cookie {@code "Max-age"} attribute.
      */
     @Test
     public void testParseMaxage() throws Exception {
@@ -377,7 +377,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * test parsing <tt>"Secure"</tt> attribute.
+     * test parsing {@code "Secure"} attribute.
      */
     @Test
     public void testParseSecure() throws Exception {
@@ -392,7 +392,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * test parsing <tt>"Discard"</tt> attribute.
+     * test parsing {@code "Discard"} attribute.
      */
     @Test
     public void testParseDiscard() throws Exception {
@@ -416,8 +416,8 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * test parsing <tt>"Comment"</tt>, <tt>"CommentURL"</tt> and
-     * <tt>"Secure"</tt> attributes.
+     * test parsing {@code "Comment"</tt>, <tt>"CommentURL"} and
+     * {@code "Secure"} attributes.
      */
     @Test
     public void testParseOtherAttributes() throws Exception {
@@ -462,8 +462,8 @@ public class TestCookieRFC2965Spec {
     // ------------------------------------------------------- Test Cookie Validation
 
     /**
-     * Test <tt>Domain</tt> validation when domain is not specified
-     * in <tt>Set-Cookie2</tt> header.
+     * Test {@code Domain} validation when domain is not specified
+     * in {@code Set-Cookie2} header.
      */
     @Test
     public void testValidateNoDomain() throws Exception {
@@ -482,7 +482,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * Test <tt>Domain</tt> validation. Cookie domain attribute must have a
+     * Test {@code Domain} validation. Cookie domain attribute must have a
      * leading dot.
      */
     @Test
@@ -501,7 +501,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * Test <tt>Domain</tt> validation. Domain must have at least one embedded dot.
+     * Test {@code Domain} validation. Domain must have at least one embedded dot.
      */
     @Test
     public void testValidateDomainEmbeddedDot() throws Exception {
@@ -527,7 +527,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * Test local <tt>Domain</tt> validation. Simple host names
+     * Test local {@code Domain} validation. Simple host names
      * (without any dots) are valid only when cookie domain is specified
      * as ".local".
      */
@@ -574,7 +574,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * Test <tt>Domain</tt> validation. Effective host name
+     * Test {@code Domain} validation. Effective host name
      * must domain-match domain attribute.
      */
     @Test
@@ -604,7 +604,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * Test local <tt>Domain</tt> validation.
+     * Test local {@code Domain} validation.
      * Effective host name minus domain must not contain any dots.
      */
     @Test
@@ -622,7 +622,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * Test cookie <tt>Path</tt> validation. Cookie path attribute must path-match
+     * Test cookie {@code Path} validation. Cookie path attribute must path-match
      * request path.
      */
     @Test
@@ -698,7 +698,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * Test cookie <tt>Port</tt> validation. Request port must be in the
+     * Test cookie {@code Port} validation. Request port must be in the
      * port attribute list.
      */
     @Test
@@ -731,7 +731,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * Test cookie <tt>Version</tt> validation.
+     * Test cookie {@code Version} validation.
      */
     @Test
     public void testValidateVersion() throws Exception {
@@ -751,7 +751,7 @@ public class TestCookieRFC2965Spec {
     // ------------------------------------------------------- Test Cookie Matching
 
     /**
-     * test cookie <tt>Path</tt> matching. Cookie path attribute must path-match
+     * test cookie {@code Path} matching. Cookie path attribute must path-match
      * path of the request URI.
      */
     @Test
@@ -768,7 +768,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * test cookie <tt>Domain</tt> matching.
+     * test cookie {@code Domain} matching.
      */
     @Test
     public void testMatchDomain() throws Exception {
@@ -789,7 +789,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * test cookie local <tt>Domain</tt> matching.
+     * test cookie local {@code Domain} matching.
      */
     @Test
     public void testMatchDomainLocal() throws Exception {
@@ -805,7 +805,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * test cookie <tt>Port</tt> matching.
+     * test cookie {@code Port} matching.
      */
     @Test
     public void testMatchPort() throws Exception {
@@ -865,7 +865,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * test cookie <tt>Secure</tt> attribute.
+     * test cookie {@code Secure} attribute.
      */
     @Test
     public void testCookieSecure() throws Exception {
@@ -996,7 +996,7 @@ public class TestCookieRFC2965Spec {
     // ------------------------------------------------------- Backward compatibility tests
 
     /**
-     * Test rejection of <tt>Set-Cookie</tt> header.
+     * Test rejection of {@code Set-Cookie} header.
      */
     @Test
     public void testRejectSetCookie() throws Exception {

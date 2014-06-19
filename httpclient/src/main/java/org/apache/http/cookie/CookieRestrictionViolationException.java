@@ -41,7 +41,7 @@ public class CookieRestrictionViolationException extends MalformedCookieExceptio
     private static final long serialVersionUID = 7371235577078589013L;
 
     /**
-     * Creates a new CookeFormatViolationException with a <tt>null</tt> detail
+     * Creates a new CookeFormatViolationException with a {@code null} detail
      * message.
      */
     public CookieRestrictionViolationException() {

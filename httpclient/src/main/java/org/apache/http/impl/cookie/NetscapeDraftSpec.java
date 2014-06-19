@@ -82,7 +82,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
     }
 
     /**
-      * Parses the Set-Cookie value into an array of <tt>Cookie</tt>s.
+      * Parses the Set-Cookie value into an array of {@code Cookie}s.
       *
       * <p>Syntax of the Set-Cookie HTTP Response Header:</p>
       *
@@ -101,8 +101,8 @@ public class NetscapeDraftSpec extends CookieSpecBase {
       * @see <a href="http://web.archive.org/web/20020803110822/http://wp.netscape.com/newsref/std/cookie_spec.html">
       *  The Cookie Spec.</a>
       *
-      * @param header the <tt>Set-Cookie</tt> received from the server
-      * @return an array of <tt>Cookie</tt>s parsed from the Set-Cookie value
+      * @param header the {@code Set-Cookie} received from the server
+      * @return an array of {@code Cookie}s parsed from the Set-Cookie value
       * @throws MalformedCookieException if an exception occurs during parsing
       */
     @Override

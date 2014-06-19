@@ -59,7 +59,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
     private ChallengeState challengeState;
 
     /**
-     * Creates an instance of <tt>AuthSchemeBase</tt> with the given challenge
+     * Creates an instance of {@code AuthSchemeBase} with the given challenge
      * state.
      *
      * @since 4.2

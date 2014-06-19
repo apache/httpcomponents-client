@@ -42,7 +42,7 @@ public class NonRepeatableRequestException extends ProtocolException {
     private static final long serialVersionUID = 82685265288806048L;
 
     /**
-     * Creates a new NonRepeatableEntityException with a <tt>null</tt> detail message.
+     * Creates a new NonRepeatableEntityException with a {@code null} detail message.
      */
     public NonRepeatableRequestException() {
         super();

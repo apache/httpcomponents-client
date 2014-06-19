@@ -34,7 +34,7 @@ import org.apache.http.annotation.Immutable;
 
 /**
  * This cookie comparator ensures that multiple cookies satisfying
- * a common criteria are ordered in the <tt>Cookie</tt> header such
+ * a common criteria are ordered in the {@code Cookie} header such
  * that those with more specific Path attributes precede those with
  * less specific.
  *

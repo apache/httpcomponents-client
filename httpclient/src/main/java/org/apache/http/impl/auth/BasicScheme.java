@@ -67,7 +67,7 @@ public class BasicScheme extends RFC2617Scheme {
     }
 
     /**
-     * Creates an instance of <tt>BasicScheme</tt> with the given challenge
+     * Creates an instance of {@code BasicScheme} with the given challenge
      * state.
      *
      * @since 4.2
@@ -111,8 +111,8 @@ public class BasicScheme extends RFC2617Scheme {
     /**
      * Tests if the Basic authentication process has been completed.
      *
-     * @return <tt>true</tt> if Basic authorization has been processed,
-     *   <tt>false</tt> otherwise.
+     * @return {@code true} if Basic authorization has been processed,
+     *   {@code false} otherwise.
      */
     @Override
     public boolean isComplete() {
@@ -120,9 +120,9 @@ public class BasicScheme extends RFC2617Scheme {
     }
 
     /**
-     * Returns <tt>false</tt>. Basic authentication scheme is request based.
+     * Returns {@code false}. Basic authentication scheme is request based.
      *
-     * @return <tt>false</tt>.
+     * @return {@code false}.
      */
     @Override
     public boolean isConnectionBased() {
@@ -182,7 +182,7 @@ public class BasicScheme extends RFC2617Scheme {
     }
 
     /**
-     * Returns a basic <tt>Authorization</tt> header value for the given
+     * Returns a basic {@code Authorization} header value for the given
      * {@link Credentials} and charset.
      *
      * @param credentials The credentials to encode.
