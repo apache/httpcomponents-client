@@ -4,6 +4,10 @@ Changes for 4.4-alpha1
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1519] Use the original HttpHost instance passed as a parameter to
+  HttpClient#execute when generating 'Host' request header.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * Replaced dynamic proxies with custom proxy classes to reduce thread contention.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
