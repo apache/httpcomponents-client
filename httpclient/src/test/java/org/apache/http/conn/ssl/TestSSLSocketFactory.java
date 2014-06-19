@@ -108,7 +108,7 @@ public class TestSSLSocketFactory {
         final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
                 SSLTestContexts.createClientSSLContext(), hostVerifier);
         final Socket socket = socketFactory.createSocket(context);
-        final InetSocketAddress remoteAddress = new InetSocketAddress(this.server.getInetAddress(), this.server.getLocalPort());
+        final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
         final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
         final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, target, remoteAddress, null, context);
         try {
@@ -134,7 +134,7 @@ public class TestSSLSocketFactory {
         final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
                 SSLTestContexts.createClientSSLContext(), hostVerifier);
         final Socket socket = socketFactory.createSocket(context);
-        final InetSocketAddress remoteAddress = new InetSocketAddress(this.server.getInetAddress(), this.server.getLocalPort());
+        final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
         final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
         final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, target, remoteAddress, null, context);
         try {
@@ -161,7 +161,7 @@ public class TestSSLSocketFactory {
         final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
                 SSLTestContexts.createClientSSLContext(), hostVerifier);
         final Socket socket = socketFactory.createSocket(context);
-        final InetSocketAddress remoteAddress = new InetSocketAddress(this.server.getInetAddress(), this.server.getLocalPort());
+        final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
         final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
         final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, target, remoteAddress, null, context);
         try {
@@ -200,7 +200,7 @@ public class TestSSLSocketFactory {
         final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
                 SSLTestContexts.createClientSSLContext(), hostVerifier);
         final Socket socket = socketFactory.createSocket(context);
-        final InetSocketAddress remoteAddress = new InetSocketAddress(this.server.getInetAddress(), this.server.getLocalPort());
+        final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
         final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
         final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, target, remoteAddress, null, context);
         try {
@@ -229,7 +229,7 @@ public class TestSSLSocketFactory {
                 SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
         final Socket socket = socketFactory.createSocket(context);
-        final InetSocketAddress remoteAddress = new InetSocketAddress(this.server.getInetAddress(), this.server.getLocalPort());
+        final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
         final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
         final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, target, remoteAddress, null, context);
         sslSocket.close();
@@ -262,7 +262,7 @@ public class TestSSLSocketFactory {
                 SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
         final Socket socket = socketFactory.createSocket(context);
-        final InetSocketAddress remoteAddress = new InetSocketAddress(this.server.getInetAddress(), this.server.getLocalPort());
+        final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
         final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
         final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, target, remoteAddress, null, context);
         sslSocket.close();
