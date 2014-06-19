@@ -701,6 +701,34 @@ public class HttpClientBuilder {
     }
 
     /**
+     * Produces an instance of {@link ClientExecChain} to be used as a main exec.
+     * <p>
+     * Default implementation produces an instance of {@link MainClientExec}
+     * <p>
+     * For internal use.
+     *
+     * @since 4.4
+     */
+    protected ClientExecChain createMainExec(
+            final HttpRequestExecutor requestExec,
+            final HttpClientConnectionManager connManager,
+            final ConnectionReuseStrategy reuseStrategy,
+            final ConnectionKeepAliveStrategy keepAliveStrategy,
+            final AuthenticationStrategy targetAuthStrategy,
+            final AuthenticationStrategy proxyAuthStrategy,
+            final UserTokenHandler userTokenHandler)
+    {
+        return new MainClientExec(
+                requestExec,
+                connManager,
+                reuseStrategy,
+                keepAliveStrategy,
+                targetAuthStrategy,
+                proxyAuthStrategy,
+                userTokenHandler);
+    }
+
+    /**
      * For internal use.
      */
     protected ClientExecChain decorateMainExec(final ClientExecChain mainExec) {
@@ -835,7 +863,7 @@ public class HttpClientBuilder {
                 userTokenHandlerCopy = NoopUserTokenHandler.INSTANCE;
             }
         }
-        ClientExecChain execChain = new MainClientExec(
+        ClientExecChain execChain = createMainExec(
                 requestExecCopy,
                 connManagerCopy,
                 reuseStrategyCopy,
