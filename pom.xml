@@ -47,7 +47,7 @@
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
-      <url>LICENSE.txt</url>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -254,7 +254,7 @@
             </goals>
             <phase>pre-site</phase>
           </execution>
-        </executions>        
+        </executions>
         <configuration>
           <includes>index.xml</includes>
           <chunkedOutput>true</chunkedOutput>
