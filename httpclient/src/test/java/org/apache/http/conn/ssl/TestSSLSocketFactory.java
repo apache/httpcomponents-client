@@ -176,6 +176,7 @@ public class TestSSLSocketFactory {
 
     @Test
     public void testClientAuthSSLAliasChoice() throws Exception {
+    	// TODO unused - is there a bug in the test?
         final PrivateKeyStrategy aliasStrategy = new PrivateKeyStrategy() {
 
             @Override

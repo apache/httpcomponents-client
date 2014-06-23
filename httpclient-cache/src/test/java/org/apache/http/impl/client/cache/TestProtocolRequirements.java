@@ -6049,7 +6049,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         // received-by
         if (!Pattern.matches(tokenRegexp, parts[1])) {
             // host : port
-            new HttpHost(parts[1]);
+            new HttpHost(parts[1]); // TODO - unused - is this a test bug? else use Assert.assertNotNull
         }
 
         // comment
