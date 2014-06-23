@@ -50,7 +50,9 @@ public class TestRFC2617Scheme {
 
     static class TestAuthScheme extends RFC2617Scheme {
 
-        public TestAuthScheme() {
+		private static final long serialVersionUID = 1L;
+
+		public TestAuthScheme() {
             super();
         }
 
