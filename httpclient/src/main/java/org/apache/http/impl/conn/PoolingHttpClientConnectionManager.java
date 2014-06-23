@@ -82,6 +82,13 @@ import org.apache.http.util.Asserts;
  * as a transport protocol for their services. Connection limits, however,
  * can be adjusted using {@link ConnPoolControl} methods.
  *
+ * The handling of stale connections was changed in version 4.4.
+ * Previously, the code would check every connection by default before re-using it.
+ * The code now only checks the connection if the elapsed time since
+ * the last use of the connection exceeds the timeout that has been set.
+ * The default timeout is set to 5000ms - see 
+ * {@link #PoolingHttpClientConnectionManager(HttpClientConnectionOperator, HttpConnectionFactory, long, TimeUnit))}
+ *
  * @since 4.3
  */
 @ThreadSafe
