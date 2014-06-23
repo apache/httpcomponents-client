@@ -162,8 +162,9 @@ public class TestClientReauthentication extends LocalServerTestBase {
             @Override
             public AuthScheme create(final HttpContext context) {
                 return new BasicScheme() {
+					private static final long serialVersionUID = 1L;
 
-                    @Override
+					@Override
                     public String getSchemeName() {
                         return "MyBasic";
                     }
