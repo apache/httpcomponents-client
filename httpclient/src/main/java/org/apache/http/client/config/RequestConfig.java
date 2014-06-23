@@ -141,7 +141,11 @@ public class RequestConfig implements Cloneable {
      * operations this check should be disabled.
      * <p/>
      * Default: <code>true</code>
+     *
+     * @deprecated (4.4) Use {@link
+     *   org.apache.http.impl.conn.PoolingHttpClientConnectionManager#getValidateAfterInactivity()}
      */
+    @Deprecated
     public boolean isStaleConnectionCheckEnabled() {
         return staleConnectionCheckEnabled;
     }
@@ -288,7 +292,6 @@ public class RequestConfig implements Cloneable {
         builder.append(", expectContinueEnabled=").append(expectContinueEnabled);
         builder.append(", proxy=").append(proxy);
         builder.append(", localAddress=").append(localAddress);
-        builder.append(", staleConnectionCheckEnabled=").append(staleConnectionCheckEnabled);
         builder.append(", cookieSpec=").append(cookieSpec);
         builder.append(", redirectsEnabled=").append(redirectsEnabled);
         builder.append(", relativeRedirectsAllowed=").append(relativeRedirectsAllowed);
@@ -309,6 +312,7 @@ public class RequestConfig implements Cloneable {
         return new Builder();
     }
 
+    @SuppressWarnings("deprecation")
     public static RequestConfig.Builder copy(final RequestConfig config) {
         return new Builder()
             .setExpectContinueEnabled(config.isExpectContinueEnabled())
@@ -350,7 +354,7 @@ public class RequestConfig implements Cloneable {
 
         Builder() {
             super();
-            this.staleConnectionCheckEnabled = true;
+            this.staleConnectionCheckEnabled = false;
             this.redirectsEnabled = true;
             this.maxRedirects = 50;
             this.relativeRedirectsAllowed = true;
@@ -376,6 +380,11 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * @deprecated (4.4) Use {@link
+         *   org.apache.http.impl.conn.PoolingHttpClientConnectionManager#setValidateAfterInactivity(int)}
+         */
+        @Deprecated
         public Builder setStaleConnectionCheckEnabled(final boolean staleConnectionCheckEnabled) {
             this.staleConnectionCheckEnabled = staleConnectionCheckEnabled;
             return this;

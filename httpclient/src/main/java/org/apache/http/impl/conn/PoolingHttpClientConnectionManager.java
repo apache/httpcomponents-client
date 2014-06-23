@@ -163,6 +163,7 @@ public class PoolingHttpClientConnectionManager
         this.configData = new ConfigData();
         this.pool = new CPool(new InternalConnectionFactory(
                 this.configData, connFactory), 2, 20, timeToLive, tunit);
+        this.pool.setValidateAfterInactivity(5000);
         this.connectionOperator = Args.notNull(httpClientConnectionOperator, "HttpClientConnectionOperator");
         this.isShutDown = new AtomicBoolean(false);
     }
@@ -467,6 +468,30 @@ public class PoolingHttpClientConnectionManager
 
     public void setConnectionConfig(final HttpHost host, final ConnectionConfig connectionConfig) {
         this.configData.setConnectionConfig(host, connectionConfig);
+    }
+
+    /**
+     * @see #setValidateAfterInactivity(int)
+     *
+     * @since 4.4
+     */
+    public int getValidateAfterInactivity() {
+        return pool.getValidateAfterInactivity();
+    }
+
+    /**
+     * Defines period of inactivity in milliseconds after which persistent connections must
+     * be re-validated prior to being {@link #leaseConnection(java.util.concurrent.Future,
+     *   long, java.util.concurrent.TimeUnit) leased} to the consumer. Non-positive value passed
+     * to this method disables connection validation. This check helps detect connections
+     * that have become stale (half-closed) while kept inactive in the pool.
+     *
+     * @see #leaseConnection(java.util.concurrent.Future, long, java.util.concurrent.TimeUnit)
+     *
+     * @since 4.4
+     */
+    public void setValidateAfterInactivity(final int ms) {
+        pool.setValidateAfterInactivity(ms);
     }
 
     static class ConfigData {

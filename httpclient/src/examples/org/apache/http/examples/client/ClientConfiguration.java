@@ -177,6 +177,8 @@ public class ClientConfiguration {
         // by default or for a specific host.
         connManager.setDefaultSocketConfig(socketConfig);
         connManager.setSocketConfig(new HttpHost("somehost", 80), socketConfig);
+        // Validate connections after 1 sec of inactivity
+        connManager.setValidateAfterInactivity(1000);
 
         // Create message constraints
         MessageConstraints messageConstraints = MessageConstraints.custom()
@@ -209,7 +211,6 @@ public class ClientConfiguration {
         RequestConfig defaultRequestConfig = RequestConfig.custom()
             .setCookieSpec(CookieSpecs.BEST_MATCH)
             .setExpectContinueEnabled(true)
-            .setStaleConnectionCheckEnabled(true)
             .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
             .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC))
             .build();

@@ -277,6 +277,11 @@ public class Request {
         return this;
     }
 
+    /**
+     * @deprecated (4.4) Use {@link
+     *   org.apache.http.impl.conn.PoolingHttpClientConnectionManager#setValidateAfterInactivity(int)}
+     */
+    @Deprecated
     public Request staleConnectionCheck(final boolean b) {
         this.configBuilder.setStaleConnectionCheckEnabled(b);
         return this;

@@ -27,12 +27,12 @@
 
 package org.apache.http.client.config;
 
+import java.net.InetAddress;
+import java.util.Arrays;
+
 import org.apache.http.HttpHost;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.net.InetAddress;
-import java.util.Arrays;
 
 public class TestRequestConfig {
 
@@ -49,7 +49,6 @@ public class TestRequestConfig {
         Assert.assertEquals(-1, config.getConnectTimeout());
         Assert.assertEquals(-1, config.getConnectionRequestTimeout());
         Assert.assertEquals(false, config.isExpectContinueEnabled());
-        Assert.assertEquals(true, config.isStaleConnectionCheckEnabled());
         Assert.assertEquals(true, config.isAuthenticationEnabled());
         Assert.assertEquals(true, config.isRedirectsEnabled());
         Assert.assertEquals(true, config.isRelativeRedirectsAllowed());
@@ -69,7 +68,6 @@ public class TestRequestConfig {
                 .setConnectTimeout(33)
                 .setConnectionRequestTimeout(44)
                 .setExpectContinueEnabled(true)
-                .setStaleConnectionCheckEnabled(false)
                 .setAuthenticationEnabled(false)
                 .setRedirectsEnabled(false)
                 .setRelativeRedirectsAllowed(false)
@@ -86,7 +84,6 @@ public class TestRequestConfig {
         Assert.assertEquals(33, config.getConnectTimeout());
         Assert.assertEquals(44, config.getConnectionRequestTimeout());
         Assert.assertEquals(true, config.isExpectContinueEnabled());
-        Assert.assertEquals(false, config.isStaleConnectionCheckEnabled());
         Assert.assertEquals(false, config.isAuthenticationEnabled());
         Assert.assertEquals(false, config.isRedirectsEnabled());
         Assert.assertEquals(false, config.isRelativeRedirectsAllowed());

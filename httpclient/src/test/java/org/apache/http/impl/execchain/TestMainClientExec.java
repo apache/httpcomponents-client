@@ -306,35 +306,6 @@ public class TestMainClientExec {
     }
 
     @Test
-    public void testExecRequestStaleConnectionCheck() throws Exception {
-        final HttpRoute route = new HttpRoute(target);
-        final HttpClientContext context = new HttpClientContext();
-        final RequestConfig config = RequestConfig.custom()
-                .setStaleConnectionCheckEnabled(true)
-                .build();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
-        context.setRequestConfig(config);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-
-        Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
-        Mockito.when(managedConn.isStale()).thenReturn(Boolean.TRUE);
-        Mockito.when(requestExecutor.execute(
-                Mockito.same(request),
-                Mockito.<HttpClientConnection>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(response);
-        Mockito.when(reuseStrategy.keepAlive(
-                Mockito.same(response),
-                Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
-
-        final CloseableHttpResponse finalResponse = mainClientExec.execute(
-                route, request, context, execAware);
-        Mockito.verify(managedConn, Mockito.times(1)).close();
-
-        Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(finalResponse instanceof HttpResponseProxy);
-    }
-
-    @Test
     public void testSocketTimeoutExistingConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();

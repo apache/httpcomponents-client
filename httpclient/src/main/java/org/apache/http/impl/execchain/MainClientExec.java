@@ -84,6 +84,7 @@ import org.apache.http.util.EntityUtils;
  *
  * @since 4.3
  */
+@SuppressWarnings("deprecation")
 @Immutable
 public class MainClientExec implements ClientExecChain {
 

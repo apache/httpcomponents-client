@@ -4,6 +4,11 @@ Changes for 4.4-alpha1
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1493] Indiscriminate connection checking has been deprecated in favor of conditional
+  connection state validation. Persistent connections are to be re-validated only after a defined
+  period inactivity prior to being leased to the consumer.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1519] Use the original HttpHost instance passed as a parameter to
   HttpClient#execute when generating 'Host' request header.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
