@@ -67,12 +67,12 @@ public class TestMultipartContentBody {
 
     @Test(expected=IllegalArgumentException.class)
     public void testStringBodyInvalidConstruction1() throws Exception {
-    	Assert.assertNotNull(new StringBody(null, ContentType.DEFAULT_TEXT)); // avoid unused warning
+        Assert.assertNotNull(new StringBody(null, ContentType.DEFAULT_TEXT)); // avoid unused warning
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testStringBodyInvalidConstruction2() throws Exception {
-    	Assert.assertNotNull(new StringBody("stuff", (ContentType) null)); // avoid unused warning
+        Assert.assertNotNull(new StringBody("stuff", (ContentType) null)); // avoid unused warning
     }
 
     @Test
