@@ -294,6 +294,14 @@ public class Request {
         return this;
     }
 
+    /**
+     * @since 4.4
+     */
+    public Request viaProxy(final String proxy) {
+        this.configBuilder.setProxy(HttpHost.create(proxy));
+        return this;
+    }
+
     //// HTTP entity operations
 
     public Request body(final HttpEntity entity) {
