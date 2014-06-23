@@ -31,7 +31,14 @@ import java.net.InetAddress;
 import java.util.Collection;
 
 import org.apache.http.HttpHost;
+import org.apache.http.annotation.Immutable;
 
+/**
+ *  Immutable class encapsulating request configuration items.
+ *  The default setting for stale connection checking changed
+ *  to false, and the feature was deprecated starting with version 4.4.
+ */
+@Immutable
 public class RequestConfig implements Cloneable {
 
     public static final RequestConfig DEFAULT = new Builder().build();
@@ -140,7 +147,7 @@ public class RequestConfig implements Cloneable {
      * should be used only when appropriate. For performance critical
      * operations this check should be disabled.
      * <p/>
-     * Default: <code>true</code>
+     * Default: <code>false</code> since 4.4
      *
      * @deprecated (4.4) Use {@link
      *   org.apache.http.impl.conn.PoolingHttpClientConnectionManager#getValidateAfterInactivity()}
