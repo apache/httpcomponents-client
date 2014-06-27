@@ -209,9 +209,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
         return new BufferedHeader(buffer);
     }
 
-    /**
-     * @see http://msdn.microsoft.com/en-us/library/windows/desktop/aa375506(v=vs.85).aspx
-     */
+    // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa375506(v=vs.85).aspx
     private String getToken(
             final CtxtHandle continueCtx,
             final SecBufferDesc continueToken,
