@@ -40,7 +40,7 @@ public class CircularRedirectException extends RedirectException {
     private static final long serialVersionUID = 6830063487001091803L;
 
     /**
-     * Creates a new CircularRedirectException with a <tt>null</tt> detail message.
+     * Creates a new CircularRedirectException with a {@code null} detail message.
      */
     public CircularRedirectException() {
         super();
@@ -59,8 +59,8 @@ public class CircularRedirectException extends RedirectException {
      * Creates a new CircularRedirectException with the specified detail message and cause.
      *
      * @param message the exception detail message
-     * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
-     * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
+     * @param cause the {@code Throwable</tt> that caused this exception, or <tt>null}
+     * if the cause is unavailable, unknown, or not a {@code Throwable}
      */
     public CircularRedirectException(final String message, final Throwable cause) {
         super(message, cause);

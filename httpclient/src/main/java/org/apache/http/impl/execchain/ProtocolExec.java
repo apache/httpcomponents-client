@@ -168,6 +168,9 @@ public class ProtocolExec implements ClientExecChain {
             }
         }
         if (target == null) {
+            target = request.getTarget();
+        }
+        if (target == null) {
             target = route.getTargetHost();
         }
 

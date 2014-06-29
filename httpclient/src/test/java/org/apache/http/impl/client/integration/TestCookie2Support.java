@@ -32,6 +32,7 @@ import java.util.List;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -44,25 +45,18 @@ import org.apache.http.cookie.SM;
 import org.apache.http.cookie.SetCookie2;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Cookie2 support tests.
  */
-public class TestCookie2Support extends IntegrationTestBase {
-
-    @Before
-    public void setUp() throws Exception {
-        startServer();
-        this.httpclient = HttpClients.createDefault();
-    }
+public class TestCookie2Support extends LocalServerTestBase {
 
     private static class CookieVer0Service implements HttpRequestHandler {
 
@@ -82,7 +76,9 @@ public class TestCookie2Support extends IntegrationTestBase {
 
     @Test
     public void testCookieVersionSupportHeader1() throws Exception {
-        this.localServer.register("*", new CookieVer0Service());
+        this.serverBootstrap.registerHandler("*", new CookieVer0Service());
+
+        final HttpHost target = start();
 
         final CookieStore cookieStore = new BasicCookieStore();
         final HttpClientContext context = HttpClientContext.create();
@@ -90,7 +86,7 @@ public class TestCookie2Support extends IntegrationTestBase {
 
         final HttpGet httpget = new HttpGet("/test/");
 
-        final HttpResponse response1 = this.httpclient.execute(getServerHttp(), httpget, context);
+        final HttpResponse response1 = this.httpclient.execute(target, httpget, context);
         final HttpEntity e1 = response1.getEntity();
         EntityUtils.consume(e1);
 
@@ -98,7 +94,7 @@ public class TestCookie2Support extends IntegrationTestBase {
         Assert.assertNotNull(cookies);
         Assert.assertEquals(1, cookies.size());
 
-        final HttpResponse response2 = this.httpclient.execute(getServerHttp(), httpget, context);
+        final HttpResponse response2 = this.httpclient.execute(target, httpget, context);
         final HttpEntity e2 = response2.getEntity();
         EntityUtils.consume(e2);
 
@@ -128,7 +124,9 @@ public class TestCookie2Support extends IntegrationTestBase {
 
     @Test
     public void testCookieVersionSupportHeader2() throws Exception {
-        this.localServer.register("*", new CookieVer1Service());
+        this.serverBootstrap.registerHandler("*", new CookieVer1Service());
+
+        final HttpHost target = start();
 
         final CookieStore cookieStore = new BasicCookieStore();
         final HttpClientContext context = HttpClientContext.create();
@@ -136,7 +134,7 @@ public class TestCookie2Support extends IntegrationTestBase {
 
         final HttpGet httpget = new HttpGet("/test/");
 
-        final HttpResponse response1 = this.httpclient.execute(getServerHttp(), httpget, context);
+        final HttpResponse response1 = this.httpclient.execute(target, httpget, context);
         final HttpEntity e1 = response1.getEntity();
         EntityUtils.consume(e1);
 
@@ -144,7 +142,7 @@ public class TestCookie2Support extends IntegrationTestBase {
         Assert.assertNotNull(cookies);
         Assert.assertEquals(2, cookies.size());
 
-        final HttpResponse response2 = this.httpclient.execute(getServerHttp(), httpget, context);
+        final HttpResponse response2 = this.httpclient.execute(target, httpget, context);
         final HttpEntity e2 = response2.getEntity();
         EntityUtils.consume(e2);
 
@@ -173,7 +171,9 @@ public class TestCookie2Support extends IntegrationTestBase {
 
     @Test
     public void testCookieVersionSupportHeader3() throws Exception {
-        this.localServer.register("*", new CookieVer2Service());
+        this.serverBootstrap.registerHandler("*", new CookieVer2Service());
+
+        final HttpHost target = start();
 
         final CookieStore cookieStore = new BasicCookieStore();
         final HttpClientContext context = HttpClientContext.create();
@@ -181,7 +181,7 @@ public class TestCookie2Support extends IntegrationTestBase {
 
         final HttpGet httpget = new HttpGet("/test/");
 
-        final HttpResponse response1 = this.httpclient.execute(getServerHttp(), httpget, context);
+        final HttpResponse response1 = this.httpclient.execute(target, httpget, context);
         final HttpEntity e1 = response1.getEntity();
         EntityUtils.consume(e1);
 
@@ -189,7 +189,7 @@ public class TestCookie2Support extends IntegrationTestBase {
         Assert.assertNotNull(cookies);
         Assert.assertEquals(1, cookies.size());
 
-        final HttpResponse response2 = this.httpclient.execute(getServerHttp(), httpget, context);
+        final HttpResponse response2 = this.httpclient.execute(target, httpget, context);
         final HttpEntity e2 = response2.getEntity();
         EntityUtils.consume(e2);
 
@@ -219,7 +219,9 @@ public class TestCookie2Support extends IntegrationTestBase {
 
     @Test
     public void testSetCookieVersionMix() throws Exception {
-        this.localServer.register("*", new SetCookieVersionMixService());
+        this.serverBootstrap.registerHandler("*", new SetCookieVersionMixService());
+
+        final HttpHost target = start();
 
         final CookieStore cookieStore = new BasicCookieStore();
         final HttpClientContext context = HttpClientContext.create();
@@ -227,7 +229,7 @@ public class TestCookie2Support extends IntegrationTestBase {
 
         final HttpGet httpget = new HttpGet("/test/");
 
-        final HttpResponse response1 = this.httpclient.execute(getServerHttp(), httpget, context);
+        final HttpResponse response1 = this.httpclient.execute(target, httpget, context);
         final HttpEntity e1 = response1.getEntity();
         EntityUtils.consume(e1);
 

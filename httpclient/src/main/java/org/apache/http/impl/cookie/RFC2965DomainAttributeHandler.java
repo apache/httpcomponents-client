@@ -40,7 +40,7 @@ import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.Args;
 
 /**
- * <tt>"Domain"</tt> cookie attribute handler for RFC 2965 cookie spec.
+ * {@code "Domain"} cookie attribute handler for RFC 2965 cookie spec.
  *
  *
  * @since 3.1

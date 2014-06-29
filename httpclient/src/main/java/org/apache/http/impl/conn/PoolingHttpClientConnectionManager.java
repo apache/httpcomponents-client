@@ -67,20 +67,27 @@ import org.apache.http.util.Args;
 import org.apache.http.util.Asserts;
 
 /**
- * <tt>ClientConnectionPoolManager</tt> maintains a pool of
+ * {@code ClientConnectionPoolManager} maintains a pool of
  * {@link HttpClientConnection}s and is able to service connection requests
  * from multiple execution threads. Connections are pooled on a per route
  * basis. A request for a route which already the manager has persistent
  * connections for available in the pool will be services by leasing
  * a connection from the pool rather than creating a brand new connection.
  * <p/>
- * <tt>ClientConnectionPoolManager</tt> maintains a maximum limit of connection
+ * {@code ClientConnectionPoolManager} maintains a maximum limit of connection
  * on a per route basis and in total. Per default this implementation will
  * create no more than than 2 concurrent connections per given route
  * and no more 20 connections in total. For many real-world applications
  * these limits may prove too constraining, especially if they use HTTP
  * as a transport protocol for their services. Connection limits, however,
  * can be adjusted using {@link ConnPoolControl} methods.
+ *
+ * The handling of stale connections was changed in version 4.4.
+ * Previously, the code would check every connection by default before re-using it.
+ * The code now only checks the connection if the elapsed time since
+ * the last use of the connection exceeds the timeout that has been set.
+ * The default timeout is set to 5000ms - see
+ * {@link #PoolingHttpClientConnectionManager(HttpClientConnectionOperator, HttpConnectionFactory, long, TimeUnit))}
  *
  * @since 4.3
  */
@@ -163,6 +170,7 @@ public class PoolingHttpClientConnectionManager
         this.configData = new ConfigData();
         this.pool = new CPool(new InternalConnectionFactory(
                 this.configData, connFactory), 2, 20, timeToLive, tunit);
+        this.pool.setValidateAfterInactivity(5000);
         this.connectionOperator = Args.notNull(httpClientConnectionOperator, "HttpClientConnectionOperator");
         this.isShutDown = new AtomicBoolean(false);
     }
@@ -467,6 +475,30 @@ public class PoolingHttpClientConnectionManager
 
     public void setConnectionConfig(final HttpHost host, final ConnectionConfig connectionConfig) {
         this.configData.setConnectionConfig(host, connectionConfig);
+    }
+
+    /**
+     * @see #setValidateAfterInactivity(int)
+     *
+     * @since 4.4
+     */
+    public int getValidateAfterInactivity() {
+        return pool.getValidateAfterInactivity();
+    }
+
+    /**
+     * Defines period of inactivity in milliseconds after which persistent connections must
+     * be re-validated prior to being {@link #leaseConnection(java.util.concurrent.Future,
+     *   long, java.util.concurrent.TimeUnit) leased} to the consumer. Non-positive value passed
+     * to this method disables connection validation. This check helps detect connections
+     * that have become stale (half-closed) while kept inactive in the pool.
+     *
+     * @see #leaseConnection(java.util.concurrent.Future, long, java.util.concurrent.TimeUnit)
+     *
+     * @since 4.4
+     */
+    public void setValidateAfterInactivity(final int ms) {
+        pool.setValidateAfterInactivity(ms);
     }
 
     static class ConfigData {

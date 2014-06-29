@@ -42,7 +42,7 @@ public class ConnectionPoolTimeoutException extends ConnectTimeoutException {
     private static final long serialVersionUID = -7898874842020245128L;
 
     /**
-     * Creates a ConnectTimeoutException with a <tt>null</tt> detail message.
+     * Creates a ConnectTimeoutException with a {@code null} detail message.
      */
     public ConnectionPoolTimeoutException() {
         super();

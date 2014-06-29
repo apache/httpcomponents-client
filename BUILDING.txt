@@ -3,7 +3,7 @@ Building HttpComponents Client
 
 (1) Requisites
 --------------
-JDK 1.5+ is required in order to compile and run HttpClient.
+JDK 1.6+ is required in order to compile and run HttpClient.
 
 HttpClient utilizes Maven as a distribution management and packaging tool.
 Version 3.0.3 or later is required. 
@@ -31,6 +31,7 @@ httpclient/target/httpclient-<VERSION>.jar
 httpmime/target/httpmime-<VERSION>.jar
 httpclient-cache/target/httpclient-cache-<VERSION>.jar
 fluent-hc/target/fluent-hc-<VERSION>.jar
+httpclient-win/target/httpclient-win-<VERSION>.jar
 httpclient-osgi/target/org.apache.httpcomponents.httpclient_<VERSION>.jar
 
 where <VERSION> is the release version

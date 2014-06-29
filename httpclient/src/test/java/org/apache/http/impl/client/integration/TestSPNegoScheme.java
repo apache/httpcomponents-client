@@ -47,6 +47,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.SPNegoScheme;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
@@ -57,7 +58,6 @@ import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -65,12 +65,7 @@ import org.mockito.Mockito;
 /**
  * Tests for {@link SPNegoScheme}.
  */
-public class TestSPNegoScheme extends IntegrationTestBase {
-
-    @Before
-    public void setUp() throws Exception {
-        startServer();
-    }
+public class TestSPNegoScheme extends LocalServerTestBase {
 
     /**
      * This service will continue to ask for authentication.
@@ -156,10 +151,8 @@ public class TestSPNegoScheme extends IntegrationTestBase {
      */
     @Test
     public void testDontTryToAuthenticateEndlessly() throws Exception {
-        final int port = this.localServer.getServiceAddress().getPort();
-        this.localServer.register("*", new PleaseNegotiateService());
-
-        final HttpHost target = new HttpHost("localhost", port);
+        this.serverBootstrap.registerHandler("*", new PleaseNegotiateService());
+        final HttpHost target = start();
 
         final AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -188,10 +181,8 @@ public class TestSPNegoScheme extends IntegrationTestBase {
      */
     @Test
     public void testNoTokenGeneratedError() throws Exception {
-        final int port = this.localServer.getServiceAddress().getPort();
-        this.localServer.register("*", new PleaseNegotiateService());
-
-        final HttpHost target = new HttpHost("localhost", port);
+        this.serverBootstrap.registerHandler("*", new PleaseNegotiateService());
+        final HttpHost target = start();
 
         final AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
 

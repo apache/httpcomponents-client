@@ -1,28 +1,48 @@
-Changes for 4.4-alpha1
+Release 4.4 ALPHA1
 -------------------
+
+This is the first ALPHA release of HttpClient 4.4. Notable features and enhancements included
+in the 4.4 branch are:
+
+* More efficient stale connection checking: indiscriminate connection checking which results
+in approximately 20 to 50 ms overhead per request has been deprecated in favor of conditional
+connection state validation (persistent connections are to be re-validated only if a specified
+period inactivity has elapsed)
+
+* Native windows Negotiate/NTLM via JNA: when running on Windows OS HttpClient configured to use
+native NTLM or SPNEGO authentication schemes can make use of platform specific functionality
+via JNA and current user system credentials
+
+* Authentication cache thread-safety: authentication caches used by HttpClient is now thread-safe
+and can be shared by multiple threads in order to re-use authentication state for subsequent
+requests
+
+This release also includes all fixes from the stable 4.3.x release branch.
+
+Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+
+Please note that new features included in this release are still considered experimental and
+their API may change in the future 4.4 alpha and beta releases.
+
 
 Changelog:
 -------------------
 
-* Replaced dynamic proxies with custom proxy classes to reduce thread contention.
+* [HTTPCLIENT-1493] Indiscriminate connection checking has been deprecated in favor of conditional
+  connection state validation. Persistent connections are to be re-validated only after a defined
+  period inactivity prior to being leased to the consumer.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1519] Use the original HttpHost instance passed as a parameter to
+  HttpClient#execute when generating 'Host' request header.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-1491] Enable provision of Service Principal Name in Windows native
   auth scheme.
   Contributed by Malcolm Smith <malcolmfsmith at gmail.com>
 
-* [HTTPCLIENT-1484] GzipCompressingEntity should not close the underlying output stream
-  if the entity has not been fully written out due to an exception.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
-
-* [HTTPCLIENT-1474] Fixed broken entity enclosing requests in HC Fluent.
-  Contributed by Oleg Kalnichevski <olegk at apache.org>
-
 * [HTTPCLIENT-1403] Pluggable content decoders.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
-
-* [HTTPCLIENT-1470] CachingExec(ClientExecChain, HttpCache, CacheConfig, AsynchronousValidator) 
-  throws NPE if config is null.
 
 * [HTTPCLIENT-1466] FileBodyPart#generateContentType() ignores custom ContentType values.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
@@ -43,6 +63,35 @@ Changelog:
 
 * Update JUnit to version 4.11 from 4.9  
   Contributed by Gary Gregory <ggregory at apache.org>
+
+
+
+Release 4.3.4
+-------------------
+
+HttpClient 4.3.4 (GA) is a maintenance release that improves performance in high concurrency 
+scenarios. This version replaces dynamic proxies with custom proxy classes and eliminates thread 
+contention in java.reflect.Proxy.newInstance() when leasing connections from the connection pool 
+and processing response messages.
+
+
+Changelog:
+-------------------
+
+* Replaced dynamic proxies with custom proxy classes to reduce thread contention.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1484] GzipCompressingEntity should not close the underlying output stream
+  if the entity has not been fully written out due to an exception.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1474] Fixed broken entity enclosing requests in HC Fluent.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1470] CachingExec(ClientExecChain, HttpCache, CacheConfig, AsynchronousValidator) 
+  throws NPE if config is null
+
+
 
 
 Release 4.3.3

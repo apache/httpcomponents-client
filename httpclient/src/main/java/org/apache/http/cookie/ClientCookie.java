@@ -31,10 +31,10 @@ package org.apache.http.cookie;
  * ClientCookie extends the standard {@link Cookie} interface with
  * additional client specific functionality such ability to retrieve
  * original cookie attributes exactly as they were specified by the
- * origin server. This is important for generating the <tt>Cookie</tt>
+ * origin server. This is important for generating the {@code Cookie}
  * header because some cookie specifications require that the
- * <tt>Cookie</tt> header should include certain attributes only if
- * they were specified in the <tt>Set-Cookie</tt> header.
+ * {@code Cookie} header should include certain attributes only if
+ * they were specified in the {@code Set-Cookie} header.
  *
  *
  * @since 4.0

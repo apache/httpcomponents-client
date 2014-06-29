@@ -31,7 +31,14 @@ import java.net.InetAddress;
 import java.util.Collection;
 
 import org.apache.http.HttpHost;
+import org.apache.http.annotation.Immutable;
 
+/**
+ *  Immutable class encapsulating request configuration items.
+ *  The default setting for stale connection checking changed
+ *  to false, and the feature was deprecated starting with version 4.4.
+ */
+@Immutable
 public class RequestConfig implements Cloneable {
 
     public static final RequestConfig DEFAULT = new Builder().build();
@@ -140,8 +147,12 @@ public class RequestConfig implements Cloneable {
      * should be used only when appropriate. For performance critical
      * operations this check should be disabled.
      * <p/>
-     * Default: <code>true</code>
+     * Default: <code>false</code> since 4.4
+     *
+     * @deprecated (4.4) Use {@link
+     *   org.apache.http.impl.conn.PoolingHttpClientConnectionManager#getValidateAfterInactivity()}
      */
+    @Deprecated
     public boolean isStaleConnectionCheckEnabled() {
         return staleConnectionCheckEnabled;
     }
@@ -288,7 +299,6 @@ public class RequestConfig implements Cloneable {
         builder.append(", expectContinueEnabled=").append(expectContinueEnabled);
         builder.append(", proxy=").append(proxy);
         builder.append(", localAddress=").append(localAddress);
-        builder.append(", staleConnectionCheckEnabled=").append(staleConnectionCheckEnabled);
         builder.append(", cookieSpec=").append(cookieSpec);
         builder.append(", redirectsEnabled=").append(redirectsEnabled);
         builder.append(", relativeRedirectsAllowed=").append(relativeRedirectsAllowed);
@@ -309,6 +319,7 @@ public class RequestConfig implements Cloneable {
         return new Builder();
     }
 
+    @SuppressWarnings("deprecation")
     public static RequestConfig.Builder copy(final RequestConfig config) {
         return new Builder()
             .setExpectContinueEnabled(config.isExpectContinueEnabled())
@@ -350,7 +361,7 @@ public class RequestConfig implements Cloneable {
 
         Builder() {
             super();
-            this.staleConnectionCheckEnabled = true;
+            this.staleConnectionCheckEnabled = false;
             this.redirectsEnabled = true;
             this.maxRedirects = 50;
             this.relativeRedirectsAllowed = true;
@@ -376,6 +387,11 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * @deprecated (4.4) Use {@link
+         *   org.apache.http.impl.conn.PoolingHttpClientConnectionManager#setValidateAfterInactivity(int)}
+         */
+        @Deprecated
         public Builder setStaleConnectionCheckEnabled(final boolean staleConnectionCheckEnabled) {
             this.staleConnectionCheckEnabled = staleConnectionCheckEnabled;
             return this;

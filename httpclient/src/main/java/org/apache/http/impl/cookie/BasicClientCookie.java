@@ -94,7 +94,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
     /**
      * Returns the comment describing the purpose of this cookie, or
-     * <tt>null</tt> if no such comment has been defined.
+     * {@code null} if no such comment has been defined.
      *
      * @return comment
      *
@@ -129,12 +129,12 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
 
     /**
-     * Returns the expiration {@link Date} of the cookie, or <tt>null</tt>
+     * Returns the expiration {@link Date} of the cookie, or {@code null}
      * if none exists.
      * <p><strong>Note:</strong> the object returned by this method is
      * considered immutable. Changing it (e.g. using setTime()) could result
      * in undefined behaviour. Do so at your peril. </p>
-     * @return Expiration {@link Date}, or <tt>null</tt>.
+     * @return Expiration {@link Date}, or {@code null}.
      *
      * @see #setExpiryDate(java.util.Date)
      *
@@ -162,11 +162,11 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
 
     /**
-     * Returns <tt>false</tt> if the cookie should be discarded at the end
-     * of the "session"; <tt>true</tt> otherwise.
+     * Returns {@code false} if the cookie should be discarded at the end
+     * of the "session"; {@code true} otherwise.
      *
-     * @return <tt>false</tt> if the cookie should be discarded at the end
-     *         of the "session"; <tt>true</tt> otherwise
+     * @return {@code false} if the cookie should be discarded at the end
+     *         of the "session"; {@code true} otherwise
      */
     @Override
     public boolean isPersistent() {
@@ -240,7 +240,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
     /**
      * Sets the secure attribute of the cookie.
      * <p>
-     * When <tt>true</tt> the cookie should only be sent
+     * When {@code true} the cookie should only be sent
      * using a secure protocol (https).  This should only be set when
      * the cookie's originating server used a secure protocol to set the
      * cookie's value.
@@ -295,7 +295,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
      * Returns true if this cookie has expired.
      * @param date Current time
      *
-     * @return <tt>true</tt> if the cookie has expired.
+     * @return {@code true} if the cookie has expired.
      */
     @Override
     public boolean isExpired(final Date date) {

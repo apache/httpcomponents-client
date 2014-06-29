@@ -50,7 +50,7 @@ public class ConnectTimeoutException extends InterruptedIOException {
     private final HttpHost host;
 
     /**
-     * Creates a ConnectTimeoutException with a <tt>null</tt> detail message.
+     * Creates a ConnectTimeoutException with a {@code null} detail message.
      */
     public ConnectTimeoutException() {
         super();

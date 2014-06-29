@@ -33,7 +33,7 @@ import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.Args;
 
 /**
- * <tt>"Version"</tt> cookie attribute handler for BrowserCompat cookie spec.
+ * {@code "Version"} cookie attribute handler for BrowserCompat cookie spec.
  *
  * @since 4.3
  */

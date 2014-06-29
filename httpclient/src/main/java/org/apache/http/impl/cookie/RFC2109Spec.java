@@ -177,7 +177,7 @@ public class RFC2109Spec extends CookieSpecBase {
     }
 
     /**
-     * Return a name/value string suitable for sending in a <tt>"Cookie"</tt>
+     * Return a name/value string suitable for sending in a {@code "Cookie"}
      * header as defined in RFC 2109 for backward compatibility with cookie
      * version 0
      * @param buffer The char array buffer to use for output
@@ -201,7 +201,7 @@ public class RFC2109Spec extends CookieSpecBase {
     }
 
     /**
-     * Return a string suitable for sending in a <tt>"Cookie"</tt> header
+     * Return a string suitable for sending in a {@code "Cookie"} header
      * as defined in RFC 2109 for backward compatibility with cookie version 0
      * @param buffer The char array buffer to use for output
      * @param cookie The {@link Cookie} to be formatted as string

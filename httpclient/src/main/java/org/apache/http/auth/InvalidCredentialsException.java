@@ -41,7 +41,7 @@ public class InvalidCredentialsException extends AuthenticationException {
     private static final long serialVersionUID = -4834003835215460648L;
 
     /**
-     * Creates a new InvalidCredentialsException with a <tt>null</tt> detail message.
+     * Creates a new InvalidCredentialsException with a {@code null} detail message.
      */
     public InvalidCredentialsException() {
         super();
@@ -60,8 +60,8 @@ public class InvalidCredentialsException extends AuthenticationException {
      * Creates a new InvalidCredentialsException with the specified detail message and cause.
      *
      * @param message the exception detail message
-     * @param cause the <tt>Throwable</tt> that caused this exception, or <tt>null</tt>
-     * if the cause is unavailable, unknown, or not a <tt>Throwable</tt>
+     * @param cause the {@code Throwable</tt> that caused this exception, or <tt>null}
+     * if the cause is unavailable, unknown, or not a {@code Throwable}
      */
     public InvalidCredentialsException(final String message, final Throwable cause) {
         super(message, cause);

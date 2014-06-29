@@ -27,7 +27,6 @@
 
 package org.apache.http.impl.client.integration;
 
-import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpHost;
@@ -37,38 +36,22 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.localserver.LocalServerTestBase;
-import org.apache.http.localserver.LocalTestServer;
 import org.apache.http.util.EntityUtils;
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class TestIdleConnectionEviction extends LocalServerTestBase {
 
-    @Before
-    public void setUp() throws Exception {
-        this.localServer = new LocalTestServer(null, null);
-        this.localServer.registerDefaultHandlers();
-        this.localServer.start();
-    }
-
     @Test
-    @Ignore("We have a concurrency bug in HttpCore which will be addressed after HttpClient 4.3.2 is released")
     public void testIdleConnectionEviction() throws Exception {
-        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        cm.setDefaultMaxPerRoute(10);
-        cm.setMaxTotal(50);
+        this.connManager.setDefaultMaxPerRoute(10);
+        this.connManager.setMaxTotal(50);
 
-        final HttpClient httpclient = HttpClients.custom().setConnectionManager(cm).build();
+        final HttpHost target = start();
 
-        final IdleConnectionMonitor idleConnectionMonitor = new IdleConnectionMonitor(cm);
+        final IdleConnectionMonitor idleConnectionMonitor = new IdleConnectionMonitor(this.connManager);
         idleConnectionMonitor.start();
 
-        final InetSocketAddress address = this.localServer.getServiceAddress();
-        final HttpHost target = new HttpHost(address.getHostName(), address.getPort());
         final HttpGet httpget = new HttpGet("/random/1024");
         final WorkerThread[] workers = new WorkerThread[5];
         for (int i = 0; i < workers.length; i++) {

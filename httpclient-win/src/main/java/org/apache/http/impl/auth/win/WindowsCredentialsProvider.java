@@ -29,8 +29,9 @@ package org.apache.http.impl.auth.win;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
-import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.util.Args;
 
 /**
  * {@link org.apache.http.client.CredentialsProvider} implementation that always returns
@@ -42,18 +43,33 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
  * @since 4.4
  */
 @ThreadSafe
-public class WindowsCredentialsProvider extends BasicCredentialsProvider {
+public class WindowsCredentialsProvider implements CredentialsProvider {
+
+    private final CredentialsProvider provider;
+
+    public WindowsCredentialsProvider(final CredentialsProvider provider) {
+        this.provider = Args.notNull(provider, "Credentials provider");
+    }
 
     @Override
     public Credentials getCredentials(final AuthScope authscope) {
         final String scheme = authscope.getScheme();
         if (AuthSchemes.NTLM.equalsIgnoreCase(scheme) || AuthSchemes.SPNEGO.equalsIgnoreCase(scheme)) {
-            return CurrentWindowsCredentials.get();
+            return CurrentWindowsCredentials.INSTANCE;
         } else {
-            return super.getCredentials(authscope);
+            return provider.getCredentials(authscope);
         }
     }
 
+    @Override
+    public void setCredentials(final AuthScope authscope, final Credentials credentials) {
+        provider.setCredentials(authscope, credentials);
+    }
+
+    @Override
+    public void clear() {
+        provider.clear();
+    }
 }
 
 

@@ -32,6 +32,7 @@ import java.net.URI;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
@@ -40,6 +41,7 @@ import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.Args;
 
 /**
  * A wrapper class for {@link HttpRequest} that can be used to change properties of the current
@@ -52,13 +54,15 @@ import org.apache.http.protocol.HTTP;
 public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
 
     private final HttpRequest original;
+    private final HttpHost target;
     private final String method;
     private ProtocolVersion version;
     private URI uri;
 
-    private HttpRequestWrapper(final HttpRequest request) {
+    private HttpRequestWrapper(final HttpRequest request, final HttpHost target) {
         super();
-        this.original = request;
+        this.original = Args.notNull(request, "HTTP request");
+        this.target = target;
         this.version = this.original.getRequestLine().getProtocolVersion();
         this.method = this.original.getRequestLine().getMethod();
         if (request instanceof HttpUriRequest) {
@@ -120,6 +124,13 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
         return this.original;
     }
 
+    /**
+     * @since 4.4
+     */
+    public HttpHost getTarget() {
+        return target;
+    }
+
     @Override
     public String toString() {
         return getRequestLine() + " " + this.headergroup;
@@ -130,8 +141,8 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
 
         private HttpEntity entity;
 
-        public HttpEntityEnclosingRequestWrapper(final HttpEntityEnclosingRequest request) {
-            super(request);
+        HttpEntityEnclosingRequestWrapper(final HttpEntityEnclosingRequest request, final HttpHost target) {
+            super(request, target);
             this.entity = request.getEntity();
         }
 
@@ -153,14 +164,31 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
 
     }
 
+    /**
+     * Creates a mutable wrapper of the original request.
+     *
+     * @param request original request
+     * @return mutable request wrappering the original one
+     */
     public static HttpRequestWrapper wrap(final HttpRequest request) {
-        if (request == null) {
-            return null;
-        }
+        return wrap(request, null);
+    }
+
+
+    /**
+     * Creates a mutable wrapper of the original request.
+     *
+     * @param request original request
+     * @param target original target, if explicitly specified
+     * @return mutable request wrappering the original one
+     * @since 4.4
+     */
+    public static HttpRequestWrapper wrap(final HttpRequest request, final HttpHost target) {
+        Args.notNull(request, "HTTP request");
         if (request instanceof HttpEntityEnclosingRequest) {
-            return new HttpEntityEnclosingRequestWrapper((HttpEntityEnclosingRequest) request);
+            return new HttpEntityEnclosingRequestWrapper((HttpEntityEnclosingRequest) request, target);
         } else {
-            return new HttpRequestWrapper(request);
+            return new HttpRequestWrapper(request, target);
         }
     }
 

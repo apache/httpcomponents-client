@@ -51,28 +51,22 @@ import org.apache.http.client.utils.URIUtils;
 import org.apache.http.cookie.SM;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.protocol.HttpRequestHandler;
+import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Redirection test cases.
  */
-public class TestRedirects extends IntegrationTestBase {
-
-    @Before
-    public void setUp() throws Exception {
-        startServer();
-        this.httpclient = HttpClients.createDefault();
-    }
+public class TestRedirects extends LocalServerTestBase {
 
     private static class BasicRedirectService implements HttpRequestHandler {
 
@@ -93,7 +87,10 @@ public class TestRedirects extends IntegrationTestBase {
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             final HttpInetConnection conn = (HttpInetConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
-            final String localhost = conn.getLocalAddress().getHostName();
+            String localhost = conn.getLocalAddress().getHostName();
+            if (localhost.equals("127.0.0.1")) {
+                localhost = "localhost";
+            }
             final int port = conn.getLocalPort();
             final String uri = request.getRequestLine().getUri();
             if (uri.equals("/oldlocation/")) {
@@ -238,9 +235,10 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testBasicRedirect300() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*",
+        this.serverBootstrap.registerHandler("*",
                 new BasicRedirectService(HttpStatus.SC_MULTIPLE_CHOICES));
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -260,9 +258,10 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testBasicRedirect301() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*",
+        this.serverBootstrap.registerHandler("*",
                 new BasicRedirectService(HttpStatus.SC_MOVED_PERMANENTLY));
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -288,9 +287,10 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testBasicRedirect302() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*",
+        this.serverBootstrap.registerHandler("*",
                 new BasicRedirectService(HttpStatus.SC_MOVED_TEMPORARILY));
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -309,8 +309,7 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testBasicRedirect302NoLocation() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*", new HttpRequestHandler() {
+        this.serverBootstrap.registerHandler("*", new HttpRequestHandler() {
 
             @Override
             public void handle(
@@ -321,6 +320,8 @@ public class TestRedirects extends IntegrationTestBase {
             }
 
         });
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -339,9 +340,10 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testBasicRedirect303() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*",
+        this.serverBootstrap.registerHandler("*",
                 new BasicRedirectService(HttpStatus.SC_SEE_OTHER));
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -360,9 +362,10 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testBasicRedirect304() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*",
+        this.serverBootstrap.registerHandler("*",
                 new BasicRedirectService(HttpStatus.SC_NOT_MODIFIED));
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -379,9 +382,10 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testBasicRedirect305() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*",
+        this.serverBootstrap.registerHandler("*",
                 new BasicRedirectService(HttpStatus.SC_USE_PROXY));
+        final HttpHost target = start();
+
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
@@ -397,9 +401,10 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testBasicRedirect307() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*",
+        this.serverBootstrap.registerHandler("*",
                 new BasicRedirectService(HttpStatus.SC_TEMPORARY_REDIRECT));
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -418,8 +423,9 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test(expected=ClientProtocolException.class)
     public void testMaxRedirectCheck() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*", new CircularRedirectService());
+        this.serverBootstrap.registerHandler("*", new CircularRedirectService());
+
+        final HttpHost target = start();
 
         final RequestConfig config = RequestConfig.custom()
             .setCircularRedirectsAllowed(true)
@@ -438,8 +444,9 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test(expected=ClientProtocolException.class)
     public void testCircularRedirect() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*", new CircularRedirectService());
+        this.serverBootstrap.registerHandler("*", new CircularRedirectService());
+
+        final HttpHost target = start();
 
         final RequestConfig config = RequestConfig.custom()
             .setCircularRedirectsAllowed(false)
@@ -457,8 +464,9 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testRepeatRequest() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*", new RomeRedirectService());
+        this.serverBootstrap.registerHandler("*", new RomeRedirectService());
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -484,8 +492,9 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testRepeatRequestRedirect() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*", new RomeRedirectService());
+        this.serverBootstrap.registerHandler("*", new RomeRedirectService());
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -512,8 +521,9 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testDifferentRequestSameRedirect() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*", new RomeRedirectService());
+        this.serverBootstrap.registerHandler("*", new RomeRedirectService());
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -540,8 +550,9 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testPostNoRedirect() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*", new BasicRedirectService());
+        this.serverBootstrap.registerHandler("*", new BasicRedirectService());
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -560,8 +571,9 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testPostRedirectSeeOther() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*", new BasicRedirectService(HttpStatus.SC_SEE_OTHER));
+        this.serverBootstrap.registerHandler("*", new BasicRedirectService(HttpStatus.SC_SEE_OTHER));
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -580,8 +592,9 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testRelativeRedirect() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*", new RelativeRedirectService());
+        this.serverBootstrap.registerHandler("*", new RelativeRedirectService());
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -602,8 +615,9 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testRelativeRedirect2() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*", new RelativeRedirectService2());
+        this.serverBootstrap.registerHandler("*", new RelativeRedirectService2());
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 
@@ -624,8 +638,9 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test(expected=ClientProtocolException.class)
     public void testRejectRelativeRedirect() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*", new RelativeRedirectService());
+        this.serverBootstrap.registerHandler("*", new RelativeRedirectService());
+
+        final HttpHost target = start();
 
         final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(false).build();
         final HttpGet httpget = new HttpGet("/oldlocation/");
@@ -640,8 +655,9 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test(expected=ClientProtocolException.class)
     public void testRejectBogusRedirectLocation() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*", new BogusRedirectService("xxx://bogus"));
+        this.serverBootstrap.registerHandler("*", new BogusRedirectService("xxx://bogus"));
+
+        final HttpHost target = start();
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
@@ -656,8 +672,12 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test(expected=ClientProtocolException.class)
     public void testRejectInvalidRedirectLocation() throws Exception {
-        final HttpHost target = getServerHttp();
-        this.localServer.register("*",
+        final UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
+        this.serverBootstrap.setHandlerMapper(reqistry);
+
+        final HttpHost target = start();
+
+        reqistry.register("*",
                 new BogusRedirectService("http://" + target.toHostString() +
                         "/newlocation/?p=I have spaces"));
 
@@ -673,9 +693,9 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testRedirectWithCookie() throws Exception {
-        final HttpHost target = getServerHttp();
+        this.serverBootstrap.registerHandler("*", new BasicRedirectService());
 
-        this.localServer.register("*", new BasicRedirectService());
+        final HttpHost target = start();
 
         final CookieStore cookieStore = new BasicCookieStore();
 
@@ -688,7 +708,6 @@ public class TestRedirects extends IntegrationTestBase {
         final HttpClientContext context = HttpClientContext.create();
         context.setCookieStore(cookieStore);
         final HttpGet httpget = new HttpGet("/oldlocation/");
-
 
         final HttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
@@ -704,12 +723,11 @@ public class TestRedirects extends IntegrationTestBase {
 
     @Test
     public void testDefaultHeadersRedirect() throws Exception {
-        this.httpclient = HttpClients.custom()
-            .setDefaultHeaders(Arrays.asList(new BasicHeader(HTTP.USER_AGENT, "my-test-client")))
-            .build();
-        final HttpHost target = getServerHttp();
+        this.clientBuilder.setDefaultHeaders(Arrays.asList(new BasicHeader(HTTP.USER_AGENT, "my-test-client")));
 
-        this.localServer.register("*", new BasicRedirectService());
+        this.serverBootstrap.registerHandler("*", new BasicRedirectService());
+
+        final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
 

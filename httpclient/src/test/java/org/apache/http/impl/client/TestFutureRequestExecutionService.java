@@ -27,7 +27,6 @@
 package org.apache.http.impl.client;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CancellationException;
@@ -40,8 +39,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import junit.framework.Assert;
-
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -51,17 +48,19 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.localserver.LocalTestServer;
+import org.apache.http.impl.bootstrap.HttpServer;
+import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 @SuppressWarnings("boxing") // test code
 public class TestFutureRequestExecutionService {
 
-    private LocalTestServer localServer;
+    private HttpServer localServer;
     private String uri;
     private FutureRequestExecutionService httpAsyncClientWithFuture;
 
@@ -69,8 +68,8 @@ public class TestFutureRequestExecutionService {
 
     @Before
     public void before() throws Exception {
-            this.localServer = new LocalTestServer(null, null);
-            this.localServer.register("/wait", new HttpRequestHandler() {
+            this.localServer = ServerBootstrap.bootstrap()
+                    .registerHandler("/wait", new HttpRequestHandler() {
 
                 @Override
                 public void handle(
@@ -85,10 +84,10 @@ public class TestFutureRequestExecutionService {
                     }
                     response.setStatusCode(200);
                 }
-            });
+            }).create();
+
             this.localServer.start();
-            final InetSocketAddress address = localServer.getServiceAddress();
-            uri = "http://" + address.getHostName() + ":" + address.getPort() + "/wait";
+            uri = "http://localhost:" + this.localServer.getLocalPort() + "/wait";
             final HttpClient httpClient = HttpClientBuilder.create()
                     .setMaxConnPerRoute(5)
                     .build();

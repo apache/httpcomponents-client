@@ -109,9 +109,9 @@ public class SPNegoScheme extends GGSSchemeBase {
     }
 
     /**
-     * Returns <tt>true</tt>. SPNEGO authentication scheme is connection based.
+     * Returns {@code true}. SPNEGO authentication scheme is connection based.
      *
-     * @return <tt>true</tt>.
+     * @return {@code true}.
      */
     @Override
     public boolean isConnectionBased() {

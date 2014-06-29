@@ -34,7 +34,7 @@ import org.apache.http.util.Args;
 import org.apache.http.util.LangUtils;
 
 /**
- * <tt>AuthScope</tt> represents an authentication scope consisting of a host name,
+ * {@code AuthScope} represents an authentication scope consisting of a host name,
  * a port number, a realm name and an authentication scheme name.
  * <p/>
  * This class can also optionally contain a host of origin, if created in response
@@ -46,23 +46,23 @@ import org.apache.http.util.LangUtils;
 public class AuthScope {
 
     /**
-     * The <tt>null</tt> value represents any host. In the future versions of
+     * The {@code null} value represents any host. In the future versions of
      * HttpClient the use of this parameter will be discontinued.
      */
     public static final String ANY_HOST = null;
 
     /**
-     * The <tt>-1</tt> value represents any port.
+     * The {@code -1} value represents any port.
      */
     public static final int ANY_PORT = -1;
 
     /**
-     * The <tt>null</tt> value represents any realm.
+     * The {@code null} value represents any realm.
      */
     public static final String ANY_REALM = null;
 
     /**
-     * The <tt>null</tt> value represents any authentication scheme.
+     * The {@code null} value represents any authentication scheme.
      */
     public static final String ANY_SCHEME = null;
 
@@ -89,8 +89,8 @@ public class AuthScope {
     private final HttpHost origin;
 
     /**
-     * Defines auth scope with the given <tt>host</tt>, <tt>port</tt>, <tt>realm</tt>, and
-     * <tt>authentication scheme</tt>.
+     * Defines auth scope with the given {@code host</tt>, <tt>port</tt>, <tt>realm}, and
+     * {@code authentication scheme}.
      *
      * @param host authentication host. May be {@link #ANY_HOST} if applies
      *   to any host.
@@ -148,7 +148,7 @@ public class AuthScope {
     }
 
     /**
-     * Defines auth scope with the given <tt>host</tt>, <tt>port</tt> and <tt>realm</tt>.
+     * Defines auth scope with the given {@code host</tt>, <tt>port</tt> and <tt>realm}.
      *
      * @param host authentication host. May be {@link #ANY_HOST} if applies
      *   to any host.
@@ -162,7 +162,7 @@ public class AuthScope {
     }
 
     /**
-     * Defines auth scope with the given <tt>host</tt> and <tt>port</tt>.
+     * Defines auth scope with the given {@code host</tt> and <tt>port}.
      *
      * @param host authentication host. May be {@link #ANY_HOST} if applies
      *   to any host.

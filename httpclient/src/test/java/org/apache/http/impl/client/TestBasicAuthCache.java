@@ -30,6 +30,8 @@ package org.apache.http.impl.client;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.conn.SchemePortResolver;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.auth.NTLMScheme;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -41,15 +43,29 @@ import org.mockito.Mockito;
 public class TestBasicAuthCache {
 
     @Test
-    public void testBasics() throws Exception {
+    public void testBasicStoreRestore() throws Exception {
         final BasicAuthCache cache = new BasicAuthCache();
-        final AuthScheme authScheme = Mockito.mock(AuthScheme.class);
+        final AuthScheme authScheme = new BasicScheme();
         cache.put(new HttpHost("localhost", 80), authScheme);
-        Assert.assertSame(authScheme, cache.get(new HttpHost("localhost", 80)));
+        Assert.assertNotNull(cache.get(new HttpHost("localhost", 80)));
         cache.remove(new HttpHost("localhost", 80));
         Assert.assertNull(cache.get(new HttpHost("localhost", 80)));
         cache.put(new HttpHost("localhost", 80), authScheme);
         cache.clear();
+        Assert.assertNull(cache.get(new HttpHost("localhost", 80)));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNullKey() throws Exception {
+        final BasicAuthCache cache = new BasicAuthCache();
+        final AuthScheme authScheme = new BasicScheme();
+        cache.put(null, authScheme);
+    }
+
+    @Test
+    public void testNullAuthScheme() throws Exception {
+        final BasicAuthCache cache = new BasicAuthCache();
+        cache.put(new HttpHost("localhost", 80), null);
         Assert.assertNull(cache.get(new HttpHost("localhost", 80)));
     }
 
@@ -69,6 +85,14 @@ public class TestBasicAuthCache {
         final HttpHost target = new HttpHost("localhost", 443, "https");
         Assert.assertSame(target, cache.getKey(target));
         Assert.assertEquals(target, cache.getKey(new HttpHost("localhost", -1, "https")));
+    }
+
+    @Test
+    public void testStoreNonserializable() throws Exception {
+        final BasicAuthCache cache = new BasicAuthCache();
+        final AuthScheme authScheme = new NTLMScheme();
+        cache.put(new HttpHost("localhost", 80), authScheme);
+        Assert.assertNull(cache.get(new HttpHost("localhost", 80)));
     }
 
 }

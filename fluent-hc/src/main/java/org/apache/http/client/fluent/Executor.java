@@ -29,6 +29,7 @@ package org.apache.http.client.fluent;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
@@ -129,6 +130,13 @@ public class Executor {
         return auth(authScope, creds);
     }
 
+    /**
+     * @since 4.4
+     */
+    public Executor auth(final String host, final Credentials creds) {
+        return auth(HttpHost.create(host), creds);
+    }
+
     public Executor authPreemptive(final HttpHost host) {
         final BasicScheme basicScheme = new BasicScheme();
         try {
@@ -139,14 +147,28 @@ public class Executor {
         return this;
     }
 
-    public Executor authPreemptiveProxy(final HttpHost host) {
+    /**
+     * @since 4.4
+     */
+    public Executor authPreemptive(final String host) {
+        return authPreemptive(HttpHost.create(host));
+    }
+
+    public Executor authPreemptiveProxy(final HttpHost proxy) {
         final BasicScheme basicScheme = new BasicScheme();
         try {
             basicScheme.processChallenge(new BasicHeader(AUTH.PROXY_AUTH, "BASIC "));
         } catch (final MalformedChallengeException ignore) {
         }
-        this.authCache.put(host, basicScheme);
+        this.authCache.put(proxy, basicScheme);
         return this;
+    }
+
+    /**
+     * @since 4.4
+     */
+    public Executor authPreemptiveProxy(final String proxy) {
+        return authPreemptiveProxy(HttpHost.create(proxy));
     }
 
     public Executor auth(final Credentials cred) {
@@ -218,6 +240,14 @@ public class Executor {
      */
     @Deprecated
     public static void unregisterScheme(final String name) {
+    }
+
+    /**
+     * Closes all idle persistent connections used by the internal pool.
+     * @since 4.4
+     */
+    public static void closeIdleConnections() {
+        CONNMGR.closeIdleConnections(0, TimeUnit.MICROSECONDS);
     }
 
 }

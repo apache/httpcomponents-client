@@ -159,7 +159,7 @@ class InternalHttpClient extends CloseableHttpClient {
             execAware = (HttpExecutionAware) request;
         }
         try {
-            final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
+            final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request, target);
             final HttpClientContext localcontext = HttpClientContext.adapt(
                     context != null ? context : new BasicHttpContext());
             RequestConfig config = null;

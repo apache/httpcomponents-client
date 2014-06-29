@@ -43,6 +43,7 @@ import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -51,13 +52,11 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -65,12 +64,7 @@ import org.junit.Test;
  * require no intervention from the user of HttpClient, but we still want to let clients do their
  * own thing if they so wish.
  */
-public class TestContentCodings extends IntegrationTestBase {
-
-    @Before
-    public void setUp() throws Exception {
-        startServer();
-    }
+public class TestContentCodings extends LocalServerTestBase {
 
     /**
      * Test for when we don't get an entity back; e.g. for a 204 or 304 response; nothing blows
@@ -81,7 +75,7 @@ public class TestContentCodings extends IntegrationTestBase {
      */
     @Test
     public void testResponseWithNoContent() throws Exception {
-        this.localServer.register("*", new HttpRequestHandler() {
+        this.serverBootstrap.registerHandler("*", new HttpRequestHandler() {
 
             /**
              * {@inheritDoc}
@@ -95,9 +89,10 @@ public class TestContentCodings extends IntegrationTestBase {
             }
         });
 
-        this.httpclient = HttpClients.custom().build();
+        final HttpHost target = start();
+
         final HttpGet request = new HttpGet("/some-resource");
-        final HttpResponse response = this.httpclient.execute(getServerHttp(), request);
+        final HttpResponse response = this.httpclient.execute(target, request);
         Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response.getStatusLine().getStatusCode());
         Assert.assertNull(response.getEntity());
     }
@@ -112,12 +107,12 @@ public class TestContentCodings extends IntegrationTestBase {
     public void testDeflateSupportForServerReturningRfc1950Stream() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, false));
+        this.serverBootstrap.registerHandler("*", createDeflateEncodingRequestHandler(entityText, false));
 
-        this.httpclient = HttpClients.custom().build();
+        final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final HttpResponse response = this.httpclient.execute(getServerHttp(), request);
+        final HttpResponse response = this.httpclient.execute(target, request);
         Assert.assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
     }
@@ -132,12 +127,12 @@ public class TestContentCodings extends IntegrationTestBase {
     public void testDeflateSupportForServerReturningRfc1951Stream() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, true));
+        this.serverBootstrap.registerHandler("*", createDeflateEncodingRequestHandler(entityText, true));
 
-        this.httpclient = HttpClients.custom().build();
+        final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final HttpResponse response = this.httpclient.execute(getServerHttp(), request);
+        final HttpResponse response = this.httpclient.execute(target, request);
         Assert.assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
     }
@@ -151,12 +146,12 @@ public class TestContentCodings extends IntegrationTestBase {
     public void testGzipSupport() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
+        this.serverBootstrap.registerHandler("*", createGzipEncodingRequestHandler(entityText));
 
-        this.httpclient = HttpClients.custom().build();
+        final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final HttpResponse response = this.httpclient.execute(getServerHttp(), request);
+        final HttpResponse response = this.httpclient.execute(target, request);
         Assert.assertEquals("The entity text is correctly transported", entityText,
                 EntityUtils.toString(response.getEntity()));
     }
@@ -171,7 +166,7 @@ public class TestContentCodings extends IntegrationTestBase {
     public void testThreadSafetyOfContentCodings() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
+        this.serverBootstrap.registerHandler("*", createGzipEncodingRequestHandler(entityText));
 
         /*
          * Create a load of workers which will access the resource. Half will use the default
@@ -179,10 +174,9 @@ public class TestContentCodings extends IntegrationTestBase {
          */
         final int clients = 100;
 
-        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        cm.setMaxTotal(clients);
+        this.connManager.setMaxTotal(clients);
 
-        this.httpclient = HttpClients.custom().setConnectionManager(cm).build();
+        final HttpHost target = start();
 
         final ExecutorService executor = Executors.newFixedThreadPool(clients);
 
@@ -192,7 +186,7 @@ public class TestContentCodings extends IntegrationTestBase {
         final List<WorkerTask> workers = new ArrayList<WorkerTask>();
 
         for (int i = 0; i < clients; ++i) {
-            workers.add(new WorkerTask(this.httpclient, i % 2 == 0, startGate, endGate));
+            workers.add(new WorkerTask(this.httpclient, target, i % 2 == 0, startGate, endGate));
         }
 
         for (final WorkerTask workerTask : workers) {
@@ -218,12 +212,12 @@ public class TestContentCodings extends IntegrationTestBase {
     public void testHttpEntityWriteToForGzip() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
+        this.serverBootstrap.registerHandler("*", createGzipEncodingRequestHandler(entityText));
 
-        this.httpclient = HttpClients.custom().build();
+        final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final HttpResponse response = this.httpclient.execute(getServerHttp(), request);
+        final HttpResponse response = this.httpclient.execute(target, request);
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         response.getEntity().writeTo(out);
@@ -235,12 +229,12 @@ public class TestContentCodings extends IntegrationTestBase {
     public void testHttpEntityWriteToForDeflate() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, true));
+        this.serverBootstrap.registerHandler("*", createDeflateEncodingRequestHandler(entityText, true));
 
-        this.httpclient = HttpClients.custom().build();
+        final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final HttpResponse response = this.httpclient.execute(getServerHttp(), request);
+        final HttpResponse response = this.httpclient.execute(target, request);
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         response.getEntity().writeTo(out);
@@ -252,12 +246,12 @@ public class TestContentCodings extends IntegrationTestBase {
     public void gzipResponsesWorkWithBasicResponseHandler() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        this.localServer.register("*", createGzipEncodingRequestHandler(entityText));
+        this.serverBootstrap.registerHandler("*", createGzipEncodingRequestHandler(entityText));
 
-        this.httpclient = HttpClients.custom().build();
+        final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final String response = this.httpclient.execute(getServerHttp(), request, new BasicResponseHandler());
+        final String response = this.httpclient.execute(target, request, new BasicResponseHandler());
         Assert.assertEquals("The entity text is correctly transported", entityText, response);
     }
 
@@ -265,12 +259,12 @@ public class TestContentCodings extends IntegrationTestBase {
     public void deflateResponsesWorkWithBasicResponseHandler() throws Exception {
         final String entityText = "Hello, this is some plain text coming back.";
 
-        this.localServer.register("*", createDeflateEncodingRequestHandler(entityText, false));
+        this.serverBootstrap.registerHandler("*", createDeflateEncodingRequestHandler(entityText, false));
 
-        this.httpclient = HttpClients.custom().build();
+        final HttpHost target = start();
 
         final HttpGet request = new HttpGet("/some-resource");
-        final String response = this.httpclient.execute(getServerHttp(), request, new BasicResponseHandler());
+        final String response = this.httpclient.execute(target, request, new BasicResponseHandler());
         Assert.assertEquals("The entity text is correctly transported", entityText, response);
     }
 
@@ -400,38 +394,18 @@ public class TestContentCodings extends IntegrationTestBase {
      */
     class WorkerTask implements Runnable {
 
-        /**
-         * The {@link HttpClient} used to make requests.
-         */
         private final HttpClient client;
-
-        /**
-         * The {@link HttpRequest} to be executed.
-         */
+        private final HttpHost target;
         private final HttpGet request;
-
-        /**
-         * Flag indicating if there were failures.
-         */
-        private boolean failed = false;
-
-        /**
-         * The latch that this runnable instance should wait on.
-         */
         private final CountDownLatch startGate;
-
-        /**
-         * The latch that this runnable instance should countdown on when the runnable is finished.
-         */
         private final CountDownLatch endGate;
 
-        /**
-         * The text returned from the HTTP server.
-         */
+        private boolean failed = false;
         private String text;
 
-        WorkerTask(final HttpClient client, final boolean identity, final CountDownLatch startGate, final CountDownLatch endGate) {
+        WorkerTask(final HttpClient client, final HttpHost target, final boolean identity, final CountDownLatch startGate, final CountDownLatch endGate) {
             this.client = client;
+            this.target = target;
             this.request = new HttpGet("/some-resource");
             if (identity) {
                 request.addHeader("Accept-Encoding", "identity");
@@ -457,7 +431,7 @@ public class TestContentCodings extends IntegrationTestBase {
             try {
                 startGate.await();
                 try {
-                    final HttpResponse response = client.execute(TestContentCodings.this.getServerHttp(), request);
+                    final HttpResponse response = client.execute(target, request);
                     text = EntityUtils.toString(response.getEntity());
                 } catch (final Exception e) {
                     failed = true;

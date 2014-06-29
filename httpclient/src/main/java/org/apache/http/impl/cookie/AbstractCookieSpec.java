@@ -69,11 +69,11 @@ public abstract class AbstractCookieSpec implements CookieSpec {
 
     /**
      * Finds an attribute handler {@link CookieAttributeHandler} for the
-     * given attribute. Returns <tt>null</tt> if no attribute handler is
+     * given attribute. Returns {@code null} if no attribute handler is
      * found for the specified attribute.
      *
      * @param name attribute name. e.g. Domain, Path, etc.
-     * @return an attribute handler or <tt>null</tt>
+     * @return an attribute handler or {@code null}
      */
     protected CookieAttributeHandler findAttribHandler(final String name) {
         return this.attribHandlerMap.get(name);

@@ -170,7 +170,7 @@ public class NegotiateScheme extends GGSSchemeBase {
      * Returns the authentication parameter with the given name, if available.
      *
      * <p>There are no valid parameters for Negotiate authentication so this
-     * method always returns <tt>null</tt>.</p>
+     * method always returns {@code null}.</p>
      *
      * @param name The name of the parameter to be returned
      *
@@ -192,10 +192,10 @@ public class NegotiateScheme extends GGSSchemeBase {
     }
 
     /**
-     * Returns <tt>true</tt>.
+     * Returns {@code true}.
      * Negotiate authentication scheme is connection based.
      *
-     * @return <tt>true</tt>.
+     * @return {@code true}.
      */
     public boolean isConnectionBased() {
         return true;

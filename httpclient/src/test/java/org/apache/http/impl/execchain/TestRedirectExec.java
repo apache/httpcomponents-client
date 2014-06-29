@@ -26,8 +26,6 @@
  */
 package org.apache.http.impl.execchain;
 
-import junit.framework.Assert;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
@@ -52,6 +50,7 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.NTLMScheme;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;

@@ -59,7 +59,7 @@ public abstract class AbstractResponseHandler<T> implements ResponseHandler<T> {
      * status code), throws an {@link HttpResponseException}.
      */
     @Override
-    public final T handleResponse(final HttpResponse response)
+    public T handleResponse(final HttpResponse response)
             throws HttpResponseException, IOException {
         final StatusLine statusLine = response.getStatusLine();
         final HttpEntity entity = response.getEntity();

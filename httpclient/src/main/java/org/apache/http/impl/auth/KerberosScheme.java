@@ -108,9 +108,9 @@ public class KerberosScheme extends GGSSchemeBase {
     }
 
     /**
-     * Returns <tt>true</tt>. KERBEROS authentication scheme is connection based.
+     * Returns {@code true}. KERBEROS authentication scheme is connection based.
      *
-     * @return <tt>true</tt>.
+     * @return {@code true}.
      */
     @Override
     public boolean isConnectionBased() {

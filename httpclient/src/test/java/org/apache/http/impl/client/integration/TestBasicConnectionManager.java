@@ -26,45 +26,22 @@
  */
 package org.apache.http.impl.client.integration;
 
-import junit.framework.Assert;
-
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
-import org.apache.http.localserver.LocalTestServer;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.util.EntityUtils;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
-public class TestBasicConnectionManager extends IntegrationTestBase {
-
-    @SuppressWarnings("resource") // BasicHttpClientConnectionManager
-    @Before
-    public void setUp() throws Exception {
-        this.localServer = new LocalTestServer(null, null);
-        this.localServer.registerDefaultHandlers();
-        this.localServer.start();
-
-        this.httpclient = HttpClients.custom()
-                .setConnectionManager(new BasicHttpClientConnectionManager())
-                .build();
-    }
-
-    @After
-    public void cleanup() throws IOException {
-        this.httpclient.close();
-    }
+public class TestBasicConnectionManager extends LocalServerTestBase {
 
     @Test
     public void testBasics() throws Exception {
-        final InetSocketAddress address = localServer.getServiceAddress();
-        final HttpHost target = new HttpHost(address.getHostName(), address.getPort());
+        this.clientBuilder.setConnectionManager(new BasicHttpClientConnectionManager());
+
+        final HttpHost target = start();
         final HttpGet get = new HttpGet("/random/1024");
         final CloseableHttpResponse response = this.httpclient.execute(target, get);
         try {
@@ -77,8 +54,9 @@ public class TestBasicConnectionManager extends IntegrationTestBase {
 
     @Test(expected=IllegalStateException.class)
     public void testConnectionStillInUse() throws Exception {
-        final InetSocketAddress address = localServer.getServiceAddress();
-        final HttpHost target = new HttpHost(address.getHostName(), address.getPort());
+        this.clientBuilder.setConnectionManager(new BasicHttpClientConnectionManager());
+
+        final HttpHost target = start();
         final HttpGet get1 = new HttpGet("/random/1024");
         this.httpclient.execute(target, get1);
         final HttpGet get2 = new HttpGet("/random/1024");

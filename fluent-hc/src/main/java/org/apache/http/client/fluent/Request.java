@@ -277,6 +277,11 @@ public class Request {
         return this;
     }
 
+    /**
+     * @deprecated (4.4) Use {@link
+     *   org.apache.http.impl.conn.PoolingHttpClientConnectionManager#setValidateAfterInactivity(int)}
+     */
+    @Deprecated
     public Request staleConnectionCheck(final boolean b) {
         this.configBuilder.setStaleConnectionCheckEnabled(b);
         return this;
@@ -286,6 +291,14 @@ public class Request {
 
     public Request viaProxy(final HttpHost proxy) {
         this.configBuilder.setProxy(proxy);
+        return this;
+    }
+
+    /**
+     * @since 4.4
+     */
+    public Request viaProxy(final String proxy) {
+        this.configBuilder.setProxy(HttpHost.create(proxy));
         return this;
     }
 
