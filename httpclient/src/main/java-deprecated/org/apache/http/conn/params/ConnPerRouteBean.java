@@ -76,7 +76,7 @@ public final class ConnPerRouteBean implements ConnPerRoute {
     }
 
     public void setDefaultMaxPerRoute(final int max) {
-        Args.positive(max, "Defautl max per route");
+        Args.positive(max, "Default max per route");
         this.defaultMax = max;
     }
 
