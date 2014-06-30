@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -297,18 +298,21 @@ public class TestConnectionManagement extends LocalServerTestBase {
         this.connManager.connect(conn, route, 0, context);
         this.connManager.routeComplete(conn, route, context);
 
+        Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
         Assert.assertEquals(1, this.connManager.getStats(route).getLeased());
 
         this.connManager.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
 
         // Released, still active.
+        Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
         this.connManager.closeExpiredConnections();
 
         // Time has not expired yet.
+        Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
@@ -317,6 +321,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         this.connManager.closeExpiredConnections();
 
         // Time expired now, connections are destroyed.
+        Assert.assertEquals(Collections.emptySet(), this.connManager.getRoutes());
         Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(0, this.connManager.getStats(route).getAvailable());
 
@@ -340,18 +345,21 @@ public class TestConnectionManagement extends LocalServerTestBase {
         this.connManager.connect(conn, route, 0, context);
         this.connManager.routeComplete(conn, route, context);
 
+        Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
         Assert.assertEquals(1, this.connManager.getStats(route).getLeased());
         // Release, let remain idle for forever
         this.connManager.releaseConnection(conn, null, -1, TimeUnit.MILLISECONDS);
 
         // Released, still active.
+        Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
         this.connManager.closeExpiredConnections();
 
         // Time has not expired yet.
+        Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
@@ -360,6 +368,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         this.connManager.closeExpiredConnections();
 
         // TTL expired now, connections are destroyed.
+        Assert.assertEquals(Collections.emptySet(), this.connManager.getRoutes());
         Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(0, this.connManager.getStats(route).getAvailable());
 
