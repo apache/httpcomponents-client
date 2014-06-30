@@ -607,6 +607,22 @@ public class TestDigestScheme {
         Assert.assertEquals("f2a3f18799759d4f1a1c068b92b573cb", table.get("nonce"));
     }
 
+    @Test
+    public void testParameterCaseSensitivity() throws Exception {
+        final String challenge = "Digest Realm=\"-\", " +
+                "nonce=\"YjYuNGYyYmJhMzUuY2I5ZDhlZDE5M2ZlZDM 1Mjk3NGJkNTIyYjgyNTcwMjQ=\", " +
+                "opaque=\"98700A3D9CE17065E2246B41035C6609\", qop=\"auth\"";
+        final Header authChallenge = new BasicHeader(AUTH.PROXY_AUTH, challenge);
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        final Credentials cred = new UsernamePasswordCredentials("username","password");
+        final DigestScheme authscheme = new DigestScheme();
+        final HttpContext context = new BasicHttpContext();
+        authscheme.processChallenge(authChallenge);
+        Assert.assertEquals("-", authscheme.getRealm());
+
+        authscheme.authenticate(cred, request, context);
+    }
+
     @Test(expected=AuthenticationException.class)
     public void testDigestAuthenticationQopIntOnlyNonRepeatableEntity() throws Exception {
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
