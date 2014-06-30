@@ -112,7 +112,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase {
         }
         this.params.clear();
         for (final HeaderElement element : elements) {
-            this.params.put(element.getName(), element.getValue());
+            this.params.put(element.getName().toLowerCase(Locale.ENGLISH), element.getValue());
         }
     }
 
