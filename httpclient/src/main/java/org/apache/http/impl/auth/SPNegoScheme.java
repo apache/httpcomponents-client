@@ -47,12 +47,19 @@ public class SPNegoScheme extends GGSSchemeBase {
 
     private static final String SPNEGO_OID = "1.3.6.1.5.5.2";
 
+    /**
+     * @since 4.4
+     */
+    public SPNegoScheme(final boolean stripPort, final boolean useCanonicalHostname) {
+        super(stripPort, useCanonicalHostname);
+    }
+
     public SPNegoScheme(final boolean stripPort) {
         super(stripPort);
     }
 
     public SPNegoScheme() {
-        super(false);
+        super();
     }
 
     @Override

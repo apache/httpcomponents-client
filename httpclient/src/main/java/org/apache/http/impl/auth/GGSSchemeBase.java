@@ -26,6 +26,9 @@
  */
 package org.apache.http.impl.auth;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -67,6 +70,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
 
     private final Base64 base64codec;
     private final boolean stripPort;
+    private final boolean useCanonicalHostname;
 
     /** Authentication process state */
     private State state;
@@ -74,15 +78,20 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     /** base64 decoded challenge **/
     private byte[] token;
 
-    GGSSchemeBase(final boolean stripPort) {
+    GGSSchemeBase(final boolean stripPort, final boolean useCanonicalHostname) {
         super();
         this.base64codec = new Base64(0);
         this.stripPort = stripPort;
+        this.useCanonicalHostname = useCanonicalHostname;
         this.state = State.UNINITIATED;
     }
 
+    GGSSchemeBase(final boolean stripPort) {
+        this(stripPort, true);
+    }
+
     GGSSchemeBase() {
-        this(false);
+        this(true,true);
     }
 
     protected GSSManager getManager() {
@@ -151,10 +160,22 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                     host = route.getTargetHost();
                 }
                 final String authServer;
-                if (!this.stripPort && host.getPort() > 0) {
-                    authServer = host.toHostString();
+                String hostname = host.getHostName();
+
+                if (this.useCanonicalHostname){
+                    try {
+                         //TODO: uncomment this statement and delete the resolveCanonicalHostname,
+                         //TODO: as soon canonical hostname resolving is implemented in the SystemDefaultDnsResolver
+                         //final DnsResolver dnsResolver = SystemDefaultDnsResolver.INSTANCE;
+                         //hostname = dnsResolver.resolveCanonicalHostname(host.getHostName());
+                         hostname = resolveCanonicalHostname(hostname);
+                    } catch (UnknownHostException ignore){
+                    }
+                }
+                if (this.stripPort) { // || host.getPort()==80 || host.getPort()==443) {
+                    authServer = hostname;
                 } else {
-                    authServer = host.getHostName();
+                    authServer = hostname + ":" + host.getPort();
                 }
 
                 if (log.isDebugEnabled()) {
@@ -213,6 +234,15 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
             log.debug("Authentication already attempted");
             state = State.FAILED;
         }
+    }
+
+    private String resolveCanonicalHostname(final String host) throws UnknownHostException {
+        final InetAddress in = InetAddress.getByName(host);
+        final String canonicalServer = in.getCanonicalHostName();
+        if (in.getHostAddress().contentEquals(canonicalServer)) {
+            return host;
+        }
+        return canonicalServer;
     }
 
 }
