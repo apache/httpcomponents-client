@@ -112,6 +112,7 @@ import org.apache.http.impl.execchain.ServiceUnavailableRetryExec;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpProcessorBuilder;
 import org.apache.http.protocol.HttpRequestExecutor;
+import org.apache.http.protocol.ImmutableHttpProcessor;
 import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
@@ -714,6 +715,7 @@ public class HttpClientBuilder {
             final HttpClientConnectionManager connManager,
             final ConnectionReuseStrategy reuseStrategy,
             final ConnectionKeepAliveStrategy keepAliveStrategy,
+            final HttpProcessor proxyHttpProcessor,
             final AuthenticationStrategy targetAuthStrategy,
             final AuthenticationStrategy proxyAuthStrategy,
             final UserTokenHandler userTokenHandler)
@@ -723,6 +725,7 @@ public class HttpClientBuilder {
                 connManager,
                 reuseStrategy,
                 keepAliveStrategy,
+                proxyHttpProcessor,
                 targetAuthStrategy,
                 proxyAuthStrategy,
                 userTokenHandler);
@@ -863,11 +866,24 @@ public class HttpClientBuilder {
                 userTokenHandlerCopy = NoopUserTokenHandler.INSTANCE;
             }
         }
+
+        String userAgentCopy = this.userAgent;
+        if (userAgentCopy == null) {
+            if (systemProperties) {
+                userAgentCopy = System.getProperty("http.agent");
+            }
+            if (userAgentCopy == null) {
+                userAgentCopy = VersionInfo.getUserAgent("Apache-HttpClient",
+                        "org.apache.http.client", getClass());
+            }
+        }
+
         ClientExecChain execChain = createMainExec(
                 requestExecCopy,
                 connManagerCopy,
                 reuseStrategyCopy,
                 keepAliveStrategyCopy,
+                new ImmutableHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
                 targetAuthStrategyCopy,
                 proxyAuthStrategyCopy,
                 userTokenHandlerCopy);
@@ -876,17 +892,6 @@ public class HttpClientBuilder {
 
         HttpProcessor httpprocessorCopy = this.httpprocessor;
         if (httpprocessorCopy == null) {
-
-            String userAgentCopy = this.userAgent;
-            if (userAgentCopy == null) {
-                if (systemProperties) {
-                    userAgentCopy = System.getProperty("http.agent");
-                }
-                if (userAgentCopy == null) {
-                    userAgentCopy = VersionInfo.getUserAgent("Apache-HttpClient",
-                            "org.apache.http.client", getClass());
-                }
-            }
 
             final HttpProcessorBuilder b = HttpProcessorBuilder.create();
             if (requestFirst != null) {

@@ -77,6 +77,7 @@ import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.protocol.HttpRequestExecutor;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
@@ -101,6 +102,8 @@ public class TestMainClientExec {
     @Mock
     private ConnectionKeepAliveStrategy keepAliveStrategy;
     @Mock
+    private HttpProcessor proxyHttpProcessor;
+    @Mock
     private AuthenticationStrategy targetAuthStrategy;
     @Mock
     private AuthenticationStrategy proxyAuthStrategy;
@@ -121,7 +124,7 @@ public class TestMainClientExec {
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
         mainClientExec = new MainClientExec(requestExecutor, connManager, reuseStrategy,
-            keepAliveStrategy, targetAuthStrategy, proxyAuthStrategy, userTokenHandler);
+            keepAliveStrategy, proxyHttpProcessor, targetAuthStrategy, proxyAuthStrategy, userTokenHandler);
         target = new HttpHost("foo", 80);
         proxy = new HttpHost("bar", 8888);
 
