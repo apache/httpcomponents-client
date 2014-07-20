@@ -54,7 +54,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.protocol.RequestClientConnControl;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -101,6 +100,37 @@ public class MainClientExec implements ClientExecChain {
     private final UserTokenHandler userTokenHandler;
     private final HttpRouteDirector routeDirector;
 
+    /**
+     * @since 4.4
+     */
+    public MainClientExec(
+            final HttpRequestExecutor requestExecutor,
+            final HttpClientConnectionManager connManager,
+            final ConnectionReuseStrategy reuseStrategy,
+            final ConnectionKeepAliveStrategy keepAliveStrategy,
+            final HttpProcessor proxyHttpProcessor,
+            final AuthenticationStrategy targetAuthStrategy,
+            final AuthenticationStrategy proxyAuthStrategy,
+            final UserTokenHandler userTokenHandler) {
+        Args.notNull(requestExecutor, "HTTP request executor");
+        Args.notNull(connManager, "Client connection manager");
+        Args.notNull(reuseStrategy, "Connection reuse strategy");
+        Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
+        Args.notNull(proxyHttpProcessor, "Proxy HTTP processor");
+        Args.notNull(targetAuthStrategy, "Target authentication strategy");
+        Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
+        Args.notNull(userTokenHandler, "User token handler");
+        this.authenticator      = new HttpAuthenticator();
+        this.routeDirector      = new BasicRouteDirector();
+        this.requestExecutor    = requestExecutor;
+        this.connManager        = connManager;
+        this.reuseStrategy      = reuseStrategy;
+        this.keepAliveStrategy  = keepAliveStrategy;
+        this.proxyHttpProcessor = proxyHttpProcessor;
+        this.targetAuthStrategy = targetAuthStrategy;
+        this.proxyAuthStrategy  = proxyAuthStrategy;
+        this.userTokenHandler   = userTokenHandler;
+    }
 
     public MainClientExec(
             final HttpRequestExecutor requestExecutor,
@@ -110,24 +140,9 @@ public class MainClientExec implements ClientExecChain {
             final AuthenticationStrategy targetAuthStrategy,
             final AuthenticationStrategy proxyAuthStrategy,
             final UserTokenHandler userTokenHandler) {
-        Args.notNull(requestExecutor, "HTTP request executor");
-        Args.notNull(connManager, "Client connection manager");
-        Args.notNull(reuseStrategy, "Connection reuse strategy");
-        Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
-        Args.notNull(targetAuthStrategy, "Target authentication strategy");
-        Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
-        Args.notNull(userTokenHandler, "User token handler");
-        this.authenticator      = new HttpAuthenticator();
-        this.proxyHttpProcessor = new ImmutableHttpProcessor(
-                new RequestTargetHost(), new RequestClientConnControl());
-        this.routeDirector      = new BasicRouteDirector();
-        this.requestExecutor    = requestExecutor;
-        this.connManager        = connManager;
-        this.reuseStrategy      = reuseStrategy;
-        this.keepAliveStrategy  = keepAliveStrategy;
-        this.targetAuthStrategy = targetAuthStrategy;
-        this.proxyAuthStrategy  = proxyAuthStrategy;
-        this.userTokenHandler   = userTokenHandler;
+        this(requestExecutor, connManager, reuseStrategy, keepAliveStrategy,
+                new ImmutableHttpProcessor(new RequestTargetHost()),
+                targetAuthStrategy, proxyAuthStrategy, userTokenHandler);
     }
 
     @Override

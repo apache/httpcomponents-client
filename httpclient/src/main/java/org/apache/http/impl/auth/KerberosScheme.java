@@ -46,12 +46,19 @@ public class KerberosScheme extends GGSSchemeBase {
 
     private static final String KERBEROS_OID = "1.2.840.113554.1.2.2";
 
+    /**
+     * @since 4.4
+     */
+    public KerberosScheme(final boolean stripPort, final boolean useCanonicalHostname) {
+        super(stripPort, useCanonicalHostname);
+    }
+
     public KerberosScheme(final boolean stripPort) {
         super(stripPort);
     }
 
     public KerberosScheme() {
-        super(false);
+        super();
     }
 
     @Override

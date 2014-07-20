@@ -44,28 +44,43 @@ import org.apache.http.protocol.HttpContext;
 public class SPNegoSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider {
 
     private final boolean stripPort;
+    private final boolean useCanonicalHostname;
+
+    /**
+     * @since 4.4
+     */
+    public SPNegoSchemeFactory(final boolean stripPort, final boolean useCanonicalHostname) {
+        super();
+        this.stripPort = stripPort;
+        this.useCanonicalHostname = useCanonicalHostname;
+    }
 
     public SPNegoSchemeFactory(final boolean stripPort) {
         super();
         this.stripPort = stripPort;
+        this.useCanonicalHostname = true;
     }
 
     public SPNegoSchemeFactory() {
-        this(false);
+        this(true, true);
     }
 
     public boolean isStripPort() {
         return stripPort;
     }
 
+    public boolean isUseCanonicalHostname() {
+        return useCanonicalHostname;
+    }
+
     @Override
     public AuthScheme newInstance(final HttpParams params) {
-        return new SPNegoScheme(this.stripPort);
+        return new SPNegoScheme(this.stripPort, this.useCanonicalHostname);
     }
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new SPNegoScheme(this.stripPort);
+        return new SPNegoScheme(this.stripPort, this.useCanonicalHostname);
     }
 
 }

@@ -44,28 +44,43 @@ import org.apache.http.protocol.HttpContext;
 public class KerberosSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider {
 
     private final boolean stripPort;
+    private final boolean useCanonicalHostname;
+
+    /**
+     * @since 4.4
+     */
+    public KerberosSchemeFactory(final boolean stripPort, final boolean useCanonicalHostname) {
+        super();
+        this.stripPort = stripPort;
+        this.useCanonicalHostname = useCanonicalHostname;
+    }
 
     public KerberosSchemeFactory(final boolean stripPort) {
         super();
         this.stripPort = stripPort;
+        this.useCanonicalHostname = true;
     }
 
     public KerberosSchemeFactory() {
-        this(false);
+        this(true, true);
     }
 
     public boolean isStripPort() {
         return stripPort;
     }
 
+    public boolean isUseCanonicalHostname() {
+        return useCanonicalHostname;
+    }
+
     @Override
     public AuthScheme newInstance(final HttpParams params) {
-        return new KerberosScheme(this.stripPort);
+        return new KerberosScheme(this.stripPort, this.useCanonicalHostname);
     }
 
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new KerberosScheme(this.stripPort);
+        return new KerberosScheme(this.stripPort, this.useCanonicalHostname);
     }
 
 }

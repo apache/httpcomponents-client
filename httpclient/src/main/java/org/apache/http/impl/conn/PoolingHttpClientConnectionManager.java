@@ -30,6 +30,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -443,6 +444,13 @@ public class PoolingHttpClientConnectionManager
     @Override
     public PoolStats getStats(final HttpRoute route) {
         return this.pool.getStats(route);
+    }
+
+    /**
+     * @since 4.4
+     */
+    public Set<HttpRoute> getRoutes() {
+        return this.pool.getRoutes();
     }
 
     public SocketConfig getDefaultSocketConfig() {
