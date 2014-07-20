@@ -66,7 +66,7 @@ public interface CookieAttributeHandler {
    *
    * @param cookie {@link org.apache.http.cookie.Cookie} to match
    * @param origin the cookie source to match against
-   * @return {@code true</tt> if the match is successful; <tt>false} otherwise
+   * @return {@code true} if the match is successful; {@code false} otherwise
    */
   boolean match(Cookie cookie, CookieOrigin origin);
 

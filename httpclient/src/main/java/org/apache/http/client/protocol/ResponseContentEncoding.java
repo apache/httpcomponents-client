@@ -92,7 +92,7 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
     }
 
     /**
-     * Handles {@code gzip</tt> and <tt>deflate} compressed entities by using the following
+     * Handles {@code gzip} and {@code deflate} compressed entities by using the following
      * decoders:
      * <ul>
      * <li>gzip - see {@link GZIPInputStream}</li>

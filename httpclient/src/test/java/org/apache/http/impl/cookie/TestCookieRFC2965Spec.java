@@ -416,7 +416,7 @@ public class TestCookieRFC2965Spec {
     }
 
     /**
-     * test parsing {@code "Comment"</tt>, <tt>"CommentURL"} and
+     * test parsing {@code "Comment"}, {@code "CommentURL"} and
      * {@code "Secure"} attributes.
      */
     @Test

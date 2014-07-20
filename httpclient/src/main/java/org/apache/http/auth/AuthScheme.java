@@ -95,7 +95,7 @@ public interface AuthScheme {
      * Tests if the authentication scheme is provides authorization on a per
      * connection basis instead of usual per request basis
      *
-     * @return {@code true</tt> if the scheme is connection based, <tt>false}
+     * @return {@code true} if the scheme is connection based, {@code false}
      * if the scheme is request based.
      */
     boolean isConnectionBased();

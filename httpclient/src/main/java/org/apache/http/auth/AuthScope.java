@@ -89,7 +89,7 @@ public class AuthScope {
     private final HttpHost origin;
 
     /**
-     * Defines auth scope with the given {@code host</tt>, <tt>port</tt>, <tt>realm}, and
+     * Defines auth scope with the given {@code host}, {@code port}, {@code realm}, and
      * {@code authentication scheme}.
      *
      * @param host authentication host. May be {@link #ANY_HOST} if applies
@@ -148,7 +148,7 @@ public class AuthScope {
     }
 
     /**
-     * Defines auth scope with the given {@code host</tt>, <tt>port</tt> and <tt>realm}.
+     * Defines auth scope with the given {@code host}, {@code port} and {@code realm}.
      *
      * @param host authentication host. May be {@link #ANY_HOST} if applies
      *   to any host.
@@ -162,7 +162,7 @@ public class AuthScope {
     }
 
     /**
-     * Defines auth scope with the given {@code host</tt> and <tt>port}.
+     * Defines auth scope with the given {@code host} and {@code port}.
      *
      * @param host authentication host. May be {@link #ANY_HOST} if applies
      *   to any host.

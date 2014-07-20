@@ -58,7 +58,7 @@ import org.apache.http.util.TextUtils;
 /**
  * Default implementation of {@link RedirectStrategy}. This strategy honors the restrictions
  * on automatic redirection of entity enclosing methods such as POST and PUT imposed by the
- * HTTP specification. {@code 302 Moved Temporarily</tt>, <tt>301 Moved Permanently} and
+ * HTTP specification. {@code 302 Moved Temporarily}, {@code 301 Moved Permanently} and
  * {@code 307 Temporary Redirect} status codes will result in an automatic redirect of
  * HEAD and GET methods only. POST and PUT methods will not be automatically redirected
  * as requiring user confirmation.
