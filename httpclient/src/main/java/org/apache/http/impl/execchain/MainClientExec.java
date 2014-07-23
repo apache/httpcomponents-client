@@ -433,14 +433,14 @@ public class MainClientExec implements ClientExecChain {
 
         final HttpHost target = route.getTargetHost();
         final HttpHost proxy = route.getProxyHost();
-        HttpResponse response;
+        HttpResponse response = null;
 
         final String authority = target.toHostString();
         final HttpRequest connect = new BasicHttpRequest("CONNECT", authority, request.getProtocolVersion());
 
         this.requestExecutor.preProcess(connect, this.proxyHttpProcessor, context);
 
-        for (;;) {
+        while (response == null) {
             if (!managedConn.isOpen()) {
                 this.connManager.connect(
                         managedConn,
@@ -474,11 +474,8 @@ public class MainClientExec implements ClientExecChain {
                         } else {
                             managedConn.close();
                         }
-                    } else {
-                        break;
+                        response = null;
                     }
-                } else {
-                    break;
                 }
             }
         }
