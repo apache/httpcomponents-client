@@ -60,7 +60,7 @@ public class AuthenticationException extends ProtocolException {
      * Creates a new AuthenticationException with the specified detail message and cause.
      *
      * @param message the exception detail message
-     * @param cause the {@code Throwable</tt> that caused this exception, or <tt>null}
+     * @param cause the {@code Throwable} that caused this exception, or {@code null}
      * if the cause is unavailable, unknown, or not a {@code Throwable}
      */
     public AuthenticationException(final String message, final Throwable cause) {

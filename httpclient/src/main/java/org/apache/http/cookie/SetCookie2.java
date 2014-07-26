@@ -50,7 +50,7 @@ public interface SetCookie2 extends SetCookie {
     /**
      * Set the Discard attribute.
      *
-     * Note: {@code Discard</tt> attribute overrides <tt>Max-age}.
+     * Note: {@code Discard} attribute overrides {@code Max-age}.
      *
      * @see #isPersistent()
      */
