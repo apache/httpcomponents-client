@@ -34,14 +34,20 @@ import java.net.UnknownHostException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.StringTokenizer;
 
+import javax.naming.InvalidNameException;
+import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -253,47 +259,40 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
     }
 
     public static String[] getCNs(final X509Certificate cert) {
-        final LinkedList<String> cnList = new LinkedList<String>();
-        /*
-          Sebastian Hauer's original StrictSSLProtocolSocketFactory used
-          getName() and had the following comment:
-
-                Parses a X.500 distinguished name for the value of the
-                "Common Name" field.  This is done a bit sloppy right
-                 now and should probably be done a bit more according to
-                <code>RFC 2253</code>.
-
-           I've noticed that toString() seems to do a better job than
-           getName() on these X500Principal objects, so I'm hoping that
-           addresses Sebastian's concern.
-
-           For example, getName() gives me this:
-           1.2.840.113549.1.9.1=#16166a756c6975736461766965734063756362632e636f6d
-
-           whereas toString() gives me this:
-           EMAILADDRESS=juliusdavies@cucbc.com
-
-           Looks like toString() even works with non-ascii domain names!
-           I tested it with "&#x82b1;&#x5b50;.co.jp" and it worked fine.
-        */
-
         final String subjectPrincipal = cert.getSubjectX500Principal().toString();
-        final StringTokenizer st = new StringTokenizer(subjectPrincipal, ",+");
-        while(st.hasMoreTokens()) {
-            final String tok = st.nextToken().trim();
-            if (tok.length() > 3) {
-                if (tok.substring(0, 3).equalsIgnoreCase("CN=")) {
-                    cnList.add(tok.substring(3));
-                }
-            }
-        }
-        if(!cnList.isEmpty()) {
-            final String[] cns = new String[cnList.size()];
-            cnList.toArray(cns);
-            return cns;
-        } else {
+        try {
+            return extractCNs(subjectPrincipal);
+        } catch (SSLException ex) {
             return null;
         }
+    }
+
+    static String[] extractCNs(final String subjectPrincipal) throws SSLException {
+        if (subjectPrincipal == null) {
+            return null;
+        }
+        final List<String> cns = new ArrayList<String>();
+        try {
+            final LdapName subjectDN = new LdapName(subjectPrincipal);
+            final List<Rdn> rdns = subjectDN.getRdns();
+            for (int i = rdns.size() - 1; i >= 0; i--) {
+                final Rdn rds = rdns.get(i);
+                final Attributes attributes = rds.toAttributes();
+                final Attribute cn = attributes.get("cn");
+                if (cn != null) {
+                    try {
+                        final Object value = cn.get();
+                        if (value != null) {
+                            cns.add(value.toString());
+                        }
+                    } catch (NamingException ignore) {
+                    }
+                }
+            }
+        } catch (InvalidNameException e) {
+            throw new SSLException(subjectPrincipal + " is not a valid X500 distinguished name");
+        }
+        return cns.isEmpty() ? null : cns.toArray(new String[ cns.size() ]);
     }
 
     /**

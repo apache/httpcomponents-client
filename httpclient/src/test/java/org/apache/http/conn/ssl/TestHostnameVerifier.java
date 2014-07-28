@@ -29,7 +29,6 @@ package org.apache.http.conn.ssl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.security.Principal;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -38,7 +37,6 @@ import javax.net.ssl.SSLException;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 /**
  * Unit tests for {@link X509HostnameVerifier}.
@@ -349,16 +347,27 @@ public class TestHostnameVerifier {
         checkMatching(shv, "mail.a.b.c.com", cns, alt, false); // OK
     }
 
-    public void testGetCNs() {
-        final Principal principal = Mockito.mock(Principal.class);
-        final X509Certificate cert = Mockito.mock(X509Certificate.class);
-        Mockito.when(cert.getSubjectDN()).thenReturn(principal);
-        Mockito.when(principal.toString()).thenReturn("bla,  bla, blah");
-        Assert.assertArrayEquals(new String[] {}, AbstractVerifier.getCNs(cert));
-        Mockito.when(principal.toString()).thenReturn("Cn=,  Cn=  , CN, OU=CN=");
-        Assert.assertArrayEquals(new String[] {}, AbstractVerifier.getCNs(cert));
-        Mockito.when(principal.toString()).thenReturn("  Cn=blah,  CN= blah , OU=CN=yada");
-        Assert.assertArrayEquals(new String[] {"blah", " blah"}, AbstractVerifier.getCNs(cert));
+    @Test
+    public void testExtractCN() throws Exception {
+        Assert.assertArrayEquals(new String[] {"blah"}, AbstractVerifier.extractCNs("cn=blah, ou=blah, o=blah"));
+        Assert.assertArrayEquals(new String[] {"blah", "yada", "booh"}, AbstractVerifier.extractCNs("cn=blah, cn=yada, cn=booh"));
+        Assert.assertArrayEquals(new String[] {"blah"}, AbstractVerifier.extractCNs("c = pampa ,  cn  =    blah    , ou = blah , o = blah"));
+        Assert.assertArrayEquals(new String[] {"blah"}, AbstractVerifier.extractCNs("cn=\"blah\", ou=blah, o=blah"));
+        Assert.assertArrayEquals(new String[] {"blah  blah"}, AbstractVerifier.extractCNs("cn=\"blah  blah\", ou=blah, o=blah"));
+        Assert.assertArrayEquals(new String[] {"blah, blah"}, AbstractVerifier.extractCNs("cn=\"blah, blah\", ou=blah, o=blah"));
+        Assert.assertArrayEquals(new String[] {"blah, blah"}, AbstractVerifier.extractCNs("cn=blah\\, blah, ou=blah, o=blah"));
+        Assert.assertArrayEquals(new String[] {"blah"}, AbstractVerifier.extractCNs("c = cn=uuh, cn=blah, ou=blah, o=blah"));
+        Assert.assertArrayEquals(new String[] {""}, AbstractVerifier.extractCNs("cn=   , ou=blah, o=blah"));
+    }
+
+    @Test(expected = SSLException.class)
+    public void testExtractCNInvalid1() throws Exception {
+        AbstractVerifier.extractCNs("blah,blah");
+    }
+
+    @Test(expected = SSLException.class)
+    public void testExtractCNInvalid2() throws Exception {
+        AbstractVerifier.extractCNs("cn,o=blah");
     }
 
 }
