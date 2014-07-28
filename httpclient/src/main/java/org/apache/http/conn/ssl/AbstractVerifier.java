@@ -27,6 +27,10 @@
 
 package org.apache.http.conn.ssl;
 
+import java.security.cert.X509Certificate;
+
+import javax.net.ssl.SSLException;
+
 /**
  * Abstract base class for all standard {@link X509HostnameVerifier}
  * implementations.
@@ -38,5 +42,14 @@ package org.apache.http.conn.ssl;
  */
 @Deprecated
 public abstract class AbstractVerifier extends AbstractCommonHostnameVerifier {
+
+    public static String[] getCNs(final X509Certificate cert) {
+        final String subjectPrincipal = cert.getSubjectX500Principal().toString();
+        try {
+            return extractCNs(subjectPrincipal);
+        } catch (SSLException ex) {
+            return null;
+        }
+    }
 
 }
