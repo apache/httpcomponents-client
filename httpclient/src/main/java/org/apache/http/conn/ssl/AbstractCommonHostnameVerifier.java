@@ -54,7 +54,6 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.util.InetAddressUtils;
 
 /**
- /**
  * Abstract base class for all standard {@link org.apache.http.conn.ssl.X509HostnameVerifier}
  * implementations that provides methods to extract Common Name (CN) and alternative subjects
  * (subjectAlt) from {@link java.security.cert.X509Certificate} being validated as well
@@ -92,7 +91,7 @@ public abstract class AbstractCommonHostnameVerifier extends AbstractBaseHostnam
           throws SSLException {
         final String subjectPrincipal = cert.getSubjectX500Principal().toString();
         final String[] cns = extractCNs(subjectPrincipal);
-        final String[] subjectAlts = getSubjectAlts(cert, host);
+        final String[] subjectAlts = extractSubjectAlts(cert, host);
         verify(host, cns, subjectAlts);
     }
 
@@ -233,8 +232,7 @@ public abstract class AbstractCommonHostnameVerifier extends AbstractBaseHostnam
      * @param hostname
      * @return Array of SubjectALT DNS or IP names stored in the certificate.
      */
-    private static String[] getSubjectAlts(
-            final X509Certificate cert, final String hostname) {
+    static String[] extractSubjectAlts(final X509Certificate cert, final String hostname) {
         final int subjectType;
         if (isIPAddress(hostname)) {
             subjectType = 7;
@@ -266,24 +264,6 @@ public abstract class AbstractCommonHostnameVerifier extends AbstractBaseHostnam
         } else {
             return null;
         }
-    }
-
-    /**
-     * Extracts the array of SubjectAlt DNS names from an X509Certificate.
-     * Returns null if there aren't any.
-     * <p/>
-     * Note:  Java doesn't appear able to extract international characters
-     * from the SubjectAlts.  It can only extract international characters
-     * from the CN field.
-     * <p/>
-     * (Or maybe the version of OpenSSL I'm using to test isn't storing the
-     * international characters correctly in the SubjectAlts?).
-     *
-     * @param cert X509Certificate
-     * @return Array of SubjectALT DNS names stored in the certificate.
-     */
-    public static String[] getDNSSubjectAlts(final X509Certificate cert) {
-        return getSubjectAlts(cert, null);
     }
 
     /**

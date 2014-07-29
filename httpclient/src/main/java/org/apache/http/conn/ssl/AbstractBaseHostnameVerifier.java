@@ -37,6 +37,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.util.Args;
 
 /**
  * Abstract base class for all standard {@link org.apache.http.conn.ssl.X509HostnameVerifier}
@@ -52,10 +53,7 @@ public abstract class AbstractBaseHostnameVerifier implements X509HostnameVerifi
     @Override
     public final void verify(final String host, final SSLSocket ssl)
           throws IOException {
-        if(host == null) {
-            throw new NullPointerException("host to verify is null");
-        }
-
+        Args.notNull(host, "Host");
         SSLSession session = ssl.getSession();
         if(session == null) {
             // In our experience this only happens under IBM 1.4.x when

@@ -52,4 +52,22 @@ public abstract class AbstractVerifier extends AbstractCommonHostnameVerifier {
         }
     }
 
+    /**
+     * Extracts the array of SubjectAlt DNS names from an X509Certificate.
+     * Returns null if there aren't any.
+     * <p/>
+     * Note:  Java doesn't appear able to extract international characters
+     * from the SubjectAlts.  It can only extract international characters
+     * from the CN field.
+     * <p/>
+     * (Or maybe the version of OpenSSL I'm using to test isn't storing the
+     * international characters correctly in the SubjectAlts?).
+     *
+     * @param cert X509Certificate
+     * @return Array of SubjectALT DNS names stored in the certificate.
+     */
+    public static String[] getDNSSubjectAlts(final X509Certificate cert) {
+        return extractSubjectAlts(cert, null);
+    }
+
 }
