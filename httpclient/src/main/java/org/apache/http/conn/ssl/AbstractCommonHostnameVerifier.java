@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.NoSuchElementException;
 
 import javax.naming.InvalidNameException;
 import javax.naming.NamingException;
@@ -213,6 +214,7 @@ public abstract class AbstractCommonHostnameVerifier extends AbstractBaseHostnam
                         if (value != null) {
                             cns.add(value.toString());
                         }
+                    } catch (NoSuchElementException ignore) {
                     } catch (NamingException ignore) {
                     }
                 }
