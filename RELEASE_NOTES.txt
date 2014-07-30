@@ -1,3 +1,21 @@
+Release 4.3.5
+-------------------
+
+HttpClient 4.3.5 (GA) is a bug fix release that addresses several of issues reported since 
+release 4.3.4.
+
+Users of all HttpClient versions are advised to upgrade.
+
+Changelog:
+-------------------
+
+* Improved SSL cert subject parsing
+
+* [HTTPCLIENT-1524] RFC 2617 auth schemes (basic and digest) cannot handle auth parameters with 
+  mixed or upper case
+
+
+
 Release 4.3.4
 -------------------
 
