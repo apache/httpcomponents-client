@@ -27,6 +27,10 @@
 
 package org.apache.http.conn.ssl;
 
+import java.security.cert.X509Certificate;
+
+import javax.net.ssl.SSLException;
+
 /**
  * Abstract base class for all standard {@link X509HostnameVerifier}
  * implementations.
@@ -38,5 +42,32 @@ package org.apache.http.conn.ssl;
  */
 @Deprecated
 public abstract class AbstractVerifier extends AbstractCommonHostnameVerifier {
+
+    public static String[] getCNs(final X509Certificate cert) {
+        final String subjectPrincipal = cert.getSubjectX500Principal().toString();
+        try {
+            return extractCNs(subjectPrincipal);
+        } catch (SSLException ex) {
+            return null;
+        }
+    }
+
+    /**
+     * Extracts the array of SubjectAlt DNS names from an X509Certificate.
+     * Returns null if there aren't any.
+     * <p/>
+     * Note:  Java doesn't appear able to extract international characters
+     * from the SubjectAlts.  It can only extract international characters
+     * from the CN field.
+     * <p/>
+     * (Or maybe the version of OpenSSL I'm using to test isn't storing the
+     * international characters correctly in the SubjectAlts?).
+     *
+     * @param cert X509Certificate
+     * @return Array of SubjectALT DNS names stored in the certificate.
+     */
+    public static String[] getDNSSubjectAlts(final X509Certificate cert) {
+        return extractSubjectAlts(cert, null);
+    }
 
 }

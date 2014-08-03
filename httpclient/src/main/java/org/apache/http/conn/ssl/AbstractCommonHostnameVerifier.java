@@ -31,14 +31,21 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.StringTokenizer;
+import java.util.NoSuchElementException;
 
+import javax.naming.InvalidNameException;
+import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import javax.net.ssl.SSLException;
 
 import org.apache.commons.logging.Log;
@@ -47,7 +54,6 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.util.InetAddressUtils;
 
 /**
- /**
  * Abstract base class for all standard {@link org.apache.http.conn.ssl.X509HostnameVerifier}
  * implementations that provides methods to extract Common Name (CN) and alternative subjects
  * (subjectAlt) from {@link java.security.cert.X509Certificate} being validated as well
@@ -83,8 +89,9 @@ public abstract class AbstractCommonHostnameVerifier extends AbstractBaseHostnam
     @Override
     public final void verify(final String host, final X509Certificate cert)
           throws SSLException {
-        final String[] cns = getCNs(cert);
-        final String[] subjectAlts = getSubjectAlts(cert, host);
+        final String subjectPrincipal = cert.getSubjectX500Principal().toString();
+        final String[] cns = extractCNs(subjectPrincipal);
+        final String[] subjectAlts = extractSubjectAlts(cert, host);
         verify(host, cns, subjectAlts);
     }
 
@@ -188,48 +195,33 @@ public abstract class AbstractCommonHostnameVerifier extends AbstractBaseHostnam
         return Arrays.binarySearch(BAD_COUNTRY_2LDS, parts[1]) < 0;
     }
 
-    public static String[] getCNs(final X509Certificate cert) {
-        final LinkedList<String> cnList = new LinkedList<String>();
-        /*
-          Sebastian Hauer's original StrictSSLProtocolSocketFactory used
-          getName() and had the following comment:
-
-                Parses a X.500 distinguished name for the value of the
-                "Common Name" field.  This is done a bit sloppy right
-                 now and should probably be done a bit more according to
-                <code>RFC 2253</code>.
-
-           I've noticed that toString() seems to do a better job than
-           getName() on these X500Principal objects, so I'm hoping that
-           addresses Sebastian's concern.
-
-           For example, getName() gives me this:
-           1.2.840.113549.1.9.1=#16166a756c6975736461766965734063756362632e636f6d
-
-           whereas toString() gives me this:
-           EMAILADDRESS=juliusdavies@cucbc.com
-
-           Looks like toString() even works with non-ascii domain names!
-           I tested it with "&#x82b1;&#x5b50;.co.jp" and it worked fine.
-        */
-
-        final String subjectPrincipal = cert.getSubjectX500Principal().toString();
-        final StringTokenizer st = new StringTokenizer(subjectPrincipal, ",+");
-        while(st.hasMoreTokens()) {
-            final String tok = st.nextToken().trim();
-            if (tok.length() > 3) {
-                if (tok.substring(0, 3).equalsIgnoreCase("CN=")) {
-                    cnList.add(tok.substring(3));
-                }
-            }
-        }
-        if(!cnList.isEmpty()) {
-            final String[] cns = new String[cnList.size()];
-            cnList.toArray(cns);
-            return cns;
-        } else {
+    static String[] extractCNs(final String subjectPrincipal) throws SSLException {
+        if (subjectPrincipal == null) {
             return null;
         }
+        final List<String> cns = new ArrayList<String>();
+        try {
+            final LdapName subjectDN = new LdapName(subjectPrincipal);
+            final List<Rdn> rdns = subjectDN.getRdns();
+            for (int i = rdns.size() - 1; i >= 0; i--) {
+                final Rdn rds = rdns.get(i);
+                final Attributes attributes = rds.toAttributes();
+                final Attribute cn = attributes.get("cn");
+                if (cn != null) {
+                    try {
+                        final Object value = cn.get();
+                        if (value != null) {
+                            cns.add(value.toString());
+                        }
+                    } catch (NoSuchElementException ignore) {
+                    } catch (NamingException ignore) {
+                    }
+                }
+            }
+        } catch (InvalidNameException e) {
+            throw new SSLException(subjectPrincipal + " is not a valid X500 distinguished name");
+        }
+        return cns.isEmpty() ? null : cns.toArray(new String[ cns.size() ]);
     }
 
     /**
@@ -240,8 +232,7 @@ public abstract class AbstractCommonHostnameVerifier extends AbstractBaseHostnam
      * @param hostname
      * @return Array of SubjectALT DNS or IP names stored in the certificate.
      */
-    private static String[] getSubjectAlts(
-            final X509Certificate cert, final String hostname) {
+    static String[] extractSubjectAlts(final X509Certificate cert, final String hostname) {
         final int subjectType;
         if (isIPAddress(hostname)) {
             subjectType = 7;
@@ -273,24 +264,6 @@ public abstract class AbstractCommonHostnameVerifier extends AbstractBaseHostnam
         } else {
             return null;
         }
-    }
-
-    /**
-     * Extracts the array of SubjectAlt DNS names from an X509Certificate.
-     * Returns null if there aren't any.
-     * <p/>
-     * Note:  Java doesn't appear able to extract international characters
-     * from the SubjectAlts.  It can only extract international characters
-     * from the CN field.
-     * <p/>
-     * (Or maybe the version of OpenSSL I'm using to test isn't storing the
-     * international characters correctly in the SubjectAlts?).
-     *
-     * @param cert X509Certificate
-     * @return Array of SubjectALT DNS names stored in the certificate.
-     */
-    public static String[] getDNSSubjectAlts(final X509Certificate cert) {
-        return getSubjectAlts(cert, null);
     }
 
     /**
