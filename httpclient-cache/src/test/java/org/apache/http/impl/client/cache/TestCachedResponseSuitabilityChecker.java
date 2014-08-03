@@ -274,4 +274,68 @@ public class TestCachedResponseSuitabilityChecker {
 
         Assert.assertTrue(impl.canCachedResponseBeUsed(host, headRequest, entry, now));
     }
+
+    @Test
+    public void testNotSuitableIfRequestMethodIsGETAndEntryResourceIsNull() {
+        final Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = HttpTestUtils.makeHeadCacheEntry(headers);
+
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+    }
+
+    @Test
+    public void testNotSuitableForGETIfHeadResponseCachingEnabledAndEntryDoesNotSpecifyARequestMethodOrEntity() {
+        impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().setAllowHeadResponseCaching(true).build());
+        final Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = HttpTestUtils.makeCacheEntryWithNoRequestMethodOrEntity(headers);
+
+        Assert.assertFalse(impl.canCachedResponseBeUsed(host, request, entry, now));
+    }
+
+    @Test
+    public void testSuitableForGETIfHeadResponseCachingEnabledAndEntryDoesNotSpecifyARequestMethodButContainsEntity() {
+        impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().setAllowHeadResponseCaching(true).build());
+        final Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = HttpTestUtils.makeCacheEntryWithNoRequestMethod(headers);
+
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+    }
+
+    @Test
+    public void testSuitableForGETIfHeadResponseCachingEnabledAndEntryDoesNotSpecifyARequestMethodButContains204Response() {
+        impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().setAllowHeadResponseCaching(true).build());
+        final Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600")
+        };
+        entry = HttpTestUtils.make204CacheEntryWithNoRequestMethod(headers);
+
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, request, entry, now));
+    }
+
+    @Test
+    public void testSuitableForHEADIfHeadResponseCachingEnabledAndEntryDoesNotSpecifyARequestMethod() {
+        final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo", HttpVersion.HTTP_1_1);
+        impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().setAllowHeadResponseCaching(true).build());
+        final Header[] headers = {
+                new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
+                new BasicHeader("Cache-Control", "max-age=3600"),
+                new BasicHeader("Content-Length","128")
+        };
+        entry = HttpTestUtils.makeHeadCacheEntryWithNoRequestMethod(headers);
+
+        Assert.assertTrue(impl.canCachedResponseBeUsed(host, headRequest, entry, now));
+    }
 }

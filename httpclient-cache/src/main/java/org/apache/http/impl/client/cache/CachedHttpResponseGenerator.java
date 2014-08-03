@@ -37,6 +37,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
@@ -64,19 +65,18 @@ class CachedHttpResponseGenerator {
     /**
      * If I was able to use a {@link CacheEntity} to response to the {@link org.apache.http.HttpRequest} then
      * generate an {@link HttpResponse} based on the cache entry.
-     * @param entry
-     *            {@link CacheEntity} to transform into an {@link HttpResponse}
+     * @param request {@link HttpRequestWrapper} to generate the response for
+     * @param entry {@link CacheEntity} to transform into an {@link HttpResponse}
      * @return {@link HttpResponse} that was constructed
      */
-    CloseableHttpResponse generateResponse(final HttpCacheEntry entry) {
-
+    CloseableHttpResponse generateResponse(final HttpRequestWrapper request, final HttpCacheEntry entry) {
         final Date now = new Date();
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, entry
                 .getStatusCode(), entry.getReasonPhrase());
 
         response.setHeaders(entry.getAllHeaders());
 
-        if (entry.getResource() != null) {
+        if (responseShouldContainEntity(request, entry)) {
             final HttpEntity entity = new CacheEntity(entry);
             addMissingContentLengthHeader(response, entity);
             response.setEntity(entity);
@@ -163,4 +163,10 @@ class CachedHttpResponseGenerator {
         final Header hdr = response.getFirstHeader(HTTP.TRANSFER_ENCODING);
         return hdr != null;
     }
+
+    private boolean responseShouldContainEntity(final HttpRequestWrapper request, final HttpCacheEntry cacheEntry) {
+        return request.getRequestLine().getMethod().equals(HeaderConstants.GET_METHOD) &&
+               cacheEntry.getResource() != null;
+    }
+
 }

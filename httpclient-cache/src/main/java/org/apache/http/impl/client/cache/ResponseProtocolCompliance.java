@@ -42,7 +42,6 @@ import org.apache.http.HttpVersion;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.cache.HeaderConstants;
-import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.BasicHeader;
@@ -89,36 +88,6 @@ class ResponseProtocolCompliance {
         identityIsNotUsedInContentEncoding(response);
 
         warningsWithNonMatchingWarnDatesAreRemoved(response);
-    }
-
-    /**
-     * When we retrieve a cache entry we ensure that the cached response is HTTP 1.1
-     * compliant in relation to the new request.
-     *
-     * @param request The {@link HttpRequest} that generated an origin hit and response
-     * @param cacheEntry The {@link HttpCacheEntry} from the cache
-     *
-     * @since 4.4
-     */
-    public HttpCacheEntry ensureProtocolCompliance(final HttpRequestWrapper request, final HttpCacheEntry cacheEntry) {
-        if (isHeadRequest(request) && cacheEntryHasResource(cacheEntry)) {
-            return new HttpCacheEntry(cacheEntry.getRequestDate(),
-                    cacheEntry.getResponseDate(),
-                    cacheEntry.getStatusLine(),
-                    cacheEntry.getAllHeaders(),
-                    null,
-                    cacheEntry.getVariantMap(),
-                    cacheEntry.getMethod());
-        }
-        return cacheEntry;
-    }
-
-    private boolean isHeadRequest(final HttpRequest request) {
-        return HeaderConstants.HEAD_METHOD.equals(request.getRequestLine().getMethod());
-    }
-
-    private boolean cacheEntryHasResource(final HttpCacheEntry cacheEntry) {
-        return cacheEntry.getResource() != null;
     }
 
     private void consumeBody(final HttpResponse response) throws IOException {

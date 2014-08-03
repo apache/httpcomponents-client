@@ -62,7 +62,7 @@ public class HttpCacheEntry implements Serializable {
     private final Resource resource;
     private final Map<String,String> variantMap;
     private final Date date;
-    private final String method;
+    private final String requestMethod;
 
     /**
      * Create a new {@link HttpCacheEntry} with variants.
@@ -81,7 +81,7 @@ public class HttpCacheEntry implements Serializable {
      *   of this parent entry; this maps a "variant key" (derived
      *   from the varying request headers) to a "cache key" (where
      *   in the cache storage the particular variant is located)
-     * @param method HTTP method used when the request was made
+     * @param requestMethod HTTP method used when the request was made
      */
     public HttpCacheEntry(
             final Date requestDate,
@@ -90,13 +90,12 @@ public class HttpCacheEntry implements Serializable {
             final Header[] responseHeaders,
             final Resource resource,
             final Map<String,String> variantMap,
-            final String method) {
+            final String requestMethod) {
         super();
         Args.notNull(requestDate, "Request date");
         Args.notNull(responseDate, "Response date");
         Args.notNull(statusLine, "Status line");
         Args.notNull(responseHeaders, "Response headers");
-        Args.notNull(method, "Request method");
         this.requestDate = requestDate;
         this.responseDate = responseDate;
         this.statusLine = statusLine;
@@ -107,7 +106,7 @@ public class HttpCacheEntry implements Serializable {
             ? new HashMap<String,String>(variantMap)
             : null;
         this.date = parseDate();
-        this.method = method;
+        this.requestMethod = requestMethod;
     }
 
     /**
@@ -124,12 +123,12 @@ public class HttpCacheEntry implements Serializable {
      * @param responseHeaders
      *          Header[] from original HTTP Response
      * @param resource representing origin response body
-     * @param method HTTP method used when the request was made
+     * @param requestMethod HTTP method used when the request was made
      */
     public HttpCacheEntry(final Date requestDate, final Date responseDate, final StatusLine statusLine,
-            final Header[] responseHeaders, final Resource resource, final String method) {
+            final Header[] responseHeaders, final Resource resource, final String requestMethod) {
         this(requestDate, responseDate, statusLine, responseHeaders, resource,
-                new HashMap<String,String>(), method);
+                new HashMap<String,String>(), requestMethod);
     }
 
     /**
@@ -262,8 +261,8 @@ public class HttpCacheEntry implements Serializable {
      *
      * @since 4.4
      */
-    public String getMethod() {
-        return method;
+    public String getRequestMethod() {
+        return requestMethod;
     }
 
     /**

@@ -322,13 +322,37 @@ public class HttpTestUtils {
         return makeCacheEntry(now, now);
     }
 
-    public static HttpCacheEntry makeHeadCacheEntry() {
+    public static HttpCacheEntry makeCacheEntryWithNoRequestMethodOrEntity(final Header[] headers) {
         final Date now = new Date();
-        return new HttpCacheEntry(now, now, makeStatusLine(), getStockHeaders(now), null, null, HeaderConstants.HEAD_METHOD);
+        return new HttpCacheEntry(now, now, makeStatusLine(), headers, null, null, null);
+    }
+
+    public static HttpCacheEntry makeCacheEntryWithNoRequestMethod(final Header[] headers) {
+        final Date now = new Date();
+        return new HttpCacheEntry(now, now, makeStatusLine(), headers, new HeapResource(getRandomBytes(128)), null, null);
+    }
+
+    public static HttpCacheEntry make204CacheEntryWithNoRequestMethod(final Header[] headers) {
+        final Date now = new Date();
+        return new HttpCacheEntry(now, now, make204StatusLine(), headers, null, null, HeaderConstants.HEAD_METHOD);
+    }
+
+    public static HttpCacheEntry makeHeadCacheEntry(final Header[] headers) {
+        final Date now = new Date();
+        return new HttpCacheEntry(now, now, makeStatusLine(), headers, null, null, HeaderConstants.HEAD_METHOD);
+    }
+
+    public static HttpCacheEntry makeHeadCacheEntryWithNoRequestMethod(final Header[] headers) {
+        final Date now = new Date();
+        return new HttpCacheEntry(now, now, makeStatusLine(), headers, null, null, null);
     }
 
     public static StatusLine makeStatusLine() {
         return new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+    }
+
+    public static StatusLine make204StatusLine() {
+        return new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "OK");
     }
 
     public static HttpResponse make200Response() {
@@ -364,6 +388,10 @@ public class HttpTestUtils {
 
     public static HttpRequest makeDefaultRequest() {
         return new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+    }
+
+    public static HttpRequest makeDefaultHEADRequest() {
+        return new BasicHttpRequest("HEAD","/",HttpVersion.HTTP_1_1);
     }
 
     public static HttpResponse make500Response() {

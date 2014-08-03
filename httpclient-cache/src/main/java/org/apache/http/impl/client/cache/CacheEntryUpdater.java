@@ -75,6 +75,7 @@ class CacheEntryUpdater {
      * @param requestDate When the request was performed
      * @param responseDate When the response was gotten
      * @param response The HttpResponse from the backend server call
+     * @param allowHeadResponseCaching Should the cache entry include the request method
      * @return HttpCacheEntry an updated version of the cache entry
      * @throws java.io.IOException if something bad happens while trying to read the body from the original entry
      */
@@ -83,7 +84,8 @@ class CacheEntryUpdater {
             final HttpCacheEntry entry,
             final Date requestDate,
             final Date responseDate,
-            final HttpResponse response) throws IOException {
+            final HttpResponse response,
+            final boolean allowHeadResponseCaching) throws IOException {
         Args.check(response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED,
                 "Response must have 304 status code");
         final Header[] mergedHeaders = mergeHeaders(entry, response);
@@ -97,7 +99,7 @@ class CacheEntryUpdater {
                 entry.getStatusLine(),
                 mergedHeaders,
                 resource,
-                entry.getMethod());
+                allowHeadResponseCaching ? entry.getRequestMethod() : null);
     }
 
     protected Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {

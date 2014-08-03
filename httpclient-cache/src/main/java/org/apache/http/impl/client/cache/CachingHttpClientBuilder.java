@@ -140,7 +140,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
 
         HttpCacheInvalidator cacheInvalidator = this.httpCacheInvalidator;
         if (cacheInvalidator == null) {
-            cacheInvalidator = new CacheInvalidator(uriExtractor, storageCopy);
+            cacheInvalidator = new CacheInvalidator(uriExtractor, storageCopy, config.isHeadResponseCachingEnabled());
         }
 
         return new CachingExec(mainExec,

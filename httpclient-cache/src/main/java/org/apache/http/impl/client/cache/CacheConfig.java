@@ -175,6 +175,7 @@ public class CacheConfig implements Cloneable {
     private int asynchronousWorkerIdleLifetimeSecs;
     private int revalidationQueueSize;
     private boolean neverCacheHTTP10ResponsesWithQuery;
+    private final boolean allowHeadResponseCaching;
 
     /**
      * @deprecated (4.3) use {@link Builder}.
@@ -195,6 +196,7 @@ public class CacheConfig implements Cloneable {
         this.asynchronousWorkersCore = DEFAULT_ASYNCHRONOUS_WORKERS_CORE;
         this.asynchronousWorkerIdleLifetimeSecs = DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS;
         this.revalidationQueueSize = DEFAULT_REVALIDATION_QUEUE_SIZE;
+        this.allowHeadResponseCaching = false;
     }
 
     CacheConfig(
@@ -211,7 +213,8 @@ public class CacheConfig implements Cloneable {
             final int asynchronousWorkersCore,
             final int asynchronousWorkerIdleLifetimeSecs,
             final int revalidationQueueSize,
-            final boolean neverCacheHTTP10ResponsesWithQuery) {
+            final boolean neverCacheHTTP10ResponsesWithQuery,
+            final boolean allowHeadResponseCaching) {
         super();
         this.maxObjectSize = maxObjectSize;
         this.maxCacheEntries = maxCacheEntries;
@@ -226,6 +229,7 @@ public class CacheConfig implements Cloneable {
         this.asynchronousWorkersCore = asynchronousWorkersCore;
         this.asynchronousWorkerIdleLifetimeSecs = asynchronousWorkerIdleLifetimeSecs;
         this.revalidationQueueSize = revalidationQueueSize;
+        this.allowHeadResponseCaching = allowHeadResponseCaching;
     }
 
     /**
@@ -501,6 +505,14 @@ public class CacheConfig implements Cloneable {
     }
 
     /**
+     * Returns whether HEAD response caching is enabled.
+     * @return {@code true} if it is enabled.
+     */
+    public boolean isHeadResponseCachingEnabled() {
+        return allowHeadResponseCaching;
+    }
+
+    /**
      * Sets the current maximum queue size for background revalidations.
      *
      * @deprecated (4.3) use {@link Builder}.
@@ -533,6 +545,7 @@ public class CacheConfig implements Cloneable {
             .setAsynchronousWorkersCore(config.getAsynchronousWorkersCore())
             .setAsynchronousWorkerIdleLifetimeSecs(config.getAsynchronousWorkerIdleLifetimeSecs())
             .setRevalidationQueueSize(config.getRevalidationQueueSize())
+            .setAllowHeadResponseCaching(config.isHeadResponseCachingEnabled())
             .setNeverCacheHTTP10ResponsesWithQueryString(config.isNeverCacheHTTP10ResponsesWithQuery());
     }
 
@@ -553,6 +566,7 @@ public class CacheConfig implements Cloneable {
         private int asynchronousWorkerIdleLifetimeSecs;
         private int revalidationQueueSize;
         private boolean neverCacheHTTP10ResponsesWithQuery;
+        private boolean allowHeadResponseCaching;
 
         Builder() {
             this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
@@ -568,6 +582,7 @@ public class CacheConfig implements Cloneable {
             this.asynchronousWorkersCore = DEFAULT_ASYNCHRONOUS_WORKERS_CORE;
             this.asynchronousWorkerIdleLifetimeSecs = DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS;
             this.revalidationQueueSize = DEFAULT_REVALIDATION_QUEUE_SIZE;
+            this.allowHeadResponseCaching = false;
         }
 
         /**
@@ -708,6 +723,17 @@ public class CacheConfig implements Cloneable {
         }
 
         /**
+         * Sets whether responses to HEAD requests should be cached or not.
+         * @param allowHeadResponseCaching should be {@code true} to
+         *   permit HEAD response caching, {@code false} to disable it.
+         * @param allowHeadResponseCaching
+         */
+        public Builder setAllowHeadResponseCaching(final boolean allowHeadResponseCaching) {
+            this.allowHeadResponseCaching = allowHeadResponseCaching;
+            return this;
+        }
+
+        /**
          * Sets whether the cache should never cache HTTP 1.0 responses with a query string or not.
          * @param neverCacheHTTP10ResponsesWithQuery true to never cache responses with a query
          * string, false to cache if explicit cache headers are found.  Set this to {@code true}
@@ -735,7 +761,8 @@ public class CacheConfig implements Cloneable {
                     asynchronousWorkersCore,
                     asynchronousWorkerIdleLifetimeSecs,
                     revalidationQueueSize,
-                    neverCacheHTTP10ResponsesWithQuery);
+                    neverCacheHTTP10ResponsesWithQuery,
+                    allowHeadResponseCaching);
         }
 
     }
@@ -757,6 +784,7 @@ public class CacheConfig implements Cloneable {
                 .append(", asynchronousWorkerIdleLifetimeSecs=").append(this.asynchronousWorkerIdleLifetimeSecs)
                 .append(", revalidationQueueSize=").append(this.revalidationQueueSize)
                 .append(", neverCacheHTTP10ResponsesWithQuery=").append(this.neverCacheHTTP10ResponsesWithQuery)
+                .append(", headResponseCachingEnabled=").append(this.allowHeadResponseCaching)
                 .append("]");
         return builder.toString();
     }

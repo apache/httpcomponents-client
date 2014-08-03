@@ -27,6 +27,7 @@
 package org.apache.http.impl.client.cache;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -306,15 +307,6 @@ public abstract class TestCachingExecChain {
             errors.add(error);
         }
         expect(mockRequestProtocolCompliance.requestIsFatallyNonCompliant(eqRequest(request)))
-            .andReturn(errors);
-    }
-
-    protected void requestIsFatallyNonCompliant(final RequestProtocolError error, final HttpRequestWrapper httpRequest) {
-        final List<RequestProtocolError> errors = new ArrayList<RequestProtocolError>();
-        if (error != null) {
-            errors.add(error);
-        }
-        expect(mockRequestProtocolCompliance.requestIsFatallyNonCompliant(eqRequest(httpRequest)))
             .andReturn(errors);
     }
 
@@ -1742,10 +1734,6 @@ public abstract class TestCachingExecChain {
         expect(mockCache.getCacheEntry(eq(host), eqRequest(request))).andReturn(result);
     }
 
-    protected void getCacheEntryReturns(final HttpCacheEntry result, final HttpRequestWrapper httpRequest) throws IOException {
-        expect(mockCache.getCacheEntry(eq(host), eqRequest(httpRequest))).andReturn(result);
-    }
-
     private void cacheInvalidatorWasCalled() throws IOException {
         mockCache
             .flushInvalidatedCacheEntriesFor((HttpHost) anyObject(), (HttpRequest) anyObject());
@@ -1777,7 +1765,7 @@ public abstract class TestCachingExecChain {
     }
 
     protected void requestPolicyAllowsCaching(final boolean allow) {
-        expect(mockRequestPolicy.isServableFromCache((HttpRequest) anyObject())).andReturn(allow);
+        expect(mockRequestPolicy.isServableFromCache((HttpRequest) anyObject(), anyBoolean())).andReturn(allow);
     }
 
     protected void cacheEntrySuitable(final boolean suitable) {
@@ -1794,8 +1782,9 @@ public abstract class TestCachingExecChain {
     }
 
     protected void responseIsGeneratedFromCache() {
-        expect(mockResponseGenerator.generateResponse((HttpCacheEntry) anyObject())).andReturn(
-            mockCachedResponse);
+        expect(
+            mockResponseGenerator.generateResponse((HttpRequestWrapper) anyObject(), (HttpCacheEntry) anyObject()))
+            .andReturn(mockCachedResponse);
     }
 
 }

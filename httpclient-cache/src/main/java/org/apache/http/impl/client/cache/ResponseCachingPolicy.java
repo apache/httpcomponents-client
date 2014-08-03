@@ -67,6 +67,8 @@ class ResponseCachingPolicy {
                 HttpStatus.SC_MOVED_PERMANENTLY,
                 HttpStatus.SC_GONE));
     private final Set<Integer> uncacheableStatuses;
+    private final boolean allowHeadResponseCaching;
+
     /**
      * Define a cache policy that limits the size of things that should be stored
      * in the cache to a maximum of {@link HttpResponse} bytes in size.
@@ -77,11 +79,13 @@ class ResponseCachingPolicy {
      * @param neverCache1_0ResponsesWithQueryString true to never cache HTTP 1.0 responses with a query string, false
      * to cache if explicit cache headers are found.
      * @param allow303Caching if this policy is permitted to cache 303 response
+     * @param allowHeadResponseCaching is HEAD response caching enabled
      */
     public ResponseCachingPolicy(final long maxObjectSizeBytes,
             final boolean sharedCache,
             final boolean neverCache1_0ResponsesWithQueryString,
-            final boolean allow303Caching) {
+            final boolean allow303Caching,
+            final boolean allowHeadResponseCaching) {
         this.maxObjectSizeBytes = maxObjectSizeBytes;
         this.sharedCache = sharedCache;
         this.neverCache1_0ResponsesWithQueryString = neverCache1_0ResponsesWithQueryString;
@@ -92,6 +96,7 @@ class ResponseCachingPolicy {
             uncacheableStatuses = new HashSet<Integer>(Arrays.asList(
                     HttpStatus.SC_PARTIAL_CONTENT, HttpStatus.SC_SEE_OTHER));
         }
+        this.allowHeadResponseCaching = allowHeadResponseCaching;
     }
 
     /**
@@ -104,7 +109,8 @@ class ResponseCachingPolicy {
     public boolean isResponseCacheable(final String httpMethod, final HttpResponse response) {
         boolean cacheable = false;
 
-        if (!(HeaderConstants.GET_METHOD.equals(httpMethod) || HeaderConstants.HEAD_METHOD.equals(httpMethod))) {
+        if (!(HeaderConstants.GET_METHOD.equals(httpMethod) ||
+                (allowHeadResponseCaching && HeaderConstants.HEAD_METHOD.equals(httpMethod)))) {
             log.debug("Response was not cacheable.");
             return false;
         }

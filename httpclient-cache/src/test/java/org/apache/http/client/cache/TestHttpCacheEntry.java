@@ -348,6 +348,6 @@ public class TestHttpCacheEntry {
                 new BasicHeader("bar", "barValue2")
         };
         entry = makeEntry(headers);
-        assertEquals(HeaderConstants.GET_METHOD, entry.getMethod());
+        assertEquals(HeaderConstants.GET_METHOD, entry.getRequestMethod());
     }
 }

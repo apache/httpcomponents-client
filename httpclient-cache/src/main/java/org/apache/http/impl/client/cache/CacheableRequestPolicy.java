@@ -49,11 +49,11 @@ class CacheableRequestPolicy {
     /**
      * Determines if an HttpRequest can be served from the cache.
      *
-     * @param request
-     *            an HttpRequest
+     * @param request an HttpRequest
+     * @param allowHeadResponseCaching is HEAD response caching enabled
      * @return boolean Is it possible to serve this request from cache
      */
-    public boolean isServableFromCache(final HttpRequest request) {
+    public boolean isServableFromCache(final HttpRequest request, final boolean allowHeadResponseCaching) {
         final String method = request.getRequestLine().getMethod();
 
         final ProtocolVersion pv = request.getRequestLine().getProtocolVersion();
@@ -62,7 +62,8 @@ class CacheableRequestPolicy {
             return false;
         }
 
-        if (!(method.equals(HeaderConstants.GET_METHOD) || method.equals(HeaderConstants.HEAD_METHOD))) {
+        if (!(method.equals(HeaderConstants.GET_METHOD) ||
+                (allowHeadResponseCaching && method.equals(HeaderConstants.HEAD_METHOD)))) {
             log.trace("non-GET or non-HEAD request was not serveable from cache");
             return false;
         }
