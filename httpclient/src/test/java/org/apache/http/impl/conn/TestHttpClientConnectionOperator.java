@@ -207,6 +207,38 @@ public class TestHttpClientConnectionOperator {
     }
 
     @Test
+    public void testConnectExplicitAddress() throws Exception {
+        final HttpContext context = new BasicHttpContext();
+        final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 0});
+        final InetAddress ip = InetAddress.getByAddress(new byte[] {127, 0, 0, 23});
+        final HttpHost host = new HttpHost(ip);
+
+        Mockito.when(socketFactoryRegistry.lookup("http")).thenReturn(plainSocketFactory);
+        Mockito.when(schemePortResolver.resolve(host)).thenReturn(80);
+        Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
+        Mockito.when(plainSocketFactory.connectSocket(
+                Mockito.anyInt(),
+                Mockito.<Socket>any(),
+                Mockito.<HttpHost>any(),
+                Mockito.<InetSocketAddress>any(),
+                Mockito.<InetSocketAddress>any(),
+                Mockito.<HttpContext>any())).thenReturn(socket);
+
+        final InetSocketAddress localAddress = new InetSocketAddress(local, 0);
+        connectionOperator.connect(conn, host, localAddress, 1000, SocketConfig.DEFAULT, context);
+
+        Mockito.verify(plainSocketFactory).connectSocket(
+                1000,
+                socket,
+                host,
+                new InetSocketAddress(ip, 80),
+                localAddress,
+                context);
+        Mockito.verify(dnsResolver, Mockito.never()).resolve(Mockito.anyString());
+        Mockito.verify(conn, Mockito.times(2)).bind(socket);
+    }
+
+    @Test
     public void testUpgrade() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final HttpHost host = new HttpHost("somehost", -1, "https");
