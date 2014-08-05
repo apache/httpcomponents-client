@@ -107,7 +107,8 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             throw new UnsupportedSchemeException(host.getSchemeName() +
                     " protocol is not supported");
         }
-        final InetAddress[] addresses = this.dnsResolver.resolve(host.getHostName());
+        final InetAddress[] addresses = host.getAddress() != null ?
+                new InetAddress[] { host.getAddress() } : this.dnsResolver.resolve(host.getHostName());
         final int port = this.schemePortResolver.resolve(host);
         for (int i = 0; i < addresses.length; i++) {
             final InetAddress address = addresses[i];
