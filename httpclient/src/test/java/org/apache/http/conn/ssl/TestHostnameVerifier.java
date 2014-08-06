@@ -357,16 +357,20 @@ public class TestHostnameVerifier {
         Assert.assertArrayEquals(new String[] {"blah, blah"}, AbstractCommonHostnameVerifier.extractCNs("cn=\"blah, blah\", ou=blah, o=blah"));
         Assert.assertArrayEquals(new String[] {"blah, blah"}, AbstractCommonHostnameVerifier.extractCNs("cn=blah\\, blah, ou=blah, o=blah"));
         Assert.assertArrayEquals(new String[] {"blah"}, AbstractCommonHostnameVerifier.extractCNs("c = cn=uuh, cn=blah, ou=blah, o=blah"));
-        Assert.assertArrayEquals(new String[] {""}, AbstractCommonHostnameVerifier.extractCNs("cn=   , ou=blah, o=blah"));
     }
 
     @Test(expected = SSLException.class)
-    public void testExtractCNInvalid1() throws Exception {
+    public void testExtractCNEmpty() throws Exception {
+        AbstractCommonHostnameVerifier.extractCNs("cn=   , ou=blah, o=blah");
+    }
+
+    @Test(expected = SSLException.class)
+    public void testExtractCNMissing() throws Exception {
         AbstractCommonHostnameVerifier.extractCNs("blah,blah");
     }
 
     @Test(expected = SSLException.class)
-    public void testExtractCNInvalid2() throws Exception {
+    public void testExtractCNNull() throws Exception {
         AbstractCommonHostnameVerifier.extractCNs("cn,o=blah");
     }
 

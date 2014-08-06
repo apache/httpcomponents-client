@@ -38,20 +38,15 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.NoSuchElementException;
 
-import javax.naming.InvalidNameException;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
 import javax.net.ssl.SSLException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.NameValuePair;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.util.InetAddressUtils;
+import org.apache.http.util.TextUtils;
 
 /**
  * Abstract base class for all standard {@link org.apache.http.conn.ssl.X509HostnameVerifier}
@@ -200,26 +195,17 @@ public abstract class AbstractCommonHostnameVerifier extends AbstractBaseHostnam
             return null;
         }
         final List<String> cns = new ArrayList<String>();
-        try {
-            final LdapName subjectDN = new LdapName(subjectPrincipal);
-            final List<Rdn> rdns = subjectDN.getRdns();
-            for (int i = rdns.size() - 1; i >= 0; i--) {
-                final Rdn rds = rdns.get(i);
-                final Attributes attributes = rds.toAttributes();
-                final Attribute cn = attributes.get("cn");
-                if (cn != null) {
-                    try {
-                        final Object value = cn.get();
-                        if (value != null) {
-                            cns.add(value.toString());
-                        }
-                    } catch (NoSuchElementException ignore) {
-                    } catch (NamingException ignore) {
-                    }
-                }
+        final List<NameValuePair> nvps = DistinguishedNameParser.INSTANCE.parse(subjectPrincipal);
+        for (int i = 0; i < nvps.size(); i++) {
+            final NameValuePair nvp = nvps.get(i);
+            final String attribName = nvp.getName();
+            final String attribValue = nvp.getValue();
+            if (TextUtils.isBlank(attribValue)) {
+                throw new SSLException(subjectPrincipal + " is not a valid X500 distinguished name");
             }
-        } catch (InvalidNameException e) {
-            throw new SSLException(subjectPrincipal + " is not a valid X500 distinguished name");
+            if (attribName.equalsIgnoreCase("cn")) {
+                cns.add(attribValue);
+            }
         }
         return cns.isEmpty() ? null : cns.toArray(new String[ cns.size() ]);
     }
