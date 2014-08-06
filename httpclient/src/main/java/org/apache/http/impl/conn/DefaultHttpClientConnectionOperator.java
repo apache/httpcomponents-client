@@ -28,6 +28,7 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.NoRouteToHostException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -149,6 +150,10 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                     } else {
                         throw new HttpHostConnectException(ex, host, addresses);
                     }
+                }
+            } catch (final NoRouteToHostException ex) {
+                if (last) {
+                    throw ex;
                 }
             }
             if (this.log.isDebugEnabled()) {
