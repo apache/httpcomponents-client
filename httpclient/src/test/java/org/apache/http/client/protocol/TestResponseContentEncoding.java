@@ -27,7 +27,6 @@
 package org.apache.http.client.protocol;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpVersion;
@@ -142,7 +141,7 @@ public class TestResponseContentEncoding {
         Assert.assertTrue(entity instanceof StringEntity);
     }
 
-    @Test(expected=HttpException.class)
+    @Test
     public void testUnknownContentEncoding() throws Exception {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         final StringEntity original = new StringEntity("encoded stuff");
@@ -152,6 +151,9 @@ public class TestResponseContentEncoding {
 
         final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
         interceptor.process(response, context);
+        final HttpEntity entity = response.getEntity();
+        Assert.assertNotNull(entity);
+        Assert.assertTrue(entity instanceof StringEntity);
     }
 
 }

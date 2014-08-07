@@ -95,7 +95,9 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
                         /* Don't need to transform the content - no-op */
                         return;
                     } else {
-                        throw new HttpException("Unsupported Content-Coding: " + codec.getName());
+                        // unknown encoding.  It SHOULD be one of the above, but it is not.  That is sub-optimal
+                        // but acceptable http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.5
+                        return;
                     }
                 }
                 if (uncompressed) {
