@@ -37,11 +37,13 @@ import org.apache.http.util.CharArrayBuffer;
  * to produce near zero intermediate garbage and make no intermediate copies of input data.
  * <p>
  * This class is immutable and thread safe.
+ *
+ * Temporary package-private copy of org.apache.http.message.TokenParser
  */
 class TokenParser {
 
     public static BitSet INIT_BITSET(final int ... b) {
-        final BitSet bitset = new BitSet(b.length);
+        final BitSet bitset = new BitSet();
         for (final int aB : b) {
             bitset.set(aB);
         }
@@ -49,16 +51,22 @@ class TokenParser {
     }
 
     /** US-ASCII CR, carriage return (13) */
-    public static final int CR = '\r';
+    public static final char CR = '\r';
 
     /** US-ASCII LF, line feed (10) */
-    public static final int LF = '\n';
+    public static final char LF = '\n';
 
     /** US-ASCII SP, space (32) */
-    public static final int SP = ' ';
+    public static final char SP = ' ';
 
     /** US-ASCII HT, horizontal-tab (9) */
-    public static final int HT = '\t';
+    public static final char HT = '\t';
+
+    /** Double quote */
+    public static final char DQUOTE = '\"';
+
+    /** Backward slash / escape character */
+    public static final char ESCAPE = '\\';
 
     public static boolean isWhitespace(final char ch) {
         return ch == SP || ch == HT || ch == CR || ch == LF;
@@ -67,10 +75,10 @@ class TokenParser {
     public static final TokenParser INSTANCE = new TokenParser();
 
     /**
-     * Extracts from the sequence of bytes a token terminated with any of the given delimiters
+     * Extracts from the sequence of chars a token terminated with any of the given delimiters
      * discarding semantically insignificant whitespace characters.
      *
-     * @param buf buffer with the sequence of bytes to be parsed
+     * @param buf buffer with the sequence of chars to be parsed
      * @param cursor defines the bounds and current position of the buffer
      * @param delimiters set of delimiting characters. Can be <code>null</code> if the token
      *  is not delimited by any character.
@@ -86,7 +94,7 @@ class TokenParser {
                 skipWhiteSpace(buf, cursor);
                 whitespace = true;
             } else {
-                if (dst.length() > 0 && whitespace) {
+                if (whitespace && dst.length() > 0) {
                     dst.append(' ');
                 }
                 copyContent(buf, cursor, delimiters, dst);
@@ -97,11 +105,11 @@ class TokenParser {
     }
 
     /**
-     * Extracts from the sequence of bytes a value which can be enclosed in quote marks and
+     * Extracts from the sequence of chars a value which can be enclosed in quote marks and
      * terminated with any of the given delimiters discarding semantically insignificant
      * whitespace characters.
      *
-     * @param buf buffer with the sequence of bytes to be parsed
+     * @param buf buffer with the sequence of chars to be parsed
      * @param cursor defines the bounds and current position of the buffer
      * @param delimiters set of delimiting characters. Can be <code>null</code> if the value
      *  is not delimited by any character.
@@ -116,14 +124,14 @@ class TokenParser {
             } else if (isWhitespace(current)) {
                 skipWhiteSpace(buf, cursor);
                 whitespace = true;
-            } else if (current == '\"') {
-                if (dst.length() > 0 && whitespace) {
+            } else if (current == DQUOTE) {
+                if (whitespace && dst.length() > 0) {
                     dst.append(' ');
                 }
                 copyQuotedContent(buf, cursor, dst);
                 whitespace = false;
             } else {
-                if (dst.length() > 0 && whitespace) {
+                if (whitespace && dst.length() > 0) {
                     dst.append(' ');
                 }
                 copyUnquotedContent(buf, cursor, delimiters, dst);
@@ -137,7 +145,7 @@ class TokenParser {
      * Skips semantically insignificant whitespace characters and moves the cursor to the closest
      * non-whitespace character.
      *
-     * @param buf buffer with the sequence of bytes to be parsed
+     * @param buf buffer with the sequence of chars to be parsed
      * @param cursor defines the bounds and current position of the buffer
      */
     public void skipWhiteSpace(final CharArrayBuffer buf, final ParserCursor cursor) {
@@ -159,7 +167,7 @@ class TokenParser {
      * Transfers content into the destination buffer until a whitespace character or any of
      * the given delimiters is encountered.
      *
-     * @param buf buffer with the sequence of bytes to be parsed
+     * @param buf buffer with the sequence of chars to be parsed
      * @param cursor defines the bounds and current position of the buffer
      * @param delimiters set of delimiting characters. Can be <code>null</code> if the value
      *  is delimited by a whitespace only.
@@ -186,7 +194,7 @@ class TokenParser {
      * Transfers content into the destination buffer until a whitespace character,  a quote,
      * or any of the given delimiters is encountered.
      *
-     * @param buf buffer with the sequence of bytes to be parsed
+     * @param buf buffer with the sequence of chars to be parsed
      * @param cursor defines the bounds and current position of the buffer
      * @param delimiters set of delimiting characters. Can be <code>null</code> if the value
      *  is delimited by a whitespace or a quote only.
@@ -200,7 +208,7 @@ class TokenParser {
         for (int i = indexFrom; i < indexTo; i++) {
             final char current = buf.charAt(i);
             if ((delimiters != null && delimiters.get(current))
-                    || isWhitespace(current) || current == '\"') {
+                    || isWhitespace(current) || current == DQUOTE) {
                 break;
             } else {
                 pos++;
@@ -213,7 +221,7 @@ class TokenParser {
     /**
      * Transfers content enclosed with quote marks into the destination buffer.
      *
-     * @param buf buffer with the sequence of bytes to be parsed
+     * @param buf buffer with the sequence of chars to be parsed
      * @param cursor defines the bounds and current position of the buffer
      * @param dst destination buffer
      */
@@ -226,7 +234,7 @@ class TokenParser {
         int indexFrom = cursor.getPos();
         final int indexTo = cursor.getUpperBound();
         char current = buf.charAt(pos);
-        if (current != '\"') {
+        if (current != DQUOTE) {
             return;
         }
         pos++;
@@ -235,19 +243,19 @@ class TokenParser {
         for (int i = indexFrom; i < indexTo; i++, pos++) {
             current = buf.charAt(i);
             if (escaped) {
-                if (current != '\"' && current != '\\') {
-                    dst.append('\\');
+                if (current != DQUOTE && current != ESCAPE) {
+                    dst.append(ESCAPE);
                 }
                 dst.append(current);
                 escaped = false;
             } else {
-                if (current == '\"') {
+                if (current == DQUOTE) {
                     pos++;
                     break;
                 }
-                if (current == '\\') {
+                if (current == ESCAPE) {
                     escaped = true;
-                } else if (current != '\r' && current != '\n') {
+                } else if (current != CR && current != LF) {
                     dst.append(current);
                 }
             }
