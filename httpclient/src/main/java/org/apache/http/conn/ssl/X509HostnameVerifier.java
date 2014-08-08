@@ -41,7 +41,10 @@ import javax.net.ssl.SSLSocket;
  * methods added by X509HostnameVerifier.
  *
  * @since 4.0
+ *
+ * @deprecated (4.4) Use {@link javax.net.ssl.HostnameVerifier}.
  */
+@Deprecated
 public interface X509HostnameVerifier extends HostnameVerifier {
 
     /**

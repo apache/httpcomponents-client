@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
@@ -158,7 +159,7 @@ import org.apache.http.util.VersionInfo;
 public class HttpClientBuilder {
 
     private HttpRequestExecutor requestExec;
-    private X509HostnameVerifier hostnameVerifier;
+    private HostnameVerifier hostnameVerifier;
     private LayeredConnectionSocketFactory sslSocketFactory;
     private SSLContext sslcontext;
     private HttpClientConnectionManager connManager;
@@ -232,8 +233,25 @@ public class HttpClientBuilder {
      * Please note this value can be overridden by the {@link #setConnectionManager(
      *   org.apache.http.conn.HttpClientConnectionManager)} and the {@link #setSSLSocketFactory(
      *   org.apache.http.conn.socket.LayeredConnectionSocketFactory)} methods.
+     *
+     *   @deprecated (4.4)
      */
+    @Deprecated
     public final HttpClientBuilder setHostnameVerifier(final X509HostnameVerifier hostnameVerifier) {
+        this.hostnameVerifier = hostnameVerifier;
+        return this;
+    }
+
+    /**
+     * Assigns {@link javax.net.ssl.HostnameVerifier} instance.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setConnectionManager(
+     *   org.apache.http.conn.HttpClientConnectionManager)} and the {@link #setSSLSocketFactory(
+     *   org.apache.http.conn.socket.LayeredConnectionSocketFactory)} methods.
+     *
+     *   @since 4.4
+     */
+    public final HttpClientBuilder setSSLHostnameVerifier(final HostnameVerifier hostnameVerifier) {
         this.hostnameVerifier = hostnameVerifier;
         return this;
     }
@@ -780,9 +798,9 @@ public class HttpClientBuilder {
                         System.getProperty("https.protocols")) : null;
                 final String[] supportedCipherSuites = systemProperties ? split(
                         System.getProperty("https.cipherSuites")) : null;
-                X509HostnameVerifier hostnameVerifierCopy = this.hostnameVerifier;
+                HostnameVerifier hostnameVerifierCopy = this.hostnameVerifier;
                 if (hostnameVerifierCopy == null) {
-                    hostnameVerifierCopy = SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
+                    hostnameVerifierCopy = SSLConnectionSocketFactory.getDefaultHostnameVerifier();
                 }
                 if (sslcontext != null) {
                     sslSocketFactoryCopy = new SSLConnectionSocketFactory(

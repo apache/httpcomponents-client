@@ -35,8 +35,8 @@ import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -67,26 +67,14 @@ public class TestSSLSocketFactory {
         }
     }
 
-    static class TestX509HostnameVerifier implements X509HostnameVerifier {
+    static class TestX509HostnameVerifier implements HostnameVerifier {
 
         private boolean fired = false;
 
         @Override
         public boolean verify(final String host, final SSLSession session) {
-            return true;
-        }
-
-        @Override
-        public void verify(final String host, final SSLSocket ssl) throws IOException {
             this.fired = true;
-        }
-
-        @Override
-        public void verify(final String host, final String[] cns, final String[] subjectAlts) throws SSLException {
-        }
-
-        @Override
-        public void verify(final String host, final X509Certificate cert) throws SSLException {
+            return true;
         }
 
         public boolean isFired() {
@@ -227,7 +215,7 @@ public class TestSSLSocketFactory {
         final SSLContext defaultsslcontext = SSLContexts.createDefault();
 
         final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(defaultsslcontext,
-                SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+                NoopHostnameVerifier.INSTANCE);
 
         final Socket socket = socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
@@ -260,21 +248,13 @@ public class TestSSLSocketFactory {
             .build();
         final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
                 sslcontext,
-                SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+                NoopHostnameVerifier.INSTANCE);
 
         final Socket socket = socketFactory.createSocket(context);
         final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
         final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
         final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, target, remoteAddress, null, context);
         sslSocket.close();
-    }
-
-    @Test
-    public void testDefaultHostnameVerifier() throws Exception {
-        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
-                SSLContexts.createDefault(),
-                null);
-        Assert.assertNotNull(socketFactory.getHostnameVerifier());
     }
 
 }

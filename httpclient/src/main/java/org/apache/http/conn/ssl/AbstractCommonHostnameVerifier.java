@@ -29,6 +29,7 @@ package org.apache.http.conn.ssl;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -46,7 +47,9 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -54,7 +57,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.util.InetAddressUtils;
 
 /**
- * Abstract base class for all standard {@link org.apache.http.conn.ssl.X509HostnameVerifier}
+ * Abstract base class for all standard {@link javax.net.ssl.HostnameVerifier}
  * implementations that provides methods to extract Common Name (CN) and alternative subjects
  * (subjectAlt) from {@link java.security.cert.X509Certificate} being validated as well
  * as {@link #verify(String, String[], String[], boolean)} method that implements common
@@ -63,7 +66,7 @@ import org.apache.http.conn.util.InetAddressUtils;
  * @since 4.4
  */
 @Immutable
-public abstract class AbstractCommonHostnameVerifier extends AbstractBaseHostnameVerifier {
+public abstract class AbstractCommonHostnameVerifier implements HostnameVerifier {
 
     /**
      * This contains a list of 2nd-level domains that aren't allowed to
@@ -87,13 +90,29 @@ public abstract class AbstractCommonHostnameVerifier extends AbstractBaseHostnam
     private final Log log = LogFactory.getLog(getClass());
 
     @Override
-    public final void verify(final String host, final X509Certificate cert)
-          throws SSLException {
+    public final boolean verify(final String host, final SSLSession session) {
+        try {
+            final Certificate[] certs = session.getPeerCertificates();
+            final X509Certificate x509 = (X509Certificate) certs[0];
+            verify(host, x509);
+            return true;
+        } catch(final SSLException ex) {
+            if (log.isDebugEnabled()) {
+                log.debug(ex.getMessage(), ex);
+            }
+            return false;
+        }
+    }
+
+    public final void verify(
+            final String host, final X509Certificate cert) throws SSLException {
         final String subjectPrincipal = cert.getSubjectX500Principal().toString();
         final String[] cns = extractCNs(subjectPrincipal);
         final String[] subjectAlts = extractSubjectAlts(cert, host);
         verify(host, cns, subjectAlts);
     }
+
+    public abstract void verify(String host, String[] cns, String[] subjectAlts) throws SSLException;
 
     public final void verify(final String host, final String[] cns,
                              final String[] subjectAlts,

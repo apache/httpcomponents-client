@@ -27,19 +27,28 @@
 
 package org.apache.http.conn.ssl;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+
+import javax.net.SocketFactory;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.security.auth.x500.X500Principal;
+
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.TextUtils;
-
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 
 /**
  * Layered socket factory for TLS/SSL connections.
@@ -121,14 +130,24 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
     public static final String SSL   = "SSL";
     public static final String SSLV2 = "SSLv2";
 
+    @Deprecated
     public static final X509HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER
         = AllowAllHostnameVerifier.INSTANCE;
 
+    @Deprecated
     public static final X509HostnameVerifier BROWSER_COMPATIBLE_HOSTNAME_VERIFIER
         = BrowserCompatHostnameVerifier.INSTANCE;
 
+    @Deprecated
     public static final X509HostnameVerifier STRICT_HOSTNAME_VERIFIER
         = StrictHostnameVerifier.INSTANCE;
+
+    /**
+     * @since 4.4
+     */
+    public static HostnameVerifier getDefaultHostnameVerifier() {
+        return BrowserCompatHostnameVerifier.INSTANCE;
+    }
 
     /**
      * Obtains default SSL socket factory with an SSL context based on the standard JSSE
@@ -138,9 +157,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      * @return default SSL socket factory
      */
     public static SSLConnectionSocketFactory getSocketFactory() throws SSLInitializationException {
-        return new SSLConnectionSocketFactory(
-            SSLContexts.createDefault(),
-            BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
+        return new SSLConnectionSocketFactory(SSLContexts.createDefault(), getDefaultHostnameVerifier());
     }
 
     private static String[] split(final String s) {
@@ -164,24 +181,34 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             (javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault(),
             split(System.getProperty("https.protocols")),
             split(System.getProperty("https.cipherSuites")),
-            BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
+            getDefaultHostnameVerifier());
     }
 
     private final javax.net.ssl.SSLSocketFactory socketfactory;
-    private final X509HostnameVerifier hostnameVerifier;
+    private final HostnameVerifier hostnameVerifier;
     private final String[] supportedProtocols;
     private final String[] supportedCipherSuites;
 
     public SSLConnectionSocketFactory(final SSLContext sslContext) {
-        this(sslContext, BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
+        this(sslContext, getDefaultHostnameVerifier());
     }
 
+    /**
+     * @deprecated (4.4) Use {@link #SSLConnectionSocketFactory(javax.net.ssl.SSLContext,
+     *   javax.net.ssl.HostnameVerifier)}
+     */
+    @Deprecated
     public SSLConnectionSocketFactory(
             final SSLContext sslContext, final X509HostnameVerifier hostnameVerifier) {
         this(Args.notNull(sslContext, "SSL context").getSocketFactory(),
                 null, null, hostnameVerifier);
     }
 
+    /**
+     * @deprecated (4.4) Use {@link #SSLConnectionSocketFactory(javax.net.ssl.SSLContext,
+     *   String[], String[], javax.net.ssl.HostnameVerifier)}
+     */
+    @Deprecated
     public SSLConnectionSocketFactory(
             final SSLContext sslContext,
             final String[] supportedProtocols,
@@ -191,21 +218,72 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                 supportedProtocols, supportedCipherSuites, hostnameVerifier);
     }
 
+    /**
+     * @deprecated (4.4) Use {@link #SSLConnectionSocketFactory(javax.net.ssl.SSLSocketFactory,
+     *   javax.net.ssl.HostnameVerifier)}
+     */
+    @Deprecated
     public SSLConnectionSocketFactory(
             final javax.net.ssl.SSLSocketFactory socketfactory,
             final X509HostnameVerifier hostnameVerifier) {
         this(socketfactory, null, null, hostnameVerifier);
     }
 
+    /**
+     * @deprecated (4.4) Use {@link #SSLConnectionSocketFactory(javax.net.ssl.SSLSocketFactory,
+     *   String[], String[], javax.net.ssl.HostnameVerifier)}
+     */
+    @Deprecated
     public SSLConnectionSocketFactory(
             final javax.net.ssl.SSLSocketFactory socketfactory,
             final String[] supportedProtocols,
             final String[] supportedCipherSuites,
             final X509HostnameVerifier hostnameVerifier) {
+        this(socketfactory, supportedProtocols, supportedCipherSuites, (HostnameVerifier) hostnameVerifier);
+    }
+
+    /**
+     * @since 4.4
+     */
+    public SSLConnectionSocketFactory(
+            final SSLContext sslContext, final HostnameVerifier hostnameVerifier) {
+        this(Args.notNull(sslContext, "SSL context").getSocketFactory(),
+                null, null, hostnameVerifier);
+    }
+
+    /**
+     * @since 4.4
+     */
+    public SSLConnectionSocketFactory(
+            final SSLContext sslContext,
+            final String[] supportedProtocols,
+            final String[] supportedCipherSuites,
+            final HostnameVerifier hostnameVerifier) {
+        this(Args.notNull(sslContext, "SSL context").getSocketFactory(),
+                supportedProtocols, supportedCipherSuites, hostnameVerifier);
+    }
+
+    /**
+     * @since 4.4
+     */
+    public SSLConnectionSocketFactory(
+            final javax.net.ssl.SSLSocketFactory socketfactory,
+            final HostnameVerifier hostnameVerifier) {
+        this(socketfactory, null, null, hostnameVerifier);
+    }
+
+    /**
+     * @since 4.4
+     */
+    public SSLConnectionSocketFactory(
+            final javax.net.ssl.SSLSocketFactory socketfactory,
+            final String[] supportedProtocols,
+            final String[] supportedCipherSuites,
+            final HostnameVerifier hostnameVerifier) {
         this.socketfactory = Args.notNull(socketfactory, "SSL socket factory");
         this.supportedProtocols = supportedProtocols;
         this.supportedCipherSuites = supportedCipherSuites;
-        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
+        this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : getDefaultHostnameVerifier();
     }
 
     /**
@@ -281,13 +359,35 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         return sslsock;
     }
 
-    X509HostnameVerifier getHostnameVerifier() {
-        return this.hostnameVerifier;
-    }
-
     private void verifyHostname(final SSLSocket sslsock, final String hostname) throws IOException {
         try {
-            this.hostnameVerifier.verify(hostname, sslsock);
+            SSLSession session = sslsock.getSession();
+            if (session == null) {
+                // In our experience this only happens under IBM 1.4.x when
+                // spurious (unrelated) certificates show up in the server'
+                // chain.  Hopefully this will unearth the real problem:
+                final InputStream in = sslsock.getInputStream();
+                in.available();
+                // If ssl.getInputStream().available() didn't cause an
+                // exception, maybe at least now the session is available?
+                session = sslsock.getSession();
+                if (session == null) {
+                    // If it's still null, probably a startHandshake() will
+                    // unearth the real problem.
+                    sslsock.startHandshake();
+                    session = sslsock.getSession();
+                }
+            }
+            if (session == null) {
+                throw new SSLHandshakeException("SSL session not available");
+            }
+            if (!this.hostnameVerifier.verify(hostname, session)) {
+                final Certificate[] certs = session.getPeerCertificates();
+                final X509Certificate x509 = (X509Certificate) certs[0];
+                final X500Principal x500Principal = x509.getSubjectX500Principal();
+                throw new SSLPeerUnverifiedException("Host name '" + hostname + "' does not match " +
+                        "the certificate subject provided by the peer (" + x500Principal.toString() + ")");
+            }
             // verifyHostName() didn't blowup - good!
         } catch (final IOException iox) {
             // close the socket before re-throwing the exception

@@ -27,9 +27,16 @@
 
 package org.apache.http.conn.ssl;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+
+import org.apache.http.util.Args;
 
 /**
  * Abstract base class for all standard {@link X509HostnameVerifier}
@@ -37,11 +44,57 @@ import javax.net.ssl.SSLException;
  *
  * @since 4.0
  *
- * @deprecated (4.4) use {@link AbstractBaseHostnameVerifier} or
- *  {@link org.apache.http.conn.ssl.AbstractCommonHostnameVerifier}
+ * @deprecated (4.4) use {@link javax.net.ssl.HostnameVerifier} or
+ *  {@link org.apache.http.conn.ssl.AbstractCommonHostnameVerifier}.
  */
 @Deprecated
-public abstract class AbstractVerifier extends AbstractCommonHostnameVerifier {
+public abstract class AbstractVerifier extends AbstractCommonHostnameVerifier implements X509HostnameVerifier {
+
+    @Override
+    public final void verify(final String host, final SSLSocket ssl)
+            throws IOException {
+        Args.notNull(host, "Host");
+        SSLSession session = ssl.getSession();
+        if(session == null) {
+            // In our experience this only happens under IBM 1.4.x when
+            // spurious (unrelated) certificates show up in the server'
+            // chain.  Hopefully this will unearth the real problem:
+            final InputStream in = ssl.getInputStream();
+            in.available();
+            /*
+              If you're looking at the 2 lines of code above because
+              you're running into a problem, you probably have two
+              options:
+
+                #1.  Clean up the certificate chain that your server
+                     is presenting (e.g. edit "/etc/apache2/server.crt"
+                     or wherever it is your server's certificate chain
+                     is defined).
+
+                                           OR
+
+                #2.   Upgrade to an IBM 1.5.x or greater JVM, or switch
+                      to a non-IBM JVM.
+            */
+
+            // If ssl.getInputStream().available() didn't cause an
+            // exception, maybe at least now the session is available?
+            session = ssl.getSession();
+            if(session == null) {
+                // If it's still null, probably a startHandshake() will
+                // unearth the real problem.
+                ssl.startHandshake();
+
+                // Okay, if we still haven't managed to cause an exception,
+                // might as well go for the NPE.  Or maybe we're okay now?
+                session = ssl.getSession();
+            }
+        }
+
+        final Certificate[] certs = session.getPeerCertificates();
+        final X509Certificate x509 = (X509Certificate) certs[0];
+        verify(host, x509);
+    }
 
     public static String[] getCNs(final X509Certificate cert) {
         final String subjectPrincipal = cert.getSubjectX500Principal().toString();
