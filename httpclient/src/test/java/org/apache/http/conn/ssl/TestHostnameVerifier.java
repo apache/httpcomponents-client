@@ -360,11 +360,6 @@ public class TestHostnameVerifier {
     }
 
     @Test(expected = SSLException.class)
-    public void testExtractCNEmpty() throws Exception {
-        AbstractCommonHostnameVerifier.extractCNs("cn=   , ou=blah, o=blah");
-    }
-
-    @Test(expected = SSLException.class)
     public void testExtractCNMissing() throws Exception {
         AbstractCommonHostnameVerifier.extractCNs("blah,blah");
     }
