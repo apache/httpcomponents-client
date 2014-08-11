@@ -132,6 +132,25 @@ public class TestCookieNetscapeDraft {
         }
     }
 
+    @Test
+    public void testParseVersionIgnored() throws Exception {
+        final Header header = new BasicHeader("Set-Cookie", "name1=value1;Path=/path/;Version=1;");
+
+        final CookieSpec cookiespec = new NetscapeDraftSpec();
+        final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        for (int i = 0; i < cookies.size(); i++) {
+            cookiespec.validate(cookies.get(i), origin);
+        }
+        Assert.assertEquals("Found 1 cookies.",1,cookies.size());
+        final Cookie cookie = cookies.get(0);
+        Assert.assertEquals("Name","name1", cookie.getName());
+        Assert.assertEquals("Value", "value1", cookie.getValue());
+        Assert.assertEquals("Domain", "host", cookie.getDomain());
+        Assert.assertEquals("Path","/path/", cookie.getPath());
+        Assert.assertEquals(0, cookie.getVersion());
+    }
+
     /**
      * Tests Netscape specific cookie formatting.
      */
