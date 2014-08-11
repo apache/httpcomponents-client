@@ -43,6 +43,7 @@ import org.apache.http.util.EntityUtils;
 /**
  * @since 4.3
  */
+@Deprecated
 @NotThreadSafe
 class CloseableHttpResponseProxy implements InvocationHandler {
 
