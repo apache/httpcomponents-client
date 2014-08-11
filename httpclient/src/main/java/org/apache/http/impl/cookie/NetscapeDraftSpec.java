@@ -69,7 +69,6 @@ public class NetscapeDraftSpec extends CookieSpecBase {
         }
         registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler());
         registerAttribHandler(ClientCookie.DOMAIN_ATTR, new NetscapeDomainHandler());
-        registerAttribHandler(ClientCookie.MAX_AGE_ATTR, new BasicMaxAgeHandler());
         registerAttribHandler(ClientCookie.SECURE_ATTR, new BasicSecureHandler());
         registerAttribHandler(ClientCookie.COMMENT_ATTR, new BasicCommentHandler());
         registerAttribHandler(ClientCookie.EXPIRES_ATTR, new BasicExpiresHandler(

@@ -459,7 +459,7 @@ public class TestBrowserCompatSpec {
         Assert.assertTrue("Secure",cookies.get(0).isSecure());
         Assert.assertEquals(new Date(10000L),cookies.get(0).getExpiryDate());
         Assert.assertEquals("Comment","This is a comment.",cookies.get(0).getComment());
-        Assert.assertEquals("Version",1,cookies.get(0).getVersion());
+        Assert.assertEquals("Version",0,cookies.get(0).getVersion());
     }
 
     @Test
