@@ -28,6 +28,7 @@
 package org.apache.http.impl.client;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -44,6 +45,17 @@ import org.apache.http.util.EntityUtils;
  */
 @NotThreadSafe
 class CloseableHttpResponseProxy implements InvocationHandler {
+
+    private final static Constructor<?> CONSTRUCTOR;
+
+    static {
+        try {
+            CONSTRUCTOR = Proxy.getProxyClass(CloseableHttpResponseProxy.class.getClassLoader(),
+                    new Class<?>[] { CloseableHttpResponse.class }).getConstructor(new Class[] { InvocationHandler.class });
+        } catch (NoSuchMethodException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
 
     private final HttpResponse original;
 
@@ -78,10 +90,15 @@ class CloseableHttpResponseProxy implements InvocationHandler {
     }
 
     public static CloseableHttpResponse newProxy(final HttpResponse original) {
-        return (CloseableHttpResponse) Proxy.newProxyInstance(
-                CloseableHttpResponseProxy.class.getClassLoader(),
-                new Class<?>[] { CloseableHttpResponse.class },
-                new CloseableHttpResponseProxy(original));
+        try {
+            return (CloseableHttpResponse) CONSTRUCTOR.newInstance(new CloseableHttpResponseProxy(original));
+        } catch (InstantiationException ex) {
+            throw new IllegalStateException(ex);
+        } catch (InvocationTargetException ex) {
+            throw new IllegalStateException(ex);
+        } catch (IllegalAccessException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
 
 }
