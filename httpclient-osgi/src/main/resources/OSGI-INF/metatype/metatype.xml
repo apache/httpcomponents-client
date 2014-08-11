@@ -44,7 +44,7 @@
 
     <AD id="proxy.port"
       type="Integer"
-      default=""
+      default="8080"
       name="%proxy.port.name"
       description="%proxy.port.description" />
 
