@@ -52,6 +52,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpTrace;
@@ -92,6 +93,14 @@ public class Request {
 
     public static Request Post(final String uri) {
         return new Request(new InternalEntityEnclosingHttpRequest(HttpPost.METHOD_NAME, URI.create(uri)));
+    }
+
+    public static Request Patch(final URI uri) {
+        return new Request(new InternalEntityEnclosingHttpRequest(HttpPatch.METHOD_NAME, uri));
+    }
+
+    public static Request Patch(final String uri) {
+        return new Request(new InternalEntityEnclosingHttpRequest(HttpPatch.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Put(final URI uri) {
