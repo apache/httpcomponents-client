@@ -1,3 +1,12 @@
+Changes isnce 4.4 ALPHA1
+-------------------
+
+* [HTTPCLIENT-1540] Support delegated credentials (ISC_REQ_DELEGATE) by Native windows
+  Negotiate/NTLM auth schemes.
+  Contributed by Ka-Lok Fung <ka-lok.fung at sap.com>
+
+
+
 Release 4.4 ALPHA1
 -------------------
 
