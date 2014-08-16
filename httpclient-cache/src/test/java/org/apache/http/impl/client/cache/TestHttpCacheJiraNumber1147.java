@@ -93,6 +93,8 @@ public class TestHttpCacheJiraNumber1147 {
         final HttpHost target = new HttpHost("somehost");
         final HttpRoute route = new HttpRoute(target);
 
+        context.setTargetHost(target);
+
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
