@@ -137,10 +137,12 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
         buf.append(cookie.getName());
         buf.append("=\"");
         String v = cookie.getValue();
-        if (v.length() > 100) {
-            v = v.substring(0, 100) + "...";
+        if (v != null) {
+            if (v.length() > 100) {
+                v = v.substring(0, 100) + "...";
+            }
+            buf.append(v);
         }
-        buf.append(v);
         buf.append("\"");
         buf.append(", version:");
         buf.append(Integer.toString(cookie.getVersion()));
