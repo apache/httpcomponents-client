@@ -27,6 +27,8 @@
 package org.apache.http.impl.client.cache;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +46,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
+import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
 import org.apache.http.annotation.ThreadSafe;
@@ -58,6 +61,7 @@ import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.DateUtils;
+import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.message.BasicHttpResponse;
@@ -738,6 +742,14 @@ public class CachingExec implements ClientExecChain {
             final HttpCacheEntry cacheEntry) throws IOException, HttpException {
 
         final HttpRequestWrapper conditionalRequest = conditionalRequestBuilder.buildConditionalRequest(request, cacheEntry);
+        final URI uri = conditionalRequest.getURI();
+        if (uri != null) {
+            try {
+                request.setURI(URIUtils.rewriteURIForRoute(uri, route));
+            } catch (final URISyntaxException ex) {
+                throw new ProtocolException("Invalid URI: " + uri, ex);
+            }
+        }
 
         Date requestDate = getCurrentDate();
         CloseableHttpResponse backendResponse = backend.execute(

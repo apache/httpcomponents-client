@@ -30,6 +30,7 @@ import java.net.URI;
 import java.util.Arrays;
 
 import org.apache.http.HttpHost;
+import org.apache.http.conn.routing.HttpRoute;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -98,6 +99,34 @@ public class TestURIUtils {
         final HttpHost target = new HttpHost("thathost", -1, "file"); // scheme should be copied
         Assert.assertEquals("file://thathost/stuff", URIUtils.rewriteURI(
                 URI.create("http://thishost:80/stuff#crap"), target, true).toString());
+    }
+
+    @Test
+    public void testRewriteForRoute() throws Exception {
+
+        final HttpHost target1 = new HttpHost("foo", 80);
+        final HttpHost target2 = new HttpHost("foo", 443, "https");
+        final HttpHost proxy = new HttpHost("bar", 8888);
+
+        // Direct route
+        Assert.assertEquals(new URI("/test"), URIUtils
+                .rewriteURIForRoute(new URI("http://foo/test"), new HttpRoute(target1)));
+
+        // Direct route
+        Assert.assertEquals(new URI("/"), URIUtils
+                .rewriteURIForRoute(new URI(""), new HttpRoute(target1)));
+
+        // Via proxy
+        Assert.assertEquals(new URI("http://foo/test"), URIUtils
+                .rewriteURIForRoute(new URI("http://foo/test"), new HttpRoute(target1, proxy)));
+
+        // Via proxy
+        Assert.assertEquals(new URI("http://foo:80/test"), URIUtils
+                .rewriteURIForRoute(new URI("/test"), new HttpRoute(target1, proxy)));
+
+        // Via proxy tunnel
+        Assert.assertEquals(new URI("/test"), URIUtils
+                .rewriteURIForRoute(new URI("https://foo:443/test"), new HttpRoute(target2, null, proxy, true)));
     }
 
     @Test

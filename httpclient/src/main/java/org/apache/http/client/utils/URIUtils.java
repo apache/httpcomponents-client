@@ -34,6 +34,7 @@ import java.util.Stack;
 
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.util.Args;
 import org.apache.http.util.TextUtils;
 
@@ -193,6 +194,39 @@ public class URIUtils {
         }
         uribuilder.setFragment(null);
         return uribuilder.build();
+    }
+
+    /**
+     * A convenience method that optionally converts the original {@link java.net.URI} either
+     * to a relative or an absolute form as required by the specified route.
+     *
+     * @param uri
+     *            original URI.
+     * @throws URISyntaxException
+     *             If the resulting URI is invalid.
+     *
+     * @since 4.4
+     */
+    public static URI rewriteURIForRoute(final URI uri, final RouteInfo route) throws URISyntaxException {
+        if (uri == null) {
+            return null;
+        }
+        if (route.getProxyHost() != null && !route.isTunnelled()) {
+            // Make sure the request URI is absolute
+            if (!uri.isAbsolute()) {
+                final HttpHost target = route.getTargetHost();
+                return rewriteURI(uri, target, true);
+            } else {
+                return rewriteURI(uri);
+            }
+        } else {
+            // Make sure the request URI is relative
+            if (uri.isAbsolute()) {
+                return rewriteURI(uri, null, true);
+            } else {
+                return rewriteURI(uri);
+            }
+        }
     }
 
     /**

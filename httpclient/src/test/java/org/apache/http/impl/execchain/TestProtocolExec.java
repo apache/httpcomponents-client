@@ -26,6 +26,9 @@
  */
 package org.apache.http.impl.execchain;
 
+import java.io.IOException;
+import java.net.URI;
+
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -46,9 +49,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import java.io.IOException;
-import java.net.URI;
 
 @SuppressWarnings({"static-access"}) // test code
 public class TestProtocolExec {
