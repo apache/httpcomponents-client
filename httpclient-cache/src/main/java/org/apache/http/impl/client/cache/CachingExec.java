@@ -741,7 +741,7 @@ public class CachingExec implements ClientExecChain {
         final URI uri = conditionalRequest.getURI();
         if (uri != null) {
             try {
-                request.setURI(InternalURIUtils.rewriteURIForRoute(uri, route));
+                conditionalRequest.setURI(InternalURIUtils.rewriteURIForRoute(uri, route));
             } catch (final URISyntaxException ex) {
                 throw new ProtocolException("Invalid URI: " + uri, ex);
             }
