@@ -53,6 +53,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.DateUtils;
@@ -302,6 +303,36 @@ public class TestCachingExec extends TestCachingExecChain {
             .andReturn(updatedEntry);
         expect(mockSuitabilityChecker.isConditional(request)).andReturn(false);
         responseIsGeneratedFromCache();
+
+        replayMocks();
+        impl.revalidateCacheEntry(route, request, context, null, entry);
+        verifyMocks();
+    }
+
+    @Test
+    public void testRevalidationRewritesAbsoluteUri() throws Exception {
+
+        mockImplMethods(GET_CURRENT_DATE);
+
+        // Fail on an unexpected request, rather than causing a later NPE
+        EasyMock.resetToStrict(mockBackend);
+
+        final HttpRequestWrapper validate = HttpRequestWrapper.wrap(
+                new HttpGet("http://foo.example.com/resource"));
+        final HttpRequestWrapper relativeValidate = HttpRequestWrapper.wrap(
+                new BasicHttpRequest("GET", "/resource", HttpVersion.HTTP_1_1));
+        final CloseableHttpResponse originResponse = Proxies.enhanceResponse(
+            new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "Okay"));
+
+        conditionalRequestBuilderReturns(validate);
+        getCurrentDateReturns(requestDate);
+
+        final CloseableHttpResponse resp = mockBackend.execute(EasyMock.isA(HttpRoute.class),
+                eqRequest(relativeValidate), EasyMock.isA(HttpClientContext.class),
+                EasyMock.<HttpExecutionAware> isNull());
+        expect(resp).andReturn(originResponse);
+
+        getCurrentDateReturns(responseDate);
 
         replayMocks();
         impl.revalidateCacheEntry(route, request, context, null, entry);
