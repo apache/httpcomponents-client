@@ -127,7 +127,6 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
         return true;
     }
 
-
     @Override
     protected void parseChallenge(
             final CharArrayBuffer buffer,
@@ -177,11 +176,11 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
                 response = getToken(null, null,
                         this.servicePrincipalName != null ? this.servicePrincipalName : username);
             } catch (Throwable t) {
-                dispose();
+                failAuthCleanup();
                 throw new AuthenticationException("Authentication Failed", t);
             }
         } else if (this.challenge == null || this.challenge.isEmpty()) {
-            dispose();
+            failAuthCleanup();
             throw new AuthenticationException("Authentication Failed");
         } else {
             try {
@@ -191,7 +190,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
                 response = getToken(this.sppicontext, continueTokenBuffer,
                         this.servicePrincipalName != null ? this.servicePrincipalName : "localhost");
             } catch (Throwable t) {
-                dispose();
+                failAuthCleanup();
                 throw new AuthenticationException("Authentication Failed", t);
             }
         }
@@ -207,6 +206,11 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
         buffer.append(" ");
         buffer.append(response);
         return new BufferedHeader(buffer);
+    }
+
+    private void failAuthCleanup() {
+        dispose();
+        this.continueNeeded = false;
     }
 
     // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa375506(v=vs.85).aspx
@@ -252,5 +256,3 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
     }
 
 }
-
-
