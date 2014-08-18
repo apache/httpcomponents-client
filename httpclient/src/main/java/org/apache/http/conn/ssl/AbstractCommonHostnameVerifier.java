@@ -50,6 +50,7 @@ import javax.naming.ldap.Rdn;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
+import javax.security.auth.x500.X500Principal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -106,8 +107,8 @@ public abstract class AbstractCommonHostnameVerifier implements HostnameVerifier
 
     public final void verify(
             final String host, final X509Certificate cert) throws SSLException {
-        final String subjectPrincipal = cert.getSubjectX500Principal().toString();
-        final String[] cns = extractCNs(subjectPrincipal);
+        final X500Principal subjectPrincipal = cert.getSubjectX500Principal();
+        final String[] cns = extractCNs(subjectPrincipal.getName(X500Principal.RFC2253));
         final String[] subjectAlts = extractSubjectAlts(cert, host);
         verify(host, cns, subjectAlts);
     }
