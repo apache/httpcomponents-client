@@ -39,8 +39,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link X509HostnameVerifier}.
+ * Unit tests for deprecated {@link X509HostnameVerifier} implementations.
  */
+@Deprecated
 public class TestHostnameVerifier {
 
     @Test
@@ -288,7 +289,6 @@ public class TestHostnameVerifier {
 
         checkMatching(bhv, "s.a.gov.uk", cns, alt, false); // OK
         checkMatching(shv, "s.a.gov.uk", cns, alt, true); // Bad 2TLD/no subdomain allowed
-
         alt = new String []{"*.gov.com"};
         checkMatching(bhv, "a.gov.com", cns, alt, false); // OK, gov not 2TLD here
         checkMatching(shv, "a.gov.com", cns, alt, false); // OK, gov not 2TLD here
@@ -321,6 +321,7 @@ public class TestHostnameVerifier {
         // TODO need some more samples
     }
 
+
     @Test
     public void testHTTPCLIENT_1097() {
         String cns[];
@@ -345,28 +346,6 @@ public class TestHostnameVerifier {
         final String alt[] = {};
         checkMatching(bhv, "mail.a.b.c.com", cns, alt, false); // OK
         checkMatching(shv, "mail.a.b.c.com", cns, alt, false); // OK
-    }
-
-    @Test
-    public void testExtractCN() throws Exception {
-        Assert.assertArrayEquals(new String[] {"blah"}, AbstractCommonHostnameVerifier.extractCNs("cn=blah, ou=blah, o=blah"));
-        Assert.assertArrayEquals(new String[] {"blah", "yada", "booh"}, AbstractCommonHostnameVerifier.extractCNs("cn=blah, cn=yada, cn=booh"));
-        Assert.assertArrayEquals(new String[] {"blah"}, AbstractCommonHostnameVerifier.extractCNs("c = pampa ,  cn  =    blah    , ou = blah , o = blah"));
-        Assert.assertArrayEquals(new String[] {"blah"}, AbstractCommonHostnameVerifier.extractCNs("cn=\"blah\", ou=blah, o=blah"));
-        Assert.assertArrayEquals(new String[] {"blah  blah"}, AbstractCommonHostnameVerifier.extractCNs("cn=\"blah  blah\", ou=blah, o=blah"));
-        Assert.assertArrayEquals(new String[] {"blah, blah"}, AbstractCommonHostnameVerifier.extractCNs("cn=\"blah, blah\", ou=blah, o=blah"));
-        Assert.assertArrayEquals(new String[] {"blah, blah"}, AbstractCommonHostnameVerifier.extractCNs("cn=blah\\, blah, ou=blah, o=blah"));
-        Assert.assertArrayEquals(new String[] {"blah"}, AbstractCommonHostnameVerifier.extractCNs("c = cn=uuh, cn=blah, ou=blah, o=blah"));
-    }
-
-    @Test(expected = SSLException.class)
-    public void testExtractCNMissing() throws Exception {
-        AbstractCommonHostnameVerifier.extractCNs("blah,blah");
-    }
-
-    @Test(expected = SSLException.class)
-    public void testExtractCNNull() throws Exception {
-        AbstractCommonHostnameVerifier.extractCNs("cn,o=blah");
     }
 
 }

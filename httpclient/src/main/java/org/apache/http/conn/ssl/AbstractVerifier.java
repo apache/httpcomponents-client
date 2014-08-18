@@ -31,11 +31,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
+import javax.security.auth.x500.X500Principal;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.conn.util.InetAddressUtils;
 import org.apache.http.util.Args;
 
 /**
@@ -44,11 +51,13 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  *
- * @deprecated (4.4) use {@link javax.net.ssl.HostnameVerifier} or
- *  {@link org.apache.http.conn.ssl.AbstractCommonHostnameVerifier}.
+ * @deprecated (4.4) use an implementation of {@link javax.net.ssl.HostnameVerifier} or
+ *  {@link DefaultHostnameVerifier}.
  */
 @Deprecated
-public abstract class AbstractVerifier extends AbstractCommonHostnameVerifier implements X509HostnameVerifier {
+public abstract class AbstractVerifier implements X509HostnameVerifier {
+
+    private final Log log = LogFactory.getLog(getClass());
 
     @Override
     public final void verify(final String host, final SSLSocket ssl)
@@ -96,10 +105,97 @@ public abstract class AbstractVerifier extends AbstractCommonHostnameVerifier im
         verify(host, x509);
     }
 
+    @Override
+    public final boolean verify(final String host, final SSLSession session) {
+        try {
+            final Certificate[] certs = session.getPeerCertificates();
+            final X509Certificate x509 = (X509Certificate) certs[0];
+            verify(host, x509);
+            return true;
+        } catch(final SSLException ex) {
+            if (log.isDebugEnabled()) {
+                log.debug(ex.getMessage(), ex);
+            }
+            return false;
+        }
+    }
+
+    public final void verify(
+            final String host, final X509Certificate cert) throws SSLException {
+        final boolean ipv4 = InetAddressUtils.isIPv4Address(host);
+        final boolean ipv6 = InetAddressUtils.isIPv6Address(host);
+        final int subjectType = ipv4 || ipv6 ? DefaultHostnameVerifier.IP_ADDRESS_TYPE : DefaultHostnameVerifier.DNS_NAME_TYPE;
+        final List<String> subjectAlts = DefaultHostnameVerifier.extractSubjectAlts(cert, subjectType);
+        final X500Principal subjectPrincipal = cert.getSubjectX500Principal();
+        final String cn = DefaultHostnameVerifier.extractCN(subjectPrincipal.getName(X500Principal.RFC2253));
+        verify(host,
+                cn != null ? new String[] {cn} : null,
+                subjectAlts != null && !subjectAlts.isEmpty() ? subjectAlts.toArray(new String[subjectAlts.size()]) : null);
+    }
+
+    public final void verify(final String host, final String[] cns,
+                             final String[] subjectAlts,
+                             final boolean strictWithSubDomains)
+            throws SSLException {
+
+        final String cn = cns != null && cns.length > 0 ? cns[0] : null;
+        final List<String> subjectAltList = subjectAlts != null && subjectAlts.length > 0 ? Arrays.asList(subjectAlts) : null;
+        if (cn == null && subjectAltList == null) {
+            final String msg = "Certificate subject for <" + host + "> doesn't contain a common name " +
+                    "and does not have alternative names";
+            throw new SSLException(msg);
+        }
+        final String normalizedHost = InetAddressUtils.isIPv6Address(host) ?
+                DefaultHostnameVerifier.normaliseAddress(host.toLowerCase(Locale.ROOT)) : host;
+        if (cn != null) {
+            final String normalizedCN = InetAddressUtils.isIPv6Address(cn) ?
+                    DefaultHostnameVerifier.normaliseAddress(cn) : cn;
+            if (matchIdentity(normalizedHost, normalizedCN, strictWithSubDomains)) {
+                return;
+            }
+        }
+        if (subjectAltList != null) {
+            for (String subjectAlt: subjectAltList) {
+                final String normalizedAltSubject = InetAddressUtils.isIPv6Address(subjectAlt) ?
+                        DefaultHostnameVerifier.normaliseAddress(subjectAlt) : subjectAlt;
+                if (matchIdentity(normalizedHost, normalizedAltSubject, strictWithSubDomains)) {
+                    return;
+                }
+            }
+        }
+        final StringBuilder buf = new StringBuilder();
+        buf.append("Certificate for <").append(host).append("> doesn't match ");
+        if (cn != null) {
+            buf.append("common name of the certificate subject [").append(cn).append("]");
+        }
+        if (subjectAltList != null) {
+            if (cn != null) {
+                buf.append(" or ");
+            }
+            buf.append(" any of the subject alternative names").append(subjectAltList);
+        }
+        throw new SSLException(buf.toString());
+    }
+
+    private static boolean matchIdentity(final String host, final String identity, final boolean strictWithSubDomains) {
+        return strictWithSubDomains ?
+                DefaultHostnameVerifier.matchIdentityStrict(host, identity) :
+                DefaultHostnameVerifier.matchIdentity(host, identity);
+    }
+
+    public static boolean acceptableCountryWildcard(final String cn) {
+        final String parts[] = cn.split("\\.");
+        if (parts.length != 3 || parts[2].length() != 2) {
+            return true; // it's not an attempt to wildcard a 2TLD within a country code
+        }
+        return Arrays.binarySearch(DefaultHostnameVerifier.BAD_COUNTRY_2LDS, parts[1]) < 0;
+    }
+
     public static String[] getCNs(final X509Certificate cert) {
         final String subjectPrincipal = cert.getSubjectX500Principal().toString();
         try {
-            return extractCNs(subjectPrincipal);
+            final String cn = DefaultHostnameVerifier.extractCN(subjectPrincipal);
+            return cn != null ? new String[] { cn } : null;
         } catch (SSLException ex) {
             return null;
         }
@@ -120,7 +216,19 @@ public abstract class AbstractVerifier extends AbstractCommonHostnameVerifier im
      * @return Array of SubjectALT DNS names stored in the certificate.
      */
     public static String[] getDNSSubjectAlts(final X509Certificate cert) {
-        return extractSubjectAlts(cert, null);
+        final List<String> subjectAlts = DefaultHostnameVerifier.extractSubjectAlts(
+                cert, DefaultHostnameVerifier.DNS_NAME_TYPE);
+        return subjectAlts != null && !subjectAlts.isEmpty() ?
+                subjectAlts.toArray(new String[subjectAlts.size()]) : null;
+    }
+
+    /**
+     * Counts the number of dots "." in a string.
+     * @param s  string to count dots from
+     * @return  number of dots
+     */
+    public static int countDots(final String s) {
+        return DefaultHostnameVerifier.countDots(s);
     }
 
 }
