@@ -175,7 +175,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
 
                 response = getToken(null, null,
                         this.servicePrincipalName != null ? this.servicePrincipalName : username);
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 failAuthCleanup();
                 throw new AuthenticationException("Authentication Failed", t);
             }
@@ -189,7 +189,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
                         Sspi.SECBUFFER_TOKEN, continueTokenBytes);
                 response = getToken(this.sppicontext, continueTokenBuffer,
                         this.servicePrincipalName != null ? this.servicePrincipalName : "localhost");
-            } catch (Throwable t) {
+            } catch (Exception t) {
                 failAuthCleanup();
                 throw new AuthenticationException("Authentication Failed", t);
             }
