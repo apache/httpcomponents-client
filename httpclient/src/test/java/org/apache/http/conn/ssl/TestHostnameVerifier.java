@@ -74,8 +74,8 @@ public class TestHostnameVerifier {
 
         in = new ByteArrayInputStream(CertificatesToPlayWith.X509_FOO_BAR);
         x509 = (X509Certificate) cf.generateCertificate(in);
-        DEFAULT.verify("foo.com", x509);
-        STRICT.verify("foo.com", x509);
+        exceptionPlease(DEFAULT, "foo.com", x509);
+        exceptionPlease(STRICT, "foo.com", x509);
         exceptionPlease(DEFAULT, "a.foo.com", x509);
         exceptionPlease(STRICT, "a.foo.com", x509);
         DEFAULT.verify("bar.com", x509);
@@ -85,8 +85,8 @@ public class TestHostnameVerifier {
 
         in = new ByteArrayInputStream(CertificatesToPlayWith.X509_FOO_BAR_HANAKO);
         x509 = (X509Certificate) cf.generateCertificate(in);
-        DEFAULT.verify("foo.com", x509);
-        STRICT.verify("foo.com", x509);
+        exceptionPlease(DEFAULT, "foo.com", x509);
+        exceptionPlease(STRICT, "foo.com", x509);
         exceptionPlease(DEFAULT, "a.foo.com", x509);
         exceptionPlease(STRICT, "a.foo.com", x509);
         DEFAULT.verify("bar.com", x509);
@@ -159,11 +159,11 @@ public class TestHostnameVerifier {
         // try the foo.com variations
         exceptionPlease(DEFAULT, "foo.com", x509);
         exceptionPlease(STRICT, "foo.com", x509);
-        DEFAULT.verify("www.foo.com", x509);
-        STRICT.verify("www.foo.com", x509);
-        DEFAULT.verify("\u82b1\u5b50.foo.com", x509);
-        STRICT.verify("\u82b1\u5b50.foo.com", x509);
-        DEFAULT.verify("a.b.foo.com", x509);
+        exceptionPlease(DEFAULT, "www.foo.com", x509);
+        exceptionPlease(STRICT, "www.foo.com", x509);
+        exceptionPlease(DEFAULT, "\u82b1\u5b50.foo.com", x509);
+        exceptionPlease(STRICT, "\u82b1\u5b50.foo.com", x509);
+        exceptionPlease(DEFAULT, "a.b.foo.com", x509);
         exceptionPlease(STRICT, "a.b.foo.com", x509);
         // try the bar.com variations
         exceptionPlease(DEFAULT, "bar.com", x509);
@@ -174,19 +174,6 @@ public class TestHostnameVerifier {
         STRICT.verify("\u82b1\u5b50.bar.com", x509);
         DEFAULT.verify("a.b.bar.com", x509);
         exceptionPlease(STRICT, "a.b.bar.com", x509);
-        // try the \u82b1\u5b50.co.jp variations
-        /*
-           Java isn't extracting international subjectAlts properly.  (Or
-           OpenSSL isn't storing them properly).
-        */
-        //exceptionPlease( DEFAULT, "\u82b1\u5b50.co.jp", x509 );
-        //exceptionPlease( STRICT, "\u82b1\u5b50.co.jp", x509 );
-        //DEFAULT.verify("www.\u82b1\u5b50.co.jp", x509 );
-        //STRICT.verify("www.\u82b1\u5b50.co.jp", x509 );
-        //DEFAULT.verify("\u82b1\u5b50.\u82b1\u5b50.co.jp", x509 );
-        //STRICT.verify("\u82b1\u5b50.\u82b1\u5b50.co.jp", x509 );
-        //DEFAULT.verify("a.b.\u82b1\u5b50.co.jp", x509 );
-        //exceptionPlease(STRICT,"a.b.\u82b1\u5b50.co.jp", x509 );
 
         in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_VALUE_AVA);
         x509 = (X509Certificate) cf.generateCertificate(in);
@@ -206,10 +193,15 @@ public class TestHostnameVerifier {
         Assert.assertEquals("CN=localhost, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=CH",
                 x509.getSubjectDN().getName());
 
-        verifier.verify("localhost", x509);
         verifier.verify("localhost.localdomain", x509);
         verifier.verify("127.0.0.1", x509);
 
+        try {
+            verifier.verify("localhost", x509);
+            Assert.fail("SSLException should have been thrown");
+        } catch (final SSLException ex) {
+            // expected
+        }
         try {
             verifier.verify("local.host", x509);
             Assert.fail("SSLException should have been thrown");
@@ -296,7 +288,7 @@ public class TestHostnameVerifier {
         checkMatching(bhv, "s.a.gov.com", cns, alt, false); // OK, gov not 2TLD here
         checkMatching(shv, "s.a.gov.com", cns, alt, true); // no subdomain allowed
 
-        cns = new String []{"a*.gov.uk"}; // 2TLD check applies to wildcards
+        alt = new String []{"a*.gov.uk"}; // 2TLD check applies to wildcards
         checkMatching(bhv, "a.gov.uk", cns, alt, false); // OK
         checkMatching(shv, "a.gov.uk", cns, alt, true); // Bad 2TLD
 

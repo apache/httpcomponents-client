@@ -1,5 +1,9 @@
-Changes isnce 4.4 ALPHA1
+Changes since 4.4 ALPHA1
 -------------------
+
+* Improved compliance with RFC 2818: default hostname verifier to ignore the common name of the
+  certificate subject if alternative subject names (dNSName or iPAddress) are present.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-1540] Support delegated credentials (ISC_REQ_DELEGATE) by Native windows
   Negotiate/NTLM auth schemes.

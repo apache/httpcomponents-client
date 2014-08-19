@@ -123,6 +123,10 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
             // as fallback only when no subjectAlts are available
             final X500Principal subjectPrincipal = cert.getSubjectX500Principal();
             final String cn = extractCN(subjectPrincipal.getName(X500Principal.RFC2253));
+            if (cn == null) {
+                throw new SSLException("Certificate subject for <" + host + "> doesn't contain " +
+                        "a common name and does not have alternative names");
+            }
             matchCN(host, cn);
         }
     }
@@ -135,7 +139,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
             }
         }
         throw new SSLException("Certificate for <" + host + "> doesn't match any " +
-                "of the subject alternative names " + subjectAlts);
+                "of the subject alternative names: " + subjectAlts);
     }
 
     static void matchIPv6Address(final String host, final List<String> subjectAlts) throws SSLException {
@@ -148,7 +152,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
             }
         }
         throw new SSLException("Certificate for <" + host + "> doesn't match any " +
-                "of the subject alternative names " + subjectAlts);
+                "of the subject alternative names: " + subjectAlts);
     }
 
     static void matchDNSName(final String host, final List<String> subjectAlts) throws SSLException {
@@ -159,13 +163,13 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
             }
         }
         throw new SSLException("Certificate for <" + host + "> doesn't match any " +
-                "of the subject alternative names " + subjectAlts);
+                "of the subject alternative names: " + subjectAlts);
     }
 
     static void matchCN(final String host, final String cn) throws SSLException {
         if (!matchIdentity(host, cn)) {
             throw new SSLException("Certificate for <" + host + "> doesn't match " +
-                    "common name of the certificate subject [" + cn + "]");
+                    "common name of the certificate subject: " + cn);
         }
     }
 

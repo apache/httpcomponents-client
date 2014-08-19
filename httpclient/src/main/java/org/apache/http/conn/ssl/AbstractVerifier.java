@@ -140,20 +140,10 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
 
         final String cn = cns != null && cns.length > 0 ? cns[0] : null;
         final List<String> subjectAltList = subjectAlts != null && subjectAlts.length > 0 ? Arrays.asList(subjectAlts) : null;
-        if (cn == null && subjectAltList == null) {
-            final String msg = "Certificate subject for <" + host + "> doesn't contain a common name " +
-                    "and does not have alternative names";
-            throw new SSLException(msg);
-        }
+
         final String normalizedHost = InetAddressUtils.isIPv6Address(host) ?
                 DefaultHostnameVerifier.normaliseAddress(host.toLowerCase(Locale.ROOT)) : host;
-        if (cn != null) {
-            final String normalizedCN = InetAddressUtils.isIPv6Address(cn) ?
-                    DefaultHostnameVerifier.normaliseAddress(cn) : cn;
-            if (matchIdentity(normalizedHost, normalizedCN, strictWithSubDomains)) {
-                return;
-            }
-        }
+
         if (subjectAltList != null) {
             for (String subjectAlt: subjectAltList) {
                 final String normalizedAltSubject = InetAddressUtils.isIPv6Address(subjectAlt) ?
@@ -162,19 +152,20 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
                     return;
                 }
             }
-        }
-        final StringBuilder buf = new StringBuilder();
-        buf.append("Certificate for <").append(host).append("> doesn't match ");
-        if (cn != null) {
-            buf.append("common name of the certificate subject [").append(cn).append("]");
-        }
-        if (subjectAltList != null) {
-            if (cn != null) {
-                buf.append(" or ");
+            throw new SSLException("Certificate for <" + host + "> doesn't match any " +
+                    "of the subject alternative names: " + subjectAltList);
+        } else if (cn != null) {
+            final String normalizedCN = InetAddressUtils.isIPv6Address(cn) ?
+                    DefaultHostnameVerifier.normaliseAddress(cn) : cn;
+            if (matchIdentity(normalizedHost, normalizedCN, strictWithSubDomains)) {
+                return;
             }
-            buf.append(" any of the subject alternative names").append(subjectAltList);
+            throw new SSLException("Certificate for <" + host + "> doesn't match " +
+                    "common name of the certificate subject: " + cn);
+        } else {
+            throw new SSLException("Certificate subject for <" + host + "> doesn't contain " +
+                    "a common name and does not have alternative names");
         }
-        throw new SSLException(buf.toString());
     }
 
     private static boolean matchIdentity(final String host, final String identity, final boolean strictWithSubDomains) {
