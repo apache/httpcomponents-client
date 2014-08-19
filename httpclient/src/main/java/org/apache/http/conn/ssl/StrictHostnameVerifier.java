@@ -50,8 +50,11 @@ import org.apache.http.annotation.Immutable;
  *
  *
  * @since 4.0
+ *
+ * @deprecated (4.4) Use {@link org.apache.http.conn.ssl.DefaultHostnameVerifier}
  */
 @Immutable
+@Deprecated
 public class StrictHostnameVerifier extends AbstractVerifier {
 
     public static final StrictHostnameVerifier INSTANCE = new StrictHostnameVerifier();

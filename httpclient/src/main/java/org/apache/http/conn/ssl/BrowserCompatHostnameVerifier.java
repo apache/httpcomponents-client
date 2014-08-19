@@ -41,10 +41,12 @@ import org.apache.http.annotation.Immutable;
  * (such as "*.foo.com") with BROWSER_COMPATIBLE matches all subdomains,
  * including "a.b.foo.com".
  *
- *
  * @since 4.0
+ *
+ * @deprecated (4.4) Use {@link org.apache.http.conn.ssl.DefaultHostnameVerifier}
  */
 @Immutable
+@Deprecated
 public class BrowserCompatHostnameVerifier extends AbstractVerifier {
 
     public static final BrowserCompatHostnameVerifier INSTANCE = new BrowserCompatHostnameVerifier();

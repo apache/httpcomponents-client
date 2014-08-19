@@ -123,7 +123,7 @@ import org.apache.http.util.TextUtils;
  *
  * @since 4.3
  */
-@ThreadSafe
+@ThreadSafe @SuppressWarnings("deprecation")
 public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
     public static final String TLS   = "TLS";
@@ -146,7 +146,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      * @since 4.4
      */
     public static HostnameVerifier getDefaultHostnameVerifier() {
-        return BrowserCompatHostnameVerifier.INSTANCE;
+        return DefaultHostnameVerifier.INSTANCE;
     }
 
     /**
