@@ -146,8 +146,8 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
         final String normalisedHost = normaliseAddress(host);
         for (int i = 0; i < subjectAlts.size(); i++) {
             final String subjectAlt = subjectAlts.get(i);
-            final String normalizedsSubjectAlt = normaliseAddress(subjectAlt);
-            if (normalisedHost.equals(normalizedsSubjectAlt)) {
+            final String normalizedSubjectAlt = normaliseAddress(subjectAlt);
+            if (normalisedHost.equals(normalizedSubjectAlt)) {
                 return;
             }
         }
@@ -158,7 +158,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
     static void matchDNSName(final String host, final List<String> subjectAlts) throws SSLException {
         for (int i = 0; i < subjectAlts.size(); i++) {
             final String subjectAlt = subjectAlts.get(i);
-            if (matchIdentity(host, subjectAlt)) {
+            if (matchIdentityStrict(host, subjectAlt)) {
                 return;
             }
         }
@@ -167,7 +167,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
     }
 
     static void matchCN(final String host, final String cn) throws SSLException {
-        if (!matchIdentity(host, cn)) {
+        if (!matchIdentityStrict(host, cn)) {
             throw new SSLException("Certificate for <" + host + "> doesn't match " +
                     "common name of the certificate subject: " + cn);
         }
@@ -246,12 +246,12 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
     }
 
     static List<String> extractSubjectAlts(final X509Certificate cert, final int subjectType) {
-        List<String> subjectAltList = null;
         Collection<List<?>> c = null;
         try {
             c = cert.getSubjectAlternativeNames();
         } catch(final CertificateParsingException ignore) {
         }
+        List<String> subjectAltList = null;
         if (c != null) {
             for (final List<?> aC : c) {
                 final List<?> list = aC;
