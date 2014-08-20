@@ -28,12 +28,17 @@ package org.apache.http.impl.auth.win;
 
 import java.io.IOException;
 
+import com.sun.jna.platform.win32.Sspi.CtxtHandle;
+import com.sun.jna.platform.win32.Sspi.SecBufferDesc;
+import com.sun.jna.platform.win32.Win32Exception;
+import com.sun.jna.platform.win32.WinError;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
@@ -94,9 +99,13 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
         // you can contact the server that authenticated you." is associated with SEC_E_DOWNGRADE_DETECTED.
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-                .register(AuthSchemes.SPNEGO, new WindowsNegotiateSchemeFactory("HTTP/EXAMPLE.COM"))
-                .build();
-        final CredentialsProvider credsProvider = new WindowsCredentialsProvider(new SystemDefaultCredentialsProvider());
+            .register(AuthSchemes.SPNEGO, new AuthSchemeProvider() {
+                public AuthScheme create(final HttpContext context) {
+                    return new WindowsNegotiateSchemeGetTokenFail(AuthSchemes.SPNEGO, "HTTP/EXAMPLE.COM");
+                }
+            }).build();
+        final CredentialsProvider credsProvider =
+                new WindowsCredentialsProvider(new SystemDefaultCredentialsProvider());
         final CloseableHttpClient customClient = HttpClientBuilder.create()
                 .setDefaultCredentialsProvider(credsProvider)
                 .setDefaultAuthSchemeRegistry(authSchemeRegistry).build();
@@ -111,6 +120,18 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
         }
     }
 
+    private final class WindowsNegotiateSchemeGetTokenFail extends WindowsNegotiateScheme {
+
+        public WindowsNegotiateSchemeGetTokenFail(final String scheme, final String servicePrincipalName) {
+            super(scheme, servicePrincipalName);
+        }
+
+        @Override
+        String getToken(final CtxtHandle continueCtx, final SecBufferDesc continueToken, final String targetName) {
+            dispose();
+            throw new Win32Exception(WinError.SEC_E_DOWNGRADE_DETECTED);
+        }
+
+    }
+
 }
-
-

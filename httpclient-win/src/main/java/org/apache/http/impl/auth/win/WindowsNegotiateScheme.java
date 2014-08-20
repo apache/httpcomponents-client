@@ -65,12 +65,12 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
 
     // NTLM or Negotiate
     private final String scheme;
+    private final String servicePrincipalName;
 
     private CredHandle clientCred;
     private CtxtHandle sppicontext;
     private boolean continueNeeded;
     private String challenge;
-    private String servicePrincipalName;
 
     public WindowsNegotiateScheme(final String scheme, final String servicePrincipalName) {
         super();
@@ -214,7 +214,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
     }
 
     // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa375506(v=vs.85).aspx
-    private String getToken(
+    String getToken(
             final CtxtHandle continueCtx,
             final SecBufferDesc continueToken,
             final String targetName) {
