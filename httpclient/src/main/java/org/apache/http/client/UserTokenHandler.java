@@ -52,7 +52,7 @@ public interface UserTokenHandler {
      * @param context the execution context
      *
      * @return user token that uniquely identifies the user or
-     * <code>null</null> if the context is not user specific.
+     * {@code null} if the context is not user specific.
      */
     Object getUserToken(HttpContext context);
 

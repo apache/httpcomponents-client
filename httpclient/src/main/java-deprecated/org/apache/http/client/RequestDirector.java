@@ -52,10 +52,11 @@ public interface RequestDirector {
 
     /**
      * Executes a request.
-     * <br/><b>Note:</b>
-     * For the time being, a new director is instantiated for each request.
+     * <p>
+     * <b>Note:</b> For the time being, a new director is instantiated for each request.
      * This is the same behavior as for <code>HttpMethodDirector</code>
      * in HttpClient 3.
+     * </p>
      *
      * @param target    the target host for the request.
      *                  Implementations may accept <code>null</code>

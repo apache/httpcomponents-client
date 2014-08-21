@@ -36,6 +36,7 @@ import org.apache.http.annotation.NotThreadSafe;
  * <p>
  * The HTTP TRACE method is defined in section 9.6 of
  * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
+ * </p>
  * <blockquote>
  *  The TRACE method is used to invoke a remote, application-layer loop-
  *  back of the request message. The final recipient of the request
@@ -45,7 +46,6 @@ import org.apache.http.annotation.NotThreadSafe;
  *  value of zero (0) in the request (see section 14.31). A TRACE request
  *  MUST NOT include an entity.
  * </blockquote>
- * </p>
  *
  * @since 4.0
  */

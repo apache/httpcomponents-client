@@ -36,6 +36,7 @@ import org.apache.http.annotation.NotThreadSafe;
  * <p>
  * The HTTP GET method is defined in section 9.3 of
  * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
+ * </p>
  * <blockquote>
  * The GET method means retrieve whatever information (in the form of an
  * entity) is identified by the Request-URI. If the Request-URI refers
@@ -43,7 +44,6 @@ import org.apache.http.annotation.NotThreadSafe;
  * returned as the entity in the response and not the source text of the
  * process, unless that text happens to be the output of the process.
  * </blockquote>
- * </p>
  *
  * @since 4.0
  */

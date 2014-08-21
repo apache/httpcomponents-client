@@ -40,10 +40,11 @@ import org.apache.http.params.CoreProtocolPNames;
  * module and all dependency modules or informational units.
  * It does not define additional parameter names, but references
  * other interfaces defining parameter names.
- * <br/>
+ * <p>
  * This interface is meant as a navigation aid for developers.
  * When referring to parameter names, you should use the interfaces
  * in which the respective constants are actually defined.
+ * </p>
  *
  * @since 4.0
  *

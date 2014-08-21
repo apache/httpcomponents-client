@@ -36,6 +36,7 @@ import org.apache.http.annotation.NotThreadSafe;
  * <p>
  * The HTTP POST method is defined in section 9.5 of
  * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
+ * </p>
  * <blockquote>
  * The POST method is used to request that the origin server accept the entity
  * enclosed in the request as a new subordinate of the resource identified by
@@ -50,7 +51,6 @@ import org.apache.http.annotation.NotThreadSafe;
  *   <li>Extending a database through an append operation</li>
  * </ul>
  * </blockquote>
- * </p>
  *
  * @since 4.0
  */

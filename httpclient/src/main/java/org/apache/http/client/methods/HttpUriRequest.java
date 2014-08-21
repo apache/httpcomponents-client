@@ -49,8 +49,9 @@ public interface HttpUriRequest extends HttpRequest {
     /**
      * Returns the URI this request uses, such as
      * <code>http://example.org/path/to/file</code>.
-     * <br/>
+     * <p>
      * Note that the URI may be absolute URI (as above) or may be a relative URI.
+     * </p>
      * <p>
      * Implementations are encouraged to return
      * the URI that was initially requested.

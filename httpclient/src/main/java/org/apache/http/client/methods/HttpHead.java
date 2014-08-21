@@ -36,6 +36,7 @@ import org.apache.http.annotation.NotThreadSafe;
  * <p>
  * The HTTP HEAD method is defined in section 9.4 of
  * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
+ * </p>
  * <blockquote>
  * The HEAD method is identical to GET except that the server MUST NOT
  * return a message-body in the response. The metainformation contained
@@ -46,7 +47,6 @@ import org.apache.http.annotation.NotThreadSafe;
  * often used for testing hypertext links for validity, accessibility,
  * and recent modification.
  * </blockquote>
- * </p>
  *
  * @since 4.0
  */
