@@ -132,6 +132,7 @@
             <Import-Package>
             javax.crypto,
             javax.crypto.spec,
+            javax.naming,
             javax.net,
             javax.net.ssl,
             javax.security.auth.x500,
