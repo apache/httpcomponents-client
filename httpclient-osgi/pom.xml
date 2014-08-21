@@ -34,7 +34,7 @@
   <name>Apache HttpClient OSGi bundle</name>
   <inceptionYear>1999</inceptionYear>
   <description>
-   HttpComponents Client (OSGi bundle)
+   Apache HttpComponents Client (OSGi bundle)
   </description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>bundle</packaging>

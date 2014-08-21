@@ -33,7 +33,7 @@
   <artifactId>httpclient</artifactId>
   <name>Apache HttpClient</name>
   <description>
-   HttpComponents Client
+   Apache HttpComponents Client
   </description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>

@@ -33,7 +33,7 @@
   <artifactId>httpmime</artifactId>
   <name>Apache HttpClient Mime</name>
   <description>
-   HttpComponents HttpClient - MIME coded entities
+   Apache HttpComponents HttpClient - MIME coded entities
   </description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>

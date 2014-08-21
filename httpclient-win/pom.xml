@@ -31,9 +31,9 @@
     <version>4.4-alpha2-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient-win</artifactId>
-  <name>Windows features for Apache HttpClient</name>
+  <name>Apache HttpClient Windows features</name>
   <description>
-   Windows specific functionality for Apache HttpClient
+   Apache HttpClient Windows specific functionality
   </description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>

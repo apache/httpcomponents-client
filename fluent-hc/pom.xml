@@ -31,10 +31,10 @@
     <version>4.4-alpha2-SNAPSHOT</version>
   </parent>
   <artifactId>fluent-hc</artifactId>
-  <name>Fluent API for Apache HttpClient</name>
+  <name>Apache HttpClient Fluent API</name>
   <inceptionYear>2011</inceptionYear>
   <description>
-   HttpComponents Client fluent API
+   Apache HttpComponents Client fluent API
   </description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>

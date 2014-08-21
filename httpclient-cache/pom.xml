@@ -34,7 +34,7 @@
   <name>Apache HttpClient Cache</name>
   <inceptionYear>2010</inceptionYear>
   <description>
-   HttpComponents HttpClient - Cache
+   Apache HttpComponents HttpClient - Cache
   </description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>
