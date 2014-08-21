@@ -86,10 +86,10 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
      * Host A's name domain-matches host B's if
      * </p>
      * <ol>
-     *   <ul>their host name strings string-compare equal; or</ul>
-     *   <ul>A is a HDN string and has the form NB, where N is a non-empty
+     *   <li>their host name strings string-compare equal; or</li>
+     *   <li>A is a HDN string and has the form NB, where N is a non-empty
      *       name string, B has the form .B', and B' is a HDN string.  (So,
-     *       x.y.com domain-matches .Y.com but not Y.com.)</ul>
+     *       x.y.com domain-matches .Y.com but not Y.com.)</li>
      * </ol>
      *
      * @param host host name where cookie is received from or being sent to.
