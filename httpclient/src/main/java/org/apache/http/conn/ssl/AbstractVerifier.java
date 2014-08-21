@@ -59,6 +59,15 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
 
     private final Log log = LogFactory.getLog(getClass());
 
+    final static String[] BAD_COUNTRY_2LDS =
+            { "ac", "co", "com", "ed", "edu", "go", "gouv", "gov", "info",
+                    "lg", "ne", "net", "or", "org" };
+
+    static {
+        // Just in case developer forgot to manually sort the array.  :-)
+        Arrays.sort(BAD_COUNTRY_2LDS);
+    }
+
     @Override
     public final void verify(final String host, final SSLSocket ssl)
             throws IOException {
@@ -179,7 +188,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         if (parts.length != 3 || parts[2].length() != 2) {
             return true; // it's not an attempt to wildcard a 2TLD within a country code
         }
-        return Arrays.binarySearch(DefaultHostnameVerifier.BAD_COUNTRY_2LDS, parts[1]) < 0;
+        return Arrays.binarySearch(BAD_COUNTRY_2LDS, parts[1]) < 0;
     }
 
     public static String[] getCNs(final X509Certificate cert) {
@@ -219,7 +228,13 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
      * @return  number of dots
      */
     public static int countDots(final String s) {
-        return DefaultHostnameVerifier.countDots(s);
+        int count = 0;
+        for(int i = 0; i < s.length(); i++) {
+            if(s.charAt(i) == '.') {
+                count++;
+            }
+        }
+        return count;
     }
 
 }

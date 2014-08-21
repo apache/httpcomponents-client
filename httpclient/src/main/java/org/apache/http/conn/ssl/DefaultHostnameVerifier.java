@@ -33,11 +33,11 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import javax.naming.InvalidNameException;
 import javax.naming.NamingException;
@@ -65,6 +65,9 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
 
     public static final DefaultHostnameVerifier INSTANCE = new DefaultHostnameVerifier();
 
+    private final static Pattern WILDCARD_PATTERN = Pattern.compile(
+            "^[a-z0-9\\-\\*]+(\\.[a-z0-9\\-]+){2,}$",
+            Pattern.CASE_INSENSITIVE);
     /**
      * This contains a list of 2nd-level domains that aren't allowed to
      * have wildcards when combined with country-codes.
@@ -75,14 +78,9 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
      * Looks like we're the only implementation guarding against this.
      * Firefox, Curl, Sun Java 1.4, 5, 6 don't bother with this check.
      */
-    final static String[] BAD_COUNTRY_2LDS =
-          { "ac", "co", "com", "ed", "edu", "go", "gouv", "gov", "info",
-            "lg", "ne", "net", "or", "org" };
-
-    static {
-        // Just in case developer forgot to manually sort the array.  :-)
-        Arrays.sort(BAD_COUNTRY_2LDS);
-    }
+    private final static Pattern BAD_COUNTRY_WILDCARD_PATTERN = Pattern.compile(
+            "^[a-z0-9\\-\\*]+\\.(ac|co|com|ed|edu|go|gouv|gov|info|lg|ne|net|or|org)\\.[a-z0-9\\-]{2}$",
+            Pattern.CASE_INSENSITIVE);
 
     final static int DNS_NAME_TYPE        = 2;
     final static int IP_ADDRESS_TYPE      = 7;
@@ -177,29 +175,37 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
         if (host == null) {
             return false;
         }
-        final String normalizedHost = host.toLowerCase(Locale.ROOT);
-        final String normalizedIdentity = identity.toLowerCase(Locale.ROOT);
         // The CN better have at least two dots if it wants wildcard
         // action.  It also can't be [*.co.uk] or [*.co.jp] or
         // [*.org.uk], etc...
-        final String parts[] = normalizedIdentity.split("\\.");
-        final boolean doWildcard = parts.length >= 3 && parts[0].endsWith("*") &&
-                (!strict || validCountryWildcard(parts));
-        if (doWildcard) {
-            boolean match;
-            final String firstpart = parts[0];
-            if (firstpart.length() > 1) { // e.g. server*
-                final String prefix = firstpart.substring(0, firstpart.length() - 1); // e.g. server
-                final String suffix = normalizedIdentity.substring(firstpart.length()); // skip wildcard part from cn
-                final String hostSuffix = normalizedHost.substring(prefix.length()); // skip wildcard part from normalizedHost
-                match = normalizedHost.startsWith(prefix) && hostSuffix.endsWith(suffix);
-            } else {
-                match = normalizedHost.endsWith(normalizedIdentity.substring(1));
+        if (identity.contains("*") && WILDCARD_PATTERN.matcher(identity).matches()) {
+            if (!strict || !BAD_COUNTRY_WILDCARD_PATTERN.matcher(identity).matches()) {
+                final StringBuilder buf = new StringBuilder();
+                buf.append("^");
+                for (int i = 0; i < identity.length(); i++) {
+                    final char ch = identity.charAt(i);
+                    if (ch == '.') {
+                        buf.append("\\.");
+                    } else if (ch == '*') {
+                        if (strict) {
+                            buf.append("[a-z0-9\\-]*");
+                        } else {
+                            buf.append(".*");
+                        }
+                    } else {
+                        buf.append(ch);
+                    }
+                }
+                buf.append("$");
+                try {
+                    final Pattern identityPattern = Pattern.compile(buf.toString(), Pattern.CASE_INSENSITIVE);
+                    return identityPattern.matcher(host).matches();
+                } catch (PatternSyntaxException ignore) {
+                    // do simple match
+                }
             }
-            return match && (!strict || countDots(normalizedHost) == countDots(normalizedIdentity));
-        } else {
-            return normalizedHost.equals(normalizedIdentity);
         }
+        return host.equalsIgnoreCase(identity);
     }
 
     static boolean matchIdentity(final String host, final String identity) {
@@ -208,13 +214,6 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
 
     static boolean matchIdentityStrict(final String host, final String identity) {
         return matchIdentity(host, identity, true);
-    }
-
-    static boolean validCountryWildcard(final String[] parts) {
-        if (parts.length != 3 || parts[2].length() != 2) {
-            return true; // it's not an attempt to wildcard a 2TLD within a country code
-        }
-        return Arrays.binarySearch(BAD_COUNTRY_2LDS, parts[1]) < 0;
     }
 
     static String extractCN(final String subjectPrincipal) throws SSLException {
@@ -266,21 +265,6 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
             }
         }
         return subjectAltList;
-    }
-
-    /**
-     * Counts the number of dots "." in a string.
-     * @param s  string to count dots from
-     * @return  number of dots
-     */
-    static int countDots(final String s) {
-        int count = 0;
-        for(int i = 0; i < s.length(); i++) {
-            if(s.charAt(i) == '.') {
-                count++;
-            }
-        }
-        return count;
     }
 
     /*

@@ -139,7 +139,7 @@ public class TestHostnameVerifier {
         DEFAULT.verify("www.foo.com", x509);
         STRICT.verify("www.foo.com", x509);
         DEFAULT.verify("\u82b1\u5b50.foo.com", x509);
-        STRICT.verify("\u82b1\u5b50.foo.com", x509);
+        exceptionPlease(STRICT, "\u82b1\u5b50.foo.com", x509);
         DEFAULT.verify("a.b.foo.com", x509);
         exceptionPlease(STRICT, "a.b.foo.com", x509);
 
@@ -171,7 +171,7 @@ public class TestHostnameVerifier {
         DEFAULT.verify("www.bar.com", x509);
         STRICT.verify("www.bar.com", x509);
         DEFAULT.verify("\u82b1\u5b50.bar.com", x509);
-        STRICT.verify("\u82b1\u5b50.bar.com", x509);
+        exceptionPlease(STRICT, "\u82b1\u5b50.bar.com", x509);
         DEFAULT.verify("a.b.bar.com", x509);
         exceptionPlease(STRICT, "a.b.bar.com", x509);
 
