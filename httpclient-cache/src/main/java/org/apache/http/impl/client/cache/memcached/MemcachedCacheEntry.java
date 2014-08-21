@@ -65,8 +65,9 @@ public interface MemcachedCacheEntry {
      * {@link #getStorageKey()} and {@link #getHttpCacheEntry()}. This
      * should be viewed as an atomic operation on the
      * {@code MemcachedCacheEntry}.
+     *
      * @param bytes serialized representation
-     * @throws {@link MemcachedSerializationException} if deserialization
+     * @throws MemcachedSerializationException if deserialization
      *   fails. In this case, the prior values for {{@link #getStorageKey()}
      *   and {@link #getHttpCacheEntry()} should remain unchanged.
      */

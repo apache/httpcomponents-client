@@ -72,12 +72,17 @@ import org.apache.http.util.Args;
 import org.apache.http.util.VersionInfo;
 
 /**
+ * <p>
  * Request executor in the request execution chain that is responsible for
- * transparent client-side caching. The current implementation is conditionally
+ * transparent client-side caching.
+ * </p>
+ * <p>
+ * The current implementation is conditionally
  * compliant with HTTP/1.1 (meaning all the MUST and MUST NOTs are obeyed),
  * although quite a lot, though not all, of the SHOULDs and SHOULD NOTs
  * are obeyed too.
- * <p/>
+ * </p>
+ * <p>
  * Folks that would like to experiment with alternative storage backends
  * should look at the {@link HttpCacheStorage} interface and the related
  * package documentation there. You may also be interested in the provided
@@ -85,10 +90,12 @@ import org.apache.http.util.VersionInfo;
  * EhCache} and {@link
  * org.apache.http.impl.client.cache.memcached.MemcachedHttpCacheStorage
  * memcached} storage backends.
- * <p/>
+ * </p>
+ * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
  * chain.
+ * </p>
  *
  * @since 4.3
  */

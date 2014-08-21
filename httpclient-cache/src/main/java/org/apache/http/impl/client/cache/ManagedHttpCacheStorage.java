@@ -41,25 +41,32 @@ import org.apache.http.client.cache.Resource;
 import org.apache.http.util.Args;
 
 /**
+ * <p>
  * {@link HttpCacheStorage} implementation capable of deallocating resources associated with
- * the cache entries. This cache keeps track of cache entries using
+ * the cache entries.
+ * <p>
+ * This cache keeps track of cache entries using
  * {@link java.lang.ref.PhantomReference} and maintains a collection of all resources that
  * are no longer in use. The cache, however, does not automatically deallocates associated
  * resources by invoking {@link Resource#dispose()} method. The consumer MUST periodically
  * call {@link #cleanResources()} method to trigger resource deallocation. The cache can be
  * permanently shut down using {@link #shutdown()} method. All resources associated with
  * the entries used by the cache will be deallocated.
- * <p/>
+ * </p>
+ * <p>
  * This {@link HttpCacheStorage} implementation is intended for use with {@link FileResource}
  * and similar.
- * <p/>
+ * </p>
+ * <p>
  * Compatibility note. Prior to version 4.4 this storage implementation used to dispose of
  * all resource entries upon {@link #close()}. As of version 4.4 the {@link #close()} method
  * disposes only of those resources that have been explicitly removed from the cache with
  * {@link #removeEntry(String)} method.
- * <p/>
+ * </p>
+ * <p>
  * The {@link #shutdown()} ()} method can still be used to shut down the storage and dispose of
  * all resources currently managed by it.
+ * </p>
  *
  * @since 4.1
  */

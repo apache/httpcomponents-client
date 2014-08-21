@@ -98,7 +98,7 @@ import org.apache.http.util.Args;
  * CacheConfig#getAsynchronousWorkerIdleLifetimeSecs() maximum time they
  * can be idle before being reclaimed}. You can also control the {@link
  * CacheConfig#getRevalidationQueueSize() size of the queue} used for
- * revalidations when there aren't enough workers to keep up with demand.</b>
+ * revalidations when there aren't enough workers to keep up with demand.</p>
  */
 public class CacheConfig implements Cloneable {
 

@@ -81,7 +81,8 @@ import org.apache.http.util.Args;
 import org.apache.http.util.VersionInfo;
 
 /**
- * <p>The {@link CachingHttpClient} is meant to be a drop-in replacement for
+ * <p>
+ * The {@link CachingHttpClient} is meant to be a drop-in replacement for
  * a {@link DefaultHttpClient} that transparently adds client-side caching.
  * The current implementation is conditionally compliant with HTTP/1.1
  * (meaning all the MUST and MUST NOTs are obeyed), although quite a lot,
@@ -93,9 +94,11 @@ import org.apache.http.util.VersionInfo;
  * passing in a {@link CacheConfig}. Note that all of the usual client
  * related configuration you want to do vis-a-vis timeouts and connection
  * pools should be done on this backend client before constructing a {@code
- * CachingHttpClient} from it.</p>
+ * CachingHttpClient} from it.
+ * </p>
  *
- * <p>Generally speaking, the {@code CachingHttpClient} is implemented as a
+ * <p>
+ * Generally speaking, the {@code CachingHttpClient} is implemented as a
  * <a href="http://en.wikipedia.org/wiki/Decorator_pattern">Decorator</a>
  * of the backend client; for any incoming request it attempts to satisfy
  * it from the cache, but if it can't, or if it needs to revalidate a stale
@@ -106,15 +109,17 @@ import org.apache.http.util.VersionInfo;
  * or the cache may make a conditional request on your behalf to the origin).
  * This notion of "semantic transparency" means you should be able to drop
  * a {@link CachingHttpClient} into an existing application without breaking
- * anything.</p>
+ * anything.
+ * </p>
  *
- * <p>Folks that would like to experiment with alternative storage backends
+ * <p>
+ * Folks that would like to experiment with alternative storage backends
  * should look at the {@link HttpCacheStorage} interface and the related
  * package documentation there. You may also be interested in the provided
  * {@link org.apache.http.impl.client.cache.ehcache.EhcacheHttpCacheStorage
  * EhCache} and {@link
  * org.apache.http.impl.client.cache.memcached.MemcachedHttpCacheStorage
- * memcached} storage backends.</p>
+ * memcached} storage backends.
  * </p>
  * @since 4.1
  *

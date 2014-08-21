@@ -45,41 +45,49 @@ import org.apache.http.client.cache.HttpCacheUpdateException;
 import org.apache.http.impl.client.cache.CacheConfig;
 
 /**
- * <p>This class is a storage backend that uses an external <i>memcached</i>
+ * <p>
+ * This class is a storage backend that uses an external <i>memcached</i>
  * for storing cached origin responses. This storage option provides a
  * couple of interesting advantages over the default in-memory storage
  * backend:
+ * </p>
  * <ol>
  * <li>in-memory cached objects can survive an application restart since
  * they are held in a separate process</li>
  * <li>it becomes possible for several cooperating applications to share
  * a large <i>memcached</i> farm together</li>
  * </ol>
+ * <p>
  * Note that in a shared memcached pool setting you may wish to make use
  * of the Ketama consistent hashing algorithm to reduce the number of
  * cache misses that might result if one of the memcached cluster members
  * fails (see the <a href="http://dustin.github.com/java-memcached-client/apidocs/net/spy/memcached/KetamaConnectionFactory.html">
  * KetamaConnectionFactory</a>).
  * </p>
- *
- * <p>Because memcached places limits on the size of its keys, we need to
+ * <p>
+ * Because memcached places limits on the size of its keys, we need to
  * introduce a key hashing scheme to map the annotated URLs the higher-level
  * caching HTTP client wants to use as keys onto ones that are suitable
  * for use with memcached. Please see {@link KeyHashingScheme} if you would
- * like to use something other than the provided {@link SHA256KeyHashingScheme}.</p>
+ * like to use something other than the provided {@link SHA256KeyHashingScheme}.
+ * </p>
  *
- * <p>Because this hashing scheme can potentially result in key collisions (though
+ * <p>
+ * Because this hashing scheme can potentially result in key collisions (though
  * highly unlikely), we need to store the higher-level logical storage key along
  * with the {@link HttpCacheEntry} so that we can re-check it on retrieval. There
  * is a default serialization scheme provided for this, although you can provide
  * your own implementations of {@link MemcachedCacheEntry} and
- * {@link MemcachedCacheEntryFactory} to customize this serialization.</p>
+ * {@link MemcachedCacheEntryFactory} to customize this serialization.
+ * </p>
  *
- * <p>Please refer to the <a href="http://code.google.com/p/memcached/wiki/NewStart">
+ * <p>
+ * Please refer to the <a href="http://code.google.com/p/memcached/wiki/NewStart">
  * memcached documentation</a> and in particular to the documentation for
  * the <a href="http://code.google.com/p/spymemcached/">spymemcached
  * documentation</a> for details about how to set up and configure memcached
- * and the Java client used here, respectively.</p>
+ * and the Java client used here, respectively.
+ * </p>
  *
  * @since 4.1
  */
