@@ -61,10 +61,11 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 
 /**
- * An Executor for fluent requests
- * <p/>
+ * An Executor for fluent requests.
+ * <p>
  * A {@link PoolingHttpClientConnectionManager} with maximum 100 connections per route and
  * a total maximum of 200 connections is used internally.
+ * </p>
  */
 public class Executor {
 

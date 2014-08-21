@@ -255,8 +255,10 @@ public class Request {
 
     /**
      * This parameter can no longer be used at the request level.
-     * <p/>
+     * <p>
      * This method has no effect. Do not use.
+     * </p>
+     *
      * @deprecated (4.3)
      */
     @Deprecated
