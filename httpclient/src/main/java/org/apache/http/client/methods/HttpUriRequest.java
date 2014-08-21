@@ -42,7 +42,7 @@ public interface HttpUriRequest extends HttpRequest {
 
     /**
      * Returns the HTTP method this request uses, such as {@code GET},
-     * {@code PUT</code>, <code>POST}, or other.
+     * {@code PUT}, {@code POST}, or other.
      */
     String getMethod();
 

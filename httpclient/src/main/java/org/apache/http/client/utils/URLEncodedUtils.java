@@ -141,7 +141,7 @@ public class URLEncodedUtils {
 
     /**
      * Adds all parameters within the Scanner to the list of {@code parameters}, as encoded by
-     * {@code encoding</code>. For example, a scanner containing the string <code>a=1&b=2&c=3} would add the
+     * {@code encoding>. For example, a scanner containing the string {@code a=1&b=2&c=3} would add the
      * {@link NameValuePair NameValuePairs} a=1, b=2, and c=3 to the list of parameters. By convention, {@code '&'} and
      * {@code ';'} are accepted as parameter separators.
      *
@@ -161,7 +161,7 @@ public class URLEncodedUtils {
 
     /**
      * Adds all parameters within the Scanner to the list of
-     * {@code parameters</code>, as encoded by <code>encoding}. For
+     * {@code parameters}, as encoded by {@code encoding}. For
      * example, a scanner containing the string {@code a=1&b=2&c=3} would
      * add the {@link NameValuePair NameValuePairs} a=1, b=2, and c=3 to the
      * list of parameters.

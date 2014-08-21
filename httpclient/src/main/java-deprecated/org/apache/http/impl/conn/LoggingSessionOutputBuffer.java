@@ -55,7 +55,7 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
      * Create an instance that wraps the specified session output buffer.
      * @param out The session output buffer.
      * @param wire The Wire log to use.
-     * @param charset protocol charset, {@code ASCII</code> if <code>null}
+     * @param charset protocol charset, {@code ASCII} if {@code null}
      */
     public LoggingSessionOutputBuffer(
             final SessionOutputBuffer out, final Wire wire, final String charset) {

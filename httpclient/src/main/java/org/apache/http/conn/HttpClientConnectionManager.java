@@ -84,7 +84,7 @@ public interface HttpClientConnectionManager {
      * Releases the connection back to the manager making it potentially
      * re-usable by other consumers. Optionally, the maximum period
      * of how long the manager should keep the connection alive can be
-     * defined using {@code validDuration</code> and <code>timeUnit}
+     * defined using {@code validDuration} and {@code timeUnit}
      * parameters.
      *
      * @param conn      the managed connection to release.

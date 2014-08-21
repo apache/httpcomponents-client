@@ -60,7 +60,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
      * Create an instance that wraps the specified session input buffer.
      * @param in The session input buffer.
      * @param wire The wire log to use.
-     * @param charset protocol charset, {@code ASCII</code> if <code>null}
+     * @param charset protocol charset, {@code ASCII} if {@code null}
      */
     public LoggingSessionInputBuffer(
             final SessionInputBuffer in, final Wire wire, final String charset) {

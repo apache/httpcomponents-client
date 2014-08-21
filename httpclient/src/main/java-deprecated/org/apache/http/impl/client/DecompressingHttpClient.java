@@ -53,7 +53,7 @@ import org.apache.http.util.EntityUtils;
 /**
  * <p>Decorator adding support for compressed responses. This class sets
  * the {@code Accept-Encoding} header on requests to indicate
- * support for the {@code gzip</code> and <code>deflate}
+ * support for the {@code gzip} and {@code deflate}
  * compression schemes; it then checks the {@code Content-Encoding}
  * header on the response to uncompress any compressed response bodies.
  * The {@link java.io.InputStream} of the entity will contain the uncompressed

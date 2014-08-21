@@ -63,7 +63,7 @@ import org.apache.http.util.Asserts;
  * addresses fail to respond. Please note the same
  * {@link org.apache.http.params.CoreConnectionPNames#CONNECTION_TIMEOUT} value will be used
  * for each connection attempt, so in the worst case the total elapsed time before timeout
- * can be {@code CONNECTION_TIMEOUT * n</code> where <code>n} is the number of IP addresses
+ * can be {@code CONNECTION_TIMEOUT * n} where {@code n} is the number of IP addresses
  * of the given host. One can disable multihome support by overriding
  * the {@link #resolveHostname(String)} method and returning only one IP address for the given
  * host name.

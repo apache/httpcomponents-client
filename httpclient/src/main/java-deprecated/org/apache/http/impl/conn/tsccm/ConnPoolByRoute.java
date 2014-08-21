@@ -230,7 +230,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @param create    whether to create the pool if it doesn't exist
      *
      * @return  the pool for the argument route,
-     *     never {@code null</code> if {@code create} is <code>true}
+     *     never {@code null} if {@code create} is {@code true}
      */
     protected RouteSpecificPool getRoutePool(final HttpRoute route,
                                              final boolean create) {

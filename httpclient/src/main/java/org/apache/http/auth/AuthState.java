@@ -126,7 +126,7 @@ public class AuthState {
     }
 
     /**
-     * Returns {@code true</code> if {@link AuthOption}s are available, <code>false}
+     * Returns {@code true} if {@link AuthOption}s are available, {@code false}
      * otherwise.
      *
      * @since 4.2

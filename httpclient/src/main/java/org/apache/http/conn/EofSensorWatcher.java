@@ -42,7 +42,7 @@ public interface EofSensorWatcher {
      *
      * @param wrapped   the underlying stream which has reached EOF
      *
-     * @return  {@code true</code> if <code>wrapped} should be closed,
+     * @return  {@code true} if {@code wrapped} should be closed,
      *          {@code false} if it should be left alone
      *
      * @throws IOException
@@ -60,7 +60,7 @@ public interface EofSensorWatcher {
      *
      * @param wrapped   the underlying stream which has not reached EOF
      *
-     * @return  {@code true</code> if <code>wrapped} should be closed,
+     * @return  {@code true} if {@code wrapped} should be closed,
      *          {@code false} if it should be left alone
      *
      * @throws IOException
@@ -82,7 +82,7 @@ public interface EofSensorWatcher {
      *
      * @param wrapped   the underlying stream which has not reached EOF
      *
-     * @return  {@code true</code> if <code>wrapped} should be closed,
+     * @return  {@code true} if {@code wrapped} should be closed,
      *          {@code false} if it should be left alone
      *
      * @throws IOException

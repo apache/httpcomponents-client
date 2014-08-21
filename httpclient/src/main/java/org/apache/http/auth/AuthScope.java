@@ -90,7 +90,7 @@ public class AuthScope {
 
     /**
      * Defines auth scope with the given {@code host}, {@code port}, {@code realm}, and
-     * {@code authentication scheme}.
+     * {@code schemeName}.
      *
      * @param host authentication host. May be {@link #ANY_HOST} if applies
      *   to any host.

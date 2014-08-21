@@ -38,7 +38,7 @@ import org.apache.http.HttpEntity;
  * implementations have misinterpreted RFC2616 to mean that a
  * {@code deflate} stream as defined in RFC1951 should be used
  * (or maybe they did that since that's how IE behaves?). It's confusing
- * that {@code deflate</code> in HTTP 1.1 means <code>zlib} streams
+ * that {@code deflate} in HTTP 1.1 means {@code zlib} streams
  * rather than {@code deflate} streams. We handle both types in here,
  * since that's what is seen on the internet. Moral - prefer
  * {@code gzip}!

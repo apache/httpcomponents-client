@@ -54,7 +54,7 @@ public interface RedirectStrategy {
      * @param response the response received from the target server
      * @param context the context for the request execution
      *
-     * @return {@code true</code> if the request should be redirected, <code>false}
+     * @return {@code true} if the request should be redirected, {@code false}
      * otherwise
      */
     boolean isRedirected(

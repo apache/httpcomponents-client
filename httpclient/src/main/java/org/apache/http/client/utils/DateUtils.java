@@ -114,8 +114,8 @@ public final class DateUtils {
      * @param dateValue the date value to parse
      * @param dateFormats the date formats to use
      * @param startDate During parsing, two digit years will be placed in the range
-     * {@code startDate</code> to <code>startDate + 100 years}. This value may
-     * be {@code null</code>. When <code>null} is given as a parameter, year
+     * {@code startDate} to {@code startDate + 100 years}. This value may
+     * be {@code null}. When {@code null} is given as a parameter, year
      * {@code 2000} will be used.
      *
      * @return the parsed date or null if input could not be parsed
