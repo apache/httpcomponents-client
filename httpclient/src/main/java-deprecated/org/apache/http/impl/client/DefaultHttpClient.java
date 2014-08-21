@@ -173,7 +173,7 @@ public class DefaultHttpClient extends AbstractHttpClient {
      * <li>{@link org.apache.http.params.CoreConnectionPNames#SOCKET_BUFFER_SIZE}:
      *   8192</li>
      * <li>{@link org.apache.http.params.CoreProtocolPNames#USER_AGENT}:
-     *   Apache-HttpClient/<release> (java 1.5)</li>
+     *   Apache-HttpClient (Java 1.5)</li>
      * </ul>
      */
     public static void setDefaultHttpParams(final HttpParams params) {

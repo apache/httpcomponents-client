@@ -102,62 +102,77 @@ import org.apache.http.util.Args;
  * of those aspects with custom, application specific ones. This class
  * also provides factory methods to instantiate those objects:
  * <ul>
- *   <li>{@link HttpRequestExecutor}</li> object used to transmit messages
+ *   <li>{@link HttpRequestExecutor} object used to transmit messages
  *    over HTTP connections. The {@link #createRequestExecutor()} must be
  *    implemented by concrete super classes to instantiate this object.
- *   <li>{@link BasicHttpProcessor}</li> object to manage a list of protocol
+ *    </li>
+ *   <li>{@link BasicHttpProcessor} object to manage a list of protocol
  *    interceptors and apply cross-cutting protocol logic to all incoming
  *    and outgoing HTTP messages. The {@link #createHttpProcessor()} must be
  *    implemented by concrete super classes to instantiate this object.
- *   <li>{@link HttpRequestRetryHandler}</li> object used to decide whether
+ *    </li>
+ *   <li>{@link HttpRequestRetryHandler} object used to decide whether
  *    or not a failed HTTP request is safe to retry automatically.
  *    The {@link #createHttpRequestRetryHandler()} must be
  *    implemented by concrete super classes to instantiate this object.
- *   <li>{@link ClientConnectionManager}</li> object used to manage
+ *    </li>
+ *   <li>{@link ClientConnectionManager} object used to manage
  *    persistent HTTP connections.
- *   <li>{@link ConnectionReuseStrategy}</li> object used to decide whether
+ *    </li>
+ *   <li>{@link ConnectionReuseStrategy} object used to decide whether
  *    or not a HTTP connection can be kept alive and re-used for subsequent
  *    HTTP requests. The {@link #createConnectionReuseStrategy()} must be
  *    implemented by concrete super classes to instantiate this object.
- *   <li>{@link ConnectionKeepAliveStrategy}</li> object used to decide how
+ *    </li>
+ *   <li>{@link ConnectionKeepAliveStrategy} object used to decide how
  *    long a persistent HTTP connection can be kept alive.
  *    The {@link #createConnectionKeepAliveStrategy()} must be
  *    implemented by concrete super classes to instantiate this object.
- *   <li>{@link CookieSpecRegistry}</li> object used to maintain a list of
+ *    </li>
+ *   <li>{@link CookieSpecRegistry} object used to maintain a list of
  *    supported cookie specifications.
  *    The {@link #createCookieSpecRegistry()} must be implemented by concrete
  *    super classes to instantiate this object.
- *   <li>{@link CookieStore}</li> object used to maintain a collection of
+ *    </li>
+ *   <li>{@link CookieStore} object used to maintain a collection of
  *    cookies. The {@link #createCookieStore()} must be implemented by
  *    concrete super classes to instantiate this object.
- *   <li>{@link AuthSchemeRegistry}</li> object used to maintain a list of
+ *    </li>
+ *   <li>{@link AuthSchemeRegistry} object used to maintain a list of
  *    supported authentication schemes.
  *    The {@link #createAuthSchemeRegistry()} must be implemented by concrete
  *    super classes to instantiate this object.
- *   <li>{@link CredentialsProvider}</li> object used to maintain
+ *    </li>
+ *   <li>{@link CredentialsProvider} object used to maintain
  *    a collection user credentials. The {@link #createCredentialsProvider()}
  *    must be implemented by concrete super classes to instantiate
  *    this object.
- *   <li>{@link AuthenticationStrategy}</li> object used to authenticate
+ *    </li>
+ *   <li>{@link AuthenticationStrategy} object used to authenticate
  *    against the target host.
  *    The {@link #createTargetAuthenticationStrategy()} must be implemented
  *    by concrete super classes to instantiate this object.
- *   <li>{@link AuthenticationStrategy}</li> object used to authenticate
+ *    </li>
+ *   <li>{@link AuthenticationStrategy} object used to authenticate
  *    against the proxy host.
  *    The {@link #createProxyAuthenticationStrategy()} must be implemented
  *    by concrete super classes to instantiate this object.
- *   <li>{@link HttpRoutePlanner}</li> object used to calculate a route
+ *    </li>
+ *   <li>{@link HttpRoutePlanner} object used to calculate a route
  *    for establishing a connection to the target host. The route
  *    may involve multiple intermediate hops.
  *    The {@link #createHttpRoutePlanner()} must be implemented
  *    by concrete super classes to instantiate this object.
- *   <li>{@link RedirectStrategy}</li> object used to determine if an HTTP
+ *    </li>
+ *   <li>{@link RedirectStrategy} object used to determine if an HTTP
  *    request should be redirected to a new location in response to an HTTP
  *    response received from the target server.
- *   <li>{@link UserTokenHandler}</li> object used to determine if the
+ *    </li>
+ *   <li>{@link UserTokenHandler} object used to determine if the
  *    execution context is user identity specific.
  *    The {@link #createUserTokenHandler()} must be implemented by
  *    concrete super classes to instantiate this object.
+ *    </li>
  * </ul>
  * <p>
  *   This class also maintains a list of protocol interceptors intended
