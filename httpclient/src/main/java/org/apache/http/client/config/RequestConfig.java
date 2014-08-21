@@ -103,17 +103,20 @@ public class RequestConfig implements Cloneable {
      * a request body to determine if the origin server is willing to
      * accept the request (based on the request headers) before the client
      * sends the request body.
-     * <p/>
+     * <p>
      * The use of the 'Expect: 100-continue' handshake can result in
      * a noticeable performance improvement for entity enclosing requests
      * (such as POST and PUT) that require the target server's
      * authentication.
-     * <p/>
+     * </p>
+     * <p>
      * 'Expect: 100-continue' handshake should be used with caution, as it
      * may cause problems with HTTP servers and proxies that do not support
      * HTTP/1.1 protocol.
-     * <p/>
+     * </p>
+     * <p>
      * Default: <code>false</code>
+     * </p>
      */
     public boolean isExpectContinueEnabled() {
         return expectContinueEnabled;
@@ -121,8 +124,9 @@ public class RequestConfig implements Cloneable {
 
     /**
      * Returns HTTP proxy to be used for request execution.
-     * <p/>
+     * <p>
      * Default: <code>null</code>
+     * </p>
      */
     public HttpHost getProxy() {
         return proxy;
@@ -130,12 +134,14 @@ public class RequestConfig implements Cloneable {
 
     /**
      * Returns local address to be used for request execution.
-     * <p/>
+     * <p>
      * On machines with multiple network interfaces, this parameter
      * can be used to select the network interface from which the
      * connection originates.
-     * <p/>
+     * </p>
+     * <p>
      * Default: <code>null</code>
+     * </p>
      */
     public InetAddress getLocalAddress() {
         return localAddress;
@@ -146,8 +152,9 @@ public class RequestConfig implements Cloneable {
      * connection check can cause up to 30 millisecond overhead per request and
      * should be used only when appropriate. For performance critical
      * operations this check should be disabled.
-     * <p/>
+     * <p>
      * Default: <code>false</code> since 4.4
+     * </p>
      *
      * @deprecated (4.4) Use {@link
      *   org.apache.http.impl.conn.PoolingHttpClientConnectionManager#getValidateAfterInactivity()}
@@ -160,8 +167,9 @@ public class RequestConfig implements Cloneable {
     /**
      * Determines the name of the cookie specification to be used for HTTP state
      * management.
-     * <p/>
+     * <p>
      * Default: <code>null</code>
+     * </p>
      */
     public String getCookieSpec() {
         return cookieSpec;
@@ -169,8 +177,9 @@ public class RequestConfig implements Cloneable {
 
     /**
      * Determines whether redirects should be handled automatically.
-     * <p/>
+     * <p>
      * Default: <code>true</code>
+     * </p>
      */
     public boolean isRedirectsEnabled() {
         return redirectsEnabled;
@@ -179,8 +188,9 @@ public class RequestConfig implements Cloneable {
     /**
      * Determines whether relative redirects should be rejected. HTTP specification
      * requires the location value be an absolute URI.
-     * <p/>
+     * <p>
      * Default: <code>true</code>
+     * </p>
      */
     public boolean isRelativeRedirectsAllowed() {
         return relativeRedirectsAllowed;
@@ -190,8 +200,9 @@ public class RequestConfig implements Cloneable {
      * Determines whether circular redirects (redirects to the same location) should
      * be allowed. The HTTP spec is not sufficiently clear whether circular redirects
      * are permitted, therefore optionally they can be enabled
-     * <p/>
+     * <p>
      * Default: <code>false</code>
+     * </p>
      */
     public boolean isCircularRedirectsAllowed() {
         return circularRedirectsAllowed;
@@ -200,8 +211,9 @@ public class RequestConfig implements Cloneable {
     /**
      * Returns the maximum number of redirects to be followed. The limit on number
      * of redirects is intended to prevent infinite loops.
-     * <p/>
+     * <p>
      * Default: <code>50</code>
+     * </p>
      */
     public int getMaxRedirects() {
         return maxRedirects;
@@ -209,8 +221,9 @@ public class RequestConfig implements Cloneable {
 
     /**
      * Determines whether authentication should be handled automatically.
-     * <p/>
+     * <p>
      * Default: <code>true</code>
+     * </p>
      */
     public boolean isAuthenticationEnabled() {
         return authenticationEnabled;
@@ -219,8 +232,9 @@ public class RequestConfig implements Cloneable {
     /**
      * Determines the order of preference for supported authentication schemes
      * when authenticating with the target host.
-     * <p/>
+     * <p>
      * Default: <code>null</code>
+     * </p>
      */
     public Collection<String> getTargetPreferredAuthSchemes() {
         return targetPreferredAuthSchemes;
@@ -229,8 +243,9 @@ public class RequestConfig implements Cloneable {
     /**
      * Determines the order of preference for supported authentication schemes
      * when authenticating with the proxy host.
-     * <p/>
+     * <p>
      * Default: <code>null</code>
+     * </p>
      */
     public Collection<String> getProxyPreferredAuthSchemes() {
         return proxyPreferredAuthSchemes;
@@ -240,11 +255,13 @@ public class RequestConfig implements Cloneable {
      * Returns the timeout in milliseconds used when requesting a connection
      * from the connection manager. A timeout value of zero is interpreted
      * as an infinite timeout.
-     * <p/>
+     * <p>
      * A timeout value of zero is interpreted as an infinite timeout.
      * A negative value is interpreted as undefined (system default).
-     * <p/>
+     * </p>
+     * <p>
      * Default: <code>-1</code>
+     * </p>
      */
     public int getConnectionRequestTimeout() {
         return connectionRequestTimeout;
@@ -253,11 +270,13 @@ public class RequestConfig implements Cloneable {
     /**
      * Determines the timeout in milliseconds until a connection is established.
      * A timeout value of zero is interpreted as an infinite timeout.
-     * <p/>
+     * <p>
      * A timeout value of zero is interpreted as an infinite timeout.
      * A negative value is interpreted as undefined (system default).
-     * <p/>
+     * </p>
+     * <p>
      * Default: <code>-1</code>
+     * </p>
      */
     public int getConnectTimeout() {
         return connectTimeout;
@@ -267,11 +286,13 @@ public class RequestConfig implements Cloneable {
      * Defines the socket timeout (<code>SO_TIMEOUT</code>) in milliseconds,
      * which is the timeout for waiting for data  or, put differently,
      * a maximum period inactivity between two consecutive data packets).
-     * <p/>
+     * <p>
      * A timeout value of zero is interpreted as an infinite timeout.
      * A negative value is interpreted as undefined (system default).
-     * <p/>
+     * </p>
+     * <p>
      * Default: <code>-1</code>
+     * </p>
      */
     public int getSocketTimeout() {
         return socketTimeout;
@@ -279,8 +300,9 @@ public class RequestConfig implements Cloneable {
 
     /**
      * Determines whether compressed entities should be decompressed automatically.
-     * <p/>
+     * <p>
      * Default: <code>true</code>
+     * </p>
      *
      * @since 4.4
      */

@@ -40,11 +40,12 @@ import org.apache.http.conn.routing.HttpRoute;
  * This interface represents an element in the HTTP request execution chain. Each element can
  * either be a decorator around another element that implements a cross cutting aspect or
  * a self-contained executor capable of producing a response for the given request.
- * <p/>
+ * <p>
  * Important: please note it is required for decorators that implement post execution aspects
  * or response post-processing of any sort to release resources associated with the response
  * by calling {@link CloseableHttpResponse#close()} methods in case of an I/O, protocol or
  * runtime exception, or in case the response is not propagated to the caller.
+ * </p>
  *
  * @since 4.3
  */

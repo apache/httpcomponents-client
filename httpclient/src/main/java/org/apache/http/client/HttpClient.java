@@ -154,12 +154,13 @@ public interface HttpClient {
     /**
      * Executes HTTP request using the default context and processes the
      * response using the given response handler.
-     * <p/>
+     * <p>
      * Implementing classes are required to ensure that the content entity
      * associated with the response is fully consumed and the underlying
      * connection is released back to the connection manager automatically
      * in all cases relieving individual {@link ResponseHandler}s from
      * having to manage resource deallocation internally.
+     * </p>
      *
      * @param request   the request to execute
      * @param responseHandler the response handler
@@ -176,12 +177,13 @@ public interface HttpClient {
     /**
      * Executes HTTP request using the given context and processes the
      * response using the given response handler.
-     * <p/>
+     * <p>
      * Implementing classes are required to ensure that the content entity
      * associated with the response is fully consumed and the underlying
      * connection is released back to the connection manager automatically
      * in all cases relieving individual {@link ResponseHandler}s from
      * having to manage resource deallocation internally.
+     * </p>
      *
      * @param request   the request to execute
      * @param responseHandler the response handler
@@ -201,12 +203,13 @@ public interface HttpClient {
     /**
      * Executes HTTP request to the target using the default context and
      * processes the response using the given response handler.
-     * <p/>
+     * <p>
      * Implementing classes are required to ensure that the content entity
      * associated with the response is fully consumed and the underlying
      * connection is released back to the connection manager automatically
      * in all cases relieving individual {@link ResponseHandler}s from
      * having to manage resource deallocation internally.
+     * </p>
      *
      * @param target    the target host for the request.
      *                  Implementations may accept <code>null</code>
@@ -228,12 +231,13 @@ public interface HttpClient {
     /**
      * Executes HTTP request to the target using the given context and
      * processes the response using the given response handler.
-     * <p/>
+     * <p>
      * Implementing classes are required to ensure that the content entity
      * associated with the response is fully consumed and the underlying
      * connection is released back to the connection manager automatically
      * in all cases relieving individual {@link ResponseHandler}s from
      * having to manage resource deallocation internally.
+     * </p>
      *
      * @param target    the target host for the request.
      *                  Implementations may accept <code>null</code>

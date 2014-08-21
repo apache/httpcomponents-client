@@ -61,10 +61,11 @@ import org.apache.http.util.Args;
  * Internally this executor relies on a {@link HttpProcessor} to populate
  * requisite HTTP request headers, process HTTP response headers and update
  * session state in {@link HttpClientContext}.
- * <p/>
+ * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
  * chain.
+ * </p>
  *
  * @since 4.3
  */

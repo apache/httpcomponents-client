@@ -122,12 +122,13 @@ import org.apache.http.util.VersionInfo;
 
 /**
  * Builder for {@link CloseableHttpClient} instances.
- * <p/>
+ * <p>
  * When a particular component is not explicitly this class will
  * use its default implementation. System properties will be taken
  * into account when configuring the default implementations when
  * {@link #useSystemProperties()} method is called prior to calling
  * {@link #build()}.
+ * </p>
  * <ul>
  *  <li>ssl.TrustManagerFactory.algorithm</li>
  *  <li>javax.net.ssl.trustStoreType</li>
@@ -148,10 +149,11 @@ import org.apache.http.util.VersionInfo;
  *  <li>http.maxConnections</li>
  *  <li>http.agent</li>
  * </ul>
- * <p/>
+ * <p>
  * Please note that some settings used by this class can be mutually
  * exclusive and may not apply when building {@link CloseableHttpClient}
  * instances.
+ * </p>
  *
  * @since 4.3
  */
@@ -229,10 +231,11 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link X509HostnameVerifier} instance.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setConnectionManager(
      *   org.apache.http.conn.HttpClientConnectionManager)} and the {@link #setSSLSocketFactory(
      *   org.apache.http.conn.socket.LayeredConnectionSocketFactory)} methods.
+     * </p>
      *
      *   @deprecated (4.4)
      */
@@ -244,10 +247,11 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link javax.net.ssl.HostnameVerifier} instance.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setConnectionManager(
      *   org.apache.http.conn.HttpClientConnectionManager)} and the {@link #setSSLSocketFactory(
      *   org.apache.http.conn.socket.LayeredConnectionSocketFactory)} methods.
+     * </p>
      *
      *   @since 4.4
      */
@@ -258,11 +262,11 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link SSLContext} instance.
-     * <p/>
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setConnectionManager(
      *   org.apache.http.conn.HttpClientConnectionManager)} and the {@link #setSSLSocketFactory(
      *   org.apache.http.conn.socket.LayeredConnectionSocketFactory)} methods.
+     * </p>
      */
     public final HttpClientBuilder setSslcontext(final SSLContext sslcontext) {
         this.sslcontext = sslcontext;
@@ -271,9 +275,10 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link LayeredConnectionSocketFactory} instance.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setConnectionManager(
      *   org.apache.http.conn.HttpClientConnectionManager)} method.
+     * </p>
      */
     public final HttpClientBuilder setSSLSocketFactory(
             final LayeredConnectionSocketFactory sslSocketFactory) {
@@ -283,9 +288,10 @@ public class HttpClientBuilder {
 
     /**
      * Assigns maximum total connection value.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setConnectionManager(
      *   org.apache.http.conn.HttpClientConnectionManager)} method.
+     * </p>
      */
     public final HttpClientBuilder setMaxConnTotal(final int maxConnTotal) {
         this.maxConnTotal = maxConnTotal;
@@ -294,9 +300,10 @@ public class HttpClientBuilder {
 
     /**
      * Assigns maximum connection per route value.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setConnectionManager(
      *   org.apache.http.conn.HttpClientConnectionManager)} method.
+     * </p>
      */
     public final HttpClientBuilder setMaxConnPerRoute(final int maxConnPerRoute) {
         this.maxConnPerRoute = maxConnPerRoute;
@@ -305,9 +312,10 @@ public class HttpClientBuilder {
 
     /**
      * Assigns default {@link SocketConfig}.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setConnectionManager(
      *   org.apache.http.conn.HttpClientConnectionManager)} method.
+     * </p>
      */
     public final HttpClientBuilder setDefaultSocketConfig(final SocketConfig config) {
         this.defaultSocketConfig = config;
@@ -316,9 +324,10 @@ public class HttpClientBuilder {
 
     /**
      * Assigns default {@link ConnectionConfig}.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setConnectionManager(
      *   org.apache.http.conn.HttpClientConnectionManager)} method.
+     * </p>
      */
     public final HttpClientBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
         this.defaultConnectionConfig = config;
@@ -327,9 +336,10 @@ public class HttpClientBuilder {
 
     /**
      * Sets maximum time to live for persistent connections
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setConnectionManager(
      *   org.apache.http.conn.HttpClientConnectionManager)} method.
+     * </p>
      *
      * @since 4.4
      */
@@ -351,10 +361,11 @@ public class HttpClientBuilder {
     /**
      * Defines the connection manager is to be shared by multiple
      * client instances.
-     * <p/>
+     * <p>
      * If the connection manager is shared its life-cycle is expected
      * to be managed by the caller and it will not be shut down
      * if the client is closed.
+     * </p>
      *
      * @param shared defines whether or not the connection manager can be shared
      *  by multiple clients.
@@ -407,9 +418,10 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link UserTokenHandler} instance.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #disableConnectionState()}
      * method.
+     * </p>
      */
     public final HttpClientBuilder setUserTokenHandler(final UserTokenHandler userTokenHandler) {
         this.userTokenHandler = userTokenHandler;
@@ -435,9 +447,10 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@code User-Agent} value.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
      * org.apache.http.protocol.HttpProcessor)} method.
+     * </p>
      */
     public final HttpClientBuilder setUserAgent(final String userAgent) {
         this.userAgent = userAgent;
@@ -446,9 +459,10 @@ public class HttpClientBuilder {
 
     /**
      * Assigns default request header values.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
      * org.apache.http.protocol.HttpProcessor)} method.
+     * </p>
      */
     public final HttpClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
         this.defaultHeaders = defaultHeaders;
@@ -457,9 +471,10 @@ public class HttpClientBuilder {
 
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
      * org.apache.http.protocol.HttpProcessor)} method.
+     * </p>
      */
     public final HttpClientBuilder addInterceptorFirst(final HttpResponseInterceptor itcp) {
         if (itcp == null) {
@@ -474,9 +489,10 @@ public class HttpClientBuilder {
 
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
      * org.apache.http.protocol.HttpProcessor)} method.
+     * </p>
      */
     public final HttpClientBuilder addInterceptorLast(final HttpResponseInterceptor itcp) {
         if (itcp == null) {
@@ -491,7 +507,7 @@ public class HttpClientBuilder {
 
     /**
      * Adds this protocol interceptor to the head of the protocol processing list.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
      * org.apache.http.protocol.HttpProcessor)} method.
      */
@@ -508,7 +524,7 @@ public class HttpClientBuilder {
 
     /**
      * Adds this protocol interceptor to the tail of the protocol processing list.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
      * org.apache.http.protocol.HttpProcessor)} method.
      */
@@ -525,7 +541,7 @@ public class HttpClientBuilder {
 
     /**
      * Disables state (cookie) management.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
      * org.apache.http.protocol.HttpProcessor)} method.
      */
@@ -536,7 +552,7 @@ public class HttpClientBuilder {
 
     /**
      * Disables automatic content decompression.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
      * org.apache.http.protocol.HttpProcessor)} method.
      */
@@ -547,7 +563,7 @@ public class HttpClientBuilder {
 
     /**
      * Disables authentication scheme caching.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
      * org.apache.http.protocol.HttpProcessor)} method.
      */
@@ -566,7 +582,7 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link HttpRequestRetryHandler} instance.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
      * method.
      */
@@ -585,7 +601,7 @@ public class HttpClientBuilder {
 
     /**
      * Assigns default proxy value.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setRoutePlanner(
      *   org.apache.http.conn.routing.HttpRoutePlanner)} method.
      */
@@ -604,9 +620,10 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link RedirectStrategy} instance.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #disableRedirectHandling()}
      * method.
+     * </p>
 `     */
     public final HttpClientBuilder setRedirectStrategy(final RedirectStrategy redirectStrategy) {
         this.redirectStrategy = redirectStrategy;
@@ -723,8 +740,10 @@ public class HttpClientBuilder {
      * Produces an instance of {@link ClientExecChain} to be used as a main exec.
      * <p>
      * Default implementation produces an instance of {@link MainClientExec}
+     * </p>
      * <p>
      * For internal use.
+     * </p>
      *
      * @since 4.4
      */

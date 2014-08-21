@@ -65,15 +65,17 @@ import org.apache.http.util.LangUtils;
  * A connection manager for a single connection. This connection manager maintains only one active
  * connection. Even though this class is fully thread-safe it ought to be used by one execution
  * thread only, as only one thread a time can lease the connection at a time.
- * <p/>
+ * <p>
  * This connection manager will make an effort to reuse the connection for subsequent requests
  * with the same {@link HttpRoute route}. It will, however, close the existing connection and
  * open it for the given route, if the route of the persistent connection does not match that
  * of the connection request. If the connection has been already been allocated
  * {@link IllegalStateException} is thrown.
- * <p/>
+ * </p>
+ * <p>
  * This connection manager implementation should be used inside an EJB container instead of
  * {@link PoolingHttpClientConnectionManager}.
+ * </p>
  *
  * @since 4.3
  */

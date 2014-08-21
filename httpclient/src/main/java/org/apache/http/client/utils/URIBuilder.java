@@ -289,9 +289,10 @@ public class URIBuilder {
     /**
      * Sets URI query parameters. The parameter name / values are expected to be unescaped
      * and may contain non ASCII characters.
-     * <p/>
+     * <p>
      * Please note query parameters and custom query component are mutually exclusive. This method
      * will remove custom query if present.
+     * </p>
      *
      * @since 4.3
      */
@@ -311,9 +312,10 @@ public class URIBuilder {
     /**
      * Adds URI query parameters. The parameter name / values are expected to be unescaped
      * and may contain non ASCII characters.
-     * <p/>
+     * <p>
      * Please note query parameters and custom query component are mutually exclusive. This method
      * will remove custom query if present.
+     * </p>
      *
      * @since 4.3
      */
@@ -331,9 +333,10 @@ public class URIBuilder {
     /**
      * Sets URI query parameters. The parameter name / values are expected to be unescaped
      * and may contain non ASCII characters.
-     * <p/>
+     * <p>
      * Please note query parameters and custom query component are mutually exclusive. This method
      * will remove custom query if present.
+     * </p>
      *
      * @since 4.3
      */
@@ -355,9 +358,10 @@ public class URIBuilder {
     /**
      * Adds parameter to URI query. The parameter name and value are expected to be unescaped
      * and may contain non ASCII characters.
-     * <p/>
+     * <p>
      * Please note query parameters and custom query component are mutually exclusive. This method
      * will remove custom query if present.
+     * </p>
      */
     public URIBuilder addParameter(final String param, final String value) {
         if (this.queryParams == null) {
@@ -373,9 +377,10 @@ public class URIBuilder {
     /**
      * Sets parameter of URI query overriding existing value if set. The parameter name and value
      * are expected to be unescaped and may contain non ASCII characters.
-     * <p/>
+     * <p>
      * Please note query parameters and custom query component are mutually exclusive. This method
      * will remove custom query if present.
+     * </p>
      */
     public URIBuilder setParameter(final String param, final String value) {
         if (this.queryParams == null) {
@@ -411,9 +416,10 @@ public class URIBuilder {
     /**
      * Sets custom URI query. The value is expected to be unescaped and may contain non ASCII
      * characters.
-     * <p/>
+     * <p>
      * Please note query parameters and custom query component are mutually exclusive. This method
      * will remove query parameters if present.
+     * </p>
      *
      * @since 4.3
      */

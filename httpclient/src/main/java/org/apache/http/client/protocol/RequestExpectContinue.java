@@ -45,9 +45,10 @@ import org.apache.http.util.Args;
 /**
  * RequestExpectContinue is responsible for enabling the 'expect-continue'
  * handshake by adding <code>Expect</code> header.
- * <p/>
+ * <p>
  * This interceptor takes into account {@link RequestConfig#isExpectContinueEnabled()}
  * setting.
+ * </p>
  *
  * @since 4.3
  */

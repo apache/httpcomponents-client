@@ -29,13 +29,14 @@ package org.apache.http.conn.ssl;
 
 /**
  * Some X509 certificates to test against.
- * <p/>
+ * <p>
  * Note:  some of these certificates have Japanese Kanji in the "subjectAlt"
  * field (UTF8).  Not sure how realistic that is since international characters
  * in DNS names usually get translated into ASCII using "xn--" style DNS
  * entries.  "xn--i8s592g.co.jp" is what FireFox actually uses when trying to
  * find &#x82b1;&#x5b50;.co.jp.  So would the CN in the certificate contain
  * "xn--i8s592g.co.jp" in ASCII, or "&#x82b1;&#x5b50;.co.jp" in UTF8?  (Both?)
+ * </p>
  *
  * @since 11-Dec-2006
  */

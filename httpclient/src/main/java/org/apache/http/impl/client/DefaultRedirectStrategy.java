@@ -62,9 +62,10 @@ import org.apache.http.util.TextUtils;
  * {@code 307 Temporary Redirect} status codes will result in an automatic redirect of
  * HEAD and GET methods only. POST and PUT methods will not be automatically redirected
  * as requiring user confirmation.
- * <p/>
+ * <p>
  * The restriction on automatic redirection of POST methods can be relaxed by using
  * {@link LaxRedirectStrategy} instead of {@link DefaultRedirectStrategy}.
+ * </p>
  *
  * @see LaxRedirectStrategy
  * @since 4.1

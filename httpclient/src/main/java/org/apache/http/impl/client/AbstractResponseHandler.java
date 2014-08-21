@@ -41,11 +41,12 @@ import org.apache.http.util.EntityUtils;
  * A generic {@link ResponseHandler} that works with the response entity
  * for successful (2xx) responses. If the response code was >= 300, the response
  * body is consumed and an {@link HttpResponseException} is thrown.
- * <p/>
+ * <p>
  * If this is used with
  * {@link org.apache.http.client.HttpClient#execute(
  *  org.apache.http.client.methods.HttpUriRequest, ResponseHandler)},
  * HttpClient may handle redirects (3xx responses) internally.
+ * </p>
  *
  * @since 4.4
  */

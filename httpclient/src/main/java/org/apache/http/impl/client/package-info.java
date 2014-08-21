@@ -27,8 +27,9 @@
 
 /**
  * Default HTTP client implementation.
- * <p/>
+ * <p>
  * The usual execution flow can be demonstrated by the code snippet below:
+ * </p>
  * <pre>
  * CloseableHttpClient httpclient = HttpClients.createDefault();
  * try {

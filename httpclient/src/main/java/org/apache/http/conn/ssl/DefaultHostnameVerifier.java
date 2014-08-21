@@ -72,11 +72,12 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
      * This contains a list of 2nd-level domains that aren't allowed to
      * have wildcards when combined with country-codes.
      * For example: [*.co.uk].
-     * <p/>
+     * <p>
      * The [*.co.uk] problem is an interesting one.  Should we just hope
      * that CA's would never foolishly allow such a certificate to happen?
      * Looks like we're the only implementation guarding against this.
      * Firefox, Curl, Sun Java 1.4, 5, 6 don't bother with this check.
+     * </p>
      */
     private final static Pattern BAD_COUNTRY_WILDCARD_PATTERN = Pattern.compile(
             "^[a-z0-9\\-\\*]+\\.(ac|co|com|ed|edu|go|gouv|gov|info|lg|ne|net|or|org)\\.[a-z0-9\\-]{2}$",

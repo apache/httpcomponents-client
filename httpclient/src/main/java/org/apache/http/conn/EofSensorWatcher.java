@@ -75,9 +75,10 @@ public interface EofSensorWatcher {
      * Indicates that the {@link EofSensorInputStream stream} is aborted.
      * This method will be called only if EOF was <i>not</i> detected
      * before aborting. Otherwise, {@link #eofDetected eofDetected} is called.
-     * <p/>
+     * <p>
      * This method will also be invoked when an input operation causes an
      * IOException to be thrown to make sure the input stream gets shut down.
+     * </p>
      *
      * @param wrapped   the underlying stream which has not reached EOF
      *

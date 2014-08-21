@@ -47,9 +47,10 @@ import org.apache.http.entity.StringEntity;
 
 /**
  * Builder for {@link HttpEntity} instances.
- * <p/>
+ * <p>
  * Several setter methods of this builder are mutually exclusive. In case of multiple invocations
  * of the following methods only the last one will have effect:
+ * </p>
  * <ul>
  *   <li>{@link #setText(String)}</li>
  *   <li>{@link #setBinary(byte[])}</li>

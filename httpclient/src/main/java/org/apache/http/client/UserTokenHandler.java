@@ -35,9 +35,10 @@ import org.apache.http.protocol.HttpContext;
  * identify the current user if the context is user specific or to be
  * <code>null</code> if the context does not contain any resources or details
  * specific to the current user.
- * <p/>
+ * <p>
  * The user token will be used to ensure that user specific resources will not
  * be shared with or reused by other users.
+ * </p>
  *
  * @since 4.0
  */

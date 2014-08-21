@@ -50,8 +50,9 @@ import org.apache.http.util.Args;
  * Default implementation of {@link org.apache.http.client.AuthCache}. This implements
  * expects {@link org.apache.http.auth.AuthScheme} to be {@link java.io.Serializable}
  * in order to be cacheable.
- * <p/>
+ * <p>
  * Instances of this class are thread safe as of version 4.4.
+ * </p>
  *
  * @since 4.1
  */

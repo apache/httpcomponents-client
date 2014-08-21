@@ -35,15 +35,17 @@ import org.apache.http.protocol.HttpContext;
 
 /**
  * Represents a manager of persistent client connections.
- * <p/>
+ * <p>
  * The purpose of an HTTP connection manager is to serve as a factory for new
  * HTTP connections, manage persistent connections and synchronize access to
  * persistent connections making sure that only one thread of execution can
  * have access to a connection at a time.
- * <p/>
+ * </p>
+ * <p>
  * Implementations of this interface must be thread-safe. Access to shared
  * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
+ * </p>
  *
  * @since 4.3
  */
@@ -53,7 +55,7 @@ public interface HttpClientConnectionManager {
      * Returns a new {@link ConnectionRequest}, from which a
      * {@link HttpClientConnection} can be obtained or the request can be
      * aborted.
-     * <p/>
+     * <p>
      * Please note that newly allocated connections can be returned
      * in the closed state. The consumer of that connection is responsible
      * for fully establishing the route the to the connection target
@@ -70,6 +72,7 @@ public interface HttpClientConnectionManager {
      *  org.apache.http.conn.routing.HttpRoute,
      *  org.apache.http.protocol.HttpContext) routeComplete} to mark the route
      *  as fully completed.
+     * </p>
      *
      * @param route HTTP route of the requested connection.
      * @param state expected state of the connection or <code>null</code>

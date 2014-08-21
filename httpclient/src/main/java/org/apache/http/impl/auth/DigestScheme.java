@@ -64,10 +64,11 @@ import org.apache.http.util.EncodingUtils;
  * Currently only qop=auth or no qop is supported. qop=auth-int
  * is unsupported. If auth and auth-int are provided, auth is
  * used.
- * <p/>
+ * <p>
  * Since the digest username is included as clear text in the generated
  * Authentication header, the charset of the username must be compatible
  * with the HTTP element charset used by the connection.
+ * </p>
  *
  * @since 4.0
  */

@@ -198,7 +198,7 @@ public class AuthState {
     /**
      * Returns actual {@link AuthScope} if available
      *
-     * @return actual authentication scope if available, <code>null</code otherwise
+     * @return actual authentication scope if available, {@code null} otherwise
      *
      * @deprecated (4.2)  do not use.
      */

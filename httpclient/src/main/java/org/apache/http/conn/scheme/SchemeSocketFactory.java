@@ -66,13 +66,14 @@ public interface SchemeSocketFactory {
 
     /**
      * Connects a socket to the target host with the given remote address.
-     * <p/>
+     * <p>
      * Please note that {@link org.apache.http.conn.HttpInetSocketAddress} class should
      * be used in order to pass the target remote address along with the original
      * {@link org.apache.http.HttpHost} value used to resolve the address. The use of
      * {@link org.apache.http.conn.HttpInetSocketAddress} can also ensure that no reverse
      * DNS lookup will be performed if the target remote address was specified
      * as an IP address.
+     * </p>
      *
      * @param sock      the socket to connect, as obtained from
      *                  {@link #createSocket(HttpParams) createSocket}.

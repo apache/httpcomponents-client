@@ -36,10 +36,10 @@ import org.apache.http.util.LangUtils;
 /**
  * {@code AuthScope} represents an authentication scope consisting of a host name,
  * a port number, a realm name and an authentication scheme name.
- * <p/>
+ * <p>
  * This class can also optionally contain a host of origin, if created in response
  * to authentication challenge from a specific host.
- *
+ * </p>
  * @since 4.0
  */
 @Immutable
