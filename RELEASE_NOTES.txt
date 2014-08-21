@@ -1,12 +1,16 @@
 Changes since 4.4 ALPHA1
 -------------------
 
+* [HTTPCLIENT-1541] Use correct (HTTP/hostname) service principle name for Windows native
+  Negotiate/NTLM auth schemes.
+  Contributed by Ka-Lok Fung <ka-lok.fung at sap.com>
+
 * Improved compliance with RFC 2818: default hostname verifier to ignore the common name of the
   certificate subject if alternative subject names (dNSName or iPAddress) are present.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-1540] Support delegated credentials (ISC_REQ_DELEGATE) by Native windows
-  Negotiate/NTLM auth schemes.
+  native Negotiate/NTLM auth schemes.
   Contributed by Ka-Lok Fung <ka-lok.fung at sap.com>
 
 

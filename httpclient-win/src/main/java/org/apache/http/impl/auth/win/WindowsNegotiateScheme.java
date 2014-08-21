@@ -27,7 +27,10 @@
 package org.apache.http.impl.auth.win;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
@@ -36,6 +39,8 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.impl.auth.AuthSchemeBase;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
@@ -63,6 +68,8 @@ import com.sun.jna.ptr.IntByReference;
 @NotThreadSafe
 public class WindowsNegotiateScheme extends AuthSchemeBase {
 
+    private final Log log = LogFactory.getLog(getClass());
+
     // NTLM or Negotiate
     private final String scheme;
     private final String servicePrincipalName;
@@ -79,6 +86,10 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
         this.challenge = null;
         this.continueNeeded = true;
         this.servicePrincipalName = servicePrincipalName;
+
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("Created WindowsNegotiateScheme using " + this.scheme);
+        }
     }
 
     public void dispose() {
@@ -136,10 +147,10 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
 
         if (this.challenge.isEmpty()) {
             if (clientCred != null) {
+                dispose(); // run cleanup first before throwing an exception otherwise can leak OS resources
                 if (continueNeeded) {
                     throw new RuntimeException("Unexpected token");
                 }
-                dispose();
             }
         }
     }
@@ -173,11 +184,15 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
                     throw new Win32Exception(rc);
                 }
 
-                response = getToken(null, null,
-                        this.servicePrincipalName != null ? this.servicePrincipalName : username);
-            } catch (Exception t) {
+                final String targetName = getServicePrincipalName(context);
+                response = getToken(null, null, targetName);
+            } catch (RuntimeException ex) {
                 failAuthCleanup();
-                throw new AuthenticationException("Authentication Failed", t);
+                if (ex instanceof Win32Exception) {
+                    throw new AuthenticationException("Authentication Failed", ex);
+                } else {
+                    throw ex;
+                }
             }
         } else if (this.challenge == null || this.challenge.isEmpty()) {
             failAuthCleanup();
@@ -187,11 +202,15 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
                 final byte[] continueTokenBytes = Base64.decodeBase64(this.challenge);
                 final SecBufferDesc continueTokenBuffer = new SecBufferDesc(
                         Sspi.SECBUFFER_TOKEN, continueTokenBytes);
-                response = getToken(this.sppicontext, continueTokenBuffer,
-                        this.servicePrincipalName != null ? this.servicePrincipalName : "localhost");
-            } catch (Exception t) {
+                final String targetName = getServicePrincipalName(context);
+                response = getToken(this.sppicontext, continueTokenBuffer, targetName);
+            } catch (RuntimeException ex) {
                 failAuthCleanup();
-                throw new AuthenticationException("Authentication Failed", t);
+                if (ex instanceof Win32Exception) {
+                    throw new AuthenticationException("Authentication Failed", ex);
+                } else {
+                    throw ex;
+                }
             }
         }
 
@@ -211,6 +230,36 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
     private void failAuthCleanup() {
         dispose();
         this.continueNeeded = false;
+    }
+
+    // Per RFC4559, the Service Principal Name should HTTP/<hostname>. However, <hostname>
+    // can just be the host or the fully qualified name (e.g., see "Kerberos SPN generation"
+    // at http://www.chromium.org/developers/design-documents/http-authentication). Here,
+    // I've chosen to use the host that has been provided in HttpHost so that I don't incur
+    // any additional DNS lookup cost.
+    private String getServicePrincipalName(final HttpContext context) {
+        final String spn;
+        if (this.servicePrincipalName != null) {
+            spn = this.servicePrincipalName;
+        } else {
+            final HttpClientContext clientContext = HttpClientContext.adapt(context);
+            final HttpHost target = clientContext.getTargetHost();
+            if (target != null) {
+                spn = "HTTP/" + target.getHostName();
+            } else {
+                final RouteInfo route = clientContext.getHttpRoute();
+                if (route != null) {
+                    spn = "HTTP/" + route.getTargetHost().getHostName();
+                } else {
+                    // Should not happen
+                    spn = null;
+                }
+            }
+        }
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("Using SPN: " + spn);
+        }
+        return spn;
     }
 
     // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa375506(v=vs.85).aspx
