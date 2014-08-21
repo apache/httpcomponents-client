@@ -38,8 +38,9 @@ import com.sun.jna.platform.win32.Secur32Util;
 
 /**
  * Returns the current Windows user credentials
- * <p/>
+ * <p>
  * EXPERIMENTAL
+ * </p>
  *
  * @since 4.4
  */

@@ -36,8 +36,9 @@ import org.apache.http.protocol.HttpContext;
 /**
  * {@link AuthSchemeProvider} implementation that creates and initializes
  * {@link WindowsNegotiateScheme} using JNA to implement NTLM
- * <p/>
+ * <p>
  * EXPERIMENTAL
+ * </p>
  *
  * @since 4.4
  */

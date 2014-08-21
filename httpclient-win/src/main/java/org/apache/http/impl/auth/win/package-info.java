@@ -26,9 +26,10 @@
  */
 
 /**
- * Auth scheme that makes use of JNA to implement Negotiate & NTLM on Windows Platforms.
- * <p/>
+ * Auth scheme that makes use of JNA to implement Negotiate and NTLM on Windows Platforms.
+ * <p>
  * Please note this class is considered experimental and may be discontinued or removed
  * in the future.
+ * </p>
  */
 package org.apache.http.impl.auth.win;

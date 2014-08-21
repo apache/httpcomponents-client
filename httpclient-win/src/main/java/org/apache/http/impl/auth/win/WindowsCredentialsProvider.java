@@ -37,8 +37,9 @@ import org.apache.http.util.Args;
  * {@link org.apache.http.client.CredentialsProvider} implementation that always returns
  * {@link org.apache.http.impl.auth.win.CurrentWindowsCredentials} instance to NTLM
  * and SPNego authentication challenges.
- * <p/>
+ * <p>
  * EXPERIMENTAL
+ * </p>
  *
  * @since 4.4
  */

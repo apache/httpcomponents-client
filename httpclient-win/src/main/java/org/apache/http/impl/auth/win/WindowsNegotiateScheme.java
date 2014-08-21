@@ -57,11 +57,13 @@ import com.sun.jna.platform.win32.WinError;
 import com.sun.jna.ptr.IntByReference;
 
 /**
- * Auth scheme that makes use of JNA to implement Negotiate & NTLM on Windows Platforms.
- * <p/>
+ * Auth scheme that makes use of JNA to implement Negotiate and NTLM on Windows Platforms.
+ * <p>
  * This will delegate negotiation to the windows machine.
- * <p/>
+ * </p>
+ * <p>
  * EXPERIMENTAL
+ * </p>
  *
  * @since 4.4
  */
