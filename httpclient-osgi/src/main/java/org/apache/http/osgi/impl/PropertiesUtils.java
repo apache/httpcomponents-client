@@ -83,10 +83,10 @@ final class PropertiesUtils {
 
     /**
      * Returns the parameter as a single value. If the
-     * parameter is neither an array nor a <code>java.util.Collection</code> the
+     * parameter is neither an array nor a {@code java.util.Collection} the
      * parameter is returned unmodified. If the parameter is a non-empty array,
      * the first array element is returned. If the property is a non-empty
-     * <code>java.util.Collection</code>, the first collection element is returned.
+     * {@code java.util.Collection}, the first collection element is returned.
      *
      * @param propValue the parameter to convert.
      */

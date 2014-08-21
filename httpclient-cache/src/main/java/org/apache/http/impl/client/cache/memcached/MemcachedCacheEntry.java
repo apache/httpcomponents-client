@@ -44,14 +44,14 @@ public interface MemcachedCacheEntry {
 
     /**
      * Returns the storage key associated with this entry. May return
-     * <code>null</code> if this is an "unset" instance waiting to be
+     * {@code null} if this is an "unset" instance waiting to be
      * {@link #set(byte[])} with a serialized representation.
      */
     String getStorageKey();
 
     /**
      * Returns the {@link HttpCacheEntry} associated with this entry.
-     * May return <code>null</code> if this is an "unset" instance
+     * May return {@code null} if this is an "unset" instance
      * waiting to be {@link #set(byte[])} with a serialized
      * representation.
      */
@@ -64,7 +64,7 @@ public interface MemcachedCacheEntry {
      * object should return updated (as appropriate) values for
      * {@link #getStorageKey()} and {@link #getHttpCacheEntry()}. This
      * should be viewed as an atomic operation on the
-     * <code>MemcachedCacheEntry</code>.
+     * {@code MemcachedCacheEntry}.
      * @param bytes serialized representation
      * @throws {@link MemcachedSerializationException} if deserialization
      *   fails. In this case, the prior values for {{@link #getStorageKey()}

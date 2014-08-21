@@ -460,7 +460,7 @@ public class CacheConfig implements Cloneable {
      * Sets the minimum number of threads to keep alive for background
      * revalidations due to the {@code stale-while-revalidate} directive.
      * @param min should be greater than zero and less than or equal
-     *   to <code>getAsynchronousWorkersMax()</code>
+     *   to {@code getAsynchronousWorkersMax()}
      *
      * @deprecated (4.3) use {@link Builder}.
      */
@@ -680,7 +680,7 @@ public class CacheConfig implements Cloneable {
          * Sets the minimum number of threads to keep alive for background
          * revalidations due to the {@code stale-while-revalidate} directive.
          * @param asynchronousWorkersCore should be greater than zero and less than or equal
-         *   to <code>getAsynchronousWorkersMax()</code>
+         *   to {@code getAsynchronousWorkersMax()}
          */
         public Builder setAsynchronousWorkersCore(final int asynchronousWorkersCore) {
             this.asynchronousWorkersCore = asynchronousWorkersCore;

@@ -183,7 +183,7 @@ abstract class AbstractMultipartForm {
      * total length of the entire entity. The content of individual parts is not
      * buffered.
      *
-     * @return total length of the multipart entity if known, <code>-1</code>
+     * @return total length of the multipart entity if known, {@code -1}
      *   otherwise.
      */
     public long getTotalLength() {

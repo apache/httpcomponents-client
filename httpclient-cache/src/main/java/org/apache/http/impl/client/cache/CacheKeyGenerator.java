@@ -143,7 +143,7 @@ class CacheKeyGenerator {
      * variant key.
      * @param req originating request
      * @param entry cache entry in question that has variants
-     * @return a <code>String</code> variant key
+     * @return a {@code String} variant key
      */
     public String getVariantKey(final HttpRequest req, final HttpCacheEntry entry) {
         final List<String> variantHeaderNames = new ArrayList<String>();

@@ -71,7 +71,7 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
 
     /**
      * Create a new scheduling strategy using a fixed pool of worker threads.
-     * @param cacheConfig the thread pool configuration to be used; not <code>null</code>
+     * @param cacheConfig the thread pool configuration to be used; not {@code null}
      * @see org.apache.http.impl.client.cache.CacheConfig#getAsynchronousWorkersMax()
      * @see #DEFAULT_BACK_OFF_RATE
      * @see #DEFAULT_INITIAL_EXPIRY_IN_MILLIS
@@ -88,7 +88,7 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
      * Create a new scheduling strategy by using a fixed pool of worker threads and the
      * given parameters to calculated the delay.
      *
-     * @param cacheConfig the thread pool configuration to be used; not <code>null</code>
+     * @param cacheConfig the thread pool configuration to be used; not {@code null}
      * @param backOffRate the back off rate to be used; not negative
      * @param initialExpiryInMillis the initial expiry in milli seconds; not negative
      * @param maxExpiryInMillis the upper limit of the delay in milli seconds; not negative

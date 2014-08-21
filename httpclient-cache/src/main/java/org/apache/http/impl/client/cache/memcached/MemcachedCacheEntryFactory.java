@@ -41,7 +41,7 @@ public interface MemcachedCacheEntryFactory {
      * we are hashing storage keys into cache keys to accommodate
      * limitations in memcached's key space, it is possible to have
      * cache collisions. Therefore, we store the storage key along
-     * with the <code>HttpCacheEntry</code> so it can be compared
+     * with the {@code HttpCacheEntry} so it can be compared
      * on retrieval and thus detect collisions.
      * @param storageKey storage key under which the entry will
      *   be logically stored
@@ -55,7 +55,7 @@ public interface MemcachedCacheEntryFactory {
      * Creates an "unset" {@link MemcachedCacheEntry} ready to accept
      * a serialized representation via {@link MemcachedCacheEntry#set(byte[])}
      * and deserialize it into a storage key and a {@link HttpCacheEntry}.
-     * @return <code>MemcachedCacheEntry</code>
+     * @return {@code MemcachedCacheEntry}
      */
     MemcachedCacheEntry getUnsetCacheEntry();
 

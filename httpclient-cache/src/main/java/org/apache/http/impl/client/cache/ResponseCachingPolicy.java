@@ -99,7 +99,7 @@ class ResponseCachingPolicy {
      *
      * @param httpMethod What type of request was this, a GET, PUT, other?
      * @param response The origin response
-     * @return <code>true</code> if response is cacheable
+     * @return {@code true} if response is cacheable
      */
     public boolean isResponseCacheable(final String httpMethod, final HttpResponse response) {
         boolean cacheable = false;
@@ -232,7 +232,7 @@ class ResponseCachingPolicy {
      *
      * @param request the {@link HttpRequest} that generated an origin hit
      * @param response the {@link HttpResponse} from the origin
-     * @return <code>true</code> if response is cacheable
+     * @return {@code true} if response is cacheable
      */
     public boolean isResponseCacheable(final HttpRequest request, final HttpResponse response) {
         if (requestProtocolGreaterThanAccepted(request)) {

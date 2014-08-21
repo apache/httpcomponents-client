@@ -83,7 +83,7 @@ interface HttpCache {
      * {@link Map} is returned
      * @param host
      * @param request
-     * @return a <code>Map</code> mapping Etags to variant cache entries
+     * @return a {@code Map} mapping Etags to variant cache entries
      * @throws IOException
      */
     Map<String,Variant> getVariantCacheEntriesWithEtags(HttpHost host, HttpRequest request)

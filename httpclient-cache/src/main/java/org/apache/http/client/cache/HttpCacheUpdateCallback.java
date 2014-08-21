@@ -41,9 +41,9 @@ public interface HttpCacheUpdateCallback {
      *
      * @param existing
      *            the cache entry currently in-place in the cache, possibly
-     *            <code>null</code> if nonexistent
+     *            {@code null} if nonexistent
      * @return the cache entry that should replace it, again,
-     *         possibly <code>null</code> if the entry should be deleted
+     *         possibly {@code null} if the entry should be deleted
      *
      * @since 4.1
      */

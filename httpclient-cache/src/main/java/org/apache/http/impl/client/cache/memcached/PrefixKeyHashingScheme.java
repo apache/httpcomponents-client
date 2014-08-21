@@ -29,7 +29,7 @@ package org.apache.http.impl.client.cache.memcached;
 
 /**
  * This is a {@link KeyHashingScheme} decorator that simply adds
- * a known prefix to the results of another <code>KeyHashingScheme</code>.
+ * a known prefix to the results of another {@code KeyHashingScheme}.
  * Primarily useful for namespacing a shared memcached cluster, for
  * example.
  */

@@ -215,8 +215,8 @@ public class HttpTestUtils {
     }
 
     /*
-     * Assert.asserts that message <code>r2</code> represents exactly the same
-     * message as <code>r1</code>, except for hop-by-hop headers. "When a cache
+     * Assert.asserts that message {@code r2} represents exactly the same
+     * message as {@code r1}, except for hop-by-hop headers. "When a cache
      * is semantically transparent, the client receives exactly the same
      * response (except for hop-by-hop headers) that it would have received had
      * its request been handled directly by the origin server."

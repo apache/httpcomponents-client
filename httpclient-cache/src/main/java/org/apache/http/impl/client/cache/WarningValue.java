@@ -66,7 +66,7 @@ class WarningValue {
      * skipped, in keeping with the philosophy of "ignore what you
      * cannot understand."
      * @param h Warning {@link Header} to parse
-     * @return array of <code>WarnValue</code> objects
+     * @return array of {@code WarnValue} objects
      */
     public static WarningValue[] getWarningValues(final Header h) {
         final List<WarningValue> out = new ArrayList<WarningValue>();
@@ -317,7 +317,7 @@ class WarningValue {
     }
 
     /** Returns the 3-digit code associated with this warning.
-     * @return <code>int</code>
+     * @return {@code int}
      */
     public int getWarnCode() { return warnCode; }
 
@@ -335,20 +335,20 @@ class WarningValue {
      * <pre>
      *   Warning: 110 fred "Response is stale"
      * </pre>
-     * then this method will return <code>"\"Response is stale\""</code>
+     * then this method will return {@code "\"Response is stale\""}
      * (surrounding quotes included).
      * @return {@link String}
      */
     public String getWarnText() { return warnText; }
 
     /** Returns the date and time when this warning was added, or
-     * <code>null</code> if a warning date was not supplied in the
+     * {@code null} if a warning date was not supplied in the
      * header.
      * @return {@link Date}
      */
     public Date getWarnDate() { return warnDate; }
 
-    /** Formats a <code>WarningValue</code> as a {@link String}
+    /** Formats a {@code WarningValue} as a {@link String}
      * suitable for including in a header. For example, you can:
      * <pre>
      *   WarningValue wv = ...;

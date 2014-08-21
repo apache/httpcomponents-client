@@ -44,10 +44,10 @@ public interface ContentDescriptor {
 
     /**
      * Gets the defaulted MIME media type for this content.
-     * For example <code>TEXT</code>, <code>IMAGE</code>, <code>MULTIPART</code>
+     * For example {@code TEXT}, {@code IMAGE}, {@code MULTIPART}
      * @see #getMimeType()
      * @return the MIME media type when content-type specified,
-     * otherwise the correct default (<code>TEXT</code>)
+     * otherwise the correct default ({@code TEXT})
      */
     String getMediaType();
 
@@ -55,19 +55,19 @@ public interface ContentDescriptor {
      * Gets the defaulted MIME sub type for this content.
      * @see #getMimeType()
      * @return the MIME media type when content-type is specified,
-     * otherwise the correct default (<code>PLAIN</code>)
+     * otherwise the correct default ({@code PLAIN})
      */
     String getSubType();
 
     /**
      * <p>The body descriptors character set, defaulted appropriately for the MIME type.</p>
      * <p>
-     * For <code>TEXT</code> types, this will be defaulted to <code>us-ascii</code>.
+     * For {@code TEXT} types, this will be defaulted to {@code us-ascii}.
      * For other types, when the charset parameter is missing this property will be null.
      * </p>
      * @return Character set, which has been parsed from the
-     *   content-type definition. Not null for <code>TEXT</code> types, when unset will
-     *   be set to default <code>us-ascii</code>. For other types, when unset,
+     *   content-type definition. Not null for {@code TEXT} types, when unset will
+     *   be set to default {@code us-ascii}. For other types, when unset,
      *   null will be returned.
      */
     String getCharset();

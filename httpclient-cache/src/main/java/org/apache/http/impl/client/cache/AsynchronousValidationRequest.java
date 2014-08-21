@@ -105,8 +105,8 @@ public class AsynchronousValidationRequest implements Runnable {
      * Revalidate the cache entry and return if the operation was successful.
      * Success means a connection to the server was established and replay did
      * not indicate a server error.
-     * @return <code>true</code> if the cache entry was successfully validated;
-     * otherwise <code>false</code>
+     * @return {@code true} if the cache entry was successfully validated;
+     * otherwise {@code false}
      */
     private boolean revalidateCacheEntry() {
         try {

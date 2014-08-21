@@ -38,7 +38,7 @@ public interface SchedulingStrategy extends Closeable
     /**
      * Schedule an {@link AsynchronousValidationRequest} to be executed.
      *
-     * @param revalidationRequest the request to be executed; not <code>null</code>
+     * @param revalidationRequest the request to be executed; not {@code null}
      * @throws java.util.concurrent.RejectedExecutionException if the request could not be scheduled for execution
      */
     void schedule(AsynchronousValidationRequest revalidationRequest);
