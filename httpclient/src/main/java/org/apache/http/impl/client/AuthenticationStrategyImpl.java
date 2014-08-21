@@ -99,7 +99,8 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
     }
 
     /**
-     * Generates a map of challenge auth-scheme => Header entries
+     * Generates a map of challenge auth-scheme =&gt; Header entries.
+     * 
      * @return map: key=lower-cased auth-scheme name, value=Header that contains the challenge
      */
     @Override

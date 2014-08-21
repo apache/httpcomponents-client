@@ -59,8 +59,8 @@ public interface AuthenticationHandler {
      * of authentication failure
      * @param response HTTP response.
      * @param context HTTP context.
-     * @return <code>true</code> if user authentication is required,
-     *   <code>false</code> otherwise.
+     * @return {@code true} if user authentication is required,
+     *   {@code false} otherwise.
      */
     boolean isAuthenticationRequested(
             HttpResponse response,

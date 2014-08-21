@@ -48,10 +48,11 @@ import org.apache.http.util.Args;
  * Request executor in the request execution chain that is responsible
  * for making a decision whether a request failed due to an I/O error
  * should be re-executed.
- * <p/>
+ * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
  * chain.
+ * </p>
  *
  * @since 4.3
  */

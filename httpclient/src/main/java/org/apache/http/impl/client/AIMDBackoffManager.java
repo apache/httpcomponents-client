@@ -35,7 +35,7 @@ import org.apache.http.pool.ConnPoolControl;
 import org.apache.http.util.Args;
 
 /**
- * <p>The <code>AIMDBackoffManager</code> applies an additive increase,
+ * <p>The {@code AIMDBackoffManager} applies an additive increase,
  * multiplicative decrease (AIMD) to managing a dynamic limit to
  * the number of connections allowed to a given host. You may want
  * to experiment with the settings for the cooldown periods and the
@@ -65,7 +65,7 @@ public class AIMDBackoffManager implements BackoffManager {
     private int cap = 2; // Per RFC 2616 sec 8.1.4
 
     /**
-     * Creates an <code>AIMDBackoffManager</code> to manage
+     * Creates an {@code AIMDBackoffManager} to manage
      * per-host connection pool sizes represented by the
      * given {@link ConnPoolControl}.
      * @param connPerRoute per-host routing maximums to
@@ -130,7 +130,7 @@ public class AIMDBackoffManager implements BackoffManager {
     /**
      * Sets the factor to use when backing off; the new
      * per-host limit will be roughly the current max times
-     * this factor. <code>Math.floor</code> is applied in the
+     * this factor. {@code Math.floor} is applied in the
      * case of non-integer outcomes to ensure we actually
      * decrease the pool size. Pool sizes are never decreased
      * below 1, however. Defaults to 0.5.
@@ -156,7 +156,7 @@ public class AIMDBackoffManager implements BackoffManager {
     /**
      * Sets the absolute maximum per-host connection pool size to
      * probe up to; defaults to 2 (the default per-host max).
-     * @param cap must be >= 1
+     * @param cap must be &gt;= 1
      */
     public void setPerHostConnectionCap(final int cap) {
         Args.positive(cap, "Per host connection cap");

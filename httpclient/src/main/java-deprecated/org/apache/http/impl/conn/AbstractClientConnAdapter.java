@@ -95,8 +95,8 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
      * The adapter is initially <i>not</i>
      * {@link #isMarkedReusable marked} as reusable.
      *
-     * @param mgr       the connection manager, or <code>null</code>
-     * @param conn      the connection to wrap, or <code>null</code>
+     * @param mgr       the connection manager, or {@code null}
+     * @param conn      the connection to wrap, or {@code null}
      */
     protected AbstractClientConnAdapter(final ClientConnectionManager mgr,
                                         final OperatedClientConnection conn) {

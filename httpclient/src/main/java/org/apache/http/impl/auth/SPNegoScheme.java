@@ -94,9 +94,9 @@ public class SPNegoScheme extends GGSSchemeBase {
 
     /**
      * There are no valid parameters for SPNEGO authentication so this
-     * method always returns <code>null</code>.
+     * method always returns {@code null}.
      *
-     * @return <code>null</code>
+     * @return {@code null}
      */
     @Override
     public String getParameter(final String name) {
@@ -106,9 +106,9 @@ public class SPNegoScheme extends GGSSchemeBase {
 
     /**
      * The concept of an authentication realm is not supported by the Negotiate
-     * authentication scheme. Always returns <code>null</code>.
+     * authentication scheme. Always returns {@code null}.
      *
-     * @return <code>null</code>
+     * @return {@code null}
      */
     @Override
     public String getRealm() {

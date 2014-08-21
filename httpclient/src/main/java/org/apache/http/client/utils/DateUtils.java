@@ -62,7 +62,7 @@ public final class DateUtils {
 
     /**
      * Date format pattern used to parse HTTP date headers in ANSI C
-     * <code>asctime()</code> format.
+     * {@code asctime()} format.
      */
     public static final String PATTERN_ASCTIME = "EEE MMM d HH:mm:ss yyyy";
 
@@ -114,9 +114,9 @@ public final class DateUtils {
      * @param dateValue the date value to parse
      * @param dateFormats the date formats to use
      * @param startDate During parsing, two digit years will be placed in the range
-     * <code>startDate</code> to <code>startDate + 100 years</code>. This value may
-     * be <code>null</code>. When <code>null</code> is given as a parameter, year
-     * <code>2000</code> will be used.
+     * {@code startDate</code> to <code>startDate + 100 years}. This value may
+     * be {@code null</code>. When <code>null} is given as a parameter, year
+     * {@code 2000} will be used.
      *
      * @return the parsed date or null if input could not be parsed
      */
@@ -214,9 +214,9 @@ public final class DateUtils {
          * creates a {@link SimpleDateFormat} for the requested format string.
          *
          * @param pattern
-         *            a non-<code>null</code> format String according to
+         *            a non-{@code null} format String according to
          *            {@link SimpleDateFormat}. The format is not checked against
-         *            <code>null</code> since all paths go through
+         *            {@code null} since all paths go through
          *            {@link DateUtils}.
          * @return the requested format. This simple dateformat should not be used
          *         to {@link SimpleDateFormat#applyPattern(String) apply} to a

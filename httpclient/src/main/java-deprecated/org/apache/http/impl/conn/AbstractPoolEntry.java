@@ -75,7 +75,7 @@ public abstract class AbstractPoolEntry {
     /** Connection state object */
     protected volatile Object state;
 
-    /** The tracked route, or <code>null</code> before tracking starts. */
+    /** The tracked route, or {@code null} before tracking starts. */
     protected volatile RouteTracker tracker;
 
 
@@ -84,7 +84,7 @@ public abstract class AbstractPoolEntry {
      *
      * @param connOperator     the Connection Operator for this entry
      * @param route   the planned route for the connection,
-     *                or <code>null</code>
+     *                or {@code null}
      */
     protected AbstractPoolEntry(final ClientConnectionOperator connOperator,
                                 final HttpRoute route) {
@@ -168,8 +168,8 @@ public abstract class AbstractPoolEntry {
      * The tunnel has to be established outside by sending a CONNECT
      * request to the (last) proxy.
      *
-     * @param secure    <code>true</code> if the tunnel should be
-     *                  considered secure, <code>false</code> otherwise
+     * @param secure    {@code true} if the tunnel should be
+     *                  considered secure, {@code false} otherwise
      * @param params    the parameters for tunnelling the connection
      *
      * @throws IOException  in case of a problem
@@ -196,8 +196,8 @@ public abstract class AbstractPoolEntry {
      *  See {@link org.apache.http.conn.ManagedClientConnection#tunnelProxy
      *                                  ManagedClientConnection.tunnelProxy}
      *                  for details.
-     * @param secure    <code>true</code> if the tunnel should be
-     *                  considered secure, <code>false</code> otherwise
+     * @param secure    {@code true} if the tunnel should be
+     *                  considered secure, {@code false} otherwise
      * @param params    the parameters for tunnelling the connection
      *
      * @throws IOException  in case of a problem

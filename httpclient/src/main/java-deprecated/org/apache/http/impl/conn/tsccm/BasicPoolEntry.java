@@ -77,7 +77,7 @@ public class BasicPoolEntry extends AbstractPoolEntry {
      *
      * @param op        the connection operator
      * @param route     the planned route for the connection
-     * @param connTTL   maximum lifetime of this entry, <=0 implies "infinity"
+     * @param connTTL   maximum lifetime of this entry, &lt;=0 implies "infinity"
      * @param timeunit  TimeUnit of connTTL
      *
      * @since 4.1

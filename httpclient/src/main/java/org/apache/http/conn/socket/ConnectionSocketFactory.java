@@ -57,14 +57,14 @@ public interface ConnectionSocketFactory {
      *
      * @param connectTimeout connect timeout.
      * @param sock the socket to connect, as obtained from {@link #createSocket(HttpContext)}.
-     * <code>null</code> indicates that a new socket should be created and connected.
+     * {@code null} indicates that a new socket should be created and connected.
      * @param host target host as specified by the caller (end user).
      * @param remoteAddress the resolved remote address to connect to.
-     * @param localAddress the local address to bind the socket to, or <code>null</code> for any.
+     * @param localAddress the local address to bind the socket to, or {@code null} for any.
      * @param context the actual HTTP context.
      *
      * @return  the connected socket. The returned object may be different
-     *          from the <code>sock</code> argument if this factory supports
+     *          from the {@code sock} argument if this factory supports
      *          a layered protocol.
      *
      * @throws IOException if an I/O error occurs

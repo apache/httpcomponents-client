@@ -52,7 +52,7 @@ import org.apache.http.util.Asserts;
 
 /**
  * A connection pool that maintains connections by route.
- * This class is derived from <code>MultiThreadedHttpConnectionManager</code>
+ * This class is derived from {@code MultiThreadedHttpConnectionManager}
  * in HttpClient 3.x, see there for original authors. It implements the same
  * algorithm for connection re-use and connection-per-host enforcement:
  * <ul>
@@ -61,7 +61,7 @@ import org.apache.http.util.Asserts;
  * </ul>
  * Note that access to the pool data structures is synchronized via the
  * {@link AbstractConnPool#poolLock poolLock} in the base class,
- * not via <code>synchronized</code> methods.
+ * not via {@code synchronized} methods.
  *
  * @since 4.0
  *
@@ -203,7 +203,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * Called by {@link #getRoutePool} when necessary.
      *
      * @param cond      the condition to wait for
-     * @param rospl     the route specific pool, or <code>null</code>
+     * @param rospl     the route specific pool, or {@code null}
      *
      * @return  a waiting thread representation
      */
@@ -230,7 +230,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @param create    whether to create the pool if it doesn't exist
      *
      * @return  the pool for the argument route,
-     *     never <code>null</code> if <code>create</code> is <code>true</code>
+     *     never {@code null</code> if <code>create</code> is <code>true}
      */
     protected RouteSpecificPool getRoutePool(final HttpRoute route,
                                              final boolean create) {
@@ -308,8 +308,8 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @param route     the route for which to get the connection
      * @param timeout   the timeout, 0 or negative for no timeout
-     * @param tunit     the unit for the <code>timeout</code>,
-     *                  may be <code>null</code> only if there is no timeout
+     * @param tunit     the unit for the {@code timeout},
+     *                  may be {@code null} only if there is no timeout
      * @param aborter   an object which can abort a {@link WaitingThread}.
      *
      * @return  pool entry holding a connection for the route
@@ -477,7 +477,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * @param rospl       the route-specific pool from which to get an entry
      *
      * @return  an available pool entry for the given route, or
-     *          <code>null</code> if none is available
+     *          {@code null} if none is available
      */
     protected BasicPoolEntry getFreeEntry(final RouteSpecificPool rospl, final Object state) {
 
@@ -647,7 +647,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      * if there is one.
      * Otherwise, a thread in the connection pool will be notified.
      *
-     * @param rospl     the pool in which to notify, or <code>null</code>
+     * @param rospl     the pool in which to notify, or {@code null}
      */
     protected void notifyWaitingThread(final RouteSpecificPool rospl) {
 
@@ -708,7 +708,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
      *
      * @param idletime  the time the connections should have been idle
      *                  in order to be closed now
-     * @param tunit     the unit for the <code>idletime</code>
+     * @param tunit     the unit for the {@code idletime}
      */
     @Override
     public void closeIdleConnections(final long idletime, final TimeUnit tunit) {

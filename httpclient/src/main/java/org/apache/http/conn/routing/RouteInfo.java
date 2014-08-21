@@ -55,11 +55,12 @@ public interface RouteInfo {
      * over an existing connection.
      * Protocols can only be layered over a tunnel to the target, or
      * or over a direct connection without proxies.
-     * <br/>
+     * <p>
      * Layering a protocol
      * over a direct connection makes little sense, since the connection
      * could be established with the new protocol in the first place.
      * But we don't want to exclude that use case.
+     * </p>
      */
     public enum LayerType  { PLAIN, LAYERED }
 
@@ -74,7 +75,7 @@ public interface RouteInfo {
      * Obtains the local address to connect from.
      *
      * @return  the local address,
-     *          or <code>null</code>
+     *          or {@code null}
      */
     InetAddress getLocalAddress();
 
@@ -109,7 +110,7 @@ public interface RouteInfo {
      * Obtains the first proxy host.
      *
      * @return the first proxy in the proxy chain, or
-     *         <code>null</code> if this route is direct
+     *         {@code null} if this route is direct
      */
     HttpHost getProxyHost();
 
@@ -125,9 +126,9 @@ public interface RouteInfo {
      * Checks whether this route is tunnelled through a proxy.
      * If there is a proxy chain, only end-to-end tunnels are considered.
      *
-     * @return  <code>true</code> if tunnelled end-to-end through at least
+     * @return  {@code true} if tunnelled end-to-end through at least
      *          one proxy,
-     *          <code>false</code> otherwise
+     *          {@code false} otherwise
      */
     boolean isTunnelled();
 
@@ -145,16 +146,16 @@ public interface RouteInfo {
      * In the presence of proxies, only layering over an end-to-end tunnel
      * is considered.
      *
-     * @return  <code>true</code> if layered,
-     *          <code>false</code> otherwise
+     * @return  {@code true} if layered,
+     *          {@code false} otherwise
      */
     boolean isLayered();
 
     /**
      * Checks whether this route is secure.
      *
-     * @return  <code>true</code> if secure,
-     *          <code>false</code> otherwise
+     * @return  {@code true} if secure,
+     *          {@code false} otherwise
      */
     boolean isSecure();
 

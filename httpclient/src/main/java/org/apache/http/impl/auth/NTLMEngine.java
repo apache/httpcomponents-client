@@ -38,9 +38,9 @@ public interface NTLMEngine {
     /**
      * Generates a Type1 message given the domain and workstation.
      *
-     * @param domain Optional Windows domain name. Can be <code>null</code>.
+     * @param domain Optional Windows domain name. Can be {@code null}.
      * @param workstation Optional Windows workstation name. Can be
-     *  <code>null</code>.
+     *  {@code null}.
      * @return Type1 message
      * @throws NTLMEngineException
      */

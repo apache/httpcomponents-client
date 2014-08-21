@@ -69,7 +69,7 @@ public interface ClientConnectionOperator {
      * @param conn      the connection to open
      * @param target    the target host to connect to
      * @param local     the local address to route from, or
-     *                  <code>null</code> for the default
+     *                  {@code null} for the default
      * @param context   the context for the connection
      * @param params    the parameters for the connection
      *

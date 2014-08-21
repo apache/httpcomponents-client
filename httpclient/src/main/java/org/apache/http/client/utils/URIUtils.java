@@ -231,7 +231,7 @@ public class URIUtils {
 
     /**
      * Resolves a URI reference against a base URI. Work-around for bug in
-     * java.net.URI (<http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4708535>)
+     * java.net.URI (http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4708535)
      *
      * @param baseURI the base URI
      * @param reference the URI reference
@@ -243,7 +243,7 @@ public class URIUtils {
 
     /**
      * Resolves a URI reference against a base URI. Work-around for bugs in
-     * java.net.URI (e.g. <http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4708535>)
+     * java.net.URI (e.g. http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4708535)
      *
      * @param baseURI the base URI
      * @param reference the URI reference
@@ -349,7 +349,7 @@ public class URIUtils {
      * Extracts target host from the given {@link URI}.
      *
      * @param uri
-     * @return the target host if the URI is absolute or <code>null</null> if the URI is
+     * @return the target host if the URI is absolute or {@code null} if the URI is
      * relative or does not contain a valid host name.
      *
      * @since 4.1
@@ -417,10 +417,10 @@ public class URIUtils {
      *            original request before any redirects
      * @param target
      *            if the last URI is relative, it is resolved against this target,
-     *            or <code>null</code> if not available.
+     *            or {@code null} if not available.
      * @param redirects
      *            collection of redirect locations since the original request
-     *            or <code>null</code> if not available.
+     *            or {@code null} if not available.
      * @return interpreted (absolute) URI
      */
     public static URI resolve(

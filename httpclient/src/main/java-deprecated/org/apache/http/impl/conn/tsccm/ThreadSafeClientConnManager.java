@@ -105,7 +105,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * Creates a new thread safe connection manager.
      *
      * @param schreg    the scheme registry.
-     * @param connTTL   max connection lifetime, <=0 implies "infinity"
+     * @param connTTL   max connection lifetime, &lt;=0 implies "infinity"
      * @param connTTLTimeUnit   TimeUnit of connTTL
      *
      * @since 4.1
@@ -119,7 +119,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
      * Creates a new thread safe connection manager.
      *
      * @param schreg    the scheme registry.
-     * @param connTTL   max connection lifetime, <=0 implies "infinity"
+     * @param connTTL   max connection lifetime, &lt;=0 implies "infinity"
      * @param connTTLTimeUnit   TimeUnit of connTTL
      * @param connPerRoute    mapping of maximum connections per route,
      *   provided as a dependency so it can be managed externally, e.g.

@@ -52,7 +52,7 @@ public interface HttpRequestRetryHandler {
      * unsuccessfully executed
      * @param context the context for the request execution
      *
-     * @return <code>true</code> if the method should be retried, <code>false</code>
+     * @return {@code true</code> if the method should be retried, <code>false}
      * otherwise
      */
     boolean retryRequest(IOException exception, int executionCount, HttpContext context);

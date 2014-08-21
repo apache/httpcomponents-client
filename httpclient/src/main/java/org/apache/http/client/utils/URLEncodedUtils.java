@@ -71,17 +71,17 @@ public class URLEncodedUtils {
 
     /**
      * Returns a list of {@link NameValuePair NameValuePairs} as built from the URI's query portion. For example, a URI
-     * of http://example.org/path/to/file?a=1&b=2&c=3 would return a list of three NameValuePairs, one for a=1, one for
-     * b=2, and one for c=3. By convention, {@code '&'} and {@code ';'} are accepted as parameter separators.
+     * of {@code http://example.org/path/to/file?a=1&b=2&c=3} would return a list of three NameValuePairs, one for a=1,
+     * one for b=2, and one for c=3. By convention, {@code '&'} and {@code ';'} are accepted as parameter separators.
      * <p>
      * This is typically useful while parsing an HTTP PUT.
      *
      * This API is currently only used for testing.
      *
      * @param uri
-     *            URI to parse
+     *        URI to parse
      * @param charset
-     *            Charset name to use while parsing the query
+     *        Charset name to use while parsing the query
      * @return a list of {@link NameValuePair} as built from the URI's query portion.
      */
     public static List <NameValuePair> parse(final URI uri, final String charset) {
@@ -125,7 +125,7 @@ public class URLEncodedUtils {
 
     /**
      * Returns true if the entity's Content-Type header is
-     * <code>application/x-www-form-urlencoded</code>.
+     * {@code application/x-www-form-urlencoded}.
      */
     public static boolean isEncoded(final HttpEntity entity) {
         final Header h = entity.getContentType();
@@ -140,8 +140,8 @@ public class URLEncodedUtils {
     }
 
     /**
-     * Adds all parameters within the Scanner to the list of <code>parameters</code>, as encoded by
-     * <code>encoding</code>. For example, a scanner containing the string <code>a=1&b=2&c=3</code> would add the
+     * Adds all parameters within the Scanner to the list of {@code parameters}, as encoded by
+     * {@code encoding</code>. For example, a scanner containing the string <code>a=1&b=2&c=3} would add the
      * {@link NameValuePair NameValuePairs} a=1, b=2, and c=3 to the list of parameters. By convention, {@code '&'} and
      * {@code ';'} are accepted as parameter separators.
      *
@@ -161,8 +161,8 @@ public class URLEncodedUtils {
 
     /**
      * Adds all parameters within the Scanner to the list of
-     * <code>parameters</code>, as encoded by <code>encoding</code>. For
-     * example, a scanner containing the string <code>a=1&b=2&c=3</code> would
+     * {@code parameters</code>, as encoded by <code>encoding}. For
+     * example, a scanner containing the string {@code a=1&b=2&c=3} would
      * add the {@link NameValuePair NameValuePairs} a=1, b=2, and c=3 to the
      * list of parameters.
      *

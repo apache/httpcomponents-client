@@ -154,7 +154,7 @@ public class RandomHandler implements HttpRequestHandler {
          * Repetitions will generate different random data,
          * unless perchance the same random data is generated twice.
          *
-         * @return      <code>true</code>
+         * @return      {@code true}
          */
         @Override
         public boolean isRepeatable() {

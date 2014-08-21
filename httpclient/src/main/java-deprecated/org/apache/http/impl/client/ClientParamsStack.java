@@ -60,7 +60,7 @@ import org.apache.http.util.Args;
  *     on a per-request basis.
  *     </li>
  * </ol>
- * Each stack entry may be <code>null</code>. That is preferable over
+ * Each stack entry may be {@code null}. That is preferable over
  * an empty params collection, since it avoids searching the empty collection
  * when looking up parameters.
  *
@@ -73,16 +73,16 @@ import org.apache.http.util.Args;
 @Deprecated
 public class ClientParamsStack extends AbstractHttpParams {
 
-    /** The application parameter collection, or <code>null</code>. */
+    /** The application parameter collection, or {@code null}. */
     protected final HttpParams applicationParams;
 
-    /** The client parameter collection, or <code>null</code>. */
+    /** The client parameter collection, or {@code null}. */
     protected final HttpParams clientParams;
 
-    /** The request parameter collection, or <code>null</code>. */
+    /** The request parameter collection, or {@code null}. */
     protected final HttpParams requestParams;
 
-    /** The override parameter collection, or <code>null</code>. */
+    /** The override parameter collection, or {@code null}. */
     protected final HttpParams overrideParams;
 
 
@@ -91,10 +91,10 @@ public class ClientParamsStack extends AbstractHttpParams {
      * The arguments will be stored as-is, there is no copying to
      * prevent modification.
      *
-     * @param aparams   application parameters, or <code>null</code>
-     * @param cparams   client parameters, or <code>null</code>
-     * @param rparams   request parameters, or <code>null</code>
-     * @param oparams   override parameters, or <code>null</code>
+     * @param aparams   application parameters, or {@code null}
+     * @param cparams   client parameters, or {@code null}
+     * @param rparams   request parameters, or {@code null}
+     * @param oparams   override parameters, or {@code null}
      */
     public ClientParamsStack(final HttpParams aparams, final HttpParams cparams,
                              final HttpParams rparams, final HttpParams oparams) {
@@ -123,15 +123,15 @@ public class ClientParamsStack extends AbstractHttpParams {
     /**
      * Creates a modified copy of a parameter stack.
      * The new stack will contain the explicitly passed elements.
-     * For elements where the explicit argument is <code>null</code>,
+     * For elements where the explicit argument is {@code null},
      * the corresponding element from the argument stack is used.
      * There is no copying of parameters.
      *
      * @param stack     the stack to modify
-     * @param aparams   application parameters, or <code>null</code>
-     * @param cparams   client parameters, or <code>null</code>
-     * @param rparams   request parameters, or <code>null</code>
-     * @param oparams   override parameters, or <code>null</code>
+     * @param aparams   application parameters, or {@code null}
+     * @param cparams   client parameters, or {@code null}
+     * @param rparams   request parameters, or {@code null}
+     * @param oparams   override parameters, or {@code null}
      */
     public ClientParamsStack(final ClientParamsStack stack,
                              final HttpParams aparams, final HttpParams cparams,
@@ -146,7 +146,7 @@ public class ClientParamsStack extends AbstractHttpParams {
     /**
      * Obtains the application parameters of this stack.
      *
-     * @return  the application parameters, or <code>null</code>
+     * @return  the application parameters, or {@code null}
      */
     public final HttpParams getApplicationParams() {
         return applicationParams;
@@ -155,7 +155,7 @@ public class ClientParamsStack extends AbstractHttpParams {
     /**
      * Obtains the client parameters of this stack.
      *
-     * @return  the client parameters, or <code>null</code>
+     * @return  the client parameters, or {@code null}
      */
     public final HttpParams getClientParams() {
         return clientParams;
@@ -164,7 +164,7 @@ public class ClientParamsStack extends AbstractHttpParams {
     /**
      * Obtains the request parameters of this stack.
      *
-     * @return  the request parameters, or <code>null</code>
+     * @return  the request parameters, or {@code null}
      */
     public final HttpParams getRequestParams() {
         return requestParams;
@@ -173,7 +173,7 @@ public class ClientParamsStack extends AbstractHttpParams {
     /**
      * Obtains the override parameters of this stack.
      *
-     * @return  the override parameters, or <code>null</code>
+     * @return  the override parameters, or {@code null}
      */
     public final HttpParams getOverrideParams() {
         return overrideParams;
@@ -187,7 +187,7 @@ public class ClientParamsStack extends AbstractHttpParams {
      * @param name      the name of the parameter to obtain
      *
      * @return  the highest-priority value for that parameter, or
-     *          <code>null</code> if it is not set anywhere in this stack
+     *          {@code null} if it is not set anywhere in this stack
      */
     public Object getParameter(final String name) {
         Args.notNull(name, "Parameter name");
@@ -256,10 +256,11 @@ public class ClientParamsStack extends AbstractHttpParams {
      * accidental modification of parameters passed by the application to
      * a framework object is therefore pointless and disabled.
      * Create a new stack if you really need a copy.
-     * <br/>
+     * <p>
      * Derived classes may change this behavior.
+     * </p>
      *
-     * @return <code>this</code> parameter stack
+     * @return {@code this} parameter stack
      */
     public HttpParams copy() {
         return this;

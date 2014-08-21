@@ -55,8 +55,8 @@ public interface ManagedClientConnection extends
      * The return value is well-defined only while the connection is open.
      * It may change even while the connection is open.
      *
-     * @return  <code>true</code> if this connection is secure,
-     *          <code>false</code> otherwise
+     * @return  {@code true} if this connection is secure,
+     *          {@code false} otherwise
      */
     @Override
     boolean isSecure();
@@ -65,7 +65,7 @@ public interface ManagedClientConnection extends
      * Obtains the current route of this connection.
      *
      * @return  the route established so far, or
-     *          <code>null</code> if not connected
+     *          {@code null} if not connected
      */
     @Override
     HttpRoute getRoute();
@@ -75,16 +75,17 @@ public interface ManagedClientConnection extends
      * If this connection is open, and the underlying socket is an
      * {@link javax.net.ssl.SSLSocket SSLSocket}, the SSL session of
      * that socket is obtained. This is a potentially blocking operation.
-     * <br/>
+     * <p>
      * <b>Note:</b> Whether the underlying socket is an SSL socket
      * can not necessarily be determined via {@link #isSecure}.
      * Plain sockets may be considered secure, for example if they are
      * connected to a known host in the same network segment.
      * On the other hand, SSL sockets may be considered insecure,
      * for example depending on the chosen cipher suite.
+     * </p>
      *
      * @return  the underlying SSL session if available,
-     *          <code>null</code> otherwise
+     *          {@code null} otherwise
      */
     @Override
     SSLSession getSSLSession();
@@ -107,14 +108,15 @@ public interface ManagedClientConnection extends
      * The route is the one previously passed to {@link #open open}.
      * Subsequently, {@link #layerProtocol layerProtocol} can be called
      * to layer the TLS/SSL protocol on top of the tunnelled connection.
-     * <br/>
+     * <p>
      * <b>Note:</b> In HttpClient 3, a call to the corresponding method
      * would automatically trigger the layering of the TLS/SSL protocol.
      * This is not the case anymore, you can establish a tunnel without
      * layering a new protocol over the connection.
+     * </p>
      *
-     * @param secure    <code>true</code> if the tunnel should be considered
-     *                  secure, <code>false</code> otherwise
+     * @param secure    {@code true} if the tunnel should be considered
+     *                  secure, {@code false} otherwise
      * @param params    the parameters for tunnelling this connection
      *
      * @throws IOException  in case of a problem
@@ -136,8 +138,8 @@ public interface ManagedClientConnection extends
      *                  of the tunnel. The tunnel does <i>not</i> yet
      *                  reach to the target, use {@link #tunnelTarget}
      *                  to indicate an end-to-end tunnel.
-     * @param secure    <code>true</code> if the connection should be
-     *                  considered secure, <code>false</code> otherwise
+     * @param secure    {@code true} if the connection should be
+     *                  considered secure, {@code false} otherwise
      * @param params    the parameters for tunnelling this connection
      *
      * @throws IOException  in case of a problem
@@ -169,11 +171,12 @@ public interface ManagedClientConnection extends
      * The connection will automatically clear the checkpoint when
      * used for communication. A call to this method indicates that
      * the next checkpoint has been reached.
-     * <br/>
+     * <p>
      * A reusable communication state is necessary but not sufficient
      * for the connection to be reused.
      * A {@link #getRoute route} mismatch, the connection being closed,
      * or other circumstances might prevent reuse.
+     * </p>
      */
     void markReusable();
 
@@ -183,12 +186,13 @@ public interface ManagedClientConnection extends
      * to prevent its reuse. Reasons for preventing reuse include
      * error conditions and the evaluation of a
      * {@link org.apache.http.ConnectionReuseStrategy reuse strategy}.
-     * <br/>
+     * <p>
      * <b>Note:</b>
      * It is <i>not</i> necessary to call here before writing to
      * or reading from this connection. Communication attempts will
      * automatically unmark the state as non-reusable. It can then
      * be switched back using {@link #markReusable markReusable}.
+     * </p>
      */
     void unmarkReusable();
 
@@ -197,9 +201,9 @@ public interface ManagedClientConnection extends
      * See {@link #markReusable markReusable} and
      * {@link #unmarkReusable unmarkReusable} for details.
      *
-     * @return  <code>true</code> if this connection is marked as being in
+     * @return  {@code true} if this connection is marked as being in
      *          a reusable communication state,
-     *          <code>false</code> otherwise
+     *          {@code false} otherwise
      */
     boolean isMarkedReusable();
 

@@ -57,10 +57,11 @@ import org.apache.http.util.EntityUtils;
 /**
  * Request executor in the request execution chain that is responsible
  * for handling of request redirects.
- * <p/>
+ * <p>
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
  * chain.
+ * </p>
  *
  * @since 4.3
  */

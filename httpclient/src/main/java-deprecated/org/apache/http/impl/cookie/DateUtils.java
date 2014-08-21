@@ -58,7 +58,7 @@ public final class DateUtils {
 
     /**
      * Date format pattern used to parse HTTP date headers in ANSI C
-     * <code>asctime()</code> format.
+     * {@code asctime()} format.
      */
     public static final String PATTERN_ASCTIME = org.apache.http.client.utils.DateUtils.PATTERN_ASCTIME;
 
@@ -100,9 +100,9 @@ public final class DateUtils {
      * @param dateValue the date value to parse
      * @param dateFormats the date formats to use
      * @param startDate During parsing, two digit years will be placed in the range
-     * <code>startDate</code> to <code>startDate + 100 years</code>. This value may
-     * be <code>null</code>. When <code>null</code> is given as a parameter, year
-     * <code>2000</code> will be used.
+     * {@code startDate</code> to <code>startDate + 100 years}. This value may
+     * be {@code null</code>. When <code>null} is given as a parameter, year
+     * {@code 2000} will be used.
      *
      * @return the parsed date
      *

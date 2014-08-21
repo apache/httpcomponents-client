@@ -28,7 +28,7 @@
 package org.apache.http.cookie;
 
 /**
- * This interface represents a <code>Set-Cookie2</code> response header sent by the
+ * This interface represents a {@code Set-Cookie2} response header sent by the
  * origin server to the HTTP agent in order to maintain a conversational state.
  *
  * @since 4.0

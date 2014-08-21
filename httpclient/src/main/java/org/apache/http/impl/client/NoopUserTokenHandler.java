@@ -31,7 +31,7 @@ import org.apache.http.client.UserTokenHandler;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * Noop implementation of {@link UserTokenHandler} that always returns <code>null</code>.
+ * Noop implementation of {@link UserTokenHandler} that always returns {@code null}.
  *
  * @since 4.3
  */

@@ -80,7 +80,6 @@ public class FutureRequestExecutionService implements Closeable {
      * @param responseHandler
      *            handler that will process the response.
      * @return HttpAsyncClientFutureTask for the scheduled request.
-     * @throws InterruptedException
      */
     public <T> HttpRequestFutureTask<T> execute(
             final HttpUriRequest request,
@@ -104,7 +103,6 @@ public class FutureRequestExecutionService implements Closeable {
      *            callback handler that will be called when the request is scheduled,
      *            started, completed, failed, or cancelled.
      * @return HttpAsyncClientFutureTask for the scheduled request.
-     * @throws InterruptedException
      */
     public <T> HttpRequestFutureTask<T> execute(
             final HttpUriRequest request,

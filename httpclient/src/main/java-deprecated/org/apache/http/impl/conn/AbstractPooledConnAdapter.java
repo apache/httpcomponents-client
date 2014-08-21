@@ -74,7 +74,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
     /**
      * Obtains the pool entry.
      *
-     * @return  the pool entry, or <code>null</code> if detached
+     * @return  the pool entry, or {@code null} if detached
      *
      * @deprecated (4.0.1)
      */

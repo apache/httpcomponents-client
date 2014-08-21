@@ -73,7 +73,7 @@ public interface ManagedHttpClientConnection extends HttpClientConnection, HttpI
      * that socket is obtained. This is a potentially blocking operation.
      *
      * @return  the underlying SSL session if available,
-     *          <code>null</code> otherwise
+     *          {@code null} otherwise
      */
     SSLSession getSSLSession();
 

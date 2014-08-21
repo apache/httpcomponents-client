@@ -115,7 +115,7 @@ public class RequestConfig implements Cloneable {
      * HTTP/1.1 protocol.
      * </p>
      * <p>
-     * Default: <code>false</code>
+     * Default: {@code false}
      * </p>
      */
     public boolean isExpectContinueEnabled() {
@@ -125,7 +125,7 @@ public class RequestConfig implements Cloneable {
     /**
      * Returns HTTP proxy to be used for request execution.
      * <p>
-     * Default: <code>null</code>
+     * Default: {@code null}
      * </p>
      */
     public HttpHost getProxy() {
@@ -140,7 +140,7 @@ public class RequestConfig implements Cloneable {
      * connection originates.
      * </p>
      * <p>
-     * Default: <code>null</code>
+     * Default: {@code null}
      * </p>
      */
     public InetAddress getLocalAddress() {
@@ -153,7 +153,7 @@ public class RequestConfig implements Cloneable {
      * should be used only when appropriate. For performance critical
      * operations this check should be disabled.
      * <p>
-     * Default: <code>false</code> since 4.4
+     * Default: {@code false} since 4.4
      * </p>
      *
      * @deprecated (4.4) Use {@link
@@ -168,7 +168,7 @@ public class RequestConfig implements Cloneable {
      * Determines the name of the cookie specification to be used for HTTP state
      * management.
      * <p>
-     * Default: <code>null</code>
+     * Default: {@code null}
      * </p>
      */
     public String getCookieSpec() {
@@ -178,7 +178,7 @@ public class RequestConfig implements Cloneable {
     /**
      * Determines whether redirects should be handled automatically.
      * <p>
-     * Default: <code>true</code>
+     * Default: {@code true}
      * </p>
      */
     public boolean isRedirectsEnabled() {
@@ -189,7 +189,7 @@ public class RequestConfig implements Cloneable {
      * Determines whether relative redirects should be rejected. HTTP specification
      * requires the location value be an absolute URI.
      * <p>
-     * Default: <code>true</code>
+     * Default: {@code true}
      * </p>
      */
     public boolean isRelativeRedirectsAllowed() {
@@ -201,7 +201,7 @@ public class RequestConfig implements Cloneable {
      * be allowed. The HTTP spec is not sufficiently clear whether circular redirects
      * are permitted, therefore optionally they can be enabled
      * <p>
-     * Default: <code>false</code>
+     * Default: {@code false}
      * </p>
      */
     public boolean isCircularRedirectsAllowed() {
@@ -212,7 +212,7 @@ public class RequestConfig implements Cloneable {
      * Returns the maximum number of redirects to be followed. The limit on number
      * of redirects is intended to prevent infinite loops.
      * <p>
-     * Default: <code>50</code>
+     * Default: {@code 50}
      * </p>
      */
     public int getMaxRedirects() {
@@ -222,7 +222,7 @@ public class RequestConfig implements Cloneable {
     /**
      * Determines whether authentication should be handled automatically.
      * <p>
-     * Default: <code>true</code>
+     * Default: {@code true}
      * </p>
      */
     public boolean isAuthenticationEnabled() {
@@ -233,7 +233,7 @@ public class RequestConfig implements Cloneable {
      * Determines the order of preference for supported authentication schemes
      * when authenticating with the target host.
      * <p>
-     * Default: <code>null</code>
+     * Default: {@code null}
      * </p>
      */
     public Collection<String> getTargetPreferredAuthSchemes() {
@@ -244,7 +244,7 @@ public class RequestConfig implements Cloneable {
      * Determines the order of preference for supported authentication schemes
      * when authenticating with the proxy host.
      * <p>
-     * Default: <code>null</code>
+     * Default: {@code null}
      * </p>
      */
     public Collection<String> getProxyPreferredAuthSchemes() {
@@ -260,7 +260,7 @@ public class RequestConfig implements Cloneable {
      * A negative value is interpreted as undefined (system default).
      * </p>
      * <p>
-     * Default: <code>-1</code>
+     * Default: {@code -1}
      * </p>
      */
     public int getConnectionRequestTimeout() {
@@ -275,7 +275,7 @@ public class RequestConfig implements Cloneable {
      * A negative value is interpreted as undefined (system default).
      * </p>
      * <p>
-     * Default: <code>-1</code>
+     * Default: {@code -1}
      * </p>
      */
     public int getConnectTimeout() {
@@ -283,7 +283,7 @@ public class RequestConfig implements Cloneable {
     }
 
     /**
-     * Defines the socket timeout (<code>SO_TIMEOUT</code>) in milliseconds,
+     * Defines the socket timeout ({@code SO_TIMEOUT}) in milliseconds,
      * which is the timeout for waiting for data  or, put differently,
      * a maximum period inactivity between two consecutive data packets).
      * <p>
@@ -291,7 +291,7 @@ public class RequestConfig implements Cloneable {
      * A negative value is interpreted as undefined (system default).
      * </p>
      * <p>
-     * Default: <code>-1</code>
+     * Default: {@code -1}
      * </p>
      */
     public int getSocketTimeout() {
@@ -301,7 +301,7 @@ public class RequestConfig implements Cloneable {
     /**
      * Determines whether compressed entities should be decompressed automatically.
      * <p>
-     * Default: <code>true</code>
+     * Default: {@code true}
      * </p>
      *
      * @since 4.4

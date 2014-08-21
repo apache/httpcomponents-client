@@ -50,7 +50,7 @@ import org.apache.http.util.Args;
  * It is used by the {@link ThreadSafeClientConnManager}.
  * The abstract pool includes a {@link #poolLock}, which is used to
  * synchronize access to the internal pool datastructures.
- * Don't use <code>synchronized</code> for that purpose!
+ * Don't use {@code synchronized} for that purpose!
  *
  * @since 4.0
  *
@@ -103,8 +103,8 @@ public abstract class AbstractConnPool {
      *
      * @param route     the route for which to get the connection
      * @param timeout   the timeout, 0 or negative for no timeout
-     * @param tunit     the unit for the <code>timeout</code>,
-     *                  may be <code>null</code> only if there is no timeout
+     * @param tunit     the unit for the {@code timeout},
+     *                  may be {@code null} only if there is no timeout
      *
      * @return  pool entry holding a connection for the route
      *
@@ -137,8 +137,8 @@ public abstract class AbstractConnPool {
      * attempt to determine whether it can be re-used or not.
      *
      * @param entry     the entry for the connection to release
-     * @param reusable  <code>true</code> if the entry is deemed
-     *                  reusable, <code>false</code> otherwise.
+     * @param reusable  {@code true} if the entry is deemed
+     *                  reusable, {@code false} otherwise.
      * @param validDuration The duration that the entry should remain free and reusable.
      * @param timeUnit The unit of time the duration is measured in.
      */
@@ -155,7 +155,7 @@ public abstract class AbstractConnPool {
      *
      * @param idletime  the time the connections should have been idle
      *                  in order to be closed now
-     * @param tunit     the unit for the <code>idletime</code>
+     * @param tunit     the unit for the {@code idletime}
      */
     public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
 
@@ -218,7 +218,7 @@ public abstract class AbstractConnPool {
     /**
      * Closes a connection from this pool.
      *
-     * @param conn      the connection to close, or <code>null</code>
+     * @param conn      the connection to close, or {@code null}
      */
     protected void closeConnection(final OperatedClientConnection conn) {
         if (conn != null) {

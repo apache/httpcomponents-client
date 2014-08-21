@@ -157,7 +157,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
      * The default implementation here instantiates
      * {@link DefaultClientConnectionOperator DefaultClientConnectionOperator}.
      *
-     * @param schreg    the scheme registry to use, or <code>null</code>
+     * @param schreg    the scheme registry to use, or {@code null}
      *
      * @return  the connection operator to use
      */

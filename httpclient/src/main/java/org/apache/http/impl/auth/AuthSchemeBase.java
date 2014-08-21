@@ -142,7 +142,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
             CharArrayBuffer buffer, int beginIndex, int endIndex) throws MalformedChallengeException;
 
     /**
-     * Returns <code>true</code> if authenticating against a proxy, <code>false</code>
+     * Returns {@code true</code> if authenticating against a proxy, <code>false}
      * otherwise.
      */
     public boolean isProxy() {
@@ -150,7 +150,7 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
     }
 
     /**
-     * Returns {@link ChallengeState} value or <code>null</code> if unchallenged.
+     * Returns {@link ChallengeState} value or {@code null} if unchallenged.
      *
      * @since 4.2
      */

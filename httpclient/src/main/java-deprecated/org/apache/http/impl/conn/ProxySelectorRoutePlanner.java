@@ -78,7 +78,7 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
     /** The scheme registry. */
     protected final SchemeRegistry schemeRegistry; // @ThreadSafe
 
-    /** The proxy selector to use, or <code>null</code> for system default. */
+    /** The proxy selector to use, or {@code null} for system default. */
     protected ProxySelector proxySelector;
 
     /**
@@ -86,7 +86,7 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
      *
      * @param schreg    the scheme registry
      * @param prosel    the proxy selector, or
-     *                  <code>null</code> for the system default
+     *                  {@code null} for the system default
      */
     public ProxySelectorRoutePlanner(final SchemeRegistry schreg,
                                      final ProxySelector prosel) {
@@ -98,7 +98,7 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
     /**
      * Obtains the proxy selector to use.
      *
-     * @return the proxy selector, or <code>null</code> for the system default
+     * @return the proxy selector, or {@code null} for the system default
      */
     public ProxySelector getProxySelector() {
         return this.proxySelector;
@@ -108,7 +108,7 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
      * Sets the proxy selector to use.
      *
      * @param prosel    the proxy selector, or
-     *                  <code>null</code> to use the system default
+     *                  {@code null} to use the system default
      */
     public void setProxySelector(final ProxySelector prosel) {
         this.proxySelector = prosel;
@@ -154,11 +154,11 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
     /**
      * Determines a proxy for the given target.
      *
-     * @param target    the planned target, never <code>null</code>
-     * @param request   the request to be sent, never <code>null</code>
-     * @param context   the context, or <code>null</code>
+     * @param target    the planned target, never {@code null}
+     * @param request   the request to be sent, never {@code null}
+     * @param context   the context, or {@code null}
      *
-     * @return  the proxy to use, or <code>null</code> for a direct route
+     * @return  the proxy to use, or {@code null} for a direct route
      *
      * @throws HttpException
      *         in case of system proxy settings that cannot be handled
@@ -210,8 +210,9 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
      *
      * @return  a host string, either as a symbolic name or
      *          as a literal IP address string
-     * <br/>
+     * <p>
      * (TODO: determine format for IPv6 addresses, with or without [brackets])
+     * </p>
      */
     protected String getHost(final InetSocketAddress isa) {
 
@@ -232,10 +233,10 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
      * such as proxy rotation if there are multiple options.
      *
      * @param proxies   the list of proxies to choose from,
-     *                  never <code>null</code> or empty
-     * @param target    the planned target, never <code>null</code>
-     * @param request   the request to be sent, never <code>null</code>
-     * @param context   the context, or <code>null</code>
+     *                  never {@code null} or empty
+     * @param target    the planned target, never {@code null}
+     * @param request   the request to be sent, never {@code null}
+     * @param context   the context, or {@code null}
      *
      * @return  a proxy type
      */

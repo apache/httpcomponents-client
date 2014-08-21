@@ -68,13 +68,13 @@ public class ConnRouteParams implements ConnRoutePNames {
     /**
      * Obtains the {@link ConnRoutePNames#DEFAULT_PROXY DEFAULT_PROXY}
      * parameter value.
-     * {@link #NO_HOST} will be mapped to <code>null</code>,
+     * {@link #NO_HOST} will be mapped to {@code null},
      * to allow unsetting in a hierarchy.
      *
      * @param params    the parameters in which to look up
      *
      * @return  the default proxy set in the argument parameters, or
-     *          <code>null</code> if not set
+     *          {@code null} if not set
      */
     public static HttpHost getDefaultProxy(final HttpParams params) {
         Args.notNull(params, "Parameters");
@@ -92,9 +92,9 @@ public class ConnRouteParams implements ConnRoutePNames {
      * parameter value.
      *
      * @param params    the parameters in which to set the value
-     * @param proxy     the value to set, may be <code>null</code>.
+     * @param proxy     the value to set, may be {@code null}.
      *                  Note that {@link #NO_HOST} will be mapped to
-     *                  <code>null</code> by {@link #getDefaultProxy},
+     *                  {@code null} by {@link #getDefaultProxy},
      *                  to allow for explicit unsetting in hierarchies.
      */
     public static void setDefaultProxy(final HttpParams params,
@@ -106,13 +106,13 @@ public class ConnRouteParams implements ConnRoutePNames {
     /**
      * Obtains the {@link ConnRoutePNames#FORCED_ROUTE FORCED_ROUTE}
      * parameter value.
-     * {@link #NO_ROUTE} will be mapped to <code>null</code>,
+     * {@link #NO_ROUTE} will be mapped to {@code null},
      * to allow unsetting in a hierarchy.
      *
      * @param params    the parameters in which to look up
      *
      * @return  the forced route set in the argument parameters, or
-     *          <code>null</code> if not set
+     *          {@code null} if not set
      */
     public static HttpRoute getForcedRoute(final HttpParams params) {
         Args.notNull(params, "Parameters");
@@ -130,9 +130,9 @@ public class ConnRouteParams implements ConnRoutePNames {
      * parameter value.
      *
      * @param params    the parameters in which to set the value
-     * @param route     the value to set, may be <code>null</code>.
+     * @param route     the value to set, may be {@code null}.
      *                  Note that {@link #NO_ROUTE} will be mapped to
-     *                  <code>null</code> by {@link #getForcedRoute},
+     *                  {@code null} by {@link #getForcedRoute},
      *                  to allow for explicit unsetting in hierarchies.
      */
     public static void setForcedRoute(final HttpParams params,
@@ -145,13 +145,13 @@ public class ConnRouteParams implements ConnRoutePNames {
      * Obtains the {@link ConnRoutePNames#LOCAL_ADDRESS LOCAL_ADDRESS}
      * parameter value.
      * There is no special value that would automatically be mapped to
-     * <code>null</code>. You can use the wildcard address (0.0.0.0 for IPv4,
+     * {@code null}. You can use the wildcard address (0.0.0.0 for IPv4,
      * :: for IPv6) to override a specific local address in a hierarchy.
      *
      * @param params    the parameters in which to look up
      *
      * @return  the local address set in the argument parameters, or
-     *          <code>null</code> if not set
+     *          {@code null} if not set
      */
     public static InetAddress getLocalAddress(final HttpParams params) {
         Args.notNull(params, "Parameters");
@@ -166,7 +166,7 @@ public class ConnRouteParams implements ConnRoutePNames {
      * parameter value.
      *
      * @param params    the parameters in which to set the value
-     * @param local     the value to set, may be <code>null</code>
+     * @param local     the value to set, may be {@code null}
      */
     public static void setLocalAddress(final HttpParams params,
                                              final InetAddress local) {

@@ -274,7 +274,7 @@ public class EntityBuilder {
     }
 
     /**
-     * Returns <code>true</code> if entity is to be chunk coded, <code>false</code> otherwise.
+     * Returns {@code true</code> if entity is to be chunk coded, <code>false} otherwise.
      */
     public boolean isChunked() {
         return chunked;
@@ -289,7 +289,7 @@ public class EntityBuilder {
     }
 
     /**
-     * Returns <code>true</code> if entity is to be GZIP compressed, <code>false</code> otherwise.
+     * Returns {@code true</code> if entity is to be GZIP compressed, <code>false} otherwise.
      */
     public boolean isGzipCompress() {
         return gzipCompress;

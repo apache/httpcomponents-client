@@ -63,20 +63,23 @@ import org.apache.http.util.TextUtils;
  * <p>
  * SSLSocketFactory can be used to validate the identity of the HTTPS server against a list of
  * trusted certificates and to authenticate to the HTTPS server using a private key.
+ * </p>
  * <p>
  * SSLSocketFactory will enable server authentication when supplied with
  * a {@link KeyStore trust-store} file containing one or several trusted certificates. The client
  * secure socket will reject the connection during the SSL session handshake if the target HTTPS
  * server attempts to authenticate itself with a non-trusted certificate.
+ * </p>
  * <p>
  * Use JDK keytool utility to import a trusted certificate and generate a trust-store file:
- *    <pre>
- *     keytool -import -alias "my server cert" -file server.crt -keystore my.truststore
- *    </pre>
+ * </p>
+ * <pre>keytool -import -alias "my server cert" -file server.crt -keystore my.truststore
+ * </pre>
  * <p>
  * In special cases the standard trust verification process can be bypassed by using a custom
  * {@link TrustStrategy}. This interface is primarily intended for allowing self-signed
  * certificates to be accepted as trusted without having to add them to the trust-store file.
+ * </p>
  * <p>
  * SSLSocketFactory will enable client authentication when supplied with
  * a {@link KeyStore key-store} file containing a private key/public certificate
@@ -85,6 +88,7 @@ import org.apache.http.util.TextUtils;
  * requested to do so by the server.
  * The target HTTPS server will in its turn verify the certificate presented
  * by the client in order to establish client's authenticity.
+ * </p>
  * <p>
  * Use the following sequence of actions to generate a key-store file
  * </p>
@@ -92,15 +96,17 @@ import org.apache.http.util.TextUtils;
  *     <li>
  *      <p>
  *      Use JDK keytool utility to generate a new key
+ *      </p>
  *      <pre>keytool -genkey -v -alias "my client key" -validity 365 -keystore my.keystore</pre>
+ *      <p>
  *      For simplicity use the same password for the key as that of the key-store
  *      </p>
  *     </li>
  *     <li>
  *      <p>
  *      Issue a certificate signing request (CSR)
- *      <pre>keytool -certreq -alias "my client key" -file mycertreq.csr -keystore my.keystore</pre>
  *     </p>
+ *     <pre>keytool -certreq -alias "my client key" -file mycertreq.csr -keystore my.keystore</pre>
  *     </li>
  *     <li>
  *      <p>
@@ -112,20 +118,20 @@ import org.apache.http.util.TextUtils;
  *     <li>
  *      <p>
  *       Import the trusted CA root certificate
- *       <pre>keytool -import -alias "my trusted ca" -file caroot.crt -keystore my.keystore</pre>
  *      </p>
+ *      <pre>keytool -import -alias "my trusted ca" -file caroot.crt -keystore my.keystore</pre>
  *     </li>
  *     <li>
  *      <p>
  *       Import the PKCS#7 file containg the complete certificate chain
- *       <pre>keytool -import -alias "my client key" -file mycert.p7 -keystore my.keystore</pre>
  *      </p>
+ *      <pre>keytool -import -alias "my client key" -file mycert.p7 -keystore my.keystore</pre>
  *     </li>
  *     <li>
  *      <p>
  *       Verify the content the resultant keystore file
- *       <pre>keytool -list -v -keystore my.keystore</pre>
  *      </p>
+ *      <pre>keytool -list -v -keystore my.keystore</pre>
  *     </li>
  *   </ul>
  *
@@ -153,7 +159,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
 
     /**
      * Obtains default SSL socket factory with an SSL context based on the standard JSSE
-     * trust material (<code>cacerts</code> file in the security properties directory).
+     * trust material ({@code cacerts} file in the security properties directory).
      * System properties are not taken into consideration.
      *
      * @return default SSL socket factory
@@ -407,13 +413,14 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      * Checks whether a socket connection is secure.
      * This factory creates TLS/SSL socket connections
      * which, by default, are considered secure.
-     * <br/>
+     * <p>
      * Derived classes may override this method to perform
      * runtime checks, for example based on the cypher suite.
+     * </p>
      *
      * @param sock      the connected socket
      *
-     * @return  <code>true</code>
+     * @return  {@code true}
      *
      * @throws IllegalArgumentException if the argument is invalid
      */

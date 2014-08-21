@@ -77,7 +77,7 @@ public final class Scheme {
     /**
      * Creates a new scheme.
      * Whether the created scheme allows for layered connections
-     * depends on the class of <code>factory</code>.
+     * depends on the class of {@code factory}.
      *
      * @param name      the scheme name, for example "http".
      *                  The name will be converted to lowercase.
@@ -108,7 +108,7 @@ public final class Scheme {
     /**
      * Creates a new scheme.
      * Whether the created scheme allows for layered connections
-     * depends on the class of <code>factory</code>.
+     * depends on the class of {@code factory}.
      *
      * @param name      the scheme name, for example "http".
      *                  The name will be converted to lowercase.
@@ -197,8 +197,8 @@ public final class Scheme {
     /**
      * Indicates whether this scheme allows for layered connections.
      *
-     * @return <code>true</code> if layered connections are possible,
-     *         <code>false</code> otherwise
+     * @return {@code true} if layered connections are possible,
+     *         {@code false} otherwise
      */
     public final boolean isLayered() {
         return layered;

@@ -101,7 +101,7 @@ public interface CookieSpec {
 
     /**
      * Returns a request header identifying what version of the state management
-     * specification is understood. May be <code>null</code> if the cookie
+     * specification is understood. May be {@code null} if the cookie
      * specification does not support {@code Cookie2} header.
      */
     Header getVersionHeader();

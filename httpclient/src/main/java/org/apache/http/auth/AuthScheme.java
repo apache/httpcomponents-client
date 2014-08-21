@@ -85,7 +85,7 @@ public interface AuthScheme {
     /**
      * Returns authentication realm. If the concept of an authentication
      * realm is not applicable to the given authentication scheme, returns
-     * <code>null</code>.
+     * {@code null}.
      *
      * @return the authentication realm
      */

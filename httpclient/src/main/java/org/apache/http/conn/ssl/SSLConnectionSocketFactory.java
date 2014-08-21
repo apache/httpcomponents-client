@@ -84,15 +84,17 @@ import org.apache.http.util.TextUtils;
  *     <li>
  *      <p>
  *      Use JDK keytool utility to generate a new key
+ *      </p>
  *      <pre>keytool -genkey -v -alias "my client key" -validity 365 -keystore my.keystore</pre>
+ *      <p>
  *      For simplicity use the same password for the key as that of the key-store
  *      </p>
  *     </li>
  *     <li>
  *      <p>
  *      Issue a certificate signing request (CSR)
+ *      </p>
  *      <pre>keytool -certreq -alias "my client key" -file mycertreq.csr -keystore my.keystore</pre>
- *     </p>
  *     </li>
  *     <li>
  *      <p>
@@ -104,20 +106,20 @@ import org.apache.http.util.TextUtils;
  *     <li>
  *      <p>
  *       Import the trusted CA root certificate
+ *      </p>
  *       <pre>keytool -import -alias "my trusted ca" -file caroot.crt -keystore my.keystore</pre>
- *      </p>
  *     </li>
  *     <li>
- *      <p>
+ *       <p>
  *       Import the PKCS#7 file containg the complete certificate chain
+ *       </p>
  *       <pre>keytool -import -alias "my client key" -file mycert.p7 -keystore my.keystore</pre>
- *      </p>
  *     </li>
  *     <li>
- *      <p>
+ *       <p>
  *       Verify the content the resultant keystore file
+ *       </p>
  *       <pre>keytool -list -v -keystore my.keystore</pre>
- *      </p>
  *     </li>
  *   </ul>
  *
@@ -151,7 +153,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
 
     /**
      * Obtains default SSL socket factory with an SSL context based on the standard JSSE
-     * trust material (<code>cacerts</code> file in the security properties directory).
+     * trust material ({@code cacerts} file in the security properties directory).
      * System properties are not taken into consideration.
      *
      * @return default SSL socket factory

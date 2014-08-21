@@ -66,6 +66,7 @@ import org.apache.http.params.HttpParams;
  * <p>
  * The following parameters can be used to customize the behavior of this
  * class:
+ * </p>
  * <ul>
  *  <li>{@link org.apache.http.params.CoreProtocolPNames#PROTOCOL_VERSION}</li>
  *  <li>{@link org.apache.http.params.CoreProtocolPNames#STRICT_TRANSFER_ENCODING}</li>
@@ -98,7 +99,6 @@ import org.apache.http.params.HttpParams;
  *  <li>{@link org.apache.http.client.params.ClientPNames#DEFAULT_HEADERS}</li>
  *  <li>{@link org.apache.http.client.params.ClientPNames#CONN_MANAGER_TIMEOUT}</li>
  * </ul>
- * </p>
  *
  * @since 4.2
  *

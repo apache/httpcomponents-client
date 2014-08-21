@@ -36,7 +36,7 @@ import org.apache.http.util.Args;
 
 /**
  * Default implementation of the {@link ServiceUnavailableRetryStrategy} interface.
- * that retries <code>503</code> (Service Unavailable) responses for a fixed number of times
+ * that retries {@code 503} (Service Unavailable) responses for a fixed number of times
  * at a fixed interval.
  *
  * @since 4.2

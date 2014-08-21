@@ -112,8 +112,8 @@ public interface Cookie {
     /**
      * Indicates whether this cookie requires a secure connection.
      *
-     * @return  <code>true</code> if this cookie should only be sent
-     *          over secure connections, <code>false</code> otherwise.
+     * @return  {@code true} if this cookie should only be sent
+     *          over secure connections, {@code false} otherwise.
      */
     boolean isSecure();
 

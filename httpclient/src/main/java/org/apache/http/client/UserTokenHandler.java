@@ -33,7 +33,7 @@ import org.apache.http.protocol.HttpContext;
  * A handler for determining if the given execution context is user specific
  * or not. The token object returned by this handler is expected to uniquely
  * identify the current user if the context is user specific or to be
- * <code>null</code> if the context does not contain any resources or details
+ * {@code null} if the context does not contain any resources or details
  * specific to the current user.
  * <p>
  * The user token will be used to ensure that user specific resources will not
@@ -47,7 +47,7 @@ public interface UserTokenHandler {
     /**
      * The token object returned by this method is expected to uniquely
      * identify the current user if the context is user specific or to be
-     * <code>null</code> if it is not.
+     * {@code null} if it is not.
      *
      * @param context the execution context
      *

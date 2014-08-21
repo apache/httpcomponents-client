@@ -63,7 +63,7 @@ public interface HttpRouteDirector {
      *
      * @param plan      the planned route
      * @param fact      the currently established route, or
-     *                  <code>null</code> if nothing is established
+     *                  {@code null} if nothing is established
      *
      * @return  one of the constants defined in this interface, indicating
      *          either the next step to perform, or success, or failure.

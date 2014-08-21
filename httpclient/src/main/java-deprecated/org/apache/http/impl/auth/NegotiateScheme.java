@@ -77,7 +77,7 @@ public class NegotiateScheme extends GGSSchemeBase {
     /**
      * Returns textual designation of the Negotiate authentication scheme.
      *
-     * @return <code>Negotiate</code>
+     * @return {@code Negotiate}
      */
     public String getSchemeName() {
         return "Negotiate";
@@ -183,9 +183,9 @@ public class NegotiateScheme extends GGSSchemeBase {
 
     /**
      * The concept of an authentication realm is not supported by the Negotiate
-     * authentication scheme. Always returns <code>null</code>.
+     * authentication scheme. Always returns {@code null}.
      *
-     * @return <code>null</code>
+     * @return {@code null}
      */
     public String getRealm() {
         return null;

@@ -584,7 +584,7 @@ public class TestRouteTracker {
      * @param rd        the director to check with
      * @param steps     the step count for this invocation
      *
-     * @return  <code>true</code> iff the route is complete
+     * @return  {@code true} iff the route is complete
      */
     public final static boolean checkVia(final RouteTracker rt, final HttpRoute r,
                                          final HttpRouteDirector rd, final int steps) {
@@ -688,11 +688,11 @@ public class TestRouteTracker {
 
 
     /**
-     * Checks the output of <code>toString</code>.
+     * Checks the output of {@code toString}.
      *
      * @param rt        the tracker for which to check the output
      *
-     * @return  the result of <code>rt.toString()</code>
+     * @return  the result of {@code rt.toString()}
      */
     public final static String checkToString(final RouteTracker rt) {
         if (rt == null) {

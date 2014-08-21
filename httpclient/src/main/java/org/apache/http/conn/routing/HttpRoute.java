@@ -52,7 +52,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
 
     /**
      * The local address to connect from.
-     * <code>null</code> indicates that the default should be used.
+     * {@code null} indicates that the default should be used.
      */
     private final InetAddress localAddress;
 
@@ -91,11 +91,11 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *
      * @param target    the host to which to route
      * @param local     the local address to route from, or
-     *                  <code>null</code> for the default
+     *                  {@code null} for the default
      * @param proxies   the proxy chain to use, or
-     *                  <code>null</code> for a direct route
-     * @param secure    <code>true</code> if the route is (to be) secure,
-     *                  <code>false</code> otherwise
+     *                  {@code null} for a direct route
+     * @param secure    {@code true} if the route is (to be) secure,
+     *                  {@code false} otherwise
      * @param tunnelled the tunnel type of this route
      * @param layered   the layering type of this route
      */
@@ -110,17 +110,17 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *
      * @param target    the host to which to route
      * @param local     the local address to route from, or
-     *                  <code>null</code> for the default
+     *                  {@code null} for the default
      * @param proxy     the proxy to use, or
-     *                  <code>null</code> for a direct route
-     * @param secure    <code>true</code> if the route is (to be) secure,
-     *                  <code>false</code> otherwise
-     * @param tunnelled <code>true</code> if the route is (to be) tunnelled
+     *                  {@code null} for a direct route
+     * @param secure    {@code true} if the route is (to be) secure,
+     *                  {@code false} otherwise
+     * @param tunnelled {@code true} if the route is (to be) tunnelled
      *                  via the proxy,
-     *                  <code>false</code> otherwise
-     * @param layered   <code>true</code> if the route includes a
+     *                  {@code false} otherwise
+     * @param layered   {@code true} if the route includes a
      *                  layered protocol,
-     *                  <code>false</code> otherwise
+     *                  {@code false} otherwise
      */
     public HttpRoute(final HttpHost target, final InetAddress local, final HttpHost proxy,
                      final boolean secure, final TunnelType tunnelled, final LayerType layered) {
@@ -134,9 +134,9 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *
      * @param target    the host to which to route
      * @param local     the local address to route from, or
-     *                  <code>null</code> for the default
-     * @param secure    <code>true</code> if the route is (to be) secure,
-     *                  <code>false</code> otherwise
+     *                  {@code null} for the default
+     * @param secure    {@code true} if the route is (to be) secure,
+     *                  {@code false} otherwise
      */
     public HttpRoute(final HttpHost target, final InetAddress local, final boolean secure) {
         this(target, local, Collections.<HttpHost>emptyList(), secure,
@@ -155,16 +155,16 @@ public final class HttpRoute implements RouteInfo, Cloneable {
 
     /**
      * Creates a new route through a proxy.
-     * When using this constructor, the <code>proxy</code> MUST be given.
+     * When using this constructor, the {@code proxy} MUST be given.
      * For convenience, it is assumed that a secure connection will be
      * layered over a tunnel through the proxy.
      *
      * @param target    the host to which to route
      * @param local     the local address to route from, or
-     *                  <code>null</code> for the default
+     *                  {@code null} for the default
      * @param proxy     the proxy to use
-     * @param secure    <code>true</code> if the route is (to be) secure,
-     *                  <code>false</code> otherwise
+     * @param secure    {@code true} if the route is (to be) secure,
+     *                  {@code false} otherwise
      */
     public HttpRoute(final HttpHost target, final InetAddress local, final HttpHost proxy,
                      final boolean secure) {
@@ -251,8 +251,8 @@ public final class HttpRoute implements RouteInfo, Cloneable {
      *
      * @param obj         the object to compare with
      *
-     * @return  <code>true</code> if the argument is the same route,
-     *          <code>false</code>
+     * @return  {@code true} if the argument is the same route,
+     *          {@code false}
      */
     @Override
     public final boolean equals(final Object obj) {

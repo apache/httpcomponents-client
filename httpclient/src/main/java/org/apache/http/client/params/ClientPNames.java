@@ -91,7 +91,7 @@ public interface ClientPNames {
     public static final String COOKIE_POLICY = "http.protocol.cookie-policy";
 
     /**
-     * Defines the virtual host to be used in the <code>Host</code>
+     * Defines the virtual host to be used in the {@code Host}
      * request header instead of the physical host.
      * <p>
      * This parameter expects a value of type {@link org.apache.http.HttpHost}.

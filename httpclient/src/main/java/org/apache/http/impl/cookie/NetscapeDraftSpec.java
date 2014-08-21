@@ -94,7 +94,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
       * </PRE>
       *
       * <p>Please note that the Netscape draft specification does not fully conform to the HTTP
-      * header format. Comma character if present in <code>Set-Cookie</code> will not be treated
+      * header format. Comma character if present in {@code Set-Cookie} will not be treated
       * as a header element separator</p>
       *
       * @see <a href="http://web.archive.org/web/20020803110822/http://wp.netscape.com/newsref/std/cookie_spec.html">

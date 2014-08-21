@@ -59,7 +59,7 @@ public interface ConnectionKeepAliveStrategy {
      *            the context in which the connection is being used.
      *
      * @return the duration in ms for which it is safe to keep the connection
-     *         idle, or <=0 if no suggested duration.
+     *         idle, or &lt;=0 if no suggested duration.
      */
     long getKeepAliveDuration(HttpResponse response, HttpContext context);
 

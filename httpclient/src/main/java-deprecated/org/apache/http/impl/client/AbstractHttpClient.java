@@ -971,11 +971,12 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
      * The default implementation in this class creates a new
      * {@link ClientParamsStack} from the request parameters
      * and the client parameters.
-     * <br/>
+     * <p>
      * This method is called by the default implementation of
      * {@link #execute(HttpHost,HttpRequest,HttpContext)}
      * to obtain the parameters for the
      * {@link DefaultRequestDirector}.
+     * </p>
      *
      * @param req    the request that will be executed
      *

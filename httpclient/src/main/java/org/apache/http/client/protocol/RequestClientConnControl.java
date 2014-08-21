@@ -41,9 +41,9 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 
 /**
- * This protocol interceptor is responsible for adding <code>Connection</code>
- * or <code>Proxy-Connection</code> headers to the outgoing requests, which
- * is essential for managing persistence of <code>HTTP/1.0</code> connections.
+ * This protocol interceptor is responsible for adding {@code Connection}
+ * or {@code Proxy-Connection} headers to the outgoing requests, which
+ * is essential for managing persistence of {@code HTTP/1.0} connections.
  *
  * @since 4.0
  */

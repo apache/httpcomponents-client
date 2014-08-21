@@ -161,7 +161,7 @@ public class DigestScheme extends RFC2617Scheme {
     /**
      * Returns textual designation of the digest authentication scheme.
      *
-     * @return <code>digest</code>
+     * @return {@code digest}
      */
     @Override
     public String getSchemeName() {

@@ -42,13 +42,13 @@ public interface EofSensorWatcher {
      *
      * @param wrapped   the underlying stream which has reached EOF
      *
-     * @return  <code>true</code> if <code>wrapped</code> should be closed,
-     *          <code>false</code> if it should be left alone
+     * @return  {@code true</code> if <code>wrapped} should be closed,
+     *          {@code false} if it should be left alone
      *
      * @throws IOException
      *         in case of an IO problem, for example if the watcher itself
      *         closes the underlying stream. The caller will leave the
-     *         wrapped stream alone, as if <code>false</code> was returned.
+     *         wrapped stream alone, as if {@code false} was returned.
      */
     boolean eofDetected(InputStream wrapped)
         throws IOException;
@@ -60,13 +60,13 @@ public interface EofSensorWatcher {
      *
      * @param wrapped   the underlying stream which has not reached EOF
      *
-     * @return  <code>true</code> if <code>wrapped</code> should be closed,
-     *          <code>false</code> if it should be left alone
+     * @return  {@code true</code> if <code>wrapped} should be closed,
+     *          {@code false} if it should be left alone
      *
      * @throws IOException
      *         in case of an IO problem, for example if the watcher itself
      *         closes the underlying stream. The caller will leave the
-     *         wrapped stream alone, as if <code>false</code> was returned.
+     *         wrapped stream alone, as if {@code false} was returned.
      */
     boolean streamClosed(InputStream wrapped)
         throws IOException;
@@ -82,13 +82,13 @@ public interface EofSensorWatcher {
      *
      * @param wrapped   the underlying stream which has not reached EOF
      *
-     * @return  <code>true</code> if <code>wrapped</code> should be closed,
-     *          <code>false</code> if it should be left alone
+     * @return  {@code true</code> if <code>wrapped} should be closed,
+     *          {@code false} if it should be left alone
      *
      * @throws IOException
      *         in case of an IO problem, for example if the watcher itself
      *         closes the underlying stream. The caller will leave the
-     *         wrapped stream alone, as if <code>false</code> was returned.
+     *         wrapped stream alone, as if {@code false} was returned.
      */
     boolean streamAbort(InputStream wrapped)
         throws IOException;

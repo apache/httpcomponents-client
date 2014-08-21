@@ -53,7 +53,7 @@ public interface ClientConnectionManager {
     /**
      * Obtains the scheme registry used by this manager.
      *
-     * @return  the scheme registry, never <code>null</code>
+     * @return  the scheme registry, never {@code null}
      */
     SchemeRegistry getSchemeRegistry();
 
@@ -67,7 +67,7 @@ public interface ClientConnectionManager {
     /**
      * Releases a connection for use by others.
      * You may optionally specify how long the connection is valid
-     * to be reused.  Values <= 0 are considered to be valid forever.
+     * to be reused.  Values &lt;= 0 are considered to be valid forever.
      * If the connection is not marked as reusable, the connection will
      * not be reused regardless of the valid duration.
      *
@@ -92,7 +92,7 @@ public interface ClientConnectionManager {
      * All expired connections will also be closed.
      *
      * @param idletime  the idle time of connections to be closed
-     * @param tunit     the unit for the <code>idletime</code>
+     * @param tunit     the unit for the {@code idletime}
      *
      * @see #closeExpiredConnections()
      */

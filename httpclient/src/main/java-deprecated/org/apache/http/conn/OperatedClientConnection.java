@@ -52,10 +52,11 @@ public interface OperatedClientConnection extends HttpClientConnection, HttpInet
      * If the connection is to a proxy but not tunnelled, this is
      * the proxy. If the connection is tunnelled through a proxy,
      * this is the target of the tunnel.
-     * <br/>
+     * <p>
      * The return value is well-defined only while the connection is open.
      * It may change even while the connection is open,
      * because of an {@link #update update}.
+     * </p>
      *
      * @return  the host to which this connection is opened
      */
@@ -67,8 +68,8 @@ public interface OperatedClientConnection extends HttpClientConnection, HttpInet
      * It may change even while the connection is open,
      * because of an {@link #update update}.
      *
-     * @return  <code>true</code> if this connection is secure,
-     *          <code>false</code> otherwise
+     * @return  {@code true} if this connection is secure,
+     *          {@code false} otherwise
      */
     boolean isSecure();
 
@@ -117,9 +118,9 @@ public interface OperatedClientConnection extends HttpClientConnection, HttpInet
      * An attempt to call this method on an open connection will cause
      * an exception.
      *
-     * @param secure    <code>true</code> if this connection is secure, for
-     *                  example if an <code>SSLSocket</code> is used, or
-     *                  <code>false</code> if it is not secure
+     * @param secure    {@code true} if this connection is secure, for
+     *                  example if an {@code SSLSocket} is used, or
+     *                  {@code false} if it is not secure
      * @param params    parameters for this connection. The parameters will
      *                  be used when creating dependent objects, for example
      *                  to determine buffer sizes.
@@ -133,19 +134,20 @@ public interface OperatedClientConnection extends HttpClientConnection, HttpInet
      * Updates are used for example when a tunnel has been established,
      * or when a TLS/SSL connection has been layered on top of a plain
      * socket connection.
-     * <br/>
+     * <p>
      * <b>Note:</b> Updating the connection will <i>not</i> close the
      * previously used socket. It is the caller's responsibility to close
      * that socket if it is no longer required.
+     * </p>
      *
      * @param sock      the new socket for communicating with the target host,
-     *                  or <code>null</code> to continue using the old socket.
-     *                  If <code>null</code> is passed, helper objects that
+     *                  or {@code null} to continue using the old socket.
+     *                  If {@code null} is passed, helper objects that
      *                  depend on the socket should be re-used. In that case,
      *                  some changes in the parameters will not take effect.
      * @param target    the new target host of this connection
-     * @param secure    <code>true</code> if this connection is now secure,
-     *                  <code>false</code> if it is not secure
+     * @param secure    {@code true} if this connection is now secure,
+     *                  {@code false} if it is not secure
      * @param params    new parameters for this connection
      */
     void update(Socket sock, HttpHost target,

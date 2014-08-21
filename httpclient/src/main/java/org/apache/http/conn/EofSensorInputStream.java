@@ -48,7 +48,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
 
     /**
      * The wrapped input stream, while accessible.
-     * The value changes to <code>null</code> when the wrapped stream
+     * The value changes to {@code null} when the wrapped stream
      * becomes inaccessible.
      */
     protected InputStream wrappedStream;
@@ -56,7 +56,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
     /**
      * Indicates whether this stream itself is closed.
      * If it isn't, but {@link #wrappedStream wrappedStream}
-     * is <code>null</code>, we're running in EOF mode.
+     * is {@code null}, we're running in EOF mode.
      * All read operations will indicate EOF without accessing
      * the underlying stream. After closing this stream, read
      * operations will trigger an {@link IOException IOException}.
@@ -76,7 +76,7 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
      * should be closed before detaching from it.
      *
      * @param in        the wrapped stream
-     * @param watcher   the watcher for events, or <code>null</code> for
+     * @param watcher   the watcher for events, or {@code null} for
      *                  auto-close behavior without notification
      */
     public EofSensorInputStream(final InputStream in,
@@ -98,8 +98,8 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
     /**
      * Checks whether the underlying stream can be read from.
      *
-     * @return  <code>true</code> if the underlying stream is accessible,
-     *          <code>false</code> if this stream is in EOF mode and
+     * @return  {@code true} if the underlying stream is accessible,
+     *          {@code false} if this stream is in EOF mode and
      *          detached from the underlying stream
      *
      * @throws IOException      if this stream is already closed
@@ -179,10 +179,11 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
      * This method should only be called while the underlying stream is
      * still accessible. Use {@link #isReadAllowed isReadAllowed} to
      * check that condition.
-     * <br/>
+     * <p>
      * If EOF is detected, the watcher will be notified and this stream
      * is detached from the underlying stream. This prevents multiple
      * notifications from this stream.
+     * </p>
      *
      * @param eof       the result of the calling read operation.
      *                  A negative value indicates that EOF is reached.

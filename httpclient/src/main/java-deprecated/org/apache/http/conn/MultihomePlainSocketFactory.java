@@ -155,7 +155,7 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
      *
      * @param sock      the connected socket
      *
-     * @return  <code>false</code>
+     * @return  {@code false}
      *
      * @throws IllegalArgumentException if the argument is invalid
      */

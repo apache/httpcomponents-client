@@ -135,8 +135,8 @@ public class RouteSpecificPool {
      * A pool is unused if there is neither an entry nor a waiting thread.
      * All entries count, not only the free but also the allocated ones.
      *
-     * @return  <code>true</code> if this pool is unused,
-     *          <code>false</code> otherwise
+     * @return  {@code true} if this pool is unused,
+     *          {@code false} otherwise
      */
     public boolean isUnused() {
         return (numEntries < 1) && waitingThreads.isEmpty();
@@ -168,7 +168,7 @@ public class RouteSpecificPool {
     /**
      * Obtains a free entry from this pool, if one is available.
      *
-     * @return an available pool entry, or <code>null</code> if there is none
+     * @return an available pool entry, or {@code null} if there is none
      */
     public BasicPoolEntry allocEntry(final Object state) {
         if (!freeEntries.isEmpty()) {
@@ -236,8 +236,8 @@ public class RouteSpecificPool {
      *
      * @param entry     the entry to delete from this pool
      *
-     * @return  <code>true</code> if the entry was found and deleted, or
-     *          <code>false</code> if the entry was not found
+     * @return  {@code true} if the entry was found and deleted, or
+     *          {@code false} if the entry was not found
      */
     public boolean deleteEntry(final BasicPoolEntry entry) {
 
@@ -278,8 +278,8 @@ public class RouteSpecificPool {
     /**
      * Checks whether there is a waiting thread in this pool.
      *
-     * @return  <code>true</code> if there is a waiting thread,
-     *          <code>false</code> otherwise
+     * @return  {@code true} if there is a waiting thread,
+     *          {@code false} otherwise
      */
     public boolean hasThread() {
         return !this.waitingThreads.isEmpty();
@@ -289,7 +289,7 @@ public class RouteSpecificPool {
     /**
      * Returns the next thread in the queue.
      *
-     * @return  a waiting thread, or <code>null</code> if there is none
+     * @return  a waiting thread, or {@code null} if there is none
      */
     public WaitingThread nextThread() {
         return this.waitingThreads.peek();

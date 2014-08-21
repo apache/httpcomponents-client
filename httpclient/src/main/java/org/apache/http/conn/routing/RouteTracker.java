@@ -48,7 +48,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
 
     /**
      * The local address to connect from.
-     * <code>null</code> indicates that the default should be used.
+     * {@code null} indicates that the default should be used.
      */
     private final InetAddress localAddress;
 
@@ -76,7 +76,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      *
      * @param target    the host to which to route
      * @param local     the local address to route from, or
-     *                  <code>null</code> for the default
+     *                  {@code null} for the default
      */
     public RouteTracker(final HttpHost target, final InetAddress local) {
         Args.notNull(target, "Target host");
@@ -111,8 +111,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     /**
      * Tracks connecting to the target.
      *
-     * @param secure    <code>true</code> if the route is secure,
-     *                  <code>false</code> otherwise
+     * @param secure    {@code true} if the route is secure,
+     *                  {@code false} otherwise
      */
     public final void connectTarget(final boolean secure) {
         Asserts.check(!this.connected, "Already connected");
@@ -124,8 +124,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * Tracks connecting to the first proxy.
      *
      * @param proxy     the proxy connected to
-     * @param secure    <code>true</code> if the route is secure,
-     *                  <code>false</code> otherwise
+     * @param secure    {@code true} if the route is secure,
+     *                  {@code false} otherwise
      */
     public final void connectProxy(final HttpHost proxy, final boolean secure) {
         Args.notNull(proxy, "Proxy host");
@@ -138,8 +138,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     /**
      * Tracks tunnelling to the target.
      *
-     * @param secure    <code>true</code> if the route is secure,
-     *                  <code>false</code> otherwise
+     * @param secure    {@code true} if the route is secure,
+     *                  {@code false} otherwise
      */
     public final void tunnelTarget(final boolean secure) {
         Asserts.check(this.connected, "No tunnel unless connected");
@@ -154,8 +154,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * the route as tunnelled. Only end-to-end tunnels are considered there.
      *
      * @param proxy     the proxy tunnelled to
-     * @param secure    <code>true</code> if the route is secure,
-     *                  <code>false</code> otherwise
+     * @param secure    {@code true} if the route is secure,
+     *                  {@code false} otherwise
      */
     public final void tunnelProxy(final HttpHost proxy, final boolean secure) {
         Args.notNull(proxy, "Proxy host");
@@ -174,8 +174,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
     /**
      * Tracks layering a protocol.
      *
-     * @param secure    <code>true</code> if the route is secure,
-     *                  <code>false</code> otherwise
+     * @param secure    {@code true} if the route is secure,
+     *                  {@code false} otherwise
      */
     public final void layerProtocol(final boolean secure) {
         // it is possible to layer a protocol over a direct connection,
@@ -263,7 +263,7 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      * If not connected, nothing has been tracked so far.
      *
      * @return  the tracked route, or
-     *          <code>null</code> if nothing has been tracked so far
+     *          {@code null} if nothing has been tracked so far
      */
     public final HttpRoute toRoute() {
         return !this.connected ?
@@ -277,8 +277,8 @@ public final class RouteTracker implements RouteInfo, Cloneable {
      *
      * @param o         the object to compare with
      *
-     * @return  <code>true</code> if the argument is the same tracked route,
-     *          <code>false</code>
+     * @return  {@code true} if the argument is the same tracked route,
+     *          {@code false}
      */
     @Override
     public final boolean equals(final Object o) {

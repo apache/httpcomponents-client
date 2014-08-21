@@ -51,8 +51,8 @@ public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
     /**
      * Creates a new reference to a pool entry.
      *
-     * @param entry   the pool entry, must not be <code>null</code>
-     * @param queue   the reference queue, or <code>null</code>
+     * @param entry   the pool entry, must not be {@code null}
+     * @param queue   the reference queue, or {@code null}
      */
     public BasicPoolEntryRef(final BasicPoolEntry entry,
                              final ReferenceQueue<Object> queue) {

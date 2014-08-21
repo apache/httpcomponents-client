@@ -93,9 +93,9 @@ public class KerberosScheme extends GGSSchemeBase {
 
     /**
      * There are no valid parameters for KERBEROS authentication so this
-     * method always returns <code>null</code>.
+     * method always returns {@code null}.
      *
-     * @return <code>null</code>
+     * @return {@code null}
      */
     @Override
     public String getParameter(final String name) {
@@ -105,9 +105,9 @@ public class KerberosScheme extends GGSSchemeBase {
 
     /**
      * The concept of an authentication realm is not supported by the Negotiate
-     * authentication scheme. Always returns <code>null</code>.
+     * authentication scheme. Always returns {@code null}.
      *
-     * @return <code>null</code>
+     * @return {@code null}
      */
     @Override
     public String getRealm() {

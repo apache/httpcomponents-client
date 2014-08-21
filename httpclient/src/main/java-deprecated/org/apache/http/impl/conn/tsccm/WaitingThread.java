@@ -34,18 +34,20 @@ import org.apache.http.util.Args;
 
 /**
  * Represents a thread waiting for a connection.
- * This class implements throwaway objects. It is instantiated whenever
+ * <p>
+ * This class implements throw away objects. It is instantiated whenever
  * a thread needs to wait. Instances are not re-used, except if the
- * waiting thread experiences a spurious wakeup and continues to wait.
- * <br/>
+ * waiting thread experiences a spurious wake up and continues to wait.
+ * </p>
+ * <p>
  * All methods assume external synchronization on the condition
  * passed to the constructor.
  * Instances of this class do <i>not</i> synchronize access!
- *
+ * </p>
  *
  * @since 4.0
  *
- * @deprecated (4.2)  do not use
+ * @deprecated (4.2) do not use
  */
 @Deprecated
 public class WaitingThread {
@@ -69,7 +71,7 @@ public class WaitingThread {
      *
      * @param cond      the condition for which to wait
      * @param pool      the pool on which the thread will be waiting,
-     *                  or <code>null</code>
+     *                  or {@code null}
      */
     public WaitingThread(final Condition cond, final RouteSpecificPool pool) {
 
@@ -83,7 +85,7 @@ public class WaitingThread {
     /**
      * Obtains the condition.
      *
-     * @return  the condition on which to wait, never <code>null</code>
+     * @return  the condition on which to wait, never {@code null}
      */
     public final Condition getCondition() {
         // not synchronized
@@ -95,7 +97,7 @@ public class WaitingThread {
      * Obtains the pool, if there is one.
      *
      * @return  the pool on which a thread is or was waiting,
-     *          or <code>null</code>
+     *          or {@code null}
      */
     public final RouteSpecificPool getPool() {
         // not synchronized
@@ -106,7 +108,7 @@ public class WaitingThread {
     /**
      * Obtains the thread, if there is one.
      *
-     * @return  the thread which is waiting, or <code>null</code>
+     * @return  the thread which is waiting, or {@code null}
      */
     public final Thread getThread() {
         // not synchronized
@@ -118,13 +120,14 @@ public class WaitingThread {
      * Blocks the calling thread.
      * This method returns when the thread is notified or interrupted,
      * if a timeout occurrs, or if there is a spurious wakeup.
-     * <br/>
+     * <p>
      * This method assumes external synchronization.
+     * </p>
      *
-     * @param deadline  when to time out, or <code>null</code> for no timeout
+     * @param deadline  when to time out, or {@code null} for no timeout
      *
-     * @return  <code>true</code> if the condition was satisfied,
-     *          <code>false</code> in case of a timeout.
+     * @return  {@code true} if the condition was satisfied,
+     *          {@code false} in case of a timeout.
      *          Typically, a call to {@link #wakeup} is used to indicate
      *          that the condition was satisfied. Since the condition is
      *          accessible outside, this cannot be guaranteed though.
@@ -172,8 +175,9 @@ public class WaitingThread {
 
     /**
      * Wakes up the waiting thread.
-     * <br/>
+     * <p>
      * This method assumes external synchronization.
+     * </p>
      */
     public void wakeup() {
 

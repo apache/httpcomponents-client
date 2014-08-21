@@ -52,22 +52,22 @@ import org.apache.http.util.EntityUtils;
 
 /**
  * <p>Decorator adding support for compressed responses. This class sets
- * the <code>Accept-Encoding</code> header on requests to indicate
- * support for the <code>gzip</code> and <code>deflate</code>
- * compression schemes; it then checks the <code>Content-Encoding</code>
+ * the {@code Accept-Encoding} header on requests to indicate
+ * support for the {@code gzip</code> and <code>deflate}
+ * compression schemes; it then checks the {@code Content-Encoding}
  * header on the response to uncompress any compressed response bodies.
  * The {@link java.io.InputStream} of the entity will contain the uncompressed
  * content.</p>
  *
  * <p><b>N.B.</b> Any upstream clients of this class need to be aware that
  * this effectively obscures visibility into the length of a server
- * response body, since the <code>Content-Length</code> header will
+ * response body, since the {@code Content-Length} header will
  * correspond to the compressed entity length received from the server,
  * but the content length experienced by reading the response body may
  * be different (hopefully higher!).</p>
  *
  * <p>That said, this decorator is compatible with the
- * <code>CachingHttpClient</code> in that the two decorators can be added
+ * {@code CachingHttpClient} in that the two decorators can be added
  * in either order and still have cacheable responses be cached.</p>
  *
  * @since 4.2

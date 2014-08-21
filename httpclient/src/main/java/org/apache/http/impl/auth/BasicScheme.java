@@ -86,7 +86,7 @@ public class BasicScheme extends RFC2617Scheme {
     /**
      * Returns textual designation of the basic authentication scheme.
      *
-     * @return <code>basic</code>
+     * @return {@code basic}
      */
     @Override
     public String getSchemeName() {

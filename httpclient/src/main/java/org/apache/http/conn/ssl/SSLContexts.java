@@ -44,7 +44,7 @@ public class SSLContexts {
 
     /**
      * Creates default factory based on the standard JSSE trust material
-     * (<code>cacerts</code> file in the security properties directory). System properties
+     * ({@code cacerts} file in the security properties directory). System properties
      * are not taken into consideration.
      *
      * @return the default SSL socket factory
@@ -63,10 +63,10 @@ public class SSLContexts {
 
     /**
      * Creates default SSL context based on system properties. This method obtains
-     * default SSL context by calling <code>SSLContext.getInstance("Default")</code>.
-     * Please note that <code>Default</code> algorithm is supported as of Java 6.
+     * default SSL context by calling {@code SSLContext.getInstance("Default")}.
+     * Please note that {@code Default} algorithm is supported as of Java 6.
      * This method will fall back onto {@link #createDefault()} when
-     * <code>Default</code> algorithm is not available.
+     * {@code Default} algorithm is not available.
      *
      * @return default system SSL context
      */

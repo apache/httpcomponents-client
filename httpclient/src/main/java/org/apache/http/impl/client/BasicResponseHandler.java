@@ -37,7 +37,7 @@ import org.apache.http.util.EntityUtils;
 
 /**
  * A {@link org.apache.http.client.ResponseHandler} that returns the response body as a String
- * for successful (2xx) responses. If the response code was >= 300, the response
+ * for successful (2xx) responses. If the response code was &gt;= 300, the response
  * body is consumed and an {@link org.apache.http.client.HttpResponseException} is thrown.
  * <p>
  * If this is used with

@@ -84,6 +84,7 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
      * Performs domain-match as defined by the RFC2965.
      * <p>
      * Host A's name domain-matches host B's if
+     * </p>
      * <ol>
      *   <ul>their host name strings string-compare equal; or</ul>
      *   <ul>A is a HDN string and has the form NB, where N is a non-empty

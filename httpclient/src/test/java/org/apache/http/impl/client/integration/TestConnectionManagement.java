@@ -69,7 +69,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for <code>PoolingHttpClientConnectionManager</code> that do require a server
+ * Tests for {@code PoolingHttpClientConnectionManager} that do require a server
  * to communicate with.
  */
 public class TestConnectionManagement extends LocalServerTestBase {

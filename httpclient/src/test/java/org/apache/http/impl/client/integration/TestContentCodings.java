@@ -99,7 +99,7 @@ public class TestContentCodings extends LocalServerTestBase {
 
     /**
      * Test for when we are handling content from a server that has correctly interpreted RFC2616
-     * to return RFC1950 streams for <code>deflate</code> content coding.
+     * to return RFC1950 streams for {@code deflate} content coding.
      *
      * @throws Exception
      */
@@ -119,7 +119,7 @@ public class TestContentCodings extends LocalServerTestBase {
 
     /**
      * Test for when we are handling content from a server that has incorrectly interpreted RFC2616
-     * to return RFC1951 streams for <code>deflate</code> content coding.
+     * to return RFC1951 streams for {@code deflate} content coding.
      *
      * @throws Exception
      */

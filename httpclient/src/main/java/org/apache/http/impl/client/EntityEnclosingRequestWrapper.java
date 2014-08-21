@@ -43,9 +43,10 @@ import org.apache.http.protocol.HTTP;
  * A wrapper class for {@link HttpEntityEnclosingRequest}s that can
  * be used to change properties of the current request without
  * modifying the original object.
- * </p>
+ * <p>
  * This class is also capable of resetting the request headers to
  * the state of the original request.
+ * </p>
  *
  * @since 4.0
  *

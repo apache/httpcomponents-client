@@ -66,7 +66,7 @@ public interface HttpClientConnectionManager {
      * {@link #upgrade(org.apache.http.HttpClientConnection,
      *   org.apache.http.conn.routing.HttpRoute,
      *   org.apache.http.protocol.HttpContext) upgrade} method to upgrade
-     * the connection after having executed <code>CONNECT</code> method to
+     * the connection after having executed {@code CONNECT} method to
      * all intermediate proxy hops and and finally calling {@link #routeComplete(
      *  org.apache.http.HttpClientConnection,
      *  org.apache.http.conn.routing.HttpRoute,
@@ -75,7 +75,7 @@ public interface HttpClientConnectionManager {
      * </p>
      *
      * @param route HTTP route of the requested connection.
-     * @param state expected state of the connection or <code>null</code>
+     * @param state expected state of the connection or {@code null}
      *              if the connection is not expected to carry any state.
      */
     ConnectionRequest requestConnection(HttpRoute route, Object state);
@@ -84,7 +84,7 @@ public interface HttpClientConnectionManager {
      * Releases the connection back to the manager making it potentially
      * re-usable by other consumers. Optionally, the maximum period
      * of how long the manager should keep the connection alive can be
-     * defined using <code>validDuration</code> and <code>timeUnit</code>
+     * defined using {@code validDuration</code> and <code>timeUnit}
      * parameters.
      *
      * @param conn      the managed connection to release.
@@ -115,7 +115,7 @@ public interface HttpClientConnectionManager {
 
     /**
      * Upgrades the underlying connection socket to TLS/SSL (or another layering
-     * protocol) after having executed <code>CONNECT</code> method to all
+     * protocol) after having executed {@code CONNECT} method to all
      * intermediate proxy hops
      *
      * @param conn the managed connection.
@@ -144,16 +144,18 @@ public interface HttpClientConnectionManager {
 
     /**
      * Closes idle connections in the pool.
-     * <p/>
+     * <p>
      * Open connections in the pool that have not been used for the
      * timespan given by the argument will be closed.
      * Currently allocated connections are not subject to this method.
      * Times will be checked with milliseconds precision
-     *
+     * </p>
+     * <p>
      * All expired connections will also be closed.
+     * </p>
      *
      * @param idletime  the idle time of connections to be closed
-     * @param tunit     the unit for the <code>idletime</code>
+     * @param tunit     the unit for the {@code idletime}
      *
      * @see #closeExpiredConnections()
      */
@@ -161,11 +163,12 @@ public interface HttpClientConnectionManager {
 
     /**
      * Closes all expired connections in the pool.
-     * <p/>
+     * <p>
      * Open connections in the pool that have not been used for
      * the timespan defined when the connection was released will be closed.
      * Currently allocated connections are not subject to this method.
      * Times will be checked with milliseconds precision.
+     * </p>
      */
     void closeExpiredConnections();
 

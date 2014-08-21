@@ -128,7 +128,7 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
      *
      * @param sock      the connected socket
      *
-     * @return  <code>false</code>
+     * @return  {@code false}
      */
     public final boolean isSecure(final Socket sock) {
         return false;

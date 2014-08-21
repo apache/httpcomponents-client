@@ -60,7 +60,7 @@ import org.apache.http.util.TextUtils;
 /**
  * Request interceptor that matches cookies available in the current
  * {@link CookieStore} to the request being executed and generates
- * corresponding <code>Cookie</code> request headers.
+ * corresponding {@code Cookie} request headers.
  *
  * @since 4.0
  */

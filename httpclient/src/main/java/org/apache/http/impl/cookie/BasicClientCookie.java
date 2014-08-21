@@ -229,7 +229,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
     }
 
     /**
-     * @return <code>true</code> if this cookie should only be sent over secure connections.
+     * @return {@code true} if this cookie should only be sent over secure connections.
      * @see #setSecure(boolean)
      */
     @Override

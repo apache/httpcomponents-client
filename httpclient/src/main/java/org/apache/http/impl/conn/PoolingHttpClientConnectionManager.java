@@ -89,7 +89,7 @@ import org.apache.http.util.Asserts;
  * The code now only checks the connection if the elapsed time since
  * the last use of the connection exceeds the timeout that has been set.
  * The default timeout is set to 5000ms - see
- * {@link #PoolingHttpClientConnectionManager(HttpClientConnectionOperator, HttpConnectionFactory, long, TimeUnit))}
+ * {@link #PoolingHttpClientConnectionManager(HttpClientConnectionOperator, HttpConnectionFactory, long, TimeUnit)}
  * </p>
  *
  * @since 4.3

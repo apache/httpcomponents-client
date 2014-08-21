@@ -50,7 +50,7 @@ import org.apache.http.protocol.HttpContext;
  * DefaultUserTokenHandler will use the user principle of connection
  * based authentication schemes such as NTLM or that of the SSL session
  * with the client authentication turned on. If both are unavailable,
- * <code>null</code> token will be returned.
+ * {@code null} token will be returned.
  *
  * @since 4.0
  */
