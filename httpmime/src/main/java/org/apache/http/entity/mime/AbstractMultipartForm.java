@@ -178,10 +178,11 @@ abstract class AbstractMultipartForm {
      * individual parts plus that of extra elements required to delimit the parts
      * from one another). If any of the @{link BodyPart}s contained in this object
      * is of a streaming entity of unknown length the total length is also unknown.
-     * <p/>
+     * <p>
      * This method buffers only a small amount of data in order to determine the
      * total length of the entire entity. The content of individual parts is not
      * buffered.
+     * </p>
      *
      * @return total length of the multipart entity if known, {@code -1}
      *   otherwise.
