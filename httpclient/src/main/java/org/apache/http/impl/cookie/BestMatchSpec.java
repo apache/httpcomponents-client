@@ -58,7 +58,7 @@ public class BestMatchSpec implements CookieSpec {
     // Cached values of CookieSpec instances
     private RFC2965Spec strict; // @NotThreadSafe
     private RFC2109Spec obsoleteStrict; // @NotThreadSafe
-    private BrowserCompatSpec compat; // @NotThreadSafe
+    private NetscapeDraftSpec netscape; // @NotThreadSafe
 
     public BestMatchSpec(final String[] datepatterns, final boolean oneHeader) {
         super();
@@ -84,11 +84,11 @@ public class BestMatchSpec implements CookieSpec {
         return obsoleteStrict;
     }
 
-    private BrowserCompatSpec getCompat() {
-        if (this.compat == null) {
-            this.compat = new BrowserCompatSpec(this.datepatterns);
+    private NetscapeDraftSpec getNetscapeCompat() {
+        if (this.netscape == null) {
+            this.netscape = new NetscapeDraftSpec(false, this.datepatterns);
         }
-        return compat;
+        return netscape;
     }
 
     @Override
@@ -129,7 +129,7 @@ public class BestMatchSpec implements CookieSpec {
                 cursor = new ParserCursor(0, buffer.length());
             }
             helems = new HeaderElement[] { parser.parseHeader(buffer, cursor) };
-            return getCompat().parse(helems, origin);
+            return getNetscapeCompat().parse(helems, origin);
         } else {
             if (SM.SET_COOKIE2.equals(header.getName())) {
                 return getStrict().parse(helems, origin);
@@ -152,7 +152,7 @@ public class BestMatchSpec implements CookieSpec {
                 getObsoleteStrict().validate(cookie, origin);
             }
         } else {
-            getCompat().validate(cookie, origin);
+            getNetscapeCompat().validate(cookie, origin);
         }
     }
 
@@ -167,7 +167,7 @@ public class BestMatchSpec implements CookieSpec {
                 return getObsoleteStrict().match(cookie, origin);
             }
         } else {
-            return getCompat().match(cookie, origin);
+            return getNetscapeCompat().match(cookie, origin);
         }
     }
 
@@ -191,7 +191,7 @@ public class BestMatchSpec implements CookieSpec {
                 return getObsoleteStrict().formatCookies(cookies);
             }
         } else {
-            return getCompat().formatCookies(cookies);
+            return getNetscapeCompat().formatCookies(cookies);
         }
     }
 

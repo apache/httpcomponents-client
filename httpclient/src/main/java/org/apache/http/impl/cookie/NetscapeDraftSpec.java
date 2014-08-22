@@ -59,8 +59,7 @@ public class NetscapeDraftSpec extends CookieSpecBase {
 
     private final String[] datepatterns;
 
-    /** Default constructor */
-    public NetscapeDraftSpec(final String[] datepatterns) {
+    NetscapeDraftSpec(final boolean strictDomainValidation, final String[] datepatterns) {
         super();
         if (datepatterns != null) {
             this.datepatterns = datepatterns.clone();
@@ -68,14 +67,18 @@ public class NetscapeDraftSpec extends CookieSpecBase {
             this.datepatterns = new String[] { EXPIRES_PATTERN };
         }
         registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler());
-        registerAttribHandler(ClientCookie.DOMAIN_ATTR, new NetscapeDomainHandler());
+        registerAttribHandler(ClientCookie.DOMAIN_ATTR,
+                strictDomainValidation ? new NetscapeDomainHandler() : new BasicDomainHandler());
         registerAttribHandler(ClientCookie.SECURE_ATTR, new BasicSecureHandler());
         registerAttribHandler(ClientCookie.COMMENT_ATTR, new BasicCommentHandler());
         registerAttribHandler(ClientCookie.EXPIRES_ATTR, new BasicExpiresHandler(
                 this.datepatterns));
     }
 
-    /** Default constructor */
+    public NetscapeDraftSpec(final String[] datepatterns) {
+        this(true, datepatterns);
+    }
+
     public NetscapeDraftSpec() {
         this(null);
     }

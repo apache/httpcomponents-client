@@ -277,5 +277,23 @@ public class TestCookieBestMatchSpec {
         }
     }
 
+    @Test
+    public void testVersion1CookieWithInvalidExpires() throws Exception {
+        final CookieSpec cookiespec = new BestMatchSpec();
+        final CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
+
+        final Header origHeader = new BasicHeader("Set-Cookie",
+                "test=\"test\"; Version=1; Expires=Mon, 11-Feb-2013 10:39:19 GMT; Path=/");
+        final List<Cookie> cookies = cookiespec.parse(origHeader, origin);
+        Assert.assertNotNull(cookies);
+        Assert.assertEquals(1, cookies.size());
+
+        final List<Header> headers = cookiespec.formatCookies(cookies);
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.size());
+        final Header header1 = headers.get(0);
+        Assert.assertEquals("test=\"test\"", header1.getValue());
+    }
+
 }
 
