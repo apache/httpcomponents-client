@@ -30,6 +30,8 @@ import java.util.Date;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.utils.DateUtils;
+import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.Args;
@@ -39,7 +41,7 @@ import org.apache.http.util.Args;
  * @since 4.0
  */
 @Immutable
-public class BasicExpiresHandler extends AbstractCookieAttributeHandler {
+public class BasicExpiresHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     /** Valid date patterns */
     private final String[] datepatterns;
@@ -62,6 +64,11 @@ public class BasicExpiresHandler extends AbstractCookieAttributeHandler {
                     + value);
         }
         cookie.setExpiryDate(expiry);
+    }
+
+    @Override
+    public String getAttributeName() {
+        return ClientCookie.EXPIRES_ATTR;
     }
 
 }

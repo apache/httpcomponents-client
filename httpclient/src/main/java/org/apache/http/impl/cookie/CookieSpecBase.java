@@ -28,12 +28,14 @@
 package org.apache.http.impl.cookie;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
@@ -43,11 +45,28 @@ import org.apache.http.util.Args;
 /**
  * Cookie management functions shared by all specification.
  *
- *
  * @since 4.0
  */
-@NotThreadSafe // AbstractCookieSpec is not thread-safe
+@ThreadSafe
 public abstract class CookieSpecBase extends AbstractCookieSpec {
+
+    public CookieSpecBase() {
+        super();
+    }
+
+    /**
+     * @since 4.4
+     */
+    protected CookieSpecBase(final HashMap<String, CookieAttributeHandler> map) {
+        super(map);
+    }
+
+    /**
+     * @since 4.4
+     */
+    protected CookieSpecBase(final CommonCookieAttributeHandler... handlers) {
+        super(handlers);
+    }
 
     protected static String getDefaultPath(final CookieOrigin origin) {
         String defaultPath = origin.getPath();

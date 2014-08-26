@@ -24,36 +24,17 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.impl.cookie;
-
-import org.apache.http.annotation.Immutable;
-import org.apache.http.cookie.ClientCookie;
-import org.apache.http.cookie.CommonCookieAttributeHandler;
-import org.apache.http.cookie.MalformedCookieException;
-import org.apache.http.cookie.SetCookie;
-import org.apache.http.util.Args;
+package org.apache.http.cookie;
 
 /**
+ * Extension of {@link org.apache.http.cookie.CookieAttributeHandler} intended
+ * to handle one specific common attribute whose name is returned with
+ * {@link #getAttributeName()} method.
  *
- * @since 4.0
+ * @since 4.4
  */
-@Immutable
-public class BasicCommentHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
+public interface CommonCookieAttributeHandler extends CookieAttributeHandler {
 
-    public BasicCommentHandler() {
-        super();
-    }
-
-    @Override
-    public void parse(final SetCookie cookie, final String value)
-            throws MalformedCookieException {
-        Args.notNull(cookie, "Cookie");
-        cookie.setComment(value);
-    }
-
-    @Override
-    public String getAttributeName() {
-        return ClientCookie.COMMENT_ATTR;
-    }
+    String getAttributeName();
 
 }

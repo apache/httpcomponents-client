@@ -31,8 +31,8 @@ import java.util.StringTokenizer;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
@@ -46,7 +46,7 @@ import org.apache.http.util.Args;
  * @since 4.0
  */
 @Immutable
-public class RFC2965PortAttributeHandler implements CookieAttributeHandler {
+public class RFC2965PortAttributeHandler implements CommonCookieAttributeHandler {
 
     public RFC2965PortAttributeHandler() {
         super();
@@ -158,6 +158,11 @@ public class RFC2965PortAttributeHandler implements CookieAttributeHandler {
             }
         }
         return true;
+    }
+
+    @Override
+    public String getAttributeName() {
+        return ClientCookie.PORT_ATTR;
     }
 
 }

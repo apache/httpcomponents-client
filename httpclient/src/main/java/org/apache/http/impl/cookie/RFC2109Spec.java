@@ -33,9 +33,10 @@ import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookiePathComparator;
@@ -55,42 +56,41 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-@NotThreadSafe // superclass is @NotThreadSafe
+@ThreadSafe
 public class RFC2109Spec extends CookieSpecBase {
 
     private final static CookiePathComparator PATH_COMPARATOR = new CookiePathComparator();
 
-    private final static String[] DATE_PATTERNS = {
+    final static String[] DATE_PATTERNS = {
         DateUtils.PATTERN_RFC1123,
         DateUtils.PATTERN_RFC1036,
         DateUtils.PATTERN_ASCTIME
     };
 
-    private final String[] datepatterns;
     private final boolean oneHeader;
 
     /** Default constructor */
     public RFC2109Spec(final String[] datepatterns, final boolean oneHeader) {
-        super();
-        if (datepatterns != null) {
-            this.datepatterns = datepatterns.clone();
-        } else {
-            this.datepatterns = DATE_PATTERNS;
-        }
+        super(new RFC2109VersionHandler(),
+                new BasicPathHandler(),
+                new RFC2109DomainHandler(),
+                new BasicMaxAgeHandler(),
+                new BasicSecureHandler(),
+                new BasicCommentHandler(),
+                new BasicExpiresHandler(
+                        datepatterns != null ? datepatterns.clone() : DATE_PATTERNS));
         this.oneHeader = oneHeader;
-        registerAttribHandler(ClientCookie.VERSION_ATTR, new RFC2109VersionHandler());
-        registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler());
-        registerAttribHandler(ClientCookie.DOMAIN_ATTR, new RFC2109DomainHandler());
-        registerAttribHandler(ClientCookie.MAX_AGE_ATTR, new BasicMaxAgeHandler());
-        registerAttribHandler(ClientCookie.SECURE_ATTR, new BasicSecureHandler());
-        registerAttribHandler(ClientCookie.COMMENT_ATTR, new BasicCommentHandler());
-        registerAttribHandler(ClientCookie.EXPIRES_ATTR, new BasicExpiresHandler(
-                this.datepatterns));
     }
 
     /** Default constructor */
     public RFC2109Spec() {
         this(null, false);
+    }
+
+    protected RFC2109Spec(final boolean oneHeader,
+                          final CommonCookieAttributeHandler... handlers) {
+        super(handlers);
+        this.oneHeader = oneHeader;
     }
 
     @Override

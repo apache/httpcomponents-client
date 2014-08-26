@@ -30,11 +30,14 @@ package org.apache.http.impl.cookie;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.util.Args;
+import org.apache.http.util.Asserts;
 
 /**
  * Abstract cookie specification which can delegate the job of parsing,
@@ -44,7 +47,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  */
-@NotThreadSafe // HashMap is not thread-safe
+@ThreadSafe
 public abstract class AbstractCookieSpec implements CookieSpec {
 
     /**
@@ -57,9 +60,35 @@ public abstract class AbstractCookieSpec implements CookieSpec {
      * */
     public AbstractCookieSpec() {
         super();
-        this.attribHandlerMap = new HashMap<String, CookieAttributeHandler>(10);
+        this.attribHandlerMap = new ConcurrentHashMap<String, CookieAttributeHandler>(10);
     }
 
+    /**
+     * @since 4.4
+     */
+    protected AbstractCookieSpec(final HashMap<String, CookieAttributeHandler> map) {
+        super();
+        Asserts.notNull(map, "Attribute handler map");
+        this.attribHandlerMap = new ConcurrentHashMap<String, CookieAttributeHandler>(map);
+    }
+
+    /**
+     * @since 4.4
+     */
+    protected AbstractCookieSpec(final CommonCookieAttributeHandler... handlers) {
+        super();
+        this.attribHandlerMap = new ConcurrentHashMap<String, CookieAttributeHandler>(handlers.length);
+        for (CommonCookieAttributeHandler handler: handlers) {
+            this.attribHandlerMap.put(handler.getAttributeName(), handler);
+        }
+    }
+
+    /**
+     * @deprecated (4.4) use {@link #AbstractCookieSpec(java.util.HashMap)} or
+     *  {@link #AbstractCookieSpec(org.apache.http.cookie.CommonCookieAttributeHandler...)}
+     *  constructors instead.
+     */
+    @Deprecated
     public void registerAttribHandler(
             final String name, final CookieAttributeHandler handler) {
         Args.notNull(name, "Attribute name");
@@ -89,12 +118,9 @@ public abstract class AbstractCookieSpec implements CookieSpec {
      */
     protected CookieAttributeHandler getAttribHandler(final String name) {
         final CookieAttributeHandler handler = findAttribHandler(name);
-        if (handler == null) {
-            throw new IllegalStateException("Handler not registered for " +
-                                            name + " attribute.");
-        } else {
-            return handler;
-        }
+        Asserts.check(handler != null, "Handler not registered for " +
+                name + " attribute");
+        return handler;
     }
 
     protected Collection<CookieAttributeHandler> getAttribHandlers() {

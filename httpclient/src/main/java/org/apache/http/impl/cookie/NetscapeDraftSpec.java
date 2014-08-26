@@ -33,8 +33,8 @@ import java.util.List;
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
-import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.cookie.ClientCookie;
+import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
@@ -52,35 +52,27 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-@NotThreadSafe // superclass is @NotThreadSafe
+@ThreadSafe
 public class NetscapeDraftSpec extends CookieSpecBase {
 
     protected static final String EXPIRES_PATTERN = "EEE, dd-MMM-yy HH:mm:ss z";
 
-    private final String[] datepatterns;
-
-    NetscapeDraftSpec(final boolean strictDomainValidation, final String[] datepatterns) {
-        super();
-        if (datepatterns != null) {
-            this.datepatterns = datepatterns.clone();
-        } else {
-            this.datepatterns = new String[] { EXPIRES_PATTERN };
-        }
-        registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler());
-        registerAttribHandler(ClientCookie.DOMAIN_ATTR,
-                strictDomainValidation ? new NetscapeDomainHandler() : new BasicDomainHandler());
-        registerAttribHandler(ClientCookie.SECURE_ATTR, new BasicSecureHandler());
-        registerAttribHandler(ClientCookie.COMMENT_ATTR, new BasicCommentHandler());
-        registerAttribHandler(ClientCookie.EXPIRES_ATTR, new BasicExpiresHandler(
-                this.datepatterns));
+    /** Default constructor */
+    public NetscapeDraftSpec(final String[] datepatterns) {
+        super(new BasicPathHandler(),
+                new NetscapeDomainHandler(),
+                new BasicSecureHandler(),
+                new BasicCommentHandler(),
+                new BasicExpiresHandler(
+                        datepatterns != null ? datepatterns.clone() : new String[]{EXPIRES_PATTERN}));
     }
 
-    public NetscapeDraftSpec(final String[] datepatterns) {
-        this(true, datepatterns);
+    NetscapeDraftSpec(final CommonCookieAttributeHandler... handlers) {
+        super(handlers);
     }
 
     public NetscapeDraftSpec() {
-        this(null);
+        this((String[]) null);
     }
 
     /**

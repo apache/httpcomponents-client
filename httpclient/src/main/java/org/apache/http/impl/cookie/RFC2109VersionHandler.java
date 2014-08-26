@@ -27,6 +27,8 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieRestrictionViolationException;
@@ -39,7 +41,7 @@ import org.apache.http.util.Args;
  * @since 4.0
  */
 @Immutable
-public class RFC2109VersionHandler extends AbstractCookieAttributeHandler {
+public class RFC2109VersionHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     public RFC2109VersionHandler() {
         super();
@@ -70,6 +72,11 @@ public class RFC2109VersionHandler extends AbstractCookieAttributeHandler {
         if (cookie.getVersion() < 0) {
             throw new CookieRestrictionViolationException("Cookie version may not be negative");
         }
+    }
+
+    @Override
+    public String getAttributeName() {
+        return ClientCookie.VERSION_ATTR;
     }
 
 }

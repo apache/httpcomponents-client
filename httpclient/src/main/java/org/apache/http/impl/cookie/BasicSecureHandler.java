@@ -27,6 +27,8 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
@@ -38,7 +40,7 @@ import org.apache.http.util.Args;
  * @since 4.0
  */
 @Immutable
-public class BasicSecureHandler extends AbstractCookieAttributeHandler {
+public class BasicSecureHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     public BasicSecureHandler() {
         super();
@@ -56,6 +58,11 @@ public class BasicSecureHandler extends AbstractCookieAttributeHandler {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
         return !cookie.isSecure() || origin.isSecure();
+    }
+
+    @Override
+    public String getAttributeName() {
+        return ClientCookie.SECURE_ATTR;
     }
 
 }

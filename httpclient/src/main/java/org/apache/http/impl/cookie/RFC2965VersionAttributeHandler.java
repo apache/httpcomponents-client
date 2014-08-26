@@ -29,8 +29,8 @@ package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
@@ -44,7 +44,7 @@ import org.apache.http.util.Args;
  * @since 4.0
  */
 @Immutable
-public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
+public class RFC2965VersionAttributeHandler implements CommonCookieAttributeHandler {
 
     public RFC2965VersionAttributeHandler() {
         super();
@@ -92,6 +92,11 @@ public class RFC2965VersionAttributeHandler implements CookieAttributeHandler {
     @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         return true;
+    }
+
+    @Override
+    public String getAttributeName() {
+        return ClientCookie.VERSION_ATTR;
     }
 
 }

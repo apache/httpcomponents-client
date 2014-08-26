@@ -35,7 +35,7 @@ import java.util.Map;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
@@ -51,7 +51,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-@NotThreadSafe // superclass is @NotThreadSafe
+@ThreadSafe
 public class RFC2965Spec extends RFC2109Spec {
 
     /**
@@ -63,12 +63,18 @@ public class RFC2965Spec extends RFC2109Spec {
     }
 
     public RFC2965Spec(final String[] datepatterns, final boolean oneHeader) {
-        super(datepatterns, oneHeader);
-        registerAttribHandler(ClientCookie.DOMAIN_ATTR, new RFC2965DomainAttributeHandler());
-        registerAttribHandler(ClientCookie.PORT_ATTR, new RFC2965PortAttributeHandler());
-        registerAttribHandler(ClientCookie.COMMENTURL_ATTR, new RFC2965CommentUrlAttributeHandler());
-        registerAttribHandler(ClientCookie.DISCARD_ATTR, new RFC2965DiscardAttributeHandler());
-        registerAttribHandler(ClientCookie.VERSION_ATTR, new RFC2965VersionAttributeHandler());
+        super(oneHeader,
+                new RFC2965VersionAttributeHandler(),
+                new BasicPathHandler(),
+                new RFC2965DomainAttributeHandler(),
+                new RFC2965PortAttributeHandler(),
+                new BasicMaxAgeHandler(),
+                new BasicSecureHandler(),
+                new BasicCommentHandler(),
+                new BasicExpiresHandler(
+                        datepatterns != null ? datepatterns.clone() : DATE_PATTERNS),
+                new RFC2965CommentUrlAttributeHandler(),
+                new RFC2965DiscardAttributeHandler());
     }
 
     @Override

@@ -36,9 +36,8 @@ import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
@@ -60,7 +59,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-@NotThreadSafe // superclass is @NotThreadSafe
+@ThreadSafe
 public class BrowserCompatSpec extends CookieSpecBase {
 
 
@@ -81,40 +80,21 @@ public class BrowserCompatSpec extends CookieSpecBase {
         "EEE, dd-MM-yyyy HH:mm:ss z",
     };
 
-    private final String[] datepatterns;
-
     /** Default constructor */
     public BrowserCompatSpec(final String[] datepatterns, final BrowserCompatSpecFactory.SecurityLevel securityLevel) {
-        super();
-        if (datepatterns != null) {
-            this.datepatterns = datepatterns.clone();
-        } else {
-            this.datepatterns = DEFAULT_DATE_PATTERNS;
-        }
-        switch (securityLevel) {
-            case SECURITYLEVEL_DEFAULT:
-                registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler());
-                break;
-            case SECURITYLEVEL_IE_MEDIUM:
-                registerAttribHandler(ClientCookie.PATH_ATTR, new BasicPathHandler() {
-                        @Override
-                        public void validate(final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
-                            // No validation
-                        }
-                    }
-                );
-                break;
-            default:
-                throw new RuntimeException("Unknown security level");
-        }
-
-        registerAttribHandler(ClientCookie.DOMAIN_ATTR, new BasicDomainHandler());
-        registerAttribHandler(ClientCookie.MAX_AGE_ATTR, new BasicMaxAgeHandler());
-        registerAttribHandler(ClientCookie.SECURE_ATTR, new BasicSecureHandler());
-        registerAttribHandler(ClientCookie.COMMENT_ATTR, new BasicCommentHandler());
-        registerAttribHandler(ClientCookie.EXPIRES_ATTR, new BasicExpiresHandler(
-                this.datepatterns));
-        registerAttribHandler(ClientCookie.VERSION_ATTR, new BrowserCompatVersionAttributeHandler());
+        super(new BrowserCompatVersionAttributeHandler(),
+                new BasicDomainHandler(),
+                securityLevel == BrowserCompatSpecFactory.SecurityLevel.SECURITYLEVEL_IE_MEDIUM ?
+                        new BasicPathHandler() {
+                            @Override
+                            public void validate(final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
+                                // No validation
+                            }
+                        } : new BasicPathHandler(),
+                new BasicMaxAgeHandler(),
+                new BasicSecureHandler(),
+                new BasicCommentHandler(),
+                new BasicExpiresHandler(datepatterns != null ? datepatterns.clone() : DEFAULT_DATE_PATTERNS));
     }
 
     /** Default constructor */

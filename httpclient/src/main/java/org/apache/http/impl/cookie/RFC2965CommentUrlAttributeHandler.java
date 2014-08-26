@@ -28,8 +28,9 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
@@ -41,7 +42,7 @@ import org.apache.http.cookie.SetCookie2;
  * @since 4.0
  */
 @Immutable
-public class RFC2965CommentUrlAttributeHandler implements CookieAttributeHandler {
+public class RFC2965CommentUrlAttributeHandler implements CommonCookieAttributeHandler {
 
       public RFC2965CommentUrlAttributeHandler() {
           super();
@@ -66,4 +67,9 @@ public class RFC2965CommentUrlAttributeHandler implements CookieAttributeHandler
           return true;
       }
 
-  }
+    @Override
+    public String getAttributeName() {
+        return ClientCookie.COMMENTURL_ATTR;
+    }
+
+}

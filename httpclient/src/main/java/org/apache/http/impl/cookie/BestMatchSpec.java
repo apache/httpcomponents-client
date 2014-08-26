@@ -32,7 +32,7 @@ import java.util.List;
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
@@ -49,46 +49,28 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-@NotThreadSafe // CookieSpec fields are @NotThreadSafe
+@ThreadSafe
 public class BestMatchSpec implements CookieSpec {
 
-    private final String[] datepatterns;
-    private final boolean oneHeader;
-
-    // Cached values of CookieSpec instances
-    private RFC2965Spec strict; // @NotThreadSafe
-    private RFC2109Spec obsoleteStrict; // @NotThreadSafe
-    private NetscapeDraftSpec netscape; // @NotThreadSafe
+    private final RFC2965Spec strict;
+    private final RFC2109Spec obsoleteStrict;
+    private final NetscapeDraftSpec netscapeDraft;
 
     public BestMatchSpec(final String[] datepatterns, final boolean oneHeader) {
         super();
-        this.datepatterns = datepatterns == null ? null : datepatterns.clone();
-        this.oneHeader = oneHeader;
+        this.strict = new RFC2965Spec(datepatterns, oneHeader);
+        this.obsoleteStrict = new RFC2109Spec(datepatterns, oneHeader);
+        this.netscapeDraft = new NetscapeDraftSpec(
+                new BasicDomainHandler(),
+                new BasicPathHandler(),
+                new BasicSecureHandler(),
+                new BasicCommentHandler(),
+                new BasicExpiresHandler(
+                        datepatterns != null ? datepatterns.clone() : new String[]{NetscapeDraftSpec.EXPIRES_PATTERN}));
     }
 
     public BestMatchSpec() {
         this(null, false);
-    }
-
-    private RFC2965Spec getStrict() {
-        if (this.strict == null) {
-             this.strict = new RFC2965Spec(this.datepatterns, this.oneHeader);
-        }
-        return strict;
-    }
-
-    private RFC2109Spec getObsoleteStrict() {
-        if (this.obsoleteStrict == null) {
-             this.obsoleteStrict = new RFC2109Spec(this.datepatterns, this.oneHeader);
-        }
-        return obsoleteStrict;
-    }
-
-    private NetscapeDraftSpec getNetscapeCompat() {
-        if (this.netscape == null) {
-            this.netscape = new NetscapeDraftSpec(false, this.datepatterns);
-        }
-        return netscape;
     }
 
     @Override
@@ -129,12 +111,12 @@ public class BestMatchSpec implements CookieSpec {
                 cursor = new ParserCursor(0, buffer.length());
             }
             helems = new HeaderElement[] { parser.parseHeader(buffer, cursor) };
-            return getNetscapeCompat().parse(helems, origin);
+            return netscapeDraft.parse(helems, origin);
         } else {
             if (SM.SET_COOKIE2.equals(header.getName())) {
-                return getStrict().parse(helems, origin);
+                return strict.parse(helems, origin);
             } else {
-                return getObsoleteStrict().parse(helems, origin);
+                return obsoleteStrict.parse(helems, origin);
             }
         }
     }
@@ -147,12 +129,12 @@ public class BestMatchSpec implements CookieSpec {
         Args.notNull(origin, "Cookie origin");
         if (cookie.getVersion() > 0) {
             if (cookie instanceof SetCookie2) {
-                getStrict().validate(cookie, origin);
+                strict.validate(cookie, origin);
             } else {
-                getObsoleteStrict().validate(cookie, origin);
+                obsoleteStrict.validate(cookie, origin);
             }
         } else {
-            getNetscapeCompat().validate(cookie, origin);
+            netscapeDraft.validate(cookie, origin);
         }
     }
 
@@ -162,12 +144,12 @@ public class BestMatchSpec implements CookieSpec {
         Args.notNull(origin, "Cookie origin");
         if (cookie.getVersion() > 0) {
             if (cookie instanceof SetCookie2) {
-                return getStrict().match(cookie, origin);
+                return strict.match(cookie, origin);
             } else {
-                return getObsoleteStrict().match(cookie, origin);
+                return obsoleteStrict.match(cookie, origin);
             }
         } else {
-            return getNetscapeCompat().match(cookie, origin);
+            return netscapeDraft.match(cookie, origin);
         }
     }
 
@@ -186,23 +168,23 @@ public class BestMatchSpec implements CookieSpec {
         }
         if (version > 0) {
             if (isSetCookie2) {
-                return getStrict().formatCookies(cookies);
+                return strict.formatCookies(cookies);
             } else {
-                return getObsoleteStrict().formatCookies(cookies);
+                return obsoleteStrict.formatCookies(cookies);
             }
         } else {
-            return getNetscapeCompat().formatCookies(cookies);
+            return netscapeDraft.formatCookies(cookies);
         }
     }
 
     @Override
     public int getVersion() {
-        return getStrict().getVersion();
+        return strict.getVersion();
     }
 
     @Override
     public Header getVersionHeader() {
-        return getStrict().getVersionHeader();
+        return strict.getVersionHeader();
     }
 
     @Override

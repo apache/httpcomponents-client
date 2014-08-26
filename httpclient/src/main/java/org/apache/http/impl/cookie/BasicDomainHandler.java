@@ -27,8 +27,9 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
@@ -40,7 +41,7 @@ import org.apache.http.util.Args;
  * @since 4.0
  */
 @Immutable
-public class BasicDomainHandler implements CookieAttributeHandler {
+public class BasicDomainHandler implements CommonCookieAttributeHandler {
 
     public BasicDomainHandler() {
         super();
@@ -114,6 +115,11 @@ public class BasicDomainHandler implements CookieAttributeHandler {
             domain = '.' + domain;
         }
         return host.endsWith(domain) || host.equals(domain.substring(1));
+    }
+
+    @Override
+    public String getAttributeName() {
+        return ClientCookie.DOMAIN_ATTR;
     }
 
 }

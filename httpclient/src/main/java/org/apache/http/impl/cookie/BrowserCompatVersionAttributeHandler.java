@@ -28,6 +28,8 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.Args;
@@ -39,7 +41,7 @@ import org.apache.http.util.Args;
  */
 @Immutable
 public class BrowserCompatVersionAttributeHandler extends
-        AbstractCookieAttributeHandler {
+        AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     public BrowserCompatVersionAttributeHandler() {
         super();
@@ -62,6 +64,11 @@ public class BrowserCompatVersionAttributeHandler extends
             // Just ignore invalid versions
         }
         cookie.setVersion(version);
+    }
+
+    @Override
+    public String getAttributeName() {
+        return ClientCookie.VERSION_ATTR;
     }
 
 }

@@ -31,8 +31,8 @@ import java.util.Locale;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
@@ -46,7 +46,7 @@ import org.apache.http.util.Args;
  * @since 3.1
  */
 @Immutable
-public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
+public class RFC2965DomainAttributeHandler implements CommonCookieAttributeHandler {
 
     public RFC2965DomainAttributeHandler() {
         super();
@@ -184,6 +184,11 @@ public class RFC2965DomainAttributeHandler implements CookieAttributeHandler {
         final String effectiveHostWithoutDomain = host.substring(
                 0, host.length() - cookieDomain.length());
         return effectiveHostWithoutDomain.indexOf('.') == -1;
+    }
+
+    @Override
+    public String getAttributeName() {
+        return ClientCookie.DOMAIN_ATTR;
     }
 
 }

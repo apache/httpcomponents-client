@@ -29,8 +29,9 @@ package org.apache.http.impl.cookie;
 import java.util.Locale;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
@@ -42,7 +43,7 @@ import org.apache.http.util.Args;
  * @since 4.0
  */
 @Immutable
-public class RFC2109DomainHandler implements CookieAttributeHandler {
+public class RFC2109DomainHandler implements CommonCookieAttributeHandler {
 
     public RFC2109DomainHandler() {
         super();
@@ -118,6 +119,11 @@ public class RFC2109DomainHandler implements CookieAttributeHandler {
             return false;
         }
         return host.equals(domain) || (domain.startsWith(".") && host.endsWith(domain));
+    }
+
+    @Override
+    public String getAttributeName() {
+        return ClientCookie.DOMAIN_ATTR;
     }
 
 }
