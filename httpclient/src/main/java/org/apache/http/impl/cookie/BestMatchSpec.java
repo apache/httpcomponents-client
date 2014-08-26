@@ -58,8 +58,23 @@ public class BestMatchSpec implements CookieSpec {
 
     public BestMatchSpec(final String[] datepatterns, final boolean oneHeader) {
         super();
-        this.strict = new RFC2965Spec(datepatterns, oneHeader);
-        this.obsoleteStrict = new RFC2109Spec(datepatterns, oneHeader);
+        this.strict = new RFC2965Spec(oneHeader,
+                new RFC2965VersionAttributeHandler(),
+                new BasicPathHandler(),
+                new RFC2965DomainAttributeHandler(),
+                new RFC2965PortAttributeHandler(),
+                new BasicMaxAgeHandler(),
+                new BasicSecureHandler(),
+                new BasicCommentHandler(),
+                new RFC2965CommentUrlAttributeHandler(),
+                new RFC2965DiscardAttributeHandler());
+        this.obsoleteStrict = new RFC2109Spec(oneHeader,
+                new RFC2109VersionHandler(),
+                new BasicPathHandler(),
+                new RFC2109DomainHandler(),
+                new BasicMaxAgeHandler(),
+                new BasicSecureHandler(),
+                new BasicCommentHandler());
         this.netscapeDraft = new NetscapeDraftSpec(
                 new BasicDomainHandler(),
                 new BasicPathHandler(),

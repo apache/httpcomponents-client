@@ -37,6 +37,7 @@ import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
@@ -75,6 +76,11 @@ public class RFC2965Spec extends RFC2109Spec {
                         datepatterns != null ? datepatterns.clone() : DATE_PATTERNS),
                 new RFC2965CommentUrlAttributeHandler(),
                 new RFC2965DiscardAttributeHandler());
+    }
+
+    RFC2965Spec(final boolean oneHeader,
+                final CommonCookieAttributeHandler... handlers) {
+        super(oneHeader, handlers);
     }
 
     @Override
