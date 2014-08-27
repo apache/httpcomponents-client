@@ -47,10 +47,9 @@ import org.apache.http.cookie.SM;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.impl.cookie.BasicClientCookie2;
-import org.apache.http.impl.cookie.BrowserCompatSpec;
-import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
 import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.IgnoreSpecFactory;
+import org.apache.http.impl.cookie.NetscapeDraftSpec;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
 import org.apache.http.impl.cookie.RFC2965SpecFactory;
 import org.apache.http.message.BasicHttpRequest;
@@ -83,7 +82,6 @@ public class TestRequestAddCookies {
         this.cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
             .register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider())
             .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
-            .register(CookieSpecs.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
             .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
             .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory())
             .build();
@@ -252,7 +250,7 @@ public class TestRequestAddCookies {
     public void testAddCookiesUsingExplicitCookieSpec() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final RequestConfig config = RequestConfig.custom()
-            .setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY).build();
+            .setCookieSpec(CookieSpecs.NETSCAPE).build();
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();
@@ -266,7 +264,7 @@ public class TestRequestAddCookies {
         interceptor.process(request, context);
 
         final CookieSpec cookieSpec = context.getCookieSpec();
-        Assert.assertTrue(cookieSpec instanceof BrowserCompatSpec);
+        Assert.assertTrue(cookieSpec instanceof NetscapeDraftSpec);
 
         final Header[] headers1 = request.getHeaders(SM.COOKIE);
         Assert.assertNotNull(headers1);

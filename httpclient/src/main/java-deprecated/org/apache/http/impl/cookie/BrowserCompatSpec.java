@@ -56,6 +56,7 @@ import org.apache.http.util.CharArrayBuffer;
  * common web browser applications such as Microsoft Internet Explorer
  * and Mozilla FireFox.
  *
+ * @deprecated (4.4) use {@link org.apache.http.impl.cookie.DefaultCookieSpec}.
  *
  * @since 4.0
  */

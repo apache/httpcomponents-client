@@ -42,10 +42,12 @@ import org.apache.http.protocol.HttpContext;
  * {@link org.apache.http.impl.cookie.BrowserCompatSpec}. The instance returned by this factory
  * can be shared by multiple threads.
  *
+ * @deprecated (4.4) use {@link org.apache.http.impl.cookie.DefaultCookieSpecProvider}.
+ *
  * @since 4.0
  */
 @Immutable
-@SuppressWarnings("deprecation")
+@Deprecated
 public class BrowserCompatSpecFactory implements CookieSpecFactory, CookieSpecProvider {
 
     public enum SecurityLevel {

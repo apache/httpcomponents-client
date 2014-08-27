@@ -37,6 +37,8 @@ import org.apache.http.util.Args;
 /**
  * {@code "Version"} cookie attribute handler for BrowserCompat cookie spec.
  *
+ *  @deprecated (4.4) no longer used.
+ *
  * @since 4.3
  */
 @Immutable

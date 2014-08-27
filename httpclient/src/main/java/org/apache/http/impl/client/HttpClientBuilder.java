@@ -97,11 +97,9 @@ import org.apache.http.impl.conn.DefaultRoutePlanner;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
-import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
 import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.IgnoreSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
-import org.apache.http.impl.cookie.RFC2109SpecFactory;
 import org.apache.http.impl.cookie.RFC2965SpecFactory;
 import org.apache.http.impl.execchain.BackoffStrategyExec;
 import org.apache.http.impl.execchain.ClientExecChain;
@@ -1051,11 +1049,8 @@ public class HttpClientBuilder {
             cookieSpecRegistryCopy = RegistryBuilder.<CookieSpecProvider>create()
                 .register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider())
                 .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
-                .register(CookieSpecs.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
                 .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
                 .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory())
-                .register("rfc2109", new RFC2109SpecFactory())
-                .register("rfc2965", new RFC2965SpecFactory())
                 .build();
         }
 
