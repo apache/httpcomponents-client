@@ -29,8 +29,11 @@ package org.apache.http.client.utils;
 /**
  * Abstraction of international domain name (IDN) conversion.
  *
+ * @deprecated (4.4) use standard {@link java.net.IDN}.
+ *
  * @since 4.0
  */
+@Deprecated
 public interface Idn {
     /**
      * Converts a name from its punycode representation to Unicode.

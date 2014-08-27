@@ -33,9 +33,12 @@ import org.apache.http.annotation.Immutable;
 /**
  * Implementation from pseudo code in RFC 3492.
  *
+ * @deprecated (4.4) use standard {@link java.net.IDN}.
+ *
  * @since 4.0
  */
 @Immutable
+@Deprecated
 public class Rfc3492Idn implements Idn {
     private static final int base = 36;
     private static final int tmin = 1;

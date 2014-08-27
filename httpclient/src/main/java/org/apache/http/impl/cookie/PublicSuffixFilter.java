@@ -26,11 +26,11 @@
  */
 package org.apache.http.impl.cookie;
 
+import java.net.IDN;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.http.client.utils.Punycode;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
@@ -101,7 +101,7 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
         if (domain.startsWith(".")) {
             domain = domain.substring(1);
         }
-        domain = Punycode.toUnicode(domain);
+        domain = IDN.toUnicode(domain);
 
         // An exception rule takes priority over any other matching rule.
         if (this.exceptions != null) {

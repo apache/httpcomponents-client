@@ -34,9 +34,12 @@ import org.apache.http.annotation.Immutable;
 /**
  * Uses the java.net.IDN class through reflection.
  *
+ * @deprecated (4.4) use standard {@link java.net.IDN}.
+ *
  * @since 4.0
  */
 @Immutable
+@Deprecated
 public class JdkIdn implements Idn {
     private final Method toUnicode;
 
