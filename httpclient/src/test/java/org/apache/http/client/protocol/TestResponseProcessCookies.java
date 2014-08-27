@@ -37,7 +37,7 @@ import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.SM;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.cookie.BestMatchSpec;
+import org.apache.http.impl.cookie.DefaultCookieSpec;
 import org.apache.http.message.BasicHttpResponse;
 import org.junit.Assert;
 import org.junit.Before;
@@ -52,7 +52,7 @@ public class TestResponseProcessCookies {
     @Before
     public void setUp() throws Exception {
         this.cookieOrigin = new CookieOrigin("localhost", 80, "/", false);
-        this.cookieSpec = new BestMatchSpec();
+        this.cookieSpec = new DefaultCookieSpec();
         this.cookieStore = new BasicCookieStore();
     }
 

@@ -44,19 +44,19 @@ import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * 'Meta' cookie specification that picks up a cookie policy based on
+ * Default cookie specification that picks up the bests matching cookie policy based on
  * the format of cookies sent with the HTTP response.
  *
- * @since 4.0
+ * @since 4.4
  */
 @ThreadSafe
-public class BestMatchSpec implements CookieSpec {
+public class DefaultCookieSpec implements CookieSpec {
 
     private final RFC2965Spec strict;
     private final RFC2109Spec obsoleteStrict;
     private final NetscapeDraftSpec netscapeDraft;
 
-    public BestMatchSpec(final String[] datepatterns, final boolean oneHeader) {
+    public DefaultCookieSpec(final String[] datepatterns, final boolean oneHeader) {
         super();
         this.strict = new RFC2965Spec(oneHeader,
                 new RFC2965VersionAttributeHandler(),
@@ -84,7 +84,7 @@ public class BestMatchSpec implements CookieSpec {
                         datepatterns != null ? datepatterns.clone() : new String[]{NetscapeDraftSpec.EXPIRES_PATTERN}));
     }
 
-    public BestMatchSpec() {
+    public DefaultCookieSpec() {
         this(null, false);
     }
 
@@ -204,7 +204,7 @@ public class BestMatchSpec implements CookieSpec {
 
     @Override
     public String toString() {
-        return "best-match";
+        return "default";
     }
 
 }

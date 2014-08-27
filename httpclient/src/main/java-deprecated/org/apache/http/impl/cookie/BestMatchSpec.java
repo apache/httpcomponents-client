@@ -25,52 +25,33 @@
  *
  */
 
-package org.apache.http.client.config;
+package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.ThreadSafe;
 
 /**
- * Standard cookie specifications supported by HttpClient.
+ * 'Meta' cookie specification that picks up a cookie policy based on
+ * the format of cookies sent with the HTTP response.
  *
- * @since 4.3
+ * @deprecated (4.4) use {@link org.apache.http.impl.cookie.DefaultCookieSpec}.
+ *
+ * @since 4.0
  */
-@Immutable
-public final class CookieSpecs {
+@ThreadSafe
+@Deprecated
+public class BestMatchSpec extends DefaultCookieSpec {
 
-    /**
-     * The policy that provides high degree of compatibility
-     * with common cookie management of popular HTTP agents.
-     */
-    public static final String BROWSER_COMPATIBILITY = "compatibility";
+    public BestMatchSpec(final String[] datepatterns, final boolean oneHeader) {
+        super(datepatterns, oneHeader);
+    }
 
-    /**
-     * The Netscape cookie draft compliant policy.
-     */
-    public static final String NETSCAPE = "netscape";
+    public BestMatchSpec() {
+        this(null, false);
+    }
 
-    /**
-     * The RFC 2965 compliant policy (standard).
-     */
-    public static final String STANDARD = "standard";
-
-    /**
-     * The default 'best match' policy.
-     * @deprecated (4.4) use {@link #DEFAULT}.
-     */
-    @Deprecated
-    public static final String BEST_MATCH = "best-match";
-
-    /**
-     * The default policy.
-     */
-    public static final String DEFAULT = "default";
-
-    /**
-     * The policy that ignores cookies.
-     */
-    public static final String IGNORE_COOKIES = "ignoreCookies";
-
-    private CookieSpecs() {
+    @Override
+    public String toString() {
+        return "best-match";
     }
 
 }

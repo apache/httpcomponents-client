@@ -47,9 +47,9 @@ import org.apache.http.cookie.SM;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.impl.cookie.BasicClientCookie2;
-import org.apache.http.impl.cookie.BestMatchSpecFactory;
 import org.apache.http.impl.cookie.BrowserCompatSpec;
 import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
+import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.IgnoreSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
 import org.apache.http.impl.cookie.RFC2965SpecFactory;
@@ -81,7 +81,7 @@ public class TestRequestAddCookies {
         this.cookieStore.addCookie(cookie2);
 
         this.cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
-            .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
+            .register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider())
             .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
             .register(CookieSpecs.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
             .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())

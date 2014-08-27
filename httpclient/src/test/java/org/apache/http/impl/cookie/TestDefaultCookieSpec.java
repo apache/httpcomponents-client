@@ -44,11 +44,11 @@ import org.junit.Test;
 /**
  * Test cases for 'best match' cookie policy
  */
-public class TestCookieBestMatchSpec {
+public class TestDefaultCookieSpec {
 
     @Test
     public void testCookieBrowserCompatParsing() throws Exception {
-        final CookieSpec cookiespec = new BestMatchSpec();
+        final CookieSpec cookiespec = new DefaultCookieSpec();
         final CookieOrigin origin = new CookieOrigin("a.b.domain.com", 80, "/", false);
 
         // Make sure the lenient (browser compatible) cookie parsing
@@ -63,7 +63,7 @@ public class TestCookieBestMatchSpec {
 
     @Test
     public void testNetscapeCookieParsing() throws Exception {
-        final CookieSpec cookiespec = new BestMatchSpec();
+        final CookieSpec cookiespec = new DefaultCookieSpec();
         final CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
 
         Header header = new BasicHeader("Set-Cookie",
@@ -80,7 +80,7 @@ public class TestCookieBestMatchSpec {
 
     @Test
     public void testCookieStandardCompliantParsing() throws Exception {
-        final CookieSpec cookiespec = new BestMatchSpec();
+        final CookieSpec cookiespec = new DefaultCookieSpec();
         final CookieOrigin origin = new CookieOrigin("a.b.domain.com", 80, "/", false);
 
         // Make sure the strict (RFC2965) cookie parsing
@@ -113,7 +113,7 @@ public class TestCookieBestMatchSpec {
 
     @Test
     public void testCookieStandardCompliantParsingLocalHost() throws Exception {
-        final CookieSpec cookiespec = new BestMatchSpec();
+        final CookieSpec cookiespec = new DefaultCookieSpec();
         final CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
 
         final Header header = new BasicHeader("Set-Cookie", "special=\"abcdigh\"; Version=1");
@@ -129,7 +129,7 @@ public class TestCookieBestMatchSpec {
 
     @Test
     public void testCookieStandardCompliantParsingLocalHost2() throws Exception {
-        final CookieSpec cookiespec = new BestMatchSpec();
+        final CookieSpec cookiespec = new DefaultCookieSpec();
         final CookieOrigin origin = new CookieOrigin("localhost", 80, "/", false);
 
         final Header header = new BasicHeader("Set-Cookie2", "special=\"abcdigh\"; Version=1");
@@ -145,7 +145,7 @@ public class TestCookieBestMatchSpec {
 
     @Test
     public void testCookieBrowserCompatMatch() throws Exception {
-        final CookieSpec cookiespec = new BestMatchSpec();
+        final CookieSpec cookiespec = new DefaultCookieSpec();
         final CookieOrigin origin = new CookieOrigin("a.b.domain.com", 80, "/", false);
 
         // Make sure the lenient (browser compatible) cookie matching
@@ -161,7 +161,7 @@ public class TestCookieBestMatchSpec {
 
     @Test
     public void testCookieStandardCompliantMatch() throws Exception {
-        final CookieSpec cookiespec = new BestMatchSpec();
+        final CookieSpec cookiespec = new DefaultCookieSpec();
         final CookieOrigin origin = new CookieOrigin("a.b.domain.com", 80, "/", false);
 
         // Make sure the strict (RFC2965) cookie matching
@@ -182,7 +182,7 @@ public class TestCookieBestMatchSpec {
 
     @Test
     public void testCookieBrowserCompatFormatting() throws Exception {
-        final CookieSpec cookiespec = new BestMatchSpec();
+        final CookieSpec cookiespec = new DefaultCookieSpec();
 
         // Make sure the lenient (browser compatible) cookie formatting
         // is used for Netscape style cookies
@@ -214,7 +214,7 @@ public class TestCookieBestMatchSpec {
 
     @Test
     public void testCookieStandardCompliantFormatting() throws Exception {
-        final CookieSpec cookiespec = new BestMatchSpec(null, true);
+        final CookieSpec cookiespec = new DefaultCookieSpec(null, true);
 
         // Make sure the strict (RFC2965) cookie formatting
         // is used for Netscape style cookies
@@ -249,7 +249,7 @@ public class TestCookieBestMatchSpec {
 
     @Test
     public void testInvalidInput() throws Exception {
-        final CookieSpec cookiespec = new BestMatchSpec();
+        final CookieSpec cookiespec = new DefaultCookieSpec();
         try {
             cookiespec.parse(null, null);
             Assert.fail("IllegalArgumentException must have been thrown");
@@ -279,7 +279,7 @@ public class TestCookieBestMatchSpec {
 
     @Test
     public void testVersion1CookieWithInvalidExpires() throws Exception {
-        final CookieSpec cookiespec = new BestMatchSpec();
+        final CookieSpec cookiespec = new DefaultCookieSpec();
         final CookieOrigin origin = new CookieOrigin("myhost.mydomain.com", 80, "/", false);
 
         final Header origHeader = new BasicHeader("Set-Cookie",

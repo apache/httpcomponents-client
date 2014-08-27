@@ -25,52 +25,37 @@
  *
  */
 
-package org.apache.http.client.config;
+package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.cookie.CookieSpec;
+import org.apache.http.cookie.CookieSpecProvider;
+import org.apache.http.protocol.HttpContext;
 
 /**
- * Standard cookie specifications supported by HttpClient.
+ * {@link org.apache.http.cookie.CookieSpecProvider} implementation that provides an instance of
+ * {@link BestMatchSpec}. The instance returned by this factory can
+ * be shared by multiple threads.
  *
- * @since 4.3
+ * @since 4.4
  */
 @Immutable
-public final class CookieSpecs {
+public class DefaultCookieSpecProvider implements CookieSpecProvider {
 
-    /**
-     * The policy that provides high degree of compatibility
-     * with common cookie management of popular HTTP agents.
-     */
-    public static final String BROWSER_COMPATIBILITY = "compatibility";
+    private final CookieSpec cookieSpec;
 
-    /**
-     * The Netscape cookie draft compliant policy.
-     */
-    public static final String NETSCAPE = "netscape";
+    public DefaultCookieSpecProvider(final String[] datepatterns, final boolean oneHeader) {
+        super();
+        this.cookieSpec = new DefaultCookieSpec(datepatterns, oneHeader);;
+    }
 
-    /**
-     * The RFC 2965 compliant policy (standard).
-     */
-    public static final String STANDARD = "standard";
+    public DefaultCookieSpecProvider() {
+        this(null, false);
+    }
 
-    /**
-     * The default 'best match' policy.
-     * @deprecated (4.4) use {@link #DEFAULT}.
-     */
-    @Deprecated
-    public static final String BEST_MATCH = "best-match";
-
-    /**
-     * The default policy.
-     */
-    public static final String DEFAULT = "default";
-
-    /**
-     * The policy that ignores cookies.
-     */
-    public static final String IGNORE_COOKIES = "ignoreCookies";
-
-    private CookieSpecs() {
+    @Override
+    public CookieSpec create(final HttpContext context) {
+        return this.cookieSpec;
     }
 
 }

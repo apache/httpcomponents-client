@@ -117,7 +117,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         final RequestConfig config = clientContext.getRequestConfig();
         String policy = config.getCookieSpec();
         if (policy == null) {
-            policy = CookieSpecs.BEST_MATCH;
+            policy = CookieSpecs.DEFAULT;
         }
         if (this.log.isDebugEnabled()) {
             this.log.debug("CookieSpec selected: " + policy);

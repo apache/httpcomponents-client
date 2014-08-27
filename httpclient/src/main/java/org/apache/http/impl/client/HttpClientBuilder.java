@@ -97,8 +97,8 @@ import org.apache.http.impl.conn.DefaultRoutePlanner;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
-import org.apache.http.impl.cookie.BestMatchSpecFactory;
 import org.apache.http.impl.cookie.BrowserCompatSpecFactory;
+import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.IgnoreSpecFactory;
 import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
 import org.apache.http.impl.cookie.RFC2109SpecFactory;
@@ -1049,7 +1049,7 @@ public class HttpClientBuilder {
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
             cookieSpecRegistryCopy = RegistryBuilder.<CookieSpecProvider>create()
-                .register(CookieSpecs.BEST_MATCH, new BestMatchSpecFactory())
+                .register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider())
                 .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
                 .register(CookieSpecs.BROWSER_COMPATIBILITY, new BrowserCompatSpecFactory())
                 .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
