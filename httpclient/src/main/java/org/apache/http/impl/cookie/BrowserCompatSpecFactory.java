@@ -38,8 +38,9 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * {@link CookieSpecProvider} implementation that creates and initializes
- * {@link BrowserCompatSpec} instances.
+ * {@link org.apache.http.cookie.CookieSpecProvider} implementation that provides an instance of
+ * {@link org.apache.http.impl.cookie.BrowserCompatSpec}. The instance returned by this factory
+ * can be shared by multiple threads.
  *
  * @since 4.0
  */
@@ -52,13 +53,13 @@ public class BrowserCompatSpecFactory implements CookieSpecFactory, CookieSpecPr
         SECURITYLEVEL_IE_MEDIUM
     }
 
-    private final String[] datepatterns;
     private final SecurityLevel securityLevel;
+    private final CookieSpec cookieSpec;
 
     public BrowserCompatSpecFactory(final String[] datepatterns, final SecurityLevel securityLevel) {
         super();
-        this.datepatterns = datepatterns;
         this.securityLevel = securityLevel;
+        this.cookieSpec = new BrowserCompatSpec(datepatterns, securityLevel);
     }
 
     public BrowserCompatSpecFactory(final String[] datepatterns) {
@@ -88,7 +89,7 @@ public class BrowserCompatSpecFactory implements CookieSpecFactory, CookieSpecPr
 
     @Override
     public CookieSpec create(final HttpContext context) {
-        return new BrowserCompatSpec(this.datepatterns);
+        return this.cookieSpec;
     }
 
 }

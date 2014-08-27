@@ -38,8 +38,9 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * {@link CookieSpecProvider} implementation that creates and initializes
- * {@link NetscapeDraftSpec} instances.
+ * {@link org.apache.http.cookie.CookieSpecProvider} implementation that provides an instance of
+ * {@link org.apache.http.impl.cookie.NetscapeDraftSpec}. The instance returned by this factory
+ * can be shared by multiple threads.
  *
  * @since 4.0
  */
@@ -47,11 +48,11 @@ import org.apache.http.protocol.HttpContext;
 @SuppressWarnings("deprecation")
 public class NetscapeDraftSpecFactory implements CookieSpecFactory, CookieSpecProvider {
 
-    private final String[] datepatterns;
+    private final CookieSpec cookieSpec;
 
     public NetscapeDraftSpecFactory(final String[] datepatterns) {
         super();
-        this.datepatterns = datepatterns;
+        this.cookieSpec = new NetscapeDraftSpec(datepatterns);
     }
 
     public NetscapeDraftSpecFactory() {
@@ -77,11 +78,7 @@ public class NetscapeDraftSpecFactory implements CookieSpecFactory, CookieSpecPr
 
     @Override
     public CookieSpec create(final HttpContext context) {
-
-
-
-
-        return new NetscapeDraftSpec(this.datepatterns);
+        return this.cookieSpec;
     }
 
 }

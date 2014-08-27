@@ -38,8 +38,9 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * {@link CookieSpecProvider} implementation that creates and initializes
- * {@link RFC2965Spec} instances.
+ * {@link org.apache.http.cookie.CookieSpecProvider} implementation that provides an instance of
+ * {@link org.apache.http.impl.cookie.RFC2965Spec}. The instance returned by this factory can
+ * be shared by multiple threads.
  *
  * @since 4.0
  */
@@ -47,13 +48,11 @@ import org.apache.http.protocol.HttpContext;
 @SuppressWarnings("deprecation")
 public class RFC2965SpecFactory implements CookieSpecFactory, CookieSpecProvider {
 
-    private final String[] datepatterns;
-    private final boolean oneHeader;
+    private final CookieSpec cookieSpec;
 
     public RFC2965SpecFactory(final String[] datepatterns, final boolean oneHeader) {
         super();
-        this.datepatterns = datepatterns;
-        this.oneHeader = oneHeader;
+        this.cookieSpec = new RFC2965Spec(datepatterns, oneHeader);
     }
 
     public RFC2965SpecFactory() {
@@ -82,7 +81,7 @@ public class RFC2965SpecFactory implements CookieSpecFactory, CookieSpecProvider
 
     @Override
     public CookieSpec create(final HttpContext context) {
-        return new RFC2965Spec(this.datepatterns, this.oneHeader);
+        return this.cookieSpec;
     }
 
 }
