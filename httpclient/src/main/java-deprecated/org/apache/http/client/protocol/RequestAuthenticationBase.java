@@ -58,7 +58,7 @@ abstract class RequestAuthenticationBase implements HttpRequestInterceptor {
             final HttpContext context) {
         AuthScheme authScheme = authState.getAuthScheme();
         Credentials creds = authState.getCredentials();
-        switch (authState.getState()) {
+        switch (authState.getState()) { // TODO add UNCHALLENGED and HANDSHAKE cases
         case FAILURE:
             return;
         case SUCCESS:
