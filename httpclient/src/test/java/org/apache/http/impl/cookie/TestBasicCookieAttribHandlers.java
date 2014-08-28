@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import org.apache.http.client.utils.DateUtils;
+import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
@@ -472,8 +473,8 @@ public class TestBasicCookieAttribHandlers {
     public void testPublicSuffixFilter() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
 
-        final PublicSuffixFilter h = new PublicSuffixFilter(new RFC2109DomainHandler());
-        h.setPublicSuffixes(Arrays.asList(new String[] { "co.uk", "com" }));
+        final PublicSuffixMatcher matcher = new PublicSuffixMatcher(Arrays.asList("co.uk", "com"), null);
+        final PublicSuffixDomainFilter h = new PublicSuffixDomainFilter(new RFC2109DomainHandler(), matcher);
 
         cookie.setDomain(".co.uk");
         Assert.assertFalse(h.match(cookie, new CookieOrigin("apache.co.uk", 80, "/stuff", false)));

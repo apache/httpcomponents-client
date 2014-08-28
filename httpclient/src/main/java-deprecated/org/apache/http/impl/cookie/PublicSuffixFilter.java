@@ -43,8 +43,11 @@ import org.apache.http.cookie.SetCookie;
  * An uptodate list of suffixes can be obtained from
  * <a href="http://publicsuffix.org/">publicsuffix.org</a>
  *
+ * @deprecated (4.4) use {@link org.apache.http.impl.cookie.PublicSuffixDomainFilter}
+ *
  * @since 4.0
  */
+@Deprecated
 public class PublicSuffixFilter implements CookieAttributeHandler {
     private final CookieAttributeHandler wrapped;
     private Collection<String> exceptions;

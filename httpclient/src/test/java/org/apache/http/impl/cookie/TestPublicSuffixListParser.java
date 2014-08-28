@@ -27,24 +27,37 @@
 
 package org.apache.http.impl.cookie;
 
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 
+import org.apache.http.Consts;
+import org.apache.http.conn.util.PublicSuffixList;
+import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.cookie.CookieOrigin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 public class TestPublicSuffixListParser {
-    private static final String LIST_FILE = "/suffixlist.txt";
-    private PublicSuffixFilter filter;
+
+    private static final String SOURCE_FILE = "suffixlist.txt";
+
+    private PublicSuffixDomainFilter filter;
 
     @Before
     public void setUp() throws Exception {
-        final Reader r = new InputStreamReader(getClass().getResourceAsStream(LIST_FILE), "UTF-8");
-        filter = new PublicSuffixFilter(new RFC2109DomainHandler());
-        final PublicSuffixListParser parser = new PublicSuffixListParser(filter);
-        parser.parse(r);
+        final ClassLoader classLoader = getClass().getClassLoader();
+        final InputStream in = classLoader.getResourceAsStream(SOURCE_FILE);
+        Assert.assertNotNull(in);
+        final PublicSuffixList suffixList;
+        try {
+            final org.apache.http.conn.util.PublicSuffixListParser parser = new org.apache.http.conn.util.PublicSuffixListParser();
+            suffixList = parser.parse(new InputStreamReader(in, Consts.UTF_8));
+        } finally {
+            in.close();
+        }
+        final PublicSuffixMatcher matcher = new PublicSuffixMatcher(suffixList.getRules(), suffixList.getExceptions());
+        this.filter = new PublicSuffixDomainFilter(new RFC2109DomainHandler(), matcher);
     }
 
     @Test

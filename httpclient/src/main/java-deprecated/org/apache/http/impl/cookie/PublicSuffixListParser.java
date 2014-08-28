@@ -41,6 +41,7 @@ import org.apache.http.conn.util.PublicSuffixList;
  * @since 4.0
  */
 @Immutable
+@Deprecated
 public class PublicSuffixListParser {
 
     private final PublicSuffixFilter filter;
