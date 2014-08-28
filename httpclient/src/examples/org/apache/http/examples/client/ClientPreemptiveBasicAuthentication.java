@@ -44,7 +44,7 @@ import org.apache.http.util.EntityUtils;
 /**
  * An example of HttpClient can be customized to authenticate
  * preemptively using BASIC scheme.
- * <b/>
+ * <b>
  * Generally, preemptive authentication can be considered less
  * secure than a response to an authentication challenge
  * and therefore discouraged.

@@ -102,6 +102,7 @@ public abstract class AbstractConnPool {
      * Obtains a pool entry with a connection within the given timeout.
      *
      * @param route     the route for which to get the connection
+     * @param state     the state 
      * @param timeout   the timeout, 0 or negative for no timeout
      * @param tunit     the unit for the {@code timeout},
      *                  may be {@code null} only if there is no timeout
@@ -126,6 +127,9 @@ public abstract class AbstractConnPool {
     /**
      * Returns a new {@link PoolEntryRequest}, from which a {@link BasicPoolEntry}
      * can be obtained, or the request can be aborted.
+     * @param route the route
+     * @param state the state
+     * @return the entry request
      */
     public abstract PoolEntryRequest requestPoolEntry(HttpRoute route, Object state);
 
