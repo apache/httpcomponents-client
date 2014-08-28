@@ -33,7 +33,11 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.util.Args;
 
 /**
- * Public suffix list from <a href="http://publicsuffix.org/">publicsuffix.org</a>.
+ * Public suffix is a set of DNS names or wildcards concatenated with dots. It represents
+ * the part of a domain name which is not under the control of the individual registrant
+ * <p>
+ * An up-to-date list of suffixes can be obtained from
+ * <a href="http://publicsuffix.org/">publicsuffix.org</a>
  *
  * @since 4.4
  */

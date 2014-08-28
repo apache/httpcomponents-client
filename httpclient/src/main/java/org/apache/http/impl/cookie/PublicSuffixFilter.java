@@ -26,11 +26,9 @@
  */
 package org.apache.http.impl.cookie;
 
-import java.net.IDN;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
+import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
@@ -49,8 +47,9 @@ import org.apache.http.cookie.SetCookie;
  */
 public class PublicSuffixFilter implements CookieAttributeHandler {
     private final CookieAttributeHandler wrapped;
-    private Set<String> exceptions;
-    private Set<String> suffixes;
+    private Collection<String> exceptions;
+    private Collection<String> suffixes;
+    private PublicSuffixMatcher matcher;
 
     public PublicSuffixFilter(final CookieAttributeHandler wrapped) {
         this.wrapped = wrapped;
@@ -63,7 +62,8 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
      * @param suffixes
      */
     public void setPublicSuffixes(final Collection<String> suffixes) {
-        this.suffixes = new HashSet<String>(suffixes);
+        this.suffixes = suffixes;
+        this.matcher = null;
     }
 
     /**
@@ -72,7 +72,8 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
      * @param exceptions
      */
     public void setExceptions(final Collection<String> exceptions) {
-        this.exceptions = new HashSet<String>(exceptions);
+        this.exceptions = exceptions;
+        this.matcher = null;
     }
 
     /**
@@ -97,39 +98,9 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
     }
 
     private boolean isForPublicSuffix(final Cookie cookie) {
-        String domain = cookie.getDomain();
-        if (domain.startsWith(".")) {
-            domain = domain.substring(1);
+        if (matcher == null) {
+            matcher = new PublicSuffixMatcher(this.suffixes, this.exceptions);
         }
-        domain = IDN.toUnicode(domain);
-
-        // An exception rule takes priority over any other matching rule.
-        if (this.exceptions != null) {
-            if (this.exceptions.contains(domain)) {
-                return false;
-            }
-        }
-
-
-        if (this.suffixes == null) {
-            return false;
-        }
-
-        do {
-            if (this.suffixes.contains(domain)) {
-                return true;
-            }
-            // patterns
-            if (domain.startsWith("*.")) {
-                domain = domain.substring(2);
-            }
-            final int nextdot = domain.indexOf('.');
-            if (nextdot == -1) {
-                break;
-            }
-            domain = "*" + domain.substring(nextdot);
-        } while (!domain.isEmpty());
-
-        return false;
+        return matcher.match(cookie.getDomain());
     }
 }
