@@ -29,6 +29,7 @@ package org.apache.http.client.utils;
 import org.junit.Assert;
 import org.junit.Test;
 
+@SuppressWarnings("deprecation") // test of deprecated code
 public class TestRfc3492Idn {
 
     /**
