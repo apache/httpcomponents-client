@@ -111,13 +111,13 @@ import org.apache.http.util.TextUtils;
  *     </li>
  *     <li>
  *       <p>
- *       Import the PKCS#7 file containg the complete certificate chain
+ *       Import the PKCS#7 file containing the complete certificate chain
  *       </p>
  *       <pre>keytool -import -alias "my client key" -file mycert.p7 -keystore my.keystore</pre>
  *     </li>
  *     <li>
  *       <p>
- *       Verify the content the resultant keystore file
+ *       Verify the content of the resultant keystore file
  *       </p>
  *       <pre>keytool -list -v -keystore my.keystore</pre>
  *     </li>
