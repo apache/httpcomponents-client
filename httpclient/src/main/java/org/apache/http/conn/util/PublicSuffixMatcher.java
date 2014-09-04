@@ -28,6 +28,7 @@ package org.apache.http.conn.util;
 
 import java.net.IDN;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -66,36 +67,55 @@ public final class PublicSuffixMatcher {
         }
     }
 
-    public boolean match(final String domain) {
-        String s = domain;
-        if (s == null) {
-            return false;
+    /**
+     * Returns registrable part of the domain for the given domain name of {@code null}
+     * if given domain represents a public suffix.
+     *
+     * @param domain
+     * @return
+     */
+    public String getDomainRoot(final String domain) {
+        if (domain == null) {
+            return null;
         }
-        if (s.startsWith(".")) {
-            s = s.substring(1);
+        if (domain.startsWith(".")) {
+            return null;
         }
-        s = IDN.toUnicode(s);
+        String domainName = null;
+        String segment = domain.toLowerCase(Locale.ROOT);
+        while (segment != null) {
 
-        // An exception rule takes priority over any other matching rule.
-        if (this.exceptions != null && this.exceptions.containsKey(s)) {
-            return false;
-        }
+            // An exception rule takes priority over any other matching rule.
+            if (this.exceptions != null && this.exceptions.containsKey(IDN.toUnicode(segment))) {
+                return segment;
+            }
 
-        do {
-            if (this.rules.containsKey(s)) {
-                return true;
-            }
-            // patterns
-            if (s.startsWith("*.")) {
-                s = s.substring(2);
-            }
-            final int nextdot = s.indexOf('.');
-            if (nextdot == -1) {
+            if (this.rules.containsKey(IDN.toUnicode(segment))) {
                 break;
             }
-            s = "*" + s.substring(nextdot);
-        } while (!s.isEmpty());
 
-        return false;
+            final int nextdot = segment.indexOf('.');
+            final String nextSegment = nextdot != -1 ? segment.substring(nextdot + 1) : null;
+
+            if (nextSegment != null) {
+                if (this.rules.containsKey("*." + IDN.toUnicode(nextSegment))) {
+                    break;
+                }
+            }
+            if (nextdot != -1) {
+                domainName = segment;
+            }
+            segment = nextSegment;
+        }
+        return domainName;
     }
+
+    public boolean matches(final String domain) {
+        if (domain == null) {
+            return false;
+        }
+        final String domainRoot = getDomainRoot(domain.startsWith(".") ? domain.substring(1) : domain);
+        return domainRoot == null;
+    }
+
 }

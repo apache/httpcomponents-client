@@ -95,19 +95,4 @@ public class TestPublicSuffixListParser {
         Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.h\u00E5.no", 80, "/stuff", false)));
     }
 
-    @Test
-    public void testWhitespace() throws Exception {
-        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        cookie.setDomain(".xx");
-        Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.xx", 80, "/stuff", false)));
-
-        // yy appears after whitespace
-        cookie.setDomain(".yy");
-        Assert.assertTrue(filter.match(cookie, new CookieOrigin("apache.yy", 80, "/stuff", false)));
-
-        // zz is commented
-        cookie.setDomain(".zz");
-        Assert.assertTrue(filter.match(cookie, new CookieOrigin("apache.zz", 80, "/stuff", false)));
-    }
-
 }

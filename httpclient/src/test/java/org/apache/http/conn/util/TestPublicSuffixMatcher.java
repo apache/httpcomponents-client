@@ -57,29 +57,36 @@ public class TestPublicSuffixMatcher {
     }
 
     @Test
-    public void testParse() throws Exception {
-        Assert.assertTrue(matcher.match(".jp"));
-        Assert.assertTrue(matcher.match(".ac.jp"));
-        Assert.assertTrue(matcher.match(".any.tokyo.jp"));
+    public void testGetDomainRoot() throws Exception {
+        Assert.assertEquals("example.xx", matcher.getDomainRoot("example.XX"));
+        Assert.assertEquals("example.xx", matcher.getDomainRoot("www.example.XX"));
+        Assert.assertEquals("example.xx", matcher.getDomainRoot("www.blah.blah.example.XX"));
+        Assert.assertEquals(null, matcher.getDomainRoot("xx"));
+        Assert.assertEquals(null, matcher.getDomainRoot("jp"));
+        Assert.assertEquals(null, matcher.getDomainRoot("example"));
+        Assert.assertEquals("example.example", matcher.getDomainRoot("example.example"));
+        Assert.assertEquals(null, matcher.getDomainRoot("ac.jp"));
+        Assert.assertEquals(null, matcher.getDomainRoot("any.tokyo.jp"));
+        Assert.assertEquals("metro.tokyo.jp", matcher.getDomainRoot("metro.tokyo.jp"));
+        Assert.assertEquals("blah.blah.tokyo.jp", matcher.getDomainRoot("blah.blah.tokyo.jp"));
+        Assert.assertEquals("blah.ac.jp", matcher.getDomainRoot("blah.blah.ac.jp"));
+    }
+
+    @Test
+    public void testMatch() throws Exception {
+        Assert.assertTrue(matcher.matches(".jp"));
+        Assert.assertTrue(matcher.matches(".ac.jp"));
+        Assert.assertTrue(matcher.matches(".any.tokyo.jp"));
         // exception
-        Assert.assertFalse(matcher.match(".metro.tokyo.jp"));
+        Assert.assertFalse(matcher.matches(".metro.tokyo.jp"));
     }
 
     @Test
-    public void testUnicode() throws Exception {
-        Assert.assertTrue(matcher.match(".h\u00E5.no")); // \u00E5 is <aring>
-        Assert.assertTrue(matcher.match(".xn--h-2fa.no"));
-        Assert.assertTrue(matcher.match(".h\u00E5.no"));
-        Assert.assertTrue(matcher.match(".xn--h-2fa.no"));
-    }
-
-    @Test
-    public void testWhitespace() throws Exception {
-        Assert.assertTrue(matcher.match(".xx"));
-        // yy appears after whitespace
-        Assert.assertFalse(matcher.match(".yy"));
-        // zz is commented
-        Assert.assertFalse(matcher.match(".zz"));
+    public void testMatchUnicode() throws Exception {
+        Assert.assertTrue(matcher.matches(".h\u00E5.no")); // \u00E5 is <aring>
+        Assert.assertTrue(matcher.matches(".xn--h-2fa.no"));
+        Assert.assertTrue(matcher.matches(".h\u00E5.no"));
+        Assert.assertTrue(matcher.matches(".xn--h-2fa.no"));
     }
 
 }

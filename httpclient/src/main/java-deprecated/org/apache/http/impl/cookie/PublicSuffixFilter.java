@@ -104,6 +104,6 @@ public class PublicSuffixFilter implements CookieAttributeHandler {
         if (matcher == null) {
             matcher = new PublicSuffixMatcher(this.suffixes, this.exceptions);
         }
-        return matcher.match(cookie.getDomain());
+        return matcher.matches(cookie.getDomain());
     }
 }

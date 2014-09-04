@@ -482,11 +482,23 @@ public class TestBasicCookieAttribHandlers {
         cookie.setDomain("co.uk");
         Assert.assertFalse(h.match(cookie, new CookieOrigin("apache.co.uk", 80, "/stuff", false)));
 
+        cookie.setDomain(".co.com");
+        Assert.assertTrue(h.match(cookie, new CookieOrigin("apache.co.com", 80, "/stuff", false)));
+
+        cookie.setDomain("co.com");
+        Assert.assertFalse(h.match(cookie, new CookieOrigin("apache.co.com", 80, "/stuff", false)));
+
         cookie.setDomain(".com");
         Assert.assertFalse(h.match(cookie, new CookieOrigin("apache.com", 80, "/stuff", false)));
 
         cookie.setDomain("com");
         Assert.assertFalse(h.match(cookie, new CookieOrigin("apache.com", 80, "/stuff", false)));
+
+        cookie.setDomain("apache.com");
+        Assert.assertTrue(h.match(cookie, new CookieOrigin("apache.com", 80, "/stuff", false)));
+
+        cookie.setDomain(".apache.com");
+        Assert.assertTrue(h.match(cookie, new CookieOrigin("www.apache.com", 80, "/stuff", false)));
 
         cookie.setDomain("localhost");
         Assert.assertTrue(h.match(cookie, new CookieOrigin("localhost", 80, "/stuff", false)));
