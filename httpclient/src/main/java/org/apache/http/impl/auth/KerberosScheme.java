@@ -87,8 +87,8 @@ public class KerberosScheme extends GGSSchemeBase {
     }
 
     @Override
-    protected byte[] generateToken(final byte[] input, final String authServer) throws GSSException {
-        return generateGSSToken(input, new Oid(KERBEROS_OID), authServer);
+    protected byte[] generateToken(final byte[] input, final String authServer, final Credentials credentials) throws GSSException {
+        return generateGSSToken(input, new Oid(KERBEROS_OID), authServer, credentials);
     }
 
     /**

@@ -40,6 +40,7 @@ import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
+import org.apache.http.auth.KerberosCredentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
@@ -48,6 +49,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 import org.ietf.jgss.GSSContext;
+import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
@@ -99,22 +101,31 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     }
 
     protected byte[] generateGSSToken(
-            final byte[] input, final Oid oid, final String authServer) throws GSSException {
+            final byte[] input, final Oid oid, final String authServer, final Credentials credentials) throws GSSException {
         byte[] inputBuff = input;
         if (inputBuff == null) {
             inputBuff = new byte[0];
         }
         final GSSManager manager = getManager();
         final GSSName serverName = manager.createName("HTTP@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
+
+        final GSSCredential gssCredential;
+
+        if (credentials instanceof KerberosCredentials) {
+           gssCredential = ((KerberosCredentials) credentials).getGSSCredential();
+        } else {
+            gssCredential = null;
+        }
+
         final GSSContext gssContext = manager.createContext(
-                serverName.canonicalize(oid), oid, null, GSSContext.DEFAULT_LIFETIME);
+                serverName.canonicalize(oid), oid, gssCredential, GSSContext.DEFAULT_LIFETIME);
         gssContext.requestMutualAuth(true);
         gssContext.requestCredDeleg(true);
         return gssContext.initSecContext(inputBuff, 0, inputBuff.length);
     }
 
     protected abstract byte[] generateToken(
-            byte[] input, final String authServer) throws GSSException;
+            byte[] input, final String authServer, Credentials credentials) throws GSSException;
 
     @Override
     public boolean isComplete() {
@@ -181,7 +192,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                 if (log.isDebugEnabled()) {
                     log.debug("init " + authServer);
                 }
-                token = generateToken(token, authServer);
+                token = generateToken(token, authServer, credentials);
                 state = State.TOKEN_GENERATED;
             } catch (final GSSException gsse) {
                 state = State.FAILED;
