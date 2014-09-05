@@ -71,7 +71,7 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
     @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         final String domain = cookie.getDomain();
-        if (matcher.matches(domain) && !domain.equalsIgnoreCase("localhost")) {
+        if (!domain.equalsIgnoreCase("localhost") && matcher.matches(domain)) {
             return false;
         } else {
             return handler.match(cookie, origin);
