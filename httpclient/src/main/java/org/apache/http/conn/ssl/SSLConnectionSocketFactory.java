@@ -148,7 +148,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      * @since 4.4
      */
     public static HostnameVerifier getDefaultHostnameVerifier() {
-        return DefaultHostnameVerifier.INSTANCE;
+        return new DefaultHostnameVerifier();
     }
 
     /**

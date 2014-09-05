@@ -48,7 +48,7 @@ public class TestDefaultHostnameVerifier {
 
     @Before
     public void setup() {
-        impl = DefaultHostnameVerifier.INSTANCE;
+        impl = new DefaultHostnameVerifier();
     }
 
     @Test
@@ -113,7 +113,7 @@ public class TestDefaultHostnameVerifier {
         x509 = (X509Certificate) cf.generateCertificate(in);
         exceptionPlease(impl, "foo.com", x509);
         impl.verify("www.foo.com", x509);
-        exceptionPlease(impl, "\u82b1\u5b50.foo.com", x509);
+        impl.verify("\u82b1\u5b50.foo.com", x509);
         exceptionPlease(impl, "a.b.foo.com", x509);
 
         in = new ByteArrayInputStream(CertificatesToPlayWith.X509_WILD_CO_JP);
@@ -134,7 +134,7 @@ public class TestDefaultHostnameVerifier {
         // try the bar.com variations
         exceptionPlease(impl, "bar.com", x509);
         impl.verify("www.bar.com", x509);
-        exceptionPlease(impl, "\u82b1\u5b50.bar.com", x509);
+        impl.verify("\u82b1\u5b50.bar.com", x509);
         exceptionPlease(impl, "a.b.bar.com", x509);
 
         in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_VALUE_AVA);
@@ -190,13 +190,6 @@ public class TestDefaultHostnameVerifier {
 
         Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.c", "*.b.c"));
         Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.c", "*.b.c"));
-
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("a.B.c", "*.b.c"));
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.B.c", "*.b.c"));
-
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.C", "*.B.c"));
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.b.C", "*.B.c"));
-
 
         Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.b.c", "*.b.c"));
         Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.b.c", "*.b.c")); // subdomain not OK

@@ -35,9 +35,9 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import javax.naming.InvalidNameException;
 import javax.naming.NamingException;
@@ -63,11 +63,6 @@ import org.apache.http.conn.util.InetAddressUtils;
 @Immutable
 public final class DefaultHostnameVerifier implements HostnameVerifier {
 
-    public static final DefaultHostnameVerifier INSTANCE = new DefaultHostnameVerifier();
-
-    private final static Pattern WILDCARD_PATTERN = Pattern.compile(
-            "^[a-z0-9\\-\\*]+(\\.[a-z0-9\\-]+){2,}$",
-            Pattern.CASE_INSENSITIVE);
     /**
      * This contains a list of 2nd-level domains that aren't allowed to
      * have wildcards when combined with country-codes.
@@ -155,9 +150,11 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
     }
 
     static void matchDNSName(final String host, final List<String> subjectAlts) throws SSLException {
+        final String normalizedHost = host.toLowerCase(Locale.ROOT);
         for (int i = 0; i < subjectAlts.size(); i++) {
             final String subjectAlt = subjectAlts.get(i);
-            if (matchIdentityStrict(host, subjectAlt)) {
+            final String normalizedSubjectAlt = subjectAlt.toLowerCase(Locale.ROOT);
+            if (matchIdentityStrict(normalizedHost, normalizedSubjectAlt)) {
                 return;
             }
         }
@@ -176,34 +173,31 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
         if (host == null) {
             return false;
         }
-        // The CN better have at least two dots if it wants wildcard
-        // action.  It also can't be [*.co.uk] or [*.co.jp] or
-        // [*.org.uk], etc...
-        if (identity.contains("*") && WILDCARD_PATTERN.matcher(identity).matches()) {
+        // RFC 2818, 3.1. Server Identity
+        // "...Names may contain the wildcard
+        // character * which is considered to match any single domain name
+        // component or component fragment..."
+        // Based on this statement presuming only singular wildcard is legal
+        final int asteriskIdx = identity.indexOf('*');
+        if (asteriskIdx != -1) {
             if (!strict || !BAD_COUNTRY_WILDCARD_PATTERN.matcher(identity).matches()) {
-                final StringBuilder buf = new StringBuilder();
-                buf.append("^");
-                for (int i = 0; i < identity.length(); i++) {
-                    final char ch = identity.charAt(i);
-                    if (ch == '.') {
-                        buf.append("\\.");
-                    } else if (ch == '*') {
-                        if (strict) {
-                            buf.append("[a-z0-9\\-]*");
-                        } else {
-                            buf.append(".*");
-                        }
-                    } else {
-                        buf.append(ch);
+                final String prefix = identity.substring(0, asteriskIdx);
+                final String suffix = identity.substring(asteriskIdx + 1);
+                if (!prefix.isEmpty() && !host.startsWith(prefix)) {
+                    return false;
+                }
+                if (!suffix.isEmpty() && !host.endsWith(suffix)) {
+                    return false;
+                }
+                // Additional sanity checks on content selected by wildcard can be done here
+                if (strict) {
+                    final String remainder = host.substring(
+                            prefix.length(), host.length() - suffix.length());
+                    if (remainder.contains(".")) {
+                        return false;
                     }
                 }
-                buf.append("$");
-                try {
-                    final Pattern identityPattern = Pattern.compile(buf.toString(), Pattern.CASE_INSENSITIVE);
-                    return identityPattern.matcher(host).matches();
-                } catch (PatternSyntaxException ignore) {
-                    // do simple match
-                }
+                return true;
             }
         }
         return host.equalsIgnoreCase(identity);
