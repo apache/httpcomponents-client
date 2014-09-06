@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
-import java.util.regex.Pattern;
 
 import javax.naming.InvalidNameException;
 import javax.naming.NamingException;
@@ -54,6 +53,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.util.InetAddressUtils;
+import org.apache.http.conn.util.PublicSuffixMatcher;
 
 /**
  * Default {@link javax.net.ssl.HostnameVerifier} implementation.
@@ -63,25 +63,20 @@ import org.apache.http.conn.util.InetAddressUtils;
 @Immutable
 public final class DefaultHostnameVerifier implements HostnameVerifier {
 
-    /**
-     * This contains a list of 2nd-level domains that aren't allowed to
-     * have wildcards when combined with country-codes.
-     * For example: [*.co.uk].
-     * <p>
-     * The [*.co.uk] problem is an interesting one.  Should we just hope
-     * that CA's would never foolishly allow such a certificate to happen?
-     * Looks like we're the only implementation guarding against this.
-     * Firefox, Curl, Sun Java 1.4, 5, 6 don't bother with this check.
-     * </p>
-     */
-    private final static Pattern BAD_COUNTRY_WILDCARD_PATTERN = Pattern.compile(
-            "^[a-z0-9\\-\\*]+\\.(ac|co|com|ed|edu|go|gouv|gov|info|lg|ne|net|or|org)\\.[a-z0-9\\-]{2}$",
-            Pattern.CASE_INSENSITIVE);
-
     final static int DNS_NAME_TYPE        = 2;
     final static int IP_ADDRESS_TYPE      = 7;
 
     private final Log log = LogFactory.getLog(getClass());
+
+    private final PublicSuffixMatcher publicSuffixMatcher;
+
+    public DefaultHostnameVerifier(final PublicSuffixMatcher publicSuffixMatcher) {
+        this.publicSuffixMatcher = publicSuffixMatcher;
+    }
+
+    public DefaultHostnameVerifier() {
+        this(null);
+    }
 
     @Override
     public final boolean verify(final String host, final SSLSession session) {
@@ -110,7 +105,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
             } else if (ipv6) {
                 matchIPv6Address(host, subjectAlts);
             } else {
-                matchDNSName(host, subjectAlts);
+                matchDNSName(host, subjectAlts, this.publicSuffixMatcher);
             }
         } else {
             // CN matching has been deprecated by rfc2818 and can be used
@@ -121,7 +116,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                 throw new SSLException("Certificate subject for <" + host + "> doesn't contain " +
                         "a common name and does not have alternative names");
             }
-            matchCN(host, cn);
+            matchCN(host, cn, this.publicSuffixMatcher);
         }
     }
 
@@ -149,12 +144,13 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                 "of the subject alternative names: " + subjectAlts);
     }
 
-    static void matchDNSName(final String host, final List<String> subjectAlts) throws SSLException {
+    static void matchDNSName(final String host, final List<String> subjectAlts,
+                             final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
         final String normalizedHost = host.toLowerCase(Locale.ROOT);
         for (int i = 0; i < subjectAlts.size(); i++) {
             final String subjectAlt = subjectAlts.get(i);
             final String normalizedSubjectAlt = subjectAlt.toLowerCase(Locale.ROOT);
-            if (matchIdentityStrict(normalizedHost, normalizedSubjectAlt)) {
+            if (matchIdentityStrict(normalizedHost, normalizedSubjectAlt, publicSuffixMatcher)) {
                 return;
             }
         }
@@ -162,17 +158,37 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                 "of the subject alternative names: " + subjectAlts);
     }
 
-    static void matchCN(final String host, final String cn) throws SSLException {
-        if (!matchIdentityStrict(host, cn)) {
+    static void matchCN(final String host, final String cn,
+                 final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
+        if (!matchIdentityStrict(host, cn, publicSuffixMatcher)) {
             throw new SSLException("Certificate for <" + host + "> doesn't match " +
                     "common name of the certificate subject: " + cn);
         }
     }
 
-    private static boolean matchIdentity(final String host, final String identity, final boolean strict) {
+    private static boolean matchIdentity(final String host, final String identity,
+                                         final PublicSuffixMatcher publicSuffixMatcher,
+                                         final boolean strict) {
         if (host == null) {
             return false;
         }
+
+        if (publicSuffixMatcher != null) {
+            String domainRoot = publicSuffixMatcher.getDomainRoot(identity);
+            if (domainRoot == null) {
+                // Public domain
+                return false;
+            }
+            domainRoot = "." + domainRoot;
+            if (!host.endsWith(domainRoot)) {
+                // Domain root mismatch
+                return false;
+            }
+            if (strict && countDots(identity) != countDots(domainRoot)) {
+                return false;
+            }
+        }
+
         // RFC 2818, 3.1. Server Identity
         // "...Names may contain the wildcard
         // character * which is considered to match any single domain name
@@ -180,35 +196,53 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
         // Based on this statement presuming only singular wildcard is legal
         final int asteriskIdx = identity.indexOf('*');
         if (asteriskIdx != -1) {
-            if (!strict || !BAD_COUNTRY_WILDCARD_PATTERN.matcher(identity).matches()) {
-                final String prefix = identity.substring(0, asteriskIdx);
-                final String suffix = identity.substring(asteriskIdx + 1);
-                if (!prefix.isEmpty() && !host.startsWith(prefix)) {
-                    return false;
-                }
-                if (!suffix.isEmpty() && !host.endsWith(suffix)) {
-                    return false;
-                }
-                // Additional sanity checks on content selected by wildcard can be done here
-                if (strict) {
-                    final String remainder = host.substring(
-                            prefix.length(), host.length() - suffix.length());
-                    if (remainder.contains(".")) {
-                        return false;
-                    }
-                }
-                return true;
+            final String prefix = identity.substring(0, asteriskIdx);
+            final String suffix = identity.substring(asteriskIdx + 1);
+            if (!prefix.isEmpty() && !host.startsWith(prefix)) {
+                return false;
             }
+            if (!suffix.isEmpty() && !host.endsWith(suffix)) {
+                return false;
+            }
+            // Additional sanity checks on content selected by wildcard can be done here
+            if (strict) {
+                final String remainder = host.substring(
+                        prefix.length(), host.length() - suffix.length());
+                if (remainder.contains(".")) {
+                    return false;
+                }
+            }
+            return true;
         }
         return host.equalsIgnoreCase(identity);
     }
 
+    static int countDots(final String s) {
+        int count = 0;
+        for(int i = 0; i < s.length(); i++) {
+            if(s.charAt(i) == '.') {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    static boolean matchIdentity(final String host, final String identity,
+                                 final PublicSuffixMatcher publicSuffixMatcher) {
+        return matchIdentity(host, identity, publicSuffixMatcher, false);
+    }
+
     static boolean matchIdentity(final String host, final String identity) {
-        return matchIdentity(host, identity, false);
+        return matchIdentity(host, identity, null, false);
+    }
+
+    static boolean matchIdentityStrict(final String host, final String identity,
+                                       final PublicSuffixMatcher publicSuffixMatcher) {
+        return matchIdentity(host, identity, publicSuffixMatcher, true);
     }
 
     static boolean matchIdentityStrict(final String host, final String identity) {
-        return matchIdentity(host, identity, true);
+        return matchIdentity(host, identity, null, true);
     }
 
     static String extractCN(final String subjectPrincipal) throws SSLException {

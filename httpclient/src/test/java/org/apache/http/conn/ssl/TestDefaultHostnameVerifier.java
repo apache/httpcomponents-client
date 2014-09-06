@@ -35,6 +35,7 @@ import java.util.Arrays;
 
 import javax.net.ssl.SSLException;
 
+import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,10 +46,14 @@ import org.junit.Test;
 public class TestDefaultHostnameVerifier {
 
     private DefaultHostnameVerifier impl;
+    private PublicSuffixMatcher publicSuffixMatcher;
+    private DefaultHostnameVerifier implWithPublicSuffixCheck;
 
     @Before
     public void setup() {
         impl = new DefaultHostnameVerifier();
+        publicSuffixMatcher = new PublicSuffixMatcher(Arrays.asList("com", "co.jp", "gov.uk"), null);
+        implWithPublicSuffixCheck = new DefaultHostnameVerifier(publicSuffixMatcher);
     }
 
     @Test
@@ -121,8 +126,11 @@ public class TestDefaultHostnameVerifier {
         // Silly test because no-one would ever be able to lookup an IP address
         // using "*.co.jp".
         impl.verify("*.co.jp", x509);
-        exceptionPlease(impl, "foo.co.jp", x509);
-        exceptionPlease(impl, "\u82b1\u5b50.co.jp", x509);
+        impl.verify("foo.co.jp", x509);
+        impl.verify("\u82b1\u5b50.co.jp", x509);
+
+        exceptionPlease(implWithPublicSuffixCheck, "foo.co.jp", x509);
+        exceptionPlease(implWithPublicSuffixCheck, "\u82b1\u5b50.co.jp", x509);
 
         in = new ByteArrayInputStream(CertificatesToPlayWith.X509_WILD_FOO_BAR_HANAKO);
         x509 = (X509Certificate) cf.generateCertificate(in);
@@ -194,23 +202,26 @@ public class TestDefaultHostnameVerifier {
         Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.b.c", "*.b.c"));
         Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.b.c", "*.b.c")); // subdomain not OK
 
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("a.gov.uk", "*.gov.uk"));
-        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("a.gov.uk", "*.gov.uk"));  // Bad 2TLD
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentity("a.gov.uk", "*.gov.uk", publicSuffixMatcher));
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("a.gov.uk", "*.gov.uk", publicSuffixMatcher));  // Bad 2TLD
 
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "*.gov.uk"));
-        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.uk", "*.gov.uk"));  // BBad 2TLD/no subdomain allowed
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "*.a.gov.uk", publicSuffixMatcher));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.uk", "*.a.gov.uk", publicSuffixMatcher));
 
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("a.gov.com", "*.gov.com"));
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.gov.com", "*.gov.com"));
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "*.gov.uk", publicSuffixMatcher));
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.uk", "*.gov.uk", publicSuffixMatcher));  // BBad 2TLD/no subdomain allowed
 
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.gov.com", "*.gov.com"));
-        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.com", "*.gov.com")); // no subdomain allowed
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("a.gov.com", "*.gov.com", publicSuffixMatcher));
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentityStrict("a.gov.com", "*.gov.com", publicSuffixMatcher));
 
-        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("a.gov.uk", "a*.gov.uk"));
-        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("a.gov.uk", "a*.gov.uk")); // Bad 2TLD
+        Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("s.a.gov.com", "*.gov.com", publicSuffixMatcher));
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.com", "*.gov.com", publicSuffixMatcher)); // no subdomain allowed
 
-        Assert.assertFalse(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "a*.gov.uk")); // Bad 2TLD
-        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.uk", "a*.gov.uk")); // Bad 2TLD/no subdomain allowed
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentity("a.gov.uk", "a*.gov.uk", publicSuffixMatcher));
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("a.gov.uk", "a*.gov.uk", publicSuffixMatcher)); // Bad 2TLD
+
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentity("s.a.gov.uk", "a*.gov.uk", publicSuffixMatcher)); // Bad 2TLD
+        Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("s.a.gov.uk", "a*.gov.uk", publicSuffixMatcher)); // Bad 2TLD/no subdomain allowed
 
         Assert.assertFalse(DefaultHostnameVerifier.matchIdentity("a.b.c", "*.b.*"));
         Assert.assertFalse(DefaultHostnameVerifier.matchIdentityStrict("a.b.c", "*.b.*"));

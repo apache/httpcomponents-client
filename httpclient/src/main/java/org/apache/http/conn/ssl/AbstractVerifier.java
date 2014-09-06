@@ -256,13 +256,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
      * @return  number of dots
      */
     public static int countDots(final String s) {
-        int count = 0;
-        for(int i = 0; i < s.length(); i++) {
-            if(s.charAt(i) == '.') {
-                count++;
-            }
-        }
-        return count;
+        return DefaultHostnameVerifier.countDots(s);
     }
 
 }
