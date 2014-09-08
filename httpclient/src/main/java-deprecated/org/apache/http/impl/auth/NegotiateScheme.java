@@ -113,6 +113,11 @@ public class NegotiateScheme extends GGSSchemeBase {
 
     @Override
     protected byte[] generateToken(final byte[] input, final String authServer) throws GSSException {
+        return super.generateToken(input, authServer);
+    }
+
+    @Override
+    protected byte[] generateToken(final byte[] input, final String authServer, final Credentials credentials) throws GSSException {
         /* Using the SPNEGO OID is the correct method.
          * Kerberos v5 works for IIS but not JBoss. Unwrapping
          * the initial token when using SPNEGO OID looks like what is
@@ -133,7 +138,7 @@ public class NegotiateScheme extends GGSSchemeBase {
         byte[] token = input;
         boolean tryKerberos = false;
         try {
-            token = generateGSSToken(token, negotiationOid, authServer);
+            token = generateGSSToken(token, negotiationOid, authServer, credentials);
         } catch (final GSSException ex){
             // BAD MECH means we are likely to be using 1.5, fall back to Kerberos MECH.
             // Rethrow any other exception.
@@ -149,7 +154,7 @@ public class NegotiateScheme extends GGSSchemeBase {
             /* Kerberos v5 GSS-API mechanism defined in RFC 1964.*/
             log.debug("Using Kerberos MECH " + KERBEROS_OID);
             negotiationOid  = new Oid(KERBEROS_OID);
-            token = generateGSSToken(token, negotiationOid, authServer);
+            token = generateGSSToken(token, negotiationOid, authServer, credentials);
 
             /*
              * IIS accepts Kerberos and SPNEGO tokens. Some other servers Jboss, Glassfish?

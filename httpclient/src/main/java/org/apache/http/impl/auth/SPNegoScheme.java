@@ -87,9 +87,14 @@ public class SPNegoScheme extends GGSSchemeBase {
         return super.authenticate(credentials, request, context);
     }
 
-    @Override
+    @Override @SuppressWarnings("deprecation")
     protected byte[] generateToken(final byte[] input, final String authServer) throws GSSException {
-        return generateGSSToken(input, new Oid(SPNEGO_OID), authServer);
+        return super.generateToken(input, authServer);
+    }
+
+    @Override
+    protected byte[] generateToken(final byte[] input, final String authServer, final Credentials credentials) throws GSSException {
+        return generateGSSToken(input, new Oid(SPNEGO_OID), authServer, credentials);
     }
 
     /**
