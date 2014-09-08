@@ -105,7 +105,7 @@ public final class PublicSuffixListParser {
                 sb.append(c);
             }
             if (sb.length() > MAX_LINE_LEN) {
-                throw new IOException("Line too long"); // prevent excess memory usage
+                return false; // prevent excess memory usage
             }
         }
         return (b != -1);

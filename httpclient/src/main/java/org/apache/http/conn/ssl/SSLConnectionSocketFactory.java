@@ -46,6 +46,7 @@ import javax.security.auth.x500.X500Principal;
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
+import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.TextUtils;
@@ -148,7 +149,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
      * @since 4.4
      */
     public static HostnameVerifier getDefaultHostnameVerifier() {
-        return new DefaultHostnameVerifier();
+        return new DefaultHostnameVerifier(PublicSuffixMatcherLoader.getDefault());
     }
 
     /**
