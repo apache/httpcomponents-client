@@ -148,7 +148,11 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         // Get an instance of the selected cookie policy
         final CookieSpecProvider provider = registry.lookup(policy);
         if (provider == null) {
-            throw new HttpException("Unsupported cookie policy: " + policy);
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Unsupported cookie policy: " + policy);
+            }
+
+            return;
         }
         final CookieSpec cookieSpec = provider.create(clientContext);
         // Get all cookies available in the HTTP state
