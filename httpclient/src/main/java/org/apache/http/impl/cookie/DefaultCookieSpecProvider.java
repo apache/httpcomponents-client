@@ -28,6 +28,7 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
@@ -51,6 +52,7 @@ public class DefaultCookieSpecProvider implements CookieSpecProvider {
     }
 
     private final CompatibilityLevel compatibilityLevel;
+    private final PublicSuffixMatcher publicSuffixMatcher;
     private final String[] datepatterns;
     private final boolean oneHeader;
 
@@ -58,16 +60,24 @@ public class DefaultCookieSpecProvider implements CookieSpecProvider {
 
     public DefaultCookieSpecProvider(
             final CompatibilityLevel compatibilityLevel,
+            final PublicSuffixMatcher publicSuffixMatcher,
             final String[] datepatterns,
             final boolean oneHeader) {
         super();
         this.compatibilityLevel = compatibilityLevel != null ? compatibilityLevel : CompatibilityLevel.DEFAULT;
+        this.publicSuffixMatcher = publicSuffixMatcher;
         this.datepatterns = datepatterns;
         this.oneHeader = oneHeader;
     }
 
+    public DefaultCookieSpecProvider(
+            final CompatibilityLevel compatibilityLevel,
+            final PublicSuffixMatcher publicSuffixMatcher) {
+        this(compatibilityLevel, publicSuffixMatcher, null, false);
+    }
+
     public DefaultCookieSpecProvider() {
-        this(CompatibilityLevel.DEFAULT, null, false);
+        this(CompatibilityLevel.DEFAULT, null, null, false);
     }
 
     @Override
@@ -78,7 +88,8 @@ public class DefaultCookieSpecProvider implements CookieSpecProvider {
                     final RFC2965Spec strict = new RFC2965Spec(this.oneHeader,
                             new RFC2965VersionAttributeHandler(),
                             new BasicPathHandler(),
-                            new RFC2965DomainAttributeHandler(),
+                            PublicSuffixDomainFilter.decorate(
+                                    new RFC2965DomainAttributeHandler(), this.publicSuffixMatcher),
                             new RFC2965PortAttributeHandler(),
                             new BasicMaxAgeHandler(),
                             new BasicSecureHandler(),
@@ -88,12 +99,14 @@ public class DefaultCookieSpecProvider implements CookieSpecProvider {
                     final RFC2109Spec obsoleteStrict = new RFC2109Spec(this.oneHeader,
                             new RFC2109VersionHandler(),
                             new BasicPathHandler(),
-                            new RFC2109DomainHandler(),
+                            PublicSuffixDomainFilter.decorate(
+                                    new RFC2109DomainHandler(), this.publicSuffixMatcher),
                             new BasicMaxAgeHandler(),
                             new BasicSecureHandler(),
                             new BasicCommentHandler());
                     final NetscapeDraftSpec netscapeDraft = new NetscapeDraftSpec(
-                            new BasicDomainHandler(),
+                            PublicSuffixDomainFilter.decorate(
+                                    new BasicDomainHandler(), this.publicSuffixMatcher),
                             this.compatibilityLevel == CompatibilityLevel.IE_MEDIUM_SECURITY ?
                                     new BasicPathHandler() {
                                         @Override

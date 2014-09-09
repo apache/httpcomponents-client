@@ -28,6 +28,7 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.protocol.HttpContext;
@@ -42,17 +43,23 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class RFC2965SpecProvider implements CookieSpecProvider {
 
+    private final PublicSuffixMatcher publicSuffixMatcher;
     private final boolean oneHeader;
 
     private volatile CookieSpec cookieSpec;
 
-    public RFC2965SpecProvider(final boolean oneHeader) {
+    public RFC2965SpecProvider(final PublicSuffixMatcher publicSuffixMatcher, final boolean oneHeader) {
         super();
         this.oneHeader = oneHeader;
+        this.publicSuffixMatcher = publicSuffixMatcher;
+    }
+
+    public RFC2965SpecProvider(final PublicSuffixMatcher publicSuffixMatcher) {
+        this(publicSuffixMatcher, false);
     }
 
     public RFC2965SpecProvider() {
-        this(false);
+        this(null, false);
     }
 
     @Override
@@ -60,7 +67,17 @@ public class RFC2965SpecProvider implements CookieSpecProvider {
         if (cookieSpec == null) {
             synchronized (this) {
                 if (cookieSpec == null) {
-                    this.cookieSpec = new RFC2965Spec(null, this.oneHeader);
+                    this.cookieSpec = new RFC2965Spec(this.oneHeader,
+                            new RFC2965VersionAttributeHandler(),
+                            new BasicPathHandler(),
+                            PublicSuffixDomainFilter.decorate(
+                                    new RFC2965DomainAttributeHandler(), this.publicSuffixMatcher),
+                            new RFC2965PortAttributeHandler(),
+                            new BasicMaxAgeHandler(),
+                            new BasicSecureHandler(),
+                            new BasicCommentHandler(),
+                            new RFC2965CommentUrlAttributeHandler(),
+                            new RFC2965DiscardAttributeHandler());
                 }
             }
         }

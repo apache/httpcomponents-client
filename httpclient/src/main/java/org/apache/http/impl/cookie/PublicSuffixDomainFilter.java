@@ -51,18 +51,20 @@ import org.apache.http.util.Args;
 public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
 
     private final CommonCookieAttributeHandler handler;
-    private final PublicSuffixMatcher matcher;
+    private final PublicSuffixMatcher publicSuffixMatcher;
 
-    public PublicSuffixDomainFilter(final CommonCookieAttributeHandler handler, final PublicSuffixMatcher matcher) {
+    public PublicSuffixDomainFilter(
+            final CommonCookieAttributeHandler handler, final PublicSuffixMatcher publicSuffixMatcher) {
         this.handler = Args.notNull(handler, "Cookie handler");
-        this.matcher = Args.notNull(matcher, "Public suffix matcher");
+        this.publicSuffixMatcher = Args.notNull(publicSuffixMatcher, "Public suffix matcher");
     }
 
-    public PublicSuffixDomainFilter(final CommonCookieAttributeHandler handler, final PublicSuffixList suffixList) {
+    public PublicSuffixDomainFilter(
+            final CommonCookieAttributeHandler handler, final PublicSuffixList suffixList) {
         Args.notNull(handler, "Cookie handler");
         Args.notNull(suffixList, "Public suffix list");
         this.handler = handler;
-        this.matcher = new PublicSuffixMatcher(suffixList.getRules(), suffixList.getExceptions());
+        this.publicSuffixMatcher = new PublicSuffixMatcher(suffixList.getRules(), suffixList.getExceptions());
     }
 
     /**
@@ -71,7 +73,7 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
     @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         final String domain = cookie.getDomain();
-        if (!domain.equalsIgnoreCase("localhost") && matcher.matches(domain)) {
+        if (!domain.equalsIgnoreCase("localhost") && publicSuffixMatcher.matches(domain)) {
             return false;
         } else {
             return handler.match(cookie, origin);
@@ -91,6 +93,12 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
     @Override
     public String getAttributeName() {
         return handler.getAttributeName();
+    }
+
+    public static CommonCookieAttributeHandler decorate(
+            final CommonCookieAttributeHandler handler, final PublicSuffixMatcher publicSuffixMatcher) {
+        Args.notNull(handler, "Cookie attribute handler");
+        return publicSuffixMatcher != null ? new PublicSuffixDomainFilter(handler, publicSuffixMatcher) : handler;
     }
 
 }
