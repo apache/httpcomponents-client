@@ -26,6 +26,8 @@
  */
 package org.apache.http.conn.util;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -39,18 +41,34 @@ import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.util.Args;
 
 /**
+ * {@link org.apache.http.conn.util.PublicSuffixMatcher} loader.
+ *
  * @since 4.4
  */
 @ThreadSafe
 public final class PublicSuffixMatcherLoader {
 
+    private static PublicSuffixMatcher load(final InputStream in) throws IOException {
+        final PublicSuffixList list = new PublicSuffixListParser().parse(
+                new InputStreamReader(in, Consts.UTF_8));
+        return new PublicSuffixMatcher(list.getRules(), list.getExceptions());
+    }
+
     public static PublicSuffixMatcher load(final URL url) throws IOException {
         Args.notNull(url, "URL");
         final InputStream in = url.openStream();
         try {
-            final PublicSuffixList list = new PublicSuffixListParser().parse(
-                    new InputStreamReader(in, Consts.UTF_8));
-            return new PublicSuffixMatcher(list.getRules(), list.getExceptions());
+            return load(in);
+        } finally {
+            in.close();
+        }
+    }
+
+    public static PublicSuffixMatcher load(final File file) throws IOException {
+        Args.notNull(file, "File");
+        final InputStream in = new FileInputStream(file);
+        try {
+            return load(in);
         } finally {
             in.close();
         }

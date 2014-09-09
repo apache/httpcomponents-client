@@ -81,9 +81,12 @@ import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
+import org.apache.http.conn.util.PublicSuffixMatcher;
+import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.NoConnectionReuseStrategy;
@@ -211,6 +214,8 @@ public class HttpClientBuilder {
 
     private List<Closeable> closeables;
 
+    private PublicSuffixMatcher publicSuffixMatcher;
+
     public static HttpClientBuilder create() {
         return new HttpClientBuilder();
     }
@@ -255,6 +260,20 @@ public class HttpClientBuilder {
      */
     public final HttpClientBuilder setSSLHostnameVerifier(final HostnameVerifier hostnameVerifier) {
         this.hostnameVerifier = hostnameVerifier;
+        return this;
+    }
+
+    /**
+     * Assigns file containing public suffix matcher. Instances of this class can be created
+     * with {@link org.apache.http.conn.util.PublicSuffixMatcherLoader}.
+     *
+     * @see org.apache.http.conn.util.PublicSuffixMatcher
+     * @see org.apache.http.conn.util.PublicSuffixMatcherLoader
+     *
+     *   @since 4.4
+     */
+    public final HttpClientBuilder setPublicSuffixMatcher(final PublicSuffixMatcher publicSuffixMatcher) {
+        this.publicSuffixMatcher = publicSuffixMatcher;
         return this;
     }
 
@@ -803,6 +822,11 @@ public class HttpClientBuilder {
     public CloseableHttpClient build() {
         // Create main request executor
         // We copy the instance fields to avoid changing them, and rename to avoid accidental use of the wrong version
+        PublicSuffixMatcher publicSuffixMatcherCopy = this.publicSuffixMatcher;
+        if (publicSuffixMatcherCopy == null) {
+            publicSuffixMatcherCopy = PublicSuffixMatcherLoader.getDefault();
+        }
+
         HttpRequestExecutor requestExecCopy = this.requestExec;
         if (requestExecCopy == null) {
             requestExecCopy = new HttpRequestExecutor();
@@ -817,7 +841,7 @@ public class HttpClientBuilder {
                         System.getProperty("https.cipherSuites")) : null;
                 HostnameVerifier hostnameVerifierCopy = this.hostnameVerifier;
                 if (hostnameVerifierCopy == null) {
-                    hostnameVerifierCopy = SSLConnectionSocketFactory.getDefaultHostnameVerifier();
+                    hostnameVerifierCopy = new DefaultHostnameVerifier(publicSuffixMatcherCopy);
                 }
                 if (sslcontext != null) {
                     sslSocketFactoryCopy = new SSLConnectionSocketFactory(
@@ -1047,8 +1071,8 @@ public class HttpClientBuilder {
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
             cookieSpecRegistryCopy = RegistryBuilder.<CookieSpecProvider>create()
-                .register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider())
-                .register(CookieSpecs.STANDARD, new RFC2965SpecProvider())
+                .register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider(publicSuffixMatcherCopy))
+                .register(CookieSpecs.STANDARD, new RFC2965SpecProvider(publicSuffixMatcherCopy))
                 .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())
                 .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
                 .build();

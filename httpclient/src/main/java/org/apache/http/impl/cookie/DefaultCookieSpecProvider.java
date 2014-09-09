@@ -76,6 +76,10 @@ public class DefaultCookieSpecProvider implements CookieSpecProvider {
         this(compatibilityLevel, publicSuffixMatcher, null, false);
     }
 
+    public DefaultCookieSpecProvider(final PublicSuffixMatcher publicSuffixMatcher) {
+        this(CompatibilityLevel.DEFAULT, publicSuffixMatcher, null, false);
+    }
+
     public DefaultCookieSpecProvider() {
         this(CompatibilityLevel.DEFAULT, null, null, false);
     }
