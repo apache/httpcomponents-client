@@ -48,10 +48,10 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.impl.cookie.BasicClientCookie2;
 import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
-import org.apache.http.impl.cookie.IgnoreSpecFactory;
+import org.apache.http.impl.cookie.IgnoreSpecProvider;
 import org.apache.http.impl.cookie.NetscapeDraftSpec;
-import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
-import org.apache.http.impl.cookie.RFC2965SpecFactory;
+import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
+import org.apache.http.impl.cookie.RFC2965SpecProvider;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.HttpCoreContext;
 import org.junit.Assert;
@@ -81,9 +81,9 @@ public class TestRequestAddCookies {
 
         this.cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
             .register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider())
-            .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
-            .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
-            .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory())
+            .register(CookieSpecs.STANDARD, new RFC2965SpecProvider())
+            .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())
+            .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
             .build();
     }
 

@@ -27,57 +27,43 @@
 
 package org.apache.http.impl.cookie;
 
-import java.util.Collection;
-
 import org.apache.http.annotation.Immutable;
 import org.apache.http.cookie.CookieSpec;
-import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.cookie.params.CookieSpecPNames;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
  * {@link org.apache.http.cookie.CookieSpecProvider} implementation that provides an instance of
- * {@link org.apache.http.impl.cookie.NetscapeDraftSpec}. The instance returned by this factory
- * can be shared by multiple threads.
+ * {@link RFC2965Spec}. The instance returned by this factory can
+ * be shared by multiple threads.
  *
- * @since 4.0
+ * @since 4.4
  */
 @Immutable
-@SuppressWarnings("deprecation")
-public class NetscapeDraftSpecFactory implements CookieSpecFactory, CookieSpecProvider {
+public class RFC2965SpecProvider implements CookieSpecProvider {
 
-    private final CookieSpec cookieSpec;
+    private final boolean oneHeader;
 
-    public NetscapeDraftSpecFactory(final String[] datepatterns) {
+    private volatile CookieSpec cookieSpec;
+
+    public RFC2965SpecProvider(final boolean oneHeader) {
         super();
-        this.cookieSpec = new NetscapeDraftSpec(datepatterns);
+        this.oneHeader = oneHeader;
     }
 
-    public NetscapeDraftSpecFactory() {
-        this(null);
-    }
-
-    @Override
-    public CookieSpec newInstance(final HttpParams params) {
-        if (params != null) {
-
-            String[] patterns = null;
-            final Collection<?> param = (Collection<?>) params.getParameter(
-                    CookieSpecPNames.DATE_PATTERNS);
-            if (param != null) {
-                patterns = new String[param.size()];
-                patterns = param.toArray(patterns);
-            }
-            return new NetscapeDraftSpec(patterns);
-        } else {
-            return new NetscapeDraftSpec();
-        }
+    public RFC2965SpecProvider() {
+        this(false);
     }
 
     @Override
     public CookieSpec create(final HttpContext context) {
+        if (cookieSpec == null) {
+            synchronized (this) {
+                if (cookieSpec == null) {
+                    this.cookieSpec = new RFC2965Spec(null, this.oneHeader);
+                }
+            }
+        }
         return this.cookieSpec;
     }
 

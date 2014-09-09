@@ -28,8 +28,11 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.cookie.Cookie;
+import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecProvider;
+import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -42,19 +45,72 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class DefaultCookieSpecProvider implements CookieSpecProvider {
 
-    private final CookieSpec cookieSpec;
+    public enum CompatibilityLevel {
+        DEFAULT,
+        IE_MEDIUM_SECURITY
+    }
 
-    public DefaultCookieSpecProvider(final String[] datepatterns, final boolean oneHeader) {
+    private final CompatibilityLevel compatibilityLevel;
+    private final String[] datepatterns;
+    private final boolean oneHeader;
+
+    private volatile CookieSpec cookieSpec;
+
+    public DefaultCookieSpecProvider(
+            final CompatibilityLevel compatibilityLevel,
+            final String[] datepatterns,
+            final boolean oneHeader) {
         super();
-        this.cookieSpec = new DefaultCookieSpec(datepatterns, oneHeader);;
+        this.compatibilityLevel = compatibilityLevel != null ? compatibilityLevel : CompatibilityLevel.DEFAULT;
+        this.datepatterns = datepatterns;
+        this.oneHeader = oneHeader;
     }
 
     public DefaultCookieSpecProvider() {
-        this(null, false);
+        this(CompatibilityLevel.DEFAULT, null, false);
     }
 
     @Override
     public CookieSpec create(final HttpContext context) {
+        if (cookieSpec == null) {
+            synchronized (this) {
+                if (cookieSpec == null) {
+                    final RFC2965Spec strict = new RFC2965Spec(this.oneHeader,
+                            new RFC2965VersionAttributeHandler(),
+                            new BasicPathHandler(),
+                            new RFC2965DomainAttributeHandler(),
+                            new RFC2965PortAttributeHandler(),
+                            new BasicMaxAgeHandler(),
+                            new BasicSecureHandler(),
+                            new BasicCommentHandler(),
+                            new RFC2965CommentUrlAttributeHandler(),
+                            new RFC2965DiscardAttributeHandler());
+                    final RFC2109Spec obsoleteStrict = new RFC2109Spec(this.oneHeader,
+                            new RFC2109VersionHandler(),
+                            new BasicPathHandler(),
+                            new RFC2109DomainHandler(),
+                            new BasicMaxAgeHandler(),
+                            new BasicSecureHandler(),
+                            new BasicCommentHandler());
+                    final NetscapeDraftSpec netscapeDraft = new NetscapeDraftSpec(
+                            new BasicDomainHandler(),
+                            this.compatibilityLevel == CompatibilityLevel.IE_MEDIUM_SECURITY ?
+                                    new BasicPathHandler() {
+                                        @Override
+                                        public void validate(
+                                                final Cookie cookie,
+                                                final CookieOrigin origin) throws MalformedCookieException {
+                                            // No validation
+                                        }
+                                    } : new BasicPathHandler(),
+                            new BasicSecureHandler(),
+                            new BasicCommentHandler(),
+                            new BasicExpiresHandler(this.datepatterns != null ? this.datepatterns.clone() :
+                                    new String[]{NetscapeDraftSpec.EXPIRES_PATTERN}));
+                    this.cookieSpec = new DefaultCookieSpec(strict, obsoleteStrict, netscapeDraft);
+                }
+            }
+        }
         return this.cookieSpec;
     }
 

@@ -52,19 +52,22 @@ import org.apache.http.util.CharArrayBuffer;
 @ThreadSafe
 public class DefaultCookieSpec implements CookieSpec {
 
-    public enum CompatibilityLevel {
-        DEFAULT,
-        IE_MEDIUM_SECURITY
-    }
-
     private final RFC2965Spec strict;
     private final RFC2109Spec obsoleteStrict;
     private final NetscapeDraftSpec netscapeDraft;
 
+    DefaultCookieSpec(
+            final RFC2965Spec strict,
+            final RFC2109Spec obsoleteStrict,
+            final NetscapeDraftSpec netscapeDraft) {
+        this.strict = strict;
+        this.obsoleteStrict = obsoleteStrict;
+        this.netscapeDraft = netscapeDraft;
+    }
+
     public DefaultCookieSpec(
             final String[] datepatterns,
-            final boolean oneHeader,
-            final CompatibilityLevel compatibilityLevel) {
+            final boolean oneHeader) {
         super();
         this.strict = new RFC2965Spec(oneHeader,
                 new RFC2965VersionAttributeHandler(),
@@ -85,23 +88,11 @@ public class DefaultCookieSpec implements CookieSpec {
                 new BasicCommentHandler());
         this.netscapeDraft = new NetscapeDraftSpec(
                 new BasicDomainHandler(),
-                compatibilityLevel == CompatibilityLevel.IE_MEDIUM_SECURITY ?
-                        new BasicPathHandler() {
-                            @Override
-                            public void validate(final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
-                                // No validation
-                            }
-                        } : new BasicPathHandler(),
+                new BasicPathHandler(),
                 new BasicSecureHandler(),
                 new BasicCommentHandler(),
                 new BasicExpiresHandler(
                         datepatterns != null ? datepatterns.clone() : new String[]{NetscapeDraftSpec.EXPIRES_PATTERN}));
-    }
-
-    public DefaultCookieSpec(
-            final String[] datepatterns,
-            final boolean oneHeader) {
-        this(datepatterns, oneHeader, null);
     }
 
     public DefaultCookieSpec() {

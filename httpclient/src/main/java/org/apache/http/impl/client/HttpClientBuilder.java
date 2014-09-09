@@ -98,9 +98,9 @@ import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
-import org.apache.http.impl.cookie.IgnoreSpecFactory;
-import org.apache.http.impl.cookie.NetscapeDraftSpecFactory;
-import org.apache.http.impl.cookie.RFC2965SpecFactory;
+import org.apache.http.impl.cookie.IgnoreSpecProvider;
+import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
+import org.apache.http.impl.cookie.RFC2965SpecProvider;
 import org.apache.http.impl.execchain.BackoffStrategyExec;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.impl.execchain.MainClientExec;
@@ -1048,9 +1048,9 @@ public class HttpClientBuilder {
         if (cookieSpecRegistryCopy == null) {
             cookieSpecRegistryCopy = RegistryBuilder.<CookieSpecProvider>create()
                 .register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider())
-                .register(CookieSpecs.STANDARD, new RFC2965SpecFactory())
-                .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecFactory())
-                .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecFactory())
+                .register(CookieSpecs.STANDARD, new RFC2965SpecProvider())
+                .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())
+                .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
                 .build();
         }
 

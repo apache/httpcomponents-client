@@ -27,60 +27,43 @@
 
 package org.apache.http.impl.cookie;
 
-import java.util.Collection;
-
 import org.apache.http.annotation.Immutable;
 import org.apache.http.cookie.CookieSpec;
-import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.cookie.params.CookieSpecPNames;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
  * {@link org.apache.http.cookie.CookieSpecProvider} implementation that provides an instance of
- * {@link org.apache.http.impl.cookie.RFC2965Spec}. The instance returned by this factory can
- * be shared by multiple threads.
+ * {@link NetscapeDraftSpec}. The instance returned by this factory
+ * can be shared by multiple threads.
  *
- * @since 4.0
+ * @since 4.4
  */
 @Immutable
-@SuppressWarnings("deprecation")
-public class RFC2965SpecFactory implements CookieSpecFactory, CookieSpecProvider {
+public class NetscapeDraftSpecProvider implements CookieSpecProvider {
 
-    private final CookieSpec cookieSpec;
+    private final String[] datepatterns;
 
-    public RFC2965SpecFactory(final String[] datepatterns, final boolean oneHeader) {
+    private volatile CookieSpec cookieSpec;
+
+    public NetscapeDraftSpecProvider(final String[] datepatterns) {
         super();
-        this.cookieSpec = new RFC2965Spec(datepatterns, oneHeader);
+        this.datepatterns = datepatterns;
     }
 
-    public RFC2965SpecFactory() {
-        this(null, false);
-    }
-
-    @Override
-    public CookieSpec newInstance(final HttpParams params) {
-        if (params != null) {
-
-            String[] patterns = null;
-            final Collection<?> param = (Collection<?>) params.getParameter(
-                    CookieSpecPNames.DATE_PATTERNS);
-            if (param != null) {
-                patterns = new String[param.size()];
-                patterns = param.toArray(patterns);
-            }
-            final boolean singleHeader = params.getBooleanParameter(
-                    CookieSpecPNames.SINGLE_COOKIE_HEADER, false);
-
-            return new RFC2965Spec(patterns, singleHeader);
-        } else {
-            return new RFC2965Spec();
-        }
+    public NetscapeDraftSpecProvider() {
+        this(null);
     }
 
     @Override
     public CookieSpec create(final HttpContext context) {
+        if (cookieSpec == null) {
+            synchronized (this) {
+                if (cookieSpec == null) {
+                    this.cookieSpec = new NetscapeDraftSpec(this.datepatterns);
+                }
+            }
+        }
         return this.cookieSpec;
     }
 

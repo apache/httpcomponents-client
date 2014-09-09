@@ -29,32 +29,42 @@ package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.cookie.CookieSpec;
-import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
- * {@link CookieSpecProvider} implementation that ignores all cookies.
+ * {@link org.apache.http.cookie.CookieSpecProvider} implementation that provides an instance of
+ * {@link RFC2109Spec}. The instance returned by this factory
+ * can be shared by multiple threads.
  *
- * @since 4.1
+ * @since 4.4
  */
 @Immutable
-@SuppressWarnings("deprecation")
-public class IgnoreSpecFactory implements CookieSpecFactory, CookieSpecProvider {
+public class RFC2109SpecProvider implements CookieSpecProvider {
 
-    public IgnoreSpecFactory() {
+    private final boolean oneHeader;
+
+    private volatile CookieSpec cookieSpec;
+
+    public RFC2109SpecProvider(final boolean oneHeader) {
         super();
+        this.oneHeader = oneHeader;
     }
 
-    @Override
-    public CookieSpec newInstance(final HttpParams params) {
-        return new IgnoreSpec();
+    public RFC2109SpecProvider() {
+        this(false);
     }
 
     @Override
     public CookieSpec create(final HttpContext context) {
-        return new IgnoreSpec();
+        if (cookieSpec == null) {
+            synchronized (this) {
+                if (cookieSpec == null) {
+                    this.cookieSpec = new RFC2109Spec(null, this.oneHeader);
+                }
+            }
+        }
+        return this.cookieSpec;
     }
 
 }
