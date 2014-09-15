@@ -1115,7 +1115,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
             if ((flags & FLAG_REQUEST_UNICODE_ENCODING) == 0) {
                 throw new NTLMEngineException(
-                        "NTLM type 2 message has flags that make no sense: "
+                        "NTLM type 2 message indicates no support for Unicode. Flags are: "
                                 + Integer.toString(flags));
             }
 
