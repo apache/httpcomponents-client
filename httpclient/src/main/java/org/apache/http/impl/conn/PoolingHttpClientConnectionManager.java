@@ -301,12 +301,13 @@ public class PoolingHttpClientConnectionManager
             final ManagedHttpClientConnection conn = entry.getConnection();
             try {
                 if (conn.isOpen()) {
+                    final TimeUnit effectiveUnit = tunit != null ? tunit : TimeUnit.MILLISECONDS;
                     entry.setState(state);
-                    entry.updateExpiry(keepalive, tunit != null ? tunit : TimeUnit.MILLISECONDS);
+                    entry.updateExpiry(keepalive, effectiveUnit);
                     if (this.log.isDebugEnabled()) {
                         final String s;
                         if (keepalive > 0) {
-                            s = "for " + (double) keepalive / 1000 + " seconds";
+                            s = "for " + (double) effectiveUnit.toMillis(keepalive) / 1000 + " seconds";
                         } else {
                             s = "indefinitely";
                         }
