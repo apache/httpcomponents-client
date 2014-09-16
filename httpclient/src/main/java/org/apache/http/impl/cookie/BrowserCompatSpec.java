@@ -50,6 +50,7 @@ import org.apache.http.message.BufferedHeader;
 import org.apache.http.message.ParserCursor;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
+import org.apache.http.util.TextUtils;
 
 
 /**
@@ -170,7 +171,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
             final HeaderElement elem = parser.parseHeader(buffer, cursor);
             final String name = elem.getName();
             final String value = elem.getValue();
-            if (name == null || name.isEmpty()) {
+            if (name == null || TextUtils.isBlank(name)) {
                 throw new MalformedCookieException("Cookie name may not be empty");
             }
             final BasicClientCookie cookie = new BasicClientCookie(name, value);
@@ -181,7 +182,7 @@ public class BrowserCompatSpec extends CookieSpecBase {
             final NameValuePair[] attribs = elem.getParameters();
             for (int j = attribs.length - 1; j >= 0; j--) {
                 final NameValuePair attrib = attribs[j];
-                final String s = attrib.getName().toLowerCase(Locale.ROOT);
+                final String s = attrib.getName().toLowerCase(Locale.ENGLISH);
                 cookie.setAttribute(s, attrib.getValue());
                 final CookieAttributeHandler handler = findAttribHandler(s);
                 if (handler != null) {
