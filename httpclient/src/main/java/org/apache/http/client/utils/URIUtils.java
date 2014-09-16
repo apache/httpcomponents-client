@@ -401,7 +401,10 @@ public class URIUtils {
             }
             final String scheme = uri.getScheme();
             if (!TextUtils.isBlank(host)) {
-                target = new HttpHost(host, port, scheme);
+                try {
+                    target = new HttpHost(host, port, scheme);
+                } catch (IllegalArgumentException ignore) {
+                }
             }
         }
         return target;

@@ -260,6 +260,8 @@ public class TestURIUtils {
                 URIUtils.extractHost(new URI("http://localhost:;sessionid=stuff/abcd")));
         Assert.assertEquals(null,
                 URIUtils.extractHost(new URI("http://:80/robots.txt")));
+        Assert.assertEquals(null,
+                URIUtils.extractHost(new URI("http://some%20domain:80/robots.txt")));
     }
 
     @Test
