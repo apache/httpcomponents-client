@@ -36,7 +36,17 @@ httpclient-osgi/target/org.apache.httpcomponents.httpclient_<VERSION>.jar
 
 where <VERSION> is the release version
 
-(4) Building documentation 
+(4) Validating packages
+
+Check for binary compatibility with the previous version with:
+
+mvn clirr:check
+
+Check for proper license headers with:
+
+mvn apache-rat:check
+
+(5) Building documentation 
 
 Execute the following command in order to generate javadoc:
 
