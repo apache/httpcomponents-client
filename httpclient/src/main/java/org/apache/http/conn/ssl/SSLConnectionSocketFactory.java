@@ -320,6 +320,9 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             sock.bind(localAddress);
         }
         try {
+            if (connectTimeout > 0 && sock.getSoTimeout() == 0) {
+                sock.setSoTimeout(connectTimeout);
+            }
             sock.connect(remoteAddress, connectTimeout);
         } catch (final IOException ex) {
             try {
