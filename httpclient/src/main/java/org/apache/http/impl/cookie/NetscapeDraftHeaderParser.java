@@ -28,6 +28,7 @@
 package org.apache.http.impl.cookie;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
 import org.apache.http.HeaderElement;
@@ -37,7 +38,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.message.BasicHeaderElement;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.ParserCursor;
-import org.apache.http.protocol.HTTP;
+import org.apache.http.message.TokenParser;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
@@ -50,8 +51,18 @@ public class NetscapeDraftHeaderParser {
 
     public final static NetscapeDraftHeaderParser DEFAULT = new NetscapeDraftHeaderParser();
 
+    private final static char PARAM_DELIMITER                = ';';
+
+    // IMPORTANT!
+    // These private static variables must be treated as immutable and never exposed outside this class
+    private static final BitSet TOKEN_DELIMS = TokenParser.INIT_BITSET('=', PARAM_DELIMITER);
+    private static final BitSet VALUE_DELIMS = TokenParser.INIT_BITSET(PARAM_DELIMITER);
+
+    private final TokenParser tokenParser;
+
     public NetscapeDraftHeaderParser() {
         super();
+        this.tokenParser = TokenParser.INSTANCE;
     }
 
     public HeaderElement parseHeader(
@@ -72,66 +83,19 @@ public class NetscapeDraftHeaderParser {
 
     private NameValuePair parseNameValuePair(
             final CharArrayBuffer buffer, final ParserCursor cursor) {
-        boolean terminated = false;
-
-        int pos = cursor.getPos();
-        final int indexFrom = cursor.getPos();
-        final int indexTo = cursor.getUpperBound();
-
-        // Find name
-        String name = null;
-        while (pos < indexTo) {
-            final char ch = buffer.charAt(pos);
-            if (ch == '=') {
-                break;
-            }
-            if (ch == ';') {
-                terminated = true;
-                break;
-            }
-            pos++;
-        }
-
-        if (pos == indexTo) {
-            terminated = true;
-            name = buffer.substringTrimmed(indexFrom, indexTo);
-        } else {
-            name = buffer.substringTrimmed(indexFrom, pos);
-            pos++;
-        }
-
-        if (terminated) {
-            cursor.updatePos(pos);
+        final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
+        if (cursor.atEnd()) {
             return new BasicNameValuePair(name, null);
         }
-
-        // Find value
-        String value = null;
-        int i1 = pos;
-
-        while (pos < indexTo) {
-            final char ch = buffer.charAt(pos);
-            if (ch == ';') {
-                terminated = true;
-                break;
-            }
-            pos++;
+        final int delim = buffer.charAt(cursor.getPos());
+        cursor.updatePos(cursor.getPos() + 1);
+        if (delim != '=') {
+            return new BasicNameValuePair(name, null);
         }
-
-        int i2 = pos;
-        // Trim leading white spaces
-        while (i1 < i2 && (HTTP.isWhitespace(buffer.charAt(i1)))) {
-            i1++;
+        final String value = tokenParser.parseToken(buffer, cursor, VALUE_DELIMS);
+        if (!cursor.atEnd()) {
+            cursor.updatePos(cursor.getPos() + 1);
         }
-        // Trim trailing white spaces
-        while ((i2 > i1) && (HTTP.isWhitespace(buffer.charAt(i2 - 1)))) {
-            i2--;
-        }
-        value = buffer.substring(i1, i2);
-        if (terminated) {
-            pos++;
-        }
-        cursor.updatePos(pos);
         return new BasicNameValuePair(name, value);
     }
 
