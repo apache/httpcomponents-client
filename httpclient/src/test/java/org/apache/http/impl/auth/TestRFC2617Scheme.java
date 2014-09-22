@@ -100,7 +100,7 @@ public class TestRFC2617Scheme {
         Assert.assertEquals(null, authscheme.getParameter("test"));
         Assert.assertEquals("stuff", authscheme.getParameter("test1"));
         Assert.assertEquals("stuff, stuff", authscheme.getParameter("test2"));
-        Assert.assertEquals("\"crap", authscheme.getParameter("test3"));
+        Assert.assertEquals("crap", authscheme.getParameter("test3"));
         Assert.assertEquals(null, authscheme.getParameter(null));
     }
 
