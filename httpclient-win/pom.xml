@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-client</artifactId>
-    <version>4.4-alpha2-SNAPSHOT</version>
+    <version>4.4-beta1</version>
   </parent>
   <artifactId>httpclient-win</artifactId>
   <name>Apache HttpClient Windows features</name>
