@@ -72,7 +72,7 @@ public final class PublicSuffixMatcher {
      * if given domain represents a public suffix.
      *
      * @param domain
-     * @return
+     * @return domain root
      */
     public String getDomainRoot(final String domain) {
         if (domain == null) {
