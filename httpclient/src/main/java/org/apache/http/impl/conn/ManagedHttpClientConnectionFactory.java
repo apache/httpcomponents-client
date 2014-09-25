@@ -42,6 +42,9 @@ import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.HttpConnectionFactory;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.entity.ContentLengthStrategy;
+import org.apache.http.impl.entity.LaxContentLengthStrategy;
+import org.apache.http.impl.entity.StrictContentLengthStrategy;
 import org.apache.http.impl.io.DefaultHttpRequestWriterFactory;
 import org.apache.http.io.HttpMessageParserFactory;
 import org.apache.http.io.HttpMessageWriterFactory;
@@ -64,15 +67,32 @@ public class ManagedHttpClientConnectionFactory
 
     private final HttpMessageWriterFactory<HttpRequest> requestWriterFactory;
     private final HttpMessageParserFactory<HttpResponse> responseParserFactory;
+    private final ContentLengthStrategy incomingContentStrategy;
+    private final ContentLengthStrategy outgoingContentStrategy;
+
+    /**
+     * @since 4.4
+     */
+    public ManagedHttpClientConnectionFactory(
+            final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
+            final HttpMessageParserFactory<HttpResponse> responseParserFactory,
+            final ContentLengthStrategy incomingContentStrategy,
+            final ContentLengthStrategy outgoingContentStrategy) {
+        super();
+        this.requestWriterFactory = requestWriterFactory != null ? requestWriterFactory :
+                DefaultHttpRequestWriterFactory.INSTANCE;
+        this.responseParserFactory = responseParserFactory != null ? responseParserFactory :
+                DefaultHttpResponseParserFactory.INSTANCE;
+        this.incomingContentStrategy = incomingContentStrategy != null ? incomingContentStrategy :
+                LaxContentLengthStrategy.INSTANCE;
+        this.outgoingContentStrategy = outgoingContentStrategy != null ? outgoingContentStrategy :
+                StrictContentLengthStrategy.INSTANCE;
+    }
 
     public ManagedHttpClientConnectionFactory(
             final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
-        super();
-        this.requestWriterFactory = requestWriterFactory != null ? requestWriterFactory :
-            DefaultHttpRequestWriterFactory.INSTANCE;
-        this.responseParserFactory = responseParserFactory != null ? responseParserFactory :
-            DefaultHttpResponseParserFactory.INSTANCE;
+        this(requestWriterFactory, responseParserFactory, null, null);
     }
 
     public ManagedHttpClientConnectionFactory(
@@ -113,8 +133,8 @@ public class ManagedHttpClientConnectionFactory
                 chardecoder,
                 charencoder,
                 cconfig.getMessageConstraints(),
-                null,
-                null,
+                incomingContentStrategy,
+                outgoingContentStrategy,
                 requestWriterFactory,
                 responseParserFactory);
     }
