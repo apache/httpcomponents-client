@@ -110,6 +110,30 @@ public class TestSSLSocketFactory {
     }
 
     @Test
+    public void testBasicDefaultHostnameVerifier() throws Exception {
+        this.server = ServerBootstrap.bootstrap()
+                .setServerInfo(LocalServerTestBase.ORIGIN)
+                .setSslContext(SSLTestContexts.createServerSSLContext())
+                .create();
+        this.server.start();
+
+        final HttpContext context = new BasicHttpContext();
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
+                SSLTestContexts.createClientSSLContext(), SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+        final Socket socket = socketFactory.createSocket(context);
+        final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
+        final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
+        final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, target, remoteAddress, null, context);
+        try {
+            final SSLSession sslsession = sslSocket.getSession();
+
+            Assert.assertNotNull(sslsession);
+        } finally {
+            sslSocket.close();
+        }
+    }
+
+    @Test
     public void testClientAuthSSL() throws Exception {
         this.server = ServerBootstrap.bootstrap()
                 .setServerInfo(LocalServerTestBase.ORIGIN)
@@ -177,6 +201,8 @@ public class TestSSLSocketFactory {
             }
 
         };
+
+
 
         this.server = ServerBootstrap.bootstrap()
                 .setServerInfo(LocalServerTestBase.ORIGIN)

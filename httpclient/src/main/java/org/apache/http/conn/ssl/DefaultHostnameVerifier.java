@@ -173,7 +173,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
             return false;
         }
 
-        if (publicSuffixMatcher != null) {
+        if (publicSuffixMatcher != null && host.contains(".")) {
             String domainRoot = publicSuffixMatcher.getDomainRoot(identity);
             if (domainRoot == null) {
                 // Public domain
