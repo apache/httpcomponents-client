@@ -1,7 +1,8 @@
 Changes sicne 4.3.5
 -------------------
 
-* [HTTPCLIENT-1547] HttpClient OSGi bundle doesn't import the package "javax.naming".
+* [HTTPCLIENT-1547, HTTPCLIENT-1563] HttpClient OSGi bundle doesn't import packages "javax.naming",
+  "javax.naming.ldap" and "javax.naming.directory".
   Contributed by Willem Jiang <ningjiang at apache.org>
 
 
