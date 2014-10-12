@@ -26,19 +26,41 @@
  */
 package org.apache.http.conn.ssl;
 
-import java.net.Socket;
-import java.util.Map;
+import org.apache.http.util.Args;
+
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
 
 /**
- * A strategy allowing for a choice of an alias during SSL authentication.
+ * Private key details.
  *
  * @since 4.3
+ *
+ * @deprecated (4.4) use {@link org.apache.http.ssl.PrivateKeyDetails}.
  */
-public interface PrivateKeyStrategy {
+@Deprecated
+public final class PrivateKeyDetails {
 
-    /**
-     * Determines what key material to use for SSL authentication.
-     */
-    String chooseAlias(Map<String, PrivateKeyDetails> aliases, Socket socket);
+    private final String type;
+    private final X509Certificate[] certChain;
+
+    public PrivateKeyDetails(final String type, final X509Certificate[] certChain) {
+        super();
+        this.type = Args.notNull(type, "Private key type");
+        this.certChain = certChain;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public X509Certificate[] getCertChain() {
+        return certChain;
+    }
+
+    @Override
+    public String toString() {
+        return type + ':' + Arrays.toString(certChain);
+    }
 
 }

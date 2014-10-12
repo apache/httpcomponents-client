@@ -48,6 +48,7 @@ import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.Args;
 import org.apache.http.util.TextUtils;
 

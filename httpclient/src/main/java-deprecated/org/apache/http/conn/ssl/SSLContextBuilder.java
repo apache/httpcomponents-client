@@ -57,8 +57,11 @@ import org.apache.http.annotation.NotThreadSafe;
  * Builder for {@link SSLContext} instances.
  *
  * @since 4.3
+ *
+ * @deprecated (4.4) use {@link org.apache.http.ssl.SSLContextBuilder}.
  */
 @NotThreadSafe
+@Deprecated
 public class SSLContextBuilder {
 
     static final String TLS   = "TLS";

@@ -61,7 +61,6 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -80,6 +79,7 @@ import org.apache.http.io.SessionInputBuffer;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicLineParser;
 import org.apache.http.message.LineParser;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
