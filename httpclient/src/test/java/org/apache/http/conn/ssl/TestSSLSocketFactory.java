@@ -32,25 +32,27 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 import org.apache.http.HttpHost;
 import org.apache.http.impl.bootstrap.HttpServer;
+import org.apache.http.impl.bootstrap.SSLServerSetupHandler;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.localserver.SSLTestContexts;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.ssl.SSLContexts;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -159,54 +161,19 @@ public class TestSSLSocketFactory {
         }
     }
 
-    @Ignore("There is no way to force client auth with HttpServer in 4.4a1")
     @Test(expected=IOException.class)
     public void testClientAuthSSLFailure() throws Exception {
         this.server = ServerBootstrap.bootstrap()
                 .setServerInfo(LocalServerTestBase.ORIGIN)
                 .setSslContext(SSLTestContexts.createServerSSLContext())
-                .create();
-        this.server.start();
+                .setSslSetupHandler(new SSLServerSetupHandler() {
 
-        final HttpContext context = new BasicHttpContext();
-        final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
-        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
-                SSLTestContexts.createClientSSLContext(), hostVerifier);
-        final Socket socket = socketFactory.createSocket(context);
-        final InetSocketAddress remoteAddress = new InetSocketAddress("localhost", this.server.getLocalPort());
-        final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
-        final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, target, remoteAddress, null, context);
-        try {
-            final SSLSession sslsession = sslSocket.getSession();
+                    @Override
+                    public void initialize(final SSLServerSocket socket) throws SSLException {
+                        socket.setNeedClientAuth(true);
+                    }
 
-            Assert.assertNotNull(sslsession);
-            Assert.assertTrue(hostVerifier.isFired());
-        } finally {
-            sslSocket.close();
-        }
-    }
-
-    @Test
-    public void testClientAuthSSLAliasChoice() throws Exception {
-        // TODO unused - is there a bug in the test?
-        final PrivateKeyStrategy aliasStrategy = new PrivateKeyStrategy() {
-
-            @Override
-            public String chooseAlias(
-                    final Map<String, PrivateKeyDetails> aliases, final Socket socket) {
-                Assert.assertEquals(2, aliases.size());
-                Assert.assertTrue(aliases.containsKey("hc-test-key-1"));
-                Assert.assertTrue(aliases.containsKey("hc-test-key-2"));
-                return "hc-test-key-2";
-            }
-
-        };
-
-
-
-        this.server = ServerBootstrap.bootstrap()
-                .setServerInfo(LocalServerTestBase.ORIGIN)
-                .setSslContext(SSLTestContexts.createServerSSLContext())
+                })
                 .create();
         this.server.start();
 
