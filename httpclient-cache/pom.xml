@@ -64,7 +64,7 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>spy</groupId>
+      <groupId>net.spy</groupId>
       <artifactId>spymemcached</artifactId>
       <scope>compile</scope>
       <optional>true</optional>

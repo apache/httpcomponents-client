@@ -70,7 +70,7 @@
     <commons-logging.version>1.2</commons-logging.version>
     <commons-codec.version>1.9</commons-codec.version>
     <ehcache.version>2.6.9</ehcache.version>
-    <memcached.version>2.6</memcached.version>
+    <memcached.version>2.11.4</memcached.version>
     <slf4j.version>1.5.11</slf4j.version>
     <junit.version>4.11</junit.version>
     <easymock.version>2.5.2</easymock.version>
@@ -79,18 +79,6 @@
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <api.comparison.version>4.3</api.comparison.version>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>spy</id>
-      <name>Spy Repository</name>
-      <layout>default</layout>
-      <url>http://files.couchbase.com/maven2/</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
 
   <dependencyManagement>
     <dependencies>
@@ -120,7 +108,7 @@
         <version>${slf4j.version}</version>
       </dependency>
       <dependency>
-        <groupId>spy</groupId>
+        <groupId>net.spy</groupId>
         <artifactId>spymemcached</artifactId>
         <version>${memcached.version}</version>
       </dependency>
