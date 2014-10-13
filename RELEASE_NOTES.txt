@@ -16,6 +16,9 @@ Release 4.4-BETA2
 * Update Spymemcached version from 2.6 to 2.11.4. 
   Contributed by Gary Gregory <ggregory at apache.org>
 
+* Update SLF4J version from 1.5.11 to 1.7.7. 
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 
 Release 4.4 BETA1
 -------------------
