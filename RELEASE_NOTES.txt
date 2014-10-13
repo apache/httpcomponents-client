@@ -1,3 +1,10 @@
+Release 4.4-BETA2
+-------------------
+
+* Update Apache Commons Logging version from 1.1.3 to 1.2. 
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+
 Release 4.4 BETA1
 -------------------
 
