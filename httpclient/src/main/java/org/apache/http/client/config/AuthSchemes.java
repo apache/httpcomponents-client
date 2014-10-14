@@ -38,30 +38,33 @@ import org.apache.http.annotation.Immutable;
 public final class AuthSchemes {
 
     /**
-     * Basic authentication scheme as defined in RFC2617 (considered inherently
-     * insecure, but most widely supported)
+     * Basic authentication scheme as defined in RFC 2617 (considered inherently
+     * insecure, but most widely supported).
      */
     public static final String BASIC = "Basic";
 
     /**
-     * Digest authentication scheme as defined in RFC2617.
+     * Digest authentication scheme as defined in RFC 2617.
      */
     public static final String DIGEST = "Digest";
 
     /**
-     * The NTLM scheme is a proprietary Microsoft Windows Authentication
-     * protocol (considered to be the most secure among currently supported
-     * authentication schemes).
+     * The NTLM scheme is a proprietary Microsoft Windows authentication
+     * protocol.
      */
     public static final String NTLM = "NTLM";
 
     /**
-     * SPNEGO Authentication scheme.
+     * SPNEGO Authentication scheme as defined in RFC 4559 and RFC 4178
+     * (considered to be the most secure among currently supported
+     * authentication schemes if Kerberos is selected).
      */
     public static final String SPNEGO = "negotiate";
 
     /**
-     * Kerberos Authentication scheme.
+     * Kerberos Authentication scheme as defined in RFC 4120
+     * (considered to be the most secure among currently supported
+     * authentication schemes).
      */
     public static final String KERBEROS = "Kerberos";
 
