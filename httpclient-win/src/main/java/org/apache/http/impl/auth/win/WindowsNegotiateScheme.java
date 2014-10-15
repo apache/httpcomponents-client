@@ -275,7 +275,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
 
         sspiContext = new CtxtHandle();
         final int rc = Secur32.INSTANCE.InitializeSecurityContext(clientCred,
-                continueCtx, targetName, Sspi.ISC_REQ_CONNECTION | Sspi.ISC_REQ_DELEGATE, 0,
+                continueCtx, targetName, Sspi.ISC_REQ_DELEGATE | Sspi.ISC_REQ_MUTUAL_AUTH, 0,
                 Sspi.SECURITY_NATIVE_DREP, continueToken, 0, sspiContext, token,
                 attr, null);
         switch (rc) {
