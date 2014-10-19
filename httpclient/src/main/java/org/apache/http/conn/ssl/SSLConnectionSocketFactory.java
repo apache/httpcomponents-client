@@ -33,6 +33,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.HostnameVerifier;
@@ -356,6 +358,16 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                 true);
         if (supportedProtocols != null) {
             sslsock.setEnabledProtocols(supportedProtocols);
+        } else {
+            // If supported protocols are not explicitly set, remove all SSL protocol versions
+            final String[] allProtocols = sslsock.getSupportedProtocols();
+            final List<String> enabledProtocols = new ArrayList<String>(allProtocols.length);
+            for (String protocol: allProtocols) {
+                if (!protocol.startsWith("SSL")) {
+                    enabledProtocols.add(protocol);
+                }
+            }
+            sslsock.setEnabledProtocols(enabledProtocols.toArray(new String[enabledProtocols.size()]));
         }
         if (supportedCipherSuites != null) {
             sslsock.setEnabledCipherSuites(supportedCipherSuites);
