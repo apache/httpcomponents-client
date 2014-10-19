@@ -195,6 +195,60 @@ public class TestSSLSocketFactory extends LocalServerTestBase {
     }
 
     @Test
+    public void testTLSOnly() throws Exception {
+        final SSLContext serverSSLContext = SSLContexts.custom()
+                .useProtocol("TLS")
+                .loadTrustMaterial(keystore)
+                .loadKeyMaterial(keystore, "nopassword".toCharArray())
+                .build();
+        final SSLContext clientSSLContext = SSLContexts.custom()
+                .useProtocol("TLS")
+                .loadTrustMaterial(keystore)
+                .build();
+
+        this.localServer = new LocalTestServer(serverSSLContext, false, new String[] {"TLSv1"});
+        this.localServer.registerDefaultHandlers();
+        this.localServer.start();
+
+        final HttpHost host = new HttpHost("localhost", 443, "https");
+        final HttpContext context = new BasicHttpContext();
+        final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(clientSSLContext, hostVerifier);
+        final Socket socket = socketFactory.createSocket(context);
+        final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
+        final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
+        final SSLSession sslsession = sslSocket.getSession();
+
+        Assert.assertNotNull(sslsession);
+        Assert.assertTrue(hostVerifier.isFired());
+    }
+
+    @Test(expected=IOException.class)
+    public void testSSLDisabledByDefault() throws Exception {
+        final SSLContext serverSSLContext = SSLContexts.custom()
+                .useProtocol("TLS")
+                .loadTrustMaterial(keystore)
+                .loadKeyMaterial(keystore, "nopassword".toCharArray())
+                .build();
+        final SSLContext clientSSLContext = SSLContexts.custom()
+                .useProtocol("TLS")
+                .loadTrustMaterial(keystore)
+                .build();
+
+        this.localServer = new LocalTestServer(serverSSLContext, false, new String[] {"SSLv3"});
+        this.localServer.registerDefaultHandlers();
+        this.localServer.start();
+
+        final HttpHost host = new HttpHost("localhost", 443, "https");
+        final HttpContext context = new BasicHttpContext();
+        final TestX509HostnameVerifier hostVerifier = new TestX509HostnameVerifier();
+        final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(clientSSLContext, hostVerifier);
+        final Socket socket = socketFactory.createSocket(context);
+        final InetSocketAddress remoteAddress = this.localServer.getServiceAddress();
+        socketFactory.connectSocket(0, socket, host, remoteAddress, null, context);
+    }
+
+    @Test
     public void testClientAuthSSLAliasChoice() throws Exception {
         final PrivateKeyStrategy aliasStrategy = new PrivateKeyStrategy() {
 

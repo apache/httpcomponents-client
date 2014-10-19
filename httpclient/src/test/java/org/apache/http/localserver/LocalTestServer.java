@@ -89,6 +89,9 @@ public class LocalTestServer {
     /** Optional flag whether to force SSL context */
     private final boolean forceSSLAuth;
 
+    /** Optional set of enabled SSL/TLS protocols */
+    private final String[] enabledProtocols;
+
     /** The server socket, while being served. */
     private volatile ServerSocket servicedSocket;
 
@@ -128,7 +131,8 @@ public class LocalTestServer {
             final HttpResponseFactory responseFactory,
             final HttpExpectationVerifier expectationVerifier,
             final SSLContext sslcontext,
-            final boolean forceSSLAuth) {
+            final boolean forceSSLAuth,
+            final String[] enabledProtocols) {
         super();
         this.handlerRegistry = new UriHttpRequestHandlerMapper();
         this.workers = Collections.synchronizedSet(new HashSet<Worker>());
@@ -140,12 +144,13 @@ public class LocalTestServer {
             expectationVerifier);
         this.sslcontext = sslcontext;
         this.forceSSLAuth = forceSSLAuth;
+        this.enabledProtocols = enabledProtocols;
     }
 
     public LocalTestServer(
             final HttpProcessor proc,
             final ConnectionReuseStrategy reuseStrat) {
-        this(proc, reuseStrat, null, null, null, false);
+        this(proc, reuseStrat, null, null, null, false, null);
     }
 
     /**
@@ -155,7 +160,17 @@ public class LocalTestServer {
      * @param forceSSLAuth whether or not the server needs to enforce client auth
      */
     public LocalTestServer(final SSLContext sslcontext, final boolean forceSSLAuth) {
-        this(null, null, null, null, sslcontext, forceSSLAuth);
+        this(null, null, null, null, sslcontext, forceSSLAuth, null);
+    }
+
+    /**
+     * Creates a new test server with SSL/TLS encryption.
+     *
+     * @param sslcontext SSL context
+     * @param forceSSLAuth whether or not the server needs to enforce client auth
+     */
+    public LocalTestServer(final SSLContext sslcontext, final boolean forceSSLAuth, final String[] enabledProtocols) {
+        this(null, null, null, null, sslcontext, forceSSLAuth, enabledProtocols);
     }
 
     /**
@@ -164,7 +179,7 @@ public class LocalTestServer {
      * @param sslcontext SSL context
      */
     public LocalTestServer(final SSLContext sslcontext) {
-        this(null, null, null, null, sslcontext, false);
+        this(null, null, null, null, sslcontext, false, null);
     }
 
     /**
@@ -251,6 +266,9 @@ public class LocalTestServer {
                 sslsock.setNeedClientAuth(true);
             } else {
                 sslsock.setWantClientAuth(true);
+            }
+            if (enabledProtocols != null) {
+                sslsock.setEnabledProtocols(enabledProtocols);
             }
             ssock = sslsock;
         } else {

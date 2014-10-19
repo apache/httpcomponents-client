@@ -40,6 +40,8 @@ import javax.net.ssl.SSLSocket;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Layered socket factory for TLS/SSL connections.
@@ -270,6 +272,16 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                 true);
         if (supportedProtocols != null) {
             sslsock.setEnabledProtocols(supportedProtocols);
+        } else {
+            // If supported protocols are not explicitly set, remove all SSL protocol versions
+            final String[] allProtocols = sslsock.getSupportedProtocols();
+            final List<String> enabledProtocols = new ArrayList<String>(allProtocols.length);
+            for (String protocol: allProtocols) {
+                if (!protocol.startsWith("SSL")) {
+                    enabledProtocols.add(protocol);
+                }
+            }
+            sslsock.setEnabledProtocols(enabledProtocols.toArray(new String[enabledProtocols.size()]));
         }
         if (supportedCipherSuites != null) {
             sslsock.setEnabledCipherSuites(supportedCipherSuites);
