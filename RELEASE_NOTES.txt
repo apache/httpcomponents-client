@@ -1,12 +1,12 @@
-Release 4.3.5
+Release 4.3.6
 -------------------
 
-HttpClient 4.3.5 (GA) is a maintenance release that fixes several issues with HttpClient OSGi
+HttpClient 4.3.6 (GA) is a maintenance release that fixes several problems with HttpClient OSGi
 bundle as well as some other issues reported since release 4.3.5.
 
 Please note that as of this release HttpClient disables all versions of SSL (including SSLv3)
 in favor of the TLS protocol by default. Those users who wish to continue using SSLv3 need 
-to explicitly enable support for SSLv3 and earlier SSL versions. 
+to explicitly enable support for it. 
 
 Users of all HttpClient versions are advised to upgrade.
 
