@@ -27,6 +27,7 @@
 package org.apache.http.impl.client.cache;
 
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -1764,7 +1765,7 @@ public abstract class TestCachingExecChain {
     }
 
     protected void requestPolicyAllowsCaching(final boolean allow) {
-        expect(mockRequestPolicy.isServableFromCache((HttpRequest) anyObject())).andReturn(allow);
+        expect(mockRequestPolicy.isServableFromCache((HttpRequest) anyObject(), anyBoolean())).andReturn(allow);
     }
 
     protected void cacheEntrySuitable(final boolean suitable) {
@@ -1781,8 +1782,9 @@ public abstract class TestCachingExecChain {
     }
 
     protected void responseIsGeneratedFromCache() {
-        expect(mockResponseGenerator.generateResponse((HttpCacheEntry) anyObject())).andReturn(
-            mockCachedResponse);
+        expect(
+            mockResponseGenerator.generateResponse((HttpRequestWrapper) anyObject(), (HttpCacheEntry) anyObject()))
+            .andReturn(mockCachedResponse);
     }
 
 }

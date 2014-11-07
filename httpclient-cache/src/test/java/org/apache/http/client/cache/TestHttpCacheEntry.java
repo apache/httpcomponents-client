@@ -70,7 +70,7 @@ public class TestHttpCacheEntry {
 
     private HttpCacheEntry makeEntry(final Header[] headers) {
         return new HttpCacheEntry(elevenSecondsAgo, nineSecondsAgo,
-                statusLine, headers, mockResource);
+                statusLine, headers, mockResource, HeaderConstants.GET_METHOD);
     }
 
     @Test
@@ -148,7 +148,7 @@ public class TestHttpCacheEntry {
     public void mustProvideRequestDate() {
         try {
             new HttpCacheEntry(null, new Date(), statusLine,
-                    new Header[]{}, mockResource);
+                    new Header[]{}, mockResource, HeaderConstants.GET_METHOD);
             fail("Should have thrown exception");
         } catch (final IllegalArgumentException expected) {
         }
@@ -159,7 +159,7 @@ public class TestHttpCacheEntry {
     public void mustProvideResponseDate() {
         try {
             new HttpCacheEntry(new Date(), null, statusLine,
-                    new Header[]{}, mockResource);
+                    new Header[]{}, mockResource, HeaderConstants.GET_METHOD);
             fail("Should have thrown exception");
         } catch (final IllegalArgumentException expected) {
         }
@@ -170,7 +170,7 @@ public class TestHttpCacheEntry {
     public void mustProvideStatusLine() {
         try {
             new HttpCacheEntry(new Date(), new Date(), null,
-                    new Header[]{}, mockResource);
+                    new Header[]{}, mockResource, HeaderConstants.GET_METHOD);
             fail("Should have thrown exception");
         } catch (final IllegalArgumentException expected) {
         }
@@ -181,7 +181,7 @@ public class TestHttpCacheEntry {
     public void mustProvideResponseHeaders() {
         try {
             new HttpCacheEntry(new Date(), new Date(), statusLine,
-                    null, mockResource);
+                    null, mockResource, HeaderConstants.GET_METHOD);
             fail("Should have thrown exception");
         } catch (final IllegalArgumentException expected) {
         }
@@ -190,14 +190,14 @@ public class TestHttpCacheEntry {
     @Test
     public void canRetrieveOriginalStatusLine() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource);
+                new Header[]{}, mockResource, HeaderConstants.GET_METHOD);
         assertSame(statusLine, entry.getStatusLine());
     }
 
     @Test
     public void protocolVersionComesFromOriginalStatusLine() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource);
+                new Header[]{}, mockResource, HeaderConstants.GET_METHOD);
         assertSame(statusLine.getProtocolVersion(),
                 entry.getProtocolVersion());
     }
@@ -205,14 +205,14 @@ public class TestHttpCacheEntry {
     @Test
     public void reasonPhraseComesFromOriginalStatusLine() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource);
+                new Header[]{}, mockResource, HeaderConstants.GET_METHOD);
         assertSame(statusLine.getReasonPhrase(), entry.getReasonPhrase());
     }
 
     @Test
     public void statusCodeComesFromOriginalStatusLine() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource);
+                new Header[]{}, mockResource, HeaderConstants.GET_METHOD);
         assertEquals(statusLine.getStatusCode(), entry.getStatusCode());
     }
 
@@ -220,7 +220,7 @@ public class TestHttpCacheEntry {
     public void canGetOriginalRequestDate() {
         final Date requestDate = new Date();
         entry = new HttpCacheEntry(requestDate, new Date(), statusLine,
-                new Header[]{}, mockResource);
+                new Header[]{}, mockResource, HeaderConstants.GET_METHOD);
         assertSame(requestDate, entry.getRequestDate());
     }
 
@@ -228,14 +228,14 @@ public class TestHttpCacheEntry {
     public void canGetOriginalResponseDate() {
         final Date responseDate = new Date();
         entry = new HttpCacheEntry(new Date(), responseDate, statusLine,
-                new Header[]{}, mockResource);
+                new Header[]{}, mockResource, HeaderConstants.GET_METHOD);
         assertSame(responseDate, entry.getResponseDate());
     }
 
     @Test
     public void canGetOriginalResource() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource);
+                new Header[]{}, mockResource, HeaderConstants.GET_METHOD);
         assertSame(mockResource, entry.getResource());
     }
 
@@ -246,7 +246,7 @@ public class TestHttpCacheEntry {
                 new BasicHeader("Date", DateUtils.formatDate(now))
         };
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                headers, mockResource);
+                headers, mockResource, HeaderConstants.GET_METHOD);
         final Header[] result = entry.getAllHeaders();
         assertEquals(headers.length, result.length);
         for(int i=0; i<headers.length; i++) {
@@ -258,7 +258,7 @@ public class TestHttpCacheEntry {
     @Test
     public void canConstructWithoutVariants() {
         new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource);
+                new Header[]{}, mockResource, HeaderConstants.GET_METHOD);
     }
 
     @SuppressWarnings("unused")
@@ -266,7 +266,7 @@ public class TestHttpCacheEntry {
     public void canProvideVariantMap() {
         new HttpCacheEntry(new Date(), new Date(), statusLine,
                 new Header[]{}, mockResource,
-                new HashMap<String,String>());
+                new HashMap<String,String>(), HeaderConstants.GET_METHOD);
     }
 
     @Test
@@ -276,7 +276,7 @@ public class TestHttpCacheEntry {
         variantMap.put("C","D");
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
                 new Header[]{}, mockResource,
-                variantMap);
+                variantMap, HeaderConstants.GET_METHOD);
         final Map<String,String> result = entry.getVariantMap();
         assertEquals(2, result.size());
         assertEquals("B", result.get("A"));
@@ -290,7 +290,7 @@ public class TestHttpCacheEntry {
         variantMap.put("C","D");
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
                 new Header[]{}, mockResource,
-                variantMap);
+                variantMap, HeaderConstants.GET_METHOD);
         final Map<String,String> result = entry.getVariantMap();
         try {
             result.remove("A");
@@ -307,7 +307,7 @@ public class TestHttpCacheEntry {
     @Test
     public void canConvertToString() {
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                new Header[]{}, mockResource);
+                new Header[]{}, mockResource, HeaderConstants.GET_METHOD);
         assertNotNull(entry.toString());
         assertFalse("".equals(entry.toString()));
     }
@@ -316,7 +316,7 @@ public class TestHttpCacheEntry {
     public void testMissingDateHeaderIsIgnored() {
         final Header[] headers = new Header[] {};
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                                   headers, mockResource);
+                                   headers, mockResource, HeaderConstants.GET_METHOD);
         assertNull(entry.getDate());
     }
 
@@ -324,7 +324,7 @@ public class TestHttpCacheEntry {
     public void testMalformedDateHeaderIsIgnored() {
         final Header[] headers = new Header[] { new BasicHeader("Date", "asdf") };
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                                   headers, mockResource);
+                                   headers, mockResource, HeaderConstants.GET_METHOD);
         assertNull(entry.getDate());
     }
 
@@ -335,10 +335,19 @@ public class TestHttpCacheEntry {
         final Date date = new Date(nowMs - (nowMs % 1000L));
         final Header[] headers = new Header[] { new BasicHeader("Date", DateUtils.formatDate(date)) };
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
-                                   headers, mockResource);
+                                   headers, mockResource, HeaderConstants.GET_METHOD);
         final Date dateHeaderValue = entry.getDate();
         assertNotNull(dateHeaderValue);
         assertEquals(date.getTime(), dateHeaderValue.getTime());
     }
 
+    @Test
+    public void testGetMethodReturnsCorrectRequestMethod() {
+        final Header[] headers = { new BasicHeader("foo", "fooValue"),
+                new BasicHeader("bar", "barValue1"),
+                new BasicHeader("bar", "barValue2")
+        };
+        entry = makeEntry(headers);
+        assertEquals(HeaderConstants.GET_METHOD, entry.getRequestMethod());
+    }
 }

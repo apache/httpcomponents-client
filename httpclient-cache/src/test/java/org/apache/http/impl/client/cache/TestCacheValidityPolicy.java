@@ -355,6 +355,14 @@ public class TestCacheValidityPolicy {
     }
 
     @Test
+    public void testNullResourceInvalidatesEntry() {
+        final int contentLength = 128;
+        final Header[] headers = {new BasicHeader(HTTP.CONTENT_LEN, Integer.toString(contentLength))};
+        final HttpCacheEntry entry = HttpTestUtils.makeHeadCacheEntry(headers);
+        assertFalse(impl.contentLengthHeaderMatchesActualLength(entry));
+    }
+
+    @Test
     public void testMalformedContentLengthReturnsNegativeOne() {
         final Header[] headers = new Header[] { new BasicHeader("Content-Length", "asdf") };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers);

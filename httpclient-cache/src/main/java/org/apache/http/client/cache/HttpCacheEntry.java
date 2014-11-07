@@ -62,6 +62,7 @@ public class HttpCacheEntry implements Serializable {
     private final Resource resource;
     private final Map<String,String> variantMap;
     private final Date date;
+    private final String requestMethod;
 
     /**
      * Create a new {@link HttpCacheEntry} with variants.
@@ -80,6 +81,7 @@ public class HttpCacheEntry implements Serializable {
      *   of this parent entry; this maps a "variant key" (derived
      *   from the varying request headers) to a "cache key" (where
      *   in the cache storage the particular variant is located)
+     * @param requestMethod HTTP method used when the request was made
      */
     public HttpCacheEntry(
             final Date requestDate,
@@ -87,7 +89,8 @@ public class HttpCacheEntry implements Serializable {
             final StatusLine statusLine,
             final Header[] responseHeaders,
             final Resource resource,
-            final Map<String,String> variantMap) {
+            final Map<String,String> variantMap,
+            final String requestMethod) {
         super();
         Args.notNull(requestDate, "Request date");
         Args.notNull(responseDate, "Response date");
@@ -103,6 +106,7 @@ public class HttpCacheEntry implements Serializable {
             ? new HashMap<String,String>(variantMap)
             : null;
         this.date = parseDate();
+        this.requestMethod = requestMethod;
     }
 
     /**
@@ -119,11 +123,12 @@ public class HttpCacheEntry implements Serializable {
      * @param responseHeaders
      *          Header[] from original HTTP Response
      * @param resource representing origin response body
+     * @param requestMethod HTTP method used when the request was made
      */
     public HttpCacheEntry(final Date requestDate, final Date responseDate, final StatusLine statusLine,
-            final Header[] responseHeaders, final Resource resource) {
+            final Header[] responseHeaders, final Resource resource, final String requestMethod) {
         this(requestDate, responseDate, statusLine, responseHeaders, resource,
-                new HashMap<String,String>());
+                new HashMap<String,String>(), requestMethod);
     }
 
     /**
@@ -248,6 +253,16 @@ public class HttpCacheEntry implements Serializable {
      */
     public Map<String, String> getVariantMap() {
         return Collections.unmodifiableMap(variantMap);
+    }
+
+    /**
+     * Returns the HTTP request method that was used to create the cached
+     * response entry.
+     *
+     * @since 4.4
+     */
+    public String getRequestMethod() {
+        return requestMethod;
     }
 
     /**

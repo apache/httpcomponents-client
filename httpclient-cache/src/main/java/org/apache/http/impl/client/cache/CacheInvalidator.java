@@ -56,6 +56,7 @@ class CacheInvalidator implements HttpCacheInvalidator {
 
     private final HttpCacheStorage storage;
     private final CacheKeyGenerator cacheKeyGenerator;
+    private final boolean allowHeadResponseCaching;
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -65,12 +66,15 @@ class CacheInvalidator implements HttpCacheInvalidator {
      *
      * @param uriExtractor Provides identifiers for the keys to store cache entries
      * @param storage the cache to store items away in
+     * @param allowHeadResponseCaching is HEAD response caching enabled
      */
     public CacheInvalidator(
             final CacheKeyGenerator uriExtractor,
-            final HttpCacheStorage storage) {
+            final HttpCacheStorage storage,
+            final boolean allowHeadResponseCaching) {
         this.cacheKeyGenerator = uriExtractor;
         this.storage = storage;
+        this.allowHeadResponseCaching = allowHeadResponseCaching;
     }
 
     /**
@@ -82,15 +86,11 @@ class CacheInvalidator implements HttpCacheInvalidator {
      */
     @Override
     public void flushInvalidatedCacheEntries(final HttpHost host, final HttpRequest req)  {
-        if (requestShouldNotBeCached(req)) {
-            log.debug("Request should not be cached");
+        final String theUri = cacheKeyGenerator.getURI(host, req);
+        final HttpCacheEntry parent = getEntry(theUri);
 
-            final String theUri = cacheKeyGenerator.getURI(host, req);
-
-            final HttpCacheEntry parent = getEntry(theUri);
-
-            log.debug("parent entry: " + parent);
-
+        if (requestShouldNotBeCached(req) || shouldInvalidateHeadCacheEntry(req, parent)) {
+            log.debug("Invalidating parent cache entry: " + parent);
             if (parent != null) {
                 for (final String variantURI : parent.getVariantMap().values()) {
                     flushEntry(variantURI);
@@ -114,6 +114,18 @@ class CacheInvalidator implements HttpCacheInvalidator {
                 flushAbsoluteUriFromSameHost(reqURL, lHdr.getValue());
             }
         }
+    }
+
+    private boolean shouldInvalidateHeadCacheEntry(final HttpRequest req, final HttpCacheEntry parentCacheEntry) {
+        return allowHeadResponseCaching && requestIsGet(req) && isAHeadCacheEntry(parentCacheEntry);
+    }
+
+    private boolean requestIsGet(final HttpRequest req) {
+        return req.getRequestLine().getMethod().equals((HeaderConstants.GET_METHOD));
+    }
+
+    private boolean isAHeadCacheEntry(final HttpCacheEntry parentCacheEntry) {
+        return parentCacheEntry != null && parentCacheEntry.getRequestMethod().equals(HeaderConstants.HEAD_METHOD);
     }
 
     private void flushEntry(final String uri) {
