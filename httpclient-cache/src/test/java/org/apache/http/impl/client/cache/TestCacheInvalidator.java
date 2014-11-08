@@ -84,7 +84,7 @@ public class TestCacheInvalidator {
         request = HttpTestUtils.makeDefaultRequest();
         response = HttpTestUtils.make200Response();
 
-        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage, false);
+        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
     }
 
     private void replayMocks() {
@@ -223,7 +223,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesHEADCacheEntryIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
-        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage, true);
+        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
         final String theURI = "http://foo.example.com:80/";
         request = new BasicHttpRequest("GET", theURI,HTTP_1_1);
 
@@ -239,7 +239,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesVariantHEADCacheEntriesIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
-        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage, true);
+        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
         final String theURI = "http://foo.example.com:80/";
         request = new BasicHttpRequest("GET", theURI,HTTP_1_1);
         final String theVariantKey = "{Accept-Encoding=gzip%2Cdeflate&User-Agent=Apache-HttpClient}";
@@ -258,7 +258,7 @@ public class TestCacheInvalidator {
     }
 
     @Test
-    public void testDoesNotInvalidateHEADCacheEntryIfHEADResponseCachingIsNotEnabled() throws Exception {
+    public void testDoesNotInvalidateHEADCacheEntry() throws Exception {
         final String theURI = "http://foo.example.com:80/";
         request = new BasicHttpRequest("HEAD", theURI,HTTP_1_1);
 
@@ -271,7 +271,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateHEADCacheEntryIfSubsequentHEADRequestsAreMadeToTheSameURI() throws Exception {
-        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage, true);
+        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
         final String theURI = "http://foo.example.com:80/";
         request = new BasicHttpRequest("HEAD", theURI,HTTP_1_1);
 
@@ -284,7 +284,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateGETCacheEntryIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
-        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage, true);
+        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
         final String theURI = "http://foo.example.com:80/";
         request = new BasicHttpRequest("GET", theURI,HTTP_1_1);
 

@@ -80,7 +80,7 @@ public class TestCacheEntryUpdater {
             throws IOException {
         entry = HttpTestUtils.makeCacheEntry();
         final HttpCacheEntry newEntry = impl.updateCacheEntry(null, entry,
-                requestDate, responseDate, response, false);
+                requestDate, responseDate, response);
         assertNotSame(newEntry, entry);
     }
 
@@ -93,7 +93,7 @@ public class TestCacheEntryUpdater {
         response.setHeaders(new Header[]{});
 
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
-                new Date(), new Date(), response, false);
+                new Date(), new Date(), response);
 
 
         final Header[] updatedHeaders = updatedEntry.getAllHeaders();
@@ -117,7 +117,7 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Cache-Control", "public")});
 
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
-                new Date(), new Date(), response, false);
+                new Date(), new Date(), response);
 
         final Header[] updatedHeaders = updatedEntry.getAllHeaders();
 
@@ -141,7 +141,7 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Cache-Control", "public"),});
 
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
-                new Date(), new Date(), response, false);
+                new Date(), new Date(), response);
 
         final Header[] updatedHeaders = updatedEntry.getAllHeaders();
         assertEquals(4, updatedHeaders.length);
@@ -163,7 +163,7 @@ public class TestCacheEntryUpdater {
         response.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         response.setHeader("ETag", "\"old-etag\"");
         final HttpCacheEntry result = impl.updateCacheEntry("A", entry, new Date(),
-                new Date(), response, false);
+                new Date(), response);
         assertEquals(2, result.getAllHeaders().length);
         headersContain(result.getAllHeaders(), "Date", DateUtils.formatDate(oneSecondAgo));
         headersContain(result.getAllHeaders(), "ETag", "\"new-etag\"");
@@ -174,7 +174,7 @@ public class TestCacheEntryUpdater {
             throws IOException {
         entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo);
         final HttpCacheEntry updated = impl.updateCacheEntry(null, entry,
-                twoSecondsAgo, oneSecondAgo, response, false);
+                twoSecondsAgo, oneSecondAgo, response);
 
         assertEquals(twoSecondsAgo, updated.getRequestDate());
         assertEquals(oneSecondAgo, updated.getResponseDate());
@@ -191,7 +191,7 @@ public class TestCacheEntryUpdater {
         response.setHeader("ETag", "\"new\"");
         response.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
         final HttpCacheEntry updated = impl.updateCacheEntry(null, entry,
-                twoSecondsAgo, oneSecondAgo, response, false);
+                twoSecondsAgo, oneSecondAgo, response);
 
         assertEquals(0, updated.getHeaders("Warning").length);
     }
@@ -206,7 +206,7 @@ public class TestCacheEntryUpdater {
         response.setHeader("ETag", "\"new\"");
         response.setHeader("Date", DateUtils.formatDate(twoSecondsAgo));
         final HttpCacheEntry updated = impl.updateCacheEntry(null, entry,
-                twoSecondsAgo, oneSecondAgo, response, false);
+                twoSecondsAgo, oneSecondAgo, response);
 
         assertEquals("\"new\"", updated.getFirstHeader("ETag").getValue());
     }
@@ -221,7 +221,7 @@ public class TestCacheEntryUpdater {
         response.setHeader("ETag", "\"new\"");
         response.setHeader("Date", "bad-date");
         final HttpCacheEntry updated = impl.updateCacheEntry(null, entry,
-                twoSecondsAgo, oneSecondAgo, response, false);
+                twoSecondsAgo, oneSecondAgo, response);
 
         assertEquals("\"new\"", updated.getFirstHeader("ETag").getValue());
     }
@@ -233,7 +233,7 @@ public class TestCacheEntryUpdater {
                 HttpStatus.SC_OK, "OK");
         try {
             impl.updateCacheEntry("A", entry, new Date(), new Date(),
-                    response, false);
+                    response);
             fail("should have thrown exception");
         } catch (final IllegalArgumentException expected) {
         }

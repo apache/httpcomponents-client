@@ -69,7 +69,6 @@ class BasicHttpCache implements HttpCache {
     private final CachedHttpResponseGenerator responseGenerator;
     private final HttpCacheInvalidator cacheInvalidator;
     private final HttpCacheStorage storage;
-    private final boolean allowHeadResponseCaching;
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -86,7 +85,6 @@ class BasicHttpCache implements HttpCache {
         this.responseGenerator = new CachedHttpResponseGenerator();
         this.storage = storage;
         this.cacheInvalidator = cacheInvalidator;
-        this.allowHeadResponseCaching = config.isHeadResponseCachingEnabled();
     }
 
     public BasicHttpCache(
@@ -95,7 +93,7 @@ class BasicHttpCache implements HttpCache {
             final CacheConfig config,
             final CacheKeyGenerator uriExtractor) {
         this( resourceFactory, storage, config, uriExtractor,
-                new CacheInvalidator(uriExtractor, storage, config.isHeadResponseCachingEnabled()));
+                new CacheInvalidator(uriExtractor, storage));
     }
 
     public BasicHttpCache(
@@ -256,7 +254,7 @@ class BasicHttpCache implements HttpCache {
                 src.getAllHeaders(),
                 resource,
                 variantMap,
-                allowHeadResponseCaching ? src.getRequestMethod() : null);
+                src.getRequestMethod());
     }
 
     @Override
@@ -268,8 +266,7 @@ class BasicHttpCache implements HttpCache {
                 stale,
                 requestSent,
                 responseReceived,
-                originResponse,
-                allowHeadResponseCaching);
+                originResponse);
         storeInCache(target, request, updatedEntry);
         return updatedEntry;
     }
@@ -283,8 +280,7 @@ class BasicHttpCache implements HttpCache {
                 stale,
                 requestSent,
                 responseReceived,
-                originResponse,
-                allowHeadResponseCaching);
+                originResponse);
         storage.putEntry(cacheKey, updatedEntry);
         return updatedEntry;
     }
@@ -327,7 +323,7 @@ class BasicHttpCache implements HttpCache {
                     originResponse.getStatusLine(),
                     originResponse.getAllHeaders(),
                     resource,
-                    allowHeadResponseCaching ? request.getRequestLine().getMethod() : null);
+                    request.getRequestLine().getMethod());
             storeInCache(host, request, entry);
             return responseGenerator.generateResponse(HttpRequestWrapper.wrap(request, host), entry);
         } finally {

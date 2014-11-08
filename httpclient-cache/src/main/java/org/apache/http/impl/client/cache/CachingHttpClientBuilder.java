@@ -140,7 +140,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
 
         HttpCacheInvalidator cacheInvalidator = this.httpCacheInvalidator;
         if (cacheInvalidator == null) {
-            cacheInvalidator = new CacheInvalidator(uriExtractor, storageCopy, config.isHeadResponseCachingEnabled());
+            cacheInvalidator = new CacheInvalidator(uriExtractor, storageCopy);
         }
 
         return new CachingExec(mainExec,
@@ -162,7 +162,6 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
         return null;
     }
 
-    @SuppressWarnings("resource")
     private SchedulingStrategy createSchedulingStrategy(final CacheConfig config) {
         return schedulingStrategy != null ? schedulingStrategy : new ImmediateSchedulingStrategy(config);
     }

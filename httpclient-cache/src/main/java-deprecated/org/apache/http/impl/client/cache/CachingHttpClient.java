@@ -162,7 +162,6 @@ public class CachingHttpClient implements HttpClient {
     private final RequestProtocolCompliance requestCompliance;
 
     private final AsynchronousValidator asynchRevalidator;
-    private final boolean allowHeadResponseCaching;
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -180,8 +179,7 @@ public class CachingHttpClient implements HttpClient {
         this.responseCache = cache;
         this.validityPolicy = new CacheValidityPolicy();
         this.responseCachingPolicy = new ResponseCachingPolicy(maxObjectSizeBytes, sharedCache,
-                config.isNeverCacheHTTP10ResponsesWithQuery(), config.is303CachingEnabled(),
-                config.isHeadResponseCachingEnabled());
+                config.isNeverCacheHTTP10ResponsesWithQuery(), config.is303CachingEnabled());
         this.responseGenerator = new CachedHttpResponseGenerator(this.validityPolicy);
         this.cacheableRequestPolicy = new CacheableRequestPolicy();
         this.suitabilityChecker = new CachedResponseSuitabilityChecker(this.validityPolicy, config);
@@ -191,7 +189,6 @@ public class CachingHttpClient implements HttpClient {
         this.requestCompliance = new RequestProtocolCompliance(config.isWeakETagOnPutDeleteAllowed());
 
         this.asynchRevalidator = makeAsynchronousValidator(config);
-        this.allowHeadResponseCaching = config.isHeadResponseCachingEnabled();
     }
 
     /**
@@ -304,7 +301,6 @@ public class CachingHttpClient implements HttpClient {
         this.responseCompliance = responseCompliance;
         this.requestCompliance = requestCompliance;
         this.asynchRevalidator = makeAsynchronousValidator(config);
-        this.allowHeadResponseCaching = config.isHeadResponseCachingEnabled();
     }
 
     private AsynchronousValidator makeAsynchronousValidator(
@@ -449,7 +445,7 @@ public class CachingHttpClient implements HttpClient {
 
         flushEntriesInvalidatedByRequest(target, request);
 
-        if (!cacheableRequestPolicy.isServableFromCache(request, allowHeadResponseCaching)) {
+        if (!cacheableRequestPolicy.isServableFromCache(request)) {
             log.debug("Request is not servable from cache");
             return callBackend(target, request, context);
         }

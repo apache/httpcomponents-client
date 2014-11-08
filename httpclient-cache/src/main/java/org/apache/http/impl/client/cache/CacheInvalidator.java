@@ -56,7 +56,6 @@ class CacheInvalidator implements HttpCacheInvalidator {
 
     private final HttpCacheStorage storage;
     private final CacheKeyGenerator cacheKeyGenerator;
-    private final boolean allowHeadResponseCaching;
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -66,15 +65,12 @@ class CacheInvalidator implements HttpCacheInvalidator {
      *
      * @param uriExtractor Provides identifiers for the keys to store cache entries
      * @param storage the cache to store items away in
-     * @param allowHeadResponseCaching is HEAD response caching enabled
      */
     public CacheInvalidator(
             final CacheKeyGenerator uriExtractor,
-            final HttpCacheStorage storage,
-            final boolean allowHeadResponseCaching) {
+            final HttpCacheStorage storage) {
         this.cacheKeyGenerator = uriExtractor;
         this.storage = storage;
-        this.allowHeadResponseCaching = allowHeadResponseCaching;
     }
 
     /**
@@ -117,7 +113,7 @@ class CacheInvalidator implements HttpCacheInvalidator {
     }
 
     private boolean shouldInvalidateHeadCacheEntry(final HttpRequest req, final HttpCacheEntry parentCacheEntry) {
-        return allowHeadResponseCaching && requestIsGet(req) && isAHeadCacheEntry(parentCacheEntry);
+        return requestIsGet(req) && isAHeadCacheEntry(parentCacheEntry);
     }
 
     private boolean requestIsGet(final HttpRequest req) {

@@ -56,7 +56,6 @@ class CachedResponseSuitabilityChecker {
     private final float heuristicCoefficient;
     private final long heuristicDefaultLifetime;
     private final CacheValidityPolicy validityStrategy;
-    private final boolean allowHeadResponseCaching;
 
     CachedResponseSuitabilityChecker(final CacheValidityPolicy validityStrategy,
             final CacheConfig config) {
@@ -66,7 +65,6 @@ class CachedResponseSuitabilityChecker {
         this.useHeuristicCaching = config.isHeuristicCachingEnabled();
         this.heuristicCoefficient = config.getHeuristicCoefficient();
         this.heuristicDefaultLifetime = config.getHeuristicDefaultLifetime();
-        this.allowHeadResponseCaching = config.isHeadResponseCachingEnabled();
     }
 
     CachedResponseSuitabilityChecker(final CacheConfig config) {
@@ -168,7 +166,7 @@ class CachedResponseSuitabilityChecker {
             return false;
         }
 
-        if (allowHeadResponseCaching && hasUnsupportedCacheEntryForGet(request, entry)) {
+        if (hasUnsupportedCacheEntryForGet(request, entry)) {
             log.debug("HEAD response caching enabled but the cache entry does not contain a " +
                       "request method, entity or a 204 response");
             return false;

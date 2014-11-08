@@ -153,8 +153,7 @@ public class CachingExec implements ClientExecChain {
         this.requestCompliance = new RequestProtocolCompliance(this.cacheConfig.isWeakETagOnPutDeleteAllowed());
         this.responseCachingPolicy = new ResponseCachingPolicy(
                 this.cacheConfig.getMaxObjectSize(), this.cacheConfig.isSharedCache(),
-                this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery(), this.cacheConfig.is303CachingEnabled(),
-                this.cacheConfig.isHeadResponseCachingEnabled());
+                this.cacheConfig.isNeverCacheHTTP10ResponsesWithQuery(), this.cacheConfig.is303CachingEnabled());
         this.asynchRevalidator = asynchRevalidator;
     }
 
@@ -265,7 +264,7 @@ public class CachingExec implements ClientExecChain {
 
         flushEntriesInvalidatedByRequest(context.getTargetHost(), request);
 
-        if (!cacheableRequestPolicy.isServableFromCache(request, cacheConfig.isHeadResponseCachingEnabled())) {
+        if (!cacheableRequestPolicy.isServableFromCache(request)) {
             log.debug("Request is not servable from cache");
             return callBackend(route, request, context, execAware);
         }
@@ -424,11 +423,8 @@ public class CachingExec implements ClientExecChain {
         }
     }
 
-    private CloseableHttpResponse generateCachedResponse(
-            final HttpRequestWrapper request,
-            final HttpContext context,
-            final HttpCacheEntry entry,
-            final Date now) {
+    private CloseableHttpResponse generateCachedResponse(final HttpRequestWrapper request,
+            final HttpContext context, final HttpCacheEntry entry, final Date now) {
         final CloseableHttpResponse cachedResponse;
         if (request.containsHeader(HeaderConstants.IF_NONE_MATCH)
                 || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
