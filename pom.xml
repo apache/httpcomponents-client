@@ -381,6 +381,7 @@
           <excludes>
             <exclude>src/docbkx/resources/**</exclude>
             <exclude>src/test/resources/*.truststore</exclude>
+            <exclude>.checkstyle</exclude>
           </excludes>
         </configuration>
       </plugin>
