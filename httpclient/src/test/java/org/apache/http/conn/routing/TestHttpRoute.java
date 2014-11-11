@@ -45,7 +45,7 @@ public class TestHttpRoute {
 
     // a selection of constants for generating routes
     public final static
-        HttpHost TARGET1 = new HttpHost("target1.test.invalid");
+        HttpHost TARGET1 = new HttpHost("target1.test.invalid", 80);
     public final static
         HttpHost TARGET2 = new HttpHost("target2.test.invalid", 8080);
     // It is not necessary to have extra targets for https.
@@ -575,6 +575,12 @@ public class TestHttpRoute {
 
         Assert.assertEquals("route differs from clone", route2, route1);
         Assert.assertEquals("route was modified", route3, route1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testFailOnConstructionWithoutExplicitTargetPort() {
+        final HttpHost target = new HttpHost("somehost", -1, "https");
+        new HttpRoute(target);
     }
 
 }

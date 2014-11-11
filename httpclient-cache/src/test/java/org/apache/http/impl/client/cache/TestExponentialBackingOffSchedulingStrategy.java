@@ -164,7 +164,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
         final ClientExecChain clientExecChain = EasyMock.createNiceMock(ClientExecChain.class);
         final CachingExec cachingHttpClient = new CachingExec(clientExecChain);
         final AsynchronousValidator mockValidator = new AsynchronousValidator(impl);
-        final HttpRoute httpRoute = new HttpRoute(new HttpHost("foo.example.com"));
+        final HttpRoute httpRoute = new HttpRoute(new HttpHost("foo.example.com", 80));
         final HttpRequestWrapper httpRequestWrapper = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/"));
         final HttpClientContext httpClientContext = new HttpClientContext();
         return new AsynchronousValidationRequest(mockValidator, cachingHttpClient, httpRoute, httpRequestWrapper,

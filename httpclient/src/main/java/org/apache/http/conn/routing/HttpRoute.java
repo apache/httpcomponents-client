@@ -71,6 +71,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     private HttpRoute(final HttpHost target, final InetAddress local, final List<HttpHost> proxies,
                      final boolean secure, final TunnelType tunnelled, final LayerType layered) {
         Args.notNull(target, "Target host");
+        Args.check(target.getPort() != -1, "target host port must be specified");
         this.targetHost   = target;
         this.localAddress = local;
         if (proxies != null && !proxies.isEmpty()) {

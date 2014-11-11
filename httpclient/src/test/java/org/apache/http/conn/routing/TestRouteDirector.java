@@ -42,7 +42,7 @@ public class TestRouteDirector {
 
     // a selection of constants for generating routes
     public final static
-        HttpHost TARGET1 = new HttpHost("target1.test.invalid");
+        HttpHost TARGET1 = new HttpHost("target1.test.invalid", 80);
     public final static
         HttpHost TARGET2 = new HttpHost("target2.test.invalid", 8080);
     // It is not necessary to have extra targets for https.
@@ -50,7 +50,7 @@ public class TestRouteDirector {
     // for routes, they will not be determined from the scheme.
 
     public final static
-        HttpHost PROXY1 = new HttpHost("proxy1.test.invalid");
+        HttpHost PROXY1 = new HttpHost("proxy1.test.invalid", 80);
     public final static
         HttpHost PROXY2 = new HttpHost("proxy2.test.invalid", 1080);
     public final static

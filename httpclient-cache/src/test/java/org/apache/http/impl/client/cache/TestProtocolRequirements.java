@@ -4806,7 +4806,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     protected void testUnsafeMethodDoesNotInvalidateCacheForHeaderUri(
             final HttpRequestWrapper unsafeReq) throws Exception, IOException {
 
-        final HttpHost otherHost = new HttpHost("bar.example.com");
+        final HttpHost otherHost = new HttpHost("bar.example.com", 80);
         final HttpRoute otherRoute = new HttpRoute(otherHost);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/content", HttpVersion.HTTP_1_1));
