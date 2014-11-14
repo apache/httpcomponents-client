@@ -58,7 +58,7 @@ public final class AuthSchemes {
     /**
      * SPNEGO Authentication scheme.
      */
-    public static final String SPNEGO = "negotiate";
+    public static final String SPNEGO = "Negotiate";
 
     /**
      * Kerberos Authentication scheme.
