@@ -91,7 +91,7 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
         Assume.assumeTrue("Test can only be run on Windows", WinHttpClients.isWinAuthAvailable());
 
         // HTTPCLIENT-1545
-        // If a service principle name (SPN) from outside your Windows domain tree (e.g., HTTP/EXAMPLE.COM) is used,
+        // If a service principle name (SPN) from outside your Windows domain tree (e.g., HTTP/example.com) is used,
         // InitializeSecurityContext will return SEC_E_DOWNGRADE_DETECTED (decimal: -2146892976, hex: 0x80090350).
         // Because WindowsNegotiateScheme wasn't setting the completed state correctly when authentication fails,
         // HttpClient goes into an infinite loop, constantly retrying the negotiate authentication to kingdom
@@ -101,7 +101,7 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register(AuthSchemes.SPNEGO, new AuthSchemeProvider() {
                 public AuthScheme create(final HttpContext context) {
-                    return new WindowsNegotiateSchemeGetTokenFail(AuthSchemes.SPNEGO, "HTTP/EXAMPLE.COM");
+                    return new WindowsNegotiateSchemeGetTokenFail(AuthSchemes.SPNEGO, "HTTP/example.com");
                 }
             }).build();
         final CredentialsProvider credsProvider =
@@ -129,7 +129,10 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
         @Override
         String getToken(final CtxtHandle continueCtx, final SecBufferDesc continueToken, final String targetName) {
             dispose();
-            throw new Win32Exception(WinError.SEC_E_DOWNGRADE_DETECTED);
+            /* We will rather throw SEC_E_TARGET_UNKNOWN because SEC_E_DOWNGRADE_DETECTED is not
+             * available on Windows XP and this unit test always fails.
+             */
+            throw new Win32Exception(WinError.SEC_E_TARGET_UNKNOWN);
         }
 
     }
