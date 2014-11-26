@@ -37,7 +37,16 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 
-class ContentResponseHandler implements ResponseHandler<Content> {
+/**
+ * {@link org.apache.http.client.ResponseHandler} implementation that converts
+ * {@link org.apache.http.HttpResponse} messages to {@link org.apache.http.client.fluent.Content}
+ * instances.
+ *
+ * @see org.apache.http.client.fluent.Content
+ *
+ * @since 4.4
+ */
+public class ContentResponseHandler implements ResponseHandler<Content> {
 
     @Override
     public Content handleResponse(
