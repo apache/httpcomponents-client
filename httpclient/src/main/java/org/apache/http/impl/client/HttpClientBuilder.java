@@ -197,6 +197,10 @@ public class HttpClientBuilder {
     private SocketConfig defaultSocketConfig;
     private ConnectionConfig defaultConnectionConfig;
     private RequestConfig defaultRequestConfig;
+    private boolean evictExpiredConnections;
+    private boolean evictIdleConnections;
+    private long maxIdleTime;
+    private TimeUnit maxIdleTimeUnit;
 
     private boolean systemProperties;
     private boolean redirectHandlingDisabled;
@@ -749,7 +753,60 @@ public class HttpClientBuilder {
      * implementations.
      */
     public final HttpClientBuilder useSystemProperties() {
-        systemProperties = true;
+        this.systemProperties = true;
+        return this;
+    }
+
+    /**
+     * Makes this instance of HttpClient proactively evict expired connections from the
+     * connection pool using a background thread.
+     * <p>
+     * One MUST explicitly close HttpClient with {@link CloseableHttpClient#close()} in order
+     * to stop and release the background thread.
+     * <p>
+     * Please note this method has no effect if the instance of HttpClient is configuted to
+     * use a shared connection manager.
+     * <p>
+     * Please note this method may not be used when the instance of HttpClient is created
+     * inside an EJB container.
+     *
+     * @see #setConnectionManagerShared(boolean)
+     * @see org.apache.http.conn.HttpClientConnectionManager#closeExpiredConnections()
+     *
+     * @since 4.4
+     */
+    public final HttpClientBuilder evictExpiredConnections() {
+        evictExpiredConnections = true;
+        return this;
+    }
+
+    /**
+     * Makes this instance of HttpClient proactively evict idle connections from the
+     * connection pool using a background thread.
+     * <p>
+     * One MUST explicitly close HttpClient with {@link CloseableHttpClient#close()} in order
+     * to stop and release the background thread.
+     * <p>
+     * Please note this method has no effect if the instance of HttpClient is configuted to
+     * use a shared connection manager.
+     * <p>
+     * Please note this method may not be used when the instance of HttpClient is created
+     * inside an EJB container.
+     *
+     * @see #setConnectionManagerShared(boolean)
+     * @see org.apache.http.conn.HttpClientConnectionManager#closeExpiredConnections()
+     *
+     * @param maxIdleTime maxium time persistent connections can stay idle while kept alive
+     * in the connection pool. Connections whose inactivity period exceeds this value will
+     * get closed and evicted from the pool.
+     * @param maxIdleTimeUnit time unit for the above parameter.
+     *
+     * @since 4.4
+     */
+    public final HttpClientBuilder evictIdleConnections(final Long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
+        this.evictIdleConnections = true;
+        this.maxIdleTime = maxIdleTime;
+        this.maxIdleTimeUnit = maxIdleTimeUnit;
         return this;
     }
 
@@ -1098,6 +1155,20 @@ public class HttpClientBuilder {
                 closeablesCopy = new ArrayList<Closeable>(1);
             }
             final HttpClientConnectionManager cm = connManagerCopy;
+
+            if (evictExpiredConnections || evictIdleConnections) {
+                final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
+                        maxIdleTime > 0 ? maxIdleTime : 10, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS);
+                closeablesCopy.add(new Closeable() {
+
+                    @Override
+                    public void close() throws IOException {
+                        connectionEvictor.shutdown();
+                    }
+
+                });
+                connectionEvictor.start();
+            }
             closeablesCopy.add(new Closeable() {
 
                 @Override

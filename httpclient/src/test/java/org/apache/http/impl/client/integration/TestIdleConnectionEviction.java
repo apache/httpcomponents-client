@@ -35,7 +35,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.client.IdleConnectionEvictor;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
@@ -49,7 +49,8 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
 
         final HttpHost target = start();
 
-        final IdleConnectionMonitor idleConnectionMonitor = new IdleConnectionMonitor(this.connManager);
+        final IdleConnectionEvictor idleConnectionMonitor = new IdleConnectionEvictor(
+                this.connManager, 50, TimeUnit.MILLISECONDS);
         idleConnectionMonitor.start();
 
         final HttpGet httpget = new HttpGet("/random/1024");
@@ -111,40 +112,6 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
 
         public Exception getException() {
             return ex;
-        }
-
-    }
-
-    public static class IdleConnectionMonitor extends Thread {
-
-        private final HttpClientConnectionManager cm;
-        private volatile boolean shutdown;
-
-        public IdleConnectionMonitor(final HttpClientConnectionManager cm) {
-            super();
-            this.cm = cm;
-            setDaemon(true);
-        }
-
-        @Override
-        public void run() {
-            try {
-                while (!this.shutdown) {
-                    synchronized (this) {
-                        wait(250);
-                        this.cm.closeIdleConnections(1, TimeUnit.MILLISECONDS);
-                    }
-                }
-            } catch (final InterruptedException ex) {
-                // terminate
-            }
-        }
-
-        public void shutdown() {
-            this.shutdown = true;
-            synchronized (this) {
-                notifyAll();
-            }
         }
 
     }
