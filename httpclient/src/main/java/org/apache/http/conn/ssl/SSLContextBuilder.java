@@ -72,8 +72,8 @@ public class SSLContextBuilder {
     static final String SSL   = "SSL";
 
     private String protocol;
-    private Set<KeyManager> keymanagers;
-    private Set<TrustManager> trustmanagers;
+    private final Set<KeyManager> keymanagers;
+    private final Set<TrustManager> trustmanagers;
     private SecureRandom secureRandom;
 
     public SSLContextBuilder() {
