@@ -55,6 +55,13 @@ import org.apache.http.annotation.NotThreadSafe;
 
 /**
  * Builder for {@link SSLContext} instances.
+ * <p>
+ * Please note: the default Oracle JSSE implementation of {@link SSLContext#init(KeyManager[], TrustManager[], SecureRandom)}
+ * accepts multiple key and trust managers, however only only first matching type is ever used.
+ * See for example:
+ * <a href="http://docs.oracle.com/javase/7/docs/api/javax/net/ssl/SSLContext.html#init%28javax.net.ssl.KeyManager[],%20javax.net.ssl.TrustManager[],%20java.security.SecureRandom%29">
+ * SSLContext.html#init
+ * </a>
  *
  * @since 4.3
  */
