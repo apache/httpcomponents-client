@@ -315,7 +315,14 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
     @Override
     public boolean containsAttribute(final String name) {
-        return this.attribs.get(name) != null;
+        return this.attribs.containsKey(name);
+    }
+
+    /**
+     * @since 4.4
+     */
+    public boolean removeAttribute(final String name) {
+        return this.attribs.remove(name) != null;
     }
 
     @Override
