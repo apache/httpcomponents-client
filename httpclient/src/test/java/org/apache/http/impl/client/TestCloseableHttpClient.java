@@ -166,7 +166,7 @@ public class TestCloseableHttpClient {
                     Mockito.eq(new HttpHost("somehost", 444, "https")),
                     Mockito.same(httpget),
                     (HttpContext) Mockito.isNull());
-            Mockito.verify(content).close();
+            Mockito.verify(response).close();
             throw ex;
         }
     }
@@ -190,7 +190,7 @@ public class TestCloseableHttpClient {
                     Mockito.eq(new HttpHost("somehost", 444, "https")),
                     Mockito.same(httpget),
                     (HttpContext) Mockito.isNull());
-            Mockito.verify(content).close();
+            Mockito.verify(response).close();
             throw ex;
         }
     }
