@@ -60,32 +60,38 @@ public class BasicPathHandler implements CommonCookieAttributeHandler {
             throws MalformedCookieException {
         if (!match(cookie, origin)) {
             throw new CookieRestrictionViolationException(
-                "Illegal path attribute \"" + cookie.getPath()
+                "Illegal 'path' attribute \"" + cookie.getPath()
                 + "\". Path of origin: \"" + origin.getPath() + "\"");
         }
+    }
+
+    static boolean pathMatch(final String uriPath, final String cookiePath) {
+        String normalizedCookiePath = cookiePath;
+        if (normalizedCookiePath == null) {
+            normalizedCookiePath = "/";
+        }
+        if (normalizedCookiePath.length() > 1 && normalizedCookiePath.endsWith("/")) {
+            normalizedCookiePath = normalizedCookiePath.substring(0, normalizedCookiePath.length() - 1);
+        }
+        if (uriPath.startsWith(normalizedCookiePath)) {
+            if (normalizedCookiePath.equals("/")) {
+                return true;
+            }
+            if (uriPath.length() == normalizedCookiePath.length()) {
+                return true;
+            }
+            if (uriPath.charAt(normalizedCookiePath.length()) == '/') {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
         Args.notNull(cookie, "Cookie");
         Args.notNull(origin, "Cookie origin");
-        final String targetpath = origin.getPath();
-        String topmostPath = cookie.getPath();
-        if (topmostPath == null) {
-            topmostPath = "/";
-        }
-        if (topmostPath.length() > 1 && topmostPath.endsWith("/")) {
-            topmostPath = topmostPath.substring(0, topmostPath.length() - 1);
-        }
-        boolean match = targetpath.startsWith (topmostPath);
-        // if there is a match and these values are not exactly the same we have
-        // to make sure we're not matcing "/foobar" and "/foo"
-        if (match && targetpath.length() != topmostPath.length()) {
-            if (!topmostPath.endsWith("/")) {
-                match = (targetpath.charAt(topmostPath.length()) == '/');
-            }
-        }
-        return match;
+        return pathMatch(origin.getPath(), cookie.getPath());
     }
 
     @Override

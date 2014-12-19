@@ -27,6 +27,8 @@
 package org.apache.http.impl.cookie;
 
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.cookie.ClientCookie;
@@ -34,37 +36,39 @@ import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.Args;
+import org.apache.http.util.TextUtils;
 
 /**
  *
- * @since 4.0
+ * @since 4.4
  */
 @Immutable
-public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
+public class LaxMaxAgeHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
-    public BasicMaxAgeHandler() {
+    private final static Pattern MAX_AGE_PATTERN = Pattern.compile("^\\-?[0-9]+$");
+
+    public LaxMaxAgeHandler() {
         super();
     }
 
     @Override
-    public void parse(final SetCookie cookie, final String value)
-            throws MalformedCookieException {
+    public void parse(final SetCookie cookie, final String value) throws MalformedCookieException {
         Args.notNull(cookie, "Cookie");
-        if (value == null) {
-            throw new MalformedCookieException("Missing value for 'max-age' attribute");
+        if (TextUtils.isBlank(value)) {
+            return;
         }
-        final int age;
-        try {
-            age = Integer.parseInt(value);
-        } catch (final NumberFormatException e) {
-            throw new MalformedCookieException ("Invalid 'max-age' attribute: "
-                    + value);
+        final Matcher matcher = MAX_AGE_PATTERN.matcher(value);
+        if (matcher.matches()) {
+            final int age;
+            try {
+                age = Integer.parseInt(value);
+            } catch (final NumberFormatException e) {
+                return;
+            }
+            final Date expiryDate = age >= 0 ? new Date(System.currentTimeMillis() + age * 1000L) :
+                    new Date(Long.MIN_VALUE);
+            cookie.setExpiryDate(expiryDate);
         }
-        if (age < 0) {
-            throw new MalformedCookieException ("Negative 'max-age' attribute: "
-                    + value);
-        }
-        cookie.setExpiryDate(new Date(System.currentTimeMillis() + age * 1000L));
     }
 
     @Override

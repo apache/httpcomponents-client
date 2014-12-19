@@ -57,6 +57,7 @@ import org.apache.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class TestRequestAddCookies {
 
@@ -371,9 +372,12 @@ public class TestRequestAddCookies {
         cookie3.setVersion(1);
         cookie3.setDomain("localhost.local");
         cookie3.setPath("/");
-        cookie3.setExpiryDate(new Date(System.currentTimeMillis() - (24 * 60 * 60 * 1000)));
-
+        cookie3.setExpiryDate(new Date(System.currentTimeMillis() + 100));
         this.cookieStore.addCookie(cookie3);
+
+        Assert.assertEquals(3, this.cookieStore.getCookies().size());
+
+        this.cookieStore = Mockito.spy(this.cookieStore);
 
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
@@ -382,6 +386,9 @@ public class TestRequestAddCookies {
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
+
+        // Make sure the third cookie expires
+        Thread.sleep(200);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
         interceptor.process(request, context);
@@ -394,6 +401,8 @@ public class TestRequestAddCookies {
         final Header[] headers2 = request.getHeaders(SM.COOKIE2);
         Assert.assertNotNull(headers2);
         Assert.assertEquals(0, headers2.length);
+
+        Mockito.verify(this.cookieStore, Mockito.times(1)).clearExpired(Mockito.<Date>any());
     }
 
     @Test

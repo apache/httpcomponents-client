@@ -27,58 +27,43 @@
 
 package org.apache.http.cookie;
 
-import java.io.Serializable;
 import java.util.Comparator;
+import java.util.Date;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.impl.cookie.BasicClientCookie;
 
 /**
- * This cookie comparator ensures that multiple cookies satisfying
- * a common criteria are ordered in the {@code Cookie} header such
- * that those with more specific Path attributes precede those with
- * less specific.
+ * This cookie comparator ensures that cookies with longer paths take precedence over
+ * cookies with shorter path. Among cookies with equal path length cookies with ealier
+ * creation time take precedence over cookies with later creation time
  *
- * <p>
- * This comparator assumes that Path attributes of two cookies
- * path-match a commmon request-URI. Otherwise, the result of the
- * comparison is undefined.
- * </p>
- *
- *
- * @since 4.0
+ * @since 4.4
  */
 @Immutable
-public class CookiePathComparator implements Serializable, Comparator<Cookie> {
+public class CookiePriorityComparator implements Comparator<Cookie> {
 
-    public static final CookiePathComparator INSTANCE = new CookiePathComparator();
+    public static final CookiePriorityComparator INSTANCE = new CookiePriorityComparator();
 
-    private static final long serialVersionUID = 7523645369616405818L;
-
-    private String normalizePath(final Cookie cookie) {
-        String path = cookie.getPath();
-        if (path == null) {
-            path = "/";
-        }
-        if (!path.endsWith("/")) {
-            path = path + '/';
-        }
-        return path;
+    private int getPathLength(final Cookie cookie) {
+        final String path = cookie.getPath();
+        return path != null ? path.length() : 1;
     }
 
     @Override
     public int compare(final Cookie c1, final Cookie c2) {
-        final String path1 = normalizePath(c1);
-        final String path2 = normalizePath(c2);
-        if (path1.equals(path2)) {
-            return 0;
-        } else if (path1.startsWith(path2)) {
-            return -1;
-        } else if (path2.startsWith(path1)) {
-            return 1;
-        } else {
-            // Does not really matter
-            return 0;
+        final int l1 = getPathLength(c1);
+        final int l2 = getPathLength(c2);
+        //TODO: update this class once Cookie interface has been expended with #getCreationTime method
+        final int result = l2 - l1;
+        if (result == 0 && c1 instanceof BasicClientCookie && c2 instanceof BasicClientCookie) {
+            final Date d1 = ((BasicClientCookie) c1).getCreationDate();
+            final Date d2 = ((BasicClientCookie) c2).getCreationDate();
+            if (d1 != null && d2 != null) {
+                return (int) (d1.getTime() - d2.getTime());
+            }
         }
+        return result;
     }
 
 }

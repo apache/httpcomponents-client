@@ -24,51 +24,44 @@
  * <http://www.apache.org/>.
  *
  */
+
 package org.apache.http.impl.cookie;
 
-import java.util.Date;
-
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
-import org.apache.http.cookie.MalformedCookieException;
-import org.apache.http.cookie.SetCookie;
-import org.apache.http.util.Args;
 
 /**
+ * Standard {@link org.apache.http.cookie.CookieSpec} implementation that enforces syntax
+ * and semantics of the well-behaved profile of the HTTP state management specification
+ * (RFC 6265, section 4).
  *
- * @since 4.0
+ * @since 4.4
  */
-@Immutable
-public class BasicExpiresHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
+@ThreadSafe
+public class RFC6265StrictSpec extends RFC6265CookieSpecBase {
 
-    /** Valid date patterns */
-    private final String[] datepatterns;
+    final static String[] DATE_PATTERNS = {
+        DateUtils.PATTERN_RFC1123,
+        DateUtils.PATTERN_RFC1036,
+        DateUtils.PATTERN_ASCTIME
+    };
 
-    public BasicExpiresHandler(final String[] datepatterns) {
-        Args.notNull(datepatterns, "Array of date patterns");
-        this.datepatterns = datepatterns;
+    public RFC6265StrictSpec() {
+        super(new BasicPathHandler(),
+                new BasicDomainHandler(),
+                new BasicMaxAgeHandler(),
+                new BasicSecureHandler(),
+                new BasicExpiresHandler(DATE_PATTERNS));
+    }
+
+    RFC6265StrictSpec(final CommonCookieAttributeHandler... handlers) {
+        super(handlers);
     }
 
     @Override
-    public void parse(final SetCookie cookie, final String value)
-            throws MalformedCookieException {
-        Args.notNull(cookie, "Cookie");
-        if (value == null) {
-            throw new MalformedCookieException("Missing value for 'expires' attribute");
-        }
-        final Date expiry = DateUtils.parseDate(value, this.datepatterns);
-        if (expiry == null) {
-            throw new MalformedCookieException("Invalid 'expires' attribute: "
-                    + value);
-        }
-        cookie.setExpiryDate(expiry);
-    }
-
-    @Override
-    public String getAttributeName() {
-        return ClientCookie.EXPIRES_ATTR;
+    public String toString() {
+        return "rfc6265-strict";
     }
 
 }

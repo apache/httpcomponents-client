@@ -30,6 +30,7 @@ import java.util.Locale;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.util.Args;
+import org.apache.http.util.TextUtils;
 
 /**
  * CookieOrigin class encapsulates details of an origin server that
@@ -52,7 +53,7 @@ public final class CookieOrigin {
         Args.notNull(path, "Path");
         this.host = host.toLowerCase(Locale.ROOT);
         this.port = port;
-        if (!path.trim().isEmpty()) {
+        if (!TextUtils.isBlank(path)) {
             this.path = path;
         } else {
             this.path = "/";

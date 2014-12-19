@@ -30,30 +30,45 @@ import java.util.Locale;
 import java.util.StringTokenizer;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.cookie.ClientCookie;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
+import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.Args;
+import org.apache.http.util.TextUtils;
 
 /**
  *
  * @since 4.0
  */
 @Immutable
-public class NetscapeDomainHandler extends BasicDomainHandler {
+public class NetscapeDomainHandler implements CommonCookieAttributeHandler {
 
     public NetscapeDomainHandler() {
         super();
     }
 
     @Override
+    public void parse(final SetCookie cookie, final String value) throws MalformedCookieException {
+        Args.notNull(cookie, "Cookie");
+        if (TextUtils.isBlank(value)) {
+            throw new MalformedCookieException("Blank or null value for domain attribute");
+        }
+        cookie.setDomain(value);
+    }
+
+    @Override
     public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
-        super.validate(cookie, origin);
-        // Perform Netscape Cookie draft specific validation
         final String host = origin.getHost();
         final String domain = cookie.getDomain();
+        if (!host.equals(domain) && !BasicDomainHandler.domainMatch(domain, host)) {
+            throw new CookieRestrictionViolationException(
+                    "Illegal domain attribute \"" + domain + "\". Domain of origin: \"" + host + "\"");
+        }
         if (host.contains(".")) {
             final int domainParts = new StringTokenizer(domain, ".").countTokens();
 
@@ -102,5 +117,10 @@ public class NetscapeDomainHandler extends BasicDomainHandler {
        }
        return host.endsWith(domain);
    }
+
+    @Override
+    public String getAttributeName() {
+        return ClientCookie.DOMAIN_ATTR;
+    }
 
 }

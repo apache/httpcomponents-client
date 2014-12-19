@@ -35,6 +35,7 @@ import java.util.Locale;
 
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.conn.util.PublicSuffixMatcher;
+import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
@@ -140,6 +141,7 @@ public class TestBasicCookieAttribHandlers {
         final CookieAttributeHandler h = new BasicDomainHandler();
 
         cookie.setDomain("somedomain.com");
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, "somedomain.com");
         Assert.assertTrue(h.match(cookie, origin));
 
         cookie.setDomain(".somedomain.com");
@@ -153,6 +155,7 @@ public class TestBasicCookieAttribHandlers {
         final CookieAttributeHandler h = new BasicDomainHandler();
 
         cookie.setDomain("somedomain.com");
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, "somedomain.com");
         Assert.assertTrue(h.match(cookie, origin));
 
         cookie.setDomain(".somedomain.com");
@@ -160,6 +163,28 @@ public class TestBasicCookieAttribHandlers {
 
         cookie.setDomain(null);
         Assert.assertFalse(h.match(cookie, origin));
+    }
+
+    @Test
+    public void testBasicDomainMatchOneLetterPrefix() throws Exception {
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieOrigin origin = new CookieOrigin("a.somedomain.com", 80, "/", false);
+        final CookieAttributeHandler h = new BasicDomainHandler();
+
+        cookie.setDomain("somedomain.com");
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, "somedomain.com");
+        Assert.assertTrue(h.match(cookie, origin));
+    }
+
+    @Test
+    public void testBasicDomainMatchMixedCase() throws Exception {
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+        final CookieOrigin origin = new CookieOrigin("a.SomeDomain.com", 80, "/", false);
+        final CookieAttributeHandler h = new BasicDomainHandler();
+
+        cookie.setDomain("somedoMain.Com");
+        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, "somedoMain.Com");
+        Assert.assertTrue(h.match(cookie, origin));
     }
 
     @Test

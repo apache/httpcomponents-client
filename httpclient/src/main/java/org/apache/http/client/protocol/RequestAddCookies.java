@@ -156,10 +156,11 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
         final CookieSpec cookieSpec = provider.create(clientContext);
         // Get all cookies available in the HTTP state
-        final List<Cookie> cookies = new ArrayList<Cookie>(cookieStore.getCookies());
+        final List<Cookie> cookies = cookieStore.getCookies();
         // Find cookies matching the given origin
         final List<Cookie> matchedCookies = new ArrayList<Cookie>();
         final Date now = new Date();
+        boolean expired = false;
         for (final Cookie cookie : cookies) {
             if (!cookie.isExpired(now)) {
                 if (cookieSpec.match(cookie, cookieOrigin)) {
@@ -172,7 +173,14 @@ public class RequestAddCookies implements HttpRequestInterceptor {
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("Cookie " + cookie + " expired");
                 }
+                expired = true;
             }
+        }
+        // Per RFC 6265, 5.3
+        // The user agent must evict all expired cookies if, at any time, an expired cookie
+        // exists in the cookie store
+        if (expired) {
+            cookieStore.clearExpired(now);
         }
         // Generate Cookie request headers
         if (!matchedCookies.isEmpty()) {
