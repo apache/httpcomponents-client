@@ -31,7 +31,6 @@ import java.util.StringTokenizer;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.cookie.ClientCookie;
-import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieRestrictionViolationException;
@@ -45,7 +44,7 @@ import org.apache.http.util.TextUtils;
  * @since 4.0
  */
 @Immutable
-public class NetscapeDomainHandler implements CommonCookieAttributeHandler {
+public class NetscapeDomainHandler extends BasicDomainHandler {
 
     public NetscapeDomainHandler() {
         super();
