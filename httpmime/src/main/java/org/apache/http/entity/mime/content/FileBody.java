@@ -103,7 +103,7 @@ public class FileBody extends AbstractContentBody {
      * @since 4.3
      */
     public FileBody(final File file, final ContentType contentType) {
-        this(file, contentType, null);
+        this(file, contentType, file != null ? file.getName() : null);
     }
 
     public InputStream getInputStream() throws IOException {

@@ -29,6 +29,7 @@ package org.apache.http.entity.mime;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 
@@ -44,11 +45,11 @@ class MultipartFormEntity implements HttpEntity {
 
     MultipartFormEntity(
             final AbstractMultipartForm multipart,
-            final String contentType,
+            final ContentType contentType,
             final long contentLength) {
         super();
         this.multipart = multipart;
-        this.contentType = new BasicHeader(HTTP.CONTENT_TYPE, contentType);
+        this.contentType = new BasicHeader(HTTP.CONTENT_TYPE, contentType.toString());
         this.contentLength = contentLength;
     }
 

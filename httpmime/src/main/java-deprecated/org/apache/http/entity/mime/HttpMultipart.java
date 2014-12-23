@@ -48,6 +48,8 @@ public class HttpMultipart extends AbstractMultipartForm {
     private final HttpMultipartMode mode;
     private final List<FormBodyPart> parts;
 
+    private final String subType;
+
     /**
      * Creates an instance with the specified settings.
      *
@@ -61,7 +63,8 @@ public class HttpMultipart extends AbstractMultipartForm {
     public HttpMultipart(
             final String subType, final Charset charset, final String boundary,
             final HttpMultipartMode mode) {
-        super(subType, charset, boundary);
+        super(charset, boundary);
+        this.subType = subType;
         this.mode = mode;
         this.parts = new ArrayList<FormBodyPart>();
     }
@@ -121,6 +124,18 @@ public class HttpMultipart extends AbstractMultipartForm {
             return;
         }
         this.parts.add(part);
+    }
+
+    public String getSubType() {
+        return this.subType;
+    }
+
+    public Charset getCharset() {
+        return this.charset;
+    }
+
+    public String getBoundary() {
+        return this.boundary;
     }
 
 }

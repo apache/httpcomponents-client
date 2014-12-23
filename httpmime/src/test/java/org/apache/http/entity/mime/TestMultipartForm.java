@@ -57,17 +57,17 @@ public class TestMultipartForm {
 
     @Test
     public void testMultipartFormStringParts() throws Exception {
-        final FormBodyPart p1 = new FormBodyPart(
+        final FormBodyPart p1 = FormBodyPartBuilder.create(
                 "field1",
-                new StringBody("this stuff", ContentType.DEFAULT_TEXT));
-        final FormBodyPart p2 = new FormBodyPart(
+                new StringBody("this stuff", ContentType.DEFAULT_TEXT)).build();
+        final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
                 new StringBody("that stuff", ContentType.create(
-                        ContentType.TEXT_PLAIN.getMimeType(), Consts.UTF_8)));
-        final FormBodyPart p3 = new FormBodyPart(
+                        ContentType.TEXT_PLAIN.getMimeType(), Consts.UTF_8))).build();
+        final FormBodyPart p3 = FormBodyPartBuilder.create(
                 "field3",
-                new StringBody("all kind of stuff", ContentType.DEFAULT_TEXT));
-        final HttpStrictMultipart multipart = new HttpStrictMultipart("form-data", null, "foo",
+                new StringBody("all kind of stuff", ContentType.DEFAULT_TEXT)).build();
+        final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
                 Arrays.asList(p1, p2, p3));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -101,13 +101,13 @@ public class TestMultipartForm {
 
     @Test
     public void testMultipartFormCustomContentType() throws Exception {
-        final FormBodyPart p1 = new FormBodyPart(
+        final FormBodyPart p1 = FormBodyPartBuilder.create(
                 "field1",
-                new StringBody("this stuff", ContentType.DEFAULT_TEXT));
-        final FormBodyPart p2 = new FormBodyPart(
+                new StringBody("this stuff", ContentType.DEFAULT_TEXT)).build();
+        final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
-                new StringBody("that stuff", ContentType.parse("stuff/plain; param=value")));
-        final HttpStrictMultipart multipart = new HttpStrictMultipart("form-data", null, "foo",
+                new StringBody("that stuff", ContentType.parse("stuff/plain; param=value"))).build();
+        final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
                 Arrays.asList(p1, p2));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -143,14 +143,14 @@ public class TestMultipartForm {
             writer.close();
         }
 
-        final FormBodyPart p1 = new FormBodyPart(
+        final FormBodyPart p1 = FormBodyPartBuilder.create(
                 "field1",
-                new FileBody(tmpfile));
+                new FileBody(tmpfile)).build();
         @SuppressWarnings("resource")
-        final FormBodyPart p2 = new FormBodyPart(
+        final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
-                new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
-        final HttpStrictMultipart multipart = new HttpStrictMultipart("form-data", null, "foo",
+                new InputStreamBody(new FileInputStream(tmpfile), "file.tmp")).build();
+        final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
                 Arrays.asList(p1, p2));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -188,17 +188,17 @@ public class TestMultipartForm {
             writer.close();
         }
 
-        final FormBodyPart p1 = new FormBodyPart(
+        final FormBodyPart p1 = FormBodyPartBuilder.create(
                 "field1",
-                new FileBody(tmpfile));
-        final FormBodyPart p2 = new FormBodyPart(
+                new FileBody(tmpfile)).build();
+        final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
-                new FileBody(tmpfile, ContentType.create("text/plain", "ANSI_X3.4-1968"), "test-file"));
+                new FileBody(tmpfile, ContentType.create("text/plain", "ANSI_X3.4-1968"), "test-file")).build();
         @SuppressWarnings("resource")
-        final FormBodyPart p3 = new FormBodyPart(
+        final FormBodyPart p3 = FormBodyPartBuilder.create(
                 "field3",
-                new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
-        final HttpStrictMultipart multipart = new HttpStrictMultipart("form-data", null, "foo",
+                new InputStreamBody(new FileInputStream(tmpfile), "file.tmp")).build();
+        final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
                 Arrays.asList(p1, p2, p3));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -243,17 +243,17 @@ public class TestMultipartForm {
             writer.close();
         }
 
-        final FormBodyPart p1 = new FormBodyPart(
+        final FormBodyPart p1 = FormBodyPartBuilder.create(
                 "field1\u0414",
-                new FileBody(tmpfile));
-        final FormBodyPart p2 = new FormBodyPart(
+                new FileBody(tmpfile)).build();
+        final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
-                new FileBody(tmpfile, ContentType.create("text/plain", "ANSI_X3.4-1968"), "test-file"));
+                new FileBody(tmpfile, ContentType.create("text/plain", "ANSI_X3.4-1968"), "test-file")).build();
         @SuppressWarnings("resource")
-        final FormBodyPart p3 = new FormBodyPart(
+        final FormBodyPart p3 = FormBodyPartBuilder.create(
                 "field3",
-                new InputStreamBody(new FileInputStream(tmpfile), "file.tmp"));
-        final HttpRFC6532Multipart multipart = new HttpRFC6532Multipart("form-data", null, "foo",
+                new InputStreamBody(new FileInputStream(tmpfile), "file.tmp")).build();
+        final HttpRFC6532Multipart multipart = new HttpRFC6532Multipart(null, "foo",
                 Arrays.asList(p1, p2, p3));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -321,15 +321,15 @@ public class TestMultipartForm {
         }
 
         @SuppressWarnings("resource")
-        final FormBodyPart p1 = new FormBodyPart(
+        final FormBodyPart p1 = FormBodyPartBuilder.create(
                 "field1",
-                new InputStreamBody(new FileInputStream(tmpfile), s1 + ".tmp"));
+                new InputStreamBody(new FileInputStream(tmpfile), s1 + ".tmp")).build();
         @SuppressWarnings("resource")
-        final FormBodyPart p2 = new FormBodyPart(
+        final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
-                new InputStreamBody(new FileInputStream(tmpfile), s2 + ".tmp"));
+                new InputStreamBody(new FileInputStream(tmpfile), s2 + ".tmp")).build();
         final HttpBrowserCompatibleMultipart multipart = new HttpBrowserCompatibleMultipart(
-                "form-data", Consts.UTF_8, "foo",
+                Consts.UTF_8, "foo",
                 Arrays.asList(p1, p2));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -360,13 +360,13 @@ public class TestMultipartForm {
         final String s1 = constructString(SWISS_GERMAN_HELLO);
         final String s2 = constructString(RUSSIAN_HELLO);
 
-        final FormBodyPart p1 = new FormBodyPart(
+        final FormBodyPart p1 = FormBodyPartBuilder.create(
                 "field1",
-                new StringBody(s1, ContentType.create("text/plain", Charset.forName("ISO-8859-1"))));
-        final FormBodyPart p2 = new FormBodyPart(
+                new StringBody(s1, ContentType.create("text/plain", Charset.forName("ISO-8859-1")))).build();
+        final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
-                new StringBody(s2, ContentType.create("text/plain", Charset.forName("KOI8-R"))));
-        final HttpStrictMultipart multipart = new HttpStrictMultipart("form-data", null, "foo",
+                new StringBody(s2, ContentType.create("text/plain", Charset.forName("KOI8-R")))).build();
+        final HttpStrictMultipart multipart = new HttpStrictMultipart(null, "foo",
                 Arrays.asList(p1, p2));
 
         final ByteArrayOutputStream out1 = new ByteArrayOutputStream();
