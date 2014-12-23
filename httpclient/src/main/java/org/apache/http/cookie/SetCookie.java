@@ -29,9 +29,14 @@ package org.apache.http.cookie;
 
 import java.util.Date;
 
+import org.apache.http.annotation.Obsolete;
+
 /**
  * This interface represents a {@code Set-Cookie} response header sent by the
  * origin server to the HTTP agent in order to maintain a conversational state.
+ * <p>
+ * Please do not use methods marked as @Obsolete. They have been rendered
+ * obsolete by RFC 6265
  *
  * @since 4.0
  */
@@ -47,6 +52,7 @@ public interface SetCookie extends Cookie {
      *
      * @see #getComment()
      */
+    @Obsolete
     void setComment(String comment);
 
     /**
@@ -103,6 +109,7 @@ public interface SetCookie extends Cookie {
      *
      * @see Cookie#getVersion
      */
+    @Obsolete
     void setVersion(int version);
 
 }
