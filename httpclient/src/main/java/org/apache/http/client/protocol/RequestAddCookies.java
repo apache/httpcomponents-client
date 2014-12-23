@@ -52,7 +52,6 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.cookie.SetCookie2;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.TextUtils;
@@ -192,19 +191,10 @@ public class RequestAddCookies implements HttpRequestInterceptor {
 
         final int ver = cookieSpec.getVersion();
         if (ver > 0) {
-            boolean needVersionHeader = false;
-            for (final Cookie cookie : matchedCookies) {
-                if (ver != cookie.getVersion() || !(cookie instanceof SetCookie2)) {
-                    needVersionHeader = true;
-                }
-            }
-
-            if (needVersionHeader) {
-                final Header header = cookieSpec.getVersionHeader();
-                if (header != null) {
-                    // Advertise cookie version support
-                    request.addHeader(header);
-                }
+            final Header header = cookieSpec.getVersionHeader();
+            if (header != null) {
+                // Advertise cookie version support
+                request.addHeader(header);
             }
         }
 
