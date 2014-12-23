@@ -28,6 +28,9 @@
 package org.apache.http.client.utils;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -45,12 +48,12 @@ import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.entity.ContentType;
-import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.ParserCursor;
+import org.apache.http.message.TokenParser;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
-import org.apache.http.util.EntityUtils;
 
 /**
  * A collection of utilities for encoding URLs.
@@ -87,17 +90,14 @@ public class URLEncodedUtils {
     public static List <NameValuePair> parse(final URI uri, final String charset) {
         final String query = uri.getRawQuery();
         if (query != null && !query.isEmpty()) {
-            final List<NameValuePair> result = new ArrayList<NameValuePair>();
-            final Scanner scanner = new Scanner(query);
-            parse(result, scanner, QP_SEP_PATTERN, charset);
-            return result;
+            return parse(query, Charset.forName(charset));
         }
         return Collections.emptyList();
     }
 
     /**
-     * Returns a list of {@link NameValuePair NameValuePairs} as parsed from an {@link HttpEntity}. The encoding is
-     * taken from the entity's Content-Encoding header.
+     * Returns a list of {@link NameValuePair NameValuePairs} as parsed from an {@link HttpEntity}.
+     * The encoding is taken from the entity's Content-Encoding header.
      * <p>
      * This is typically used while parsing an HTTP POST.
      *
@@ -110,17 +110,33 @@ public class URLEncodedUtils {
     public static List <NameValuePair> parse(
             final HttpEntity entity) throws IOException {
         final ContentType contentType = ContentType.get(entity);
-        if (contentType != null && contentType.getMimeType().equalsIgnoreCase(CONTENT_TYPE)) {
-            final String content = EntityUtils.toString(entity, Consts.ASCII);
-            if (content != null && !content.isEmpty()) {
-                Charset charset = contentType.getCharset();
-                if (charset == null) {
-                    charset = HTTP.DEF_CONTENT_CHARSET;
-                }
-                return parse(content, charset, QP_SEPS);
-            }
+        if (contentType == null || !contentType.getMimeType().equalsIgnoreCase(CONTENT_TYPE)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+        final long len = entity.getContentLength();
+        Args.check(len <= Integer.MAX_VALUE, "HTTP entity is too large");
+        final Charset charset = contentType.getCharset() != null ? contentType.getCharset() : HTTP.DEF_CONTENT_CHARSET;
+        final InputStream instream = entity.getContent();
+        if (instream == null) {
+            return Collections.emptyList();
+        }
+        final CharArrayBuffer buf;
+        try {
+            buf = new CharArrayBuffer(len > 0 ? (int) len : 1024);
+            final Reader reader = new InputStreamReader(instream, charset);
+            final char[] tmp = new char[1024];
+            int l;
+            while((l = reader.read(tmp)) != -1) {
+                buf.append(tmp, 0, l);
+            }
+
+        } finally {
+            instream.close();
+        }
+        if (buf.length() == 0) {
+            return Collections.emptyList();
+        }
+        return parse(buf, charset, QP_SEP_A);
     }
 
     /**
@@ -151,12 +167,15 @@ public class URLEncodedUtils {
      *            Input that contains the parameters to parse.
      * @param charset
      *            Encoding to use when decoding the parameters.
+     *
+     * @deprecated (4.4) use {@link #parse(String, java.nio.charset.Charset)}
      */
+    @Deprecated
     public static void parse(
-            final List <NameValuePair> parameters,
+            final List<NameValuePair> parameters,
             final Scanner scanner,
             final String charset) {
-        parse(parameters, scanner, QP_SEP_PATTERN, charset);
+        parse(parameters, scanner, "[" + QP_SEP_A + QP_SEP_S + "]", charset);
     }
 
     /**
@@ -174,7 +193,10 @@ public class URLEncodedUtils {
      *            The Pattern string for parameter separators, by convention {@code "[&;]"}
      * @param charset
      *            Encoding to use when decoding the parameters.
+     *
+     * @deprecated (4.4) use {@link #parse(org.apache.http.util.CharArrayBuffer, java.nio.charset.Charset, char...)}
      */
+    @Deprecated
     public static void parse(
             final List <NameValuePair> parameters,
             final Scanner scanner,
@@ -182,8 +204,8 @@ public class URLEncodedUtils {
             final String charset) {
         scanner.useDelimiter(parameterSepartorPattern);
         while (scanner.hasNext()) {
-            String name = null;
-            String value = null;
+            final String name;
+            final String value;
             final String token = scanner.next();
             final int i = token.indexOf(NAME_VALUE_SEPARATOR);
             if (i != -1) {
@@ -191,20 +213,11 @@ public class URLEncodedUtils {
                 value = decodeFormFields(token.substring(i + 1).trim(), charset);
             } else {
                 name = decodeFormFields(token.trim(), charset);
+                value = null;
             }
             parameters.add(new BasicNameValuePair(name, value));
         }
     }
-
-    /**
-     * Query parameter separators.
-     */
-    private static final char[] QP_SEPS = new char[] { QP_SEP_A, QP_SEP_S };
-
-    /**
-     * Query parameter separator pattern.
-     */
-    private static final String QP_SEP_PATTERN = "[" + new String(QP_SEPS) + "]";
 
     /**
      * Returns a list of {@link NameValuePair NameValuePairs} as parsed from the given string using the given character
@@ -219,7 +232,9 @@ public class URLEncodedUtils {
      * @since 4.2
      */
     public static List<NameValuePair> parse(final String s, final Charset charset) {
-        return parse(s, charset, QP_SEPS);
+        final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
+        buffer.append(s);
+        return parse(buffer, charset, QP_SEP_A, QP_SEP_S);
     }
 
     /**
@@ -230,27 +245,64 @@ public class URLEncodedUtils {
      *            text to parse.
      * @param charset
      *            Encoding to use when decoding the parameters.
-     * @param parameterSeparator
-     *            The characters used to separate parameters, by convention, {@code '&'} and {@code ';'}.
+     * @param separators
+     *            element separators.
      * @return a list of {@link NameValuePair} as built from the URI's query portion.
      *
      * @since 4.3
      */
-    public static List<NameValuePair> parse(final String s, final Charset charset, final char... parameterSeparator) {
+    public static List<NameValuePair> parse(final String s, final Charset charset, final char... separators) {
         if (s == null) {
             return Collections.emptyList();
         }
-        final BasicHeaderValueParser parser = BasicHeaderValueParser.INSTANCE;
         final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
         buffer.append(s);
-        final ParserCursor cursor = new ParserCursor(0, buffer.length());
+        return parse(buffer, charset, separators);
+    }
+
+    /**
+     * Returns a list of {@link NameValuePair NameValuePairs} as parsed from the given string using
+     * the given character encoding.
+     *
+     * @param buf
+     *            text to parse.
+     * @param charset
+     *            Encoding to use when decoding the parameters.
+     * @param separators
+     *            element separators.
+     * @return a list of {@link NameValuePair} as built from the URI's query portion.
+     *
+     * @since 4.4
+     */
+    public static List<NameValuePair> parse(
+            final CharArrayBuffer buf, final Charset charset, final char... separators) {
+        Args.notNull(buf, "Char array buffer");
+        final TokenParser tokenParser = TokenParser.INSTANCE;
+        final BitSet delimSet = new BitSet();
+        for (char separator: separators) {
+            delimSet.set(separator);
+        }
+        final ParserCursor cursor = new ParserCursor(0, buf.length());
         final List<NameValuePair> list = new ArrayList<NameValuePair>();
         while (!cursor.atEnd()) {
-            final NameValuePair nvp = parser.parseNameValuePair(buffer, cursor, parameterSeparator);
-            if (!nvp.getName().isEmpty()) {
+            delimSet.set('=');
+            final String name = tokenParser.parseToken(buf, cursor, delimSet);
+            String value = null;
+            if (!cursor.atEnd()) {
+                final int delim = buf.charAt(cursor.getPos());
+                cursor.updatePos(cursor.getPos() + 1);
+                if (delim == '=') {
+                    delimSet.clear('=');
+                    value = tokenParser.parseValue(buf, cursor, delimSet);
+                    if (!cursor.atEnd()) {
+                        cursor.updatePos(cursor.getPos() + 1);
+                    }
+                }
+            }
+            if (!name.isEmpty()) {
                 list.add(new BasicNameValuePair(
-                        decodeFormFields(nvp.getName(), charset),
-                        decodeFormFields(nvp.getValue(), charset)));
+                        decodeFormFields(name, charset),
+                        decodeFormFields(value, charset)));
             }
         }
         return list;
@@ -554,7 +606,7 @@ public class URLEncodedUtils {
      * Encode/escape www-url-form-encoded content.
      * <p>
      * Uses the {@link #URLENCODER} set of characters, rather than
-     * the {@link #UNRSERVED} set; this is for compatibilty with previous
+     * the {@link #UNRESERVED} set; this is for compatibilty with previous
      * releases, URLEncoder.encode() and most browsers.
      *
      * @param content the content to encode, will convert space to '+'
@@ -572,7 +624,7 @@ public class URLEncodedUtils {
      * Encode/escape www-url-form-encoded content.
      * <p>
      * Uses the {@link #URLENCODER} set of characters, rather than
-     * the {@link #UNRSERVED} set; this is for compatibilty with previous
+     * the {@link #UNRESERVED} set; this is for compatibilty with previous
      * releases, URLEncoder.encode() and most browsers.
      *
      * @param content the content to encode, will convert space to '+'

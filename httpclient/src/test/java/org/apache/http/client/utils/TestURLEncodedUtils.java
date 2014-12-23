@@ -192,7 +192,7 @@ public class TestURLEncodedUtils {
     };
 
     private static String constructString(final int [] unicodeChars) {
-        final StringBuffer buffer = new StringBuffer();
+        final StringBuilder buffer = new StringBuilder();
         if (unicodeChars != null) {
             for (final int unicodeChar : unicodeChars) {
                 buffer.append((char)unicodeChar);
