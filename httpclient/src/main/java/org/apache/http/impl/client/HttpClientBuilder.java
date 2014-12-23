@@ -102,7 +102,7 @@ import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.IgnoreSpecProvider;
 import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
-import org.apache.http.impl.cookie.RFC2965SpecProvider;
+import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.http.impl.execchain.BackoffStrategyExec;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.impl.execchain.MainClientExec;
@@ -1127,9 +1127,17 @@ public class HttpClientBuilder {
         }
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
+            final CookieSpecProvider defaultProvider = new DefaultCookieSpecProvider(publicSuffixMatcherCopy);
+            final CookieSpecProvider laxStandardProvider = new RFC6265CookieSpecProvider(
+                    RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, publicSuffixMatcherCopy);
+            final CookieSpecProvider strictStandardProvider = new RFC6265CookieSpecProvider(
+                    RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, publicSuffixMatcherCopy);
             cookieSpecRegistryCopy = RegistryBuilder.<CookieSpecProvider>create()
-                .register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider(publicSuffixMatcherCopy))
-                .register(CookieSpecs.STANDARD, new RFC2965SpecProvider(publicSuffixMatcherCopy))
+                .register(CookieSpecs.DEFAULT, defaultProvider)
+                .register("best-match", defaultProvider)
+                .register("compatibility", defaultProvider)
+                .register(CookieSpecs.STANDARD, laxStandardProvider)
+                .register(CookieSpecs.STANDARD_STRICT, strictStandardProvider)
                 .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())
                 .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
                 .build();
