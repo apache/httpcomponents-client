@@ -74,7 +74,7 @@ import org.apache.http.util.Args;
  */
 @ThreadSafe
 @SuppressWarnings("deprecation")
-class InternalHttpClient extends CloseableHttpClient {
+class InternalHttpClient extends CloseableHttpClient implements Configurable {
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -185,6 +185,11 @@ class InternalHttpClient extends CloseableHttpClient {
         } catch (final HttpException httpException) {
             throw new ClientProtocolException(httpException);
         }
+    }
+
+    @Override
+    public RequestConfig getConfig() {
+        return this.defaultConfig;
     }
 
     @Override
