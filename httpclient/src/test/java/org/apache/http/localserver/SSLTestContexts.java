@@ -27,60 +27,26 @@
 
 package org.apache.http.localserver;
 
-import java.net.URL;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
+
+import org.apache.http.ssl.SSLContexts;
 
 public class SSLTestContexts {
 
-    private static KeyManagerFactory createKeyManagerFactory() throws NoSuchAlgorithmException {
-        final String algo = KeyManagerFactory.getDefaultAlgorithm();
-        try {
-            return KeyManagerFactory.getInstance(algo);
-        } catch (final NoSuchAlgorithmException ex) {
-            return KeyManagerFactory.getInstance("SunX509");
-        }
-    }
-
     public static SSLContext createServerSSLContext() throws Exception {
-        final ClassLoader cl = SSLTestContexts.class.getClassLoader();
-        final URL url = cl.getResource("test.keystore");
-        final KeyStore keystore  = KeyStore.getInstance("jks");
-        keystore.load(url.openStream(), "nopassword".toCharArray());
-        final KeyManagerFactory kmfactory = createKeyManagerFactory();
-        kmfactory.init(keystore, "nopassword".toCharArray());
-        final KeyManager[] keymanagers = kmfactory.getKeyManagers();
-        final SSLContext sslcontext = SSLContext.getInstance("TLS");
-        sslcontext.init(keymanagers, null, null);
-        return sslcontext;
-    }
-
-    private static TrustManagerFactory createTrustManagerFactory() throws NoSuchAlgorithmException {
-        final String algo = TrustManagerFactory.getDefaultAlgorithm();
-        try {
-            return TrustManagerFactory.getInstance(algo);
-        } catch (final NoSuchAlgorithmException ex) {
-            return TrustManagerFactory.getInstance("SunX509");
-        }
+        return SSLContexts.custom()
+                .loadTrustMaterial(SSLTestContexts.class.getResource("/test.keystore"),
+                        "nopassword".toCharArray())
+                .loadKeyMaterial(SSLTestContexts.class.getResource("/test.keystore"),
+                        "nopassword".toCharArray(), "nopassword".toCharArray())
+                .build();
     }
 
     public static SSLContext createClientSSLContext() throws Exception {
-        final ClassLoader cl = SSLTestContexts.class.getClassLoader();
-        final URL url = cl.getResource("test.keystore");
-        final KeyStore keystore  = KeyStore.getInstance("jks");
-        keystore.load(url.openStream(), "nopassword".toCharArray());
-        final TrustManagerFactory tmfactory = createTrustManagerFactory();
-        tmfactory.init(keystore);
-        final TrustManager[] trustmanagers = tmfactory.getTrustManagers();
-        final SSLContext sslcontext = SSLContext.getInstance("TLS");
-        sslcontext.init(null, trustmanagers, null);
-        return sslcontext;
+        return SSLContexts.custom()
+                .loadTrustMaterial(SSLTestContexts.class.getResource("/test.keystore"),
+                        "nopassword".toCharArray())
+                .build();
     }
 
 }

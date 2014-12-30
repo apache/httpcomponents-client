@@ -27,8 +27,6 @@
 package org.apache.http.examples.client;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.security.KeyStore;
 
 import javax.net.ssl.SSLContext;
 
@@ -49,17 +47,10 @@ import org.apache.http.util.EntityUtils;
 public class ClientCustomSSL {
 
     public final static void main(String[] args) throws Exception {
-        KeyStore trustStore  = KeyStore.getInstance(KeyStore.getDefaultType());
-        FileInputStream instream = new FileInputStream(new File("my.keystore"));
-        try {
-            trustStore.load(instream, "nopassword".toCharArray());
-        } finally {
-            instream.close();
-        }
-
         // Trust own CA and all self-signed certs
         SSLContext sslcontext = SSLContexts.custom()
-                .loadTrustMaterial(trustStore, new TrustSelfSignedStrategy())
+                .loadTrustMaterial(new File("my.keystore"), "nopassword".toCharArray(),
+                        new TrustSelfSignedStrategy())
                 .build();
         // Allow TLSv1 protocol only
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
