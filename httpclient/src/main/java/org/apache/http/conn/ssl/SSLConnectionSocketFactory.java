@@ -34,6 +34,8 @@ import java.net.Socket;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.net.SocketFactory;
@@ -45,6 +47,8 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.security.auth.x500.X500Principal;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
@@ -147,6 +151,8 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
     @Deprecated
     public static final X509HostnameVerifier STRICT_HOSTNAME_VERIFIER
         = StrictHostnameVerifier.INSTANCE;
+
+    private final Log log = LogFactory.getLog(getClass());
 
     /**
      * @since 4.4
@@ -326,6 +332,9 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             if (connectTimeout > 0 && sock.getSoTimeout() == 0) {
                 sock.setSoTimeout(connectTimeout);
             }
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Connecting socket to " + remoteAddress + " with timeout " + connectTimeout);
+            }
             sock.connect(remoteAddress, connectTimeout);
         } catch (final IOException ex) {
             try {
@@ -337,6 +346,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         // Setup SSL layering if necessary
         if (sock instanceof SSLSocket) {
             final SSLSocket sslsock = (SSLSocket) sock;
+            this.log.debug("Starting handshake");
             sslsock.startHandshake();
             verifyHostname(sslsock, host.getHostName());
             return sock;
@@ -372,7 +382,14 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         if (supportedCipherSuites != null) {
             sslsock.setEnabledCipherSuites(supportedCipherSuites);
         }
+
+        if (this.log.isDebugEnabled()) {
+            this.log.debug("Enabled protocols: " + Arrays.asList(sslsock.getEnabledProtocols()));
+            this.log.debug("Enabled cipher suites:" + Arrays.asList(sslsock.getEnabledCipherSuites()));
+        }
+
         prepareSocket(sslsock);
+        this.log.debug("Starting handshake");
         sslsock.startHandshake();
         verifyHostname(sslsock, target);
         return sslsock;
@@ -400,6 +417,42 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             if (session == null) {
                 throw new SSLHandshakeException("SSL session not available");
             }
+
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Secure session established");
+                this.log.debug(" negotiated protocol: " + session.getProtocol());
+                this.log.debug(" negotiated cipher suite: " + session.getCipherSuite());
+
+                try {
+
+                    final Certificate[] certs = session.getPeerCertificates();
+                    final X509Certificate x509 = (X509Certificate) certs[0];
+                    final X500Principal peer = x509.getSubjectX500Principal();
+
+                    this.log.debug(" peer principal: " + peer.toString());
+                    final Collection<List<?>> altNames1 = x509.getSubjectAlternativeNames();
+                    if (altNames1 != null) {
+                        for (final List<?> aC : altNames1) {
+                            if (!aC.isEmpty()) {
+                                this.log.debug(" peer alternative name: " + aC.get(1));
+                            }
+                        }
+                    }
+
+                    final X500Principal issuer = x509.getIssuerX500Principal();
+                    this.log.debug(" issuer principal: " + issuer.toString());
+                    final Collection<List<?>> altNames2 = x509.getIssuerAlternativeNames();
+                    if (altNames2 != null) {
+                        for (final List<?> aC : altNames2) {
+                            if (!aC.isEmpty()) {
+                                this.log.debug(" issuer alternative name: " + aC.get(1));
+                            }
+                        }
+                    }
+                } catch (Exception ignore) {
+                }
+            }
+
             if (!this.hostnameVerifier.verify(hostname, session)) {
                 final Certificate[] certs = session.getPeerCertificates();
                 final X509Certificate x509 = (X509Certificate) certs[0];
