@@ -194,6 +194,16 @@ public class TestDefaultHostnameVerifier {
     }
 
     @Test
+    public void testDomainRootMatching() {
+
+        Assert.assertFalse(DefaultHostnameVerifier.matchDomainRoot("a.b.c", null));
+        Assert.assertTrue(DefaultHostnameVerifier.matchDomainRoot("a.b.c", "a.b.c"));
+        Assert.assertFalse(DefaultHostnameVerifier.matchDomainRoot("aa.b.c", "a.b.c"));
+        Assert.assertFalse(DefaultHostnameVerifier.matchDomainRoot("a.b.c", "aa.b.c"));
+        Assert.assertTrue(DefaultHostnameVerifier.matchDomainRoot("a.a.b.c", "a.b.c"));
+    }
+
+    @Test
     public void testIdentityMatching() {
 
         Assert.assertTrue(DefaultHostnameVerifier.matchIdentity("a.b.c", "*.b.c"));
