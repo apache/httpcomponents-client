@@ -418,8 +418,8 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link AuthenticationStrategy} instance for proxy
-     * authentication.
+     * Assigns {@link AuthenticationStrategy} instance for target
+     * host authentication.
      */
     public final HttpClientBuilder setTargetAuthenticationStrategy(
             final AuthenticationStrategy targetAuthStrategy) {
@@ -428,8 +428,8 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link AuthenticationStrategy} instance for target
-     * host authentication.
+     * Assigns {@link AuthenticationStrategy} instance for proxy
+     * authentication.
      */
     public final HttpClientBuilder setProxyAuthenticationStrategy(
             final AuthenticationStrategy proxyAuthStrategy) {
