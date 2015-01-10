@@ -370,14 +370,16 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             sslsock.setEnabledProtocols(supportedProtocols);
         } else {
             // If supported protocols are not explicitly set, remove all SSL protocol versions
-            final String[] allProtocols = sslsock.getSupportedProtocols();
+            final String[] allProtocols = sslsock.getEnabledProtocols();
             final List<String> enabledProtocols = new ArrayList<String>(allProtocols.length);
             for (String protocol: allProtocols) {
                 if (!protocol.startsWith("SSL")) {
                     enabledProtocols.add(protocol);
                 }
             }
-            sslsock.setEnabledProtocols(enabledProtocols.toArray(new String[enabledProtocols.size()]));
+            if (!enabledProtocols.isEmpty()) {
+                sslsock.setEnabledProtocols(enabledProtocols.toArray(new String[enabledProtocols.size()]));
+            }
         }
         if (supportedCipherSuites != null) {
             sslsock.setEnabledCipherSuites(supportedCipherSuites);
