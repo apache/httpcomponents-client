@@ -432,22 +432,26 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                     this.log.debug(" peer principal: " + peer.toString());
                     final Collection<List<?>> altNames1 = x509.getSubjectAlternativeNames();
                     if (altNames1 != null) {
+                        final List<String> altNames = new ArrayList<String>();
                         for (final List<?> aC : altNames1) {
                             if (!aC.isEmpty()) {
-                                this.log.debug(" peer alternative name: " + aC.get(1));
+                                altNames.add((String) aC.get(1));
                             }
                         }
+                        this.log.debug(" peer alternative names: " + altNames);
                     }
 
                     final X500Principal issuer = x509.getIssuerX500Principal();
                     this.log.debug(" issuer principal: " + issuer.toString());
                     final Collection<List<?>> altNames2 = x509.getIssuerAlternativeNames();
                     if (altNames2 != null) {
+                        final List<String> altNames = new ArrayList<String>();
                         for (final List<?> aC : altNames2) {
                             if (!aC.isEmpty()) {
-                                this.log.debug(" issuer alternative name: " + aC.get(1));
+                                altNames.add((String) aC.get(1));
                             }
                         }
+                        this.log.debug(" issuer alternative names: " + altNames);
                     }
                 } catch (Exception ignore) {
                 }
