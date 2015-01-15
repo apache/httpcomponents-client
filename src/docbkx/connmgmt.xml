@@ -281,11 +281,11 @@ static class GetThread extends Thread {
         <para>HttpClient tries to mitigate the problem by testing whether the connection is 'stale',
             that is no longer valid because it was closed on the server side, prior to using the
             connection for executing an HTTP request. The stale connection check is not 100%
-            reliable and adds 10 to 30 ms overhead to each request execution. The only feasible
-            solution that does not involve a one thread per socket model for idle connections is a
-            dedicated monitor thread used to evict connections that are considered expired due to a
-            long period of inactivity. The monitor thread can periodically call
-                <methodname>ClientConnectionManager#closeExpiredConnections()</methodname> method to
+            reliable. The only feasible solution that does not involve a one thread per socket
+            model for idle connections is a dedicated monitor thread used to evict connections
+            that are considered expired due to a long period of inactivity. The monitor thread can
+            periodically call
+            <methodname>ClientConnectionManager#closeExpiredConnections()</methodname> method to
             close all expired connections and evict closed connections from the pool. It can also
             optionally call <methodname>ClientConnectionManager#closeIdleConnections()</methodname>
             method to close all connections that have been idle over a given period of time.</para>
@@ -457,58 +457,66 @@ SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext);
                 hostname matches the names stored inside the server's X.509 certificate, once the
                 connection has been established. This verification can provide additional guarantees
                 of authenticity of the server trust material.
-                The <interfacename>X509HostnameVerifier</interfacename> interface
-                represents a strategy for hostname verification. HttpClient ships with three
-                <interfacename>X509HostnameVerifier</interfacename> implementations.
+                The <interfacename>javax.net.ssl.HostnameVerifier</interfacename> interface
+                represents a strategy for hostname verification. HttpClient ships with two
+                <interfacename>javax.net.ssl.HostnameVerifier</interfacename> implementations.
                 Important: hostname verification should not be confused with
                 SSL trust verification.</para>
             <itemizedlist>
                 <listitem>
                     <formalpara>
-                        <title><classname>StrictHostnameVerifier</classname>:</title>
-                        <para>The strict hostname verifier works the same way as Sun Java 1.4, Sun
-                            Java 5, Sun Java 6. It's also pretty close to IE6. This implementation
-                            appears to be compliant with RFC 2818 for dealing with wildcards. The
-                            hostname must match either the first CN, or any of the subject-alts. A
+                        <title><classname>DefaultHostnameVerifier</classname>:</title>
+                        <para>The default implementation used by HttpClient is expected to be
+                            compliant with RFC 2818. The hostname must match any of alternative
+                            names specified by the certificate, or in case no alternative
+                            names are given the most specific CN of the certificate subject. A
                             wildcard can occur in the CN, and in any of the subject-alts.</para>
                     </formalpara>
                 </listitem>
                 <listitem>
                     <formalpara>
-                        <title><classname>BrowserCompatHostnameVerifier</classname>:</title>
-                        <para>This hostname verifier that works the same way as Curl and Firefox. The
-                            hostname must match either the first CN, or any of the subject-alts. A
-                            wildcard can occur in the CN, and in any of the subject-alts. The only
-                            difference between <classname>BrowserCompatHostnameVerifier</classname>
-                            and <classname>StrictHostnameVerifier</classname> is that a wildcard
-                            (such as "*.foo.com") with
-                            <classname>BrowserCompatHostnameVerifier</classname> matches all
-                            subdomains, including "a.b.foo.com".</para>
-                    </formalpara>
-                </listitem>
-                <listitem>
-                    <formalpara>
-                        <title><classname>AllowAllHostnameVerifier</classname>:</title>
+                        <title><classname>NoopHostnameVerifier</classname>:</title>
                         <para>This hostname verifier essentially turns hostname verification off.
-                            This implementation is a no-op, and never throws
-                            <exceptionname>javax.net.ssl.SSLException</exceptionname>.</para>
+                            It accepts any SSL session as valid and matching the target host.
+                        </para>
                     </formalpara>
                 </listitem>
             </itemizedlist>
-            <para>Per default HttpClient uses the <classname>BrowserCompatHostnameVerifier</classname>
+            <para>Per default HttpClient uses the <classname>DefaultHostnameVerifier</classname>
                 implementation. One can specify a different hostname verifier implementation if
                 desired</para>
             <programlisting><![CDATA[
 SSLContext sslContext = SSLContexts.createSystemDefault();
 SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
         sslContext,
-        SSLConnectionSocketFactory.STRICT_HOSTNAME_VERIFIER);
+        NoopHostnameVerifier.INSTANCE);
+]]></programlisting>
+            <para>As of version 4.4 HttpClient makes use the public suffix list kindly maintained
+                by Mozilla Foundation to make sure that wildcards in SSL certificates cannot be
+                misused to apply to multiple domains with a common top-level domain. HttpClient
+                ships with a copy of the list retrieved at the time of the release. The latest
+                revision of the list can found at
+                <ulink url="https://publicsuffix.org/list/effective_tld_names.dat">
+                    https://publicsuffix.org/list/</ulink>. It is highly adviseable to make a local
+                copy of the lsit and download the list no more than once per day from its original
+                location.
+            </para>
+            <programlisting><![CDATA[
+PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.load(
+    PublicSuffixMatcher.class.getResource("my-copy-effective_tld_names.dat"));
+DefaultHostnameVerifier hostnameVerifier = new DefaultHostnameVerifier(publicSuffixMatcher);
+]]></programlisting>
+            <para>One can disable verification against the public suffic list by using
+                <code>null</code> matcher.
+            </para>
+            <programlisting><![CDATA[
+DefaultHostnameVerifier hostnameVerifier = new DefaultHostnameVerifier(null);
 ]]></programlisting>
         </section>
     </section>
     <section>
         <title>HttpClient proxy configuration</title>
-        <para>Even though HttpClient is aware of complex routing scemes and proxy chaining, it
+        <para>Even though HttpClient is aware of complex routing schemes and proxy chaining, it
             supports only simple direct or one hop proxy connections out of the box.</para>
         <para>The simplest way to tell HttpClient to connect to the target host via a proxy is by
             setting the default proxy parameter:</para>
