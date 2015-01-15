@@ -26,44 +26,54 @@
  */
 package org.apache.http.examples.client;
 
-import java.io.File;
-
-import javax.net.ssl.SSLContext;
+import java.net.URL;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.config.Lookup;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+import org.apache.http.conn.util.PublicSuffixMatcher;
+import org.apache.http.conn.util.PublicSuffixMatcherLoader;
+import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContexts;
+import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.http.util.EntityUtils;
 
 /**
- * This example demonstrates how to create secure connections with a custom SSL
- * context.
+ * This example demonstrates how to use a custom public suffix list.
  */
-public class ClientCustomSSL {
+public class ClientCustomPublicSuffixList {
 
     public final static void main(String[] args) throws Exception {
-        // Trust own CA and all self-signed certs
-        SSLContext sslcontext = SSLContexts.custom()
-                .loadTrustMaterial(new File("my.keystore"), "nopassword".toCharArray(),
-                        new TrustSelfSignedStrategy())
+
+        // Use PublicSuffixMatcherLoader to load public suffix list from a file,
+        // resource or from an arbitrary URL
+        PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.load(
+                new URL("https://publicsuffix.org/list/effective_tld_names.dat"));
+
+        // Please use the publicsuffix.org URL to download the list no more than once per day !!!
+        // Please consider making a local copy !!!
+
+        DefaultHostnameVerifier hostnameVerifier = new DefaultHostnameVerifier(publicSuffixMatcher);
+
+        RFC6265CookieSpecProvider cookieSpecProvider = new RFC6265CookieSpecProvider(publicSuffixMatcher);
+        Lookup<CookieSpecProvider> cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
+                .register(CookieSpecs.DEFAULT, cookieSpecProvider)
+                .register(CookieSpecs.STANDARD, cookieSpecProvider)
+                .register(CookieSpecs.STANDARD_STRICT, cookieSpecProvider)
                 .build();
-        // Allow TLSv1 protocol only
-        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-                sslcontext,
-                new String[] { "TLSv1" },
-                null,
-                SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+
         CloseableHttpClient httpclient = HttpClients.custom()
-                .setSSLSocketFactory(sslsf)
+                .setSSLHostnameVerifier(hostnameVerifier)
+                .setDefaultCookieSpecRegistry(cookieSpecRegistry)
                 .build();
         try {
 
-            HttpGet httpget = new HttpGet("https://localhost/");
+            HttpGet httpget = new HttpGet("https://remotehost/");
 
             System.out.println("executing request " + httpget.getRequestLine());
 
