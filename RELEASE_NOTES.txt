@@ -12,7 +12,7 @@ and disabled by default. It is recommended to use RFC 6265 compliant policies fo
 unless compatibility with RFC 2109 and RFC 2965 is required and to migrate existing applications 
 to the default cookie policy.
 
-* Enhanced redesigned and rewritten default SSL hostname verifier with improved RFC 2818
+* Enhanced, redesigned and rewritten default SSL hostname verifier with improved RFC 2818
 compliance
 
 * Default SSL hostname verifier and default cookie policy now validate certificate identity 
@@ -24,7 +24,7 @@ in approximately 20 to 50 ms overhead per request has been deprecated in favor o
 connection state validation (persistent connections are to be re-validated only if a specified
 period inactivity has elapsed)
 
-* Authentication cache thread-safety: authentication caches used by HttpClient is now thread-safe
+* Authentication cache thread-safety: authentication cache used by HttpClient is now thread-safe
 and can be shared by multiple threads in order to re-use authentication state for subsequent
 requests
 
