@@ -33,7 +33,7 @@ import org.apache.http.cookie.CommonCookieAttributeHandler;
 /**
  * Standard {@link org.apache.http.cookie.CookieSpec} implementation that enforces a more relaxed
  * interpretation of the HTTP state management specification (RFC 6265, section 5)
- * for interoprability with existing servers that do not conform to the well behaved profile
+ * for interoperability with existing servers that do not conform to the well behaved profile
  * (RFC 6265, section 4).
  *
  * @since 4.4
