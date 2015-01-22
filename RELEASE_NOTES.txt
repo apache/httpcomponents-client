@@ -28,10 +28,11 @@ period inactivity has elapsed)
 and can be shared by multiple threads in order to re-use authentication state for subsequent
 requests
 
-* Native windows Negotiate/NTLM via JNA: when running on Windows OS HttpClient configured to use
-native NTLM or SPNEGO authentication schemes can make use of platform specific functionality
-via JNA and current user system credentials. This functionality is still considered experimental
-and is known to have compatibility issues. Use at your discretion.
+* Native Windows Negotiate and NTLM via SSPI through JNA: when running on Windows OS HttpClient
+configured to use native NTLM or SPNEGO authentication schemes can make use of platform specific
+functionality via JNA and current user credentials. This functionality is still considered
+experimental, known to have compatibility issues and subject to change without prior notice.
+Use at your discretion.
 
 This release also includes all fixes from the stable 4.3.x release branch.
 
