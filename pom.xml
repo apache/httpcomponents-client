@@ -391,27 +391,27 @@
   <reporting>
     <plugins>
 
-       <plugin>
-         <artifactId>maven-project-info-reports-plugin</artifactId>
-         <version>${hc.project-info.version}</version>
-         <inherited>false</inherited>
-         <reportSets>
-           <reportSet>
-             <reports>
-               <report>dependency-management</report>
-               <report>issue-tracking</report>
-               <report>license</report>
-               <report>scm</report>
-               <report>summary</report>
-             </reports>
-           </reportSet>
-         </reportSets>
+      <plugin>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>${hc.project-info.version}</version>
+        <inherited>false</inherited>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>dependency-management</report>
+              <report>issue-tracking</report>
+              <report>license</report>
+              <report>scm</report>
+              <report>summary</report>
+            </reports>
+          </reportSet>
+        </reportSets>
       </plugin>
 
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>clirr-maven-plugin</artifactId>
-         <version>${hc.clirr.version}</version>
+        <version>${hc.clirr.version}</version>
         <configuration>
           <comparisonVersion>${api.comparison.version}</comparisonVersion>
         </configuration>
