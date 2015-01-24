@@ -166,25 +166,19 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
         }
     }
 
+    static boolean matchDomainRoot(final String host, final String domainRoot) {
+        if (domainRoot == null) {
+            return false;
+        }
+        return host.endsWith(domainRoot) && (host.length() == domainRoot.length()
+                || host.charAt(host.length() - domainRoot.length() - 1) == '.');
+    }
+
     private static boolean matchIdentity(final String host, final String identity,
                                          final PublicSuffixMatcher publicSuffixMatcher,
                                          final boolean strict) {
-        if (host == null) {
-            return false;
-        }
-
-        if (publicSuffixMatcher != null) {
-            String domainRoot = publicSuffixMatcher.getDomainRoot(identity);
-            if (domainRoot == null) {
-                // Public domain
-                return false;
-            }
-            domainRoot = "." + domainRoot;
-            if (!host.endsWith(domainRoot)) {
-                // Domain root mismatch
-                return false;
-            }
-            if (strict && countDots(identity) != countDots(domainRoot)) {
+        if (publicSuffixMatcher != null && host.contains(".")) {
+            if (!matchDomainRoot(host, publicSuffixMatcher.getDomainRoot(identity))) {
                 return false;
             }
         }
@@ -215,16 +209,6 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
             return true;
         }
         return host.equalsIgnoreCase(identity);
-    }
-
-    static int countDots(final String s) {
-        int count = 0;
-        for(int i = 0; i < s.length(); i++) {
-            if(s.charAt(i) == '.') {
-                count++;
-            }
-        }
-        return count;
     }
 
     static boolean matchIdentity(final String host, final String identity,

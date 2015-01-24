@@ -94,7 +94,7 @@ public class TestInternalHttpClient {
     @Test
     public void testExecute() throws Exception {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
-        final HttpRoute route = new HttpRoute(new HttpHost("somehost"));
+        final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
         final ArgumentCaptor<HttpRequestWrapper> argcap = ArgumentCaptor.forClass(HttpRequestWrapper.class);
         Mockito.when(routePlanner.determineRoute(
@@ -117,7 +117,7 @@ public class TestInternalHttpClient {
     @Test(expected=ClientProtocolException.class)
     public void testExecuteHttpException() throws Exception {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
-        final HttpRoute route = new HttpRoute(new HttpHost("somehost"));
+        final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),

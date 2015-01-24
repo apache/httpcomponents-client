@@ -54,7 +54,7 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
-      <scope>compile</scope>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -133,6 +133,8 @@
             javax.crypto,
             javax.crypto.spec,
             javax.naming,
+            javax.naming.directory,
+            javax.naming.ldap,
             javax.net,
             javax.net.ssl,
             javax.security.auth.x500,

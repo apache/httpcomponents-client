@@ -32,6 +32,9 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.http.Consts;
+import org.apache.http.Header;
+import org.apache.http.entity.ContentType;
+import org.apache.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -54,8 +57,8 @@ public class TestMultipartEntityBuilder {
                 .buildEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity.getMultipart() instanceof HttpBrowserCompatibleMultipart);
-        Assert.assertEquals("blah-blah", entity.getMultipart().getBoundary());
-        Assert.assertEquals(Consts.UTF_8, entity.getMultipart().getCharset());
+        Assert.assertEquals("blah-blah", entity.getMultipart().boundary);
+        Assert.assertEquals(Consts.UTF_8, entity.getMultipart().charset);
     }
 
     @Test
@@ -63,13 +66,61 @@ public class TestMultipartEntityBuilder {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .addTextBody("p1", "stuff")
                 .addBinaryBody("p2", new File("stuff"))
-                .addBinaryBody("p3", new byte[] {})
-                .addBinaryBody("p4", new ByteArrayInputStream(new byte[] {}))
+                .addBinaryBody("p3", new byte[]{})
+                .addBinaryBody("p4", new ByteArrayInputStream(new byte[]{}))
                 .buildEntity();
         Assert.assertNotNull(entity);
         final List<FormBodyPart> bodyParts = entity.getMultipart().getBodyParts();
         Assert.assertNotNull(bodyParts);
         Assert.assertEquals(4, bodyParts.size());
+    }
+
+    @Test
+    public void testMultipartCustomContentType() throws Exception {
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+                .seContentType(ContentType.APPLICATION_XML)
+                .setBoundary("blah-blah")
+                .setCharset(Consts.UTF_8)
+                .setLaxMode()
+                .buildEntity();
+        Assert.assertNotNull(entity);
+        final Header contentType = entity.getContentType();
+        Assert.assertNotNull(contentType);
+        Assert.assertEquals("application/xml; boundary=blah-blah; charset=UTF-8", contentType.getValue());
+    }
+
+    @Test
+    public void testMultipartContentTypeParameter() throws Exception {
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+                .seContentType(ContentType.MULTIPART_FORM_DATA.withParameters(
+                        new BasicNameValuePair("boundary", "yada-yada"),
+                        new BasicNameValuePair("charset", "ascii")))
+                .buildEntity();
+        Assert.assertNotNull(entity);
+        final Header contentType = entity.getContentType();
+        Assert.assertNotNull(contentType);
+        Assert.assertEquals("multipart/form-data; boundary=yada-yada; charset=US-ASCII",
+                contentType.getValue());
+        Assert.assertEquals("yada-yada", entity.getMultipart().boundary);
+        Assert.assertEquals(Consts.ASCII, entity.getMultipart().charset);
+    }
+
+    @Test
+    public void testMultipartCustomContentTypeParameterOverrides() throws Exception {
+        final MultipartFormEntity entity = MultipartEntityBuilder.create()
+                .seContentType(ContentType.MULTIPART_FORM_DATA.withParameters(
+                        new BasicNameValuePair("boundary", "yada-yada"),
+                        new BasicNameValuePair("charset", "ascii"),
+                        new BasicNameValuePair("my", "stuff")))
+                .setBoundary("blah-blah")
+                .setCharset(Consts.UTF_8)
+                .setLaxMode()
+                .buildEntity();
+        Assert.assertNotNull(entity);
+        final Header contentType = entity.getContentType();
+        Assert.assertNotNull(contentType);
+        Assert.assertEquals("multipart/form-data; boundary=blah-blah; charset=UTF-8; my=stuff",
+                contentType.getValue());
     }
 
 }

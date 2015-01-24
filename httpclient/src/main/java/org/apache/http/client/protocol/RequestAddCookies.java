@@ -52,7 +52,6 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.cookie.SetCookie2;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.TextUtils;
@@ -156,10 +155,11 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         }
         final CookieSpec cookieSpec = provider.create(clientContext);
         // Get all cookies available in the HTTP state
-        final List<Cookie> cookies = new ArrayList<Cookie>(cookieStore.getCookies());
+        final List<Cookie> cookies = cookieStore.getCookies();
         // Find cookies matching the given origin
         final List<Cookie> matchedCookies = new ArrayList<Cookie>();
         final Date now = new Date();
+        boolean expired = false;
         for (final Cookie cookie : cookies) {
             if (!cookie.isExpired(now)) {
                 if (cookieSpec.match(cookie, cookieOrigin)) {
@@ -172,7 +172,14 @@ public class RequestAddCookies implements HttpRequestInterceptor {
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("Cookie " + cookie + " expired");
                 }
+                expired = true;
             }
+        }
+        // Per RFC 6265, 5.3
+        // The user agent must evict all expired cookies if, at any time, an expired cookie
+        // exists in the cookie store
+        if (expired) {
+            cookieStore.clearExpired(now);
         }
         // Generate Cookie request headers
         if (!matchedCookies.isEmpty()) {
@@ -184,19 +191,10 @@ public class RequestAddCookies implements HttpRequestInterceptor {
 
         final int ver = cookieSpec.getVersion();
         if (ver > 0) {
-            boolean needVersionHeader = false;
-            for (final Cookie cookie : matchedCookies) {
-                if (ver != cookie.getVersion() || !(cookie instanceof SetCookie2)) {
-                    needVersionHeader = true;
-                }
-            }
-
-            if (needVersionHeader) {
-                final Header header = cookieSpec.getVersionHeader();
-                if (header != null) {
-                    // Advertise cookie version support
-                    request.addHeader(header);
-                }
+            final Header header = cookieSpec.getVersionHeader();
+            if (header != null) {
+                // Advertise cookie version support
+                request.addHeader(header);
             }
         }
 

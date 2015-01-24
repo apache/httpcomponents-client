@@ -92,7 +92,7 @@ public class TestPoolingHttpClientConnectionManager {
 
     @Test
     public void testLeaseRelease() throws Exception {
-        final HttpHost target = new HttpHost("localhost");
+        final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         final CPoolEntry entry = new CPoolEntry(LogFactory.getLog(getClass()), "id", route, conn,
@@ -121,7 +121,7 @@ public class TestPoolingHttpClientConnectionManager {
 
     @Test
     public void testReleaseRouteIncomplete() throws Exception {
-        final HttpHost target = new HttpHost("localhost");
+        final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         final CPoolEntry entry = new CPoolEntry(LogFactory.getLog(getClass()), "id", route, conn,
@@ -149,7 +149,7 @@ public class TestPoolingHttpClientConnectionManager {
 
     @Test(expected=InterruptedException.class)
     public void testLeaseFutureCancelled() throws Exception {
-        final HttpHost target = new HttpHost("localhost");
+        final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         final CPoolEntry entry = new CPoolEntry(LogFactory.getLog(getClass()), "id", route, conn,
@@ -166,7 +166,7 @@ public class TestPoolingHttpClientConnectionManager {
 
     @Test(expected=ConnectionPoolTimeoutException.class)
     public void testLeaseFutureTimeout() throws Exception {
-        final HttpHost target = new HttpHost("localhost");
+        final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(future.isCancelled()).thenReturn(Boolean.TRUE);
@@ -179,7 +179,7 @@ public class TestPoolingHttpClientConnectionManager {
 
     @Test
     public void testReleaseReusable() throws Exception {
-        final HttpHost target = new HttpHost("localhost");
+        final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         final CPoolEntry entry = Mockito.spy(new CPoolEntry(LogFactory.getLog(getClass()), "id", route, conn,
@@ -205,7 +205,7 @@ public class TestPoolingHttpClientConnectionManager {
 
     @Test
     public void testReleaseNonReusable() throws Exception {
-        final HttpHost target = new HttpHost("localhost");
+        final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         final CPoolEntry entry = Mockito.spy(new CPoolEntry(LogFactory.getLog(getClass()), "id", route, conn,
@@ -231,7 +231,7 @@ public class TestPoolingHttpClientConnectionManager {
 
     @Test
     public void testTargetConnect() throws Exception {
-        final HttpHost target = new HttpHost("somehost", -1, "https");
+        final HttpHost target = new HttpHost("somehost", 443, "https");
         final InetAddress remote = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
         final InetAddress local = InetAddress.getByAddress(new byte[]{127, 0, 0, 1});
         final HttpRoute route = new HttpRoute(target, local, true);
@@ -280,7 +280,7 @@ public class TestPoolingHttpClientConnectionManager {
 
     @Test
     public void testProxyConnectAndUpgrade() throws Exception {
-        final HttpHost target = new HttpHost("somehost", -1, "https");
+        final HttpHost target = new HttpHost("somehost", 443, "https");
         final HttpHost proxy = new HttpHost("someproxy", 8080);
         final InetAddress remote = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});

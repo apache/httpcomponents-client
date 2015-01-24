@@ -33,6 +33,10 @@ import java.nio.charset.Charset;
 import org.apache.http.Consts;
 import org.apache.http.entity.ContentType;
 
+/**
+ * This class represents arbitrary content of a specfic type that can be consumed
+ * multiple times and requires no explicit deallocation.
+ */
 public class Content {
 
     public static final Content NO_CONTENT = new Content(new byte[] {}, ContentType.DEFAULT_BINARY);

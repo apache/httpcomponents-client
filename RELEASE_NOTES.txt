@@ -1,3 +1,79 @@
+Release 4.4 Final
+-------------------
+
+This is the first stable (GA) release of HttpClient 4.4. Notable features and enhancements included
+in 4.4 series are:
+
+* Support for the latest HTTP state management specification (RFC 6265). Please note that the old 
+cookie policy is still used by default for compatibility reasons. RFC 6265 compliant cookie 
+policies need to be explicitly configured by the user. Please also note that as of next feature 
+release support for Netscape draft, RFC 2109 and RFC 2965 cookie policies will be deprecated 
+and disabled by default. It is recommended to use RFC 6265 compliant policies for new applications 
+unless compatibility with RFC 2109 and RFC 2965 is required and to migrate existing applications 
+to the default cookie policy.
+
+* Enhanced, redesigned and rewritten default SSL hostname verifier with improved RFC 2818
+compliance
+
+* Default SSL hostname verifier and default cookie policy now validate certificate identity 
+and cookie domain of origin against the public suffix list maintained by Mozilla.org
+<https://publicsuffix.org/list>
+
+* More efficient stale connection checking: indiscriminate connection checking which results
+in approximately 20 to 50 ms overhead per request has been deprecated in favor of conditional
+connection state validation (persistent connections are to be re-validated only if a specified
+period inactivity has elapsed)
+
+* Authentication cache thread-safety: authentication cache used by HttpClient is now thread-safe
+and can be shared by multiple threads in order to re-use authentication state for subsequent
+requests
+
+* Native Windows Negotiate and NTLM via SSPI through JNA: when running on Windows OS HttpClient
+configured to use native NTLM or SPNEGO authentication schemes can make use of platform specific
+functionality via JNA and current user credentials. This functionality is still considered
+experimental, known to have compatibility issues and subject to change without prior notice.
+Use at your discretion.
+
+This release also includes all fixes from the stable 4.3.x release branch.
+
+Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+
+
+Changelog:
+-------------------
+
+* Support for the latest HTTP state management specification (RFC 6265).
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1515] Caching of responses to HEAD requests
+  Contributed by Tyrone Cutajar <tj.cutajar at gmail.com> and 
+  Francois-Xavier Bonnet <fx at apache.org> 
+
+* [HTTPCLIENT-1560] Native Windows auth improvements
+  Contributed by Michael Osipov <michaelo at apache.org>
+
+* Update Apache Commons Logging version from 1.1.3 to 1.2. 
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Update Apache Commons Codec version from 1.6 to 1.9. 
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Update Ehcache version from 2.2.0 to 2.6.9. 
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Update Ehcache version from 2.2.0 to 2.6.9. 
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Update Spymemcached version from 2.6 to 2.11.4. 
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* Update SLF4J version from 1.5.11 to 1.7.7. 
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+
+
+
+
 Release 4.4 BETA1
 -------------------
 

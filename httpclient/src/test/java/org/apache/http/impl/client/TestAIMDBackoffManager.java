@@ -47,7 +47,7 @@ public class TestAIMDBackoffManager {
     @Before
     public void setUp() {
         connPerRoute = new MockConnPoolControl();
-        route = new HttpRoute(new HttpHost("localhost:80"));
+        route = new HttpRoute(new HttpHost("localhost", 80));
         clock = new MockClock();
         impl = new AIMDBackoffManager(connPerRoute, clock);
         impl.setPerHostConnectionCap(10);

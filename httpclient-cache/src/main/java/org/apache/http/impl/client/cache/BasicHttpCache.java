@@ -51,6 +51,7 @@ import org.apache.http.client.cache.HttpCacheUpdateException;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HTTP;
@@ -208,6 +209,9 @@ class BasicHttpCache implements HttpCache {
         } catch (final NumberFormatException nfe) {
             return false;
         }
+        if (resource == null) {
+            return false;
+        }
         return (resource.length() < contentLength);
     }
 
@@ -219,7 +223,7 @@ class BasicHttpCache implements HttpCache {
         error.setHeader("Content-Type","text/plain;charset=UTF-8");
         final String msg = String.format("Received incomplete response " +
                 "with Content-Length %d but actual body length %d",
-                contentLength, Long.valueOf(resource.length()));
+                contentLength, resource.length());
         final byte[] msgBytes = msg.getBytes();
         error.setHeader("Content-Length", Integer.toString(msgBytes.length));
         error.setEntity(new ByteArrayEntity(msgBytes));
@@ -249,7 +253,8 @@ class BasicHttpCache implements HttpCache {
                 src.getStatusLine(),
                 src.getAllHeaders(),
                 resource,
-                variantMap);
+                variantMap,
+                src.getRequestMethod());
     }
 
     @Override
@@ -317,9 +322,10 @@ class BasicHttpCache implements HttpCache {
                     responseReceived,
                     originResponse.getStatusLine(),
                     originResponse.getAllHeaders(),
-                    resource);
+                    resource,
+                    request.getRequestLine().getMethod());
             storeInCache(host, request, entry);
-            return responseGenerator.generateResponse(entry);
+            return responseGenerator.generateResponse(HttpRequestWrapper.wrap(request, host), entry);
         } finally {
             if (closeOriginResponse) {
                 originResponse.close();

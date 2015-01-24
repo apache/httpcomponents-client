@@ -85,7 +85,7 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testLeaseReleaseNonReusable() throws Exception {
-        final HttpHost target = new HttpHost("localhost");
+        final HttpHost target = new HttpHost("localhost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(
@@ -112,7 +112,7 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testLeaseReleaseReusable() throws Exception {
-        final HttpHost target = new HttpHost("somehost");
+        final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(Mockito.eq(route), Mockito.<ConnectionConfig>any())).thenReturn(conn);
@@ -142,7 +142,7 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testLeaseReleaseReusableWithState() throws Exception {
-        final HttpHost target = new HttpHost("somehost");
+        final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(
@@ -173,7 +173,7 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testLeaseDifferentRoute() throws Exception {
-        final HttpHost target1 = new HttpHost("somehost");
+        final HttpHost target1 = new HttpHost("somehost", 80);
         final HttpRoute route1 = new HttpRoute(target1);
 
         Mockito.when(connFactory.create(
@@ -193,7 +193,7 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertEquals(route1, mgr.getRoute());
         Assert.assertEquals(null, mgr.getState());
 
-        final HttpHost target2 = new HttpHost("otherhost");
+        final HttpHost target2 = new HttpHost("otherhost", 80);
         final HttpRoute route2 = new HttpRoute(target2);
         final ConnectionRequest connRequest2 = mgr.requestConnection(route2, null);
         final HttpClientConnection conn2 = connRequest2.get(0, TimeUnit.MILLISECONDS);
@@ -209,7 +209,7 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testLeaseExpired() throws Exception {
-        final HttpHost target = new HttpHost("somehost");
+        final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(
@@ -259,7 +259,7 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testShutdown() throws Exception {
-        final HttpHost target = new HttpHost("somehost");
+        final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(
@@ -297,7 +297,7 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testCloseExpired() throws Exception {
-        final HttpHost target = new HttpHost("somehost");
+        final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(
@@ -326,7 +326,7 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testCloseIdle() throws Exception {
-        final HttpHost target = new HttpHost("somehost");
+        final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(
@@ -355,7 +355,7 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test(expected=IllegalStateException.class)
     public void testAlreadyLeased() throws Exception {
-        final HttpHost target = new HttpHost("somehost");
+        final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         Mockito.when(connFactory.create(
@@ -372,7 +372,7 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testTargetConnect() throws Exception {
-        final HttpHost target = new HttpHost("somehost", -1, "https");
+        final HttpHost target = new HttpHost("somehost", 443, "https");
         final InetAddress remote = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});
         final HttpRoute route = new HttpRoute(target, local, true);
@@ -415,7 +415,7 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test
     public void testProxyConnectAndUpgrade() throws Exception {
-        final HttpHost target = new HttpHost("somehost", -1, "https");
+        final HttpHost target = new HttpHost("somehost", 443, "https");
         final HttpHost proxy = new HttpHost("someproxy", 8080);
         final InetAddress remote = InetAddress.getByAddress(new byte[] {10, 0, 0, 1});
         final InetAddress local = InetAddress.getByAddress(new byte[] {127, 0, 0, 1});

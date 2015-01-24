@@ -45,7 +45,7 @@ public class TestHttpRoute {
 
     // a selection of constants for generating routes
     public final static
-        HttpHost TARGET1 = new HttpHost("target1.test.invalid");
+        HttpHost TARGET1 = new HttpHost("target1.test.invalid", 80);
     public final static
         HttpHost TARGET2 = new HttpHost("target2.test.invalid", 8080);
     // It is not necessary to have extra targets for https.
@@ -575,6 +575,51 @@ public class TestHttpRoute {
 
         Assert.assertEquals("route differs from clone", route2, route1);
         Assert.assertEquals("route was modified", route3, route1);
+    }
+
+    @Test
+    public void testTargetHostNormalizationHttp() {
+        final HttpHost target = new HttpHost("somehost", -1, "http");
+        final HttpRoute route = new HttpRoute(target);
+        final HttpHost targetHost = route.getTargetHost();
+        Assert.assertEquals("somehost", targetHost.getHostName());
+        Assert.assertEquals(80, targetHost.getPort());
+        Assert.assertEquals("http", targetHost.getSchemeName());
+        Assert.assertEquals(null, targetHost.getAddress());
+    }
+
+    @Test
+    public void testTargetHostNormalizationHttps() {
+        final HttpHost target = new HttpHost("somehost", -1, "https");
+        final HttpRoute route = new HttpRoute(target);
+        final HttpHost targetHost = route.getTargetHost();
+        Assert.assertEquals("somehost", targetHost.getHostName());
+        Assert.assertEquals(443, targetHost.getPort());
+        Assert.assertEquals("https", targetHost.getSchemeName());
+        Assert.assertEquals(null, targetHost.getAddress());
+    }
+
+    @Test
+    public void testTargetHostNormalizationUnknownPorotocol() {
+        final HttpHost target = new HttpHost("somehost", -1, "blah");
+        final HttpRoute route = new HttpRoute(target);
+        final HttpHost targetHost = route.getTargetHost();
+        Assert.assertEquals("somehost", targetHost.getHostName());
+        Assert.assertEquals(-1, targetHost.getPort());
+        Assert.assertEquals("blah", targetHost.getSchemeName());
+        Assert.assertEquals(null, targetHost.getAddress());
+    }
+
+    @Test
+    public void testTargetHostNormalizationAddress() throws Exception {
+        final InetAddress address = InetAddress.getByAddress(new byte[]{127, 0, 0, 1});
+        final HttpHost target = new HttpHost(address, -1, "http");
+        final HttpRoute route = new HttpRoute(target);
+        final HttpHost targetHost = route.getTargetHost();
+        Assert.assertEquals("localhost", targetHost.getHostName());
+        Assert.assertEquals(80, targetHost.getPort());
+        Assert.assertEquals("http", targetHost.getSchemeName());
+        Assert.assertEquals(address, targetHost.getAddress());
     }
 
 }

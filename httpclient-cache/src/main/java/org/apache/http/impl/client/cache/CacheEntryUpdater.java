@@ -96,7 +96,8 @@ class CacheEntryUpdater {
                 responseDate,
                 entry.getStatusLine(),
                 mergedHeaders,
-                resource);
+                resource,
+                entry.getRequestMethod());
     }
 
     protected Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {

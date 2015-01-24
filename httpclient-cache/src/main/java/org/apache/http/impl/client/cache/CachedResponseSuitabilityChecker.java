@@ -143,13 +143,12 @@ class CachedResponseSuitabilityChecker {
      * @return boolean yes/no answer
      */
     public boolean canCachedResponseBeUsed(final HttpHost host, final HttpRequest request, final HttpCacheEntry entry, final Date now) {
-
         if (!isFreshEnough(entry, request, now)) {
             log.trace("Cache entry was not fresh enough");
             return false;
         }
 
-        if (!validityStrategy.contentLengthHeaderMatchesActualLength(entry)) {
+        if (isGet(request) && !validityStrategy.contentLengthHeaderMatchesActualLength(entry)) {
             log.debug("Cache entry Content-Length and header information do not match");
             return false;
         }
@@ -160,10 +159,16 @@ class CachedResponseSuitabilityChecker {
         }
 
         if (!isConditional(request) && entry.getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
-        return false;
+            return false;
         }
 
         if (isConditional(request) && !allConditionalsMatch(request, entry, now)) {
+            return false;
+        }
+
+        if (hasUnsupportedCacheEntryForGet(request, entry)) {
+            log.debug("HEAD response caching enabled but the cache entry does not contain a " +
+                      "request method, entity or a 204 response");
             return false;
         }
 
@@ -231,6 +236,22 @@ class CachedResponseSuitabilityChecker {
 
         log.trace("Response from cache was suitable");
         return true;
+    }
+
+    private boolean isGet(final HttpRequest request) {
+        return request.getRequestLine().getMethod().equals(HeaderConstants.GET_METHOD);
+    }
+
+    private boolean entryIsNotA204Response(final HttpCacheEntry entry) {
+        return entry.getStatusCode() != HttpStatus.SC_NO_CONTENT;
+    }
+
+    private boolean cacheEntryDoesNotContainMethodAndEntity(final HttpCacheEntry entry) {
+        return entry.getRequestMethod() == null && entry.getResource() == null;
+    }
+
+    private boolean hasUnsupportedCacheEntryForGet(final HttpRequest request, final HttpCacheEntry entry) {
+        return isGet(request) && cacheEntryDoesNotContainMethodAndEntity(entry) && entryIsNotA204Response(entry);
     }
 
     /**

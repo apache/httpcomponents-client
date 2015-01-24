@@ -71,7 +71,7 @@ public class ClientExecuteSOCKS {
             HttpGet request = new HttpGet("/");
 
             System.out.println("Executing request " + request + " to " + target + " via SOCKS proxy " + socksaddr);
-            CloseableHttpResponse response = httpclient.execute(target, request);
+            CloseableHttpResponse response = httpclient.execute(target, request, context);
             try {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());

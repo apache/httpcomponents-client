@@ -71,7 +71,7 @@
                 HttpClient is NOT a browser. It is a client side HTTP transport library. 
                 HttpClient's purpose is to transmit and receive HTTP messages. HttpClient will not 
                 attempt to process content, execute javascript embedded in HTML pages, try to guess
-                content type, if not explicitly set, or reformat request / redirect location URIs,
+                content type, if not explicitly set, or reformat request / rewrite location URIs,
                 or other functionality unrelated to the HTTP transport.
                 </para>
             </listitem>

@@ -38,7 +38,7 @@ import org.apache.http.protocol.HttpContext;
 
 /**
  * {@link org.apache.http.cookie.CookieSpecProvider} implementation that provides an instance of
- * {@link BestMatchSpec}. The instance returned by this factory can
+ * {@link org.apache.http.impl.cookie.DefaultCookieSpec}. The instance returned by this factory can
  * be shared by multiple threads.
  *
  * @since 4.4

@@ -30,6 +30,7 @@ package org.apache.http.cookie;
 import java.util.List;
 
 import org.apache.http.Header;
+import org.apache.http.annotation.Obsolete;
 
 /**
  * Defines the cookie management specification.
@@ -40,7 +41,9 @@ import org.apache.http.Header;
  *   <li>  formatting of "Cookie" header
  * </ul>
  * for a given host, port and path of origin
- *
+ * <p>
+ * Please do not use methods marked as @Obsolete. They have been rendered
+ * obsolete by RFC 6265.
  *
  * @since 4.0
  */
@@ -52,6 +55,7 @@ public interface CookieSpec {
      *
      * @return version of the state management specification
      */
+    @Obsolete
     int getVersion();
 
     /**
@@ -104,6 +108,7 @@ public interface CookieSpec {
      * specification is understood. May be {@code null} if the cookie
      * specification does not support {@code Cookie2} header.
      */
+    @Obsolete
     Header getVersionHeader();
 
 }

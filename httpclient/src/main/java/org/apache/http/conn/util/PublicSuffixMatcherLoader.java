@@ -81,7 +81,7 @@ public final class PublicSuffixMatcherLoader {
             synchronized (PublicSuffixMatcherLoader.class) {
                 if (DEFAULT_INSTANCE == null){
                     final URL url = PublicSuffixMatcherLoader.class.getResource(
-                            "mozilla/public-suffix-list.txt");
+                            "/mozilla/public-suffix-list.txt");
                     if (url != null) {
                         try {
                             DEFAULT_INSTANCE = load(url);

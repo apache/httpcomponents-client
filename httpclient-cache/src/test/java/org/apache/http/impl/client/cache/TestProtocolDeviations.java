@@ -93,7 +93,7 @@ public class TestProtocolDeviations {
 
     @Before
     public void setUp() {
-        host = new HttpHost("foo.example.com");
+        host = new HttpHost("foo.example.com", 80);
 
         route = new HttpRoute(host);
 

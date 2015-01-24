@@ -24,21 +24,44 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.http.conn.ssl;
 
-import java.net.Socket;
-import java.util.Map;
+package org.apache.http.impl.cookie;
+
+import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.client.utils.DateUtils;
+import org.apache.http.cookie.CommonCookieAttributeHandler;
 
 /**
- * A strategy allowing for a choice of an alias during SSL authentication.
+ * Standard {@link org.apache.http.cookie.CookieSpec} implementation that enforces syntax
+ * and semantics of the well-behaved profile of the HTTP state management specification
+ * (RFC 6265, section 4).
  *
- * @since 4.3
+ * @since 4.4
  */
-public interface PrivateKeyStrategy {
+@ThreadSafe
+public class RFC6265StrictSpec extends RFC6265CookieSpecBase {
 
-    /**
-     * Determines what key material to use for SSL authentication.
-     */
-    String chooseAlias(Map<String, PrivateKeyDetails> aliases, Socket socket);
+    final static String[] DATE_PATTERNS = {
+        DateUtils.PATTERN_RFC1123,
+        DateUtils.PATTERN_RFC1036,
+        DateUtils.PATTERN_ASCTIME
+    };
+
+    public RFC6265StrictSpec() {
+        super(new BasicPathHandler(),
+                new BasicDomainHandler(),
+                new BasicMaxAgeHandler(),
+                new BasicSecureHandler(),
+                new BasicExpiresHandler(DATE_PATTERNS));
+    }
+
+    RFC6265StrictSpec(final CommonCookieAttributeHandler... handlers) {
+        super(handlers);
+    }
+
+    @Override
+    public String toString() {
+        return "rfc6265-strict";
+    }
 
 }

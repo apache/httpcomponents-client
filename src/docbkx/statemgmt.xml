@@ -45,63 +45,29 @@
             as a "magic cookie" and the name stuck.</para>
         <para>HttpClient uses the <interfacename>Cookie</interfacename> interface to represent an
             abstract cookie token. In its simplest form an HTTP cookie is merely a name / value pair.
-            Usually an HTTP cookie also contains a number of attributes such as version, a domain
-            for which is valid, a path that specifies the subset of URLs on the origin server to
-            which this cookie applies, and the maximum period of time for which the cookie is valid.</para>
+            Usually an HTTP cookie also contains a number of attributes such a domain for which is
+            valid, a path that specifies the subset of URLs on the origin server to which this
+            cookie applies, and the maximum period of time for which the cookie is valid.</para>
         <para>The <interfacename>SetCookie</interfacename> interface represents a
                 <literal>Set-Cookie</literal> response header sent by the origin server to the HTTP
-            agent in order to maintain a conversational state.
-            The <interfacename>SetCookie2</interfacename> interface extends SetCookie with
-                <literal>Set-Cookie2</literal> specific methods.</para>
-        <para>The <interfacename>ClientCookie</interfacename> interface extends
-                <interfacename>Cookie</interfacename> interface with additional client specific
-            functionality such as the ability to retrieve original cookie attributes exactly as they were
-            specified by the origin server. This is important for generating the
-                <literal>Cookie</literal> header because some cookie specifications require that the
-                <literal>Cookie</literal> header should include certain attributes only if they were
-            specified in the <literal>Set-Cookie</literal> or <literal>Set-Cookie2</literal>
-            header.</para>
-        <section>
-            <title>Cookie versions</title>
-            <para>Cookies compatible with Netscape draft specification but non-compliant with the
-                official specification are considered to be of version 0. Standard compliant cookies
-                are expected to have version 1. HttpClient may handle cookies differently depending
-                on the version.</para>
-            <para>Here is an example of re-creating a Netscape cookie:</para>
-            <programlisting><![CDATA[
-BasicClientCookie netscapeCookie = new BasicClientCookie("name", "value");
-netscapeCookie.setVersion(0);
-netscapeCookie.setDomain(".mycompany.com");
-netscapeCookie.setPath("/");
+            agent in order to maintain a conversational state.</para>
+        <para>The <interfacename>ClientCookie</interfacename> interface extends <interfacename>
+            Cookie</interfacename> interface with additional client specific functionality such
+            as the ability to retrieve original cookie attributes exactly as they were specified
+            by the origin server. This is important for generating the <literal>Cookie</literal>
+            header because some cookie specifications require that the  <literal>Cookie</literal>
+            header should include certain attributes only if they were specified in the
+            <literal>Set-Cookie</literal> header.</para>
+        <para>Here is an example of creating a client-side cookie object:</para>
+        <programlisting><![CDATA[
+BasicClientCookie cookie = new BasicClientCookie("name", "value");
+// Set effective domain and path attributes
+cookie.setDomain(".mycompany.com");
+cookie.setPath("/");
+// Set attributes exactly as sent by the server
+cookie.setAttribute(ClientCookie.PATH_ATTR, "/");
+cookie.setAttribute(ClientCookie.DOMAIN_ATTR, ".mycompany.com");
 ]]></programlisting>
-            <para>Here is an example of re-creating a standard cookie. Please note that standard
-                compliant cookie must retain all attributes as sent by the origin server:</para>
-            <programlisting><![CDATA[
-BasicClientCookie stdCookie = new BasicClientCookie("name", "value");
-stdCookie.setVersion(1);
-stdCookie.setDomain(".mycompany.com");
-stdCookie.setPath("/");
-stdCookie.setSecure(true);
-// Set attributes EXACTLY as sent by the server 
-stdCookie.setAttribute(ClientCookie.VERSION_ATTR, "1");
-stdCookie.setAttribute(ClientCookie.DOMAIN_ATTR, ".mycompany.com");
-]]></programlisting>
-            <para>Here is an example of re-creating a <literal>Set-Cookie2</literal> compliant
-                cookie. Please note that standard compliant cookie must retain all attributes as
-                sent by the origin server:</para>
-            <programlisting><![CDATA[
-BasicClientCookie2 stdCookie = new BasicClientCookie2("name", "value");
-stdCookie.setVersion(1);
-stdCookie.setDomain(".mycompany.com");
-stdCookie.setPorts(new int[] {80,8080});
-stdCookie.setPath("/");
-stdCookie.setSecure(true);
-// Set attributes EXACTLY as sent by the server 
-stdCookie.setAttribute(ClientCookie.VERSION_ATTR, "1");
-stdCookie.setAttribute(ClientCookie.DOMAIN_ATTR, ".mycompany.com");
-stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
-]]></programlisting>
-        </section>
     </section>
     <section>
         <title>Cookie specifications</title>
@@ -109,8 +75,7 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
             specification. The cookie management specification is expected to enforce:</para>
         <itemizedlist>
             <listitem>
-                <para>rules of parsing <literal>Set-Cookie</literal> and optionally
-                        <literal>Set-Cookie2</literal> headers.</para>
+                <para>rules of parsing <literal>Set-Cookie</literal> headers.</para>
             </listitem>
             <listitem>
                 <para>rules of validation of parsed cookies.</para>
@@ -125,32 +90,60 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
         <itemizedlist>
             <listitem>
                 <formalpara>
-                    <title>Netscape draft:</title>
-                    <para>This specification conforms to the original draft specification published
+                    <title>Standard strict:</title>
+                    <para>State management policy compliant with the syntax and semantics of
+                        the well-behaved profile defined by RFC 6265, section 4.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>Standard:</title>
+                    <para>State management policy compliant with a more relaxed profile defined
+                        by RFC 6265, section 4 intended for interoperability with existing servers
+                        that do not conform to the well behaved profile.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>Netscape draft (obsolete):</title>
+                    <para>This policy conforms to the original draft specification published
                         by Netscape Communications. It should be avoided unless absolutely necessary
                         for compatibility with legacy code.</para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>Standard:</title>
-                    <para>RFC 2965 HTTP state management specification.</para>
+                    <title>RFC 2965 (obsolete):</title>
+                    <para>State management policy compliant with the obsolete state management
+                        specification defined by RFC 2965. Please do not use in new applications.
+                    </para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>Browser compatibility:</title>
-                    <para>This implementation strives to closely mimic the (mis)behavior of common web
-                        browser applications such as Microsoft Internet Explorer and Mozilla
-                        FireFox.</para>
+                    <title>RFC 2109 (obsolete):</title>
+                    <para>State management policy compliant with the obsolete state management
+                        specification defined by RFC 2109. Please do not use in new applications.
+                    </para>
                 </formalpara>
             </listitem>
             <listitem>
                 <formalpara>
-                    <title>Best match:</title>
-                    <para>'Meta' cookie specification that picks up a cookie policy based on the
-                        format of cookies sent with the HTTP response. It basically aggregates all
-                        above implementations into one class.</para>
+                    <title>Browser compatibility (obsolete):</title>
+                    <para>This policy strives to closely mimic the (mis)behavior of older versions
+                        of browser applications such as Microsoft Internet Explorer and Mozilla
+                        FireFox. Please do not use in new applications.</para>
+                </formalpara>
+            </listitem>
+            <listitem>
+                <formalpara>
+                    <title>Default:</title>
+                    <para>Default cookie policy is a synthetic policy that picks up either RFC 2965,
+                        RFC 2109 or Netscape draft compliant implementation based on properties of
+                        cookies sent with the HTTP response (such as version attribute,
+                        now obsolete). This policy will be deprecated in favor of the
+                        standard (RFC 6265 compliant) implementation in the next minor release
+                        of HttpClient.</para>
                 </formalpara>
             </listitem>
             <listitem>
@@ -160,9 +153,11 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
                 </formalpara>
             </listitem>
         </itemizedlist>
-        <para>It is strongly recommended to use the <literal>Best Match</literal> policy and let
-            HttpClient pick up an appropriate compliance level at runtime based on the execution
-            context.</para>
+        <para>It is strongly recommended to use either <literal>Standard</literal> or
+            <literal>Standard strict</literal> policy in new applications. Obsolete specifications
+            should be used for compatibility with legacy systems only. Support for obsolete
+            specifications will be removed in the next major release of HttpClient.
+        </para>
     </section>
     <section>
         <title>Choosing cookie policy</title>
@@ -170,13 +165,13 @@ stdCookie.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
             if required.</para>
         <programlisting><![CDATA[
 RequestConfig globalConfig = RequestConfig.custom()
-        .setCookieSpec(CookieSpecs.BEST_MATCH)
+        .setCookieSpec(CookieSpecs.DEFAULT)
         .build();
 CloseableHttpClient httpclient = HttpClients.custom()
         .setDefaultRequestConfig(globalConfig)
         .build();
 RequestConfig localConfig = RequestConfig.copy(globalConfig)
-        .setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY)
+        .setCookieSpec(CookieSpecs.STANDARD_STRICT)
         .build();
 HttpGet httpGet = new HttpGet("/");
 httpGet.setConfig(localConfig);
@@ -191,26 +186,14 @@ httpGet.setConfig(localConfig);
             HttpClient. Once the custom specification has been registered, it can be activated the
             same way as a standard cookie specification.</para>
         <programlisting><![CDATA[
-CookieSpecProvider easySpecProvider = new CookieSpecProvider() {
+PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.getDefault();
 
-    public CookieSpec create(HttpContext context) {
-
-        return new BrowserCompatSpec() {
-            @Override
-            public void validate(Cookie cookie, CookieOrigin origin)
-                    throws MalformedCookieException {
-                // Oh, I am easy
-            }
-        };
-    }
-
-};
 Registry<CookieSpecProvider> r = RegistryBuilder.<CookieSpecProvider>create()
-        .register(CookieSpecs.BEST_MATCH,
-            new BestMatchSpecFactory())
-        .register(CookieSpecs.BROWSER_COMPATIBILITY,
-            new BrowserCompatSpecFactory())
-        .register("easy", easySpecProvider)
+        .register(CookieSpecs.DEFAULT,
+                new DefaultCookieSpecProvider(publicSuffixMatcher))
+        .register(CookieSpecs.STANDARD,
+                new RFC6265CookieSpecProvider(publicSuffixMatcher))
+        .register("easy", new EasySpecProvider())
         .build();
 
 RequestConfig requestConfig = RequestConfig.custom()
@@ -238,7 +221,6 @@ CloseableHttpClient httpclient = HttpClients.custom()
 CookieStore cookieStore = new BasicCookieStore();
 // Populate cookies if needed
 BasicClientCookie cookie = new BasicClientCookie("name", "value");
-cookie.setVersion(0);
 cookie.setDomain(".mycompany.com");
 cookie.setPath("/");
 cookieStore.addCookie(cookie);

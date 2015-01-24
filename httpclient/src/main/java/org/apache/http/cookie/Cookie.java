@@ -29,11 +29,16 @@ package org.apache.http.cookie;
 
 import java.util.Date;
 
+import org.apache.http.annotation.Obsolete;
+
 /**
  * Cookie interface represents a token or short packet of state information
  * (also referred to as "magic-cookie") that the HTTP agent and the target
  * server can exchange to maintain a session. In its simples form an HTTP
  * cookie is merely a name / value pair.
+ * <p>
+ * Please do not use attributes marked as @Obsolete. They have been rendered
+ * obsolete by RFC 6265.
  *
  * @since 4.0
  */
@@ -59,12 +64,14 @@ public interface Cookie {
      *
      * @return comment
      */
+    @Obsolete
     String getComment();
 
     /**
      * If a user agent (web browser) presents this cookie to a user, the
      * cookie's purpose will be described by the information at this URL.
      */
+    @Obsolete
     String getCommentURL();
 
     /**
@@ -107,6 +114,7 @@ public interface Cookie {
      * Get the Port attribute. It restricts the ports to which a cookie
      * may be returned in a Cookie request header.
      */
+    @Obsolete
     int[] getPorts();
 
     /**
@@ -123,6 +131,7 @@ public interface Cookie {
      *
      * @return the version of the cookie.
      */
+    @Obsolete
     int getVersion();
 
     /**
@@ -132,6 +141,8 @@ public interface Cookie {
      * @return {@code true} if the cookie has expired.
      */
     boolean isExpired(final Date date);
+
+    //TODO: RFC 6265 requires cookies to track their creation time; add #getCreationDate()
 
 }
 

@@ -45,7 +45,6 @@ public class TestCacheableRequestPolicy {
         final BasicHttpRequest request = new BasicHttpRequest("GET", "someUri");
 
         Assert.assertTrue(policy.isServableFromCache(request));
-
     }
 
     @Test
@@ -83,9 +82,55 @@ public class TestCacheableRequestPolicy {
     }
 
     @Test
-    public void testIsArbitraryMethodServableFromCache() {
-
+    public void testIsHeadServableFromCache() {
         BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
+
+        Assert.assertTrue(policy.isServableFromCache(request));
+
+        request = new BasicHttpRequest("HEAD", "someUri");
+        request.addHeader("Cache-Control", "public");
+        request.addHeader("Cache-Control", "max-age=20");
+
+        Assert.assertTrue(policy.isServableFromCache(request));
+    }
+
+    @Test
+    public void testIsHeadWithCacheControlServableFromCache() {
+        BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
+        request.addHeader("Cache-Control", "no-cache");
+
+        Assert.assertFalse(policy.isServableFromCache(request));
+
+        request = new BasicHttpRequest("HEAD", "someUri");
+        request.addHeader("Cache-Control", "no-store");
+        request.addHeader("Cache-Control", "max-age=20");
+
+        Assert.assertFalse(policy.isServableFromCache(request));
+
+        request = new BasicHttpRequest("HEAD", "someUri");
+        request.addHeader("Cache-Control", "public");
+        request.addHeader("Cache-Control", "no-store, max-age=20");
+
+        Assert.assertFalse(policy.isServableFromCache(request));
+    }
+
+    @Test
+    public void testIsHeadWithPragmaServableFromCache() {
+        BasicHttpRequest request = new BasicHttpRequest("HEAD", "someUri");
+        request.addHeader("Pragma", "no-cache");
+
+        Assert.assertFalse(policy.isServableFromCache(request));
+
+        request = new BasicHttpRequest("HEAD", "someUri");
+        request.addHeader("Pragma", "value1");
+        request.addHeader("Pragma", "value2");
+
+        Assert.assertFalse(policy.isServableFromCache(request));
+    }
+
+    @Test
+    public void testIsArbitraryMethodServableFromCache() {
+        BasicHttpRequest request = new BasicHttpRequest("TRACE", "someUri");
 
         Assert.assertFalse(policy.isServableFromCache(request));
 

@@ -595,7 +595,7 @@ public class CachingHttpClient implements HttpClient {
                 || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
             cachedResponse = responseGenerator.generateNotModifiedResponse(entry);
         } else {
-            cachedResponse = responseGenerator.generateResponse(entry);
+            cachedResponse = responseGenerator.generateResponse(request, entry);
         }
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
         if (validityPolicy.getStalenessSecs(entry, now) > 0L) {
@@ -609,7 +609,7 @@ public class CachingHttpClient implements HttpClient {
         if (staleResponseNotAllowed(request, entry, now)) {
             return generateGatewayTimeout(context);
         } else {
-            return unvalidatedCacheHit(context, entry);
+            return unvalidatedCacheHit(request, context, entry);
         }
     }
 
@@ -619,9 +619,11 @@ public class CachingHttpClient implements HttpClient {
                 HttpStatus.SC_GATEWAY_TIMEOUT, "Gateway Timeout");
     }
 
-    private HttpResponse unvalidatedCacheHit(final HttpContext context,
+    private HttpResponse unvalidatedCacheHit(
+            final HttpRequestWrapper request,
+            final HttpContext context,
             final HttpCacheEntry entry) {
-        final HttpResponse cachedResponse = responseGenerator.generateResponse(entry);
+        final HttpResponse cachedResponse = responseGenerator.generateResponse(request, entry);
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
         cachedResponse.addHeader(HeaderConstants.WARNING, "111 localhost \"Revalidation failed\"");
         return cachedResponse;
@@ -819,7 +821,7 @@ public class CachingHttpClient implements HttpClient {
                 conditionalRequest, requestDate, responseDate, backendResponse,
                 matchingVariant, matchedEntry);
 
-        final HttpResponse resp = responseGenerator.generateResponse(responseEntry);
+        final HttpResponse resp = responseGenerator.generateResponse(request, responseEntry);
         tryToUpdateVariantMap(target, request, matchingVariant);
 
         if (shouldSendNotModifiedResponse(request, responseEntry)) {
@@ -901,13 +903,13 @@ public class CachingHttpClient implements HttpClient {
                     && suitabilityChecker.allConditionalsMatch(request, updatedEntry, new Date())) {
                 return responseGenerator.generateNotModifiedResponse(updatedEntry);
             }
-            return responseGenerator.generateResponse(updatedEntry);
+            return responseGenerator.generateResponse(request, updatedEntry);
         }
 
         if (staleIfErrorAppliesTo(statusCode)
             && !staleResponseNotAllowed(request, cacheEntry, getCurrentDate())
             && validityPolicy.mayReturnStaleIfError(request, cacheEntry, responseDate)) {
-            final HttpResponse cachedResponse = responseGenerator.generateResponse(cacheEntry);
+            final HttpResponse cachedResponse = responseGenerator.generateResponse(request, cacheEntry);
             cachedResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
             final HttpEntity errorBody = backendResponse.getEntity();
             if (errorBody != null) {

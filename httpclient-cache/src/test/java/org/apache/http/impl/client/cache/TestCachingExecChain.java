@@ -139,7 +139,7 @@ public abstract class TestCachingExecChain {
         config = CacheConfig.DEFAULT;
         asyncValidator = new AsynchronousValidator(config);
 
-        host = new HttpHost("foo.example.com");
+        host = new HttpHost("foo.example.com", 80);
         route = new HttpRoute(host);
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/stuff",
             HttpVersion.HTTP_1_1));
@@ -1781,8 +1781,9 @@ public abstract class TestCachingExecChain {
     }
 
     protected void responseIsGeneratedFromCache() {
-        expect(mockResponseGenerator.generateResponse((HttpCacheEntry) anyObject())).andReturn(
-            mockCachedResponse);
+        expect(
+            mockResponseGenerator.generateResponse((HttpRequestWrapper) anyObject(), (HttpCacheEntry) anyObject()))
+            .andReturn(mockCachedResponse);
     }
 
 }

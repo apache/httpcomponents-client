@@ -83,7 +83,6 @@ import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
@@ -103,7 +102,7 @@ import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.IgnoreSpecProvider;
 import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
-import org.apache.http.impl.cookie.RFC2965SpecProvider;
+import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.http.impl.execchain.BackoffStrategyExec;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.impl.execchain.MainClientExec;
@@ -118,6 +117,7 @@ import org.apache.http.protocol.ImmutableHttpProcessor;
 import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.TextUtils;
 import org.apache.http.util.VersionInfo;
 
@@ -197,6 +197,10 @@ public class HttpClientBuilder {
     private SocketConfig defaultSocketConfig;
     private ConnectionConfig defaultConnectionConfig;
     private RequestConfig defaultRequestConfig;
+    private boolean evictExpiredConnections;
+    private boolean evictIdleConnections;
+    private long maxIdleTime;
+    private TimeUnit maxIdleTimeUnit;
 
     private boolean systemProperties;
     private boolean redirectHandlingDisabled;
@@ -414,8 +418,8 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link AuthenticationStrategy} instance for proxy
-     * authentication.
+     * Assigns {@link AuthenticationStrategy} instance for target
+     * host authentication.
      */
     public final HttpClientBuilder setTargetAuthenticationStrategy(
             final AuthenticationStrategy targetAuthStrategy) {
@@ -424,8 +428,8 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link AuthenticationStrategy} instance for target
-     * host authentication.
+     * Assigns {@link AuthenticationStrategy} instance for proxy
+     * authentication.
      */
     public final HttpClientBuilder setProxyAuthenticationStrategy(
             final AuthenticationStrategy proxyAuthStrategy) {
@@ -749,7 +753,60 @@ public class HttpClientBuilder {
      * implementations.
      */
     public final HttpClientBuilder useSystemProperties() {
-        systemProperties = true;
+        this.systemProperties = true;
+        return this;
+    }
+
+    /**
+     * Makes this instance of HttpClient proactively evict expired connections from the
+     * connection pool using a background thread.
+     * <p>
+     * One MUST explicitly close HttpClient with {@link CloseableHttpClient#close()} in order
+     * to stop and release the background thread.
+     * <p>
+     * Please note this method has no effect if the instance of HttpClient is configuted to
+     * use a shared connection manager.
+     * <p>
+     * Please note this method may not be used when the instance of HttpClient is created
+     * inside an EJB container.
+     *
+     * @see #setConnectionManagerShared(boolean)
+     * @see org.apache.http.conn.HttpClientConnectionManager#closeExpiredConnections()
+     *
+     * @since 4.4
+     */
+    public final HttpClientBuilder evictExpiredConnections() {
+        evictExpiredConnections = true;
+        return this;
+    }
+
+    /**
+     * Makes this instance of HttpClient proactively evict idle connections from the
+     * connection pool using a background thread.
+     * <p>
+     * One MUST explicitly close HttpClient with {@link CloseableHttpClient#close()} in order
+     * to stop and release the background thread.
+     * <p>
+     * Please note this method has no effect if the instance of HttpClient is configuted to
+     * use a shared connection manager.
+     * <p>
+     * Please note this method may not be used when the instance of HttpClient is created
+     * inside an EJB container.
+     *
+     * @see #setConnectionManagerShared(boolean)
+     * @see org.apache.http.conn.HttpClientConnectionManager#closeExpiredConnections()
+     *
+     * @param maxIdleTime maxium time persistent connections can stay idle while kept alive
+     * in the connection pool. Connections whose inactivity period exceeds this value will
+     * get closed and evicted from the pool.
+     * @param maxIdleTimeUnit time unit for the above parameter.
+     *
+     * @since 4.4
+     */
+    public final HttpClientBuilder evictIdleConnections(final Long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
+        this.evictIdleConnections = true;
+        this.maxIdleTime = maxIdleTime;
+        this.maxIdleTimeUnit = maxIdleTimeUnit;
         return this;
     }
 
@@ -1070,9 +1127,17 @@ public class HttpClientBuilder {
         }
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
+            final CookieSpecProvider defaultProvider = new DefaultCookieSpecProvider(publicSuffixMatcherCopy);
+            final CookieSpecProvider laxStandardProvider = new RFC6265CookieSpecProvider(
+                    RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, publicSuffixMatcherCopy);
+            final CookieSpecProvider strictStandardProvider = new RFC6265CookieSpecProvider(
+                    RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, publicSuffixMatcherCopy);
             cookieSpecRegistryCopy = RegistryBuilder.<CookieSpecProvider>create()
-                .register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider(publicSuffixMatcherCopy))
-                .register(CookieSpecs.STANDARD, new RFC2965SpecProvider(publicSuffixMatcherCopy))
+                .register(CookieSpecs.DEFAULT, defaultProvider)
+                .register("best-match", defaultProvider)
+                .register("compatibility", defaultProvider)
+                .register(CookieSpecs.STANDARD, laxStandardProvider)
+                .register(CookieSpecs.STANDARD_STRICT, strictStandardProvider)
                 .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())
                 .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
                 .build();
@@ -1098,6 +1163,20 @@ public class HttpClientBuilder {
                 closeablesCopy = new ArrayList<Closeable>(1);
             }
             final HttpClientConnectionManager cm = connManagerCopy;
+
+            if (evictExpiredConnections || evictIdleConnections) {
+                final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
+                        maxIdleTime > 0 ? maxIdleTime : 10, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS);
+                closeablesCopy.add(new Closeable() {
+
+                    @Override
+                    public void close() throws IOException {
+                        connectionEvictor.shutdown();
+                    }
+
+                });
+                connectionEvictor.start();
+            }
             closeablesCopy.add(new Closeable() {
 
                 @Override

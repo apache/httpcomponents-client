@@ -64,7 +64,7 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>spy</groupId>
+      <groupId>net.spy</groupId>
       <artifactId>spymemcached</artifactId>
       <scope>compile</scope>
       <optional>true</optional>
@@ -124,16 +124,16 @@
         </executions>
       </plugin>
       <plugin>
-       <groupId>org.apache.maven.plugins</groupId>
-       <artifactId>maven-jar-plugin</artifactId>
-       <executions>
-         <execution>
-           <goals>
-             <goal>test-jar</goal>
-           </goals>
-         </execution>
-       </executions>
-     </plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -142,7 +142,7 @@
 
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
-         <version>${hc.javadoc.version}</version>
+        <version>${hc.javadoc.version}</version>
         <configuration>
           <!-- reduce console output. Can override with -Dquiet=false -->
           <quiet>true</quiet>

@@ -90,7 +90,7 @@ public class TestHttpCacheJiraNumber1147 {
         final ClientExecChain backend = EasyMock.createNiceMock(ClientExecChain.class);
         final HttpRequestWrapper get = HttpRequestWrapper.wrap(new HttpGet("http://somehost/"));
         final HttpClientContext context = HttpClientContext.create();
-        final HttpHost target = new HttpHost("somehost");
+        final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
 
         context.setTargetHost(target);

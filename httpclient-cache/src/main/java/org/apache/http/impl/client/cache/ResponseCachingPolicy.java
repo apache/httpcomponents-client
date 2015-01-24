@@ -67,6 +67,7 @@ class ResponseCachingPolicy {
                 HttpStatus.SC_MOVED_PERMANENTLY,
                 HttpStatus.SC_GONE));
     private final Set<Integer> uncacheableStatuses;
+
     /**
      * Define a cache policy that limits the size of things that should be stored
      * in the cache to a maximum of {@link HttpResponse} bytes in size.
@@ -104,7 +105,8 @@ class ResponseCachingPolicy {
     public boolean isResponseCacheable(final String httpMethod, final HttpResponse response) {
         boolean cacheable = false;
 
-        if (!HeaderConstants.GET_METHOD.equals(httpMethod)) {
+        if (!(HeaderConstants.GET_METHOD.equals(httpMethod) ||
+                HeaderConstants.HEAD_METHOD.equals(httpMethod))) {
             log.debug("Response was not cacheable.");
             return false;
         }

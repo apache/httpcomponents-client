@@ -53,6 +53,7 @@ import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.RequestDirector;
 import org.apache.http.client.UserTokenHandler;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.params.AuthPolicy;
@@ -371,6 +372,9 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
 
     protected CookieSpecRegistry createCookieSpecRegistry() {
         final CookieSpecRegistry registry = new CookieSpecRegistry();
+        registry.register(
+                CookieSpecs.DEFAULT,
+                new BestMatchSpecFactory());
         registry.register(
                 CookiePolicy.BEST_MATCH,
                 new BestMatchSpecFactory());

@@ -43,9 +43,21 @@ public class FormBodyPart {
 
     private final String name;
     private final Header header;
-
     private final ContentBody body;
 
+    FormBodyPart(final String name, final ContentBody body, final Header header) {
+        super();
+        Args.notNull(name, "Name");
+        Args.notNull(body, "Body");
+        this.name = name;
+        this.body = body;
+        this.header = header != null ? header : new Header();
+    }
+
+    /**
+     * @deprecated (4.4) use {@link org.apache.http.entity.mime.FormBodyPartBuilder}.
+     */
+    @Deprecated
     public FormBodyPart(final String name, final ContentBody body) {
         super();
         Args.notNull(name, "Name");
@@ -76,6 +88,10 @@ public class FormBodyPart {
         this.header.addField(new MinimalField(name, value));
     }
 
+    /**
+     * @deprecated (4.4) use {@link org.apache.http.entity.mime.FormBodyPartBuilder}.
+     */
+    @Deprecated
     protected void generateContentDisp(final ContentBody body) {
         final StringBuilder buffer = new StringBuilder();
         buffer.append("form-data; name=\"");
@@ -89,6 +105,10 @@ public class FormBodyPart {
         addField(MIME.CONTENT_DISPOSITION, buffer.toString());
     }
 
+    /**
+     * @deprecated (4.4) use {@link org.apache.http.entity.mime.FormBodyPartBuilder}.
+     */
+    @Deprecated
     protected void generateContentType(final ContentBody body) {
         final ContentType contentType;
         if (body instanceof AbstractContentBody) {
@@ -109,6 +129,10 @@ public class FormBodyPart {
         }
     }
 
+    /**
+     * @deprecated (4.4) use {@link org.apache.http.entity.mime.FormBodyPartBuilder}.
+     */
+    @Deprecated
     protected void generateTransferEncoding(final ContentBody body) {
         addField(MIME.CONTENT_TRANSFER_ENC, body.getTransferEncoding()); // TE cannot be null
     }

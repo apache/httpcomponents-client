@@ -51,7 +51,10 @@ import org.apache.http.util.EncodingUtils;
 @NotThreadSafe
 final class NTLMEngineImpl implements NTLMEngine {
 
+    /** Unicode encoding */
     private static final Charset UNICODE_LITTLE_UNMARKED = CharsetUtils.lookup("UnicodeLittleUnmarked");
+    /** Character encoding */
+    private static final Charset DEFAULT_CHARSET = Consts.ASCII;
 
     // Flags we use; descriptions according to:
     // http://davenport.sourceforge.net/ntlm.html
@@ -85,9 +88,6 @@ final class NTLMEngineImpl implements NTLMEngine {
         RND_GEN = rnd;
     }
 
-    /** Character encoding */
-    static final Charset DEFAULT_CHARSET = Consts.ASCII;
-
     /** The signature string as bytes in the default encoding */
     private static final byte[] SIGNATURE;
 
@@ -97,6 +97,8 @@ final class NTLMEngineImpl implements NTLMEngine {
         System.arraycopy(bytesWithoutNull, 0, SIGNATURE, 0, bytesWithoutNull.length);
         SIGNATURE[bytesWithoutNull.length] = (byte) 0x00;
     }
+
+    private static final Type1Message TYPE_1_MESSAGE = new Type1Message();
 
     /**
      * Returns the response for the given message.
@@ -115,7 +117,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @throws org.apache.http.HttpException
      *             If the messages cannot be retrieved.
      */
-    final String getResponseFor(final String message, final String username, final String password,
+    static String getResponseFor(final String message, final String username, final String password,
             final String host, final String domain) throws NTLMEngineException {
 
         final String response;
@@ -140,8 +142,10 @@ final class NTLMEngineImpl implements NTLMEngine {
      *            The domain to authenticate with.
      * @return String the message to add to the HTTP request header.
      */
-    String getType1Message(final String host, final String domain) {
-        return new Type1Message(domain, host).getResponse();
+    static String getType1Message(final String host, final String domain) throws NTLMEngineException {
+        // For compatibility reason do not include domain and host in type 1 message
+        //return new Type1Message(domain, host).getResponse();
+        return TYPE_1_MESSAGE.getResponse();
     }
 
     /**
@@ -164,7 +168,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @throws NTLMEngineException
      *             If {@encrypt(byte[],byte[])} fails.
      */
-    String getType3Message(final String user, final String password, final String host, final String domain,
+    static String getType3Message(final String user, final String password, final String host, final String domain,
             final byte[] nonce, final int type2Flags, final String target, final byte[] targetInformation)
             throws NTLMEngineException {
         return new Type3Message(domain, host, user, password, nonce, type2Flags, target,
@@ -973,22 +977,31 @@ final class NTLMEngineImpl implements NTLMEngine {
 
     /** Type 1 message assembly class */
     static class Type1Message extends NTLMMessage {
-        protected byte[] hostBytes;
-        protected byte[] domainBytes;
 
-        /** Constructor. Include the arguments the message will need */
-        Type1Message(final String domain, final String host) {
+        private final byte[] hostBytes;
+        private final byte[] domainBytes;
+
+        Type1Message(final String domain, final String host) throws NTLMEngineException {
             super();
+            if (UNICODE_LITTLE_UNMARKED == null) {
+                throw new NTLMEngineException("Unicode not supported");
+            }
             // Strip off domain name from the host!
             final String unqualifiedHost = convertHost(host);
             // Use only the base domain name!
             final String unqualifiedDomain = convertDomain(domain);
 
-            hostBytes = unqualifiedHost != null? unqualifiedHost.getBytes(Consts.ASCII) : null;
-            domainBytes = unqualifiedDomain != null ? unqualifiedDomain
-                    .toUpperCase(Locale.ROOT).getBytes(Consts.ASCII) : null;
+            hostBytes = unqualifiedHost != null ?
+                    unqualifiedHost.getBytes(UNICODE_LITTLE_UNMARKED) : null;
+            domainBytes = unqualifiedDomain != null ?
+                    unqualifiedDomain.toUpperCase(Locale.ROOT).getBytes(UNICODE_LITTLE_UNMARKED) : null;
         }
 
+        Type1Message() {
+            super();
+            hostBytes = null;
+            domainBytes = null;
+        }
         /**
          * Getting the response involves building the message before returning
          * it
@@ -1049,13 +1062,14 @@ final class NTLMEngineImpl implements NTLMEngine {
             // NTLM revision
             addUShort(0x0f00);
 
-
             // Host (workstation) String.
-            //addBytes(hostBytes);
-
+            if (hostBytes != null) {
+                addBytes(hostBytes);
+            }
             // Domain String.
-            //addBytes(domainBytes);
-
+            if (domainBytes != null) {
+                addBytes(domainBytes);
+            }
 
             return super.getResponse();
         }

@@ -271,7 +271,7 @@ public class TestRedirectExec {
         Mockito.when(httpRoutePlanner.determineRoute(
                 Mockito.eq(target),
                 Mockito.<HttpRequestWrapper>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(new HttpRoute(new HttpHost("otherhost")));
+                Mockito.<HttpClientContext>any())).thenReturn(new HttpRoute(new HttpHost("otherhost", 80)));
 
         redirectExec.execute(route, request, context, execAware);
 

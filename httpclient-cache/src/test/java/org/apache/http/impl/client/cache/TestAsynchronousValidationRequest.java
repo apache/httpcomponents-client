@@ -62,7 +62,7 @@ public class TestAsynchronousValidationRequest {
     public void setUp() {
         mockParent = EasyMock.createNiceMock(AsynchronousValidator.class);
         mockClient = EasyMock.createNiceMock(CachingExec.class);
-        route = new HttpRoute(new HttpHost("foo.example.com"));
+        route = new HttpRoute(new HttpHost("foo.example.com", 80));
         request = HttpRequestWrapper.wrap(new HttpGet("/"));
         context = HttpClientContext.create();
         mockExecAware = EasyMock.createNiceMock(HttpExecutionAware.class);

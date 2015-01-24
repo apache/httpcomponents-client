@@ -44,11 +44,10 @@ class HttpStrictMultipart extends AbstractMultipartForm {
     private final List<FormBodyPart> parts;
 
     public HttpStrictMultipart(
-            final String subType,
             final Charset charset,
             final String boundary,
             final List<FormBodyPart> parts) {
-        super(subType, charset, boundary);
+        super(charset, boundary);
         this.parts = parts;
     }
 

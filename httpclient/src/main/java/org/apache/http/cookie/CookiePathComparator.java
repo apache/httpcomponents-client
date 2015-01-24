@@ -50,6 +50,8 @@ import org.apache.http.annotation.Immutable;
 @Immutable
 public class CookiePathComparator implements Serializable, Comparator<Cookie> {
 
+    public static final CookiePathComparator INSTANCE = new CookiePathComparator();
+
     private static final long serialVersionUID = 7523645369616405818L;
 
     private String normalizePath(final Cookie cookie) {

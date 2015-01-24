@@ -399,8 +399,8 @@ public class TestCookieRFC2109Spec {
         Assert.assertEquals(1, headers.size());
         Assert.assertEquals("$Version=0; name=; $Path=/", headers.get(0).getValue());
 
-        cookie.setAttribute(ClientCookie.DOMAIN_ATTR, null);
-        cookie.setAttribute(ClientCookie.PATH_ATTR, null);
+        cookie.removeAttribute(ClientCookie.DOMAIN_ATTR);
+        cookie.removeAttribute(ClientCookie.PATH_ATTR);
         cookies = new ArrayList<Cookie>();
         cookies.add(cookie);
         headers = cookiespec.formatCookies(cookies);

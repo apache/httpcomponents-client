@@ -162,7 +162,6 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
         return null;
     }
 
-    @SuppressWarnings("resource")
     private SchedulingStrategy createSchedulingStrategy(final CacheConfig config) {
         return schedulingStrategy != null ? schedulingStrategy : new ImmediateSchedulingStrategy(config);
     }

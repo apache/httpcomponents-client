@@ -210,7 +210,7 @@ public class DefaultCookieSpec implements CookieSpec {
 
     @Override
     public Header getVersionHeader() {
-        return strict.getVersionHeader();
+        return null;
     }
 
     @Override

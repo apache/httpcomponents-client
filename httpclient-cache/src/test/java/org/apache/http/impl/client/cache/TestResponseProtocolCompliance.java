@@ -26,8 +26,8 @@
  */
 package org.apache.http.impl.client.cache;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.util.Date;
@@ -151,4 +151,5 @@ public class TestResponseProtocolCompliance {
         }
         assertTrue(closed.set || bais.read() == -1);
     }
+
 }

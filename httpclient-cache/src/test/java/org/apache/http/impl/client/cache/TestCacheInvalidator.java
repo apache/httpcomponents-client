@@ -222,6 +222,81 @@ public class TestCacheInvalidator {
     }
 
     @Test
+    public void testInvalidatesHEADCacheEntryIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
+        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
+        final String theURI = "http://foo.example.com:80/";
+        request = new BasicHttpRequest("GET", theURI,HTTP_1_1);
+
+        cacheEntryisForMethod("HEAD");
+        cacheEntryHasVariantMap(new HashMap<String, String>());
+        cacheReturnsEntryForUri(theURI);
+        entryIsRemoved(theURI);
+
+        replayMocks();
+        impl.flushInvalidatedCacheEntries(host, request);
+        verifyMocks();
+    }
+
+    @Test
+    public void testInvalidatesVariantHEADCacheEntriesIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
+        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
+        final String theURI = "http://foo.example.com:80/";
+        request = new BasicHttpRequest("GET", theURI,HTTP_1_1);
+        final String theVariantKey = "{Accept-Encoding=gzip%2Cdeflate&User-Agent=Apache-HttpClient}";
+        final String theVariantURI = "{Accept-Encoding=gzip%2Cdeflate&User-Agent=Apache-HttpClient}http://foo.example.com:80/";
+        final Map<String, String> variants = HttpTestUtils.makeDefaultVariantMap(theVariantKey, theVariantURI);
+
+        cacheEntryisForMethod("HEAD");
+        cacheEntryHasVariantMap(variants);
+        cacheReturnsEntryForUri(theURI);
+        entryIsRemoved(theURI);
+        entryIsRemoved(theVariantURI);
+
+        replayMocks();
+        impl.flushInvalidatedCacheEntries(host, request);
+        verifyMocks();
+    }
+
+    @Test
+    public void testDoesNotInvalidateHEADCacheEntry() throws Exception {
+        final String theURI = "http://foo.example.com:80/";
+        request = new BasicHttpRequest("HEAD", theURI,HTTP_1_1);
+
+        cacheReturnsEntryForUri(theURI);
+
+        replayMocks();
+        impl.flushInvalidatedCacheEntries(host, request);
+        verifyMocks();
+    }
+
+    @Test
+    public void testDoesNotInvalidateHEADCacheEntryIfSubsequentHEADRequestsAreMadeToTheSameURI() throws Exception {
+        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
+        final String theURI = "http://foo.example.com:80/";
+        request = new BasicHttpRequest("HEAD", theURI,HTTP_1_1);
+
+        cacheReturnsEntryForUri(theURI);
+
+        replayMocks();
+        impl.flushInvalidatedCacheEntries(host, request);
+        verifyMocks();
+    }
+
+    @Test
+    public void testDoesNotInvalidateGETCacheEntryIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
+        impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
+        final String theURI = "http://foo.example.com:80/";
+        request = new BasicHttpRequest("GET", theURI,HTTP_1_1);
+
+        cacheEntryisForMethod("GET");
+        cacheReturnsEntryForUri(theURI);
+
+        replayMocks();
+        impl.flushInvalidatedCacheEntries(host, request);
+        verifyMocks();
+    }
+
+    @Test
     public void testDoesNotInvalidateRequestsWithClientCacheControlHeaders() throws Exception {
         request = new BasicHttpRequest("GET","/",HTTP_1_1);
         request.setHeader("Cache-Control","no-cache");
@@ -244,9 +319,7 @@ public class TestCacheInvalidator {
         request = new BasicHttpRequest("POST","/",HTTP_1_1);
         final String theUri = "http://foo.example.com:80/";
         final String variantUri = "theVariantURI";
-
-        final Map<String,String> mapOfURIs = new HashMap<String,String>();
-        mapOfURIs.put(variantUri,variantUri);
+        final Map<String,String> mapOfURIs = HttpTestUtils.makeDefaultVariantMap(variantUri, variantUri);
 
         cacheReturnsEntryForUri(theUri);
         cacheEntryHasVariantMap(mapOfURIs);
@@ -649,6 +722,10 @@ public class TestCacheInvalidator {
 
     private void entryIsRemoved(final String theUri) throws IOException {
         mockStorage.removeEntry(theUri);
+    }
+
+    private void cacheEntryisForMethod(final String httpMethod) {
+        expect(mockEntry.getRequestMethod()).andReturn(httpMethod);
     }
 
 }

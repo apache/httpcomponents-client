@@ -52,9 +52,16 @@ public final class CookieSpecs {
     public static final String NETSCAPE = "netscape";
 
     /**
-     * The RFC 2965 compliant policy (standard).
+     * The RFC 6265 compliant policy (interoprability profile).
      */
     public static final String STANDARD = "standard";
+
+    /**
+     * The RFC 6265 compliant policy (strict profile).
+     *
+     * @since 4.4
+     */
+    public static final String STANDARD_STRICT = "standard-strict";
 
     /**
      * The default 'best match' policy.

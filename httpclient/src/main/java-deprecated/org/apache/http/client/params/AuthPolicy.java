@@ -67,7 +67,7 @@ public final class AuthPolicy {
      *
      * @since 4.1
      */
-    public static final String SPNEGO = "negotiate";
+    public static final String SPNEGO = "Negotiate";
 
     /**
      * Kerberos Authentication scheme.

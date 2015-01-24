@@ -62,8 +62,9 @@ class CacheableRequestPolicy {
             return false;
         }
 
-        if (!method.equals(HeaderConstants.GET_METHOD)) {
-            log.trace("non-GET request was not serveable from cache");
+        if (!(method.equals(HeaderConstants.GET_METHOD) || method
+                .equals(HeaderConstants.HEAD_METHOD))) {
+            log.trace("non-GET or non-HEAD request was not serveable from cache");
             return false;
         }
 

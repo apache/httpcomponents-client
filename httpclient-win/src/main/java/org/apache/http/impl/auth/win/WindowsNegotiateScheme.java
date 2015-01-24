@@ -77,7 +77,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
     private final String servicePrincipalName;
 
     private CredHandle clientCred;
-    private CtxtHandle sppicontext;
+    private CtxtHandle sspiContext;
     private boolean continueNeeded;
     private String challenge;
 
@@ -101,15 +101,15 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
                 throw new Win32Exception(rc);
             }
         }
-        if (sppicontext != null && !sppicontext.isNull()) {
-            final int rc = Secur32.INSTANCE.DeleteSecurityContext(sppicontext);
+        if (sspiContext != null && !sspiContext.isNull()) {
+            final int rc = Secur32.INSTANCE.DeleteSecurityContext(sspiContext);
             if (WinError.SEC_E_OK != rc) {
                 throw new Win32Exception(rc);
             }
         }
         continueNeeded = true; // waiting
         clientCred = null;
-        sppicontext = null;
+        sspiContext = null;
     }
 
     @Override
@@ -205,7 +205,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
                 final SecBufferDesc continueTokenBuffer = new SecBufferDesc(
                         Sspi.SECBUFFER_TOKEN, continueTokenBytes);
                 final String targetName = getServicePrincipalName(context);
-                response = getToken(this.sppicontext, continueTokenBuffer, targetName);
+                response = getToken(this.sspiContext, continueTokenBuffer, targetName);
             } catch (RuntimeException ex) {
                 failAuthCleanup();
                 if (ex instanceof Win32Exception) {
@@ -273,10 +273,10 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
         final SecBufferDesc token = new SecBufferDesc(
                 Sspi.SECBUFFER_TOKEN, Sspi.MAX_TOKEN_SIZE);
 
-        sppicontext = new CtxtHandle();
+        sspiContext = new CtxtHandle();
         final int rc = Secur32.INSTANCE.InitializeSecurityContext(clientCred,
-                continueCtx, targetName, Sspi.ISC_REQ_CONNECTION | Sspi.ISC_REQ_DELEGATE, 0,
-                Sspi.SECURITY_NATIVE_DREP, continueToken, 0, sppicontext, token,
+                continueCtx, targetName, Sspi.ISC_REQ_DELEGATE | Sspi.ISC_REQ_MUTUAL_AUTH, 0,
+                Sspi.SECURITY_NATIVE_DREP, continueToken, 0, sspiContext, token,
                 attr, null);
         switch (rc) {
             case WinError.SEC_I_CONTINUE_NEEDED:

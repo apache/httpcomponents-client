@@ -71,7 +71,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     private HttpRoute(final HttpHost target, final InetAddress local, final List<HttpHost> proxies,
                      final boolean secure, final TunnelType tunnelled, final LayerType layered) {
         Args.notNull(target, "Target host");
-        this.targetHost   = target;
+        this.targetHost = normalize(target);
         this.localAddress = local;
         if (proxies != null && !proxies.isEmpty()) {
             this.proxyChain = new ArrayList<HttpHost>(proxies);
@@ -84,6 +84,34 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         this.secure       = secure;
         this.tunnelled    = tunnelled != null ? tunnelled : TunnelType.PLAIN;
         this.layered      = layered != null ? layered : LayerType.PLAIN;
+    }
+
+    //TODO: to be removed in 5.0
+    private static int getDefaultPort(final String schemeName) {
+        if ("http".equalsIgnoreCase(schemeName)) {
+            return 80;
+        } else if ("https".equalsIgnoreCase(schemeName)) {
+            return 443;
+        } else {
+            return -1;
+        }
+
+    }
+
+    //TODO: to be removed in 5.0
+    private static HttpHost normalize(final HttpHost target) {
+        if (target.getPort() >= 0 ) {
+            return target;
+        } else {
+            final InetAddress address = target.getAddress();
+            final String schemeName = target.getSchemeName();
+            if (address != null) {
+                return new HttpHost(address, getDefaultPort(schemeName), schemeName);
+            } else {
+                final String hostName = target.getHostName();
+                return new HttpHost(hostName, getDefaultPort(schemeName), schemeName);
+            }
+        }
     }
 
     /**

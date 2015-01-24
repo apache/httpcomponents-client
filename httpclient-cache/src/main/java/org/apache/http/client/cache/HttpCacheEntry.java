@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.http.Header;
+import org.apache.http.HeaderIterator;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.annotation.Immutable;
@@ -54,6 +55,7 @@ import org.apache.http.util.Args;
 public class HttpCacheEntry implements Serializable {
 
     private static final long serialVersionUID = -6300496422359477413L;
+    private static final String REQUEST_METHOD_HEADER_NAME = "Hc-Request-Method";
 
     private final Date requestDate;
     private final Date responseDate;
@@ -80,6 +82,7 @@ public class HttpCacheEntry implements Serializable {
      *   of this parent entry; this maps a "variant key" (derived
      *   from the varying request headers) to a "cache key" (where
      *   in the cache storage the particular variant is located)
+     * @param requestMethod HTTP method used when the request was made
      */
     public HttpCacheEntry(
             final Date requestDate,
@@ -87,7 +90,8 @@ public class HttpCacheEntry implements Serializable {
             final StatusLine statusLine,
             final Header[] responseHeaders,
             final Resource resource,
-            final Map<String,String> variantMap) {
+            final Map<String,String> variantMap,
+            final String requestMethod) {
         super();
         Args.notNull(requestDate, "Request date");
         Args.notNull(responseDate, "Response date");
@@ -103,6 +107,35 @@ public class HttpCacheEntry implements Serializable {
             ? new HashMap<String,String>(variantMap)
             : null;
         this.date = parseDate();
+    }
+
+    /**
+     * Create a new {@link HttpCacheEntry} with variants.
+     * @param requestDate
+     *          Date/time when the request was made (Used for age
+     *            calculations)
+     * @param responseDate
+     *          Date/time that the response came back (Used for age
+     *            calculations)
+     * @param statusLine
+     *          HTTP status line from origin response
+     * @param responseHeaders
+     *          Header[] from original HTTP Response
+     * @param resource representing origin response body
+     * @param variantMap describing cache entries that are variants
+     *   of this parent entry; this maps a "variant key" (derived
+     *   from the varying request headers) to a "cache key" (where
+     *   in the cache storage the particular variant is located)
+     */
+    public HttpCacheEntry(
+            final Date requestDate,
+            final Date responseDate,
+            final StatusLine statusLine,
+            final Header[] responseHeaders,
+            final Resource resource,
+            final Map<String,String> variantMap) {
+        this(requestDate, responseDate, statusLine, responseHeaders, resource,
+                variantMap, null);
     }
 
     /**
@@ -124,6 +157,28 @@ public class HttpCacheEntry implements Serializable {
             final Header[] responseHeaders, final Resource resource) {
         this(requestDate, responseDate, statusLine, responseHeaders, resource,
                 new HashMap<String,String>());
+    }
+
+    /**
+     * Create a new {@link HttpCacheEntry}.
+     *
+     * @param requestDate
+     *          Date/time when the request was made (Used for age
+     *            calculations)
+     * @param responseDate
+     *          Date/time that the response came back (Used for age
+     *            calculations)
+     * @param statusLine
+     *          HTTP status line from origin response
+     * @param responseHeaders
+     *          Header[] from original HTTP Response
+     * @param resource representing origin response body
+     * @param requestMethod HTTP method used when the request was made
+     */
+    public HttpCacheEntry(final Date requestDate, final Date responseDate, final StatusLine statusLine,
+            final Header[] responseHeaders, final Resource resource, final String requestMethod) {
+        this(requestDate, responseDate, statusLine, responseHeaders, resource,
+                new HashMap<String,String>(),requestMethod);
     }
 
     /**
@@ -191,7 +246,15 @@ public class HttpCacheEntry implements Serializable {
      * Returns all the headers that were on the origin response.
      */
     public Header[] getAllHeaders() {
-        return responseHeaders.getAllHeaders();
+        final HeaderGroup filteredHeaders = new HeaderGroup();
+        for (final HeaderIterator iterator = responseHeaders.iterator(); iterator
+                .hasNext();) {
+            final Header header = (Header) iterator.next();
+            if (!REQUEST_METHOD_HEADER_NAME.equals(header.getName())) {
+                filteredHeaders.addHeader(header);
+            }
+        }
+        return filteredHeaders.getAllHeaders();
     }
 
     /**
@@ -199,6 +262,9 @@ public class HttpCacheEntry implements Serializable {
      * name.
      */
     public Header getFirstHeader(final String name) {
+        if (REQUEST_METHOD_HEADER_NAME.equalsIgnoreCase(name)) {
+            return null;
+        }
         return responseHeaders.getFirstHeader(name);
     }
 
@@ -207,6 +273,9 @@ public class HttpCacheEntry implements Serializable {
      * response.
      */
     public Header[] getHeaders(final String name) {
+        if (REQUEST_METHOD_HEADER_NAME.equalsIgnoreCase(name)) {
+            return new Header[0];
+        }
         return responseHeaders.getHeaders(name);
     }
 
@@ -248,6 +317,21 @@ public class HttpCacheEntry implements Serializable {
      */
     public Map<String, String> getVariantMap() {
         return Collections.unmodifiableMap(variantMap);
+    }
+
+    /**
+     * Returns the HTTP request method that was used to create the cached
+     * response entry.
+     *
+     * @since 4.4
+     */
+    public String getRequestMethod() {
+        final Header requestMethodHeader = responseHeaders
+                .getFirstHeader(REQUEST_METHOD_HEADER_NAME);
+        if (requestMethodHeader != null) {
+            return requestMethodHeader.getValue();
+        }
+        return HeaderConstants.GET_METHOD;
     }
 
     /**

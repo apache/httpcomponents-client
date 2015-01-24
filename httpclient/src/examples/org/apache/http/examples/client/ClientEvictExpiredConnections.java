@@ -30,10 +30,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.pool.PoolStats;
 import org.apache.http.util.EntityUtils;
 
 /**
@@ -47,6 +47,8 @@ public class ClientEvictExpiredConnections {
         cm.setMaxTotal(100);
         CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)
+                .evictExpiredConnections()
+                .evictIdleConnections(5L, TimeUnit.SECONDS)
                 .build();
         try {
             // create an array of URIs to perform GETs on
@@ -55,9 +57,6 @@ public class ClientEvictExpiredConnections {
                 "http://hc.apache.org/httpcomponents-core-ga/",
                 "http://hc.apache.org/httpcomponents-client-ga/",
             };
-
-            IdleConnectionEvictor connEvictor = new IdleConnectionEvictor(cm);
-            connEvictor.start();
 
             for (int i = 0; i < urisToGet.length; i++) {
                 String requestURI = urisToGet[i];
@@ -75,54 +74,18 @@ public class ClientEvictExpiredConnections {
                 }
             }
 
-            // Sleep 10 sec and let the connection evictor do its job
-            Thread.sleep(20000);
+            PoolStats stats1 = cm.getTotalStats();
+            System.out.println("Connections kept alive: " + stats1.getAvailable());
 
-            // Shut down the evictor thread
-            connEvictor.shutdown();
-            connEvictor.join();
+            // Sleep 10 sec and let the connection evictor do its job
+            Thread.sleep(10000);
+
+            PoolStats stats2 = cm.getTotalStats();
+            System.out.println("Connections kept alive: " + stats2.getAvailable());
 
         } finally {
             httpclient.close();
         }
-    }
-
-    public static class IdleConnectionEvictor extends Thread {
-
-        private final HttpClientConnectionManager connMgr;
-
-        private volatile boolean shutdown;
-
-        public IdleConnectionEvictor(HttpClientConnectionManager connMgr) {
-            super();
-            this.connMgr = connMgr;
-        }
-
-        @Override
-        public void run() {
-            try {
-                while (!shutdown) {
-                    synchronized (this) {
-                        wait(5000);
-                        // Close expired connections
-                        connMgr.closeExpiredConnections();
-                        // Optionally, close connections
-                        // that have been idle longer than 5 sec
-                        connMgr.closeIdleConnections(5, TimeUnit.SECONDS);
-                    }
-                }
-            } catch (InterruptedException ex) {
-                // terminate
-            }
-        }
-
-        public void shutdown() {
-            shutdown = true;
-            synchronized (this) {
-                notifyAll();
-            }
-        }
-
     }
 
 }

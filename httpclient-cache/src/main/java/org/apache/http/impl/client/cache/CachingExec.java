@@ -430,7 +430,7 @@ public class CachingExec implements ClientExecChain {
                 || request.containsHeader(HeaderConstants.IF_MODIFIED_SINCE)) {
             cachedResponse = responseGenerator.generateNotModifiedResponse(entry);
         } else {
-            cachedResponse = responseGenerator.generateResponse(entry);
+            cachedResponse = responseGenerator.generateResponse(request, entry);
         }
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
         if (validityPolicy.getStalenessSecs(entry, now) > 0L) {
@@ -447,7 +447,7 @@ public class CachingExec implements ClientExecChain {
         if (staleResponseNotAllowed(request, entry, now)) {
             return generateGatewayTimeout(context);
         } else {
-            return unvalidatedCacheHit(context, entry);
+            return unvalidatedCacheHit(request, context, entry);
         }
     }
 
@@ -460,8 +460,10 @@ public class CachingExec implements ClientExecChain {
     }
 
     private CloseableHttpResponse unvalidatedCacheHit(
-            final HttpContext context, final HttpCacheEntry entry) {
-        final CloseableHttpResponse cachedResponse = responseGenerator.generateResponse(entry);
+            final HttpRequestWrapper request,
+            final HttpContext context,
+            final HttpCacheEntry entry) {
+        final CloseableHttpResponse cachedResponse = responseGenerator.generateResponse(request, entry);
         setResponseStatus(context, CacheResponseStatus.CACHE_HIT);
         cachedResponse.addHeader(HeaderConstants.WARNING, "111 localhost \"Revalidation failed\"");
         return cachedResponse;
@@ -526,8 +528,8 @@ public class CachingExec implements ClientExecChain {
         final String release = (vi != null) ? vi.getRelease() : VersionInfo.UNAVAILABLE;
 
         String value;
-        final Integer major = Integer.valueOf(pv.getMajor());
-        final Integer minor = Integer.valueOf(pv.getMinor());
+        final int major = pv.getMajor();
+        final int minor = pv.getMinor();
         if ("http".equalsIgnoreCase(pv.getProtocol())) {
             value = String.format("%d.%d localhost (Apache-HttpClient/%s (cache))", major, minor,
                     release);
@@ -676,7 +678,7 @@ public class CachingExec implements ClientExecChain {
                     backendResponse, matchingVariant, matchedEntry);
             backendResponse.close();
 
-            final CloseableHttpResponse resp = responseGenerator.generateResponse(responseEntry);
+            final CloseableHttpResponse resp = responseGenerator.generateResponse(request, responseEntry);
             tryToUpdateVariantMap(context.getTargetHost(), request, matchingVariant);
 
             if (shouldSendNotModifiedResponse(request, responseEntry)) {
@@ -788,14 +790,14 @@ public class CachingExec implements ClientExecChain {
                 return responseGenerator
                         .generateNotModifiedResponse(updatedEntry);
             }
-            return responseGenerator.generateResponse(updatedEntry);
+            return responseGenerator.generateResponse(request, updatedEntry);
         }
 
         if (staleIfErrorAppliesTo(statusCode)
             && !staleResponseNotAllowed(request, cacheEntry, getCurrentDate())
             && validityPolicy.mayReturnStaleIfError(request, cacheEntry, responseDate)) {
             try {
-                final CloseableHttpResponse cachedResponse = responseGenerator.generateResponse(cacheEntry);
+                final CloseableHttpResponse cachedResponse = responseGenerator.generateResponse(request, cacheEntry);
                 cachedResponse.addHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"");
                 return cachedResponse;
             } finally {

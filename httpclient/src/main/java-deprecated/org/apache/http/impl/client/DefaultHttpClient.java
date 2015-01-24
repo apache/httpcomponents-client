@@ -110,7 +110,7 @@ import org.apache.http.util.VersionInfo;
  *
  * @since 4.0
  *
- * @deprecated (4.3) use {@link HttpClientBuilder}.
+ * @deprecated (4.3) use {@link HttpClientBuilder} see also {@link CloseableHttpClient}.
  */
 @ThreadSafe
 @Deprecated

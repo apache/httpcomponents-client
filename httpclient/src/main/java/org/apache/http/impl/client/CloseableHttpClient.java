@@ -29,7 +29,6 @@ package org.apache.http.impl.client;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URI;
 
 import org.apache.commons.logging.Log;
@@ -37,7 +36,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -219,12 +217,14 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
             throws IOException, ClientProtocolException {
         Args.notNull(responseHandler, "Response handler");
 
-        final HttpResponse response = execute(target, request, context);
-
-        final T result;
+        final CloseableHttpResponse response = execute(target, request, context);
         try {
-            result = responseHandler.handleResponse(response);
-        } catch (final Exception t) {
+            final T result = responseHandler.handleResponse(response);
+            final HttpEntity entity = response.getEntity();
+            EntityUtils.consume(entity);
+            return result;
+        } catch (final ClientProtocolException t) {
+            // Try to salvage the underlying connection in case of a protocol exception
             final HttpEntity entity = response.getEntity();
             try {
                 EntityUtils.consume(entity);
@@ -233,20 +233,10 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
                 // important and will be thrown to the caller.
                 this.log.warn("Error consuming content after an exception.", t2);
             }
-            if (t instanceof RuntimeException) {
-                throw (RuntimeException) t;
-            }
-            if (t instanceof IOException) {
-                throw (IOException) t;
-            }
-            throw new UndeclaredThrowableException(t);
+            throw t;
+        } finally {
+            response.close();
         }
-
-        // Handling the response was successful. Ensure that the content has
-        // been fully consumed.
-        final HttpEntity entity = response.getEntity();
-        EntityUtils.consume(entity);
-        return result;
     }
 
 }

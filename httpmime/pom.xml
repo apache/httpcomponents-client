@@ -97,7 +97,7 @@
 
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
-         <version>${hc.javadoc.version}</version>
+        <version>${hc.javadoc.version}</version>
         <configuration>
           <!-- reduce console output. Can override with -Dquiet=false -->
           <quiet>true</quiet>
@@ -133,12 +133,12 @@
 
       <plugin>
         <artifactId>maven-jxr-plugin</artifactId>
-         <version>${hc.jxr.version}</version>
+        <version>${hc.jxr.version}</version>
       </plugin>
 
       <plugin>
         <artifactId>maven-surefire-report-plugin</artifactId>
-         <version>${hc.surefire-report.version}</version>
+        <version>${hc.surefire-report.version}</version>
       </plugin>
 
     </plugins>

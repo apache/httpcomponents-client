@@ -38,8 +38,11 @@ import org.apache.http.annotation.Immutable;
  * {@link SSLContext} factory methods.
  *
  * @since 4.3
+ *
+ * @deprecated (4.4) use {@link org.apache.http.ssl.SSLContexts}.
  */
 @Immutable
+@Deprecated
 public class SSLContexts {
 
     /**

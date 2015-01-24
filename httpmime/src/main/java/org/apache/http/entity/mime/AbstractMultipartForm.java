@@ -93,50 +93,34 @@ abstract class AbstractMultipartForm {
     private static final ByteArrayBuffer CR_LF = encode(MIME.DEFAULT_CHARSET, "\r\n");
     private static final ByteArrayBuffer TWO_DASHES = encode(MIME.DEFAULT_CHARSET, "--");
 
-    private final String subType;
-    protected final Charset charset;
-    private final String boundary;
+    final Charset charset;
+    final String boundary;
 
     /**
      * Creates an instance with the specified settings.
      *
-     * @param subType MIME subtype - must not be {@code null}
      * @param charset the character set to use. May be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
      * @param boundary to use  - must not be {@code null}
      * @throws IllegalArgumentException if charset is null or boundary is null
      */
-    public AbstractMultipartForm(final String subType, final Charset charset, final String boundary) {
+    public AbstractMultipartForm(final Charset charset, final String boundary) {
         super();
-        Args.notNull(subType, "Multipart subtype");
         Args.notNull(boundary, "Multipart boundary");
-        this.subType = subType;
         this.charset = charset != null ? charset : MIME.DEFAULT_CHARSET;
         this.boundary = boundary;
     }
 
-    public AbstractMultipartForm(final String subType, final String boundary) {
-        this(subType, null, boundary);
-    }
-
-    public String getSubType() {
-        return this.subType;
-    }
-
-    public Charset getCharset() {
-        return this.charset;
+    public AbstractMultipartForm(final String boundary) {
+        this(null, boundary);
     }
 
     public abstract List<FormBodyPart> getBodyParts();
-
-    public String getBoundary() {
-        return this.boundary;
-    }
 
     void doWriteTo(
         final OutputStream out,
         final boolean writeContent) throws IOException {
 
-        final ByteArrayBuffer boundaryEncoded = encode(this.charset, getBoundary());
+        final ByteArrayBuffer boundaryEncoded = encode(this.charset, this.boundary);
         for (final FormBodyPart part: getBodyParts()) {
             writeBytes(TWO_DASHES, out);
             writeBytes(boundaryEncoded, out);

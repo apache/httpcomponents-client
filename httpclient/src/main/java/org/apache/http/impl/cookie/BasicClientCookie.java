@@ -304,6 +304,20 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
             && cookieExpiryDate.getTime() <= date.getTime());
     }
 
+    /**
+     * @since 4.4
+     */
+    public Date getCreationDate() {
+        return creationDate;
+    }
+
+    /**
+     * @since 4.4
+     */
+    public void setCreationDate(final Date creationDate) {
+        this.creationDate = creationDate;
+    }
+
     public void setAttribute(final String name, final String value) {
         this.attribs.put(name, value);
     }
@@ -315,7 +329,14 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
     @Override
     public boolean containsAttribute(final String name) {
-        return this.attribs.get(name) != null;
+        return this.attribs.containsKey(name);
+    }
+
+    /**
+     * @since 4.4
+     */
+    public boolean removeAttribute(final String name) {
+        return this.attribs.remove(name) != null;
     }
 
     @Override
@@ -377,6 +398,8 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
 
     /** The version of the cookie specification I was created from. */
     private int cookieVersion;
+
+    private Date creationDate;
 
 }
 

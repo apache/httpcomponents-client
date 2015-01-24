@@ -59,8 +59,6 @@ import org.apache.http.util.CharArrayBuffer;
 @ThreadSafe
 public class RFC2109Spec extends CookieSpecBase {
 
-    private final static CookiePathComparator PATH_COMPARATOR = new CookiePathComparator();
-
     final static String[] DATE_PATTERNS = {
         DateUtils.PATTERN_RFC1123,
         DateUtils.PATTERN_RFC1036,
@@ -127,7 +125,7 @@ public class RFC2109Spec extends CookieSpecBase {
         if (cookies.size() > 1) {
             // Create a mutable copy and sort the copy.
             cookieList = new ArrayList<Cookie>(cookies);
-            Collections.sort(cookieList, PATH_COMPARATOR);
+            Collections.sort(cookieList, CookiePathComparator.INSTANCE);
         } else {
             cookieList = cookies;
         }

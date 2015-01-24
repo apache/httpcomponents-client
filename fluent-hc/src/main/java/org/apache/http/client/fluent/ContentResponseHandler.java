@@ -29,31 +29,26 @@ package org.apache.http.client.fluent;
 import java.io.IOException;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.ResponseHandler;
 import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.AbstractResponseHandler;
 import org.apache.http.util.EntityUtils;
 
-class ContentResponseHandler implements ResponseHandler<Content> {
+/**
+ * {@link org.apache.http.client.ResponseHandler} implementation that converts
+ * {@link org.apache.http.HttpResponse} messages to {@link org.apache.http.client.fluent.Content}
+ * instances.
+ *
+ * @see org.apache.http.client.fluent.Content
+ *
+ * @since 4.4
+ */
+public class ContentResponseHandler extends AbstractResponseHandler<Content> {
 
     @Override
-    public Content handleResponse(
-            final HttpResponse response) throws ClientProtocolException, IOException {
-        final StatusLine statusLine = response.getStatusLine();
-        final HttpEntity entity = response.getEntity();
-        if (statusLine.getStatusCode() >= 300) {
-            throw new HttpResponseException(statusLine.getStatusCode(),
-                    statusLine.getReasonPhrase());
-        }
-        if (entity != null) {
-            return new Content(
-                    EntityUtils.toByteArray(entity),
-                    ContentType.getOrDefault(entity));
-        }
-        return Content.NO_CONTENT;
+    public Content handleEntity(final HttpEntity entity) throws IOException {
+        return entity != null ?
+                new Content(EntityUtils.toByteArray(entity), ContentType.getOrDefault(entity)) :
+                Content.NO_CONTENT;
     }
 
 }

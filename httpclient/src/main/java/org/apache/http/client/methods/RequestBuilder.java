@@ -142,6 +142,27 @@ public class RequestBuilder {
         return new RequestBuilder(HttpHead.METHOD_NAME, uri);
     }
 
+    /**
+     * @since 4.4
+     */
+    public static RequestBuilder patch() {
+        return new RequestBuilder(HttpPatch.METHOD_NAME);
+    }
+
+    /**
+     * @since 4.4
+     */
+    public static RequestBuilder patch(final URI uri) {
+        return new RequestBuilder(HttpPatch.METHOD_NAME, uri);
+    }
+
+    /**
+     * @since 4.4
+     */
+    public static RequestBuilder patch(final String uri) {
+        return new RequestBuilder(HttpPatch.METHOD_NAME, uri);
+    }
+
     public static RequestBuilder post() {
         return new RequestBuilder(HttpPost.METHOD_NAME);
     }
