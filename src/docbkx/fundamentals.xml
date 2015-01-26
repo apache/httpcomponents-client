@@ -657,14 +657,71 @@ try {
 }
 ]]></programlisting>
     </section>
+  <section id="protocol_interceptors">
+    <title>HTTP protocol interceptors</title>
+    <para>The HTTP protocol interceptor is a routine that implements a specific aspect of the HTTP
+      protocol. Usually protocol interceptors are expected to act upon one specific header or
+      a group of related headers of the incoming message, or populate the outgoing message with
+      one specific header or a group of related headers. Protocol interceptors can also
+      manipulate content entities enclosed with messages - transparent content compression /
+      decompression being a good example. Usually this is accomplished by using the
+      'Decorator' pattern where a wrapper entity class is used to decorate the original
+      entity. Several protocol interceptors can be combined to form one logical unit.</para>
+    <para>Protocol interceptors can collaborate by sharing information - such as a processing
+      state - through the HTTP execution context. Protocol interceptors can use HTTP context
+      to store a processing state for one request or several consecutive requests.</para>
+    <para>Usually the order in which interceptors are executed should not matter as long as they
+      do not depend on a particular state of the execution context. If protocol interceptors
+      have interdependencies and therefore must be executed in a particular order, they should
+      be added to the protocol processor in the same sequence as their expected execution
+      order.</para>
+    <para>Protocol interceptors must be implemented as thread-safe. Similarly to servlets,
+      protocol interceptors should not use instance variables unless access to those variables
+      is synchronized.</para>
+    <para>This is an example of how local context can be used to persist a processing state
+      between consecutive requests:</para>
+    <programlisting><![CDATA[
+CloseableHttpClient httpclient = HttpClients.custom()
+        .addInterceptorLast(new HttpRequestInterceptor() {
+
+            public void process(
+                    final HttpRequest request,
+                    final HttpContext context) throws HttpException, IOException {
+                AtomicInteger count = (AtomicInteger) context.getAttribute("count");
+                request.addHeader("Count", Integer.toString(count.getAndIncrement()));
+            }
+
+        })
+        .build();
+
+AtomicInteger count = new AtomicInteger(1);
+HttpClientContext localContext = HttpClientContext.create();
+localContext.setAttribute("count", count);
+
+HttpGet httpget = new HttpGet("http://localhost/");
+for (int i = 0; i < 10; i++) {
+    CloseableHttpResponse response = httpclient.execute(httpget, localContext);
+    try {
+        HttpEntity entity = response.getEntity();
+    } finally {
+        response.close();
+    }
+}
+]]></programlisting>
+  </section>
     <section>
         <title>Exception handling</title>
-        <para>HttpClient can throw two types of exceptions:
+        <para>HTTP protocol processors can throw two types of exceptions:
             <exceptionname>java.io.IOException</exceptionname> in case of an I/O failure such as
             socket timeout or an socket reset and <exceptionname>HttpException</exceptionname> that
             signals an HTTP failure such as a violation of the HTTP protocol. Usually I/O errors are
             considered non-fatal and recoverable, whereas HTTP protocol errors are considered fatal
-            and cannot be automatically recovered from.</para>
+            and cannot be automatically recovered from. Please note that <interfacename>HttpClient
+            </interfacename> implementations re-throw <exceptionname>HttpException</exceptionname>s
+            as <exceptionname>ClientProtocolException</exceptionname>, which is a subclass
+            of <exceptionname>java.io.IOException</exceptionname>. This enables the users
+            of <interfacename>HttpClient</interfacename> to handle both I/O errors and protocol
+            violations from a single catch clause.</para>
         <section>
             <title>HTTP transport safety</title>
             <para>It is important to understand that the HTTP protocol is not well suited to all
@@ -699,9 +756,10 @@ try {
             <para>Please note that this problem is not specific to HttpClient. Browser based
                 applications are subject to exactly the same issues related to HTTP methods
                 non-idempotency.</para>
-            <para>HttpClient assumes non-entity enclosing methods such as <literal>GET</literal> and
-                    <literal>HEAD</literal> to be idempotent and entity enclosing methods such as
-                    <literal>POST</literal> and <literal>PUT</literal> to be not.</para>
+            <para>By default HttpClient assumes only non-entity enclosing methods such as
+                <literal>GET</literal> and <literal>HEAD</literal> to be idempotent and entity
+                enclosing methods such as <literal>POST</literal> and <literal>PUT</literal> to be
+                not for compatibility reasons.</para>
         </section>
         <section>
             <title>Automatic exception recovery</title>
@@ -773,6 +831,11 @@ CloseableHttpClient httpclient = HttpClients.custom()
         .setRetryHandler(myRetryHandler)
         .build();
 ]]></programlisting>
+          <para>Please note that one can use <classname>StandardHttpRequestRetryHandler</classname>
+              instead of the one used by default in order to treat those request methods defined
+              as idempotent by RFC-2616 as safe to retry automatically: <literal>GET</literal>,
+              <literal>HEAD</literal>, <literal>PUT</literal>, <literal>DELETE</literal>, <literal>
+              OPTIONS</literal>, and <literal>TRACE</literal>.</para>
         </section>
     </section>
     <section>
@@ -786,58 +849,6 @@ CloseableHttpClient httpclient = HttpClients.custom()
             and can be called from any thread. When an HTTP request is aborted its execution thread
             - even if currently blocked in an I/O operation - is guaranteed to unblock by throwing a
                 <exceptionname>InterruptedIOException</exceptionname></para>
-    </section>
-    <section id="protocol_interceptors">
-        <title>HTTP protocol interceptors</title>
-        <para>The HTTP protocol interceptor is a routine that implements a specific aspect of the HTTP
-            protocol. Usually protocol interceptors are expected to act upon one specific header or
-            a group of related headers of the incoming message, or populate the outgoing message with
-            one specific header or a group of related headers. Protocol interceptors can also
-            manipulate content entities enclosed with messages - transparent content compression /
-            decompression being a good example. Usually this is accomplished by using the
-            'Decorator' pattern where a wrapper entity class is used to decorate the original
-            entity. Several protocol interceptors can be combined to form one logical unit.</para>
-        <para>Protocol interceptors can collaborate by sharing information - such as a processing
-            state - through the HTTP execution context. Protocol interceptors can use HTTP context
-            to store a processing state for one request or several consecutive requests.</para>
-        <para>Usually the order in which interceptors are executed should not matter as long as they
-            do not depend on a particular state of the execution context. If protocol interceptors
-            have interdependencies and therefore must be executed in a particular order, they should
-            be added to the protocol processor in the same sequence as their expected execution
-            order.</para>
-        <para>Protocol interceptors must be implemented as thread-safe. Similarly to servlets,
-            protocol interceptors should not use instance variables unless access to those variables
-            is synchronized.</para>
-        <para>This is an example of how local context can be used to persist a processing state
-            between consecutive requests:</para>
-        <programlisting><![CDATA[
-CloseableHttpClient httpclient = HttpClients.custom()
-        .addInterceptorLast(new HttpRequestInterceptor() {
-
-            public void process(
-                    final HttpRequest request,
-                    final HttpContext context) throws HttpException, IOException {
-                AtomicInteger count = (AtomicInteger) context.getAttribute("count");
-                request.addHeader("Count", Integer.toString(count.getAndIncrement()));
-            }
-
-        })
-        .build();
-
-AtomicInteger count = new AtomicInteger(1);
-HttpClientContext localContext = HttpClientContext.create();
-localContext.setAttribute("count", count);
-
-HttpGet httpget = new HttpGet("http://localhost/");
-for (int i = 0; i < 10; i++) {
-    CloseableHttpResponse response = httpclient.execute(httpget, localContext);
-    try {
-        HttpEntity entity = response.getEntity();
-    } finally {
-        response.close();
-    }
-}
-]]></programlisting>
     </section>
     <section>
         <title>Redirect handling</title>
