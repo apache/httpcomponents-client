@@ -616,7 +616,6 @@ public class TestHttpRoute {
         final HttpHost target = new HttpHost(address, -1, "http");
         final HttpRoute route = new HttpRoute(target);
         final HttpHost targetHost = route.getTargetHost();
-        Assert.assertEquals("localhost", targetHost.getHostName());
         Assert.assertEquals(80, targetHost.getPort());
         Assert.assertEquals("http", targetHost.getSchemeName());
         Assert.assertEquals(address, targetHost.getAddress());
