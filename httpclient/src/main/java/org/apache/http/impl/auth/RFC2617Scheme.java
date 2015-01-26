@@ -115,9 +115,6 @@ public abstract class RFC2617Scheme extends AuthSchemeBase implements Serializab
         final HeaderValueParser parser = BasicHeaderValueParser.INSTANCE;
         final ParserCursor cursor = new ParserCursor(pos, buffer.length());
         final HeaderElement[] elements = parser.parseElements(buffer, cursor);
-        if (elements.length == 0) {
-            throw new MalformedChallengeException("Authentication challenge is empty");
-        }
         this.params.clear();
         for (final HeaderElement element : elements) {
             this.params.put(element.getName().toLowerCase(Locale.ROOT), element.getValue());

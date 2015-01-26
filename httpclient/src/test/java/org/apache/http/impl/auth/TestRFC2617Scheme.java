@@ -143,13 +143,6 @@ public class TestRFC2617Scheme {
     }
 
     @Test(expected=MalformedChallengeException.class)
-    public void testEmptyHeader() throws Exception {
-        final TestAuthScheme authscheme = new TestAuthScheme();
-        final Header header = new BasicHeader(AUTH.WWW_AUTH, "Test    ");
-        authscheme.processChallenge(header);
-    }
-
-    @Test(expected=MalformedChallengeException.class)
     public void testInvalidHeaderValue() throws Exception {
         final TestAuthScheme authscheme = new TestAuthScheme();
         final Header header = new BasicHeader("whatever", "whatever");

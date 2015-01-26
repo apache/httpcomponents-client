@@ -140,6 +140,9 @@ public class DigestScheme extends RFC2617Scheme {
             final Header header) throws MalformedChallengeException {
         super.processChallenge(header);
         this.complete = true;
+        if (getParameters().isEmpty()) {
+            throw new MalformedChallengeException("Authentication challenge is empty");
+        }
     }
 
     /**

@@ -37,7 +37,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
@@ -52,12 +51,13 @@ import org.junit.Test;
  */
 public class TestBasicScheme {
 
-    @Test(expected=MalformedChallengeException.class)
-    public void testBasicAuthenticationWithNoRealm() throws Exception {
+    @Test
+    public void testBasicAuthenticationEmptyChallenge() throws Exception {
         final String challenge = "Basic";
         final Header header = new BasicHeader(AUTH.WWW_AUTH, challenge);
         final AuthScheme authscheme = new BasicScheme();
         authscheme.processChallenge(header);
+        Assert.assertNull(authscheme.getRealm());
     }
 
     @Test
