@@ -316,7 +316,7 @@ public class EntityBuilder {
         } else if (this.binary != null) {
             e = new ByteArrayEntity(this.binary, getContentOrDefault(ContentType.DEFAULT_BINARY));
         } else if (this.stream != null) {
-            e = new InputStreamEntity(this.stream, 1, getContentOrDefault(ContentType.DEFAULT_BINARY));
+            e = new InputStreamEntity(this.stream, -1, getContentOrDefault(ContentType.DEFAULT_BINARY));
         } else if (this.parameters != null) {
             e = new UrlEncodedFormEntity(this.parameters,
                     this.contentType != null ? this.contentType.getCharset() : null);
