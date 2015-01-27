@@ -71,6 +71,7 @@ public class TestEntityBuilder {
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContent());
         Assert.assertNotNull(entity.getContentType());
+        Assert.assertEquals(-1, entity.getContentLength());
         Assert.assertEquals("application/octet-stream", entity.getContentType().getValue());
     }
 
