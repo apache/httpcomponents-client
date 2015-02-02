@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-client</artifactId>
-    <version>4.4-beta2-SNAPSHOT</version>
+    <version>4.4.1-SNAPSHOT</version>
   </parent>
   <artifactId>httpmime</artifactId>
   <name>Apache HttpClient Mime</name>
