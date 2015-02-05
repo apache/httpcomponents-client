@@ -491,14 +491,14 @@ SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
         sslContext,
         NoopHostnameVerifier.INSTANCE);
 ]]></programlisting>
-            <para>As of version 4.4 HttpClient makes use the public suffix list kindly maintained
+            <para>As of version 4.4 HttpClient uses the public suffix list kindly maintained
                 by Mozilla Foundation to make sure that wildcards in SSL certificates cannot be
                 misused to apply to multiple domains with a common top-level domain. HttpClient
                 ships with a copy of the list retrieved at the time of the release. The latest
                 revision of the list can found at
                 <ulink url="https://publicsuffix.org/list/effective_tld_names.dat">
                     https://publicsuffix.org/list/</ulink>. It is highly adviseable to make a local
-                copy of the lsit and download the list no more than once per day from its original
+                copy of the list and download the list no more than once per day from its original
                 location.
             </para>
             <programlisting><![CDATA[
