@@ -37,7 +37,6 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -195,7 +194,7 @@ public class TestSSLSocketFactory {
         }
     }
 
-    @Test(expected=SSLHandshakeException.class)
+    @Test(expected=SSLException.class)
     public void testSSLTrustVerification() throws Exception {
         this.server = ServerBootstrap.bootstrap()
                 .setServerInfo(LocalServerTestBase.ORIGIN)
