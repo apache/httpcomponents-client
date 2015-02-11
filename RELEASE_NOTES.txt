@@ -1,3 +1,12 @@
+Changes since 4.4
+-------------------
+
+* [HTTPCLIENT-1609] Stale connection check in PoolingHttpClientConnectionManager has no effect.
+  Internal connection pool does not correctly implement connection validation.
+  Contributed by Charles Lip <rene1 at singnet.com.sg>
+
+
+
 Release 4.4 Final
 -------------------
 

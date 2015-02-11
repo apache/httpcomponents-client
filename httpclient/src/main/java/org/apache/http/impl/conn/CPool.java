@@ -64,4 +64,9 @@ class CPool extends AbstractConnPool<HttpRoute, ManagedHttpClientConnection, CPo
         return new CPoolEntry(this.log, id, route, conn, this.timeToLive, this.tunit);
     }
 
+    @Override
+    protected boolean validate(final CPoolEntry entry) {
+        return !entry.getConnection().isStale();
+    }
+
 }
