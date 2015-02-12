@@ -151,6 +151,7 @@
             org.apache.http.params;version=${httpcore.osgi.import.version},
             org.apache.http.pool;version=${httpcore.osgi.import.version},
             org.apache.http.protocol;version=${httpcore.osgi.import.version},
+            org.apache.http.ssl;version=${httpcore.osgi.import.version},
             org.apache.http.util;version=${httpcore.osgi.import.version},
             org.apache.http.impl;version=${httpcore.osgi.import.version},
             org.apache.http.impl.entity;version=${httpcore.osgi.import.version},
