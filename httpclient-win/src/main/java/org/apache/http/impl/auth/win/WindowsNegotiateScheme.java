@@ -243,6 +243,15 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
         final String spn;
         if (this.servicePrincipalName != null) {
             spn = this.servicePrincipalName;
+        } else if(isProxy()){
+            final HttpClientContext clientContext = HttpClientContext.adapt(context);
+            final RouteInfo route = clientContext.getHttpRoute();
+            if (route != null) {
+                spn = "HTTP/" + route.getProxyHost().getHostName();
+            } else {
+                // Should not happen
+                spn = null;
+            }
         } else {
             final HttpClientContext clientContext = HttpClientContext.adapt(context);
             final HttpHost target = clientContext.getTargetHost();
