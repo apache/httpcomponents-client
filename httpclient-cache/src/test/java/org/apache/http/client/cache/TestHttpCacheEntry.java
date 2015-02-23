@@ -26,7 +26,6 @@
  */
 package org.apache.http.client.cache;
 
-import static org.easymock.classextension.EasyMock.createNiceMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -34,6 +33,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -65,7 +65,7 @@ public class TestHttpCacheEntry {
         nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
         statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_OK, "OK");
-        mockResource = createNiceMock(Resource.class);
+        mockResource = mock(Resource.class);
     }
 
     private HttpCacheEntry makeEntry(final Header[] headers) {

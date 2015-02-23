@@ -26,7 +26,8 @@
  */
 package org.apache.http.impl.client.cache;
 
-import org.easymock.classextension.EasyMock;
+import static org.mockito.Mockito.mock;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,8 +41,8 @@ public class TestImmediateSchedulingStrategy {
 
     @Before
     public void setUp() {
-        mockExecutor = EasyMock.createMock(ExecutorService.class);
-        mockRevalidationRequest = EasyMock.createNiceMock(AsynchronousValidationRequest.class);
+        mockExecutor = mock(ExecutorService.class);
+        mockRevalidationRequest = mock(AsynchronousValidationRequest.class);
         schedulingStrategy = new ImmediateSchedulingStrategy(mockExecutor);
     }
 
@@ -49,10 +50,6 @@ public class TestImmediateSchedulingStrategy {
     public void testRequestScheduledImmediately() {
         mockExecutor.execute(mockRevalidationRequest);
 
-        EasyMock.replay(mockExecutor);
-        EasyMock.replay(mockRevalidationRequest);
         schedulingStrategy.schedule(mockRevalidationRequest);
-        EasyMock.verify(mockExecutor);
-        EasyMock.verify(mockRevalidationRequest);
     }
 }

@@ -26,6 +26,12 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.mockito.Matchers.isA;
+import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.Date;
 import java.util.HashMap;
 
@@ -33,9 +39,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.BasicHeader;
-import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,25 +51,13 @@ public class TestCachedHttpResponseGenerator {
     private HttpRequestWrapper request;
     private CacheValidityPolicy mockValidityPolicy;
     private CachedHttpResponseGenerator impl;
-    private Date now;
 
     @Before
     public void setUp() {
-        now = new Date();
-        final Date eightSecondsAgo = new Date(now.getTime() - 8 * 1000L);
-        final Date tenSecondsFromNow = new Date(now.getTime() + 10 * 1000L);
-        final Header[] hdrs = { new BasicHeader("Date", DateUtils.formatDate(eightSecondsAgo)),
-                new BasicHeader("Expires", DateUtils.formatDate(tenSecondsFromNow)),
-                new BasicHeader("Content-Length", "150") };
-
         entry = HttpTestUtils.makeCacheEntry(new HashMap<String, String>());
         request = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
-        mockValidityPolicy = EasyMock.createNiceMock(CacheValidityPolicy.class);
+        mockValidityPolicy = mock(CacheValidityPolicy.class);
         impl = new CachedHttpResponseGenerator(mockValidityPolicy);
-    }
-
-    public void replayMocks() {
-        EasyMock.replay(mockValidityPolicy);
     }
 
     @Test
@@ -117,9 +109,10 @@ public class TestCachedHttpResponseGenerator {
     @Test
     public void testAgeHeaderIsPopulatedWithCurrentAgeOfCacheEntryIfNonZero() {
         currentAge(10L);
-        replayMocks();
 
         final HttpResponse response = impl.generateResponse(request, entry);
+
+        verify(mockValidityPolicy).getCurrentAgeSecs(same(entry), isA(Date.class));
 
         final Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNotNull(ageHdr);
@@ -129,9 +122,10 @@ public class TestCachedHttpResponseGenerator {
     @Test
     public void testAgeHeaderIsNotPopulatedIfCurrentAgeOfCacheEntryIsZero() {
         currentAge(0L);
-        replayMocks();
 
         final HttpResponse response = impl.generateResponse(request, entry);
+
+        verify(mockValidityPolicy).getCurrentAgeSecs(same(entry), isA(Date.class));
 
         final Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNull(ageHdr);
@@ -140,9 +134,10 @@ public class TestCachedHttpResponseGenerator {
     @Test
     public void testAgeHeaderIsPopulatedWithMaxAgeIfCurrentAgeTooBig() {
         currentAge(CacheValidityPolicy.MAX_AGE + 1L);
-        replayMocks();
 
         final HttpResponse response = impl.generateResponse(request, entry);
+
+        verify(mockValidityPolicy).getCurrentAgeSecs(same(entry), isA(Date.class));
 
         final Header ageHdr = response.getFirstHeader("Age");
         Assert.assertNotNull(ageHdr);
@@ -150,9 +145,9 @@ public class TestCachedHttpResponseGenerator {
     }
 
     private void currentAge(final long sec) {
-        EasyMock.expect(
-                mockValidityPolicy.getCurrentAgeSecs(EasyMock.same(entry),
-                        EasyMock.isA(Date.class))).andReturn(sec);
+        when(
+                mockValidityPolicy.getCurrentAgeSecs(same(entry),
+                        isA(Date.class))).thenReturn(sec);
     }
 
     @Test

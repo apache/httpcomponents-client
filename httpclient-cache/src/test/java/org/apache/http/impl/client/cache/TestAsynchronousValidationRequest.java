@@ -26,6 +26,10 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.IOException;
 
 import org.apache.http.Header;
@@ -41,7 +45,6 @@ import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.message.BasicHeader;
-import org.easymock.classextension.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -60,15 +63,15 @@ public class TestAsynchronousValidationRequest {
 
     @Before
     public void setUp() {
-        mockParent = EasyMock.createNiceMock(AsynchronousValidator.class);
-        mockClient = EasyMock.createNiceMock(CachingExec.class);
+        mockParent = mock(AsynchronousValidator.class);
+        mockClient = mock(CachingExec.class);
         route = new HttpRoute(new HttpHost("foo.example.com", 80));
         request = HttpRequestWrapper.wrap(new HttpGet("/"));
         context = HttpClientContext.create();
-        mockExecAware = EasyMock.createNiceMock(HttpExecutionAware.class);
-        mockCacheEntry = EasyMock.createNiceMock(HttpCacheEntry.class);
-        mockResponse = EasyMock.createNiceMock(CloseableHttpResponse.class);
-        mockStatusLine = EasyMock.createNiceMock(StatusLine.class);
+        mockExecAware = mock(HttpExecutionAware.class);
+        mockCacheEntry = mock(HttpCacheEntry.class);
+        mockResponse = mock(CloseableHttpResponse.class);
+        mockStatusLine = mock(StatusLine.class);
     }
 
     @Test
@@ -79,17 +82,19 @@ public class TestAsynchronousValidationRequest {
                 mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
                 identifier, 0);
 
-        EasyMock.expect(
+        when(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).andReturn(mockResponse);
-        EasyMock.expect(mockResponse.getStatusLine()).andReturn(mockStatusLine);
-        EasyMock.expect(mockStatusLine.getStatusCode()).andReturn(200);
-        mockParent.markComplete(identifier);
-        mockParent.jobSuccessful(identifier);
+                        route, request, context, mockExecAware, mockCacheEntry)).thenReturn(mockResponse);
+        when(mockResponse.getStatusLine()).thenReturn(mockStatusLine);
+        when(mockStatusLine.getStatusCode()).thenReturn(200);
 
-        replayMocks();
         impl.run();
-        verifyMocks();
+
+        verify(mockClient).revalidateCacheEntry(
+                route, request, context, mockExecAware, mockCacheEntry);
+        verify(mockResponse).getStatusLine();
+        verify(mockParent).markComplete(identifier);
+        verify(mockParent).jobSuccessful(identifier);
     }
 
     @Test
@@ -100,17 +105,20 @@ public class TestAsynchronousValidationRequest {
                 mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
                 identifier, 0);
 
-        EasyMock.expect(
+        when(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).andReturn(mockResponse);
-        EasyMock.expect(mockResponse.getStatusLine()).andReturn(mockStatusLine);
-        EasyMock.expect(mockStatusLine.getStatusCode()).andReturn(200);
-        mockParent.markComplete(identifier);
-        mockParent.jobSuccessful(identifier);
+                        route, request, context, mockExecAware, mockCacheEntry)).thenReturn(mockResponse);
+        when(mockResponse.getStatusLine()).thenReturn(mockStatusLine);
+        when(mockStatusLine.getStatusCode()).thenReturn(200);
 
-        replayMocks();
         impl.run();
-        verifyMocks();
+
+        verify(mockClient).revalidateCacheEntry(
+                route, request, context, mockExecAware, mockCacheEntry);
+        verify(mockResponse).getStatusLine();
+        verify(mockStatusLine).getStatusCode();
+        verify(mockParent).markComplete(identifier);
+        verify(mockParent).jobSuccessful(identifier);
     }
 
     @Test
@@ -122,18 +130,22 @@ public class TestAsynchronousValidationRequest {
                 mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
                 identifier, 0);
 
-        EasyMock.expect(
+        when(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).andReturn(mockResponse);
-        EasyMock.expect(mockResponse.getStatusLine()).andReturn(mockStatusLine);
-        EasyMock.expect(mockStatusLine.getStatusCode()).andReturn(200);
-        EasyMock.expect(mockResponse.getHeaders(HeaderConstants.WARNING)).andReturn(warning);
-        mockParent.markComplete(identifier);
-        mockParent.jobFailed(identifier);
+                        route, request, context, mockExecAware, mockCacheEntry)).thenReturn(mockResponse);
+        when(mockResponse.getStatusLine()).thenReturn(mockStatusLine);
+        when(mockStatusLine.getStatusCode()).thenReturn(200);
+        when(mockResponse.getHeaders(HeaderConstants.WARNING)).thenReturn(warning);
 
-        replayMocks();
         impl.run();
-        verifyMocks();
+
+        verify(mockClient).revalidateCacheEntry(
+                route, request, context, mockExecAware, mockCacheEntry);
+        verify(mockResponse).getStatusLine();
+        verify(mockStatusLine).getStatusCode();
+        verify(mockResponse).getHeaders(HeaderConstants.WARNING);
+        verify(mockParent).markComplete(identifier);
+        verify(mockParent).jobFailed(identifier);
     }
 
     @Test
@@ -144,16 +156,17 @@ public class TestAsynchronousValidationRequest {
                 mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
                 identifier, 0);
 
-        EasyMock.expect(
+        when(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).andThrow(
+                        route, request, context, mockExecAware, mockCacheEntry)).thenThrow(
                 new ProtocolException());
-        mockParent.markComplete(identifier);
-        mockParent.jobFailed(identifier);
 
-        replayMocks();
         impl.run();
-        verifyMocks();
+
+        verify(mockClient).revalidateCacheEntry(
+                route, request, context, mockExecAware, mockCacheEntry);
+        verify(mockParent).markComplete(identifier);
+        verify(mockParent).jobFailed(identifier);
     }
 
     @Test
@@ -164,16 +177,17 @@ public class TestAsynchronousValidationRequest {
                 mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
                 identifier, 0);
 
-        EasyMock.expect(
+        when(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).andThrow(
+                        route, request, context, mockExecAware, mockCacheEntry)).thenThrow(
                                 new IOException());
-        mockParent.markComplete(identifier);
-        mockParent.jobFailed(identifier);
 
-        replayMocks();
         impl.run();
-        verifyMocks();
+
+        verify(mockClient).revalidateCacheEntry(
+                route, request, context, mockExecAware, mockCacheEntry);
+        verify(mockParent).markComplete(identifier);
+        verify(mockParent).jobFailed(identifier);
     }
 
     @Test
@@ -184,33 +198,16 @@ public class TestAsynchronousValidationRequest {
                 mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
                 identifier, 0);
 
-        EasyMock.expect(
+        when(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).andThrow(
+                        route, request, context, mockExecAware, mockCacheEntry)).thenThrow(
                                 new RuntimeException());
-        mockParent.markComplete(identifier);
-        mockParent.jobFailed(identifier);
 
-        replayMocks();
         impl.run();
-        verifyMocks();
-    }
 
-    public void replayMocks() {
-        EasyMock.replay(mockClient);
-        EasyMock.replay(mockExecAware);
-        EasyMock.replay(mockCacheEntry);
-        EasyMock.replay(mockResponse);
-        EasyMock.replay(mockStatusLine);
-        EasyMock.replay(mockParent);
-    }
-
-    public void verifyMocks() {
-        EasyMock.verify(mockClient);
-        EasyMock.verify(mockExecAware);
-        EasyMock.verify(mockCacheEntry);
-        EasyMock.verify(mockResponse);
-        EasyMock.verify(mockStatusLine);
-        EasyMock.verify(mockParent);
+        verify(mockClient).revalidateCacheEntry(
+                route, request, context, mockExecAware, mockCacheEntry);
+        verify(mockParent).markComplete(identifier);
+        verify(mockParent).jobFailed(identifier);
     }
 }

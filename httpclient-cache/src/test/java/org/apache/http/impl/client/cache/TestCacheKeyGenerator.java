@@ -26,6 +26,10 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
@@ -34,7 +38,6 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
-import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,19 +57,9 @@ public class TestCacheKeyGenerator {
     @Before
     public void setUp() throws Exception {
         defaultHost = new HttpHost("foo.example.com");
-        mockEntry = EasyMock.createNiceMock(HttpCacheEntry.class);
-        mockRequest = EasyMock.createNiceMock(HttpRequest.class);
+        mockEntry = mock(HttpCacheEntry.class);
+        mockRequest = mock(HttpRequest.class);
         extractor = new CacheKeyGenerator();
-    }
-
-    private void replayMocks() {
-        EasyMock.replay(mockEntry);
-        EasyMock.replay(mockRequest);
-    }
-
-    private void verifyMocks() {
-        EasyMock.verify(mockEntry);
-        EasyMock.verify(mockRequest);
     }
 
     @Test
@@ -124,7 +117,7 @@ public class TestCacheKeyGenerator {
     @Test
     public void testGetVariantURIWithNoVaryHeaderReturnsNormalURI() {
         final String theURI = "theURI";
-        org.easymock.EasyMock.expect(mockEntry.hasVariants()).andReturn(false);
+        when(mockEntry.hasVariants()).thenReturn(false);
         extractor = new CacheKeyGenerator() {
             @Override
             public String getURI(final HttpHost h, final HttpRequest req) {
@@ -134,9 +127,8 @@ public class TestCacheKeyGenerator {
             }
         };
 
-        replayMocks();
         final String result = extractor.getVariantURI(defaultHost, mockRequest, mockEntry);
-        verifyMocks();
+        verify(mockEntry).hasVariants();
         Assert.assertSame(theURI, result);
     }
 
@@ -154,15 +146,16 @@ public class TestCacheKeyGenerator {
                 return theURI;
             }
         };
-        EasyMock.expect(mockEntry.hasVariants()).andReturn(true).anyTimes();
-        EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
-        EasyMock.expect(mockRequest.getHeaders("Accept-Encoding")).andReturn(
+        when(mockEntry.hasVariants()).thenReturn(true);
+        when(mockEntry.getHeaders("Vary")).thenReturn(varyHeaders);
+        when(mockRequest.getHeaders("Accept-Encoding")).thenReturn(
                 encHeaders);
-        replayMocks();
 
         final String result = extractor.getVariantURI(defaultHost, mockRequest, mockEntry);
 
-        verifyMocks();
+        verify(mockEntry).hasVariants();
+        verify(mockEntry).getHeaders("Vary");
+        verify(mockRequest).getHeaders("Accept-Encoding");
         Assert.assertEquals("{Accept-Encoding=gzip}" + theURI, result);
     }
 
@@ -179,15 +172,16 @@ public class TestCacheKeyGenerator {
                 return theURI;
             }
         };
-        EasyMock.expect(mockEntry.hasVariants()).andReturn(true).anyTimes();
-        EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
-        EasyMock.expect(mockRequest.getHeaders("Accept-Encoding"))
-                .andReturn(noHeaders);
-        replayMocks();
+        when(mockEntry.hasVariants()).thenReturn(true);
+        when(mockEntry.getHeaders("Vary")).thenReturn(varyHeaders);
+        when(mockRequest.getHeaders("Accept-Encoding"))
+                .thenReturn(noHeaders);
 
         final String result = extractor.getVariantURI(defaultHost, mockRequest, mockEntry);
 
-        verifyMocks();
+        verify(mockEntry).hasVariants();
+        verify(mockEntry).getHeaders("Vary");
+        verify(mockRequest).getHeaders("Accept-Encoding");
         Assert.assertEquals("{Accept-Encoding=}" + theURI, result);
     }
 
@@ -205,16 +199,18 @@ public class TestCacheKeyGenerator {
                 return theURI;
             }
         };
-        EasyMock.expect(mockEntry.hasVariants()).andReturn(true).anyTimes();
-        EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
-        EasyMock.expect(mockRequest.getHeaders("Accept-Encoding")).andReturn(
+        when(mockEntry.hasVariants()).thenReturn(true);
+        when(mockEntry.getHeaders("Vary")).thenReturn(varyHeaders);
+        when(mockRequest.getHeaders("Accept-Encoding")).thenReturn(
                 encHeaders);
-        EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
-        replayMocks();
+        when(mockRequest.getHeaders("User-Agent")).thenReturn(uaHeaders);
 
         final String result = extractor.getVariantURI(defaultHost, mockRequest, mockEntry);
 
-        verifyMocks();
+        verify(mockEntry).hasVariants();
+        verify(mockEntry).getHeaders("Vary");
+        verify(mockRequest).getHeaders("Accept-Encoding");
+        verify(mockRequest).getHeaders("User-Agent");
         Assert.assertEquals("{Accept-Encoding=gzip&User-Agent=browser}" + theURI, result);
     }
 
@@ -233,15 +229,17 @@ public class TestCacheKeyGenerator {
                 return theURI;
             }
         };
-        EasyMock.expect(mockEntry.hasVariants()).andReturn(true).anyTimes();
-        EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
-        EasyMock.expect(mockRequest.getHeaders("Accept-Encoding")).andReturn(encHeaders);
-        EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
-        replayMocks();
+        when(mockEntry.hasVariants()).thenReturn(true);
+        when(mockEntry.getHeaders("Vary")).thenReturn(varyHeaders);
+        when(mockRequest.getHeaders("Accept-Encoding")).thenReturn(encHeaders);
+        when(mockRequest.getHeaders("User-Agent")).thenReturn(uaHeaders);
 
         final String result = extractor.getVariantURI(defaultHost, mockRequest, mockEntry);
 
-        verifyMocks();
+        verify(mockEntry).hasVariants();
+        verify(mockEntry).getHeaders("Vary");
+        verify(mockRequest).getHeaders("Accept-Encoding");
+        verify(mockRequest).getHeaders("User-Agent");
         Assert.assertEquals("{Accept-Encoding=gzip&User-Agent=browser}" + theURI, result);
     }
 
@@ -260,15 +258,17 @@ public class TestCacheKeyGenerator {
                 return theURI;
             }
         };
-        EasyMock.expect(mockEntry.hasVariants()).andReturn(true).anyTimes();
-        EasyMock.expect(mockEntry.getHeaders("Vary")).andReturn(varyHeaders);
-        EasyMock.expect(mockRequest.getHeaders("Accept-Encoding")).andReturn(encHeaders);
-        EasyMock.expect(mockRequest.getHeaders("User-Agent")).andReturn(uaHeaders);
-        replayMocks();
+        when(mockEntry.hasVariants()).thenReturn(true);
+        when(mockEntry.getHeaders("Vary")).thenReturn(varyHeaders);
+        when(mockRequest.getHeaders("Accept-Encoding")).thenReturn(encHeaders);
+        when(mockRequest.getHeaders("User-Agent")).thenReturn(uaHeaders);
 
         final String result = extractor.getVariantURI(defaultHost, mockRequest, mockEntry);
 
-        verifyMocks();
+        verify(mockEntry).hasVariants();
+        verify(mockEntry).getHeaders("Vary");
+        verify(mockRequest).getHeaders("Accept-Encoding");
+        verify(mockRequest).getHeaders("User-Agent");
         Assert
                 .assertEquals("{Accept-Encoding=gzip%2C+deflate&User-Agent=browser}" + theURI,
                         result);

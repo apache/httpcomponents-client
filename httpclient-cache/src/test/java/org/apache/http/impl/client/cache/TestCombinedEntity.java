@@ -26,11 +26,14 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.ByteArrayInputStream;
 
 import org.apache.http.client.cache.Resource;
 import org.apache.http.util.EntityUtils;
-import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,11 +41,9 @@ public class TestCombinedEntity {
 
     @Test
     public void testCombinedEntityBasics() throws Exception {
-        final Resource resource = EasyMock.createNiceMock(Resource.class);
-        EasyMock.expect(resource.getInputStream()).andReturn(
+        final Resource resource = mock(Resource.class);
+        when(resource.getInputStream()).thenReturn(
                 new ByteArrayInputStream(new byte[] { 1, 2, 3, 4, 5 }));
-        resource.dispose();
-        EasyMock.replay(resource);
 
         final ByteArrayInputStream instream = new ByteArrayInputStream(new byte[] { 6, 7, 8, 9, 10 });
         final CombinedEntity entity = new CombinedEntity(resource, instream);
@@ -53,7 +54,8 @@ public class TestCombinedEntity {
         final byte[] result = EntityUtils.toByteArray(entity);
         Assert.assertArrayEquals(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, result);
 
-        EasyMock.verify(resource);
+        verify(resource).getInputStream();
+        verify(resource).dispose();
     }
 
 }

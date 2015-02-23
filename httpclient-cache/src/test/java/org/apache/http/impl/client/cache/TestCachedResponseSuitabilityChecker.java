@@ -36,7 +36,6 @@ import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
-import org.easymock.classextension.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +50,6 @@ public class TestCachedResponseSuitabilityChecker {
     private HttpHost host;
     private HttpRequest request;
     private HttpCacheEntry entry;
-    private CacheValidityPolicy mockValidityPolicy;
     private CachedResponseSuitabilityChecker impl;
 
     @Before
@@ -63,7 +61,6 @@ public class TestCachedResponseSuitabilityChecker {
 
         host = new HttpHost("foo.example.com");
         request = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
-        mockValidityPolicy = EasyMock.createNiceMock(CacheValidityPolicy.class);
         entry = HttpTestUtils.makeCacheEntry();
 
         impl = new CachedResponseSuitabilityChecker(CacheConfig.DEFAULT);
@@ -71,14 +68,6 @@ public class TestCachedResponseSuitabilityChecker {
 
     private HttpCacheEntry getEntry(final Header[] headers) {
         return HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, headers);
-    }
-
-    public void replayMocks() {
-        EasyMock.replay(mockValidityPolicy);
-    }
-
-    public void verifyMocks() {
-        EasyMock.verify(mockValidityPolicy);
     }
 
     @Test

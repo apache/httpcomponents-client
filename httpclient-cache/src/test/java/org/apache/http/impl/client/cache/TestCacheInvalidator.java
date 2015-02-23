@@ -26,10 +26,10 @@
  */
 package org.apache.http.impl.client.cache;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.classextension.EasyMock.createNiceMock;
-import static org.easymock.classextension.EasyMock.replay;
-import static org.easymock.classextension.EasyMock.verify;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Date;
@@ -51,9 +51,6 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.BasicHttpResponse;
-import org.easymock.EasyMock;
-import org.easymock.IAnswer;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -78,23 +75,13 @@ public class TestCacheInvalidator {
         tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
         host = new HttpHost("foo.example.com");
-        mockStorage = createNiceMock(HttpCacheStorage.class);
+        mockStorage = mock(HttpCacheStorage.class);
         cacheKeyGenerator = new CacheKeyGenerator();
-        mockEntry = createNiceMock(HttpCacheEntry.class);
+        mockEntry = mock(HttpCacheEntry.class);
         request = HttpTestUtils.makeDefaultRequest();
         response = HttpTestUtils.make200Response();
 
         impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
-    }
-
-    private void replayMocks() {
-        replay(mockStorage);
-        replay(mockEntry);
-    }
-
-    private void verifyMocks() {
-        verify(mockStorage);
-        verify(mockEntry);
     }
 
     // Tests
@@ -106,12 +93,12 @@ public class TestCacheInvalidator {
         cacheEntryHasVariantMap(variantMap);
 
         cacheReturnsEntryForUri(theUri);
-        entryIsRemoved(theUri);
-        replayMocks();
 
         impl.flushInvalidatedCacheEntries(host, request);
 
-        verifyMocks();
+        verify(mockEntry).getVariantMap();
+        verify(mockStorage).getEntry(theUri);
+        verify(mockStorage).removeEntry(theUri);
     }
 
     @Test
@@ -127,14 +114,13 @@ public class TestCacheInvalidator {
         cacheEntryHasVariantMap(new HashMap<String,String>());
 
         cacheReturnsEntryForUri(theUri);
-        entryIsRemoved(theUri);
-        entryIsRemoved("http://foo.example.com:80/content");
-
-        replayMocks();
 
         impl.flushInvalidatedCacheEntries(host, putRequest);
 
-        verifyMocks();
+        verify(mockEntry).getVariantMap();
+        verify(mockStorage).getEntry(theUri);
+        verify(mockStorage).removeEntry(theUri);
+        verify(mockStorage).removeEntry("http://foo.example.com:80/content");
     }
 
     @Test
@@ -150,14 +136,13 @@ public class TestCacheInvalidator {
         cacheEntryHasVariantMap(new HashMap<String,String>());
 
         cacheReturnsEntryForUri(theUri);
-        entryIsRemoved(theUri);
-        entryIsRemoved(cacheKeyGenerator.canonicalizeUri(contentLocation));
-
-        replayMocks();
 
         impl.flushInvalidatedCacheEntries(host, putRequest);
 
-        verifyMocks();
+        verify(mockEntry).getVariantMap();
+        verify(mockStorage).getEntry(theUri);
+        verify(mockStorage).removeEntry(theUri);
+        verify(mockStorage).removeEntry(cacheKeyGenerator.canonicalizeUri(contentLocation));
     }
 
     @Test
@@ -173,14 +158,13 @@ public class TestCacheInvalidator {
         cacheEntryHasVariantMap(new HashMap<String,String>());
 
         cacheReturnsEntryForUri(theUri);
-        entryIsRemoved(theUri);
-        entryIsRemoved("http://foo.example.com:80/content");
-
-        replayMocks();
 
         impl.flushInvalidatedCacheEntries(host, putRequest);
 
-        verifyMocks();
+        verify(mockEntry).getVariantMap();
+        verify(mockStorage).getEntry(theUri);
+        verify(mockStorage).removeEntry(theUri);
+        verify(mockStorage).removeEntry("http://foo.example.com:80/content");
     }
 
     @Test
@@ -196,29 +180,30 @@ public class TestCacheInvalidator {
         cacheEntryHasVariantMap(new HashMap<String,String>());
 
         cacheReturnsEntryForUri(theUri);
-        entryIsRemoved(theUri);
-
-        replayMocks();
 
         impl.flushInvalidatedCacheEntries(host, putRequest);
 
-        verifyMocks();
+        verify(mockEntry).getVariantMap();
+        verify(mockStorage).getEntry(theUri);
+        verify(mockStorage).removeEntry(theUri);
     }
 
     @Test
     public void testDoesNotInvalidateGETRequest() throws Exception {
         request = new BasicHttpRequest("GET","/",HTTP_1_1);
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request);
-        verifyMocks();
+
+        verify(mockStorage).getEntry("http://foo.example.com:80/");
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
     public void testDoesNotInvalidateHEADRequest() throws Exception {
         request = new BasicHttpRequest("HEAD","/",HTTP_1_1);
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request);
-        verifyMocks();
+
+        verify(mockStorage).getEntry("http://foo.example.com:80/");
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -230,11 +215,13 @@ public class TestCacheInvalidator {
         cacheEntryisForMethod("HEAD");
         cacheEntryHasVariantMap(new HashMap<String, String>());
         cacheReturnsEntryForUri(theURI);
-        entryIsRemoved(theURI);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request);
-        verifyMocks();
+
+        verify(mockEntry).getRequestMethod();
+        verify(mockEntry).getVariantMap();
+        verify(mockStorage).getEntry(theURI);
+        verify(mockStorage).removeEntry(theURI);
     }
 
     @Test
@@ -249,12 +236,14 @@ public class TestCacheInvalidator {
         cacheEntryisForMethod("HEAD");
         cacheEntryHasVariantMap(variants);
         cacheReturnsEntryForUri(theURI);
-        entryIsRemoved(theURI);
-        entryIsRemoved(theVariantURI);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request);
-        verifyMocks();
+
+        verify(mockEntry).getRequestMethod();
+        verify(mockEntry).getVariantMap();
+        verify(mockStorage).getEntry(theURI);
+        verify(mockStorage).removeEntry(theURI);
+        verify(mockStorage).removeEntry(theVariantURI);
     }
 
     @Test
@@ -264,9 +253,10 @@ public class TestCacheInvalidator {
 
         cacheReturnsEntryForUri(theURI);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -277,9 +267,10 @@ public class TestCacheInvalidator {
 
         cacheReturnsEntryForUri(theURI);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -291,27 +282,33 @@ public class TestCacheInvalidator {
         cacheEntryisForMethod("GET");
         cacheReturnsEntryForUri(theURI);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request);
-        verifyMocks();
+
+        verify(mockEntry).getRequestMethod();
+        verify(mockStorage).getEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
     public void testDoesNotInvalidateRequestsWithClientCacheControlHeaders() throws Exception {
         request = new BasicHttpRequest("GET","/",HTTP_1_1);
         request.setHeader("Cache-Control","no-cache");
-        replayMocks();
+
         impl.flushInvalidatedCacheEntries(host, request);
-        verifyMocks();
+
+        verify(mockStorage).getEntry("http://foo.example.com:80/");
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
     public void testDoesNotInvalidateRequestsWithClientPragmaHeaders() throws Exception {
         request = new BasicHttpRequest("GET","/",HTTP_1_1);
         request.setHeader("Pragma","no-cache");
-        replayMocks();
+
         impl.flushInvalidatedCacheEntries(host, request);
-        verifyMocks();
+
+        verify(mockStorage).getEntry("http://foo.example.com:80/");
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -324,12 +321,12 @@ public class TestCacheInvalidator {
         cacheReturnsEntryForUri(theUri);
         cacheEntryHasVariantMap(mapOfURIs);
 
-        entryIsRemoved(variantUri);
-        entryIsRemoved(theUri);
-
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theUri);
+        verify(mockEntry).getVariantMap();
+        verify(mockStorage).removeEntry(variantUri);
+        verify(mockStorage).removeEntry(theUri);
     }
 
     @Test
@@ -339,17 +336,18 @@ public class TestCacheInvalidator {
 
         cacheReturnsExceptionForUri(theURI);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
     public void doesNotFlushForResponsesWithoutContentLocation()
             throws Exception {
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -365,12 +363,12 @@ public class TestCacheInvalidator {
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
-        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(theURI);
+        when(mockStorage.getEntry(theURI)).thenReturn(entry);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verify(mockStorage).removeEntry(theURI);
     }
 
     @Test
@@ -387,12 +385,12 @@ public class TestCacheInvalidator {
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
-        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(theURI);
+        when(mockStorage.getEntry(theURI)).thenReturn(entry);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verify(mockStorage).removeEntry(theURI);
     }
 
     @Test
@@ -404,24 +402,9 @@ public class TestCacheInvalidator {
         final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
-        final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(new Header[] {
-           new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
-           new BasicHeader("ETag", "\"old-etag\"")
-        });
-
-        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(theURI);
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            @Override
-            public Void answer() {
-                Assert.fail();
-                return null;
-              }
-          }).anyTimes();
-
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -437,12 +420,12 @@ public class TestCacheInvalidator {
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
-        expect(mockStorage.getEntry(cacheKey)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(cacheKey);
+        when(mockStorage.getEntry(cacheKey)).thenReturn(entry);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(cacheKey);
+        verify(mockStorage).removeEntry(cacheKey);
     }
 
     @Test
@@ -458,12 +441,12 @@ public class TestCacheInvalidator {
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
-        expect(mockStorage.getEntry(cacheKey)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(cacheKey);
+        when(mockStorage.getEntry(cacheKey)).thenReturn(entry);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(cacheKey);
+        verify(mockStorage).removeEntry(cacheKey);
     }
 
     @Test
@@ -479,19 +462,12 @@ public class TestCacheInvalidator {
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
-        expect(mockStorage.getEntry(cacheKey)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(cacheKey);
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            @Override
-            public Void answer() {
-                Assert.fail();
-                return null;
-              }
-          }).anyTimes();
+        when(mockStorage.getEntry(cacheKey)).thenReturn(entry);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(cacheKey);
+        verifyNoMoreInteractions(mockStorage);
     }
 
 
@@ -509,19 +485,11 @@ public class TestCacheInvalidator {
            new BasicHeader("ETag", "\"same-etag\"")
         });
 
-        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(theURI);
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            @Override
-            public Void answer() {
-                Assert.fail();
-                return null;
-              }
-          }).anyTimes();
-
-        replayMocks();
+        when(mockStorage.getEntry(theURI)).thenReturn(entry);
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -537,19 +505,12 @@ public class TestCacheInvalidator {
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
-        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(theURI);
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            @Override
-            public Void answer() {
-                Assert.fail();
-                return null;
-              }
-          }).anyTimes();
+        when(mockStorage.getEntry(theURI)).thenReturn(entry);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -560,19 +521,12 @@ public class TestCacheInvalidator {
         final String theURI = "http://foo.example.com:80/bar";
         response.setHeader("Content-Location", theURI);
 
-        expect(mockStorage.getEntry(theURI)).andReturn(null).anyTimes();
-        mockStorage.removeEntry(theURI);
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            @Override
-            public Void answer() {
-                Assert.fail();
-                return null;
-              }
-          }).anyTimes();
+        when(mockStorage.getEntry(theURI)).thenReturn(null);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -588,19 +542,12 @@ public class TestCacheInvalidator {
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
-        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(theURI);
-        EasyMock.expectLastCall().andAnswer(new IAnswer<Void>() {
-            @Override
-            public Void answer() {
-                Assert.fail();
-                return null;
-              }
-          }).anyTimes();
+        when(mockStorage.getEntry(theURI)).thenReturn(entry);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -615,11 +562,12 @@ public class TestCacheInvalidator {
            new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
         });
 
-        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
+        when(mockStorage.getEntry(theURI)).thenReturn(entry);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -635,12 +583,13 @@ public class TestCacheInvalidator {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
         });
 
-        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(theURI);
+        when(mockStorage.getEntry(theURI)).thenReturn(entry);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verify(mockStorage).removeEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -655,12 +604,13 @@ public class TestCacheInvalidator {
            new BasicHeader("ETag", "\"old-etag\"")
         });
 
-        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(theURI);
+        when(mockStorage.getEntry(theURI)).thenReturn(entry);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verify(mockStorage).removeEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -676,12 +626,13 @@ public class TestCacheInvalidator {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo))
         });
 
-        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(theURI);
+        when(mockStorage.getEntry(theURI)).thenReturn(entry);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verify(mockStorage).removeEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
     @Test
@@ -697,35 +648,31 @@ public class TestCacheInvalidator {
                 new BasicHeader("Date", "foo")
         });
 
-        expect(mockStorage.getEntry(theURI)).andReturn(entry).anyTimes();
-        mockStorage.removeEntry(theURI);
+        when(mockStorage.getEntry(theURI)).thenReturn(entry);
 
-        replayMocks();
         impl.flushInvalidatedCacheEntries(host, request, response);
-        verifyMocks();
+
+        verify(mockStorage).getEntry(theURI);
+        verify(mockStorage).removeEntry(theURI);
+        verifyNoMoreInteractions(mockStorage);
     }
 
 
     // Expectations
     private void cacheEntryHasVariantMap(final Map<String,String> variantMap) {
-        expect(mockEntry.getVariantMap()).andReturn(variantMap);
+        when(mockEntry.getVariantMap()).thenReturn(variantMap);
     }
 
     private void cacheReturnsEntryForUri(final String theUri) throws IOException {
-        expect(mockStorage.getEntry(theUri)).andReturn(mockEntry);
+        when(mockStorage.getEntry(theUri)).thenReturn(mockEntry);
     }
 
     private void cacheReturnsExceptionForUri(final String theUri) throws IOException {
-        expect(mockStorage.getEntry(theUri)).andThrow(
+        when(mockStorage.getEntry(theUri)).thenThrow(
                 new IOException("TOTAL FAIL"));
     }
 
-    private void entryIsRemoved(final String theUri) throws IOException {
-        mockStorage.removeEntry(theUri);
-    }
-
     private void cacheEntryisForMethod(final String httpMethod) {
-        expect(mockEntry.getRequestMethod()).andReturn(httpMethod);
+        when(mockEntry.getRequestMethod()).thenReturn(httpMethod);
     }
-
 }

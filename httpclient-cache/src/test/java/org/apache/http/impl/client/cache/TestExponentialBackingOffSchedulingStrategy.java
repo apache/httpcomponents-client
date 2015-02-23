@@ -26,13 +26,16 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.message.BasicHttpRequest;
-import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,7 +49,7 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
     @Before
     public void setUp() {
-        mockExecutor = EasyMock.createMock(ScheduledExecutorService.class);
+        mockExecutor = mock(ScheduledExecutorService.class);
 
         impl = new ExponentialBackOffSchedulingStrategy(
                 mockExecutor,
@@ -62,9 +65,9 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
         expectRequestScheduledWithoutDelay(request);
 
-        replayMocks();
         impl.schedule(request);
-        verifyMocks();
+
+        verify(mockExecutor).schedule(request, 0, TimeUnit.MILLISECONDS);
     }
 
     @Test
@@ -73,9 +76,9 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(6));
 
-        replayMocks();
         impl.schedule(request);
-        verifyMocks();
+
+        verify(mockExecutor).schedule(request, 6000, TimeUnit.MILLISECONDS);
     }
 
     @Test
@@ -84,9 +87,9 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(60));
 
-        replayMocks();
         impl.schedule(request);
-        verifyMocks();
+
+        verify(mockExecutor).schedule(request, 60000, TimeUnit.MILLISECONDS);
     }
 
     @Test
@@ -95,9 +98,9 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(600));
 
-        replayMocks();
         impl.schedule(request);
-        verifyMocks();
+
+        verify(mockExecutor).schedule(request, 600000, TimeUnit.MILLISECONDS);
     }
 
     @Test
@@ -106,9 +109,9 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(6000));
 
-        replayMocks();
         impl.schedule(request);
-        verifyMocks();
+
+        verify(mockExecutor).schedule(request, 6000000, TimeUnit.MILLISECONDS);
     }
 
     @Test
@@ -117,9 +120,9 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(60000));
 
-        replayMocks();
         impl.schedule(request);
-        verifyMocks();
+
+        verify(mockExecutor).schedule(request, 60000000, TimeUnit.MILLISECONDS);
     }
 
     @Test
@@ -128,9 +131,9 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(86400));
 
-        replayMocks();
         impl.schedule(request);
-        verifyMocks();
+
+        verify(mockExecutor).schedule(request, 86400000, TimeUnit.MILLISECONDS);
     }
 
     @Test
@@ -139,9 +142,9 @@ public class TestExponentialBackingOffSchedulingStrategy {
 
         expectRequestScheduledWithDelay(request, TimeUnit.SECONDS.toMillis(86400));
 
-        replayMocks();
         impl.schedule(request);
-        verifyMocks();
+
+        verify(mockExecutor).schedule(request, 86400000, TimeUnit.MILLISECONDS);
     }
 
     private void expectRequestScheduledWithoutDelay(final AsynchronousValidationRequest request) {
@@ -149,19 +152,11 @@ public class TestExponentialBackingOffSchedulingStrategy {
     }
 
     private void expectRequestScheduledWithDelay(final AsynchronousValidationRequest request, final long delayInMillis) {
-        EasyMock.expect(mockExecutor.schedule(request, delayInMillis, TimeUnit.MILLISECONDS)).andReturn(null);
-    }
-
-    private void replayMocks() {
-        EasyMock.replay(mockExecutor);
-    }
-
-    private void verifyMocks() {
-        EasyMock.verify(mockExecutor);
+        when(mockExecutor.schedule(request, delayInMillis, TimeUnit.MILLISECONDS)).thenReturn(null);
     }
 
     private AsynchronousValidationRequest createAsynchronousValidationRequest(final int errorCount) {
-        final ClientExecChain clientExecChain = EasyMock.createNiceMock(ClientExecChain.class);
+        final ClientExecChain clientExecChain = mock(ClientExecChain.class);
         final CachingExec cachingHttpClient = new CachingExec(clientExecChain);
         final AsynchronousValidator mockValidator = new AsynchronousValidator(impl);
         final HttpRoute httpRoute = new HttpRoute(new HttpHost("foo.example.com", 80));

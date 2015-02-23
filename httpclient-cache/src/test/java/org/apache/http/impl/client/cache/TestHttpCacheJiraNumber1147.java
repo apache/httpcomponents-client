@@ -26,6 +26,13 @@
  */
 package org.apache.http.impl.client.cache;
 
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
 import java.util.Date;
 
@@ -42,11 +49,11 @@ import org.apache.http.client.utils.DateUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.message.BasicHttpResponse;
-import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 
 public class TestHttpCacheJiraNumber1147 {
 
@@ -87,7 +94,7 @@ public class TestHttpCacheJiraNumber1147 {
         final ResourceFactory resourceFactory = new FileResourceFactory(cacheDir);
         final HttpCacheStorage httpCacheStorage = new ManagedHttpCacheStorage(cacheConfig);
 
-        final ClientExecChain backend = EasyMock.createNiceMock(ClientExecChain.class);
+        final ClientExecChain backend = mock(ClientExecChain.class);
         final HttpRequestWrapper get = HttpRequestWrapper.wrap(new HttpGet("http://somehost/"));
         final HttpClientContext context = HttpClientContext.create();
         final HttpHost target = new HttpHost("somehost", 80);
@@ -105,12 +112,11 @@ public class TestHttpCacheJiraNumber1147 {
         response.setHeader("Cache-Control", "public, max-age=3600");
         response.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
 
-        EasyMock.expect(backend.execute(
-                EasyMock.eq(route),
-                EasyMock.isA(HttpRequestWrapper.class),
-                EasyMock.isA(HttpClientContext.class),
-                EasyMock.<HttpExecutionAware>isNull())).andReturn(Proxies.enhanceResponse(response));
-        EasyMock.replay(backend);
+        when(backend.execute(
+                eq(route),
+                isA(HttpRequestWrapper.class),
+                isA(HttpClientContext.class),
+                (HttpExecutionAware) Matchers.isNull())).thenReturn(Proxies.enhanceResponse(response));
 
         final BasicHttpCache cache = new BasicHttpCache(resourceFactory, httpCacheStorage, cacheConfig);
         final ClientExecChain t = createCachingExecChain(backend, cache, cacheConfig);
@@ -119,23 +125,30 @@ public class TestHttpCacheJiraNumber1147 {
         Assert.assertEquals(200, response1.getStatusLine().getStatusCode());
         IOUtils.consume(response1.getEntity());
 
-        EasyMock.verify(backend);
+        verify(backend).execute(
+                eq(route),
+                isA(HttpRequestWrapper.class),
+                isA(HttpClientContext.class),
+                (HttpExecutionAware) Matchers.isNull());
 
         removeCache();
 
-        EasyMock.reset(backend);
-        EasyMock.expect(backend.execute(
-                EasyMock.eq(route),
-                EasyMock.isA(HttpRequestWrapper.class),
-                EasyMock.isA(HttpClientContext.class),
-                EasyMock.<HttpExecutionAware>isNull())).andReturn(Proxies.enhanceResponse(response));
-        EasyMock.replay(backend);
+        reset(backend);
+        when(backend.execute(
+                eq(route),
+                isA(HttpRequestWrapper.class),
+                isA(HttpClientContext.class),
+                (HttpExecutionAware) Matchers.isNull())).thenReturn(Proxies.enhanceResponse(response));
 
         final HttpResponse response2 = t.execute(route, get, context, null);
         Assert.assertEquals(200, response2.getStatusLine().getStatusCode());
         IOUtils.consume(response2.getEntity());
 
-        EasyMock.verify(backend);
+        verify(backend).execute(
+                eq(route),
+                isA(HttpRequestWrapper.class),
+                isA(HttpClientContext.class),
+                (HttpExecutionAware) Matchers.isNull());
     }
 
     protected ClientExecChain createCachingExecChain(final ClientExecChain backend,
