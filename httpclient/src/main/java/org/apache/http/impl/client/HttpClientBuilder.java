@@ -124,7 +124,7 @@ import org.apache.http.util.VersionInfo;
 /**
  * Builder for {@link CloseableHttpClient} instances.
  * <p>
- * When a particular component is not explicitly this class will
+ * When a particular component is not explicitly set this class will
  * use its default implementation. System properties will be taken
  * into account when configuring the default implementations when
  * {@link #useSystemProperties()} method is called prior to calling
