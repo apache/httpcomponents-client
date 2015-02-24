@@ -64,7 +64,7 @@ public class RequestConfig implements Cloneable {
      * CDI eyes only
      * @deprecated CDI eyes only
     */
-    public RequestConfig() {
+    protected RequestConfig() {
 		this(false, null, null, false, null, false, false, false, 0, false, null, null, 0, 0, 0, false);
     }
     
