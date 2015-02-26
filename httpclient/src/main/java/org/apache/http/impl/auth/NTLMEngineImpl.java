@@ -554,19 +554,6 @@ final class NTLMEngineImpl implements NTLMEngine {
     static byte[] ntlm2SessionResponse(final byte[] ntlmHash, final byte[] challenge,
             final byte[] clientChallenge) throws NTLMEngineException {
         try {
-            // Look up MD5 algorithm (was necessary on jdk 1.4.2)
-            // This used to be needed, but java 1.5.0_07 includes the MD5
-            // algorithm (finally)
-            // Class x = Class.forName("gnu.crypto.hash.MD5");
-            // Method updateMethod = x.getMethod("update",new
-            // Class[]{byte[].class});
-            // Method digestMethod = x.getMethod("digest",new Class[0]);
-            // Object mdInstance = x.newInstance();
-            // updateMethod.invoke(mdInstance,new Object[]{challenge});
-            // updateMethod.invoke(mdInstance,new Object[]{clientChallenge});
-            // byte[] digest = (byte[])digestMethod.invoke(mdInstance,new
-            // Object[0]);
-
             final MessageDigest md5 = MessageDigest.getInstance("MD5");
             md5.update(challenge);
             md5.update(clientChallenge);

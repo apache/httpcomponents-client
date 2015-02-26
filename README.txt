@@ -11,7 +11,7 @@ For building from source instructions please refer to BUILDING.txt.
 Dependencies
 ------------
 
-HttpClient main module requires Java 5.0 compatible runtime and
+HttpClient main module requires Java 6 compatible runtime and
 depends on the following external libraries:
 
 * Apache HttpComponents HttpCore
@@ -20,7 +20,7 @@ depends on the following external libraries:
 
 (for detailed information on external dependencies please see pom.xml)
 
-HttpMime module is optional and requires Java 5.0 compatible runtime
+HttpMime module is optional and requires Java 6 compatible runtime
 and depends on the following external libraries:
 
 * Apache HttpComponents HttpCore

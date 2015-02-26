@@ -445,8 +445,8 @@ SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext);
                 a certain degree of familiarity with the concepts of the SSL/TLS protocol,
                 a detailed explanation of which is out of scope for this document. Please refer
                 to the <ulink
-                url="http://java.sun.com/j2se/1.5.0/docs/guide/security/jsse/JSSERefGuide.html">
-                Java Secure Socket Extension</ulink> for a detailed description of
+                url="http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html">
+                Java&#x2122; Secure Socket Extension (JSSE) Reference Guide</ulink> for a detailed description of
                 <interfacename>javax.net.ssl.SSLContext</interfacename> and related
                 tools.</para>
         </section>
