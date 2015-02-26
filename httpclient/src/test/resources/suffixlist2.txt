@@ -23,11 +23,17 @@
 // <http://www.apache.org/>.
 //
 
+// ===BEGIN ICANN DOMAINS===
+
 jp
 ac.jp
 *.tokyo.jp
 !metro.tokyo.jp
 
-// unicode
-no
-hå.no
+// ===END ICANN DOMAINS===
+// ===BEGIN PRIVATE DOMAINS===
+
+googleapis.com
+googlecode.com
+
+// ===END PRIVATE DOMAINS===

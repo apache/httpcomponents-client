@@ -43,14 +43,14 @@ import org.apache.http.annotation.Immutable;
 @Immutable
 public final class PublicSuffixListParser {
 
-    private static final int MAX_LINE_LEN = 256;
-
     public PublicSuffixListParser() {
     }
 
     /**
-     * Parses the public suffix list format. When creating the reader from the file, make sure to
-     * use the correct encoding (the original list is in UTF-8).
+     * Parses the public suffix list format.
+     * <p>
+     * When creating the reader from the file, make sure to use the correct encoding
+     * (the original list is in UTF-8).
      *
      * @param reader the data reader. The caller is responsible for closing the reader.
      * @throws java.io.IOException on error while reading from list
@@ -59,11 +59,9 @@ public final class PublicSuffixListParser {
         final List<String> rules = new ArrayList<String>();
         final List<String> exceptions = new ArrayList<String>();
         final BufferedReader r = new BufferedReader(reader);
-        final StringBuilder sb = new StringBuilder(256);
-        boolean more = true;
-        while (more) {
-            more = readLine(r, sb);
-            String line = sb.toString();
+
+        String line;
+        while ((line = r.readLine()) != null) {
             if (line.isEmpty()) {
                 continue;
             }
@@ -85,30 +83,81 @@ public final class PublicSuffixListParser {
                 rules.add(line);
             }
         }
-        return new PublicSuffixList(rules, exceptions);
+        return new PublicSuffixList(DomainType.UNKNOWN, rules, exceptions);
     }
 
-    private boolean readLine(final Reader r, final StringBuilder sb) throws IOException {
-        sb.setLength(0);
-        int b;
-        boolean hitWhitespace = false;
-        while ((b = r.read()) != -1) {
-            final char c = (char) b;
-            if (c == '\n') {
-                break;
+    /**
+     * Parses the public suffix list format by domain type (currently supported ICANN and PRIVATE).
+     * <p>
+     * When creating the reader from the file, make sure to use the correct encoding
+     * (the original list is in UTF-8).
+     *
+     * @param reader the data reader. The caller is responsible for closing the reader.
+     * @throws java.io.IOException on error while reading from list
+     *
+     * @since 4.5
+     */
+    public List<PublicSuffixList> parseByType(final Reader reader) throws IOException {
+        final List<PublicSuffixList> result = new ArrayList<PublicSuffixList>(2);
+
+        final BufferedReader r = new BufferedReader(reader);
+        final StringBuilder sb = new StringBuilder(256);
+
+        DomainType domainType = null;
+        List<String> rules = null;
+        List<String> exceptions = null;
+        String line;
+        while ((line = r.readLine()) != null) {
+            if (line.isEmpty()) {
+                continue;
             }
-            // Each line is only read up to the first whitespace
-            if (Character.isWhitespace(c)) {
-                hitWhitespace = true;
+            if (line.startsWith("//")) {
+
+                if (domainType == null) {
+                    if (line.contains("===BEGIN ICANN DOMAINS===")) {
+                        domainType = DomainType.ICANN;
+                    } else if (line.contains("===BEGIN PRIVATE DOMAINS===")) {
+                        domainType = DomainType.PRIVATE;
+                    }
+                } else {
+                    if (line.contains("===END ICANN DOMAINS===") || line.contains("===END PRIVATE DOMAINS===")) {
+                        if (rules != null) {
+                            result.add(new PublicSuffixList(domainType, rules, exceptions));
+                        }
+                        domainType = null;
+                        rules = null;
+                        exceptions = null;
+                    }
+                }
+
+                continue; //entire lines can also be commented using //
             }
-            if (!hitWhitespace) {
-                sb.append(c);
+            if (domainType == null) {
+                continue;
             }
-            if (sb.length() > MAX_LINE_LEN) {
-                return false; // prevent excess memory usage
+
+            if (line.startsWith(".")) {
+                line = line.substring(1); // A leading dot is optional
+            }
+            // An exclamation mark (!) at the start of a rule marks an exception to a previous wildcard rule
+            final boolean isException = line.startsWith("!");
+            if (isException) {
+                line = line.substring(1);
+            }
+
+            if (isException) {
+                if (exceptions == null) {
+                    exceptions = new ArrayList<String>();
+                }
+                exceptions.add(line);
+            } else {
+                if (rules == null) {
+                    rules = new ArrayList<String>();
+                }
+                rules.add(line);
             }
         }
-        return (b != -1);
+        return result;
     }
 
 }

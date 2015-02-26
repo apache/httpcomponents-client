@@ -28,6 +28,7 @@ package org.apache.http.conn.util;
 
 import java.net.IDN;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,33 +49,96 @@ import org.apache.http.util.Args;
 @ThreadSafe
 public final class PublicSuffixMatcher {
 
-    private final Map<String, String> rules;
-    private final Map<String, String> exceptions;
+    private final Map<String, DomainType> rules;
+    private final Map<String, DomainType> exceptions;
 
     public PublicSuffixMatcher(final Collection<String> rules, final Collection<String> exceptions) {
+        this(DomainType.UNKNOWN, rules, exceptions);
+    }
+
+    /**
+     * @since 4.5
+     */
+    public PublicSuffixMatcher(
+            final DomainType domainType, final Collection<String> rules, final Collection<String> exceptions) {
+        Args.notNull(domainType,  "Domain type");
         Args.notNull(rules,  "Domain suffix rules");
-        this.rules = new ConcurrentHashMap<String, String>(rules.size());
+        this.rules = new ConcurrentHashMap<String, DomainType>(rules.size());
         for (String rule: rules) {
-            this.rules.put(rule, rule);
+            this.rules.put(rule, domainType);
         }
+        this.exceptions = new ConcurrentHashMap<String, DomainType>();
         if (exceptions != null) {
-            this.exceptions = new ConcurrentHashMap<String, String>(exceptions.size());
             for (String exception: exceptions) {
-                this.exceptions.put(exception, exception);
+                this.exceptions.put(exception, domainType);
             }
-        } else {
-            this.exceptions = null;
         }
     }
 
     /**
-     * Returns registrable part of the domain for the given domain name of {@code null}
+     * @since 4.5
+     */
+    public PublicSuffixMatcher(final Collection<PublicSuffixList> lists) {
+        Args.notNull(lists,  "Domain suffix lists");
+        this.rules = new ConcurrentHashMap<String, DomainType>();
+        this.exceptions = new ConcurrentHashMap<String, DomainType>();
+        for (PublicSuffixList list: lists) {
+            final DomainType domainType = list.getType();
+            final List<String> rules = list.getRules();
+            for (String rule: rules) {
+                this.rules.put(rule, domainType);
+            }
+            final List<String> exceptions = list.getExceptions();
+            if (exceptions != null) {
+                for (String exception: exceptions) {
+                    this.exceptions.put(exception, domainType);
+                }
+            }
+        }
+    }
+
+    private static boolean hasEntry(final Map<String, DomainType> map, final String rule, final DomainType expectedType) {
+        if (map == null) {
+            return false;
+        }
+        final DomainType domainType = map.get(rule);
+        if (domainType == null) {
+            return false;
+        } else {
+            return expectedType == null || domainType.equals(expectedType);
+        }
+    }
+
+    private boolean hasRule(final String rule, final DomainType expectedType) {
+        return hasEntry(this.rules, rule, expectedType);
+    }
+
+    private boolean hasException(final String exception, final DomainType expectedType) {
+        return hasEntry(this.exceptions, exception, expectedType);
+    }
+
+    /**
+     * Returns registrable part of the domain for the given domain name or {@code null}
      * if given domain represents a public suffix.
      *
      * @param domain
      * @return domain root
      */
     public String getDomainRoot(final String domain) {
+        return getDomainRoot(domain, null);
+    }
+
+    /**
+     * Returns registrable part of the domain for the given domain name or {@code null}
+     * if given domain represents a public suffix.
+     *
+     * @param domain
+     * @param expectedType expected domain type or {@code null} if any.
+     * @return domain root
+     *
+     * @since 4.5
+     */
+    public String getDomainRoot(final String domain, final DomainType expectedType) {
         if (domain == null) {
             return null;
         }
@@ -86,11 +150,11 @@ public final class PublicSuffixMatcher {
         while (segment != null) {
 
             // An exception rule takes priority over any other matching rule.
-            if (this.exceptions != null && this.exceptions.containsKey(IDN.toUnicode(segment))) {
+            if (hasException(IDN.toUnicode(segment), expectedType)) {
                 return segment;
             }
 
-            if (this.rules.containsKey(IDN.toUnicode(segment))) {
+            if (hasRule(IDN.toUnicode(segment), expectedType)) {
                 break;
             }
 
@@ -98,7 +162,7 @@ public final class PublicSuffixMatcher {
             final String nextSegment = nextdot != -1 ? segment.substring(nextdot + 1) : null;
 
             if (nextSegment != null) {
-                if (this.rules.containsKey("*." + IDN.toUnicode(nextSegment))) {
+                if (hasRule("*." + IDN.toUnicode(nextSegment), expectedType)) {
                     break;
                 }
             }
@@ -110,11 +174,28 @@ public final class PublicSuffixMatcher {
         return domainName;
     }
 
+    /**
+     * Tests whether the given domain matches any of entry from the public suffix list.
+     */
     public boolean matches(final String domain) {
+        return matches(domain, null);
+    }
+
+    /**
+     * Tests whether the given domain matches any of entry from the public suffix list.
+     *
+     * @param domain
+     * @param expectedType expected domain type or {@code null} if any.
+     * @return {@code true} if the given domain matches any of the public suffixes.
+     *
+     * @since 4.5
+     */
+    public boolean matches(final String domain, final DomainType expectedType) {
         if (domain == null) {
             return false;
         }
-        final String domainRoot = getDomainRoot(domain.startsWith(".") ? domain.substring(1) : domain);
+        final String domainRoot = getDomainRoot(
+                domain.startsWith(".") ? domain.substring(1) : domain, expectedType);
         return domainRoot == null;
     }
 

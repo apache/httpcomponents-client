@@ -35,6 +35,7 @@ import java.util.Arrays;
 
 import javax.net.ssl.SSLException;
 
+import org.apache.http.conn.util.DomainType;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.junit.Assert;
 import org.junit.Before;
@@ -52,7 +53,7 @@ public class TestDefaultHostnameVerifier {
     @Before
     public void setup() {
         impl = new DefaultHostnameVerifier();
-        publicSuffixMatcher = new PublicSuffixMatcher(Arrays.asList("com", "co.jp", "gov.uk"), null);
+        publicSuffixMatcher = new PublicSuffixMatcher(DomainType.ICANN, Arrays.asList("com", "co.jp", "gov.uk"), null);
         implWithPublicSuffixCheck = new DefaultHostnameVerifier(publicSuffixMatcher);
     }
 

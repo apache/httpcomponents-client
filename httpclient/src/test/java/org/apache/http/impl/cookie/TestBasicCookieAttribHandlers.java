@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import org.apache.http.client.utils.DateUtils;
+import org.apache.http.conn.util.DomainType;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CookieAttributeHandler;
@@ -498,7 +499,7 @@ public class TestBasicCookieAttribHandlers {
     public void testPublicSuffixFilter() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
 
-        final PublicSuffixMatcher matcher = new PublicSuffixMatcher(Arrays.asList("co.uk", "com"), null);
+        final PublicSuffixMatcher matcher = new PublicSuffixMatcher(DomainType.ICANN, Arrays.asList("co.uk", "com"), null);
         final PublicSuffixDomainFilter h = new PublicSuffixDomainFilter(new RFC2109DomainHandler(), matcher);
 
         cookie.setDomain(".co.uk");

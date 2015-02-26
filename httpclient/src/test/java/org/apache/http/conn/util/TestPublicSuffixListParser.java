@@ -30,6 +30,8 @@ package org.apache.http.conn.util;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.http.Consts;
 import org.junit.Assert;
@@ -37,12 +39,10 @@ import org.junit.Test;
 
 public class TestPublicSuffixListParser {
 
-    private static final String SOURCE_FILE = "suffixlist.txt";
-
     @Test
     public void testParse() throws Exception {
         final ClassLoader classLoader = getClass().getClassLoader();
-        final InputStream in = classLoader.getResourceAsStream(SOURCE_FILE);
+        final InputStream in = classLoader.getResourceAsStream("suffixlist.txt");
         Assert.assertNotNull(in);
         final PublicSuffixList suffixList;
         try {
@@ -52,8 +52,35 @@ public class TestPublicSuffixListParser {
             in.close();
         }
         Assert.assertNotNull(suffixList);
-        Assert.assertEquals(Arrays.asList("jp", "ac.jp", "*.tokyo.jp", "no", "h\u00E5.no", "xx"), suffixList.getRules());
+        Assert.assertEquals(Arrays.asList("jp", "ac.jp", "*.tokyo.jp", "no", "h\u00E5.no"), suffixList.getRules());
         Assert.assertEquals(Arrays.asList("metro.tokyo.jp"), suffixList.getExceptions());
     }
 
+    @Test
+    public void testParseByType() throws Exception {
+        final ClassLoader classLoader = getClass().getClassLoader();
+        final InputStream in = classLoader.getResourceAsStream("suffixlist2.txt");
+        Assert.assertNotNull(in);
+        final List<PublicSuffixList> suffixLists;
+        try {
+            final PublicSuffixListParser parser = new PublicSuffixListParser();
+            suffixLists = parser.parseByType(new InputStreamReader(in, Consts.UTF_8));
+        } finally {
+            in.close();
+        }
+        Assert.assertNotNull(suffixLists);
+        Assert.assertEquals(2, suffixLists.size());
+        final PublicSuffixList publicSuffixList1 = suffixLists.get(0);
+        Assert.assertNotNull(publicSuffixList1);
+        Assert.assertEquals(DomainType.ICANN, publicSuffixList1.getType());
+        Assert.assertEquals(Arrays.asList("jp", "ac.jp", "*.tokyo.jp"), publicSuffixList1.getRules());
+        Assert.assertEquals(Arrays.asList("metro.tokyo.jp"), publicSuffixList1.getExceptions());
+
+        final PublicSuffixList publicSuffixList2 = suffixLists.get(1);
+        Assert.assertNotNull(publicSuffixList2);
+        Assert.assertEquals(DomainType.PRIVATE, publicSuffixList2.getType());
+        Assert.assertEquals(Arrays.asList("googleapis.com", "googlecode.com"), publicSuffixList2.getRules());
+        Assert.assertEquals(Collections.<String>emptyList(), publicSuffixList2.getExceptions());
+
+    }
 }

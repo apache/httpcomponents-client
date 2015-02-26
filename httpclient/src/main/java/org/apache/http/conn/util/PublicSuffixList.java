@@ -44,12 +44,28 @@ import org.apache.http.util.Args;
 @Immutable
 public final class PublicSuffixList {
 
+    private final DomainType type;
     private final List<String> rules;
     private final List<String> exceptions;
 
-    public PublicSuffixList(final List<String> rules, final List<String> exceptions) {
+    /**
+     * @since 4.5
+     */
+    public PublicSuffixList(final DomainType type, final List<String> rules, final List<String> exceptions) {
+        this.type = Args.notNull(type, "Domain type");
         this.rules = Collections.unmodifiableList(Args.notNull(rules, "Domain suffix rules"));
-        this.exceptions = Collections.unmodifiableList(Args.notNull(exceptions, "Domain suffix exceptions"));
+        this.exceptions = Collections.unmodifiableList(exceptions != null ? exceptions : Collections.<String>emptyList());
+    }
+
+    public PublicSuffixList(final List<String> rules, final List<String> exceptions) {
+        this(DomainType.UNKNOWN, rules, exceptions);
+    }
+
+    /**
+     * @since 4.5
+     */
+    public DomainType getType() {
+        return type;
     }
 
     public List<String> getRules() {

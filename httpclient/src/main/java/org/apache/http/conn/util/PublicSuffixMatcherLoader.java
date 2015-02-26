@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,9 +50,9 @@ import org.apache.http.util.Args;
 public final class PublicSuffixMatcherLoader {
 
     private static PublicSuffixMatcher load(final InputStream in) throws IOException {
-        final PublicSuffixList list = new PublicSuffixListParser().parse(
+        final List<PublicSuffixList> lists = new PublicSuffixListParser().parseByType(
                 new InputStreamReader(in, Consts.UTF_8));
-        return new PublicSuffixMatcher(list.getRules(), list.getExceptions());
+        return new PublicSuffixMatcher(lists);
     }
 
     public static PublicSuffixMatcher load(final URL url) throws IOException {
