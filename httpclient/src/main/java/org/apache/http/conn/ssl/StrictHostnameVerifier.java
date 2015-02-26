@@ -33,9 +33,8 @@ import org.apache.http.annotation.Immutable;
 
 /**
  * The Strict HostnameVerifier works the same way as Sun Java 1.4, Sun
- * Java 5, Sun Java 6-rc.  It's also pretty close to IE6.  This
- * implementation appears to be compliant with RFC 2818 for dealing with
- * wildcards.
+ * Java 5, Sun Java 6.  It's also pretty close to IE6.  This implementation
+ * appears to be compliant with RFC 2818 for dealing with wildcards.
  * <p>
  * The hostname must match either the first CN, or any of the subject-alts.
  * A wildcard can occur in the CN, and in any of the subject-alts.  The

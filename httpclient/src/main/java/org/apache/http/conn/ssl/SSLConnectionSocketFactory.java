@@ -182,9 +182,8 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
     /**
      * Obtains default SSL socket factory with an SSL context based on system properties
      * as described in
-     * <a href="http://docs.oracle.com/javase/1.5.0/docs/guide/security/jsse/JSSERefGuide.html">
-     * "JavaTM Secure Socket Extension (JSSE) Reference Guide for the JavaTM 2 Platform
-     * Standard Edition 5</a>
+     * <a href="http://docs.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html">
+     * Java&#x2122; Secure Socket Extension (JSSE) Reference Guide</a>.
      *
      * @return default system SSL socket factory
      */
