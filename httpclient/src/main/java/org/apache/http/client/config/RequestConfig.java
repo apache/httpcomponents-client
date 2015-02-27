@@ -64,9 +64,9 @@ public class RequestConfig implements Cloneable {
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
-		this(false, null, null, false, null, false, false, false, 0, false, null, null, 0, 0, 0, false);
+        this(false, null, null, false, null, false, false, false, 0, false, null, null, 0, 0, 0, false);
     }
-    
+
     RequestConfig(
             final boolean expectContinueEnabled,
             final HttpHost proxy,
