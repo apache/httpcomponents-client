@@ -164,7 +164,7 @@ public class HttpClientBuilder {
     private HttpRequestExecutor requestExec;
     private HostnameVerifier hostnameVerifier;
     private LayeredConnectionSocketFactory sslSocketFactory;
-    private SSLContext sslcontext;
+    private SSLContext sslContext;
     private HttpClientConnectionManager connManager;
     private boolean connManagerShared;
     private SchemePortResolver schemePortResolver;
@@ -288,9 +288,24 @@ public class HttpClientBuilder {
      *   org.apache.http.conn.HttpClientConnectionManager)} and the {@link #setSSLSocketFactory(
      *   org.apache.http.conn.socket.LayeredConnectionSocketFactory)} methods.
      * </p>
+     *
+     * @deprecated (4.5) use {@link #setSSLContext(SSLContext)}
      */
-    public final HttpClientBuilder setSslcontext(final SSLContext sslcontext) {
-        this.sslcontext = sslcontext;
+    @Deprecated
+    public final HttpClientBuilder setSslContext(final SSLContext sslcontext) {
+        return setSSLContext(sslcontext);
+    }
+
+    /**
+     * Assigns {@link SSLContext} instance.
+     * <p>
+     * Please note this value can be overridden by the {@link #setConnectionManager(
+     *   org.apache.http.conn.HttpClientConnectionManager)} and the {@link #setSSLSocketFactory(
+     *   org.apache.http.conn.socket.LayeredConnectionSocketFactory)} methods.
+     * </p>
+     */
+    public final HttpClientBuilder setSSLContext(final SSLContext sslContext) {
+        this.sslContext = sslContext;
         return this;
     }
 
@@ -930,9 +945,9 @@ public class HttpClientBuilder {
                 if (hostnameVerifierCopy == null) {
                     hostnameVerifierCopy = new DefaultHostnameVerifier(publicSuffixMatcherCopy);
                 }
-                if (sslcontext != null) {
+                if (sslContext != null) {
                     sslSocketFactoryCopy = new SSLConnectionSocketFactory(
-                            sslcontext, supportedProtocols, supportedCipherSuites, hostnameVerifierCopy);
+                            sslContext, supportedProtocols, supportedCipherSuites, hostnameVerifierCopy);
                 } else {
                     if (systemProperties) {
                         sslSocketFactoryCopy = new SSLConnectionSocketFactory(
