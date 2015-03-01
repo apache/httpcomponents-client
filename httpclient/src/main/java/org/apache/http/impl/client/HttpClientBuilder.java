@@ -796,14 +796,44 @@ public class HttpClientBuilder {
      * @see #setConnectionManagerShared(boolean)
      * @see org.apache.http.conn.HttpClientConnectionManager#closeExpiredConnections()
      *
-     * @param maxIdleTime maxium time persistent connections can stay idle while kept alive
+     * @param maxIdleTime maximum time persistent connections can stay idle while kept alive
+     * in the connection pool. Connections whose inactivity period exceeds this value will
+     * get closed and evicted from the pool.
+     * @param maxIdleTimeUnit time unit for the above parameter.
+     *
+     * @deprecated (4.5) use {@link #evictIdleConnections(long, TimeUnit)}
+     *
+     * @since 4.4
+     */
+    @Deprecated
+    public final HttpClientBuilder evictIdleConnections(final Long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
+        return evictIdleConnections(maxIdleTime.longValue(), maxIdleTimeUnit);
+    }
+
+    /**
+     * Makes this instance of HttpClient proactively evict idle connections from the
+     * connection pool using a background thread.
+     * <p>
+     * One MUST explicitly close HttpClient with {@link CloseableHttpClient#close()} in order
+     * to stop and release the background thread.
+     * <p>
+     * Please note this method has no effect if the instance of HttpClient is configuted to
+     * use a shared connection manager.
+     * <p>
+     * Please note this method may not be used when the instance of HttpClient is created
+     * inside an EJB container.
+     *
+     * @see #setConnectionManagerShared(boolean)
+     * @see org.apache.http.conn.HttpClientConnectionManager#closeExpiredConnections()
+     *
+     * @param maxIdleTime maximum time persistent connections can stay idle while kept alive
      * in the connection pool. Connections whose inactivity period exceeds this value will
      * get closed and evicted from the pool.
      * @param maxIdleTimeUnit time unit for the above parameter.
      *
      * @since 4.4
      */
-    public final HttpClientBuilder evictIdleConnections(final Long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
+    public final HttpClientBuilder evictIdleConnections(final long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
         this.evictIdleConnections = true;
         this.maxIdleTime = maxIdleTime;
         this.maxIdleTimeUnit = maxIdleTimeUnit;
