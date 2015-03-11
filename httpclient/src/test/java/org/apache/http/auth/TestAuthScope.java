@@ -88,6 +88,23 @@ public class TestAuthScope {
     }
 
     @Test
+    public void testMixedCaseHostname() {
+        final AuthScope authscope = new AuthScope("SomeHost", 80);
+        Assert.assertEquals(null, authscope.getScheme());
+        Assert.assertEquals("somehost", authscope.getHost());
+        Assert.assertEquals(80, authscope.getPort());
+        Assert.assertEquals(null, authscope.getRealm());
+        Assert.assertEquals("<any realm>@somehost:80", authscope.toString());
+    }
+
+    public void testByOriginMixedCaseHostname() throws Exception {
+        final HttpHost host = new HttpHost("SomeHost", 8080, "http");
+        final AuthScope authscope = new AuthScope(host);
+        Assert.assertEquals("somehost", authscope.getHost());
+        Assert.assertEquals(host, authscope.getOrigin());
+    }
+
+    @Test
     public void testBasicsOptionalHost() {
         final AuthScope authscope = new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, AuthScope.ANY_REALM, AuthScope.ANY_SCHEME);
         Assert.assertEquals(null, authscope.getScheme());

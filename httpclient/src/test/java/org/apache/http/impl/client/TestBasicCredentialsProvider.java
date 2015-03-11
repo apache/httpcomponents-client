@@ -26,6 +26,7 @@
  */
 package org.apache.http.impl.client;
 
+import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -122,6 +123,16 @@ public class TestBasicCredentialsProvider {
         final Credentials got = state.getCredentials(
             new AuthScope("host", AuthScope.ANY_PORT, "realm2"));
         Assert.assertNotSame(cred, got);
+    }
+
+    @Test
+    public void testMixedCaseHostname() throws Exception {
+        final HttpHost httpHost = new HttpHost("hOsT", 80);
+        final BasicCredentialsProvider state = new BasicCredentialsProvider();
+        final Credentials expected = new UsernamePasswordCredentials("name", "pass");
+        state.setCredentials(new AuthScope(httpHost), expected);
+        final Credentials got = state.getCredentials(DEFSCOPE);
+        Assert.assertEquals(expected, got);
     }
 
     @Test

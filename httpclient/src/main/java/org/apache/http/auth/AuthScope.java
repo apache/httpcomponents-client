@@ -129,7 +129,7 @@ public class AuthScope {
             final String realm,
             final String schemeName) {
         Args.notNull(origin, "Host");
-        this.host = origin.getHostName();
+        this.host = origin.getHostName().toLowerCase(Locale.ROOT);
         this.port = origin.getPort() < 0 ? ANY_PORT : origin.getPort();
         this.realm = realm == null ? ANY_REALM : realm;
         this.scheme = schemeName == null ? ANY_SCHEME : schemeName.toUpperCase(Locale.ROOT);
