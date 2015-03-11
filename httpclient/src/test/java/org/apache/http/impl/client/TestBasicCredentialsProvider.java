@@ -125,42 +125,6 @@ public class TestBasicCredentialsProvider {
     }
 
     @Test
-    public void testScopeMatching() {
-        final AuthScope authscope1 = new AuthScope("somehost", 80, "somerealm", "somescheme");
-        final AuthScope authscope2 = new AuthScope("someotherhost", 80, "somerealm", "somescheme");
-        Assert.assertTrue(authscope1.match(authscope2) < 0);
-
-        int m1 = authscope1.match(
-            new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, AuthScope.ANY_REALM, "somescheme"));
-        int m2 = authscope1.match(
-            new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, "somerealm", AuthScope.ANY_SCHEME));
-        Assert.assertTrue(m2 > m1);
-
-        m1 = authscope1.match(
-            new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, AuthScope.ANY_REALM, "somescheme"));
-        m2 = authscope1.match(
-            new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, "somerealm", AuthScope.ANY_SCHEME));
-        Assert.assertTrue(m2 > m1);
-
-        m1 = authscope1.match(
-            new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, "somerealm", "somescheme"));
-        m2 = authscope1.match(
-            new AuthScope(AuthScope.ANY_HOST, 80, AuthScope.ANY_REALM, AuthScope.ANY_SCHEME));
-        Assert.assertTrue(m2 > m1);
-
-        m1 = authscope1.match(
-            new AuthScope(AuthScope.ANY_HOST, 80, "somerealm", "somescheme"));
-        m2 = authscope1.match(
-            new AuthScope("somehost", AuthScope.ANY_PORT, AuthScope.ANY_REALM, AuthScope.ANY_SCHEME));
-        Assert.assertTrue(m2 > m1);
-
-        m1 = authscope1.match(AuthScope.ANY);
-        m2 = authscope1.match(
-            new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, AuthScope.ANY_REALM, "somescheme"));
-        Assert.assertTrue(m2 > m1);
-    }
-
-    @Test
     public void testCredentialsMatching() {
         final Credentials creds1 = new UsernamePasswordCredentials("name1", "pass1");
         final Credentials creds2 = new UsernamePasswordCredentials("name2", "pass2");
