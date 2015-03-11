@@ -318,7 +318,8 @@ public class RequestConfig implements Cloneable {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append(", expectContinueEnabled=").append(expectContinueEnabled);
+        builder.append("[");
+        builder.append("expectContinueEnabled=").append(expectContinueEnabled);
         builder.append(", proxy=").append(proxy);
         builder.append(", localAddress=").append(localAddress);
         builder.append(", cookieSpec=").append(cookieSpec);
