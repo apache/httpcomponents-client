@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+@SuppressWarnings("deprecation")
 class MultipartFormEntity implements HttpEntity {
 
     private final AbstractMultipartForm multipart;
@@ -88,12 +89,7 @@ class MultipartFormEntity implements HttpEntity {
     }
 
     @Override
-    public void consumeContent()
-        throws IOException, UnsupportedOperationException{
-        if (isStreaming()) {
-            throw new UnsupportedOperationException(
-                    "Streaming entity does not implement #consumeContent()");
-        }
+    public void consumeContent() {
     }
 
     @Override

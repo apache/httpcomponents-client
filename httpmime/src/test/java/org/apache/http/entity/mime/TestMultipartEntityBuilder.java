@@ -78,7 +78,7 @@ public class TestMultipartEntityBuilder {
     @Test
     public void testMultipartCustomContentType() throws Exception {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
-                .seContentType(ContentType.APPLICATION_XML)
+                .setContentType(ContentType.APPLICATION_XML)
                 .setBoundary("blah-blah")
                 .setCharset(Consts.UTF_8)
                 .setLaxMode()
@@ -92,7 +92,7 @@ public class TestMultipartEntityBuilder {
     @Test
     public void testMultipartContentTypeParameter() throws Exception {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
-                .seContentType(ContentType.MULTIPART_FORM_DATA.withParameters(
+                .setContentType(ContentType.MULTIPART_FORM_DATA.withParameters(
                         new BasicNameValuePair("boundary", "yada-yada"),
                         new BasicNameValuePair("charset", "ascii")))
                 .buildEntity();
@@ -108,7 +108,7 @@ public class TestMultipartEntityBuilder {
     @Test
     public void testMultipartCustomContentTypeParameterOverrides() throws Exception {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
-                .seContentType(ContentType.MULTIPART_FORM_DATA.withParameters(
+                .setContentType(ContentType.MULTIPART_FORM_DATA.withParameters(
                         new BasicNameValuePair("boundary", "yada-yada"),
                         new BasicNameValuePair("charset", "ascii"),
                         new BasicNameValuePair("my", "stuff")))
