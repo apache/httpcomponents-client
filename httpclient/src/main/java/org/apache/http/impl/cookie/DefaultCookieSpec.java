@@ -44,7 +44,7 @@ import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * Default cookie specification that picks up the bests matching cookie policy based on
+ * Default cookie specification that picks up the best matching cookie policy based on
  * the format of cookies sent with the HTTP response.
  *
  * @since 4.4
@@ -68,7 +68,6 @@ public class DefaultCookieSpec implements CookieSpec {
     public DefaultCookieSpec(
             final String[] datepatterns,
             final boolean oneHeader) {
-        super();
         this.strict = new RFC2965Spec(oneHeader,
                 new RFC2965VersionAttributeHandler(),
                 new BasicPathHandler(),
