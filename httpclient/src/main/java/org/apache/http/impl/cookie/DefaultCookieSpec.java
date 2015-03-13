@@ -68,7 +68,6 @@ public class DefaultCookieSpec implements CookieSpec {
     public DefaultCookieSpec(
             final String[] datepatterns,
             final boolean oneHeader) {
-        super();
         this.strict = new RFC2965Spec(oneHeader,
                 new RFC2965VersionAttributeHandler(),
                 new BasicPathHandler(),
