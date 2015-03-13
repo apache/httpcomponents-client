@@ -59,7 +59,6 @@ import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.config.AuthSchemes;
-import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.InputStreamFactory;
 import org.apache.http.client.protocol.RequestAcceptEncoding;
@@ -99,10 +98,6 @@ import org.apache.http.impl.conn.DefaultRoutePlanner;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
-import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
-import org.apache.http.impl.cookie.IgnoreSpecProvider;
-import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
-import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.http.impl.execchain.BackoffStrategyExec;
 import org.apache.http.impl.execchain.ClientExecChain;
 import org.apache.http.impl.execchain.MainClientExec;
@@ -735,6 +730,9 @@ public class HttpClientBuilder {
      * Assigns default {@link org.apache.http.cookie.CookieSpec} registry which will
      * be used for request execution if not explicitly set in the client execution
      * context.
+     *
+     * @see org.apache.http.impl.client.CookieSpecRegistries
+     *
      */
     public final HttpClientBuilder setDefaultCookieSpecRegistry(
             final Lookup<CookieSpecProvider> cookieSpecRegistry) {
@@ -1172,20 +1170,7 @@ public class HttpClientBuilder {
         }
         Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
         if (cookieSpecRegistryCopy == null) {
-            final CookieSpecProvider defaultProvider = new DefaultCookieSpecProvider(publicSuffixMatcherCopy);
-            final CookieSpecProvider laxStandardProvider = new RFC6265CookieSpecProvider(
-                    RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, publicSuffixMatcherCopy);
-            final CookieSpecProvider strictStandardProvider = new RFC6265CookieSpecProvider(
-                    RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, publicSuffixMatcherCopy);
-            cookieSpecRegistryCopy = RegistryBuilder.<CookieSpecProvider>create()
-                .register(CookieSpecs.DEFAULT, defaultProvider)
-                .register("best-match", defaultProvider)
-                .register("compatibility", defaultProvider)
-                .register(CookieSpecs.STANDARD, laxStandardProvider)
-                .register(CookieSpecs.STANDARD_STRICT, strictStandardProvider)
-                .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())
-                .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
-                .build();
+            cookieSpecRegistryCopy = CookieSpecRegistries.createDefault(publicSuffixMatcherCopy);
         }
 
         CookieStore defaultCookieStore = this.cookieStore;
