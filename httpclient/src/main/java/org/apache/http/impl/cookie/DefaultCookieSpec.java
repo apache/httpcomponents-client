@@ -44,7 +44,7 @@ import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
- * Default cookie specification that picks up the bests matching cookie policy based on
+ * Default cookie specification that picks up the best matching cookie policy based on
  * the format of cookies sent with the HTTP response.
  *
  * @since 4.4
