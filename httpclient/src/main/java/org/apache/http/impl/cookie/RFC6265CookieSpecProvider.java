@@ -87,6 +87,7 @@ public class RFC6265CookieSpecProvider implements CookieSpecProvider {
                                     new BasicMaxAgeHandler(),
                                     new BasicSecureHandler(),
                                     new BasicExpiresHandler(RFC6265StrictSpec.DATE_PATTERNS));
+                            break;
                         case IE_MEDIUM_SECURITY:
                             this.cookieSpec = new RFC6265LaxSpec(
                                     new BasicPathHandler() {
@@ -102,6 +103,7 @@ public class RFC6265CookieSpecProvider implements CookieSpecProvider {
                                     new BasicMaxAgeHandler(),
                                     new BasicSecureHandler(),
                                     new BasicExpiresHandler(RFC6265StrictSpec.DATE_PATTERNS));
+                            break;
                         default:
                             this.cookieSpec = new RFC6265LaxSpec(
                                     new BasicPathHandler(),
