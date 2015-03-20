@@ -33,6 +33,7 @@ import java.util.List;
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.annotation.Obsolete;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
@@ -49,9 +50,13 @@ import org.apache.http.util.CharArrayBuffer;
  * the original draft specification published by Netscape Communications.
  * It should be avoided unless absolutely necessary for compatibility with
  * legacy applications.
+ * <p>
+ * Rendered obsolete by {@link org.apache.http.impl.cookie.RFC6265LaxSpec}.
  *
  * @since 4.0
+ * @see org.apache.http.impl.cookie.RFC6265LaxSpec
  */
+@Obsolete
 @ThreadSafe
 public class NetscapeDraftSpec extends CookieSpecBase {
 
