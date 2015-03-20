@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.annotation.Obsolete;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.cookie.ClientCookie;
@@ -49,13 +50,13 @@ import org.apache.http.util.CharArrayBuffer;
 
 /**
  * RFC 2109 compliant {@link org.apache.http.cookie.CookieSpec} implementation.
- * This is an older version of the official HTTP state management specification
- * superseded by RFC 2965.
- *
- * @see RFC2965Spec
+ * <p>
+ * Rendered obsolete by {@link org.apache.http.impl.cookie.RFC6265StrictSpec}.
  *
  * @since 4.0
+ * @see org.apache.http.impl.cookie.RFC6265StrictSpec
  */
+@Obsolete
 @ThreadSafe
 public class RFC2109Spec extends CookieSpecBase {
 

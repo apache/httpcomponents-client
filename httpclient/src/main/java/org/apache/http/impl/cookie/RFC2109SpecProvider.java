@@ -28,6 +28,7 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Obsolete;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecProvider;
@@ -37,9 +38,13 @@ import org.apache.http.protocol.HttpContext;
  * {@link org.apache.http.cookie.CookieSpecProvider} implementation that provides an instance of
  * {@link RFC2109Spec}. The instance returned by this factory
  * can be shared by multiple threads.
+ * <p>
+ * Rendered obsolete by {@link org.apache.http.impl.cookie.RFC6265CookieSpecProvider}
  *
  * @since 4.4
+ * @see org.apache.http.impl.cookie.RFC6265CookieSpecProvider
  */
+@Obsolete
 @Immutable
 public class RFC2109SpecProvider implements CookieSpecProvider {
 

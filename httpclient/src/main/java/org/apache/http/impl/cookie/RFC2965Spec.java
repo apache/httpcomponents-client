@@ -35,6 +35,7 @@ import java.util.Map;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
+import org.apache.http.annotation.Obsolete;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
@@ -49,9 +50,13 @@ import org.apache.http.util.CharArrayBuffer;
 
 /**
  * RFC 2965 compliant {@link org.apache.http.cookie.CookieSpec} implementation.
+ * <p>
+ * Rendered obsolete by {@link org.apache.http.impl.cookie.RFC6265StrictSpec}.
  *
  * @since 4.0
+ * @see org.apache.http.impl.cookie.RFC6265StrictSpec
  */
+@Obsolete
 @ThreadSafe
 public class RFC2965Spec extends RFC2109Spec {
 
