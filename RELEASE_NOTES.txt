@@ -1,8 +1,24 @@
-Changes since 4.4
+Release 4.4.1
 -------------------
+
+HttpClient 4.4.1 (GA) is a maintenance release that fixes a number of defects in new functionality
+introduced in version 4.4.
+
+Users of HttpClient 4.4 are encouraged to upgrade.
+
+Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+
+Changelog:
+-------------------
+
+* Marked RFC 2109, RFC 2965, Netscape draft cookie specs as obsolete
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-1633] RFC6265CookieSpecProvider compatibility level setting has no effect.
   Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1628]: Auth cache can fail when domain name contains uppercase characters.
+  Contributed by Dennis Ju <dejuknow at gmail.com>
 
 * [HTTPCLIENT-1609] Stale connection check in PoolingHttpClientConnectionManager has no effect.
   Internal connection pool does not correctly implement connection validation.
