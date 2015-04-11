@@ -58,10 +58,10 @@ import org.apache.http.util.CharArrayBuffer;
 /**
  * Cookie management functions shared by RFC C6265 compliant specification.
  *
- * @since 4.4
+ * @since 4.5
  */
 @ThreadSafe
-class RFC6265CookieSpecBase implements CookieSpec {
+public class RFC6265CookieSpec implements CookieSpec {
 
     private final static char PARAM_DELIMITER  = ';';
     private final static char COMMA_CHAR       = ',';
@@ -80,7 +80,7 @@ class RFC6265CookieSpecBase implements CookieSpec {
     private final Map<String, CookieAttributeHandler> attribHandlerMap;
     private final TokenParser tokenParser;
 
-    RFC6265CookieSpecBase(final CommonCookieAttributeHandler... handlers) {
+    protected RFC6265CookieSpec(final CommonCookieAttributeHandler... handlers) {
         super();
         this.attribHandlers = handlers.clone();
         this.attribHandlerMap = new ConcurrentHashMap<String, CookieAttributeHandler>(handlers.length);

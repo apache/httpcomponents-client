@@ -39,7 +39,7 @@ import org.apache.http.cookie.CommonCookieAttributeHandler;
  * @since 4.4
  */
 @ThreadSafe
-public class RFC6265LaxSpec extends RFC6265CookieSpecBase {
+public class RFC6265LaxSpec extends RFC6265CookieSpec {
 
     public RFC6265LaxSpec() {
         super(new BasicPathHandler(),

@@ -42,7 +42,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class TestRFC6265CookieSpecBase {
+public class TestRFC6265CookieSpec {
 
     @Test
     public void testParseCookieBasics() throws Exception {
@@ -51,7 +51,7 @@ public class TestRFC6265CookieSpecBase {
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h2.getAttributeName()).thenReturn("that");
 
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase(h1, h2);
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec(h1, h2);
 
         final Header header = new BasicHeader("Set-Cookie", "name = value ; this = stuff;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
@@ -74,7 +74,7 @@ public class TestRFC6265CookieSpecBase {
 
     @Test
     public void testParseCookieQuotedValue() throws Exception {
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase();
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "name = \" one, two, three; four \" ; this = stuff;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
@@ -91,7 +91,7 @@ public class TestRFC6265CookieSpecBase {
 
     @Test(expected = MalformedCookieException.class)
     public void testParseCookieWrongHeader() throws Exception {
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase();
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie2", "blah");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
@@ -100,7 +100,7 @@ public class TestRFC6265CookieSpecBase {
 
     @Test(expected = MalformedCookieException.class)
     public void testParseCookieMissingName() throws Exception {
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase();
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "=blah ; this = stuff;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
@@ -109,7 +109,7 @@ public class TestRFC6265CookieSpecBase {
 
     @Test(expected = MalformedCookieException.class)
     public void testParseCookieMissingValue1() throws Exception {
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase();
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "blah");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
@@ -118,7 +118,7 @@ public class TestRFC6265CookieSpecBase {
 
     @Test(expected = MalformedCookieException.class)
     public void testParseCookieMissingValue2() throws Exception {
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase();
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "blah;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
@@ -127,7 +127,7 @@ public class TestRFC6265CookieSpecBase {
 
     @Test
     public void testParseCookieEmptyValue() throws Exception {
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase();
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "blah=;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
@@ -145,7 +145,7 @@ public class TestRFC6265CookieSpecBase {
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h2.getAttributeName()).thenReturn("that");
 
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase(h1, h2);
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec(h1, h2);
 
         final Header header = new BasicHeader("Set-Cookie", "name = value ; p1 = v ; p2 = v,0; p3 ; p4");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
@@ -171,7 +171,7 @@ public class TestRFC6265CookieSpecBase {
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h2.getAttributeName()).thenReturn("that");
 
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase(h1, h2);
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec(h1, h2);
 
         final Header header = new BasicHeader("Set-Cookie", "name = value ; p1 = v");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
@@ -193,7 +193,7 @@ public class TestRFC6265CookieSpecBase {
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h2.getAttributeName()).thenReturn("that");
 
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase(h1, h2);
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec(h1, h2);
 
         final Header header = new BasicHeader("Set-Cookie", "name = value ; p1 =");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
@@ -215,7 +215,7 @@ public class TestRFC6265CookieSpecBase {
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h2.getAttributeName()).thenReturn("that");
 
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase(h1, h2);
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec(h1, h2);
 
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
@@ -232,7 +232,7 @@ public class TestRFC6265CookieSpecBase {
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h2.getAttributeName()).thenReturn("that");
 
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase(h1, h2);
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec(h1, h2);
 
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
@@ -253,7 +253,7 @@ public class TestRFC6265CookieSpecBase {
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h2.getAttributeName()).thenReturn("that");
 
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase(h1, h2);
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec(h1, h2);
 
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
@@ -269,7 +269,7 @@ public class TestRFC6265CookieSpecBase {
 
     @Test
     public void testLegacy() throws Exception {
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase();
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         Assert.assertEquals(0, cookiespec.getVersion());
         Assert.assertEquals(null, cookiespec.getVersionHeader());
@@ -279,7 +279,7 @@ public class TestRFC6265CookieSpecBase {
     public void testFormatCookiesBasics() throws Exception {
         final Cookie cookie1 = new BasicClientCookie("name1", "value");
 
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase();
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
         final List<Header> headers = cookiespec.formatCookies(Arrays.asList(cookie1));
         Assert.assertNotNull(headers);
         Assert.assertEquals(1, headers.size());
@@ -293,7 +293,7 @@ public class TestRFC6265CookieSpecBase {
         final Cookie cookie1 = new BasicClientCookie("name1", "value");
         final Cookie cookie2 = new BasicClientCookie("name2", "some value");
         final Cookie cookie3 = new BasicClientCookie("name3", "\"\\\"");
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase();
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
         final List<Header> headers = cookiespec.formatCookies(Arrays.asList(cookie1, cookie2, cookie3));
         Assert.assertNotNull(headers);
         Assert.assertEquals(1, headers.size());
@@ -307,7 +307,7 @@ public class TestRFC6265CookieSpecBase {
         final CommonCookieAttributeHandler h1 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h1.getAttributeName()).thenReturn("this");
 
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase(h1);
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec(h1);
 
         final Header header = new BasicHeader("Set-Cookie", "name = value ; this = stuff; this = morestuff;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
@@ -324,7 +324,7 @@ public class TestRFC6265CookieSpecBase {
         final CommonCookieAttributeHandler h2 = Mockito.mock(CommonCookieAttributeHandler.class);
         Mockito.when(h2.getAttributeName()).thenReturn("Max-Age");
 
-        final RFC6265CookieSpecBase cookiespec = new RFC6265CookieSpecBase(h1, h2);
+        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec(h1, h2);
 
         final Header header = new BasicHeader("Set-Cookie", "name = value ; expires = stuff; max-age = otherstuff;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);

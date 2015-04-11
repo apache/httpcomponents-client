@@ -39,7 +39,7 @@ import org.apache.http.cookie.CommonCookieAttributeHandler;
  * @since 4.4
  */
 @ThreadSafe
-public class RFC6265StrictSpec extends RFC6265CookieSpecBase {
+public class RFC6265StrictSpec extends RFC6265CookieSpec {
 
     final static String[] DATE_PATTERNS = {
         DateUtils.PATTERN_RFC1123,
