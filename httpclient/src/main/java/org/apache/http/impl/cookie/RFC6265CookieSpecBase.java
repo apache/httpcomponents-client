@@ -151,7 +151,8 @@ class RFC6265CookieSpecBase implements CookieSpec {
 
         final Map<String, String> attribMap = new LinkedHashMap<String, String>();
         while (!cursor.atEnd()) {
-            final String paramName = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
+            final String paramName = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS)
+                    .toLowerCase(Locale.ROOT);
             String paramValue = null;
             if (!cursor.atEnd()) {
                 final int paramDelim = buffer.charAt(cursor.getPos());
@@ -163,7 +164,7 @@ class RFC6265CookieSpecBase implements CookieSpec {
                     }
                 }
             }
-            cookie.setAttribute(paramName.toLowerCase(Locale.ROOT), paramValue);
+            cookie.setAttribute(paramName, paramValue);
             attribMap.put(paramName, paramValue);
         }
         // Ignore 'Expires' if 'Max-Age' is present

@@ -214,7 +214,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
 
     @Override
     public String getAttributeName() {
-        return ClientCookie.MAX_AGE_ATTR;
+        return ClientCookie.EXPIRES_ATTR;
     }
 
 }
