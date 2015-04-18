@@ -436,7 +436,6 @@ HttpClients.custom()
             <programlisting><![CDATA[
 KeyStore myTrustStore = <...>
 SSLContext sslContext = SSLContexts.custom()
-        .useTLS()
         .loadTrustMaterial(myTrustStore)
         .build();
 SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext);
