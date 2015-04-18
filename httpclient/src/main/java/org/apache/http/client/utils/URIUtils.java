@@ -238,7 +238,7 @@ public class URIUtils {
      * @return the resulting URI
      */
     public static URI resolve(final URI baseURI, final String reference) {
-        return URIUtils.resolve(baseURI, URI.create(reference));
+        return resolve(baseURI, URI.create(reference));
     }
 
     /**
@@ -252,37 +252,27 @@ public class URIUtils {
     public static URI resolve(final URI baseURI, final URI reference){
         Args.notNull(baseURI, "Base URI");
         Args.notNull(reference, "Reference URI");
-        URI ref = reference;
-        final String s = ref.toString();
+        final String s = reference.toASCIIString();
         if (s.startsWith("?")) {
-            return resolveReferenceStartingWithQueryString(baseURI, ref);
+            String baseUri = baseURI.toASCIIString();
+            final int i = baseUri.indexOf('?');
+            baseUri = i > -1 ? baseUri.substring(0, i) : baseUri;
+            return URI.create(baseUri + s);
         }
         final boolean emptyReference = s.isEmpty();
+        URI resolved;
         if (emptyReference) {
-            ref = URI.create("#");
+            resolved = baseURI.resolve(URI.create("#"));
+            final String resolvedString = resolved.toASCIIString();
+            resolved = URI.create(resolvedString.substring(0, resolvedString.indexOf('#')));
+        } else {
+            resolved = baseURI.resolve(reference);
         }
-        URI resolved = baseURI.resolve(ref);
-        if (emptyReference) {
-            final String resolvedString = resolved.toString();
-            resolved = URI.create(resolvedString.substring(0,
-                resolvedString.indexOf('#')));
+        try {
+            return normalizeSyntax(resolved);
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException(ex);
         }
-        return normalizeSyntax(resolved);
-    }
-
-    /**
-     * Resolves a reference starting with a query string.
-     *
-     * @param baseURI the base URI
-     * @param reference the URI reference starting with a query string
-     * @return the resulting URI
-     */
-    private static URI resolveReferenceStartingWithQueryString(
-            final URI baseURI, final URI reference) {
-        String baseUri = baseURI.toString();
-        baseUri = baseUri.indexOf('?') > -1 ?
-            baseUri.substring(0, baseUri.indexOf('?')) : baseUri;
-        return URI.create(baseUri + reference.toString());
     }
 
     /**
@@ -292,57 +282,45 @@ public class URIUtils {
      * @param uri the original URI
      * @return the URI without dot segments
      */
-    private static URI normalizeSyntax(final URI uri) {
+    static URI normalizeSyntax(final URI uri) throws URISyntaxException {
         if (uri.isOpaque() || uri.getAuthority() == null) {
             // opaque and file: URIs
             return uri;
         }
         Args.check(uri.isAbsolute(), "Base URI must be absolute");
-        final String path = uri.getPath() == null ? "" : uri.getPath();
-        final String[] inputSegments = path.split("/");
-        final Stack<String> outputSegments = new Stack<String>();
-        for (final String inputSegment : inputSegments) {
-            if ((inputSegment.isEmpty())
-                || (".".equals(inputSegment))) {
-                // Do nothing
-            } else if ("..".equals(inputSegment)) {
-                if (!outputSegments.isEmpty()) {
-                    outputSegments.pop();
+        final URIBuilder builder = new URIBuilder(uri);
+        final String path = builder.getPath();
+        if (path != null && !path.equals("/")) {
+            final String[] inputSegments = path.split("/");
+            final Stack<String> outputSegments = new Stack<String>();
+            for (final String inputSegment : inputSegments) {
+                if ((inputSegment.isEmpty()) || (".".equals(inputSegment))) {
+                    // Do nothing
+                } else if ("..".equals(inputSegment)) {
+                    if (!outputSegments.isEmpty()) {
+                        outputSegments.pop();
+                    }
+                } else {
+                    outputSegments.push(inputSegment);
                 }
-            } else {
-                outputSegments.push(inputSegment);
             }
-        }
-        final StringBuilder outputBuffer = new StringBuilder();
-        for (final String outputSegment : outputSegments) {
-            outputBuffer.append('/').append(outputSegment);
-        }
-        if (path.lastIndexOf('/') == path.length() - 1) {
-            // path.endsWith("/") || path.equals("")
-            outputBuffer.append('/');
-        }
-        try {
-            final String scheme = uri.getScheme().toLowerCase(Locale.ROOT);
-            final String auth = uri.getAuthority().toLowerCase(Locale.ROOT);
-            final URI ref = new URI(scheme, auth, outputBuffer.toString(),
-                    null, null);
-            if (uri.getQuery() == null && uri.getFragment() == null) {
-                return ref;
+            final StringBuilder outputBuffer = new StringBuilder();
+            for (final String outputSegment : outputSegments) {
+                outputBuffer.append('/').append(outputSegment);
             }
-            final StringBuilder normalized = new StringBuilder(
-                    ref.toASCIIString());
-            if (uri.getQuery() != null) {
-                // query string passed through unchanged
-                normalized.append('?').append(uri.getRawQuery());
+            if (path.lastIndexOf('/') == path.length() - 1) {
+                // path.endsWith("/") || path.equals("")
+                outputBuffer.append('/');
             }
-            if (uri.getFragment() != null) {
-                // fragment passed through unchanged
-                normalized.append('#').append(uri.getRawFragment());
-            }
-            return URI.create(normalized.toString());
-        } catch (final URISyntaxException e) {
-            throw new IllegalArgumentException(e);
+            builder.setPath(outputBuffer.toString());
         }
+        if (builder.getScheme() != null) {
+            builder.setScheme(builder.getScheme().toLowerCase(Locale.ROOT));
+        }
+        if (builder.getHost() != null) {
+            builder.setHost(builder.getHost().toLowerCase(Locale.ROOT));
+        }
+        return builder.build();
     }
 
     /**

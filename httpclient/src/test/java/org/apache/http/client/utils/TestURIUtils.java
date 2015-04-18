@@ -137,6 +137,8 @@ public class TestURIUtils {
         Assert.assertEquals("http://www.example.com/a/", URIUtils.resolve(this.baseURI, "http://www.example.com/a%2f").toString());
         Assert.assertEquals("http://www.example.com/?q=%26", URIUtils.resolve(this.baseURI, "http://www.example.com/?q=%26").toString());
         Assert.assertEquals("http://www.example.com/%23?q=%26", URIUtils.resolve(this.baseURI, "http://www.example.com/%23?q=%26").toString());
+        Assert.assertEquals("http://www.example.com/blah-(%20-blah-%20&%20-blah-%20)-blah/",
+                URIUtils.resolve(this.baseURI, "http://www.example.com/blah-%28%20-blah-%20%26%20-blah-%20%29-blah/").toString());
     }
 
     @Test
