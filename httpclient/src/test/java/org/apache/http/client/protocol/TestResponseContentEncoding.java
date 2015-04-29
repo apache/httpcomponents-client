@@ -151,7 +151,7 @@ public class TestResponseContentEncoding {
         response.setEntity(original);
         final HttpContext context = new BasicHttpContext();
 
-        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
+        final HttpResponseInterceptor interceptor = new ResponseContentEncoding(false);
         interceptor.process(response, context);
     }
 

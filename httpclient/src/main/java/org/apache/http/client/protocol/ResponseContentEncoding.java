@@ -78,17 +78,33 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
     };
 
     private final Lookup<InputStreamFactory> decoderRegistry;
+    private final boolean ignoreUnknown;
 
     /**
-     * @since 4.4
+     * @since 4.5
      */
-    public ResponseContentEncoding(final Lookup<InputStreamFactory> decoderRegistry) {
+    public ResponseContentEncoding(final Lookup<InputStreamFactory> decoderRegistry, final boolean ignoreUnknown) {
         this.decoderRegistry = decoderRegistry != null ? decoderRegistry :
             RegistryBuilder.<InputStreamFactory>create()
                     .register("gzip", GZIP)
                     .register("x-gzip", GZIP)
                     .register("deflate", DEFLATE)
                     .build();
+        this.ignoreUnknown = ignoreUnknown;
+    }
+
+    /**
+     * @since 4.5
+     */
+    public ResponseContentEncoding(final boolean ignoreUnknown) {
+        this(null, ignoreUnknown);
+    }
+
+    /**
+     * @since 4.4
+     */
+    public ResponseContentEncoding(final Lookup<InputStreamFactory> decoderRegistry) {
+        this(decoderRegistry, true);
     }
 
     /**
@@ -126,7 +142,7 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
                         response.removeHeaders("Content-Encoding");
                         response.removeHeaders("Content-MD5");
                     } else {
-                        if (!"identity".equals(codecname)) {
+                        if (!"identity".equals(codecname) && !ignoreUnknown) {
                             throw new HttpException("Unsupported Content-Coding: " + codec.getName());
                         }
                     }
