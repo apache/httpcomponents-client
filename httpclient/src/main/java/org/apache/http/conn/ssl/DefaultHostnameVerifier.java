@@ -86,7 +86,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
             final X509Certificate x509 = (X509Certificate) certs[0];
             verify(host, x509);
             return true;
-        } catch(final SSLException ex) {
+        } catch (final SSLException ex) {
             if (log.isDebugEnabled()) {
                 log.debug(ex.getMessage(), ex);
             }
