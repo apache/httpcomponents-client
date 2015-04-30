@@ -80,7 +80,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
     }
 
     @Override
-    public final boolean verify(final String host, final SSLSession session) {
+    public boolean verify(final String host, final SSLSession session) {
         try {
             final Certificate[] certs = session.getPeerCertificates();
             final X509Certificate x509 = (X509Certificate) certs[0];
@@ -94,7 +94,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
         }
     }
 
-    public final void verify(
+    public void verify(
             final String host, final X509Certificate cert) throws SSLException {
         final boolean ipv4 = InetAddressUtils.isIPv4Address(host);
         final boolean ipv6 = InetAddressUtils.isIPv6Address(host);
