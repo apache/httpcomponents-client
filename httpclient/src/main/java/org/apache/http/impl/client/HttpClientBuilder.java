@@ -287,7 +287,7 @@ public class HttpClientBuilder {
      * @deprecated (4.5) use {@link #setSSLContext(SSLContext)}
      */
     @Deprecated
-    public final HttpClientBuilder setSslContext(final SSLContext sslcontext) {
+    public final HttpClientBuilder setSslcontext(final SSLContext sslcontext) {
         return setSSLContext(sslcontext);
     }
 

@@ -27,41 +27,12 @@
 
 package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.client.utils.DateUtils;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 
-/**
- * Standard {@link org.apache.http.cookie.CookieSpec} implementation that enforces syntax
- * and semantics of the well-behaved profile of the HTTP state management specification
- * (RFC 6265, section 4).
- *
- * @since 4.4
- */
-@ThreadSafe
-public class RFC6265StrictSpec extends RFC6265CookieSpecBase {
+class RFC6265CookieSpecBase extends RFC6265CookieSpec {
 
-    final static String[] DATE_PATTERNS = {
-        DateUtils.PATTERN_RFC1123,
-        DateUtils.PATTERN_RFC1036,
-        DateUtils.PATTERN_ASCTIME
-    };
-
-    public RFC6265StrictSpec() {
-        super(new BasicPathHandler(),
-                new BasicDomainHandler(),
-                new BasicMaxAgeHandler(),
-                new BasicSecureHandler(),
-                new BasicExpiresHandler(DATE_PATTERNS));
-    }
-
-    RFC6265StrictSpec(final CommonCookieAttributeHandler... handlers) {
+    RFC6265CookieSpecBase(final CommonCookieAttributeHandler... handlers) {
         super(handlers);
-    }
-
-    @Override
-    public String toString() {
-        return "rfc6265-strict";
     }
 
 }
