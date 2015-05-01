@@ -96,7 +96,10 @@ public class Executor {
         CONNMGR = new PoolingHttpClientConnectionManager(sfr);
         CONNMGR.setDefaultMaxPerRoute(100);
         CONNMGR.setMaxTotal(200);
-        CLIENT = HttpClientBuilder.create().setConnectionManager(CONNMGR).build();
+        CONNMGR.setValidateAfterInactivity(1000);
+        CLIENT = HttpClientBuilder.create()
+                .setConnectionManager(CONNMGR)
+                .build();
     }
 
     public static Executor newInstance() {
@@ -225,8 +228,7 @@ public class Executor {
         localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
         localContext.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
         localContext.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
-        final InternalHttpRequest httprequest = request.prepareRequest();
-        return new Response(this.httpclient.execute(httprequest, localContext));
+        return new Response(request.internalExecute(this.httpclient, localContext));
     }
 
     /**

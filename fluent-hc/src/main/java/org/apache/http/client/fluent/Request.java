@@ -44,10 +44,13 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.Configurable;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -59,6 +62,7 @@ import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
 
 public class Request {
 
@@ -67,7 +71,10 @@ public class Request {
     public static final TimeZone TIME_ZONE = TimeZone.getTimeZone("GMT");
 
     private final InternalHttpRequest request;
-    private final RequestConfig.Builder configBuilder;
+    private Boolean useExpectContinue;
+    private Integer socketTmeout;
+    private Integer connectTimeout;
+    private HttpHost proxy;
 
     private SimpleDateFormat dateFormatter;
 
@@ -138,17 +145,36 @@ public class Request {
     Request(final InternalHttpRequest request) {
         super();
         this.request = request;
-        this.configBuilder = RequestConfig.custom();
     }
 
-    InternalHttpRequest prepareRequest() {
-        this.request.setConfig(this.configBuilder.build());
-        return this.request;
+    HttpResponse internalExecute(
+            final HttpClient client,
+            final HttpContext localContext) throws ClientProtocolException, IOException {
+        final RequestConfig.Builder builder;
+        if (client instanceof Configurable) {
+            builder = RequestConfig.copy(((Configurable) client).getConfig());
+        } else {
+            builder = RequestConfig.custom();
+        }
+        if (this.useExpectContinue != null) {
+            builder.setExpectContinueEnabled(this.useExpectContinue);
+        }
+        if (this.socketTmeout != null) {
+            builder.setSocketTimeout(this.socketTmeout);
+        }
+        if (this.connectTimeout != null) {
+            builder.setSocketTimeout(this.connectTimeout);
+        }
+        if (this.proxy != null) {
+            builder.setProxy(this.proxy);
+        }
+        final RequestConfig config = builder.build();
+        this.request.setConfig(config);
+        return client.execute(this.request, localContext);
     }
 
     public Response execute() throws ClientProtocolException, IOException {
-        this.request.setConfig(this.configBuilder.build());
-        return new Response(Executor.CLIENT.execute(this.request));
+        return new Response(internalExecute(Executor.CLIENT, null));
     }
 
     public void abort() throws UnsupportedOperationException {
@@ -267,7 +293,7 @@ public class Request {
     }
 
     public Request useExpectContinue() {
-        this.configBuilder.setExpectContinueEnabled(true);
+        this.useExpectContinue = Boolean.TRUE;
         return this;
     }
 
@@ -279,29 +305,29 @@ public class Request {
     //// HTTP connection parameter operations
 
     public Request socketTimeout(final int timeout) {
-        this.configBuilder.setSocketTimeout(timeout);
+        this.socketTmeout = timeout;
         return this;
     }
 
     public Request connectTimeout(final int timeout) {
-        this.configBuilder.setConnectTimeout(timeout);
+        this.connectTimeout = timeout;
         return this;
     }
 
     /**
-     * @deprecated (4.4) Use {@link
-     *   org.apache.http.impl.conn.PoolingHttpClientConnectionManager#setValidateAfterInactivity(int)}
+     * This method has no effect. Do not use.
+     *
+     * @deprecated (4.4)
      */
     @Deprecated
     public Request staleConnectionCheck(final boolean b) {
-        this.configBuilder.setStaleConnectionCheckEnabled(b);
         return this;
     }
 
     //// HTTP connection route operations
 
     public Request viaProxy(final HttpHost proxy) {
-        this.configBuilder.setProxy(proxy);
+        this.proxy = proxy;
         return this;
     }
 
@@ -309,7 +335,7 @@ public class Request {
      * @since 4.4
      */
     public Request viaProxy(final String proxy) {
-        this.configBuilder.setProxy(HttpHost.create(proxy));
+        this.proxy = HttpHost.create(proxy);
         return this;
     }
 
