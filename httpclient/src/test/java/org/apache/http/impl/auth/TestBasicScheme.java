@@ -141,7 +141,25 @@ public class TestBasicScheme {
         Assert.assertEquals(basicScheme.getSchemeName(), authScheme.getSchemeName());
         Assert.assertEquals(basicScheme.getRealm(), authScheme.getRealm());
         Assert.assertEquals(basicScheme.isComplete(), authScheme.isComplete());
+        Assert.assertEquals(true, basicScheme.isProxy());
+    }
 
+    @Test
+    public void testSerializationUnchallenged() throws Exception {
+        final BasicScheme basicScheme = new BasicScheme();
+
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        final ObjectOutputStream out = new ObjectOutputStream(buffer);
+        out.writeObject(basicScheme);
+        out.flush();
+        final byte[] raw = buffer.toByteArray();
+        final ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
+        final BasicScheme authScheme = (BasicScheme) in.readObject();
+
+        Assert.assertEquals(basicScheme.getSchemeName(), authScheme.getSchemeName());
+        Assert.assertEquals(basicScheme.getRealm(), authScheme.getRealm());
+        Assert.assertEquals(basicScheme.isComplete(), authScheme.isComplete());
+        Assert.assertEquals(false, basicScheme.isProxy());
     }
 
 }

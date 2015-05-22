@@ -56,7 +56,7 @@ import org.apache.http.util.CharArrayBuffer;
 @NotThreadSafe
 public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
 
-    private ChallengeState challengeState;
+    protected ChallengeState challengeState;
 
     /**
      * Creates an instance of {@code AuthSchemeBase} with the given challenge

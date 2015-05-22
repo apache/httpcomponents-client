@@ -158,6 +158,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase implements Serializab
     private void writeObject(final ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
         out.writeUTF(this.credentialsCharset.name());
+        out.writeObject(this.challengeState);
     }
 
     @SuppressWarnings("unchecked")
@@ -167,6 +168,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase implements Serializab
         if (this.credentialsCharset == null) {
             this.credentialsCharset = Consts.ASCII;
         }
+        this.challengeState = (ChallengeState) in.readObject();
     }
 
     private void readObjectNoData() throws ObjectStreamException {
