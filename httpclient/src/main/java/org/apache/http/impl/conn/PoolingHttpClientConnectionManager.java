@@ -173,7 +173,7 @@ public class PoolingHttpClientConnectionManager
         this.configData = new ConfigData();
         this.pool = new CPool(new InternalConnectionFactory(
                 this.configData, connFactory), 2, 20, timeToLive, tunit);
-        this.pool.setValidateAfterInactivity(5000);
+        this.pool.setValidateAfterInactivity(2000);
         this.connectionOperator = Args.notNull(httpClientConnectionOperator, "HttpClientConnectionOperator");
         this.isShutDown = new AtomicBoolean(false);
     }
