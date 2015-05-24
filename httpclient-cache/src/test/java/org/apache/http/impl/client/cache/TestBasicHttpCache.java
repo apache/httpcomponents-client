@@ -318,7 +318,7 @@ public class TestBasicHttpCache {
         final String existingVariantKey = "existingVariantKey";
         final String newVariantCacheKey = "newVariantCacheKey";
         final String newVariantKey = "newVariantKey";
-        final Map<String,String> existingVariants = new HashMap<String,String>();
+        final Map<String,String> existingVariants = new HashMap<>();
         existingVariants.put(existingVariantKey, variantCacheKey);
         final HttpCacheEntry parent = HttpTestUtils.makeCacheEntry(existingVariants);
         final HttpCacheEntry variant = HttpTestUtils.makeCacheEntry();

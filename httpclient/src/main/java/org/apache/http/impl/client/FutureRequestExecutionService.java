@@ -113,10 +113,10 @@ public class FutureRequestExecutionService implements Closeable {
             throw new IllegalStateException("Close has been called on this httpclient instance.");
         }
         metrics.getScheduledConnections().incrementAndGet();
-        final HttpRequestTaskCallable<T> callable = new HttpRequestTaskCallable<T>(
-            httpclient, request, context, responseHandler, callback, metrics);
-        final HttpRequestFutureTask<T> httpRequestFutureTask = new HttpRequestFutureTask<T>(
-            request, callable);
+        final HttpRequestTaskCallable<T> callable = new HttpRequestTaskCallable<>(
+                httpclient, request, context, responseHandler, callback, metrics);
+        final HttpRequestFutureTask<T> httpRequestFutureTask = new HttpRequestFutureTask<>(
+                request, callable);
         executorService.execute(httpRequestFutureTask);
 
         return httpRequestFutureTask;

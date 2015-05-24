@@ -108,7 +108,7 @@ public class CachingExec implements ClientExecChain {
     private final AtomicLong cacheMisses = new AtomicLong();
     private final AtomicLong cacheUpdates = new AtomicLong();
 
-    private final Map<ProtocolVersion, String> viaHeaders = new HashMap<ProtocolVersion, String>(4);
+    private final Map<ProtocolVersion, String> viaHeaders = new HashMap<>(4);
 
     private final CacheConfig cacheConfig;
     private final ClientExecChain backend;
@@ -594,10 +594,7 @@ public class CachingExec implements ClientExecChain {
             backendResponse.addHeader("Via", generateViaHeader(backendResponse));
             return handleBackendResponse(request, context, requestDate, getCurrentDate(),
                     backendResponse);
-        } catch (final IOException ex) {
-            backendResponse.close();
-            throw ex;
-        } catch (final RuntimeException ex) {
+        } catch (final IOException | RuntimeException ex) {
             backendResponse.close();
             throw ex;
         }
@@ -685,10 +682,7 @@ public class CachingExec implements ClientExecChain {
                 return responseGenerator.generateNotModifiedResponse(responseEntry);
             }
             return resp;
-        } catch (final IOException ex) {
-            backendResponse.close();
-            throw ex;
-        } catch (final RuntimeException ex) {
+        } catch (final IOException | RuntimeException ex) {
             backendResponse.close();
             throw ex;
         }

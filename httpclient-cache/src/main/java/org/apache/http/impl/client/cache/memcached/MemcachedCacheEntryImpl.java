@@ -101,10 +101,8 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
             entry = (HttpCacheEntry)ois.readObject();
             ois.close();
             bis.close();
-        } catch (final IOException ioe) {
+        } catch (final IOException | ClassNotFoundException ioe) {
             throw new MemcachedSerializationException(ioe);
-        } catch (final ClassNotFoundException cnfe) {
-            throw new MemcachedSerializationException(cnfe);
         }
         this.key = s;
         this.httpCacheEntry = entry;

@@ -42,7 +42,7 @@ public final class MockConnPoolControl implements ConnPoolControl<HttpRoute> {
 
     public MockConnPoolControl() {
         super();
-        this.maxPerHostMap = new ConcurrentHashMap<HttpRoute, Integer>();
+        this.maxPerHostMap = new ConcurrentHashMap<>();
         this.totalMax = 20;
         this.defaultMax = 2;
     }

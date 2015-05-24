@@ -55,7 +55,7 @@ public class StandardHttpRequestRetryHandler extends DefaultHttpRequestRetryHand
      */
     public StandardHttpRequestRetryHandler(final int retryCount, final boolean requestSentRetryEnabled) {
         super(retryCount, requestSentRetryEnabled);
-        this.idempotentMethods = new ConcurrentHashMap<String, Boolean>();
+        this.idempotentMethods = new ConcurrentHashMap<>();
         this.idempotentMethods.put("GET", Boolean.TRUE);
         this.idempotentMethods.put("HEAD", Boolean.TRUE);
         this.idempotentMethods.put("PUT", Boolean.TRUE);

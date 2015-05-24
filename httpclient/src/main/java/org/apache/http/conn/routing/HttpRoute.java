@@ -74,7 +74,7 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         this.targetHost = normalize(target);
         this.localAddress = local;
         if (proxies != null && !proxies.isEmpty()) {
-            this.proxyChain = new ArrayList<HttpHost>(proxies);
+            this.proxyChain = new ArrayList<>(proxies);
         } else {
             this.proxyChain = null;
         }

@@ -285,7 +285,7 @@ public class TestURIBuilder {
     }
 
     private List<NameValuePair> createParameters() {
-        final List<NameValuePair> parameters = new ArrayList<NameValuePair>();
+        final List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair("parameter1", "value1"));
         parameters.add(new BasicNameValuePair("parameter2", "\"1\u00aa position\""));
         parameters.add(new BasicNameValuePair("parameter3", "Jos\u00e9 Abra\u00e3o"));

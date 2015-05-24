@@ -46,8 +46,8 @@ public class Header implements Iterable<MinimalField> {
 
     public Header() {
         super();
-        this.fields = new LinkedList<MinimalField>();
-        this.fieldMap = new HashMap<String, List<MinimalField>>();
+        this.fields = new LinkedList<>();
+        this.fieldMap = new HashMap<>();
     }
 
     public void addField(final MinimalField field) {
@@ -57,7 +57,7 @@ public class Header implements Iterable<MinimalField> {
         final String key = field.getName().toLowerCase(Locale.ROOT);
         List<MinimalField> values = this.fieldMap.get(key);
         if (values == null) {
-            values = new LinkedList<MinimalField>();
+            values = new LinkedList<>();
             this.fieldMap.put(key, values);
         }
         values.add(field);
@@ -65,7 +65,7 @@ public class Header implements Iterable<MinimalField> {
     }
 
     public List<MinimalField> getFields() {
-        return new ArrayList<MinimalField>(this.fields);
+        return new ArrayList<>(this.fields);
     }
 
     public MinimalField getField(final String name) {
@@ -89,7 +89,7 @@ public class Header implements Iterable<MinimalField> {
         if (list == null || list.isEmpty()) {
             return Collections.emptyList();
         } else {
-            return new ArrayList<MinimalField>(list);
+            return new ArrayList<>(list);
         }
     }
 

@@ -47,23 +47,17 @@ public class ClientAuthentication {
         credsProvider.setCredentials(
                 new AuthScope("localhost", 443),
                 new UsernamePasswordCredentials("username", "password"));
-        CloseableHttpClient httpclient = HttpClients.custom()
+        try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
-                .build();
-        try {
+                .build()) {
             HttpGet httpget = new HttpGet("http://localhost/");
 
             System.out.println("Executing request " + httpget.getRequestLine());
-            CloseableHttpResponse response = httpclient.execute(httpget);
-            try {
+            try (CloseableHttpResponse response = httpclient.execute(httpget)) {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
                 EntityUtils.consume(response.getEntity());
-            } finally {
-                response.close();
             }
-        } finally {
-            httpclient.close();
         }
     }
 }

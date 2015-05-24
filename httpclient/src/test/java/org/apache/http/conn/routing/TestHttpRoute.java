@@ -186,7 +186,7 @@ public class TestHttpRoute {
         Assert.assertTrue ("routettt.layer" , routettt.isLayered());
 
 
-        final Set<HttpRoute> routes = new HashSet<HttpRoute>();
+        final Set<HttpRoute> routes = new HashSet<>();
         routes.add(routefff);
         routes.add(routefft);
         routes.add(routeftf);
@@ -199,7 +199,7 @@ public class TestHttpRoute {
 
         // we can't test hashCode in general due to its dependency
         // on InetAddress and HttpHost, but we can check for the flags
-        final Set<Integer> routecodes = new HashSet<Integer>();
+        final Set<Integer> routecodes = new HashSet<>();
         routecodes.add(Integer.valueOf(routefff.hashCode()));
         routecodes.add(Integer.valueOf(routefft.hashCode()));
         routecodes.add(Integer.valueOf(routeftf.hashCode()));
@@ -211,7 +211,7 @@ public class TestHttpRoute {
         Assert.assertEquals("some flagged routes have same hashCode",
                      8, routecodes.size());
 
-        final Set<String> routestrings = new HashSet<String>();
+        final Set<String> routestrings = new HashSet<>();
         routestrings.add(routefff.toString());
         routestrings.add(routefft.toString());
         routestrings.add(routeftf.toString());
@@ -377,7 +377,7 @@ public class TestHttpRoute {
 
         // now check that all of the routes are different from eachother
         // except for those that aren't :-)
-        final Set<HttpRoute> routes = new HashSet<HttpRoute>();
+        final Set<HttpRoute> routes = new HashSet<>();
         routes.add(route1a);
         routes.add(route2a);
         routes.add(route2b);
@@ -402,7 +402,7 @@ public class TestHttpRoute {
         }
 
         // and don't forget toString
-        final Set<String> routestrings = new HashSet<String>();
+        final Set<String> routestrings = new HashSet<>();
         routestrings.add(route1a.toString());
         routestrings.add(route2a.toString());
         routestrings.add(route2b.toString());

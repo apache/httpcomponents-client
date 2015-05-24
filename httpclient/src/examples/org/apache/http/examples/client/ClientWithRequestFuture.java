@@ -51,9 +51,8 @@ public class ClientWithRequestFuture {
                 .setMaxConnPerRoute(5)
                 .setMaxConnTotal(5).build();
         ExecutorService execService = Executors.newFixedThreadPool(5);
-        FutureRequestExecutionService requestExecService = new FutureRequestExecutionService(
-                httpclient, execService);
-        try {
+        try (FutureRequestExecutionService requestExecService = new FutureRequestExecutionService(
+                httpclient, execService)) {
             // Because things are asynchronous, you must provide a ResponseHandler
             ResponseHandler<Boolean> handler = new ResponseHandler<Boolean>() {
                 @Override
@@ -68,7 +67,7 @@ public class ClientWithRequestFuture {
             HttpRequestFutureTask<Boolean> futureTask1 = requestExecService.execute(request1,
                     HttpClientContext.create(), handler);
             Boolean wasItOk1 = futureTask1.get();
-            System.out.println("It was ok? "  + wasItOk1);
+            System.out.println("It was ok? " + wasItOk1);
 
             // Cancel a request
             try {
@@ -87,7 +86,7 @@ public class ClientWithRequestFuture {
             HttpRequestFutureTask<Boolean> futureTask3 = requestExecService.execute(request3,
                     HttpClientContext.create(), handler);
             Boolean wasItOk3 = futureTask3.get(10, TimeUnit.SECONDS);
-            System.out.println("It was ok? "  + wasItOk3);
+            System.out.println("It was ok? " + wasItOk3);
 
             FutureCallback<Boolean> callback = new FutureCallback<Boolean>() {
                 @Override
@@ -113,9 +112,7 @@ public class ClientWithRequestFuture {
             HttpRequestFutureTask<Boolean> futureTask4 = requestExecService.execute(request4,
                     HttpClientContext.create(), handler, callback);
             Boolean wasItOk4 = futureTask4.get(10, TimeUnit.SECONDS);
-            System.out.println("It was ok? "  + wasItOk4);
-        } finally {
-            requestExecService.close();
+            System.out.println("It was ok? " + wasItOk4);
         }
     }
 }

@@ -89,7 +89,7 @@ public class TestHttpCacheEntrySerializers {
 
         final ProtocolVersion pvObj = new ProtocolVersion("HTTP", 1, 1);
         final StatusLine slObj = new BasicStatusLine(pvObj, 200, "ok");
-        final Map<String,String> variantMap = new HashMap<String,String>();
+        final Map<String,String> variantMap = new HashMap<>();
         variantMap.put("test variant 1","true");
         variantMap.put("test variant 2","true");
         final HttpCacheEntry cacheEntry = new HttpCacheEntry(new Date(), new Date(),

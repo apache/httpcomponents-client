@@ -86,7 +86,7 @@ public class HttpOptions extends HttpRequestBase {
         Args.notNull(response, "HTTP response");
 
         final HeaderIterator it = response.headerIterator("Allow");
-        final Set<String> methods = new HashSet<String>();
+        final Set<String> methods = new HashSet<>();
         while (it.hasNext()) {
             final Header header = it.nextHeader();
             final HeaderElement[] elements = header.getElements();

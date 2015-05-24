@@ -59,7 +59,7 @@ public abstract class AbstractCookieSpec implements CookieSpec {
      * */
     public AbstractCookieSpec() {
         super();
-        this.attribHandlerMap = new ConcurrentHashMap<String, CookieAttributeHandler>(10);
+        this.attribHandlerMap = new ConcurrentHashMap<>(10);
     }
 
     /**
@@ -68,7 +68,7 @@ public abstract class AbstractCookieSpec implements CookieSpec {
     protected AbstractCookieSpec(final HashMap<String, CookieAttributeHandler> map) {
         super();
         Asserts.notNull(map, "Attribute handler map");
-        this.attribHandlerMap = new ConcurrentHashMap<String, CookieAttributeHandler>(map);
+        this.attribHandlerMap = new ConcurrentHashMap<>(map);
     }
 
     /**
@@ -76,7 +76,7 @@ public abstract class AbstractCookieSpec implements CookieSpec {
      */
     protected AbstractCookieSpec(final CommonCookieAttributeHandler... handlers) {
         super();
-        this.attribHandlerMap = new ConcurrentHashMap<String, CookieAttributeHandler>(handlers.length);
+        this.attribHandlerMap = new ConcurrentHashMap<>(handlers.length);
         for (CommonCookieAttributeHandler handler: handlers) {
             this.attribHandlerMap.put(handler.getAttributeName(), handler);
         }

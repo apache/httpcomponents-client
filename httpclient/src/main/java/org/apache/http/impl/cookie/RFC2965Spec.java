@@ -112,7 +112,7 @@ public class RFC2965Spec extends RFC2109Spec {
     private List<Cookie> createCookies(
             final HeaderElement[] elems,
             final CookieOrigin origin) throws MalformedCookieException {
-        final List<Cookie> cookies = new ArrayList<Cookie>(elems.length);
+        final List<Cookie> cookies = new ArrayList<>(elems.length);
         for (final HeaderElement headerelement : elems) {
             final String name = headerelement.getName();
             final String value = headerelement.getValue();
@@ -130,7 +130,7 @@ public class RFC2965Spec extends RFC2109Spec {
             // Eliminate duplicate attributes. The first occurrence takes precedence
             // See RFC2965: 3.2  Origin Server Role
             final Map<String, NameValuePair> attribmap =
-                    new HashMap<String, NameValuePair>(attribs.length);
+                    new HashMap<>(attribs.length);
             for (int j = attribs.length - 1; j >= 0; j--) {
                 final NameValuePair param = attribs[j];
                 attribmap.put(param.getName().toLowerCase(Locale.ROOT), param);

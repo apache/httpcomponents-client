@@ -480,7 +480,7 @@ public class HttpClientBuilder {
             return this;
         }
         if (responseFirst == null) {
-            responseFirst = new LinkedList<HttpResponseInterceptor>();
+            responseFirst = new LinkedList<>();
         }
         responseFirst.addFirst(itcp);
         return this;
@@ -498,7 +498,7 @@ public class HttpClientBuilder {
             return this;
         }
         if (responseLast == null) {
-            responseLast = new LinkedList<HttpResponseInterceptor>();
+            responseLast = new LinkedList<>();
         }
         responseLast.addLast(itcp);
         return this;
@@ -515,7 +515,7 @@ public class HttpClientBuilder {
             return this;
         }
         if (requestFirst == null) {
-            requestFirst = new LinkedList<HttpRequestInterceptor>();
+            requestFirst = new LinkedList<>();
         }
         requestFirst.addFirst(itcp);
         return this;
@@ -532,7 +532,7 @@ public class HttpClientBuilder {
             return this;
         }
         if (requestLast == null) {
-            requestLast = new LinkedList<HttpRequestInterceptor>();
+            requestLast = new LinkedList<>();
         }
         requestLast.addLast(itcp);
         return this;
@@ -845,7 +845,7 @@ public class HttpClientBuilder {
             return;
         }
         if (closeables == null) {
-            closeables = new ArrayList<Closeable>();
+            closeables = new ArrayList<>();
         }
         closeables.add(closeable);
     }
@@ -1013,7 +1013,7 @@ public class HttpClientBuilder {
             }
             if (!contentCompressionDisabled) {
                 if (contentDecoderMap != null) {
-                    final List<String> encodings = new ArrayList<String>(contentDecoderMap.keySet());
+                    final List<String> encodings = new ArrayList<>(contentDecoderMap.keySet());
                     Collections.sort(encodings);
                     b.add(new RequestAcceptEncoding(encodings));
                 } else {
@@ -1125,10 +1125,10 @@ public class HttpClientBuilder {
             }
         }
 
-        List<Closeable> closeablesCopy = closeables != null ? new ArrayList<Closeable>(closeables) : null;
+        List<Closeable> closeablesCopy = closeables != null ? new ArrayList<>(closeables) : null;
         if (!this.connManagerShared) {
             if (closeablesCopy == null) {
-                closeablesCopy = new ArrayList<Closeable>(1);
+                closeablesCopy = new ArrayList<>(1);
             }
             final HttpClientConnectionManager cm = connManagerCopy;
 

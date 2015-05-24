@@ -103,7 +103,7 @@ public class TestSystemDefaultRoutePlanner {
         final InetSocketAddress isa1 = new InetSocketAddress(ia, 11111);
         final InetSocketAddress isa2 = new InetSocketAddress(ia, 22222);
 
-        final List<Proxy> proxies = new ArrayList<Proxy>(2);
+        final List<Proxy> proxies = new ArrayList<>(2);
         proxies.add(new Proxy(Proxy.Type.HTTP, isa1));
         proxies.add(new Proxy(Proxy.Type.HTTP, isa2));
 

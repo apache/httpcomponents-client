@@ -49,15 +49,14 @@ public class ClientMultiThreadedExecution {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
 
-        CloseableHttpClient httpclient = HttpClients.custom()
+        try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)
-                .build();
-        try {
+                .build()) {
             // create an array of URIs to perform GETs on
             String[] urisToGet = {
-                "http://hc.apache.org/",
-                "http://hc.apache.org/httpcomponents-core-ga/",
-                "http://hc.apache.org/httpcomponents-client-ga/",
+                    "http://hc.apache.org/",
+                    "http://hc.apache.org/httpcomponents-core-ga/",
+                    "http://hc.apache.org/httpcomponents-client-ga/",
             };
 
             // create a thread for each URI
@@ -77,8 +76,6 @@ public class ClientMultiThreadedExecution {
                 threads[j].join();
             }
 
-        } finally {
-            httpclient.close();
         }
     }
 
@@ -106,8 +103,7 @@ public class ClientMultiThreadedExecution {
         public void run() {
             try {
                 System.out.println(id + " - about to get something from " + httpget.getURI());
-                CloseableHttpResponse response = httpClient.execute(httpget, context);
-                try {
+                try (CloseableHttpResponse response = httpClient.execute(httpget, context)) {
                     System.out.println(id + " - get executed");
                     // get the response body as an array of bytes
                     HttpEntity entity = response.getEntity();
@@ -115,8 +111,6 @@ public class ClientMultiThreadedExecution {
                         byte[] bytes = EntityUtils.toByteArray(entity);
                         System.out.println(id + " - " + bytes.length + " bytes read");
                     }
-                } finally {
-                    response.close();
                 }
             } catch (Exception e) {
                 System.out.println(id + " - error: " + e);

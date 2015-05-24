@@ -49,8 +49,7 @@ public class ClientMultipartFormPost {
             System.out.println("File path not given");
             System.exit(1);
         }
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        try {
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             HttpPost httppost = new HttpPost("http://localhost:8080" +
                     "/servlets-examples/servlet/RequestInfoExample");
 
@@ -66,8 +65,7 @@ public class ClientMultipartFormPost {
             httppost.setEntity(reqEntity);
 
             System.out.println("executing request " + httppost.getRequestLine());
-            CloseableHttpResponse response = httpclient.execute(httppost);
-            try {
+            try (CloseableHttpResponse response = httpclient.execute(httppost)) {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
                 HttpEntity resEntity = response.getEntity();
@@ -75,11 +73,7 @@ public class ClientMultipartFormPost {
                     System.out.println("Response content length: " + resEntity.getContentLength());
                 }
                 EntityUtils.consume(resEntity);
-            } finally {
-                response.close();
             }
-        } finally {
-            httpclient.close();
         }
     }
 

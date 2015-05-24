@@ -126,7 +126,7 @@ public class MultipartEntityBuilder {
             return this;
         }
         if (this.bodyParts == null) {
-            this.bodyParts = new ArrayList<FormBodyPart>();
+            this.bodyParts = new ArrayList<>();
         }
         this.bodyParts.add(bodyPart);
         return this;
@@ -200,7 +200,7 @@ public class MultipartEntityBuilder {
         if (charsetCopy == null && contentType != null) {
             charsetCopy = contentType.getCharset();
         }
-        final List<NameValuePair> paramsList = new ArrayList<NameValuePair>(2);
+        final List<NameValuePair> paramsList = new ArrayList<>(2);
         paramsList.add(new BasicNameValuePair("boundary", boundaryCopy));
         if (charsetCopy != null) {
             paramsList.add(new BasicNameValuePair("charset", charsetCopy.name()));
@@ -209,7 +209,7 @@ public class MultipartEntityBuilder {
         final ContentType contentTypeCopy = contentType != null ?
                 contentType.withParameters(params) :
                 ContentType.create("multipart/" + DEFAULT_SUBTYPE, params);
-        final List<FormBodyPart> bodyPartsCopy = bodyParts != null ? new ArrayList<FormBodyPart>(bodyParts) :
+        final List<FormBodyPart> bodyPartsCopy = bodyParts != null ? new ArrayList<>(bodyParts) :
                 Collections.<FormBodyPart>emptyList();
         final HttpMultipartMode modeCopy = mode != null ? mode : HttpMultipartMode.STRICT;
         final AbstractMultipartForm form;

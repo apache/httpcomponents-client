@@ -89,8 +89,8 @@ public class Async {
 
     public <T> Future<T> execute(
             final Request request, final ResponseHandler<T> handler, final FutureCallback<T> callback) {
-        final BasicFuture<T> future = new BasicFuture<T>(callback);
-        final ExecRunnable<T> runnable = new ExecRunnable<T>(
+        final BasicFuture<T> future = new BasicFuture<>(callback);
+        final ExecRunnable<T> runnable = new ExecRunnable<>(
                 future,
                 request,
                 this.executor != null ? this.executor : Executor.newInstance(),

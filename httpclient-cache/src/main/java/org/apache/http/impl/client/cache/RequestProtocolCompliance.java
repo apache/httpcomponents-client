@@ -77,7 +77,7 @@ class RequestProtocolCompliance {
      * @return list of {@link RequestProtocolError}
      */
     public List<RequestProtocolError> requestIsFatallyNonCompliant(final HttpRequest request) {
-        final List<RequestProtocolError> theErrors = new ArrayList<RequestProtocolError>();
+        final List<RequestProtocolError> theErrors = new ArrayList<>();
 
         RequestProtocolError anError = requestHasWeakETagAndRange(request);
         if (anError != null) {
@@ -125,7 +125,7 @@ class RequestProtocolCompliance {
     }
 
     private void stripOtherFreshnessDirectivesWithNoCache(final HttpRequest request) {
-        final List<HeaderElement> outElts = new ArrayList<HeaderElement>();
+        final List<HeaderElement> outElts = new ArrayList<>();
         boolean shouldStrip = false;
         for(final Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
             for(final HeaderElement elt : h.getElements()) {
@@ -216,7 +216,7 @@ class RequestProtocolCompliance {
         boolean hasHeader = false;
 
         final Header[] expectHeaders = request.getHeaders(HTTP.EXPECT_DIRECTIVE);
-        List<HeaderElement> expectElementsThatAreNot100Continue = new ArrayList<HeaderElement>();
+        List<HeaderElement> expectElementsThatAreNot100Continue = new ArrayList<>();
 
         for (final Header h : expectHeaders) {
             for (final HeaderElement elt : h.getElements()) {
@@ -235,7 +235,7 @@ class RequestProtocolCompliance {
                 }
                 return;
             } else {
-                expectElementsThatAreNot100Continue = new ArrayList<HeaderElement>();
+                expectElementsThatAreNot100Continue = new ArrayList<>();
             }
         }
     }

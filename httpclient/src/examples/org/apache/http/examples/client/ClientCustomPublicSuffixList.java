@@ -67,28 +67,22 @@ public class ClientCustomPublicSuffixList {
                 .register(CookieSpecs.STANDARD_STRICT, cookieSpecProvider)
                 .build();
 
-        CloseableHttpClient httpclient = HttpClients.custom()
+        try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setSSLHostnameVerifier(hostnameVerifier)
                 .setDefaultCookieSpecRegistry(cookieSpecRegistry)
-                .build();
-        try {
+                .build()) {
 
             HttpGet httpget = new HttpGet("https://remotehost/");
 
             System.out.println("executing request " + httpget.getRequestLine());
 
-            CloseableHttpResponse response = httpclient.execute(httpget);
-            try {
+            try (CloseableHttpResponse response = httpclient.execute(httpget)) {
                 HttpEntity entity = response.getEntity();
 
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
                 EntityUtils.consume(entity);
-            } finally {
-                response.close();
             }
-        } finally {
-            httpclient.close();
         }
     }
 

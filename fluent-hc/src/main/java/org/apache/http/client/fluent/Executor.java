@@ -82,9 +82,7 @@ public class Executor {
                 sslcontext = SSLContext.getInstance(SSLConnectionSocketFactory.TLS);
                 sslcontext.init(null, null, null);
                 ssl = new SSLConnectionSocketFactory(sslcontext);
-            } catch (final SecurityException ignore) {
-            } catch (final KeyManagementException ignore) {
-            } catch (final NoSuchAlgorithmException ignore) {
+            } catch (final SecurityException | NoSuchAlgorithmException | KeyManagementException ignore) {
             }
         }
 

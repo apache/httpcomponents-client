@@ -71,7 +71,7 @@ public class BasicAuthCache implements AuthCache {
      */
     public BasicAuthCache(final SchemePortResolver schemePortResolver) {
         super();
-        this.map = new ConcurrentHashMap<HttpHost, byte[]>();
+        this.map = new ConcurrentHashMap<>();
         this.schemePortResolver = schemePortResolver != null ? schemePortResolver :
             DefaultSchemePortResolver.INSTANCE;
     }

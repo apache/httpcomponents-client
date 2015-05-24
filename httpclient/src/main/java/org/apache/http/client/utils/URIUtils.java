@@ -227,7 +227,7 @@ public class URIUtils {
         final String path = builder.getPath();
         if (path != null && !path.equals("/")) {
             final String[] inputSegments = path.split("/");
-            final Stack<String> outputSegments = new Stack<String>();
+            final Stack<String> outputSegments = new Stack<>();
             for (final String inputSegment : inputSegments) {
                 if ((inputSegment.isEmpty()) || (".".equals(inputSegment))) {
                     // Do nothing

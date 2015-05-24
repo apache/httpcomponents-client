@@ -158,8 +158,7 @@ public class TestSizeLimitedResponseReader {
 
         impl.readResponse();
         final boolean tooLarge = impl.isLimitReached();
-        final CloseableHttpResponse result = impl.getReconstructedResponse();
-        try {
+        try (CloseableHttpResponse result = impl.getReconstructedResponse()) {
             final HttpEntity reconstructedEntity = result.getEntity();
             Assert.assertEquals(entity.getContentEncoding(), reconstructedEntity.getContentEncoding());
             Assert.assertEquals(entity.getContentType(), reconstructedEntity.getContentType());
@@ -169,8 +168,6 @@ public class TestSizeLimitedResponseReader {
 
             Assert.assertTrue(tooLarge);
             Assert.assertEquals("large entity content", content);
-        } finally {
-            result.close();
         }
         Assert.assertTrue(closed.get());
     }

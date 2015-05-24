@@ -301,7 +301,7 @@ public abstract class TestCachingExecChain {
     }
 
     protected void requestIsFatallyNonCompliant(final RequestProtocolError error) {
-        final List<RequestProtocolError> errors = new ArrayList<RequestProtocolError>();
+        final List<RequestProtocolError> errors = new ArrayList<>();
         if (error != null) {
             errors.add(error);
         }
@@ -420,7 +420,7 @@ public abstract class TestCachingExecChain {
         req.setHeader("Cache-Control", "no-cache");
         final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
             HttpStatus.SC_NO_CONTENT, "No Content");
-        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<>();
 
         backendCaptureRequestAndReturn(cap, resp);
 

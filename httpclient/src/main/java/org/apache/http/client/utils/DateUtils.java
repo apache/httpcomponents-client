@@ -226,9 +226,9 @@ public final class DateUtils {
             final SoftReference<Map<String, SimpleDateFormat>> ref = THREADLOCAL_FORMATS.get();
             Map<String, SimpleDateFormat> formats = ref.get();
             if (formats == null) {
-                formats = new HashMap<String, SimpleDateFormat>();
+                formats = new HashMap<>();
                 THREADLOCAL_FORMATS.set(
-                        new SoftReference<Map<String, SimpleDateFormat>>(formats));
+                        new SoftReference<>(formats));
             }
 
             SimpleDateFormat format = formats.get(pattern);

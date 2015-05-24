@@ -48,13 +48,11 @@ public class ClientFormLogin {
 
     public static void main(String[] args) throws Exception {
         BasicCookieStore cookieStore = new BasicCookieStore();
-        CloseableHttpClient httpclient = HttpClients.custom()
+        try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCookieStore(cookieStore)
-                .build();
-        try {
+                .build()) {
             HttpGet httpget = new HttpGet("https://someportal/");
-            CloseableHttpResponse response1 = httpclient.execute(httpget);
-            try {
+            try (CloseableHttpResponse response1 = httpclient.execute(httpget)) {
                 HttpEntity entity = response1.getEntity();
 
                 System.out.println("Login form get: " + response1.getStatusLine());
@@ -69,8 +67,6 @@ public class ClientFormLogin {
                         System.out.println("- " + cookies.get(i).toString());
                     }
                 }
-            } finally {
-                response1.close();
             }
 
             HttpUriRequest login = RequestBuilder.post()
@@ -78,8 +74,7 @@ public class ClientFormLogin {
                     .addParameter("IDToken1", "username")
                     .addParameter("IDToken2", "password")
                     .build();
-            CloseableHttpResponse response2 = httpclient.execute(login);
-            try {
+            try (CloseableHttpResponse response2 = httpclient.execute(login)) {
                 HttpEntity entity = response2.getEntity();
 
                 System.out.println("Login form get: " + response2.getStatusLine());
@@ -94,11 +89,7 @@ public class ClientFormLogin {
                         System.out.println("- " + cookies.get(i).toString());
                     }
                 }
-            } finally {
-                response2.close();
             }
-        } finally {
-            httpclient.close();
         }
     }
 }

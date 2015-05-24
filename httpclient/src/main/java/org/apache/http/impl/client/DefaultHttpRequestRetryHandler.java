@@ -80,7 +80,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
         super();
         this.retryCount = retryCount;
         this.requestSentRetryEnabled = requestSentRetryEnabled;
-        this.nonRetriableClasses = new HashSet<Class<? extends IOException>>();
+        this.nonRetriableClasses = new HashSet<>();
         for (final Class<? extends IOException> clazz: clazzes) {
             this.nonRetriableClasses.add(clazz);
         }

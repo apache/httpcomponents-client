@@ -112,20 +112,14 @@ public class TestMalformedServerResponse extends LocalServerTestBase {
 
         final HttpHost target = start();
         final HttpGet get1 = new HttpGet("/nostuff");
-        final CloseableHttpResponse response1 = this.httpclient.execute(target, get1);
-        try {
+        try (CloseableHttpResponse response1 = this.httpclient.execute(target, get1)) {
             Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response1.getStatusLine().getStatusCode());
             EntityUtils.consume(response1.getEntity());
-        } finally {
-            response1.close();
         }
         final HttpGet get2 = new HttpGet("/stuff");
-        final CloseableHttpResponse response2 = this.httpclient.execute(target, get2);
-        try {
+        try (CloseableHttpResponse response2 = this.httpclient.execute(target, get2)) {
             Assert.assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
             EntityUtils.consume(response2.getEntity());
-        } finally {
-            response2.close();
         }
     }
 

@@ -245,7 +245,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         // cache module does not currently deal with byte ranges, but we want
         // this test to work even if it does some day
-        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -647,7 +647,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     private void testDoesNotModifyHeaderOnRequests(final String headerName)
             throws Exception {
         final String headerValue = HttpTestUtils.getCanonicalHeaderValue(request, headerName);
-        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -931,7 +931,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<>();
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         final HttpResponse resp2 = HttpTestUtils.make200Response();
@@ -980,7 +980,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<>();
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
         final HttpResponse resp2 = HttpTestUtils.make200Response();
@@ -1095,7 +1095,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<>();
         final HttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader("ETag","\"etag2\"");
         resp3.setHeader("Date", DateUtils.formatDate(now));
@@ -1171,7 +1171,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<>();
         final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(
                 new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1));
         req3.setHeader("User-Agent","agent3");
@@ -1349,7 +1349,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         resp1.setHeader("Vary", "User-Agent");
         resp1.setHeader("ETag", "\"etag3\"");
 
-        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -1669,7 +1669,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
         req1.addHeader("Cache-Control", "max-stale=0, max-age=0");
 
 
-        final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> cap = new Capture<>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),

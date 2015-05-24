@@ -61,7 +61,7 @@ public class DefaultFailureCache implements FailureCache {
      */
     public DefaultFailureCache(final int maxSize) {
         this.maxSize = maxSize;
-        this.storage = new ConcurrentHashMap<String, FailureCacheValue>();
+        this.storage = new ConcurrentHashMap<>();
     }
 
     @Override

@@ -453,7 +453,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final HttpClientConnection conn = getConnection(this.connManager, route);
 
-        final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
+        final AtomicReference<Throwable> throwRef = new AtomicReference<>();
         final Thread abortingThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -510,7 +510,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final HttpClientConnection conn = getConnection(this.connManager, route);
 
-        final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
+        final AtomicReference<Throwable> throwRef = new AtomicReference<>();
         final Thread abortingThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -568,7 +568,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         final HttpClientConnection conn = getConnection(this.connManager, route);
 
-        final AtomicReference<Throwable> throwRef = new AtomicReference<Throwable>();
+        final AtomicReference<Throwable> throwRef = new AtomicReference<>();
         final Thread abortingThread = new Thread(new Runnable() {
             @Override
             public void run() {

@@ -43,8 +43,7 @@ import org.apache.http.util.EntityUtils;
 public class ClientExecuteProxy {
 
     public static void main(String[] args)throws Exception {
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        try {
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             HttpHost target = new HttpHost("localhost", 443, "https");
             HttpHost proxy = new HttpHost("127.0.0.1", 8080, "http");
 
@@ -56,16 +55,11 @@ public class ClientExecuteProxy {
 
             System.out.println("Executing request " + request.getRequestLine() + " to " + target + " via " + proxy);
 
-            CloseableHttpResponse response = httpclient.execute(target, request);
-            try {
+            try (CloseableHttpResponse response = httpclient.execute(target, request)) {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
                 EntityUtils.consume(response.getEntity());
-            } finally {
-                response.close();
             }
-        } finally {
-            httpclient.close();
         }
     }
 

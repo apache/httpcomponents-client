@@ -38,7 +38,7 @@ import java.util.Map;
 final class PropertiesUtils {
 
     private static final Map<Class<?>, PropertyConverter<?>> CONVERTERS_REGISTRY =
-                    new HashMap<Class<?>, PropertiesUtils.PropertyConverter<?>>();
+            new HashMap<>();
 
     static {
         register(new BooleanPropertyConverter(), boolean.class, Boolean.class);
@@ -147,7 +147,7 @@ final class PropertiesUtils {
             if (propValue.getClass().isArray()) {
                 // other array
                 final Object[] valueArray = (Object[]) propValue;
-                final List<String> values = new ArrayList<String>(valueArray.length);
+                final List<String> values = new ArrayList<>(valueArray.length);
                 for (final Object value : valueArray) {
                     if (value != null) {
                         values.add(value.toString());
@@ -160,7 +160,7 @@ final class PropertiesUtils {
             if (propValue instanceof Collection<?>) {
                 // collection
                 final Collection<?> valueCollection = (Collection<?>) propValue;
-                final List<String> valueList = new ArrayList<String>(valueCollection.size());
+                final List<String> valueList = new ArrayList<>(valueCollection.size());
                 for (final Object value : valueCollection) {
                     if (value != null) {
                         valueList.add(value.toString());

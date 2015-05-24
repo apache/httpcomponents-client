@@ -218,7 +218,7 @@ public class URLEncodedUtils {
             delimSet.set(separator);
         }
         final ParserCursor cursor = new ParserCursor(0, buf.length());
-        final List<NameValuePair> list = new ArrayList<NameValuePair>();
+        final List<NameValuePair> list = new ArrayList<>();
         while (!cursor.atEnd()) {
             delimSet.set('=');
             final String name = tokenParser.parseToken(buf, cursor, delimSet);

@@ -132,7 +132,7 @@ public class TestMainClientExec {
                 Mockito.<HttpRoute>any(), Mockito.any())).thenReturn(connRequest);
         Mockito.when(connRequest.get(
                 Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(managedConn);
-        final Map<String, Header> challenges = new HashMap<String, Header>();
+        final Map<String, Header> challenges = new HashMap<>();
         challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=test"));
         final AuthOption authOption = new AuthOption(
                 new BasicScheme(), new UsernamePasswordCredentials("user:pass"));
@@ -149,7 +149,7 @@ public class TestMainClientExec {
                 Mockito.eq(target),
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(
-                new LinkedList<AuthOption>(Arrays.asList(authOption)));
+                new LinkedList<>(Arrays.asList(authOption)));
         Mockito.when(proxyAuthStrategy.getChallenges(
                 Mockito.eq(proxy),
                 Mockito.<HttpResponse>any(),
@@ -163,7 +163,7 @@ public class TestMainClientExec {
                 Mockito.eq(proxy),
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(
-                new LinkedList<AuthOption>(Arrays.asList(authOption)));
+                new LinkedList<>(Arrays.asList(authOption)));
 
     }
 

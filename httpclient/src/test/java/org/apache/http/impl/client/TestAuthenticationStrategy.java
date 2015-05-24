@@ -124,7 +124,7 @@ public class TestAuthenticationStrategy {
     @Test
     public void testSelectInvalidInput() throws Exception {
         final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final Map<String, Header> challenges = new HashMap<String, Header>();
+        final Map<String, Header> challenges = new HashMap<>();
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         final HttpHost authhost = new HttpHost("locahost", 80);
         final HttpClientContext context = HttpClientContext.create();
@@ -157,7 +157,7 @@ public class TestAuthenticationStrategy {
         final HttpHost authhost = new HttpHost("locahost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
-        final Map<String, Header> challenges = new HashMap<String, Header>();
+        final Map<String, Header> challenges = new HashMap<>();
         challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
         challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
 
@@ -173,7 +173,7 @@ public class TestAuthenticationStrategy {
         final HttpHost authhost = new HttpHost("locahost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
-        final Map<String, Header> challenges = new HashMap<String, Header>();
+        final Map<String, Header> challenges = new HashMap<>();
         challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
         challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
 
@@ -194,7 +194,7 @@ public class TestAuthenticationStrategy {
         final HttpHost authhost = new HttpHost("locahost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
-        final Map<String, Header> challenges = new HashMap<String, Header>();
+        final Map<String, Header> challenges = new HashMap<>();
         challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"realm1\""));
         challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm2\", nonce=\"1234\""));
 
@@ -218,7 +218,7 @@ public class TestAuthenticationStrategy {
         final HttpHost authhost = new HttpHost("somehost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
-        final Map<String, Header> challenges = new HashMap<String, Header>();
+        final Map<String, Header> challenges = new HashMap<>();
         challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"realm1\""));
         challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm2\", nonce=\"1234\""));
 
@@ -246,7 +246,7 @@ public class TestAuthenticationStrategy {
         final HttpHost authhost = new HttpHost("somehost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
-        final Map<String, Header> challenges = new HashMap<String, Header>();
+        final Map<String, Header> challenges = new HashMap<>();
         challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"realm1\""));
         challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm2\", nonce=\"1234\""));
         challenges.put("whatever", new BasicHeader(AUTH.WWW_AUTH, "Whatever realm=\"realm3\""));
@@ -281,7 +281,7 @@ public class TestAuthenticationStrategy {
         final HttpHost authhost = new HttpHost("somehost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
-        final Map<String, Header> challenges = new HashMap<String, Header>();
+        final Map<String, Header> challenges = new HashMap<>();
         challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"realm1\""));
         challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm2\", nonce=\"1234\""));
 

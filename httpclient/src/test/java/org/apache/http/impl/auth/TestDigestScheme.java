@@ -423,7 +423,7 @@ public class TestDigestScheme {
             return null;
         }
         final HeaderElement[] elements = BasicHeaderValueParser.parseElements(s.substring(7), null);
-        final Map<String, String> map = new HashMap<String, String>(elements.length);
+        final Map<String, String> map = new HashMap<>(elements.length);
         for (final HeaderElement element : elements) {
             map.put(element.getName(), element.getValue());
         }

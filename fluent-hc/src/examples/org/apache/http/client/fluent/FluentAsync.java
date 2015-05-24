@@ -54,7 +54,7 @@ public class FluentAsync {
         };
 
 
-        Queue<Future<Content>> queue = new LinkedList<Future<Content>>();
+        Queue<Future<Content>> queue = new LinkedList<>();
         // Execute requests asynchronously
         for (final Request request: requests) {
             Future<Content> future = async.execute(request, new FutureCallback<Content>() {

@@ -280,7 +280,7 @@ public class URIBuilder {
      */
     public URIBuilder setParameters(final List <NameValuePair> nvps) {
         if (this.queryParams == null) {
-            this.queryParams = new ArrayList<NameValuePair>();
+            this.queryParams = new ArrayList<>();
         } else {
             this.queryParams.clear();
         }
@@ -303,7 +303,7 @@ public class URIBuilder {
      */
     public URIBuilder addParameters(final List <NameValuePair> nvps) {
         if (this.queryParams == null) {
-            this.queryParams = new ArrayList<NameValuePair>();
+            this.queryParams = new ArrayList<>();
         }
         this.queryParams.addAll(nvps);
         this.encodedQuery = null;
@@ -324,7 +324,7 @@ public class URIBuilder {
      */
     public URIBuilder setParameters(final NameValuePair... nvps) {
         if (this.queryParams == null) {
-            this.queryParams = new ArrayList<NameValuePair>();
+            this.queryParams = new ArrayList<>();
         } else {
             this.queryParams.clear();
         }
@@ -347,7 +347,7 @@ public class URIBuilder {
      */
     public URIBuilder addParameter(final String param, final String value) {
         if (this.queryParams == null) {
-            this.queryParams = new ArrayList<NameValuePair>();
+            this.queryParams = new ArrayList<>();
         }
         this.queryParams.add(new BasicNameValuePair(param, value));
         this.encodedQuery = null;
@@ -366,7 +366,7 @@ public class URIBuilder {
      */
     public URIBuilder setParameter(final String param, final String value) {
         if (this.queryParams == null) {
-            this.queryParams = new ArrayList<NameValuePair>();
+            this.queryParams = new ArrayList<>();
         }
         if (!this.queryParams.isEmpty()) {
             for (final Iterator<NameValuePair> it = this.queryParams.iterator(); it.hasNext(); ) {
@@ -459,9 +459,9 @@ public class URIBuilder {
 
     public List<NameValuePair> getQueryParams() {
         if (this.queryParams != null) {
-            return new ArrayList<NameValuePair>(this.queryParams);
+            return new ArrayList<>(this.queryParams);
         } else {
-            return new ArrayList<NameValuePair>();
+            return new ArrayList<>();
         }
     }
 

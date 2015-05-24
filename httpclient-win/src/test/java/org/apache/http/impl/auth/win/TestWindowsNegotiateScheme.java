@@ -112,11 +112,8 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
 
         final HttpHost target = start();
         final HttpGet httpGet = new HttpGet("/");
-        final CloseableHttpResponse response = customClient.execute(target, httpGet);
-        try {
+        try (CloseableHttpResponse response = customClient.execute(target, httpGet)) {
             EntityUtils.consume(response.getEntity());
-        } finally {
-            response.close();
         }
     }
 

@@ -57,21 +57,15 @@ public final class PublicSuffixMatcherLoader {
 
     public static PublicSuffixMatcher load(final URL url) throws IOException {
         Args.notNull(url, "URL");
-        final InputStream in = url.openStream();
-        try {
+        try (InputStream in = url.openStream()) {
             return load(in);
-        } finally {
-            in.close();
         }
     }
 
     public static PublicSuffixMatcher load(final File file) throws IOException {
         Args.notNull(file, "File");
-        final InputStream in = new FileInputStream(file);
-        try {
+        try (InputStream in = new FileInputStream(file)) {
             return load(in);
-        } finally {
-            in.close();
         }
     }
 

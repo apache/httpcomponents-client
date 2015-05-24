@@ -308,7 +308,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
         } else {
             // If supported protocols are not explicitly set, remove all SSL protocol versions
             final String[] allProtocols = sslsock.getEnabledProtocols();
-            final List<String> enabledProtocols = new ArrayList<String>(allProtocols.length);
+            final List<String> enabledProtocols = new ArrayList<>(allProtocols.length);
             for (String protocol: allProtocols) {
                 if (!protocol.startsWith("SSL")) {
                     enabledProtocols.add(protocol);
@@ -371,7 +371,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                     this.log.debug(" peer principal: " + peer.toString());
                     final Collection<List<?>> altNames1 = x509.getSubjectAlternativeNames();
                     if (altNames1 != null) {
-                        final List<String> altNames = new ArrayList<String>();
+                        final List<String> altNames = new ArrayList<>();
                         for (final List<?> aC : altNames1) {
                             if (!aC.isEmpty()) {
                                 altNames.add((String) aC.get(1));
@@ -384,7 +384,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                     this.log.debug(" issuer principal: " + issuer.toString());
                     final Collection<List<?>> altNames2 = x509.getIssuerAlternativeNames();
                     if (altNames2 != null) {
-                        final List<String> altNames = new ArrayList<String>();
+                        final List<String> altNames = new ArrayList<>();
                         for (final List<?> aC : altNames2) {
                             if (!aC.isEmpty()) {
                                 altNames.add((String) aC.get(1));

@@ -68,7 +68,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase implements Serializab
      */
     public RFC2617Scheme(final Charset credentialsCharset) {
         super();
-        this.params = new HashMap<String, String>();
+        this.params = new HashMap<>();
         this.credentialsCharset = credentialsCharset != null ? credentialsCharset : Consts.ASCII;
     }
 

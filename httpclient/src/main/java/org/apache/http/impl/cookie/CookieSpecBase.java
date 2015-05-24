@@ -87,7 +87,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
 
     protected List<Cookie> parse(final HeaderElement[] elems, final CookieOrigin origin)
                 throws MalformedCookieException {
-        final List<Cookie> cookies = new ArrayList<Cookie>(elems.length);
+        final List<Cookie> cookies = new ArrayList<>(elems.length);
         for (final HeaderElement headerelement : elems) {
             final String name = headerelement.getName();
             final String value = headerelement.getValue();

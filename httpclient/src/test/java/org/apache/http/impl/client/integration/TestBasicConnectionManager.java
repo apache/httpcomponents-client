@@ -43,12 +43,9 @@ public class TestBasicConnectionManager extends LocalServerTestBase {
 
         final HttpHost target = start();
         final HttpGet get = new HttpGet("/random/1024");
-        final CloseableHttpResponse response = this.httpclient.execute(target, get);
-        try {
+        try (CloseableHttpResponse response = this.httpclient.execute(target, get)) {
             Assert.assertEquals(200, response.getStatusLine().getStatusCode());
             EntityUtils.consume(response.getEntity());
-        } finally {
-            response.close();
         }
     }
 

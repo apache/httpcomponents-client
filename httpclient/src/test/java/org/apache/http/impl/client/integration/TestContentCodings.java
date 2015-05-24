@@ -183,7 +183,7 @@ public class TestContentCodings extends LocalServerTestBase {
         final CountDownLatch startGate = new CountDownLatch(1);
         final CountDownLatch endGate = new CountDownLatch(clients);
 
-        final List<WorkerTask> workers = new ArrayList<WorkerTask>();
+        final List<WorkerTask> workers = new ArrayList<>();
 
         for (int i = 0; i < clients; ++i) {
             workers.add(new WorkerTask(this.httpclient, target, i % 2 == 0, startGate, endGate));

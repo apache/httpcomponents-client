@@ -121,15 +121,14 @@ public class Response {
             throw new HttpResponseException(statusLine.getStatusCode(),
                     statusLine.getReasonPhrase());
         }
-        final FileOutputStream out = new FileOutputStream(file);
-        try {
+        try (FileOutputStream out = new FileOutputStream(file)) {
             final HttpEntity entity = this.response.getEntity();
             if (entity != null) {
                 entity.writeTo(out);
             }
         } finally {
             this.consumed = true;
-            out.close();
+
         }
     }
 

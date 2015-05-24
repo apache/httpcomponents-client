@@ -71,7 +71,7 @@ public class NetscapeDraftHeaderParser {
         Args.notNull(buffer, "Char array buffer");
         Args.notNull(cursor, "Parser cursor");
         final NameValuePair nvp = parseNameValuePair(buffer, cursor);
-        final List<NameValuePair> params = new ArrayList<NameValuePair>();
+        final List<NameValuePair> params = new ArrayList<>();
         while (!cursor.atEnd()) {
             final NameValuePair param = parseNameValuePair(buffer, cursor);
             params.add(param);

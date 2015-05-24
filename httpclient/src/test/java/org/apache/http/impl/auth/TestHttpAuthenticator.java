@@ -409,7 +409,7 @@ public class TestHttpAuthenticator {
     public void testAuthChallengeStateOneOptions() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         this.authState.setState(AuthProtocolState.CHALLENGED);
-        final LinkedList<AuthOption> authOptions = new LinkedList<AuthOption>();
+        final LinkedList<AuthOption> authOptions = new LinkedList<>();
         authOptions.add(new AuthOption(this.authScheme, this.credentials));
         this.authState.update(authOptions);
 
@@ -434,7 +434,7 @@ public class TestHttpAuthenticator {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         this.authState.setState(AuthProtocolState.CHALLENGED);
 
-        final LinkedList<AuthOption> authOptions = new LinkedList<AuthOption>();
+        final LinkedList<AuthOption> authOptions = new LinkedList<>();
         final AuthScheme authScheme1 = Mockito.mock(AuthScheme.class);
         Mockito.doThrow(new AuthenticationException()).when(authScheme1).authenticate(
                 Mockito.any(Credentials.class),

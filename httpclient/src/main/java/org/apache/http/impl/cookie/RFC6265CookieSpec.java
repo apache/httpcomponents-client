@@ -83,7 +83,7 @@ public class RFC6265CookieSpec implements CookieSpec {
     protected RFC6265CookieSpec(final CommonCookieAttributeHandler... handlers) {
         super();
         this.attribHandlers = handlers.clone();
-        this.attribHandlerMap = new ConcurrentHashMap<String, CookieAttributeHandler>(handlers.length);
+        this.attribHandlerMap = new ConcurrentHashMap<>(handlers.length);
         for (CommonCookieAttributeHandler handler: handlers) {
             this.attribHandlerMap.put(handler.getAttributeName().toLowerCase(Locale.ROOT), handler);
         }
@@ -149,7 +149,7 @@ public class RFC6265CookieSpec implements CookieSpec {
         cookie.setDomain(getDefaultDomain(origin));
         cookie.setCreationDate(new Date());
 
-        final Map<String, String> attribMap = new LinkedHashMap<String, String>();
+        final Map<String, String> attribMap = new LinkedHashMap<>();
         while (!cursor.atEnd()) {
             final String paramName = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS)
                     .toLowerCase(Locale.ROOT);
@@ -212,7 +212,7 @@ public class RFC6265CookieSpec implements CookieSpec {
         final List<? extends Cookie> sortedCookies;
         if (cookies.size() > 1) {
             // Create a mutable copy and sort the copy.
-            sortedCookies = new ArrayList<Cookie>(cookies);
+            sortedCookies = new ArrayList<>(cookies);
             Collections.sort(sortedCookies, CookiePriorityComparator.INSTANCE);
         } else {
             sortedCookies = cookies;
@@ -245,7 +245,7 @@ public class RFC6265CookieSpec implements CookieSpec {
                 }
             }
         }
-        final List<Header> headers = new ArrayList<Header>(1);
+        final List<Header> headers = new ArrayList<>(1);
         headers.add(new BufferedHeader(buffer));
         return headers;
     }

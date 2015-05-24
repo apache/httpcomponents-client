@@ -51,7 +51,7 @@ public class TestRequestDefaultHeaders {
     @Test
     public void testNoDefaultHeadersForConnectRequest() throws Exception {
         final HttpRequest request = new BasicHttpRequest("CONNECT", "www.somedomain.com");
-        final List<Header> defheaders = new ArrayList<Header>();
+        final List<Header> defheaders = new ArrayList<>();
         defheaders.add(new BasicHeader("custom", "stuff"));
         final HttpContext context = new BasicHttpContext();
 
@@ -65,7 +65,7 @@ public class TestRequestDefaultHeaders {
     public void testDefaultHeaders() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         request.addHeader("custom", "stuff");
-        final List<Header> defheaders = new ArrayList<Header>();
+        final List<Header> defheaders = new ArrayList<>();
         defheaders.add(new BasicHeader("custom", "more stuff"));
         final HttpContext context = new BasicHttpContext();
 

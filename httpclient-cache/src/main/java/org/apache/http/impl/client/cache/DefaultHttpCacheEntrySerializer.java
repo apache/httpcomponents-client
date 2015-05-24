@@ -50,23 +50,17 @@ public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer
 
     @Override
     public void writeTo(final HttpCacheEntry cacheEntry, final OutputStream os) throws IOException {
-        final ObjectOutputStream oos = new ObjectOutputStream(os);
-        try {
+        try (ObjectOutputStream oos = new ObjectOutputStream(os)) {
             oos.writeObject(cacheEntry);
-        } finally {
-            oos.close();
         }
     }
 
     @Override
     public HttpCacheEntry readFrom(final InputStream is) throws IOException {
-        final ObjectInputStream ois = new ObjectInputStream(is);
-        try {
+        try (ObjectInputStream ois = new ObjectInputStream(is)) {
             return (HttpCacheEntry) ois.readObject();
         } catch (final ClassNotFoundException ex) {
             throw new HttpCacheEntrySerializationException("Class not found: " + ex.getMessage(), ex);
-        } finally {
-            ois.close();
         }
     }
 

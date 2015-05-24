@@ -55,7 +55,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
 
     public BasicCookieStore() {
         super();
-        this.cookies = new TreeSet<Cookie>(new CookieIdentityComparator());
+        this.cookies = new TreeSet<>(new CookieIdentityComparator());
     }
 
     /**
@@ -106,7 +106,7 @@ public class BasicCookieStore implements CookieStore, Serializable {
     @Override
     public synchronized List<Cookie> getCookies() {
         //create defensive copy so it won't be concurrently modified
-        return new ArrayList<Cookie>(cookies);
+        return new ArrayList<>(cookies);
     }
 
     /**

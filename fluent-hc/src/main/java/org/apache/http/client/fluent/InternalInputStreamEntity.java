@@ -67,8 +67,7 @@ class InternalInputStreamEntity extends AbstractHttpEntity {
     @Override
     public void writeTo(final OutputStream outstream) throws IOException {
         Args.notNull(outstream, "Output stream");
-        final InputStream instream = this.content;
-        try {
+        try (InputStream instream = this.content) {
             final byte[] buffer = new byte[4096];
             int l;
             if (this.length < 0) {
@@ -80,7 +79,7 @@ class InternalInputStreamEntity extends AbstractHttpEntity {
                 // consume no more than length
                 long remaining = this.length;
                 while (remaining > 0) {
-                    l = instream.read(buffer, 0, (int)Math.min(4096, remaining));
+                    l = instream.read(buffer, 0, (int) Math.min(4096, remaining));
                     if (l == -1) {
                         break;
                     }
@@ -88,8 +87,6 @@ class InternalInputStreamEntity extends AbstractHttpEntity {
                     remaining -= l;
                 }
             }
-        } finally {
-            instream.close();
         }
     }
 

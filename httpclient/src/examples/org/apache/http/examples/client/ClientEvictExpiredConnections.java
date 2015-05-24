@@ -45,17 +45,16 @@ public class ClientEvictExpiredConnections {
     public static void main(String[] args) throws Exception {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
-        CloseableHttpClient httpclient = HttpClients.custom()
+        try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)
                 .evictExpiredConnections()
                 .evictIdleConnections(5L, TimeUnit.SECONDS)
-                .build();
-        try {
+                .build()) {
             // create an array of URIs to perform GETs on
             String[] urisToGet = {
-                "http://hc.apache.org/",
-                "http://hc.apache.org/httpcomponents-core-ga/",
-                "http://hc.apache.org/httpcomponents-client-ga/",
+                    "http://hc.apache.org/",
+                    "http://hc.apache.org/httpcomponents-core-ga/",
+                    "http://hc.apache.org/httpcomponents-client-ga/",
             };
 
             for (int i = 0; i < urisToGet.length; i++) {
@@ -64,13 +63,10 @@ public class ClientEvictExpiredConnections {
 
                 System.out.println("Executing request " + requestURI);
 
-                CloseableHttpResponse response = httpclient.execute(request);
-                try {
+                try (CloseableHttpResponse response = httpclient.execute(request)) {
                     System.out.println("----------------------------------------");
                     System.out.println(response.getStatusLine());
                     EntityUtils.consume(response.getEntity());
-                } finally {
-                    response.close();
                 }
             }
 
@@ -83,8 +79,6 @@ public class ClientEvictExpiredConnections {
             PoolStats stats2 = cm.getTotalStats();
             System.out.println("Connections kept alive: " + stats2.getAvailable());
 
-        } finally {
-            httpclient.close();
         }
     }
 

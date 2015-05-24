@@ -45,8 +45,7 @@ import org.apache.http.util.EntityUtils;
 public class ClientWithResponseHandler {
 
     public final static void main(String[] args) throws Exception {
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        try {
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             HttpGet httpget = new HttpGet("http://localhost/");
 
             System.out.println("Executing request " + httpget.getRequestLine());
@@ -70,8 +69,6 @@ public class ClientWithResponseHandler {
             String responseBody = httpclient.execute(httpget, responseHandler);
             System.out.println("----------------------------------------");
             System.out.println(responseBody);
-        } finally {
-            httpclient.close();
         }
     }
 

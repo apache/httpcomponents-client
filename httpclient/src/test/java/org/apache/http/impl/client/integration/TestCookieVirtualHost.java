@@ -117,11 +117,8 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
         URI uri = new URI("http://app.mydomain.fr");
         HttpRequest httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "1");
-        final CloseableHttpResponse response1 = this.httpclient.execute(target, httpRequest, context);
-        try {
+        try (CloseableHttpResponse response1 = this.httpclient.execute(target, httpRequest, context)) {
             EntityUtils.consume(response1.getEntity());
-        } finally {
-            response1.close();
         }
 
         // We should have one cookie set on domain.
@@ -134,22 +131,16 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
         uri = new URI("http://app.mydomain.fr");
         httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "2");
-        final CloseableHttpResponse response2 = this.httpclient.execute(target, httpRequest, context);
-        try {
+        try (CloseableHttpResponse response2 = this.httpclient.execute(target, httpRequest, context)) {
             EntityUtils.consume(response2.getEntity());
-        } finally {
-            response2.close();
         }
 
         // Third request : Host header
         uri = new URI("http://app.mydomain.fr");
         httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "3");
-        final CloseableHttpResponse response3 = this.httpclient.execute(target, httpRequest, context);
-        try {
+        try (CloseableHttpResponse response3 = this.httpclient.execute(target, httpRequest, context)) {
             EntityUtils.consume(response3.getEntity());
-        } finally {
-            response3.close();
         }
     }
 

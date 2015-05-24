@@ -521,8 +521,8 @@ public class PoolingHttpClientConnectionManager
 
         ConfigData() {
             super();
-            this.socketConfigMap = new ConcurrentHashMap<HttpHost, SocketConfig>();
-            this.connectionConfigMap = new ConcurrentHashMap<HttpHost, ConnectionConfig>();
+            this.socketConfigMap = new ConcurrentHashMap<>();
+            this.connectionConfigMap = new ConcurrentHashMap<>();
         }
 
         public SocketConfig getDefaultSocketConfig() {

@@ -212,24 +212,23 @@ public class ClientConfiguration {
             .build();
 
         // Create an HttpClient with the given custom dependencies and configuration.
-        CloseableHttpClient httpclient = HttpClients.custom()
-            .setConnectionManager(connManager)
-            .setDefaultCookieStore(cookieStore)
-            .setDefaultCredentialsProvider(credentialsProvider)
-            .setProxy(new HttpHost("myproxy", 8080))
-            .setDefaultRequestConfig(defaultRequestConfig)
-            .build();
 
-        try {
+        try (CloseableHttpClient httpclient = HttpClients.custom()
+                .setConnectionManager(connManager)
+                .setDefaultCookieStore(cookieStore)
+                .setDefaultCredentialsProvider(credentialsProvider)
+                .setProxy(new HttpHost("myproxy", 8080))
+                .setDefaultRequestConfig(defaultRequestConfig)
+                .build()) {
             HttpGet httpget = new HttpGet("http://www.apache.org/");
             // Request configuration can be overridden at the request level.
             // They will take precedence over the one set at the client level.
             RequestConfig requestConfig = RequestConfig.copy(defaultRequestConfig)
-                .setSocketTimeout(5000)
-                .setConnectTimeout(5000)
-                .setConnectionRequestTimeout(5000)
-                .setProxy(new HttpHost("myotherproxy", 8080))
-                .build();
+                    .setSocketTimeout(5000)
+                    .setConnectTimeout(5000)
+                    .setConnectionRequestTimeout(5000)
+                    .setProxy(new HttpHost("myotherproxy", 8080))
+                    .build();
             httpget.setConfig(requestConfig);
 
             // Execution context can be customized locally.
@@ -240,8 +239,7 @@ public class ClientConfiguration {
             context.setCredentialsProvider(credentialsProvider);
 
             System.out.println("executing request " + httpget.getURI());
-            CloseableHttpResponse response = httpclient.execute(httpget, context);
-            try {
+            try (CloseableHttpResponse response = httpclient.execute(httpget, context)) {
                 HttpEntity entity = response.getEntity();
 
                 System.out.println("----------------------------------------");
@@ -270,11 +268,7 @@ public class ClientConfiguration {
                 // User security token
                 context.getUserToken();
 
-            } finally {
-                response.close();
             }
-        } finally {
-            httpclient.close();
         }
     }
 

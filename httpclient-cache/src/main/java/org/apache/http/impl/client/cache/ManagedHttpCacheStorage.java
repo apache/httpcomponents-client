@@ -81,8 +81,8 @@ public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
     public ManagedHttpCacheStorage(final CacheConfig config) {
         super();
         this.entries = new CacheMap(config.getMaxCacheEntries());
-        this.morque = new ReferenceQueue<HttpCacheEntry>();
-        this.resources = new HashSet<ResourceReference>();
+        this.morque = new ReferenceQueue<>();
+        this.resources = new HashSet<>();
         this.active = new AtomicBoolean(true);
     }
 

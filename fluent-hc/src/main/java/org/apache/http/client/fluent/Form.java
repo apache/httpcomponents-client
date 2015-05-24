@@ -42,7 +42,7 @@ public class Form {
 
     Form() {
         super();
-        this.params = new ArrayList<NameValuePair>();
+        this.params = new ArrayList<>();
     }
 
     public Form add(final String name, final String value) {
@@ -51,7 +51,7 @@ public class Form {
     }
 
     public List<NameValuePair> build() {
-        return new ArrayList<NameValuePair>(this.params);
+        return new ArrayList<>(this.params);
     }
 
 }

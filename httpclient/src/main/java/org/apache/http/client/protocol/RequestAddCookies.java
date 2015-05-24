@@ -157,7 +157,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         // Get all cookies available in the HTTP state
         final List<Cookie> cookies = cookieStore.getCookies();
         // Find cookies matching the given origin
-        final List<Cookie> matchedCookies = new ArrayList<Cookie>();
+        final List<Cookie> matchedCookies = new ArrayList<>();
         final Date now = new Date();
         boolean expired = false;
         for (final Cookie cookie : cookies) {

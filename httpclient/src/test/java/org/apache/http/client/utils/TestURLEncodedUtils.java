@@ -205,7 +205,7 @@ public class TestURLEncodedUtils {
     public void testParseUTF8Entity() throws Exception {
         final String ru_hello = constructString(RUSSIAN_HELLO);
         final String ch_hello = constructString(SWISS_GERMAN_HELLO);
-        final List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+        final List <NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair("russian", ru_hello));
         parameters.add(new BasicNameValuePair("swiss", ch_hello));
 
@@ -226,7 +226,7 @@ public class TestURLEncodedUtils {
     public void testParseUTF8Ampersand1String() throws Exception {
         final String ru_hello = constructString(RUSSIAN_HELLO);
         final String ch_hello = constructString(SWISS_GERMAN_HELLO);
-        final List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+        final List <NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair("russian", ru_hello));
         parameters.add(new BasicNameValuePair("swiss", ch_hello));
 
@@ -251,7 +251,7 @@ public class TestURLEncodedUtils {
     private void testParseUTF8String(final char parameterSeparator) throws Exception {
         final String ru_hello = constructString(RUSSIAN_HELLO);
         final String ch_hello = constructString(SWISS_GERMAN_HELLO);
-        final List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+        final List <NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair("russian", ru_hello));
         parameters.add(new BasicNameValuePair("swiss", ch_hello));
 
@@ -270,7 +270,7 @@ public class TestURLEncodedUtils {
     public void testParseEntityDefaultContentType() throws Exception {
         final String ch_hello = constructString(SWISS_GERMAN_HELLO);
         final String us_hello = "hi there";
-        final List <NameValuePair> parameters = new ArrayList<NameValuePair>();
+        final List <NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair("english", us_hello));
         parameters.add(new BasicNameValuePair("swiss", ch_hello));
 
@@ -302,7 +302,7 @@ public class TestURLEncodedUtils {
 
     @Test
     public void testFormat() throws Exception {
-        final List <NameValuePair> params = new ArrayList <NameValuePair>();
+        final List <NameValuePair> params = new ArrayList<>();
         Assert.assertEquals(0, URLEncodedUtils.format(params, Consts.ASCII).length());
 
         params.clear();
@@ -349,7 +349,7 @@ public class TestURLEncodedUtils {
 
     @Test
     public void testFormatString() throws Exception { // as above, using String
-        final List <NameValuePair> params = new ArrayList <NameValuePair>();
+        final List <NameValuePair> params = new ArrayList<>();
         Assert.assertEquals(0, URLEncodedUtils.format(params, "US-ASCII").length());
 
         params.clear();

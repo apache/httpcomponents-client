@@ -226,7 +226,7 @@ public class TestProtocolDeviations {
         org.easymock.EasyMock.expect(mockBody.getContentLength()).andReturn(-1L).anyTimes();
         post.setEntity(mockBody);
 
-        final Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> reqCap = new Capture<>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),
@@ -268,7 +268,7 @@ public class TestProtocolDeviations {
         options.setEntity(body);
         options.setHeader("Content-Length", "1");
 
-        final Capture<HttpRequestWrapper> reqCap = new Capture<HttpRequestWrapper>();
+        final Capture<HttpRequestWrapper> reqCap = new Capture<>();
         EasyMock.expect(
                 mockBackend.execute(
                         EasyMock.eq(route),

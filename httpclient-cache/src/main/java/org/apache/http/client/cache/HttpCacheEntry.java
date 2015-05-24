@@ -104,7 +104,7 @@ public class HttpCacheEntry implements Serializable {
         this.responseHeaders.setHeaders(responseHeaders);
         this.resource = resource;
         this.variantMap = variantMap != null
-            ? new HashMap<String,String>(variantMap)
+            ? new HashMap<>(variantMap)
             : null;
         this.date = parseDate();
     }

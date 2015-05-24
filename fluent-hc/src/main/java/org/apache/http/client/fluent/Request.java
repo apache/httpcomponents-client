@@ -309,7 +309,7 @@ public class Request {
     }
 
     public Request bodyForm(final Iterable <? extends NameValuePair> formParams, final Charset charset) {
-        final List<NameValuePair> paramList = new ArrayList<NameValuePair>();
+        final List<NameValuePair> paramList = new ArrayList<>();
         for (NameValuePair param : formParams) {
             paramList.add(param);
         }

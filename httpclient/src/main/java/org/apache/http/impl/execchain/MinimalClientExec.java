@@ -237,13 +237,7 @@ public class MinimalClientExec implements ClientExecChain {
                     "Connection has been shut down");
             ioex.initCause(ex);
             throw ioex;
-        } catch (final HttpException ex) {
-            releaseTrigger.abortConnection();
-            throw ex;
-        } catch (final IOException ex) {
-            releaseTrigger.abortConnection();
-            throw ex;
-        } catch (final RuntimeException ex) {
+        } catch (final HttpException | RuntimeException | IOException ex) {
             releaseTrigger.abortConnection();
             throw ex;
         }

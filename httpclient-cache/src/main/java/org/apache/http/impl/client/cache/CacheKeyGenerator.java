@@ -146,7 +146,7 @@ class CacheKeyGenerator {
      * @return a {@code String} variant key
      */
     public String getVariantKey(final HttpRequest req, final HttpCacheEntry entry) {
-        final List<String> variantHeaderNames = new ArrayList<String>();
+        final List<String> variantHeaderNames = new ArrayList<>();
         for (final Header varyHdr : entry.getHeaders(HeaderConstants.VARY)) {
             for (final HeaderElement elt : varyHdr.getElements()) {
                 variantHeaderNames.add(elt.getName());

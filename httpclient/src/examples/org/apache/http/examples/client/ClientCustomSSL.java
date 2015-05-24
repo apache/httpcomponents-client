@@ -58,27 +58,21 @@ public class ClientCustomSSL {
                 new String[] { "TLSv1" },
                 null,
                 SSLConnectionSocketFactory.getDefaultHostnameVerifier());
-        CloseableHttpClient httpclient = HttpClients.custom()
+        try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setSSLSocketFactory(sslsf)
-                .build();
-        try {
+                .build()) {
 
             HttpGet httpget = new HttpGet("https://localhost/");
 
             System.out.println("executing request " + httpget.getRequestLine());
 
-            CloseableHttpResponse response = httpclient.execute(httpget);
-            try {
+            try (CloseableHttpResponse response = httpclient.execute(httpget)) {
                 HttpEntity entity = response.getEntity();
 
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
                 EntityUtils.consume(entity);
-            } finally {
-                response.close();
             }
-        } finally {
-            httpclient.close();
         }
     }
 

@@ -51,8 +51,8 @@ public class RedirectLocations extends AbstractList<Object> {
 
     public RedirectLocations() {
         super();
-        this.unique = new HashSet<URI>();
-        this.all = new ArrayList<URI>();
+        this.unique = new HashSet<>();
+        this.all = new ArrayList<>();
     }
 
     /**
@@ -95,7 +95,7 @@ public class RedirectLocations extends AbstractList<Object> {
      * @since 4.1
      */
     public List<URI> getAll() {
-        return new ArrayList<URI>(this.all);
+        return new ArrayList<>(this.all);
     }
 
     /**

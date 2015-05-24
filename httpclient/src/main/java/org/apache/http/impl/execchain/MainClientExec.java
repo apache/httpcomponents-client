@@ -333,13 +333,7 @@ public class MainClientExec implements ClientExecChain {
                     "Connection has been shut down");
             ioex.initCause(ex);
             throw ioex;
-        } catch (final HttpException ex) {
-            connHolder.abortConnection();
-            throw ex;
-        } catch (final IOException ex) {
-            connHolder.abortConnection();
-            throw ex;
-        } catch (final RuntimeException ex) {
+        } catch (final HttpException | RuntimeException | IOException ex) {
             connHolder.abortConnection();
             throw ex;
         }

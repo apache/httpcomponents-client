@@ -247,8 +247,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                         if (value != null) {
                             return value.toString();
                         }
-                    } catch (NoSuchElementException ignore) {
-                    } catch (NamingException ignore) {
+                    } catch (NoSuchElementException | NamingException ignore) {
                     }
                 }
             }
@@ -272,7 +271,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                 if (type == subjectType) {
                     final String s = (String) list.get(1);
                     if (subjectAltList == null) {
-                        subjectAltList = new ArrayList<String>();
+                        subjectAltList = new ArrayList<>();
                     }
                     subjectAltList.add(s);
                 }

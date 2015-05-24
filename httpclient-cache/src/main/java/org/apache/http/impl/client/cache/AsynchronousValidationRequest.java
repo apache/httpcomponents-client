@@ -110,12 +110,9 @@ public class AsynchronousValidationRequest implements Runnable {
      */
     private boolean revalidateCacheEntry() {
         try {
-            final CloseableHttpResponse httpResponse = cachingExec.revalidateCacheEntry(route, request, context, execAware, cacheEntry);
-            try {
+            try (CloseableHttpResponse httpResponse = cachingExec.revalidateCacheEntry(route, request, context, execAware, cacheEntry)) {
                 final int statusCode = httpResponse.getStatusLine().getStatusCode();
                 return isNotServerError(statusCode) && isNotStale(httpResponse);
-            } finally {
-                httpResponse.close();
             }
         } catch (final IOException ioe) {
             log.debug("Asynchronous revalidation failed due to I/O error", ioe);

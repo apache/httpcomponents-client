@@ -167,13 +167,7 @@ public class ProtocolExec implements ClientExecChain {
             context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
             this.httpProcessor.process(response, context);
             return response;
-        } catch (final RuntimeException ex) {
-            response.close();
-            throw ex;
-        } catch (final IOException ex) {
-            response.close();
-            throw ex;
-        } catch (final HttpException ex) {
+        } catch (final RuntimeException | HttpException | IOException ex) {
             response.close();
             throw ex;
         }

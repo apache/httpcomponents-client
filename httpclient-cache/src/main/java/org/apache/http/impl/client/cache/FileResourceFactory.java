@@ -75,8 +75,7 @@ public class FileResourceFactory implements ResourceFactory {
             final InputStream instream,
             final InputLimit limit) throws IOException {
         final File file = generateUniqueCacheFile(requestId);
-        final FileOutputStream outstream = new FileOutputStream(file);
-        try {
+        try (FileOutputStream outstream = new FileOutputStream(file)) {
             final byte[] buf = new byte[2048];
             long total = 0;
             int l;
@@ -88,8 +87,6 @@ public class FileResourceFactory implements ResourceFactory {
                     break;
                 }
             }
-        } finally {
-            outstream.close();
         }
         return new FileResource(file);
     }

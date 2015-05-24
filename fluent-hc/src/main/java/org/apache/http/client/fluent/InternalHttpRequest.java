@@ -62,7 +62,7 @@ class InternalHttpRequest extends AbstractHttpMessage
         this.method = method;
         this.uri = requestURI;
         this.aborted = new AtomicBoolean(false);
-        this.cancellableRef = new AtomicReference<Cancellable>(null);
+        this.cancellableRef = new AtomicReference<>(null);
     }
 
     public void setProtocolVersion(final ProtocolVersion version) {

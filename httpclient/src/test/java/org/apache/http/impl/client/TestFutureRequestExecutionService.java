@@ -128,7 +128,7 @@ public class TestFutureRequestExecutionService {
     @Test
     public void shouldExecuteMultipleCalls() throws Exception {
         final int reqNo = 100;
-        final Queue<Future<Boolean>> tasks = new LinkedList<Future<Boolean>>();
+        final Queue<Future<Boolean>> tasks = new LinkedList<>();
         for(int i = 0; i < reqNo; i++) {
             final Future<Boolean> task = httpAsyncClientWithFuture.execute(
                     new HttpGet(uri), HttpClientContext.create(), new OkidokiHandler());
@@ -144,7 +144,7 @@ public class TestFutureRequestExecutionService {
     @Test
     public void shouldExecuteMultipleCallsAndCallback() throws Exception {
         final int reqNo = 100;
-        final Queue<Future<Boolean>> tasks = new LinkedList<Future<Boolean>>();
+        final Queue<Future<Boolean>> tasks = new LinkedList<>();
         final CountDownLatch latch = new CountDownLatch(reqNo);
         for(int i = 0; i < reqNo; i++) {
             final Future<Boolean> task = httpAsyncClientWithFuture.execute(

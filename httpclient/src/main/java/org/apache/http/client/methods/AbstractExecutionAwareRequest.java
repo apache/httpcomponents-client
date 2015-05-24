@@ -43,7 +43,7 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
     protected AbstractExecutionAwareRequest() {
         super();
         this.aborted = new AtomicBoolean(false);
-        this.cancellableRef = new AtomicReference<Cancellable>(null);
+        this.cancellableRef = new AtomicReference<>(null);
     }
 
     public void abort() {

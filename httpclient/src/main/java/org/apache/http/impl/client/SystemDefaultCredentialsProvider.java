@@ -54,7 +54,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
     private static final Map<String, String> SCHEME_MAP;
 
     static {
-        SCHEME_MAP = new ConcurrentHashMap<String, String>();
+        SCHEME_MAP = new ConcurrentHashMap<>();
         SCHEME_MAP.put(AuthSchemes.BASIC.toUpperCase(Locale.ROOT), "Basic");
         SCHEME_MAP.put(AuthSchemes.DIGEST.toUpperCase(Locale.ROOT), "Digest");
         SCHEME_MAP.put(AuthSchemes.NTLM.toUpperCase(Locale.ROOT), "NTLM");

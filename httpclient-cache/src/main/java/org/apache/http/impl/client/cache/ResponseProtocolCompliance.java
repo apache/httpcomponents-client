@@ -110,7 +110,7 @@ class ResponseProtocolCompliance {
             return;
         }
 
-        final List<Header> newWarningHeaders = new ArrayList<Header>();
+        final List<Header> newWarningHeaders = new ArrayList<>();
         boolean modified = false;
         for(final Header h : warningHeaders) {
             for(final WarningValue wv : WarningValue.getWarningValues(h)) {
@@ -135,7 +135,7 @@ class ResponseProtocolCompliance {
         if (hdrs == null || hdrs.length == 0) {
             return;
         }
-        final List<Header> newHeaders = new ArrayList<Header>();
+        final List<Header> newHeaders = new ArrayList<>();
         boolean modified = false;
         for (final Header h : hdrs) {
             final StringBuilder buf = new StringBuilder();

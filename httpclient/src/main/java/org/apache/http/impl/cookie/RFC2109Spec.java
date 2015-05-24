@@ -125,7 +125,7 @@ public class RFC2109Spec extends CookieSpecBase {
         List<Cookie> cookieList;
         if (cookies.size() > 1) {
             // Create a mutable copy and sort the copy.
-            cookieList = new ArrayList<Cookie>(cookies);
+            cookieList = new ArrayList<>(cookies);
             Collections.sort(cookieList, CookiePathComparator.INSTANCE);
         } else {
             cookieList = cookies;
@@ -155,13 +155,13 @@ public class RFC2109Spec extends CookieSpecBase {
             final Cookie cookie = cooky;
             formatCookieAsVer(buffer, cookie, version);
         }
-        final List<Header> headers = new ArrayList<Header>(1);
+        final List<Header> headers = new ArrayList<>(1);
         headers.add(new BufferedHeader(buffer));
         return headers;
     }
 
     private List<Header> doFormatManyHeaders(final List<Cookie> cookies) {
-        final List<Header> headers = new ArrayList<Header>(cookies.size());
+        final List<Header> headers = new ArrayList<>(cookies.size());
         for (final Cookie cookie : cookies) {
             final int version = cookie.getVersion();
             final CharArrayBuffer buffer = new CharArrayBuffer(40);

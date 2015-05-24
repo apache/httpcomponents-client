@@ -47,8 +47,7 @@ public class ClientChunkEncodedPost {
             System.out.println("File path not given");
             System.exit(1);
         }
-        CloseableHttpClient httpclient = HttpClients.createDefault();
-        try {
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             HttpPost httppost = new HttpPost("http://localhost/");
 
             File file = new File(args[0]);
@@ -65,16 +64,11 @@ public class ClientChunkEncodedPost {
             httppost.setEntity(reqEntity);
 
             System.out.println("Executing request: " + httppost.getRequestLine());
-            CloseableHttpResponse response = httpclient.execute(httppost);
-            try {
+            try (CloseableHttpResponse response = httpclient.execute(httppost)) {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
                 EntityUtils.consume(response.getEntity());
-            } finally {
-                response.close();
             }
-        } finally {
-            httpclient.close();
         }
     }
 

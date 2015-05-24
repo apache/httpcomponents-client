@@ -163,10 +163,7 @@ public class RedirectExec implements ClientExecChain {
                 } else {
                     return response;
                 }
-            } catch (final RuntimeException ex) {
-                response.close();
-                throw ex;
-            } catch (final IOException ex) {
+            } catch (final RuntimeException | IOException ex) {
                 response.close();
                 throw ex;
             } catch (final HttpException ex) {

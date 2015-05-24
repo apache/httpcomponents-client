@@ -106,8 +106,7 @@ public class TestAbortHandling extends LocalServerTestBase {
         final HttpClientContext context = HttpClientContext.create();
         try {
             this.httpclient.execute(target, httpget, context);
-        } catch (final IllegalStateException e) {
-        } catch (final IOException e) {
+        } catch (final IllegalStateException | IOException e) {
         }
 
         final HttpRequest reqWrapper = context.getRequest();
@@ -119,7 +118,7 @@ public class TestAbortHandling extends LocalServerTestBase {
         final CountDownLatch connLatch = new CountDownLatch(1);
         final CountDownLatch awaitLatch = new CountDownLatch(1);
         final ConMan conMan = new ConMan(connLatch, awaitLatch);
-        final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
+        final AtomicReference<Throwable> throwableRef = new AtomicReference<>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         this.clientBuilder.setConnectionManager(conMan);
         final HttpContext context = new BasicHttpContext();
@@ -160,7 +159,7 @@ public class TestAbortHandling extends LocalServerTestBase {
         this.serverBootstrap.registerHandler("*", new BasicService());
 
         final CountDownLatch releaseLatch = new CountDownLatch(1);
-        final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
+        final AtomicReference<Throwable> throwableRef = new AtomicReference<>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final HttpContext context = new BasicHttpContext();
         final HttpGet httpget = new CustomGet("a", releaseLatch);
@@ -199,7 +198,7 @@ public class TestAbortHandling extends LocalServerTestBase {
     public void testAbortBeforeExecute() throws Exception {
         this.serverBootstrap.registerHandler("*", new BasicService());
 
-        final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
+        final AtomicReference<Throwable> throwableRef = new AtomicReference<>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         final CountDownLatch startLatch = new CountDownLatch(1);
         final HttpContext context = new BasicHttpContext();
@@ -248,7 +247,7 @@ public class TestAbortHandling extends LocalServerTestBase {
         final CountDownLatch connLatch = new CountDownLatch(1);
         final CountDownLatch awaitLatch = new CountDownLatch(1);
         final ConnMan4 conMan = new ConnMan4(connLatch, awaitLatch);
-        final AtomicReference<Throwable> throwableRef = new AtomicReference<Throwable>();
+        final AtomicReference<Throwable> throwableRef = new AtomicReference<>();
         final CountDownLatch getLatch = new CountDownLatch(1);
         this.clientBuilder.setConnectionManager(conMan);
         final HttpContext context = new BasicHttpContext();

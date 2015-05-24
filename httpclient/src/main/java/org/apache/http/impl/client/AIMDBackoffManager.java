@@ -78,8 +78,8 @@ public class AIMDBackoffManager implements BackoffManager {
     AIMDBackoffManager(final ConnPoolControl<HttpRoute> connPerRoute, final Clock clock) {
         this.clock = clock;
         this.connPerRoute = connPerRoute;
-        this.lastRouteProbes = new HashMap<HttpRoute,Long>();
-        this.lastRouteBackoffs = new HashMap<HttpRoute,Long>();
+        this.lastRouteProbes = new HashMap<>();
+        this.lastRouteBackoffs = new HashMap<>();
     }
 
     @Override

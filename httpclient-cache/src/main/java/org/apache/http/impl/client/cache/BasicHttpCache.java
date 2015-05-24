@@ -57,7 +57,7 @@ import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HTTP;
 
 class BasicHttpCache implements HttpCache {
-    private static final Set<String> safeRequestMethods = new HashSet<String>(
+    private static final Set<String> safeRequestMethods = new HashSet<>(
             Arrays.asList(HeaderConstants.HEAD_METHOD,
                     HeaderConstants.GET_METHOD, HeaderConstants.OPTIONS_METHOD,
                     HeaderConstants.TRACE_METHOD));
@@ -245,7 +245,7 @@ class BasicHttpCache implements HttpCache {
         if (src.getResource() != null) {
             resource = resourceFactory.copy(requestId, src.getResource());
         }
-        final Map<String,String> variantMap = new HashMap<String,String>(src.getVariantMap());
+        final Map<String,String> variantMap = new HashMap<>(src.getVariantMap());
         variantMap.put(variantKey, variantCacheKey);
         return new HttpCacheEntry(
                 src.getRequestDate(),
@@ -364,7 +364,7 @@ class BasicHttpCache implements HttpCache {
     @Override
     public Map<String, Variant> getVariantCacheEntriesWithEtags(final HttpHost host, final HttpRequest request)
             throws IOException {
-        final Map<String,Variant> variants = new HashMap<String,Variant>();
+        final Map<String,Variant> variants = new HashMap<>();
         final HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
         if (root == null || !root.hasVariants()) {
             return variants;

@@ -199,7 +199,7 @@ public class TestDefaultCookieSpec {
         cookie2.setPath("/");
         cookie2.setAttribute(ClientCookie.PATH_ATTR, cookie2.getPath());
 
-        final List<Cookie> cookies = new ArrayList<Cookie>();
+        final List<Cookie> cookies = new ArrayList<>();
         cookies.add(cookie1);
         cookies.add(cookie2);
 
@@ -232,7 +232,7 @@ public class TestDefaultCookieSpec {
         cookie2.setPath("/");
         cookie2.setAttribute(ClientCookie.PATH_ATTR, cookie2.getPath());
 
-        final List<Cookie> cookies = new ArrayList<Cookie>();
+        final List<Cookie> cookies = new ArrayList<>();
         cookies.add(cookie1);
         cookies.add(cookie2);
 
@@ -269,7 +269,7 @@ public class TestDefaultCookieSpec {
             // expected
         }
         try {
-            final List<Cookie> cookies = new ArrayList<Cookie>();
+            final List<Cookie> cookies = new ArrayList<>();
             cookiespec.formatCookies(cookies);
             Assert.fail("IllegalArgumentException must have been thrown");
         } catch (final IllegalArgumentException ex) {

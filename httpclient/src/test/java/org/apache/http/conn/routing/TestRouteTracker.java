@@ -420,14 +420,14 @@ public class TestRouteTracker {
         // rt0 -> direct connection
         // rt1 -> via single proxy
         // rt2 -> via proxy chain
-        final Set<RouteTracker> hs = new HashSet<RouteTracker>();
+        final Set<RouteTracker> hs = new HashSet<>();
 
         // we also collect hashcodes for the different paths
         // since we can't guarantee what influence the HttpHost hashcodes have,
         // we keep separate sets here
-        final Set<Integer> hc0 = new HashSet<Integer>();
-        final Set<Integer> hc4 = new HashSet<Integer>();
-        final Set<Integer> hc6 = new HashSet<Integer>();
+        final Set<Integer> hc0 = new HashSet<>();
+        final Set<Integer> hc4 = new HashSet<>();
+        final Set<Integer> hc6 = new HashSet<>();
 
         RouteTracker rt = null;
 
@@ -548,7 +548,7 @@ public class TestRouteTracker {
 
 
         // check that all toString are OK and different
-        final Set<String> rtstrings = new HashSet<String>();
+        final Set<String> rtstrings = new HashSet<>();
         for (final RouteTracker current: hs) {
             final String rts = checkToString(current);
             Assert.assertTrue("duplicate toString: " + rts, rtstrings.add(rts));

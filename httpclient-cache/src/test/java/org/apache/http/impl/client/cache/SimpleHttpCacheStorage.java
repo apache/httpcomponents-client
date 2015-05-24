@@ -39,7 +39,7 @@ class SimpleHttpCacheStorage implements HttpCacheStorage {
     public final Map<String,HttpCacheEntry> map;
 
     public SimpleHttpCacheStorage() {
-        map = new HashMap<String,HttpCacheEntry>();
+        map = new HashMap<>();
     }
 
     @Override

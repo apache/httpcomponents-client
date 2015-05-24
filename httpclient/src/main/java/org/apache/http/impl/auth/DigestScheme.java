@@ -240,7 +240,7 @@ public class DigestScheme extends RFC2617Scheme {
             algorithm = "MD5";
         }
 
-        final Set<String> qopset = new HashSet<String>(8);
+        final Set<String> qopset = new HashSet<>(8);
         int qop = QOP_UNKNOWN;
         final String qoplist = getParameter("qop");
         if (qoplist != null) {
@@ -384,7 +384,7 @@ public class DigestScheme extends RFC2617Scheme {
         }
         buffer.append(": Digest ");
 
-        final List<BasicNameValuePair> params = new ArrayList<BasicNameValuePair>(20);
+        final List<BasicNameValuePair> params = new ArrayList<>(20);
         params.add(new BasicNameValuePair("username", uname));
         params.add(new BasicNameValuePair("realm", realm));
         params.add(new BasicNameValuePair("nonce", nonce));

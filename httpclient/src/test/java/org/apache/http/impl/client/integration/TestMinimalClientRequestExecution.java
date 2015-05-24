@@ -87,7 +87,7 @@ public class TestMinimalClientRequestExecution extends LocalServerTestBase {
             Assert.assertNotNull(reqWrapper);
 
             final Header[] headers = reqWrapper.getAllHeaders();
-            final Set<String> headerSet = new HashSet<String>();
+            final Set<String> headerSet = new HashSet<>();
             for (final Header header: headers) {
                 headerSet.add(header.getName().toLowerCase(Locale.ROOT));
             }

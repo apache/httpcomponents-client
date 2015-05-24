@@ -89,7 +89,7 @@ public class TestCacheInvalidator {
     public void testInvalidatesRequestsThatArentGETorHEAD() throws Exception {
         request = new BasicHttpRequest("POST","/path", HTTP_1_1);
         final String theUri = "http://foo.example.com:80/path";
-        final Map<String,String> variantMap = new HashMap<String,String>();
+        final Map<String,String> variantMap = new HashMap<>();
         cacheEntryHasVariantMap(variantMap);
 
         cacheReturnsEntryForUri(theUri);

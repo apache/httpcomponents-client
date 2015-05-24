@@ -77,7 +77,7 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
                 constraints, incomingContentStrategy, outgoingContentStrategy,
                 requestWriterFactory, responseParserFactory);
         this.id = id;
-        this.attributes = new ConcurrentHashMap<String, Object>();
+        this.attributes = new ConcurrentHashMap<>();
     }
 
     public DefaultManagedHttpClientConnection(

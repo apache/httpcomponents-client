@@ -72,7 +72,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
     }
     private static final Map<String, Integer> MONTHS;
     static {
-        final ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<String, Integer>(12);
+        final ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>(12);
         map.put("jan", Calendar.JANUARY);
         map.put("feb", Calendar.FEBRUARY);
         map.put("mar", Calendar.MARCH);

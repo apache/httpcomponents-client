@@ -136,11 +136,8 @@ public class TestMultipartForm {
     @Test
     public void testMultipartFormBinaryParts() throws Exception {
         tmpfile = File.createTempFile("tmp", ".bin");
-        final Writer writer = new FileWriter(tmpfile);
-        try {
+        try (Writer writer = new FileWriter(tmpfile)) {
             writer.append("some random whatever");
-        } finally {
-            writer.close();
         }
 
         final FormBodyPart p1 = FormBodyPartBuilder.create(
@@ -181,11 +178,8 @@ public class TestMultipartForm {
     @Test
     public void testMultipartFormStrict() throws Exception {
         tmpfile = File.createTempFile("tmp", ".bin");
-        final Writer writer = new FileWriter(tmpfile);
-        try {
+        try (Writer writer = new FileWriter(tmpfile)) {
             writer.append("some random whatever");
-        } finally {
-            writer.close();
         }
 
         final FormBodyPart p1 = FormBodyPartBuilder.create(
@@ -236,11 +230,8 @@ public class TestMultipartForm {
     @Test
     public void testMultipartFormRFC6532() throws Exception {
         tmpfile = File.createTempFile("tmp", ".bin");
-        final Writer writer = new FileWriter(tmpfile);
-        try {
+        try (Writer writer = new FileWriter(tmpfile)) {
             writer.append("some random whatever");
-        } finally {
-            writer.close();
         }
 
         final FormBodyPart p1 = FormBodyPartBuilder.create(
@@ -313,11 +304,8 @@ public class TestMultipartForm {
         final String s2 = constructString(RUSSIAN_HELLO);
 
         tmpfile = File.createTempFile("tmp", ".bin");
-        final Writer writer = new FileWriter(tmpfile);
-        try {
+        try (Writer writer = new FileWriter(tmpfile)) {
             writer.append("some random whatever");
-        } finally {
-            writer.close();
         }
 
         @SuppressWarnings("resource")

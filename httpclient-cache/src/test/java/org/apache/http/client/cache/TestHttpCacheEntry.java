@@ -271,7 +271,7 @@ public class TestHttpCacheEntry {
 
     @Test
     public void canRetrieveOriginalVariantMap() {
-        final Map<String,String> variantMap = new HashMap<String,String>();
+        final Map<String,String> variantMap = new HashMap<>();
         variantMap.put("A","B");
         variantMap.put("C","D");
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,
@@ -285,7 +285,7 @@ public class TestHttpCacheEntry {
 
     @Test
     public void retrievedVariantMapIsNotModifiable() {
-        final Map<String,String> variantMap = new HashMap<String,String>();
+        final Map<String,String> variantMap = new HashMap<>();
         variantMap.put("A","B");
         variantMap.put("C","D");
         entry = new HttpCacheEntry(new Date(), new Date(), statusLine,

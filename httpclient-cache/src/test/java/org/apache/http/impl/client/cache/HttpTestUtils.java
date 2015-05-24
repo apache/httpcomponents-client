@@ -400,7 +400,7 @@ public class HttpTestUtils {
     }
 
     public static Map<String, String> makeDefaultVariantMap(final String key, final String value) {
-        final Map<String, String> variants = new HashMap<String, String>();
+        final Map<String, String> variants = new HashMap<>();
         variants.put(key, value);
 
         return variants;

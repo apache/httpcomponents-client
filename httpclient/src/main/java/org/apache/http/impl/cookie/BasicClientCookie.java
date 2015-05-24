@@ -58,7 +58,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
         super();
         Args.notNull(name, "Name");
         this.name = name;
-        this.attribs = new HashMap<String, String>();
+        this.attribs = new HashMap<>();
         this.value = value;
     }
 
@@ -342,7 +342,7 @@ public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Se
     @Override
     public Object clone() throws CloneNotSupportedException {
         final BasicClientCookie clone = (BasicClientCookie) super.clone();
-        clone.attribs = new HashMap<String, String>(this.attribs);
+        clone.attribs = new HashMap<>(this.attribs);
         return clone;
     }
 

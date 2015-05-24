@@ -49,8 +49,7 @@ public class ProxyTunnelDemo {
         HttpHost target = new HttpHost("www.yahoo.com", 80);
         HttpHost proxy = new HttpHost("localhost", 8888);
         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials("user", "pwd");
-        Socket socket = proxyClient.tunnel(proxy, target, credentials);
-        try {
+        try (Socket socket = proxyClient.tunnel(proxy, target, credentials)) {
             Writer out = new OutputStreamWriter(socket.getOutputStream(), HTTP.DEF_CONTENT_CHARSET);
             out.write("GET / HTTP/1.1\r\n");
             out.write("Host: " + target.toHostString() + "\r\n");
@@ -64,8 +63,6 @@ public class ProxyTunnelDemo {
             while ((line = in.readLine()) != null) {
                 System.out.println(line);
             }
-        } finally {
-            socket.close();
         }
     }
 

@@ -271,7 +271,7 @@ public class TestCookieNetscapeDraft {
         final Cookie c3 = new BasicClientCookie("name3", null);
 
         final CookieSpec cookiespec = new NetscapeDraftSpec();
-        final List<Cookie> cookies = new ArrayList<Cookie>();
+        final List<Cookie> cookies = new ArrayList<>();
         cookies.add(c1);
         cookies.add(c2);
         cookies.add(c3);
@@ -303,7 +303,7 @@ public class TestCookieNetscapeDraft {
             // expected
         }
         try {
-            final List<Cookie> cookies = new ArrayList<Cookie>();
+            final List<Cookie> cookies = new ArrayList<>();
             cookiespec.formatCookies(cookies);
             Assert.fail("IllegalArgumentException must have been thrown");
         } catch (final IllegalArgumentException ex) {

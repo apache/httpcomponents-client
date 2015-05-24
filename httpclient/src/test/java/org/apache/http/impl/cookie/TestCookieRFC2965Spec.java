@@ -899,7 +899,7 @@ public class TestCookieRFC2965Spec {
         cookie1.setAttribute(ClientCookie.PATH_ATTR, "/");
         cookie1.setAttribute(ClientCookie.PORT_ATTR, "80,8080");
 
-        List<Cookie> cookies = new ArrayList<Cookie>();
+        List<Cookie> cookies = new ArrayList<>();
         cookies.add(cookie1);
         List<Header> headers = cookiespec.formatCookies(cookies);
         Assert.assertNotNull(headers);
@@ -917,7 +917,7 @@ public class TestCookieRFC2965Spec {
         cookie2.setAttribute(ClientCookie.DOMAIN_ATTR, ".domain.com");
         cookie2.setAttribute(ClientCookie.PATH_ATTR, "/a/");
 
-        cookies = new ArrayList<Cookie>();
+        cookies = new ArrayList<>();
         cookies.add(cookie2);
         headers = cookiespec.formatCookies(cookies);
         Assert.assertNotNull(headers);
@@ -934,7 +934,7 @@ public class TestCookieRFC2965Spec {
         cookie3.setAttribute(ClientCookie.PATH_ATTR, "/a/b/");
         cookie3.setAttribute(ClientCookie.PORT_ATTR, "  ");
 
-        cookies = new ArrayList<Cookie>();
+        cookies = new ArrayList<>();
         cookies.add(cookie3);
         headers = cookiespec.formatCookies(cookies);
         Assert.assertNotNull(headers);
@@ -942,7 +942,7 @@ public class TestCookieRFC2965Spec {
         Assert.assertEquals("$Version=1; name3=\"value\"; $Path=\"/a/b/\"; $Port=\"\"",
                 headers.get(0).getValue());
 
-        cookies = new ArrayList<Cookie>();
+        cookies = new ArrayList<>();
         cookies.add(cookie3);
         cookies.add(cookie2);
         cookies.add(cookie1);
@@ -981,7 +981,7 @@ public class TestCookieRFC2965Spec {
         cookie2.setAttribute(ClientCookie.DOMAIN_ATTR, ".domain.com");
         cookie2.setAttribute(ClientCookie.PATH_ATTR, "/");
 
-        final List<Cookie> cookies = new ArrayList<Cookie>();
+        final List<Cookie> cookies = new ArrayList<>();
         cookies.add(cookie1);
         cookies.add(cookie2);
         final List<Header> headers = cookiespec.formatCookies(cookies);

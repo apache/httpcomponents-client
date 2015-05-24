@@ -77,16 +77,13 @@ public class FileBody extends AbstractContentBody {
     @Override
     public void writeTo(final OutputStream out) throws IOException {
         Args.notNull(out, "Output stream");
-        final InputStream in = new FileInputStream(this.file);
-        try {
+        try (InputStream in = new FileInputStream(this.file)) {
             final byte[] tmp = new byte[4096];
             int l;
             while ((l = in.read(tmp)) != -1) {
                 out.write(tmp, 0, l);
             }
             out.flush();
-        } finally {
-            in.close();
         }
     }
 

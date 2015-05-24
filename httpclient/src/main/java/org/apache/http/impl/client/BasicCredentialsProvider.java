@@ -50,7 +50,7 @@ public class BasicCredentialsProvider implements CredentialsProvider {
      */
     public BasicCredentialsProvider() {
         super();
-        this.credMap = new ConcurrentHashMap<AuthScope, Credentials>();
+        this.credMap = new ConcurrentHashMap<>();
     }
 
     @Override

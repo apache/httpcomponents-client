@@ -367,7 +367,7 @@ public class TestCookieRFC2109Spec {
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         final CookieSpec cookiespec = new RFC2109Spec();
-        List<Cookie> cookies = new ArrayList<Cookie>();
+        List<Cookie> cookies = new ArrayList<>();
         cookies.add(cookie);
         List<Header> headers = cookiespec.formatCookies(cookies);
         Assert.assertNotNull(headers);
@@ -376,7 +376,7 @@ public class TestCookieRFC2109Spec {
                 headers.get(0).getValue());
 
         cookie.setVersion(1);
-        cookies = new ArrayList<Cookie>();
+        cookies = new ArrayList<>();
         cookies.add(cookie);
         headers = cookiespec.formatCookies(cookies);
         Assert.assertNotNull(headers);
@@ -392,7 +392,7 @@ public class TestCookieRFC2109Spec {
         cookie.setAttribute(ClientCookie.PATH_ATTR, cookie.getPath());
 
         final CookieSpec cookiespec = new RFC2109Spec();
-        List<Cookie> cookies = new ArrayList<Cookie>();
+        List<Cookie> cookies = new ArrayList<>();
         cookies.add(cookie);
         List<Header> headers = cookiespec.formatCookies(cookies);
         Assert.assertNotNull(headers);
@@ -401,7 +401,7 @@ public class TestCookieRFC2109Spec {
 
         cookie.removeAttribute(ClientCookie.DOMAIN_ATTR);
         cookie.removeAttribute(ClientCookie.PATH_ATTR);
-        cookies = new ArrayList<Cookie>();
+        cookies = new ArrayList<>();
         cookies.add(cookie);
         headers = cookiespec.formatCookies(cookies);
         Assert.assertNotNull(headers);
@@ -425,7 +425,7 @@ public class TestCookieRFC2109Spec {
         c4.setAttribute(ClientCookie.PATH_ATTR, c4.getPath());
 
         final CookieSpec cookiespec = new RFC2109Spec(null, true);
-        final List<Cookie> cookies = new ArrayList<Cookie>();
+        final List<Cookie> cookies = new ArrayList<>();
         cookies.add(c2);
         cookies.add(c4);
         cookies.add(c1);
@@ -477,7 +477,7 @@ public class TestCookieRFC2109Spec {
             // expected
         }
         try {
-            final List<Cookie> cookies = new ArrayList<Cookie>();
+            final List<Cookie> cookies = new ArrayList<>();
             cookiespec.formatCookies(cookies);
             Assert.fail("IllegalArgumentException must have been thrown");
         } catch (final IllegalArgumentException ex) {

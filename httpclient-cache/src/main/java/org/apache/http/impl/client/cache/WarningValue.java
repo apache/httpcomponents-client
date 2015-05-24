@@ -69,7 +69,7 @@ class WarningValue {
      * @return array of {@code WarnValue} objects
      */
     public static WarningValue[] getWarningValues(final Header h) {
-        final List<WarningValue> out = new ArrayList<WarningValue>();
+        final List<WarningValue> out = new ArrayList<>();
         final String src = h.getValue();
         int offs = 0;
         while(offs < src.length()) {

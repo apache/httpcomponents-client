@@ -60,9 +60,9 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
     private BundleContext context;
 
-    private final Map<String, ServiceRegistration> registeredConfigurations = new LinkedHashMap<String, ServiceRegistration>();
+    private final Map<String, ServiceRegistration> registeredConfigurations = new LinkedHashMap<>();
 
-    private final List<CloseableHttpClient> trackedHttpClients = new LinkedList<CloseableHttpClient>();
+    private final List<CloseableHttpClient> trackedHttpClients = new LinkedList<>();
 
     /**
      * {@inheritDoc}
@@ -72,7 +72,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         this.context = context;
 
         // ensure we receive configurations for the proxy selector
-        final Hashtable<String, Object> props = new Hashtable<String, Object>();
+        final Hashtable<String, Object> props = new Hashtable<>();
         props.put(Constants.SERVICE_PID, getName());
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, SERVICE_FACTORY_NAME);
