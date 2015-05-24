@@ -162,25 +162,4 @@ public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy 
         }
     }
 
-    /**
-     * @deprecated Use {@link org.apache.http.util.Args#notNull(Object, String)}
-     */
-    @Deprecated
-    protected static <T> T checkNotNull(final String parameterName, final T value) {
-        if (value == null) {
-            throw new IllegalArgumentException(parameterName + " may not be null");
-        }
-        return value;
-    }
-
-    /**
-     * @deprecated Use {@link org.apache.http.util.Args#notNegative(long, String)}
-     */
-    @Deprecated
-    protected static long checkNotNegative(final String parameterName, final long value) {
-        if (value < 0) {
-            throw new IllegalArgumentException(parameterName + " may not be negative");
-        }
-        return value;
-    }
 }

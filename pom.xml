@@ -33,7 +33,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>httpcomponents-client</artifactId>
   <name>Apache HttpComponents Client</name>
-  <version>4.5-alpha1-SNAPSHOT</version>
+  <version>5.0-alpha1-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <inceptionYear>1999</inceptionYear>
@@ -356,14 +356,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>clirr-maven-plugin</artifactId>
-        <version>${hc.clirr.version}</version>
-        <configuration>
-          <comparisonVersion>${api.comparison.version}</comparisonVersion>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.rat</groupId>

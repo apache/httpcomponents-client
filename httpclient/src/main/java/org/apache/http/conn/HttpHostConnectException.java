@@ -48,15 +48,6 @@ public class HttpHostConnectException extends ConnectException {
     private final HttpHost host;
 
     /**
-     * @deprecated (4.3) use {@link #HttpHostConnectException(java.io.IOException, org.apache.http.HttpHost,
-     *   java.net.InetAddress...)}
-     */
-    @Deprecated
-    public HttpHostConnectException(final HttpHost host, final ConnectException cause) {
-        this(cause, host, (InetAddress[]) null);
-    }
-
-    /**
      * Creates a HttpHostConnectException based on original {@link java.io.IOException}.
      *
      * @since 4.3

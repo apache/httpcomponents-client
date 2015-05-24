@@ -147,7 +147,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final HttpRequest request = clientContext.getRequest();
 
-        if(requestIsAborted(request)){
+        if (request instanceof HttpUriRequest && ((HttpUriRequest)request).isAborted()) {
             return false;
         }
 
@@ -185,20 +185,6 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
      */
     protected boolean handleAsIdempotent(final HttpRequest request) {
         return !(request instanceof HttpEntityEnclosingRequest);
-    }
-
-    /**
-     * @since 4.2
-     *
-     * @deprecated (4.3)
-     */
-    @Deprecated
-    protected boolean requestIsAborted(final HttpRequest request) {
-        HttpRequest req = request;
-        if (request instanceof RequestWrapper) { // does not forward request to original
-            req = ((RequestWrapper) request).getOriginal();
-        }
-        return (req instanceof HttpUriRequest && ((HttpUriRequest)req).isAborted());
     }
 
 }

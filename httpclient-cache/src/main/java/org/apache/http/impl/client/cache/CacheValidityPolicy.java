@@ -171,16 +171,6 @@ class CacheValidityPolicy {
         return result;
     }
 
-    /**
-     * @deprecated (4.3) use {@link HttpCacheEntry#getDate()}.
-     * @param entry
-     * @return
-     */
-    @Deprecated
-    protected Date getDateValue(final HttpCacheEntry entry) {
-        return entry.getDate();
-    }
-
     protected Date getLastModifiedValue(final HttpCacheEntry entry) {
         final Header dateHdr = entry.getFirstHeader(HeaderConstants.LAST_MODIFIED);
         if (dateHdr == null) {

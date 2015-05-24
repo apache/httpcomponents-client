@@ -33,7 +33,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
 import org.apache.http.Consts;
@@ -51,101 +50,6 @@ import org.apache.http.util.Args;
 public class StringBody extends AbstractContentBody {
 
     private final byte[] content;
-
-    /**
-     * @since 4.1
-     *
-     * @deprecated (4.3) use {@link StringBody#StringBody(String, ContentType)}
-     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
-     */
-    @Deprecated
-    public static StringBody create(
-            final String text,
-            final String mimeType,
-            final Charset charset) throws IllegalArgumentException {
-        try {
-            return new StringBody(text, mimeType, charset);
-        } catch (final UnsupportedEncodingException ex) {
-            throw new IllegalArgumentException("Charset " + charset + " is not supported", ex);
-        }
-    }
-
-    /**
-     * @since 4.1
-     *
-     * @deprecated (4.3) use {@link StringBody#StringBody(String, ContentType)}
-     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
-     */
-    @Deprecated
-    public static StringBody create(
-            final String text, final Charset charset) throws IllegalArgumentException {
-        return create(text, null, charset);
-    }
-
-    /**
-     * @since 4.1
-     *
-     * @deprecated (4.3) use {@link StringBody#StringBody(String, ContentType)}
-     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
-     */
-    @Deprecated
-    public static StringBody create(final String text) throws IllegalArgumentException {
-        return create(text, null, null);
-    }
-
-    /**
-     * Create a StringBody from the specified text, MIME type and character set.
-     *
-     * @param text to be used for the body, not {@code null}
-     * @param mimeType the MIME type, not {@code null}
-     * @param charset the character set, may be {@code null}, in which case the US-ASCII charset is used
-     * @throws UnsupportedEncodingException
-     * @throws IllegalArgumentException if the {@code text} parameter is null
-     *
-     * @deprecated (4.3) use {@link StringBody#StringBody(String, ContentType)}
-     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
-     */
-    @Deprecated
-    public StringBody(
-            final String text,
-            final String mimeType,
-            final Charset charset) throws UnsupportedEncodingException {
-        this(text, ContentType.create(mimeType, charset));
-    }
-
-    /**
-     * Create a StringBody from the specified text and character set.
-     * The MIME type is set to "text/plain".
-     *
-     * @param text to be used for the body, not {@code null}
-     * @param charset the character set, may be {@code null}, in which case the US-ASCII charset is used
-     * @throws UnsupportedEncodingException
-     * @throws IllegalArgumentException if the {@code text} parameter is null
-     *
-     * @deprecated (4.3) use {@link StringBody#StringBody(String, ContentType)}
-     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
-     */
-    @Deprecated
-    public StringBody(final String text, final Charset charset) throws UnsupportedEncodingException {
-        this(text, "text/plain", charset);
-    }
-
-    /**
-     * Create a StringBody from the specified text.
-     * The MIME type is set to "text/plain".
-     * The {@linkplain Consts#ASCII ASCII} charset is used.
-     *
-     * @param text to be used for the body, not {@code null}
-     * @throws UnsupportedEncodingException
-     * @throws IllegalArgumentException if the {@code text} parameter is null
-     *
-     * @deprecated (4.3) use {@link StringBody#StringBody(String, ContentType)}
-     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
-     */
-    @Deprecated
-    public StringBody(final String text) throws UnsupportedEncodingException {
-        this(text, "text/plain", Consts.ASCII);
-    }
 
     /**
      * @since 4.3

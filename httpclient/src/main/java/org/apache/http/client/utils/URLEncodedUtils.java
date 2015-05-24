@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
 
 import org.apache.http.Consts;
 import org.apache.http.Header;
@@ -153,70 +152,6 @@ public class URLEncodedUtils {
             }
         }
         return false;
-    }
-
-    /**
-     * Adds all parameters within the Scanner to the list of {@code parameters}, as encoded by
-     * {@code encoding}. For example, a scanner containing the string {@code a=1&b=2&c=3} would add the
-     * {@link NameValuePair NameValuePairs} a=1, b=2, and c=3 to the list of parameters. By convention, {@code '&'} and
-     * {@code ';'} are accepted as parameter separators.
-     *
-     * @param parameters
-     *            List to add parameters to.
-     * @param scanner
-     *            Input that contains the parameters to parse.
-     * @param charset
-     *            Encoding to use when decoding the parameters.
-     *
-     * @deprecated (4.4) use {@link #parse(String, java.nio.charset.Charset)}
-     */
-    @Deprecated
-    public static void parse(
-            final List<NameValuePair> parameters,
-            final Scanner scanner,
-            final String charset) {
-        parse(parameters, scanner, "[" + QP_SEP_A + QP_SEP_S + "]", charset);
-    }
-
-    /**
-     * Adds all parameters within the Scanner to the list of
-     * {@code parameters}, as encoded by {@code encoding}. For
-     * example, a scanner containing the string {@code a=1&b=2&c=3} would
-     * add the {@link NameValuePair NameValuePairs} a=1, b=2, and c=3 to the
-     * list of parameters.
-     *
-     * @param parameters
-     *            List to add parameters to.
-     * @param scanner
-     *            Input that contains the parameters to parse.
-     * @param parameterSepartorPattern
-     *            The Pattern string for parameter separators, by convention {@code "[&;]"}
-     * @param charset
-     *            Encoding to use when decoding the parameters.
-     *
-     * @deprecated (4.4) use {@link #parse(org.apache.http.util.CharArrayBuffer, java.nio.charset.Charset, char...)}
-     */
-    @Deprecated
-    public static void parse(
-            final List <NameValuePair> parameters,
-            final Scanner scanner,
-            final String parameterSepartorPattern,
-            final String charset) {
-        scanner.useDelimiter(parameterSepartorPattern);
-        while (scanner.hasNext()) {
-            final String name;
-            final String value;
-            final String token = scanner.next();
-            final int i = token.indexOf(NAME_VALUE_SEPARATOR);
-            if (i != -1) {
-                name = decodeFormFields(token.substring(0, i).trim(), charset);
-                value = decodeFormFields(token.substring(i + 1).trim(), charset);
-            } else {
-                name = decodeFormFields(token.trim(), charset);
-                value = null;
-            }
-            parameters.add(new BasicNameValuePair(name, value));
-        }
     }
 
     /**

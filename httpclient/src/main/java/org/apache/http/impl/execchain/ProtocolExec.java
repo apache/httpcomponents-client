@@ -45,12 +45,10 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.params.ClientPNames;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.util.Args;
@@ -70,7 +68,6 @@ import org.apache.http.util.Args;
  * @since 4.3
  */
 @Immutable
-@SuppressWarnings("deprecation")
 public class ProtocolExec implements ClientExecChain {
 
     private final Log log = LogFactory.getLog(getClass());
@@ -130,27 +127,9 @@ public class ProtocolExec implements ClientExecChain {
         // Re-write request URI if needed
         rewriteRequestURI(request, route);
 
-        final HttpParams params = request.getParams();
-        HttpHost virtualHost = (HttpHost) params.getParameter(ClientPNames.VIRTUAL_HOST);
-        // HTTPCLIENT-1092 - add the port if necessary
-        if (virtualHost != null && virtualHost.getPort() == -1) {
-            final int port = route.getTargetHost().getPort();
-            if (port != -1) {
-                virtualHost = new HttpHost(virtualHost.getHostName(), port,
-                    virtualHost.getSchemeName());
-            }
-            if (this.log.isDebugEnabled()) {
-                this.log.debug("Using virtual host" + virtualHost);
-            }
-        }
-
         HttpHost target = null;
-        if (virtualHost != null) {
-            target = virtualHost;
-        } else {
-            if (uri != null && uri.isAbsolute() && uri.getHost() != null) {
-                target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
-            }
+        if (uri != null && uri.isAbsolute() && uri.getHost() != null) {
+            target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
         }
         if (target == null) {
             target = request.getTarget();

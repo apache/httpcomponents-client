@@ -86,11 +86,6 @@ public class KerberosScheme extends GGSSchemeBase {
         return super.authenticate(credentials, request, context);
     }
 
-    @Override @SuppressWarnings("deprecation")
-    protected byte[] generateToken(final byte[] input, final String authServer) throws GSSException {
-        return super.generateToken(input, authServer);
-    }
-
     @Override
     protected byte[] generateToken(final byte[] input, final String authServer, final Credentials credentials) throws GSSException {
         return generateGSSToken(input, new Oid(KERBEROS_OID), authServer, credentials);

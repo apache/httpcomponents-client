@@ -42,7 +42,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.auth.params.AuthPNames;
 import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.HeaderValueParser;
 import org.apache.http.message.ParserCursor;
@@ -56,7 +55,6 @@ import org.apache.http.util.CharsetUtils;
  *
  * @since 4.0
  */
-@SuppressWarnings("deprecation")
 @NotThreadSafe // AuthSchemeBase, params
 public abstract class RFC2617Scheme extends AuthSchemeBase implements Serializable {
 
@@ -64,21 +62,6 @@ public abstract class RFC2617Scheme extends AuthSchemeBase implements Serializab
 
     private final Map<String, String> params;
     private transient Charset credentialsCharset;
-
-    /**
-     * Creates an instance of {@code RFC2617Scheme} with the given challenge
-     * state.
-     *
-     * @since 4.2
-     *
-     * @deprecated (4.3) do not use.
-     */
-    @Deprecated
-    public RFC2617Scheme(final ChallengeState challengeState) {
-        super(challengeState);
-        this.params = new HashMap<String, String>();
-        this.credentialsCharset = Consts.ASCII;
-    }
 
     /**
      * @since 4.3
@@ -102,11 +85,7 @@ public abstract class RFC2617Scheme extends AuthSchemeBase implements Serializab
     }
 
     String getCredentialsCharset(final HttpRequest request) {
-        String charset = (String) request.getParams().getParameter(AuthPNames.CREDENTIAL_CHARSET);
-        if (charset == null) {
-            charset = getCredentialsCharset().name();
-        }
-        return charset;
+        return getCredentialsCharset().name();
     }
 
     @Override

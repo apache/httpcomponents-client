@@ -27,17 +27,16 @@
 
 package org.apache.http.entity.mime;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-@SuppressWarnings("deprecation")
 class MultipartFormEntity implements HttpEntity {
 
     private final AbstractMultipartForm multipart;

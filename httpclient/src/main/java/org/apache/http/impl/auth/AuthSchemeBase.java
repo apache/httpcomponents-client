@@ -30,16 +30,12 @@ import java.util.Locale;
 
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
-import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
-import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.ChallengeState;
-import org.apache.http.auth.ContextAwareAuthScheme;
-import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
@@ -54,23 +50,9 @@ import org.apache.http.util.CharArrayBuffer;
  * @since 4.0
  */
 @NotThreadSafe
-public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
+public abstract class AuthSchemeBase implements AuthScheme {
 
     protected ChallengeState challengeState;
-
-    /**
-     * Creates an instance of {@code AuthSchemeBase} with the given challenge
-     * state.
-     *
-     * @since 4.2
-     *
-     * @deprecated (4.3) do not use.
-     */
-    @Deprecated
-    public AuthSchemeBase(final ChallengeState challengeState) {
-        super();
-        this.challengeState = challengeState;
-    }
 
     public AuthSchemeBase() {
         super();
@@ -126,16 +108,6 @@ public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
         }
 
         parseChallenge(buffer, pos, buffer.length());
-    }
-
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public Header authenticate(
-            final Credentials credentials,
-            final HttpRequest request,
-            final HttpContext context) throws AuthenticationException {
-        return authenticate(credentials, request);
     }
 
     protected abstract void parseChallenge(

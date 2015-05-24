@@ -105,16 +105,6 @@ public class MultipartEntityBuilder {
     }
 
     /**
-     * @since 4.4
-     *
-     * @deprecated (4.5) Use {@link #setContentType(org.apache.http.entity.ContentType)}.
-     */
-    @Deprecated
-    public MultipartEntityBuilder seContentType(final ContentType contentType) {
-        return setContentType(contentType);
-    }
-
-    /**
      * @since 4.5
      */
     public MultipartEntityBuilder setContentType(final ContentType contentType) {

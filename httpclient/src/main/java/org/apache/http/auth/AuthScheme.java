@@ -28,6 +28,7 @@ package org.apache.http.auth;
 
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
+import org.apache.http.protocol.HttpContext;
 
 /**
  * This interface represents an abstract challenge-response oriented
@@ -48,9 +49,6 @@ import org.apache.http.HttpRequest;
  * <p>
  * Authentication schemes may be stateful involving a series of
  * challenge-response exchanges.
- * <p>
- * IMPORTANT: implementations of this interface MUST also implement {@link ContextAwareAuthScheme}
- * interface in order to remain API compatible with newer versions of HttpClient.
  *
  * @since 4.0
  */
@@ -112,19 +110,22 @@ public interface AuthScheme {
     boolean isComplete();
 
     /**
-     * Produces an authorization string for the given set of {@link Credentials}.
+     * Produces an authorization string for the given set of
+     * {@link Credentials}.
      *
      * @param credentials The set of credentials to be used for athentication
      * @param request The request being authenticated
+     * @param context HTTP context
      * @throws AuthenticationException if authorization string cannot
      *   be generated due to an authentication failure
      *
      * @return the authorization string
      *
-     * @deprecated (4.1)  Use {@link ContextAwareAuthScheme#authenticate(Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
+     * @since 5.0
      */
-    @Deprecated
-    Header authenticate(Credentials credentials, HttpRequest request)
-            throws AuthenticationException;
+    Header authenticate(
+            Credentials credentials,
+            HttpRequest request,
+            HttpContext context) throws AuthenticationException;
 
 }

@@ -29,20 +29,19 @@ package org.apache.http.impl.client.cache.memcached;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.cache.HttpCacheEntry;
+import org.apache.http.client.cache.HttpCacheStorage;
+import org.apache.http.client.cache.HttpCacheUpdateCallback;
+import org.apache.http.client.cache.HttpCacheUpdateException;
+import org.apache.http.impl.client.cache.CacheConfig;
+
 import net.spy.memcached.CASResponse;
 import net.spy.memcached.CASValue;
 import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.MemcachedClientIF;
 import net.spy.memcached.OperationTimeoutException;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.client.cache.HttpCacheEntrySerializer;
-import org.apache.http.client.cache.HttpCacheStorage;
-import org.apache.http.client.cache.HttpCacheUpdateCallback;
-import org.apache.http.client.cache.HttpCacheUpdateException;
-import org.apache.http.impl.client.cache.CacheConfig;
 
 /**
  * <p>
@@ -119,30 +118,6 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
      */
     public MemcachedHttpCacheStorage(final MemcachedClientIF cache) {
         this(cache, CacheConfig.DEFAULT, new MemcachedCacheEntryFactoryImpl(),
-                new SHA256KeyHashingScheme());
-    }
-
-    /**
-     * Create a storage backend using the given <i>memcached</i> client and
-     * applying the given cache configuration and cache entry serialization
-     * mechanism. <b>Deprecation note:</b> In the process of fixing a bug
-     * based on the need to hash logical storage keys onto memcached cache
-     * keys, the serialization process was revamped. This constructor still
-     * works, but the serializer argument will be ignored and default
-     * implementations of the new framework will be used. You can still
-     * provide custom serialization by using the
-     * {@link #MemcachedHttpCacheStorage(MemcachedClientIF, CacheConfig,
-     * MemcachedCacheEntryFactory, KeyHashingScheme)} constructor.
-     * @param client how to talk to <i>memcached</i>
-     * @param config apply HTTP cache-related options
-     * @param serializer <b>ignored</b>
-     *
-     * @deprecated (4.2) do not use
-     */
-    @Deprecated
-    public MemcachedHttpCacheStorage(final MemcachedClientIF client, final CacheConfig config,
-            final HttpCacheEntrySerializer serializer) {
-        this(client, config, new MemcachedCacheEntryFactoryImpl(),
                 new SHA256KeyHashingScheme());
     }
 

@@ -53,21 +53,6 @@ public class ByteArrayBody extends AbstractContentBody {
     private final String filename;
 
     /**
-     * Creates a new ByteArrayBody.
-     *
-     * @param data The contents of the file contained in this part.
-     * @param mimeType The MIME type of the file contained in this part.
-     * @param filename The name of the file contained in this part.
-     *
-     * @deprecated (4.3) use {@link ByteArrayBody#ByteArrayBody(byte[], ContentType, String)}
-     *   or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
-     */
-    @Deprecated
-    public ByteArrayBody(final byte[] data, final String mimeType, final String filename) {
-        this(data, ContentType.create(mimeType), filename);
-    }
-
-    /**
      * @since 4.3
      */
     public ByteArrayBody(final byte[] data, final ContentType contentType, final String filename) {
@@ -84,7 +69,7 @@ public class ByteArrayBody extends AbstractContentBody {
      * @param filename The name of the file contained in this part.
      */
     public ByteArrayBody(final byte[] data, final String filename) {
-        this(data, "application/octet-stream", filename);
+        this(data, ContentType.APPLICATION_OCTET_STREAM, filename);
     }
 
     @Override

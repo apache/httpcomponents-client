@@ -44,8 +44,6 @@ import org.apache.http.impl.io.AbstractMessageParser;
 import org.apache.http.io.SessionInputBuffer;
 import org.apache.http.message.LineParser;
 import org.apache.http.message.ParserCursor;
-import org.apache.http.params.HttpParams;
-import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
@@ -54,7 +52,6 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.2
  */
-@SuppressWarnings("deprecation")
 @NotThreadSafe
 public class DefaultHttpResponseParser extends AbstractMessageParser<HttpResponse> {
 
@@ -62,22 +59,6 @@ public class DefaultHttpResponseParser extends AbstractMessageParser<HttpRespons
 
     private final HttpResponseFactory responseFactory;
     private final CharArrayBuffer lineBuf;
-
-    /**
-     * @deprecated (4.3) use {@link DefaultHttpResponseParser#DefaultHttpResponseParser(
-     *   SessionInputBuffer, LineParser, HttpResponseFactory, MessageConstraints)}
-     */
-    @Deprecated
-    public DefaultHttpResponseParser(
-            final SessionInputBuffer buffer,
-            final LineParser parser,
-            final HttpResponseFactory responseFactory,
-            final HttpParams params) {
-        super(buffer, parser, params);
-        Args.notNull(responseFactory, "Response factory");
-        this.responseFactory = responseFactory;
-        this.lineBuf = new CharArrayBuffer(128);
-    }
 
     /**
      * Creates new instance of DefaultHttpResponseParser.

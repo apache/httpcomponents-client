@@ -38,15 +38,6 @@ import org.apache.http.annotation.Immutable;
 public final class CookieSpecs {
 
     /**
-     * The policy that provides high degree of compatibility
-     * with common cookie management of popular HTTP agents.
-     *
-     * @deprecated (4.4) use {link #DEFAULT}.
-     */
-    @Deprecated
-    public static final String BROWSER_COMPATIBILITY = "compatibility";
-
-    /**
      * The Netscape cookie draft compliant policy.
      */
     public static final String NETSCAPE = "netscape";
@@ -62,14 +53,6 @@ public final class CookieSpecs {
      * @since 4.4
      */
     public static final String STANDARD_STRICT = "standard-strict";
-
-    /**
-     * The default 'best match' policy.
-     *
-     * @deprecated (4.4) use {link #DEFAULT}.
-     */
-    @Deprecated
-    public static final String BEST_MATCH = "best-match";
 
     /**
      * The default policy. This policy provides a higher degree of compatibility

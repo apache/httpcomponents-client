@@ -29,8 +29,8 @@ package org.apache.http.impl.client.cache;
 import org.apache.http.util.Args;
 
 /**
- * <p>Java Beans-style configuration for a {@link CachingHttpClient}. Any class
- * in the caching module that has configuration options should take a
+ * <p>Java Beans-style configuration for caching {@link org.apache.http.client.HttpClient}.
+ * Any class in the caching module that has configuration options should take a
  * {@link CacheConfig} argument in one of its constructors. A
  * {@code CacheConfig} instance has sane and conservative defaults, so the
  * easiest way to specify options is to get an instance and then set just
@@ -78,10 +78,10 @@ import org.apache.http.util.Args;
  * This behavior is off by default, but you may want to turn this on if you
  * are working with an origin that doesn't set proper headers but where you
  * still want to cache the responses. You will want to {@link
- * CacheConfig#setHeuristicCachingEnabled(boolean) enable heuristic caching},
+ * CacheConfig#isHeuristicCachingEnabled()} enable heuristic caching},
  * then specify either a {@link CacheConfig#getHeuristicDefaultLifetime()
  * default freshness lifetime} and/or a {@link
- * CacheConfig#setHeuristicCoefficient(float) fraction of the time since
+ * CacheConfig#getHeuristicCoefficient() fraction of the time since
  * the resource was last modified}. See Sections
  * <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.2">
  * 13.2.2</a> and <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.2.4">
@@ -160,42 +160,20 @@ public class CacheConfig implements Cloneable {
 
     public static final CacheConfig DEFAULT = new Builder().build();
 
-    // TODO: make final
-    private long maxObjectSize;
-    private int maxCacheEntries;
-    private int maxUpdateRetries;
-    private boolean allow303Caching;
-    private boolean weakETagOnPutDeleteAllowed;
-    private boolean heuristicCachingEnabled;
-    private float heuristicCoefficient;
-    private long heuristicDefaultLifetime;
-    private boolean isSharedCache;
-    private int asynchronousWorkersMax;
-    private int asynchronousWorkersCore;
-    private int asynchronousWorkerIdleLifetimeSecs;
-    private int revalidationQueueSize;
-    private boolean neverCacheHTTP10ResponsesWithQuery;
-
-    /**
-     * @deprecated (4.3) use {@link Builder}.
-     */
-    @Deprecated
-    public CacheConfig() {
-        super();
-        this.maxObjectSize = DEFAULT_MAX_OBJECT_SIZE_BYTES;
-        this.maxCacheEntries = DEFAULT_MAX_CACHE_ENTRIES;
-        this.maxUpdateRetries = DEFAULT_MAX_UPDATE_RETRIES;
-        this.allow303Caching = DEFAULT_303_CACHING_ENABLED;
-        this.weakETagOnPutDeleteAllowed = DEFAULT_WEAK_ETAG_ON_PUTDELETE_ALLOWED;
-        this.heuristicCachingEnabled = DEFAULT_HEURISTIC_CACHING_ENABLED;
-        this.heuristicCoefficient = DEFAULT_HEURISTIC_COEFFICIENT;
-        this.heuristicDefaultLifetime = DEFAULT_HEURISTIC_LIFETIME;
-        this.isSharedCache = true;
-        this.asynchronousWorkersMax = DEFAULT_ASYNCHRONOUS_WORKERS_MAX;
-        this.asynchronousWorkersCore = DEFAULT_ASYNCHRONOUS_WORKERS_CORE;
-        this.asynchronousWorkerIdleLifetimeSecs = DEFAULT_ASYNCHRONOUS_WORKER_IDLE_LIFETIME_SECS;
-        this.revalidationQueueSize = DEFAULT_REVALIDATION_QUEUE_SIZE;
-    }
+    private final long maxObjectSize;
+    private final int maxCacheEntries;
+    private final int maxUpdateRetries;
+    private final boolean allow303Caching;
+    private final boolean weakETagOnPutDeleteAllowed;
+    private final boolean heuristicCachingEnabled;
+    private final float heuristicCoefficient;
+    private final long heuristicDefaultLifetime;
+    private final boolean isSharedCache;
+    private final int asynchronousWorkersMax;
+    private final int asynchronousWorkersCore;
+    private final int asynchronousWorkerIdleLifetimeSecs;
+    private final int revalidationQueueSize;
+    private final boolean neverCacheHTTP10ResponsesWithQuery;
 
     CacheConfig(
             final long maxObjectSize,
@@ -226,32 +204,7 @@ public class CacheConfig implements Cloneable {
         this.asynchronousWorkersCore = asynchronousWorkersCore;
         this.asynchronousWorkerIdleLifetimeSecs = asynchronousWorkerIdleLifetimeSecs;
         this.revalidationQueueSize = revalidationQueueSize;
-    }
-
-    /**
-     * Returns the current maximum response body size that will be cached.
-     * @return size in bytes
-     *
-     * @deprecated (4.2)  use {@link #getMaxObjectSize()}
-     */
-    @Deprecated
-    public int getMaxObjectSizeBytes() {
-        return maxObjectSize > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) maxObjectSize;
-    }
-
-    /**
-     * Specifies the maximum response body size that will be eligible for caching.
-     * @param maxObjectSizeBytes size in bytes
-     *
-     * @deprecated (4.2)  use {@link Builder}.
-     */
-    @Deprecated
-    public void setMaxObjectSizeBytes(final int maxObjectSizeBytes) {
-        if (maxObjectSizeBytes > Integer.MAX_VALUE) {
-            this.maxObjectSize = Integer.MAX_VALUE;
-        } else {
-            this.maxObjectSize = maxObjectSizeBytes;
-        }
+        this.neverCacheHTTP10ResponsesWithQuery = neverCacheHTTP10ResponsesWithQuery;
     }
 
     /**
@@ -262,19 +215,6 @@ public class CacheConfig implements Cloneable {
      */
     public long getMaxObjectSize() {
         return maxObjectSize;
-    }
-
-    /**
-     * Specifies the maximum response body size that will be eligible for caching.
-     * @param maxObjectSize size in bytes
-     *
-     * @since 4.2
-     *
-     * @deprecated (4.3) use {@link Builder}.
-     */
-    @Deprecated
-    public void setMaxObjectSize(final long maxObjectSize) {
-        this.maxObjectSize = maxObjectSize;
     }
 
     /**
@@ -294,30 +234,10 @@ public class CacheConfig implements Cloneable {
     }
 
     /**
-     * Sets the maximum number of cache entries the cache will retain.
-     *
-     * @deprecated (4.3) use {@link Builder}.
-     */
-    @Deprecated
-    public void setMaxCacheEntries(final int maxCacheEntries) {
-        this.maxCacheEntries = maxCacheEntries;
-    }
-
-    /**
      * Returns the number of times to retry a cache update on failure
      */
     public int getMaxUpdateRetries(){
         return maxUpdateRetries;
-    }
-
-    /**
-     * Sets the number of times to retry a cache update on failure
-     *
-     * @deprecated (4.3) use {@link Builder}.
-     */
-    @Deprecated
-    public void setMaxUpdateRetries(final int maxUpdateRetries){
-        this.maxUpdateRetries = maxUpdateRetries;
     }
 
     /**
@@ -345,37 +265,10 @@ public class CacheConfig implements Cloneable {
     }
 
     /**
-     * Enables or disables heuristic caching.
-     * @param heuristicCachingEnabled should be {@code true} to
-     *   permit heuristic caching, {@code false} to disable it.
-     *
-     * @deprecated (4.3) use {@link Builder}.
-     */
-    @Deprecated
-    public void setHeuristicCachingEnabled(final boolean heuristicCachingEnabled) {
-        this.heuristicCachingEnabled = heuristicCachingEnabled;
-    }
-
-    /**
      * Returns lifetime coefficient used in heuristic freshness caching.
      */
     public float getHeuristicCoefficient() {
         return heuristicCoefficient;
-    }
-
-    /**
-     * Sets coefficient to be used in heuristic freshness caching. This is
-     * interpreted as the fraction of the time between the {@code Last-Modified}
-     * and {@code Date} headers of a cached response during which the cached
-     * response will be considered heuristically fresh.
-     * @param heuristicCoefficient should be between {@code 0.0} and
-     *   {@code 1.0}.
-     *
-     * @deprecated (4.3) use {@link Builder}.
-     */
-    @Deprecated
-    public void setHeuristicCoefficient(final float heuristicCoefficient) {
-        this.heuristicCoefficient = heuristicCoefficient;
     }
 
     /**
@@ -384,24 +277,6 @@ public class CacheConfig implements Cloneable {
      */
     public long getHeuristicDefaultLifetime() {
         return heuristicDefaultLifetime;
-    }
-
-    /**
-     * Sets default lifetime in seconds to be used if heuristic freshness
-     * calculation is not possible. Explicit cache control directives on
-     * either the request or origin response will override this, as will
-     * the heuristic {@code Last-Modified} freshness calculation if it is
-     * available.
-     * @param heuristicDefaultLifetimeSecs is the number of seconds to
-     *   consider a cache-eligible response fresh in the absence of other
-     *   information. Set this to {@code 0} to disable this style of
-     *   heuristic caching.
-     *
-     * @deprecated (4.3) use {@link Builder}.
-     */
-    @Deprecated
-    public void setHeuristicDefaultLifetime(final long heuristicDefaultLifetimeSecs) {
-        this.heuristicDefaultLifetime = heuristicDefaultLifetimeSecs;
     }
 
     /**
@@ -414,19 +289,6 @@ public class CacheConfig implements Cloneable {
     }
 
     /**
-     * Sets whether the cache should behave as a shared cache or not.
-     * @param isSharedCache true to behave as a shared cache, false to
-     * behave as a non-shared (private) cache. To have the cache
-     * behave like a browser cache, you want to set this to {@code false}.
-     *
-     * @deprecated (4.3) use {@link Builder}.
-     */
-    @Deprecated
-    public void setSharedCache(final boolean isSharedCache) {
-        this.isSharedCache = isSharedCache;
-    }
-
-    /**
      * Returns the maximum number of threads to allow for background
      * revalidations due to the {@code stale-while-revalidate} directive. A
      * value of 0 means background revalidations are disabled.
@@ -436,37 +298,11 @@ public class CacheConfig implements Cloneable {
     }
 
     /**
-     * Sets the maximum number of threads to allow for background
-     * revalidations due to the {@code stale-while-revalidate} directive.
-     * @param max number of threads; a value of 0 disables background
-     * revalidations.
-     *
-     * @deprecated (4.3) use {@link Builder}.
-     */
-    @Deprecated
-    public void setAsynchronousWorkersMax(final int max) {
-        this.asynchronousWorkersMax = max;
-    }
-
-    /**
      * Returns the minimum number of threads to keep alive for background
      * revalidations due to the {@code stale-while-revalidate} directive.
      */
     public int getAsynchronousWorkersCore() {
         return asynchronousWorkersCore;
-    }
-
-    /**
-     * Sets the minimum number of threads to keep alive for background
-     * revalidations due to the {@code stale-while-revalidate} directive.
-     * @param min should be greater than zero and less than or equal
-     *   to {@code getAsynchronousWorkersMax()}
-     *
-     * @deprecated (4.3) use {@link Builder}.
-     */
-    @Deprecated
-    public void setAsynchronousWorkersCore(final int min) {
-        this.asynchronousWorkersCore = min;
     }
 
     /**
@@ -480,34 +316,10 @@ public class CacheConfig implements Cloneable {
     }
 
     /**
-     * Sets the current maximum idle lifetime in seconds for a
-     * background revalidation worker thread. If a worker thread is idle
-     * for this long, and there are more than the core number of worker
-     * threads alive, the worker will be reclaimed.
-     * @param secs idle lifetime in seconds
-     *
-     * @deprecated (4.3) use {@link Builder}.
-     */
-    @Deprecated
-    public void setAsynchronousWorkerIdleLifetimeSecs(final int secs) {
-        this.asynchronousWorkerIdleLifetimeSecs = secs;
-    }
-
-    /**
      * Returns the current maximum queue size for background revalidations.
      */
     public int getRevalidationQueueSize() {
         return revalidationQueueSize;
-    }
-
-    /**
-     * Sets the current maximum queue size for background revalidations.
-     *
-     * @deprecated (4.3) use {@link Builder}.
-     */
-    @Deprecated
-    public void setRevalidationQueueSize(final int size) {
-        this.revalidationQueueSize = size;
     }
 
     @Override

@@ -133,38 +133,14 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     }
 
     /**
-     * @deprecated (4.4) Use {@link #generateToken(byte[], String, org.apache.http.auth.Credentials)}.
-     */
-    @Deprecated
-    protected byte[] generateToken(final byte[] input, final String authServer) throws GSSException {
-        return null;
-    }
-
-    /**
      * @since 4.4
      */
-    //TODO: make this method abstract
-    @SuppressWarnings("deprecation")
-    protected byte[] generateToken(
-            final byte[] input, final String authServer, final Credentials credentials) throws GSSException {
-        return generateToken(input, authServer);
-    }
+    protected abstract byte[] generateToken(
+            byte[] input, String authServer, Credentials credentials) throws GSSException;
 
     @Override
     public boolean isComplete() {
         return this.state == State.TOKEN_GENERATED || this.state == State.FAILED;
-    }
-
-    /**
-     * @deprecated (4.2) Use {@link org.apache.http.auth.ContextAwareAuthScheme#authenticate(
-     *   Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
-     */
-    @Override
-    @Deprecated
-    public Header authenticate(
-            final Credentials credentials,
-            final HttpRequest request) throws AuthenticationException {
-        return authenticate(credentials, request, null);
     }
 
     @Override

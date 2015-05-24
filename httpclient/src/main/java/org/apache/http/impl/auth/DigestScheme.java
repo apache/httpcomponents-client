@@ -46,13 +46,11 @@ import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeaderValueFormatter;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.BufferedHeader;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
@@ -108,19 +106,6 @@ public class DigestScheme extends RFC2617Scheme {
     public DigestScheme(final Charset credentialsCharset) {
         super(credentialsCharset);
         this.complete = false;
-    }
-
-    /**
-     * Creates an instance of {@code DigestScheme} with the given challenge
-     * state.
-     *
-     * @since 4.2
-     *
-     * @deprecated (4.3) do not use.
-     */
-    @Deprecated
-    public DigestScheme(final ChallengeState challengeState) {
-        super(challengeState);
     }
 
     public DigestScheme() {
@@ -183,17 +168,6 @@ public class DigestScheme extends RFC2617Scheme {
 
     public void overrideParamter(final String name, final String value) {
         getParameters().put(name, value);
-    }
-
-    /**
-     * @deprecated (4.2) Use {@link org.apache.http.auth.ContextAwareAuthScheme#authenticate(
-     *   Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
-     */
-    @Override
-    @Deprecated
-    public Header authenticate(
-            final Credentials credentials, final HttpRequest request) throws AuthenticationException {
-        return authenticate(credentials, request, new BasicHttpContext());
     }
 
     /**

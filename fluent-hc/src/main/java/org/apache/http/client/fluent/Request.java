@@ -252,43 +252,10 @@ public class Request {
         return this;
     }
 
-    /**
-     * This method has no effect. Do not use.
-     *
-     * @deprecated (4.3)
-     */
-    @Deprecated
-    public Request config(final String param, final Object object) {
-        return this;
-    }
-
-    /**
-     * This method has no effect. Do not use.
-     *
-     * @deprecated (4.3)
-     */
-    @Deprecated
-    public Request removeConfig(final String param) {
-        return this;
-    }
-
     //// HTTP protocol parameter operations
 
     public Request version(final HttpVersion version) {
         this.request.setProtocolVersion(version);
-        return this;
-    }
-
-    /**
-     * This parameter can no longer be used at the request level.
-     * <p>
-     * This method has no effect. Do not use.
-     * </p>
-     *
-     * @deprecated (4.3)
-     */
-    @Deprecated
-    public Request elementCharset(final String charset) {
         return this;
     }
 
@@ -311,16 +278,6 @@ public class Request {
 
     public Request connectTimeout(final int timeout) {
         this.connectTimeout = timeout;
-        return this;
-    }
-
-    /**
-     * This method has no effect. Do not use.
-     *
-     * @deprecated (4.4)
-     */
-    @Deprecated
-    public Request staleConnectionCheck(final boolean b) {
         return this;
     }
 

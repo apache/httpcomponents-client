@@ -28,9 +28,7 @@ package org.apache.http.impl.auth;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -40,8 +38,7 @@ import org.apache.http.protocol.HttpContext;
  * @since 4.2
  */
 @Immutable
-@SuppressWarnings("deprecation")
-public class KerberosSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider {
+public class KerberosSchemeFactory implements AuthSchemeProvider {
 
     private final boolean stripPort;
     private final boolean useCanonicalHostname;
@@ -71,11 +68,6 @@ public class KerberosSchemeFactory implements AuthSchemeFactory, AuthSchemeProvi
 
     public boolean isUseCanonicalHostname() {
         return useCanonicalHostname;
-    }
-
-    @Override
-    public AuthScheme newInstance(final HttpParams params) {
-        return new KerberosScheme(this.stripPort, this.useCanonicalHostname);
     }
 
     @Override

@@ -45,9 +45,6 @@ public class AuthState {
     /** Actual authentication scheme */
     private AuthScheme authScheme;
 
-    /** Actual authentication scope */
-    private AuthScope authScope;
-
     /** Credentials selected for authentication */
     private Credentials credentials;
 
@@ -68,7 +65,6 @@ public class AuthState {
         this.state = AuthProtocolState.UNCHALLENGED;
         this.authOptions = null;
         this.authScheme = null;
-        this.authScope = null;
         this.credentials = null;
     }
 
@@ -147,76 +143,6 @@ public class AuthState {
         this.authOptions = authOptions;
         this.authScheme = null;
         this.credentials = null;
-    }
-
-    /**
-     * Invalidates the authentication state by resetting its parameters.
-     *
-     * @deprecated (4.2)  use {@link #reset()}
-     */
-    @Deprecated
-    public void invalidate() {
-        reset();
-    }
-
-    /**
-     * @deprecated (4.2) do not use
-     */
-    @Deprecated
-    public boolean isValid() {
-        return this.authScheme != null;
-    }
-
-    /**
-     * Assigns the given {@link AuthScheme authentication scheme}.
-     *
-     * @param authScheme the {@link AuthScheme authentication scheme}
-     *
-     * @deprecated (4.2)  use {@link #update(AuthScheme, Credentials)}
-     */
-    @Deprecated
-    public void setAuthScheme(final AuthScheme authScheme) {
-        if (authScheme == null) {
-            reset();
-            return;
-        }
-        this.authScheme = authScheme;
-    }
-
-    /**
-     * Sets user {@link Credentials} to be used for authentication
-     *
-     * @param credentials User credentials
-     *
-     * @deprecated (4.2)  use {@link #update(AuthScheme, Credentials)}
-     */
-    @Deprecated
-    public void setCredentials(final Credentials credentials) {
-        this.credentials = credentials;
-    }
-
-    /**
-     * Returns actual {@link AuthScope} if available
-     *
-     * @return actual authentication scope if available, {@code null} otherwise
-     *
-     * @deprecated (4.2)  do not use.
-     */
-    @Deprecated
-    public AuthScope getAuthScope() {
-        return this.authScope;
-    }
-
-    /**
-     * Sets actual {@link AuthScope}.
-     *
-     * @param authScope Authentication scope
-     *
-     * @deprecated (4.2)  do not use.
-     */
-    @Deprecated
-    public void setAuthScope(final AuthScope authScope) {
-        this.authScope = authScope;
     }
 
     @Override

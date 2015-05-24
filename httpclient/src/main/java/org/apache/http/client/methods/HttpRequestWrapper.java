@@ -39,7 +39,6 @@ import org.apache.http.RequestLine;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.Args;
 
@@ -49,7 +48,6 @@ import org.apache.http.util.Args;
  *
  * @since 4.3
  */
-@SuppressWarnings("deprecation")
 @NotThreadSafe
 public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
 
@@ -190,19 +188,6 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
         } else {
             return new HttpRequestWrapper(request, target);
         }
-    }
-
-    /**
-     * @deprecated (4.3) use
-     *   {@link org.apache.http.client.config.RequestConfig}.
-     */
-    @Override
-    @Deprecated
-    public HttpParams getParams() {
-        if (this.params == null) {
-            this.params = original.getParams().copy();
-        }
-        return this.params;
     }
 
 }

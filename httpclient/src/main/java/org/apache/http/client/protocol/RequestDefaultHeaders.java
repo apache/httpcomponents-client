@@ -35,7 +35,6 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.client.params.ClientPNames;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 
@@ -44,7 +43,6 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  */
-@SuppressWarnings("deprecation")
 @Immutable
 public class RequestDefaultHeaders implements HttpRequestInterceptor {
 
@@ -72,16 +70,8 @@ public class RequestDefaultHeaders implements HttpRequestInterceptor {
             return;
         }
 
-        // Add default headers
-        @SuppressWarnings("unchecked")
-        Collection<? extends Header> defHeaders = (Collection<? extends Header>)
-            request.getParams().getParameter(ClientPNames.DEFAULT_HEADERS);
-        if (defHeaders == null) {
-            defHeaders = this.defaultHeaders;
-        }
-
-        if (defHeaders != null) {
-            for (final Header defHeader : defHeaders) {
+        if (this.defaultHeaders != null) {
+            for (final Header defHeader : this.defaultHeaders) {
                 request.addHeader(defHeader);
             }
         }

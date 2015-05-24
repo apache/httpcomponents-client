@@ -38,16 +38,17 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AUTH;
-import org.apache.http.auth.AuthSchemeRegistry;
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.params.HttpClientParamConfig;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.protocol.RequestClientConnControl;
 import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.Lookup;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpConnectionFactory;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
@@ -64,9 +65,6 @@ import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.conn.ManagedHttpClientConnectionFactory;
 import org.apache.http.impl.execchain.TunnelRefusedException;
 import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParamConfig;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
@@ -81,7 +79,6 @@ import org.apache.http.util.EntityUtils;
 /**
  * ProxyClient can be used to establish a tunnel via an HTTP proxy.
  */
-@SuppressWarnings("deprecation")
 public class ProxyClient {
 
     private final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory;
@@ -92,7 +89,7 @@ public class ProxyClient {
     private final ProxyAuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
     private final AuthState proxyAuthState;
-    private final AuthSchemeRegistry authSchemeRegistry;
+    private final Lookup<AuthSchemeProvider> authSchemeRegistry;
     private final ConnectionReuseStrategy reuseStrategy;
 
     /**
@@ -112,23 +109,14 @@ public class ProxyClient {
         this.proxyAuthStrategy = new ProxyAuthenticationStrategy();
         this.authenticator = new HttpAuthenticator();
         this.proxyAuthState = new AuthState();
-        this.authSchemeRegistry = new AuthSchemeRegistry();
-        this.authSchemeRegistry.register(AuthSchemes.BASIC, new BasicSchemeFactory());
-        this.authSchemeRegistry.register(AuthSchemes.DIGEST, new DigestSchemeFactory());
-        this.authSchemeRegistry.register(AuthSchemes.NTLM, new NTLMSchemeFactory());
-        this.authSchemeRegistry.register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory());
-        this.authSchemeRegistry.register(AuthSchemes.KERBEROS, new KerberosSchemeFactory());
+        this.authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
+                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
+                .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
+                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory())
+                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory())
+                .build();
         this.reuseStrategy = new DefaultConnectionReuseStrategy();
-    }
-
-    /**
-     * @deprecated (4.3) use {@link ProxyClient#ProxyClient(HttpConnectionFactory, ConnectionConfig, RequestConfig)}
-     */
-    @Deprecated
-    public ProxyClient(final HttpParams params) {
-        this(null,
-                HttpParamConfig.getConnectionConfig(params),
-                HttpClientParamConfig.getRequestConfig(params));
     }
 
     /**
@@ -140,22 +128,6 @@ public class ProxyClient {
 
     public ProxyClient() {
         this(null, null, null);
-    }
-
-    /**
-     * @deprecated (4.3) do not use.
-     */
-    @Deprecated
-    public HttpParams getParams() {
-        return new BasicHttpParams();
-    }
-
-    /**
-     * @deprecated (4.3) do not use.
-     */
-    @Deprecated
-    public AuthSchemeRegistry getAuthSchemeRegistry() {
-        return this.authSchemeRegistry;
     }
 
     public Socket tunnel(

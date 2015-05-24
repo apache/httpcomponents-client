@@ -45,7 +45,6 @@ import org.apache.http.params.HttpParams;
 /**
  * @since 4.1
  */
-@SuppressWarnings("deprecation")
 @Immutable
 final class OptionsHttp11Response extends AbstractHttpMessage implements HttpResponse {
 

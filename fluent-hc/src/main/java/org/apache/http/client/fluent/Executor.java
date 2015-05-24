@@ -232,20 +232,6 @@ public class Executor {
     }
 
     /**
-     * @deprecated (4.3) do not use.
-     */
-    @Deprecated
-    public static void registerScheme(final org.apache.http.conn.scheme.Scheme scheme) {
-    }
-
-    /**
-     * @deprecated (4.3) do not use.
-     */
-    @Deprecated
-    public static void unregisterScheme(final String name) {
-    }
-
-    /**
      * Closes all idle persistent connections used by the internal pool.
      * @since 4.4
      */

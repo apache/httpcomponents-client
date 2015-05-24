@@ -46,7 +46,6 @@ public class RequestConfig implements Cloneable {
     private final boolean expectContinueEnabled;
     private final HttpHost proxy;
     private final InetAddress localAddress;
-    private final boolean staleConnectionCheckEnabled;
     private final String cookieSpec;
     private final boolean redirectsEnabled;
     private final boolean relativeRedirectsAllowed;
@@ -88,7 +87,6 @@ public class RequestConfig implements Cloneable {
         this.expectContinueEnabled = expectContinueEnabled;
         this.proxy = proxy;
         this.localAddress = localAddress;
-        this.staleConnectionCheckEnabled = staleConnectionCheckEnabled;
         this.cookieSpec = cookieSpec;
         this.redirectsEnabled = redirectsEnabled;
         this.relativeRedirectsAllowed = relativeRedirectsAllowed;
@@ -152,23 +150,6 @@ public class RequestConfig implements Cloneable {
      */
     public InetAddress getLocalAddress() {
         return localAddress;
-    }
-
-    /**
-     * Determines whether stale connection check is to be used. The stale
-     * connection check can cause up to 30 millisecond overhead per request and
-     * should be used only when appropriate. For performance critical
-     * operations this check should be disabled.
-     * <p>
-     * Default: {@code false} since 4.4
-     * </p>
-     *
-     * @deprecated (4.4) Use {@link
-     *   org.apache.http.impl.conn.PoolingHttpClientConnectionManager#getValidateAfterInactivity()}
-     */
-    @Deprecated
-    public boolean isStaleConnectionCheckEnabled() {
-        return staleConnectionCheckEnabled;
     }
 
     /**
@@ -349,13 +330,11 @@ public class RequestConfig implements Cloneable {
         return new Builder();
     }
 
-    @SuppressWarnings("deprecation")
     public static RequestConfig.Builder copy(final RequestConfig config) {
         return new Builder()
             .setExpectContinueEnabled(config.isExpectContinueEnabled())
             .setProxy(config.getProxy())
             .setLocalAddress(config.getLocalAddress())
-            .setStaleConnectionCheckEnabled(config.isStaleConnectionCheckEnabled())
             .setCookieSpec(config.getCookieSpec())
             .setRedirectsEnabled(config.isRedirectsEnabled())
             .setRelativeRedirectsAllowed(config.isRelativeRedirectsAllowed())
@@ -414,16 +393,6 @@ public class RequestConfig implements Cloneable {
 
         public Builder setLocalAddress(final InetAddress localAddress) {
             this.localAddress = localAddress;
-            return this;
-        }
-
-        /**
-         * @deprecated (4.4) Use {@link
-         *   org.apache.http.impl.conn.PoolingHttpClientConnectionManager#setValidateAfterInactivity(int)}
-         */
-        @Deprecated
-        public Builder setStaleConnectionCheckEnabled(final boolean staleConnectionCheckEnabled) {
-            this.staleConnectionCheckEnabled = staleConnectionCheckEnabled;
             return this;
         }
 

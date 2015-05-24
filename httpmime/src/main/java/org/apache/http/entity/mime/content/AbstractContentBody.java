@@ -50,14 +50,6 @@ public abstract class AbstractContentBody implements ContentBody {
     }
 
     /**
-     * @deprecated (4.3) use {@link AbstractContentBody#AbstractContentBody(ContentType)}
-     */
-    @Deprecated
-    public AbstractContentBody(final String mimeType) {
-        this(ContentType.parse(mimeType));
-    }
-
-    /**
      * @since 4.3
      */
     public ContentType getContentType() {

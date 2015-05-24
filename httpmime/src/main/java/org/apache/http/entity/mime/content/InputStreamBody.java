@@ -47,17 +47,6 @@ public class InputStreamBody extends AbstractContentBody {
     private final InputStream in;
     private final String filename;
 
-    /**
-     * @since 4.1
-     *
-     * @deprecated (4.3) use {@link InputStreamBody#InputStreamBody(InputStream, ContentType,
-     *  String)} or {@link org.apache.http.entity.mime.MultipartEntityBuilder}
-     */
-    @Deprecated
-    public InputStreamBody(final InputStream in, final String mimeType, final String filename) {
-        this(in, ContentType.create(mimeType), filename);
-    }
-
     public InputStreamBody(final InputStream in, final String filename) {
         this(in, ContentType.DEFAULT_BINARY, filename);
     }

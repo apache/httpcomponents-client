@@ -82,7 +82,6 @@ import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.cookie.CookieSpecProvider;
@@ -232,22 +231,6 @@ public class HttpClientBuilder {
     }
 
     /**
-     * Assigns {@link X509HostnameVerifier} instance.
-     * <p>
-     * Please note this value can be overridden by the {@link #setConnectionManager(
-     *   org.apache.http.conn.HttpClientConnectionManager)} and the {@link #setSSLSocketFactory(
-     *   org.apache.http.conn.socket.LayeredConnectionSocketFactory)} methods.
-     * </p>
-     *
-     *   @deprecated (4.4)
-     */
-    @Deprecated
-    public final HttpClientBuilder setHostnameVerifier(final X509HostnameVerifier hostnameVerifier) {
-        this.hostnameVerifier = hostnameVerifier;
-        return this;
-    }
-
-    /**
      * Assigns {@link javax.net.ssl.HostnameVerifier} instance.
      * <p>
      * Please note this value can be overridden by the {@link #setConnectionManager(
@@ -274,21 +257,6 @@ public class HttpClientBuilder {
     public final HttpClientBuilder setPublicSuffixMatcher(final PublicSuffixMatcher publicSuffixMatcher) {
         this.publicSuffixMatcher = publicSuffixMatcher;
         return this;
-    }
-
-    /**
-     * Assigns {@link SSLContext} instance.
-     * <p>
-     * Please note this value can be overridden by the {@link #setConnectionManager(
-     *   org.apache.http.conn.HttpClientConnectionManager)} and the {@link #setSSLSocketFactory(
-     *   org.apache.http.conn.socket.LayeredConnectionSocketFactory)} methods.
-     * </p>
-     *
-     * @deprecated (4.5) use {@link #setSSLContext(SSLContext)}
-     */
-    @Deprecated
-    public final HttpClientBuilder setSslcontext(final SSLContext sslcontext) {
-        return setSSLContext(sslcontext);
     }
 
     /**
@@ -791,36 +759,6 @@ public class HttpClientBuilder {
     public final HttpClientBuilder evictExpiredConnections() {
         evictExpiredConnections = true;
         return this;
-    }
-
-    /**
-     * Makes this instance of HttpClient proactively evict idle connections from the
-     * connection pool using a background thread.
-     * <p>
-     * One MUST explicitly close HttpClient with {@link CloseableHttpClient#close()} in order
-     * to stop and release the background thread.
-     * <p>
-     * Please note this method has no effect if the instance of HttpClient is configuted to
-     * use a shared connection manager.
-     * <p>
-     * Please note this method may not be used when the instance of HttpClient is created
-     * inside an EJB container.
-     *
-     * @see #setConnectionManagerShared(boolean)
-     * @see org.apache.http.conn.HttpClientConnectionManager#closeExpiredConnections()
-     *
-     * @param maxIdleTime maximum time persistent connections can stay idle while kept alive
-     * in the connection pool. Connections whose inactivity period exceeds this value will
-     * get closed and evicted from the pool.
-     * @param maxIdleTimeUnit time unit for the above parameter.
-     *
-     * @deprecated (4.5) use {@link #evictIdleConnections(long, TimeUnit)}
-     *
-     * @since 4.4
-     */
-    @Deprecated
-    public final HttpClientBuilder evictIdleConnections(final Long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
-        return evictIdleConnections(maxIdleTime.longValue(), maxIdleTimeUnit);
     }
 
     /**

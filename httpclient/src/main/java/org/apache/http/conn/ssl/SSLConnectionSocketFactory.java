@@ -133,24 +133,11 @@ import org.apache.http.util.TextUtils;
  *
  * @since 4.3
  */
-@ThreadSafe @SuppressWarnings("deprecation")
+@ThreadSafe
 public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
     public static final String TLS   = "TLS";
     public static final String SSL   = "SSL";
-    public static final String SSLV2 = "SSLv2";
-
-    @Deprecated
-    public static final X509HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER
-        = AllowAllHostnameVerifier.INSTANCE;
-
-    @Deprecated
-    public static final X509HostnameVerifier BROWSER_COMPATIBLE_HOSTNAME_VERIFIER
-        = BrowserCompatHostnameVerifier.INSTANCE;
-
-    @Deprecated
-    public static final X509HostnameVerifier STRICT_HOSTNAME_VERIFIER
-        = StrictHostnameVerifier.INSTANCE;
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -202,55 +189,6 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
 
     public SSLConnectionSocketFactory(final SSLContext sslContext) {
         this(sslContext, getDefaultHostnameVerifier());
-    }
-
-    /**
-     * @deprecated (4.4) Use {@link #SSLConnectionSocketFactory(javax.net.ssl.SSLContext,
-     *   javax.net.ssl.HostnameVerifier)}
-     */
-    @Deprecated
-    public SSLConnectionSocketFactory(
-            final SSLContext sslContext, final X509HostnameVerifier hostnameVerifier) {
-        this(Args.notNull(sslContext, "SSL context").getSocketFactory(),
-                null, null, hostnameVerifier);
-    }
-
-    /**
-     * @deprecated (4.4) Use {@link #SSLConnectionSocketFactory(javax.net.ssl.SSLContext,
-     *   String[], String[], javax.net.ssl.HostnameVerifier)}
-     */
-    @Deprecated
-    public SSLConnectionSocketFactory(
-            final SSLContext sslContext,
-            final String[] supportedProtocols,
-            final String[] supportedCipherSuites,
-            final X509HostnameVerifier hostnameVerifier) {
-        this(Args.notNull(sslContext, "SSL context").getSocketFactory(),
-                supportedProtocols, supportedCipherSuites, hostnameVerifier);
-    }
-
-    /**
-     * @deprecated (4.4) Use {@link #SSLConnectionSocketFactory(javax.net.ssl.SSLSocketFactory,
-     *   javax.net.ssl.HostnameVerifier)}
-     */
-    @Deprecated
-    public SSLConnectionSocketFactory(
-            final javax.net.ssl.SSLSocketFactory socketfactory,
-            final X509HostnameVerifier hostnameVerifier) {
-        this(socketfactory, null, null, hostnameVerifier);
-    }
-
-    /**
-     * @deprecated (4.4) Use {@link #SSLConnectionSocketFactory(javax.net.ssl.SSLSocketFactory,
-     *   String[], String[], javax.net.ssl.HostnameVerifier)}
-     */
-    @Deprecated
-    public SSLConnectionSocketFactory(
-            final javax.net.ssl.SSLSocketFactory socketfactory,
-            final String[] supportedProtocols,
-            final String[] supportedCipherSuites,
-            final X509HostnameVerifier hostnameVerifier) {
-        this(socketfactory, supportedProtocols, supportedCipherSuites, (HostnameVerifier) hostnameVerifier);
     }
 
     /**

@@ -41,7 +41,6 @@ import org.apache.http.params.HttpProtocolParams;
  *
  * @since 4.0
  */
-@SuppressWarnings("deprecation")
 @NotThreadSafe
 public abstract class HttpRequestBase extends AbstractExecutionAwareRequest
     implements HttpUriRequest, Configurable {

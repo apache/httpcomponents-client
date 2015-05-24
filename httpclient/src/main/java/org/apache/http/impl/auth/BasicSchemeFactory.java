@@ -31,9 +31,7 @@ import java.nio.charset.Charset;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -43,8 +41,7 @@ import org.apache.http.protocol.HttpContext;
  * @since 4.0
  */
 @Immutable
-@SuppressWarnings("deprecation")
-public class BasicSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider {
+public class BasicSchemeFactory implements AuthSchemeProvider {
 
     private final Charset charset;
 
@@ -58,11 +55,6 @@ public class BasicSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider
 
     public BasicSchemeFactory() {
         this(null);
-    }
-
-    @Override
-    public AuthScheme newInstance(final HttpParams params) {
-        return new BasicScheme();
     }
 
     @Override

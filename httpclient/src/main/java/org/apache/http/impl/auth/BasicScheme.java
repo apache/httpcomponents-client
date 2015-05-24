@@ -35,11 +35,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BufferedHeader;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
@@ -64,19 +62,6 @@ public class BasicScheme extends RFC2617Scheme {
     public BasicScheme(final Charset credentialsCharset) {
         super(credentialsCharset);
         this.complete = false;
-    }
-
-    /**
-     * Creates an instance of {@code BasicScheme} with the given challenge
-     * state.
-     *
-     * @since 4.2
-     *
-     * @deprecated (4.3) do not use.
-     */
-    @Deprecated
-    public BasicScheme(final ChallengeState challengeState) {
-        super(challengeState);
     }
 
     public BasicScheme() {
@@ -130,17 +115,6 @@ public class BasicScheme extends RFC2617Scheme {
     }
 
     /**
-     * @deprecated (4.2) Use {@link org.apache.http.auth.ContextAwareAuthScheme#authenticate(
-     *   Credentials, HttpRequest, org.apache.http.protocol.HttpContext)}
-     */
-    @Override
-    @Deprecated
-    public Header authenticate(
-            final Credentials credentials, final HttpRequest request) throws AuthenticationException {
-        return authenticate(credentials, request, new BasicHttpContext());
-    }
-
-    /**
      * Produces basic authorization header for the given set of {@link Credentials}.
      *
      * @param credentials The set of credentials to be used for authentication
@@ -171,45 +145,6 @@ public class BasicScheme extends RFC2617Scheme {
 
         final CharArrayBuffer buffer = new CharArrayBuffer(32);
         if (isProxy()) {
-            buffer.append(AUTH.PROXY_AUTH_RESP);
-        } else {
-            buffer.append(AUTH.WWW_AUTH_RESP);
-        }
-        buffer.append(": Basic ");
-        buffer.append(base64password, 0, base64password.length);
-
-        return new BufferedHeader(buffer);
-    }
-
-    /**
-     * Returns a basic {@code Authorization} header value for the given
-     * {@link Credentials} and charset.
-     *
-     * @param credentials The credentials to encode.
-     * @param charset The charset to use for encoding the credentials
-     *
-     * @return a basic authorization header
-     *
-     * @deprecated (4.3) use {@link #authenticate(Credentials, HttpRequest, HttpContext)}.
-     */
-    @Deprecated
-    public static Header authenticate(
-            final Credentials credentials,
-            final String charset,
-            final boolean proxy) {
-        Args.notNull(credentials, "Credentials");
-        Args.notNull(charset, "charset");
-
-        final StringBuilder tmp = new StringBuilder();
-        tmp.append(credentials.getUserPrincipal().getName());
-        tmp.append(":");
-        tmp.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
-
-        final byte[] base64password = Base64.encodeBase64(
-                EncodingUtils.getBytes(tmp.toString(), charset), false);
-
-        final CharArrayBuffer buffer = new CharArrayBuffer(32);
-        if (proxy) {
             buffer.append(AUTH.PROXY_AUTH_RESP);
         } else {
             buffer.append(AUTH.WWW_AUTH_RESP);

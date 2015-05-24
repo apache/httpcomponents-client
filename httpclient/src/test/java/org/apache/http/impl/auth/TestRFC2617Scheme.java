@@ -42,6 +42,7 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BufferedHeader;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
 import org.junit.Assert;
 import org.junit.Test;
@@ -61,10 +62,10 @@ public class TestRFC2617Scheme {
         }
 
         @Override
-        @Deprecated
         public Header authenticate(
                 final Credentials credentials,
-                final HttpRequest request) throws AuthenticationException {
+                final HttpRequest request,
+                final HttpContext context) throws AuthenticationException {
             return null;
         }
 

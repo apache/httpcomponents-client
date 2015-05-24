@@ -269,24 +269,6 @@ public class URIBuilder {
     }
 
     /**
-     * Sets URI query.
-     * <p>
-     * The value is expected to be encoded form data.
-     *
-     * @deprecated (4.3) use {@link #setParameters(List)} or {@link #setParameters(NameValuePair...)}
-     *
-     * @see URLEncodedUtils#parse
-     */
-    @Deprecated
-    public URIBuilder setQuery(final String query) {
-        this.queryParams = parseQuery(query, this.charset != null ? this.charset : Consts.UTF_8);
-        this.query = null;
-        this.encodedQuery = null;
-        this.encodedSchemeSpecificPart = null;
-        return this;
-    }
-
-    /**
      * Sets URI query parameters. The parameter name / values are expected to be unescaped
      * and may contain non ASCII characters.
      * <p>

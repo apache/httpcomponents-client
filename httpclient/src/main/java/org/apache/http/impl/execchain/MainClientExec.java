@@ -83,7 +83,6 @@ import org.apache.http.util.EntityUtils;
  *
  * @since 4.3
  */
-@SuppressWarnings("deprecation")
 @Immutable
 public class MainClientExec implements ClientExecChain {
 
@@ -200,17 +199,6 @@ public class MainClientExec implements ClientExecChain {
         }
 
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, managedConn);
-
-        if (config.isStaleConnectionCheckEnabled()) {
-            // validate connection
-            if (managedConn.isOpen()) {
-                this.log.debug("Stale connection check");
-                if (managedConn.isStale()) {
-                    this.log.debug("Stale connection detected");
-                    managedConn.close();
-                }
-            }
-        }
 
         final ConnectionHolder connHolder = new ConnectionHolder(this.log, this.connManager, managedConn);
         try {

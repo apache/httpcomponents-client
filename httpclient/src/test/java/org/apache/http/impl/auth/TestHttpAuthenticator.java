@@ -39,11 +39,11 @@ import org.apache.http.HttpVersion;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthProtocolState;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthCache;
@@ -69,7 +69,7 @@ public class TestHttpAuthenticator {
 
     private AuthenticationStrategy defltAuthStrategy;
     private AuthState authState;
-    private ContextAwareAuthScheme authScheme;
+    private AuthScheme authScheme;
     private HttpContext context;
     private HttpHost defaultHost;
     private Credentials credentials;
@@ -82,7 +82,7 @@ public class TestHttpAuthenticator {
     public void setUp() throws Exception {
         this.defltAuthStrategy = Mockito.mock(AuthenticationStrategy.class);
         this.authState = new AuthState();
-        this.authScheme = Mockito.mock(ContextAwareAuthScheme.class);
+        this.authScheme = Mockito.mock(AuthScheme.class);
         Mockito.when(this.authScheme.getSchemeName()).thenReturn("Basic");
         Mockito.when(this.authScheme.isComplete()).thenReturn(Boolean.TRUE);
         this.context = new BasicHttpContext();
@@ -435,12 +435,12 @@ public class TestHttpAuthenticator {
         this.authState.setState(AuthProtocolState.CHALLENGED);
 
         final LinkedList<AuthOption> authOptions = new LinkedList<AuthOption>();
-        final ContextAwareAuthScheme authScheme1 = Mockito.mock(ContextAwareAuthScheme.class);
+        final AuthScheme authScheme1 = Mockito.mock(AuthScheme.class);
         Mockito.doThrow(new AuthenticationException()).when(authScheme1).authenticate(
                 Mockito.any(Credentials.class),
                 Mockito.any(HttpRequest.class),
                 Mockito.any(HttpContext.class));
-        final ContextAwareAuthScheme authScheme2 = Mockito.mock(ContextAwareAuthScheme.class);
+        final AuthScheme authScheme2 = Mockito.mock(AuthScheme.class);
         Mockito.when(authScheme2.authenticate(
                 Mockito.any(Credentials.class),
                 Mockito.any(HttpRequest.class),

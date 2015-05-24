@@ -298,12 +298,4 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
         return !continueNeeded;
     }
 
-    @Override
-    @Deprecated
-    public Header authenticate(
-            final Credentials credentials,
-            final HttpRequest request) throws AuthenticationException {
-        return authenticate(credentials, request, null);
-    }
-
 }

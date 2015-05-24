@@ -36,6 +36,7 @@ import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.message.BufferedHeader;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
@@ -123,7 +124,8 @@ public class NTLMScheme extends AuthSchemeBase {
     @Override
     public Header authenticate(
             final Credentials credentials,
-            final HttpRequest request) throws AuthenticationException {
+            final HttpRequest request,
+            final HttpContext context) throws AuthenticationException {
         NTCredentials ntcredentials = null;
         try {
             ntcredentials = (NTCredentials) credentials;

@@ -26,20 +26,16 @@
  */
 package org.apache.http.client.methods;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.client.utils.CloneUtils;
 import org.apache.http.concurrent.Cancellable;
-import org.apache.http.conn.ClientConnectionRequest;
-import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.message.AbstractHttpMessage;
 
-@SuppressWarnings("deprecation")
 public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage implements
-        HttpExecutionAware, AbortableHttpRequest, Cloneable, HttpRequest {
+        HttpExecutionAware, Cloneable, HttpRequest {
 
     private final AtomicBoolean aborted;
     private final AtomicReference<Cancellable> cancellableRef;
@@ -50,39 +46,6 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
         this.cancellableRef = new AtomicReference<Cancellable>(null);
     }
 
-    @Override
-    @Deprecated
-    public void setConnectionRequest(final ClientConnectionRequest connRequest) {
-        setCancellable(new Cancellable() {
-
-            @Override
-            public boolean cancel() {
-                connRequest.abortRequest();
-                return true;
-            }
-
-        });
-    }
-
-    @Override
-    @Deprecated
-    public void setReleaseTrigger(final ConnectionReleaseTrigger releaseTrigger) {
-        setCancellable(new Cancellable() {
-
-            @Override
-            public boolean cancel() {
-                try {
-                    releaseTrigger.abortConnection();
-                    return true;
-                } catch (final IOException ex) {
-                    return false;
-                }
-            }
-
-        });
-    }
-
-    @Override
     public void abort() {
         if (this.aborted.compareAndSet(false, true)) {
             final Cancellable cancellable = this.cancellableRef.getAndSet(null);
@@ -111,7 +74,6 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
     public Object clone() throws CloneNotSupportedException {
         final AbstractExecutionAwareRequest clone = (AbstractExecutionAwareRequest) super.clone();
         clone.headergroup = CloneUtils.cloneObject(this.headergroup);
-        clone.params = CloneUtils.cloneObject(this.params);
         return clone;
     }
 

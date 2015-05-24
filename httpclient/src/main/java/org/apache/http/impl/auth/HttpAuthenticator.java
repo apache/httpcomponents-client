@@ -44,7 +44,6 @@ import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ContextAwareAuthScheme;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationStrategy;
@@ -229,17 +228,12 @@ public class HttpAuthenticator {
         Asserts.notNull(authScheme, "Auth scheme");
     }
 
-    @SuppressWarnings("deprecation")
     private Header doAuth(
             final AuthScheme authScheme,
             final Credentials creds,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
-        if (authScheme instanceof ContextAwareAuthScheme) {
-            return ((ContextAwareAuthScheme) authScheme).authenticate(creds, request, context);
-        } else {
-            return authScheme.authenticate(creds, request);
-        }
+        return authScheme.authenticate(creds, request, context);
     }
 
 }
