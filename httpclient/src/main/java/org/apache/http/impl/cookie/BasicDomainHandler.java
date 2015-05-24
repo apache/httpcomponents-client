@@ -30,7 +30,6 @@ import java.util.Locale;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.util.InetAddressUtils;
-import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
@@ -125,17 +124,15 @@ public class BasicDomainHandler implements CommonCookieAttributeHandler {
         if (host.equals(domain)) {
             return true;
         }
-        if (cookie instanceof ClientCookie) {
-            if (((ClientCookie) cookie).containsAttribute(ClientCookie.DOMAIN_ATTR)) {
-                return domainMatch(domain, host);
-            }
+        if ((cookie.containsAttribute(Cookie.DOMAIN_ATTR))) {
+            return domainMatch(domain, host);
         }
         return false;
     }
 
     @Override
     public String getAttributeName() {
-        return ClientCookie.DOMAIN_ATTR;
+        return Cookie.DOMAIN_ATTR;
     }
 
 }

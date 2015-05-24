@@ -29,8 +29,8 @@ package org.apache.http.impl.cookie;
 import java.util.Date;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.Args;
@@ -69,7 +69,7 @@ public class BasicMaxAgeHandler extends AbstractCookieAttributeHandler implement
 
     @Override
     public String getAttributeName() {
-        return ClientCookie.MAX_AGE_ATTR;
+        return Cookie.MAX_AGE_ATTR;
     }
 
 }

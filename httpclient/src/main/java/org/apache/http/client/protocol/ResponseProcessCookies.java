@@ -88,16 +88,8 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             this.log.debug("Cookie origin not specified in HTTP context");
             return;
         }
-        HeaderIterator it = response.headerIterator(SM.SET_COOKIE);
+        final HeaderIterator it = response.headerIterator(SM.SET_COOKIE);
         processCookies(it, cookieSpec, cookieOrigin, cookieStore);
-
-        // see if the cookie spec supports cookie versioning.
-        if (cookieSpec.getVersion() > 0) {
-            // process set-cookie2 headers.
-            // Cookie2 will replace equivalent Cookie instances
-            it = response.headerIterator(SM.SET_COOKIE2);
-            processCookies(it, cookieSpec, cookieOrigin, cookieStore);
-        }
     }
 
     private void processCookies(
@@ -145,8 +137,6 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             buf.append(v);
         }
         buf.append("\"");
-        buf.append(", version:");
-        buf.append(Integer.toString(cookie.getVersion()));
         buf.append(", domain:");
         buf.append(cookie.getDomain());
         buf.append(", path:");

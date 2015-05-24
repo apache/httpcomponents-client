@@ -46,12 +46,9 @@ import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.cookie.SM;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
-import org.apache.http.impl.cookie.BasicClientCookie2;
-import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.IgnoreSpecProvider;
-import org.apache.http.impl.cookie.NetscapeDraftSpec;
-import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
-import org.apache.http.impl.cookie.RFC2965SpecProvider;
+import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
+import org.apache.http.impl.cookie.RFC6265StrictSpec;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.HttpCoreContext;
 import org.junit.Assert;
@@ -69,21 +66,23 @@ public class TestRequestAddCookies {
     public void setUp() {
         this.target = new HttpHost("localhost.local", 80);
         this.cookieStore = new BasicCookieStore();
-        final BasicClientCookie2 cookie1 = new BasicClientCookie2("name1", "value1");
-        cookie1.setVersion(1);
+        final BasicClientCookie cookie1 = new BasicClientCookie("name1", "value1");
         cookie1.setDomain("localhost.local");
         cookie1.setPath("/");
         this.cookieStore.addCookie(cookie1);
-        final BasicClientCookie2 cookie2 = new BasicClientCookie2("name2", "value2");
-        cookie2.setVersion(1);
+        final BasicClientCookie cookie2 = new BasicClientCookie("name2", "value2");
         cookie2.setDomain("localhost.local");
         cookie2.setPath("/");
         this.cookieStore.addCookie(cookie2);
 
+        final CookieSpecProvider laxCookiePolicyPRovider = new RFC6265CookieSpecProvider(
+                RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, null);
+        final CookieSpecProvider strictCookiePolicyPRovider = new RFC6265CookieSpecProvider(
+                RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, null);
         this.cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
-            .register(CookieSpecs.DEFAULT, new DefaultCookieSpecProvider())
-            .register(CookieSpecs.STANDARD, new RFC2965SpecProvider())
-            .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())
+            .register(CookieSpecs.DEFAULT, laxCookiePolicyPRovider)
+            .register(CookieSpecs.STANDARD, laxCookiePolicyPRovider)
+            .register(CookieSpecs.STANDARD_STRICT, strictCookiePolicyPRovider)
             .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider())
             .build();
     }
@@ -117,14 +116,10 @@ public class TestRequestAddCookies {
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
         interceptor.process(request, context);
 
-        final Header[] headers1 = request.getHeaders(SM.COOKIE);
-        Assert.assertNotNull(headers1);
-        Assert.assertEquals(2, headers1.length);
-        Assert.assertEquals("$Version=1; name1=\"value1\"", headers1[0].getValue());
-        Assert.assertEquals("$Version=1; name2=\"value2\"", headers1[1].getValue());
-        final Header[] headers2 = request.getHeaders(SM.COOKIE2);
-        Assert.assertNotNull(headers2);
-        Assert.assertEquals(0, headers2.length);
+        final Header[] headers = request.getHeaders(SM.COOKIE);
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.length);
+        Assert.assertEquals("name1=value1; name2=value2", headers[0].getValue());
 
         final CookieOrigin cookieOrigin = context.getCookieOrigin();
         Assert.assertNotNull(cookieOrigin);
@@ -149,12 +144,9 @@ public class TestRequestAddCookies {
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
         interceptor.process(request, context);
 
-        final Header[] headers1 = request.getHeaders(SM.COOKIE);
-        Assert.assertNotNull(headers1);
-        Assert.assertEquals(0, headers1.length);
-        final Header[] headers2 = request.getHeaders(SM.COOKIE2);
-        Assert.assertNotNull(headers2);
-        Assert.assertEquals(0, headers2.length);
+        final Header[] headers = request.getHeaders(SM.COOKIE);
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(0, headers.length);
     }
 
     @Test
@@ -172,12 +164,9 @@ public class TestRequestAddCookies {
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
         interceptor.process(request, context);
 
-        final Header[] headers1 = request.getHeaders(SM.COOKIE);
-        Assert.assertNotNull(headers1);
-        Assert.assertEquals(0, headers1.length);
-        final Header[] headers2 = request.getHeaders(SM.COOKIE2);
-        Assert.assertNotNull(headers2);
-        Assert.assertEquals(0, headers2.length);
+        final Header[] headers = request.getHeaders(SM.COOKIE);
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(0, headers.length);
     }
 
     @Test
@@ -195,12 +184,9 @@ public class TestRequestAddCookies {
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
         interceptor.process(request, context);
 
-        final Header[] headers1 = request.getHeaders(SM.COOKIE);
-        Assert.assertNotNull(headers1);
-        Assert.assertEquals(0, headers1.length);
-        final Header[] headers2 = request.getHeaders(SM.COOKIE2);
-        Assert.assertNotNull(headers2);
-        Assert.assertEquals(0, headers2.length);
+        final Header[] headers = request.getHeaders(SM.COOKIE);
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(0, headers.length);
     }
 
     @Test
@@ -218,12 +204,9 @@ public class TestRequestAddCookies {
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
         interceptor.process(request, context);
 
-        final Header[] headers1 = request.getHeaders(SM.COOKIE);
-        Assert.assertNotNull(headers1);
-        Assert.assertEquals(0, headers1.length);
-        final Header[] headers2 = request.getHeaders(SM.COOKIE2);
-        Assert.assertNotNull(headers2);
-        Assert.assertEquals(0, headers2.length);
+        final Header[] headers = request.getHeaders(SM.COOKIE);
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(0, headers.length);
     }
 
     @Test
@@ -239,19 +222,16 @@ public class TestRequestAddCookies {
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
         interceptor.process(request, context);
 
-        final Header[] headers1 = request.getHeaders(SM.COOKIE);
-        Assert.assertNotNull(headers1);
-        Assert.assertEquals(0, headers1.length);
-        final Header[] headers2 = request.getHeaders(SM.COOKIE2);
-        Assert.assertNotNull(headers2);
-        Assert.assertEquals(0, headers2.length);
+        final Header[] headers = request.getHeaders(SM.COOKIE);
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(0, headers.length);
     }
 
     @Test
     public void testAddCookiesUsingExplicitCookieSpec() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final RequestConfig config = RequestConfig.custom()
-            .setCookieSpec(CookieSpecs.NETSCAPE).build();
+            .setCookieSpec(CookieSpecs.STANDARD_STRICT).build();
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();
@@ -265,7 +245,7 @@ public class TestRequestAddCookies {
         interceptor.process(request, context);
 
         final CookieSpec cookieSpec = context.getCookieSpec();
-        Assert.assertTrue(cookieSpec instanceof NetscapeDraftSpec);
+        Assert.assertTrue(cookieSpec instanceof RFC6265StrictSpec);
 
         final Header[] headers1 = request.getHeaders(SM.COOKIE);
         Assert.assertNotNull(headers1);
@@ -368,8 +348,7 @@ public class TestRequestAddCookies {
     public void testExcludeExpiredCookies() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
 
-        final BasicClientCookie2 cookie3 = new BasicClientCookie2("name3", "value3");
-        cookie3.setVersion(1);
+        final BasicClientCookie cookie3 = new BasicClientCookie("name3", "value3");
         cookie3.setDomain("localhost.local");
         cookie3.setPath("/");
         cookie3.setExpiryDate(new Date(System.currentTimeMillis() + 100));
@@ -393,14 +372,10 @@ public class TestRequestAddCookies {
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
         interceptor.process(request, context);
 
-        final Header[] headers1 = request.getHeaders(SM.COOKIE);
-        Assert.assertNotNull(headers1);
-        Assert.assertEquals(2, headers1.length);
-        Assert.assertEquals("$Version=1; name1=\"value1\"", headers1[0].getValue());
-        Assert.assertEquals("$Version=1; name2=\"value2\"", headers1[1].getValue());
-        final Header[] headers2 = request.getHeaders(SM.COOKIE2);
-        Assert.assertNotNull(headers2);
-        Assert.assertEquals(0, headers2.length);
+        final Header[] headers = request.getHeaders(SM.COOKIE);
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(1, headers.length);
+        Assert.assertEquals("name1=value1; name2=value2", headers[0].getValue());
 
         Mockito.verify(this.cookieStore, Mockito.times(1)).clearExpired(Mockito.<Date>any());
     }
@@ -426,12 +401,9 @@ public class TestRequestAddCookies {
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
         interceptor.process(request, context);
 
-        final Header[] headers1 = request.getHeaders(SM.COOKIE);
-        Assert.assertNotNull(headers1);
-        Assert.assertEquals(0, headers1.length);
-        final Header[] headers2 = request.getHeaders(SM.COOKIE2);
-        Assert.assertNotNull(headers2);
-        Assert.assertEquals(0, headers2.length);
+        final Header[] headers = request.getHeaders(SM.COOKIE);
+        Assert.assertNotNull(headers);
+        Assert.assertEquals(0, headers.length);
     }
 
     // Helper method

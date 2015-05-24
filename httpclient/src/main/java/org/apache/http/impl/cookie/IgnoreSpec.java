@@ -45,11 +45,6 @@ import org.apache.http.cookie.MalformedCookieException;
 public class IgnoreSpec extends CookieSpecBase {
 
     @Override
-    public int getVersion() {
-        return 0;
-    }
-
-    @Override
     public List<Cookie> parse(final Header header, final CookieOrigin origin)
             throws MalformedCookieException {
         return Collections.emptyList();
@@ -60,8 +55,4 @@ public class IgnoreSpec extends CookieSpecBase {
         return Collections.emptyList();
     }
 
-    @Override
-    public Header getVersionHeader() {
-        return null;
-    }
 }

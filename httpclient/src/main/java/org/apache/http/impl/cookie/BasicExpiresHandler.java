@@ -30,8 +30,8 @@ import java.util.Date;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.Args;
@@ -68,7 +68,7 @@ public class BasicExpiresHandler extends AbstractCookieAttributeHandler implemen
 
     @Override
     public String getAttributeName() {
-        return ClientCookie.EXPIRES_ATTR;
+        return Cookie.EXPIRES_ATTR;
     }
 
 }

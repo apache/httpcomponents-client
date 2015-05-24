@@ -38,11 +38,6 @@ import org.apache.http.annotation.Immutable;
 public final class CookieSpecs {
 
     /**
-     * The Netscape cookie draft compliant policy.
-     */
-    public static final String NETSCAPE = "netscape";
-
-    /**
      * The RFC 6265 compliant policy (interoprability profile).
      */
     public static final String STANDARD = "standard";

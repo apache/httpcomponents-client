@@ -30,7 +30,6 @@ package org.apache.http.cookie;
 import java.util.List;
 
 import org.apache.http.Header;
-import org.apache.http.annotation.Obsolete;
 
 /**
  * Defines the cookie management specification.
@@ -48,15 +47,6 @@ import org.apache.http.annotation.Obsolete;
  * @since 4.0
  */
 public interface CookieSpec {
-
-    /**
-     * Returns version of the state management this cookie specification
-     * conforms to.
-     *
-     * @return version of the state management specification
-     */
-    @Obsolete
-    int getVersion();
 
     /**
       * Parse the {@code "Set-Cookie"} Header into an array of Cookies.
@@ -102,13 +92,5 @@ public interface CookieSpec {
      * @throws IllegalArgumentException if an input parameter is illegal
      */
     List<Header> formatCookies(List<Cookie> cookies);
-
-    /**
-     * Returns a request header identifying what version of the state management
-     * specification is understood. May be {@code null} if the cookie
-     * specification does not support {@code Cookie2} header.
-     */
-    @Obsolete
-    Header getVersionHeader();
 
 }

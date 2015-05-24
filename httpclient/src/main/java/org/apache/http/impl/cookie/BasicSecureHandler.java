@@ -27,7 +27,6 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
@@ -62,7 +61,7 @@ public class BasicSecureHandler extends AbstractCookieAttributeHandler implement
 
     @Override
     public String getAttributeName() {
-        return ClientCookie.SECURE_ATTR;
+        return Cookie.SECURE_ATTR;
     }
 
 }

@@ -33,9 +33,7 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.impl.cookie.DefaultCookieSpecProvider;
 import org.apache.http.impl.cookie.IgnoreSpecProvider;
-import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
 import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 
 /**
@@ -47,18 +45,14 @@ public final class CookieSpecRegistries {
      * Creates a builder containing the default registry entries, using the provided public suffix matcher.
      */
     public static RegistryBuilder<CookieSpecProvider> createDefaultBuilder(final PublicSuffixMatcher publicSuffixMatcher) {
-        final CookieSpecProvider defaultProvider = new DefaultCookieSpecProvider(publicSuffixMatcher);
         final CookieSpecProvider laxStandardProvider = new RFC6265CookieSpecProvider(
                 RFC6265CookieSpecProvider.CompatibilityLevel.RELAXED, publicSuffixMatcher);
         final CookieSpecProvider strictStandardProvider = new RFC6265CookieSpecProvider(
                 RFC6265CookieSpecProvider.CompatibilityLevel.STRICT, publicSuffixMatcher);
         return RegistryBuilder.<CookieSpecProvider>create()
-                .register(CookieSpecs.DEFAULT, defaultProvider)
-                .register("best-match", defaultProvider)
-                .register("compatibility", defaultProvider)
+                .register(CookieSpecs.DEFAULT, laxStandardProvider)
                 .register(CookieSpecs.STANDARD, laxStandardProvider)
                 .register(CookieSpecs.STANDARD_STRICT, strictStandardProvider)
-                .register(CookieSpecs.NETSCAPE, new NetscapeDraftSpecProvider())
                 .register(CookieSpecs.IGNORE_COOKIES, new IgnoreSpecProvider());
     }
 

@@ -40,7 +40,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
@@ -168,8 +167,8 @@ public class RFC6265CookieSpec implements CookieSpec {
             attribMap.put(paramName, paramValue);
         }
         // Ignore 'Expires' if 'Max-Age' is present
-        if (attribMap.containsKey(ClientCookie.MAX_AGE_ATTR)) {
-            attribMap.remove(ClientCookie.EXPIRES_ATTR);
+        if (attribMap.containsKey(Cookie.MAX_AGE_ATTR)) {
+            attribMap.remove(Cookie.EXPIRES_ATTR);
         }
 
         for (Map.Entry<String, String> entry: attribMap.entrySet()) {
@@ -262,16 +261,6 @@ public class RFC6265CookieSpec implements CookieSpec {
             }
         }
         return false;
-    }
-
-    @Override
-    public final int getVersion() {
-        return 0;
-    }
-
-    @Override
-    public final Header getVersionHeader() {
-        return null;
     }
 
 }

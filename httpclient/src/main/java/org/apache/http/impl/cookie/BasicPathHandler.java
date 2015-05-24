@@ -27,7 +27,6 @@
 package org.apache.http.impl.cookie;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
@@ -96,7 +95,7 @@ public class BasicPathHandler implements CommonCookieAttributeHandler {
 
     @Override
     public String getAttributeName() {
-        return ClientCookie.PATH_ATTR;
+        return Cookie.PATH_ATTR;
     }
 
 }

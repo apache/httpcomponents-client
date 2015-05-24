@@ -33,6 +33,7 @@ import java.io.InputStreamReader;
 import org.apache.http.Consts;
 import org.apache.http.conn.util.PublicSuffixList;
 import org.apache.http.conn.util.PublicSuffixMatcher;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.junit.Assert;
 import org.junit.Before;
@@ -57,13 +58,14 @@ public class TestPublicSuffixListParser {
             in.close();
         }
         final PublicSuffixMatcher matcher = new PublicSuffixMatcher(suffixList.getRules(), suffixList.getExceptions());
-        this.filter = new PublicSuffixDomainFilter(new RFC2109DomainHandler(), matcher);
+        this.filter = new PublicSuffixDomainFilter(new BasicDomainHandler(), matcher);
     }
 
     @Test
     public void testParse() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
 
+        cookie.setAttribute(Cookie.DOMAIN_ATTR, ".jp");
         cookie.setDomain(".jp");
         Assert.assertFalse(filter.match(cookie, new CookieOrigin("apache.jp", 80, "/stuff", false)));
 

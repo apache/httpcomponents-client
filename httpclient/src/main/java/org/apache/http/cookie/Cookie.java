@@ -29,8 +29,6 @@ package org.apache.http.cookie;
 
 import java.util.Date;
 
-import org.apache.http.annotation.Obsolete;
-
 /**
  * Cookie interface represents a token or short packet of state information
  * (also referred to as "magic-cookie") that the HTTP agent and the target
@@ -43,6 +41,22 @@ import org.apache.http.annotation.Obsolete;
  * @since 4.0
  */
 public interface Cookie {
+
+    String PATH_ATTR       = "path";
+    String DOMAIN_ATTR     = "domain";
+    String MAX_AGE_ATTR    = "max-age";
+    String SECURE_ATTR     = "secure";
+    String EXPIRES_ATTR    = "expires";
+
+    /**
+     * @since 5.0
+     */
+    String getAttribute(String name);
+
+    /**
+     * @since 5.0
+     */
+    boolean containsAttribute(String name);
 
     /**
      * Returns the name.
@@ -57,22 +71,6 @@ public interface Cookie {
      * @return String value The current value.
      */
     String getValue();
-
-    /**
-     * Returns the comment describing the purpose of this cookie, or
-     * {@code null} if no such comment has been defined.
-     *
-     * @return comment
-     */
-    @Obsolete
-    String getComment();
-
-    /**
-     * If a user agent (web browser) presents this cookie to a user, the
-     * cookie's purpose will be described by the information at this URL.
-     */
-    @Obsolete
-    String getCommentURL();
 
     /**
      * Returns the expiration {@link Date} of the cookie, or {@code null}
@@ -111,28 +109,12 @@ public interface Cookie {
     String getPath();
 
     /**
-     * Get the Port attribute. It restricts the ports to which a cookie
-     * may be returned in a Cookie request header.
-     */
-    @Obsolete
-    int[] getPorts();
-
-    /**
      * Indicates whether this cookie requires a secure connection.
      *
      * @return  {@code true} if this cookie should only be sent
      *          over secure connections, {@code false} otherwise.
      */
     boolean isSecure();
-
-    /**
-     * Returns the version of the cookie specification to which this
-     * cookie conforms.
-     *
-     * @return the version of the cookie.
-     */
-    @Obsolete
-    int getVersion();
 
     /**
      * Returns true if this cookie has expired.

@@ -29,8 +29,6 @@ package org.apache.http.cookie;
 
 import java.util.Date;
 
-import org.apache.http.annotation.Obsolete;
-
 /**
  * This interface represents a {@code Set-Cookie} response header sent by the
  * origin server to the HTTP agent in order to maintain a conversational state.
@@ -43,17 +41,6 @@ import org.apache.http.annotation.Obsolete;
 public interface SetCookie extends Cookie {
 
     void setValue(String value);
-
-    /**
-     * If a user agent (web browser) presents this cookie to a user, the
-     * cookie's purpose will be described using this comment.
-     *
-     * @param comment
-     *
-     * @see #getComment()
-     */
-    @Obsolete
-    void setComment(String comment);
 
     /**
      * Sets expiration date.
@@ -100,17 +87,6 @@ public interface SetCookie extends Cookie {
      * @see #isSecure()
      */
     void setSecure (boolean secure);
-
-    /**
-     * Sets the version of the cookie specification to which this
-     * cookie conforms.
-     *
-     * @param version the version of the cookie.
-     *
-     * @see Cookie#getVersion
-     */
-    @Obsolete
-    void setVersion(int version);
 
 }
 

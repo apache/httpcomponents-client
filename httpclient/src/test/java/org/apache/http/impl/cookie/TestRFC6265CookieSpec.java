@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.http.Header;
-import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
@@ -63,10 +62,8 @@ public class TestRFC6265CookieSpec {
         Assert.assertEquals("value", cookie.getValue());
         Assert.assertEquals("/path", cookie.getPath());
         Assert.assertEquals("host", cookie.getDomain());
-        Assert.assertTrue(cookie instanceof ClientCookie);
-        final ClientCookie clientCookie = (ClientCookie) cookie;
-        Assert.assertEquals("stuff", clientCookie.getAttribute("this"));
-        Assert.assertEquals(null, clientCookie.getAttribute("that"));
+        Assert.assertEquals("stuff", cookie.getAttribute("this"));
+        Assert.assertEquals(null, cookie.getAttribute("that"));
 
         Mockito.verify(h1).parse(Mockito.<SetCookie>any(), Mockito.eq("stuff"));
         Mockito.verify(h2, Mockito.never()).parse(Mockito.<SetCookie>any(), Mockito.anyString());
@@ -84,9 +81,7 @@ public class TestRFC6265CookieSpec {
         final Cookie cookie = cookies.get(0);
         Assert.assertEquals("name", cookie.getName());
         Assert.assertEquals(" one, two, three; four ", cookie.getValue());
-        Assert.assertTrue(cookie instanceof ClientCookie);
-        final ClientCookie clientCookie = (ClientCookie) cookie;
-        Assert.assertEquals("stuff", clientCookie.getAttribute("this"));
+        Assert.assertEquals("stuff", cookie.getAttribute("this"));
     }
 
     @Test(expected = MalformedCookieException.class)
@@ -155,13 +150,11 @@ public class TestRFC6265CookieSpec {
         final Cookie cookie = cookies.get(0);
         Assert.assertEquals("name", cookie.getName());
         Assert.assertEquals("value", cookie.getValue());
-        Assert.assertTrue(cookie instanceof ClientCookie);
-        final ClientCookie clientCookie = (ClientCookie) cookie;
-        Assert.assertEquals("v", clientCookie.getAttribute("p1"));
-        Assert.assertEquals("v,0", clientCookie.getAttribute("p2"));
-        Assert.assertTrue(clientCookie.containsAttribute("p3"));
-        Assert.assertTrue(clientCookie.containsAttribute("p4"));
-        Assert.assertFalse(clientCookie.containsAttribute("p5"));
+        Assert.assertEquals("v", cookie.getAttribute("p1"));
+        Assert.assertEquals("v,0", cookie.getAttribute("p2"));
+        Assert.assertTrue(cookie.containsAttribute("p3"));
+        Assert.assertTrue(cookie.containsAttribute("p4"));
+        Assert.assertFalse(cookie.containsAttribute("p5"));
     }
 
     @Test
@@ -181,9 +174,7 @@ public class TestRFC6265CookieSpec {
         final Cookie cookie = cookies.get(0);
         Assert.assertEquals("name", cookie.getName());
         Assert.assertEquals("value", cookie.getValue());
-        Assert.assertTrue(cookie instanceof ClientCookie);
-        final ClientCookie clientCookie = (ClientCookie) cookie;
-        Assert.assertEquals("v", clientCookie.getAttribute("p1"));
+        Assert.assertEquals("v", cookie.getAttribute("p1"));
     }
 
     @Test
@@ -203,9 +194,7 @@ public class TestRFC6265CookieSpec {
         final Cookie cookie = cookies.get(0);
         Assert.assertEquals("name", cookie.getName());
         Assert.assertEquals("value", cookie.getValue());
-        Assert.assertTrue(cookie instanceof ClientCookie);
-        final ClientCookie clientCookie = (ClientCookie) cookie;
-        Assert.assertEquals("", clientCookie.getAttribute("p1"));
+        Assert.assertEquals("", cookie.getAttribute("p1"));
     }
 
     @Test
@@ -265,14 +254,6 @@ public class TestRFC6265CookieSpec {
 
         Mockito.verify(h1).match(cookie, origin);
         Mockito.verify(h2, Mockito.never()).match(cookie, origin);
-    }
-
-    @Test
-    public void testLegacy() throws Exception {
-        final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
-
-        Assert.assertEquals(0, cookiespec.getVersion());
-        Assert.assertEquals(null, cookiespec.getVersionHeader());
     }
 
     @Test

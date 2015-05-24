@@ -36,8 +36,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.message.ParserCursor;
@@ -214,7 +214,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
 
     @Override
     public String getAttributeName() {
-        return ClientCookie.EXPIRES_ATTR;
+        return Cookie.EXPIRES_ATTR;
     }
 
 }
