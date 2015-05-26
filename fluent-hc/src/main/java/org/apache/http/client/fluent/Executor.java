@@ -109,19 +109,28 @@ public class Executor {
     }
 
     private final HttpClient httpclient;
-    private final AuthCache authCache;
-    private final CredentialsProvider credentialsProvider;
-
+    private volatile AuthCache authCache;
+    private volatile CredentialsProvider credentialsProvider;
     private volatile CookieStore cookieStore;
 
     Executor(final HttpClient httpclient) {
         super();
         this.httpclient = httpclient;
-        this.credentialsProvider = new BasicCredentialsProvider();
         this.authCache = new BasicAuthCache();
     }
 
+    /**
+     * @since 4.5
+     */
+    public Executor use(final CredentialsProvider credentialsProvider) {
+        this.credentialsProvider = credentialsProvider;
+        return this;
+    }
+
     public Executor auth(final AuthScope authScope, final Credentials creds) {
+        if (this.credentialsProvider == null) {
+            this.credentialsProvider = new BasicCredentialsProvider();
+        }
         this.credentialsProvider.setCredentials(authScope, creds);
         return this;
     }
@@ -198,17 +207,33 @@ public class Executor {
     }
 
     public Executor clearAuth() {
-        this.credentialsProvider.clear();
+        if (this.credentialsProvider != null) {
+            this.credentialsProvider.clear();
+        }
         return this;
     }
 
+    /**
+     * @deprecated (4.5) Use {@link #use(CookieStore)}.
+     */
+    @Deprecated
     public Executor cookieStore(final CookieStore cookieStore) {
         this.cookieStore = cookieStore;
         return this;
     }
 
+    /**
+     * @since 4.5
+     */
+    public Executor use(final CookieStore cookieStore) {
+        this.cookieStore = cookieStore;
+        return this;
+    }
+
     public Executor clearCookies() {
-        this.cookieStore.clear();
+        if (this.cookieStore != null) {
+            this.cookieStore.clear();
+        }
         return this;
     }
 
@@ -223,9 +248,15 @@ public class Executor {
     public Response execute(
             final Request request) throws ClientProtocolException, IOException {
         final HttpClientContext localContext = HttpClientContext.create();
-        localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
-        localContext.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
-        localContext.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
+        if (this.credentialsProvider != null) {
+            localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
+        }
+        if (this.authCache != null) {
+            localContext.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);
+        }
+        if (this.cookieStore != null) {
+            localContext.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
+        }
         return new Response(request.internalExecute(this.httpclient, localContext));
     }
 
