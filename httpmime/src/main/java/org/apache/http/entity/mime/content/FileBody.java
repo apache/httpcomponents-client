@@ -60,7 +60,7 @@ public class FileBody extends AbstractContentBody {
         super(contentType);
         Args.notNull(file, "File");
         this.file = file;
-        this.filename = filename;
+        this.filename = filename == null ? file.getName() : filename;
     }
 
     /**
