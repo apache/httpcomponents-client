@@ -143,7 +143,7 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
                         response.removeHeaders("Content-MD5");
                     } else {
                         if (!"identity".equals(codecname) && !ignoreUnknown) {
-                            throw new HttpException("Unsupported Content-Coding: " + codec.getName());
+                            throw new HttpException("Unsupported Content-Encoding: " + codec.getName());
                         }
                     }
                 }
