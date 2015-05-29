@@ -59,6 +59,7 @@ public class TestRequestConfig {
         Assert.assertEquals(null, config.getProxy());
         Assert.assertEquals(null, config.getTargetPreferredAuthSchemes());
         Assert.assertEquals(null, config.getProxyPreferredAuthSchemes());
+        Assert.assertEquals(true, config.isContentCompressionEnabled());
     }
 
     @Test
@@ -78,6 +79,7 @@ public class TestRequestConfig {
                 .setProxy(new HttpHost("someproxy"))
                 .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM))
                 .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.DIGEST))
+                .setContentCompressionEnabled(false)
                 .build();
         final RequestConfig config = RequestConfig.copy(config0).build();
         Assert.assertEquals(22, config.getSocketTimeout());
@@ -94,6 +96,7 @@ public class TestRequestConfig {
         Assert.assertEquals(new HttpHost("someproxy"), config.getProxy());
         Assert.assertEquals(Arrays.asList(AuthSchemes.NTLM), config.getTargetPreferredAuthSchemes());
         Assert.assertEquals(Arrays.asList(AuthSchemes.DIGEST), config.getProxyPreferredAuthSchemes());
+        Assert.assertEquals(false, config.isContentCompressionEnabled());
     }
 
 }

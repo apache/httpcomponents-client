@@ -58,12 +58,13 @@ public class RequestConfig implements Cloneable {
     private final int connectTimeout;
     private final int socketTimeout;
     private final boolean decompressionEnabled;
+    private final boolean contentCompressionEnabled;
 
     /**
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
-        this(false, null, null, false, null, false, false, false, 0, false, null, null, 0, 0, 0, false);
+        this(false, null, null, false, null, false, false, false, 0, false, null, null, 0, 0, 0, false, false);
     }
 
     RequestConfig(
@@ -82,7 +83,8 @@ public class RequestConfig implements Cloneable {
             final int connectionRequestTimeout,
             final int connectTimeout,
             final int socketTimeout,
-            final boolean decompressionEnabled) {
+            final boolean decompressionEnabled,
+            final boolean contentCompressionEnabled) {
         super();
         this.expectContinueEnabled = expectContinueEnabled;
         this.proxy = proxy;
@@ -99,6 +101,7 @@ public class RequestConfig implements Cloneable {
         this.connectTimeout = connectTimeout;
         this.socketTimeout = socketTimeout;
         this.decompressionEnabled = decompressionEnabled;
+        this.contentCompressionEnabled = contentCompressionEnabled;
     }
 
     /**
@@ -298,6 +301,18 @@ public class RequestConfig implements Cloneable {
         return decompressionEnabled;
     }
 
+    /**
+     * Determines whether the target server is requested to compress content.
+     * <p>
+     * Default: {@code true}
+     * </p>
+     *
+     * @since 4.5
+     */
+    public boolean isContentCompressionEnabled() {
+        return contentCompressionEnabled;
+    }
+
     @Override
     protected RequestConfig clone() throws CloneNotSupportedException {
         return (RequestConfig) super.clone();
@@ -322,6 +337,7 @@ public class RequestConfig implements Cloneable {
         builder.append(", connectTimeout=").append(connectTimeout);
         builder.append(", socketTimeout=").append(socketTimeout);
         builder.append(", decompressionEnabled=").append(decompressionEnabled);
+        builder.append(", contentCompressionEnabled=").append(contentCompressionEnabled);
         builder.append("]");
         return builder.toString();
     }
@@ -346,7 +362,8 @@ public class RequestConfig implements Cloneable {
             .setConnectionRequestTimeout(config.getConnectionRequestTimeout())
             .setConnectTimeout(config.getConnectTimeout())
             .setSocketTimeout(config.getSocketTimeout())
-            .setDecompressionEnabled(config.isDecompressionEnabled());
+            .setDecompressionEnabled(config.isDecompressionEnabled())
+            .setContentCompressionEnabled(config.isContentCompressionEnabled());
     }
 
     public static class Builder {
@@ -367,6 +384,7 @@ public class RequestConfig implements Cloneable {
         private int connectTimeout;
         private int socketTimeout;
         private boolean decompressionEnabled;
+        private boolean contentCompressionEnabled;
 
         Builder() {
             super();
@@ -379,6 +397,7 @@ public class RequestConfig implements Cloneable {
             this.connectTimeout = -1;
             this.socketTimeout = -1;
             this.decompressionEnabled = true;
+            this.contentCompressionEnabled = true;
         }
 
         public Builder setExpectContinueEnabled(final boolean expectContinueEnabled) {
@@ -456,6 +475,11 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
+        public Builder setContentCompressionEnabled(final boolean contentCompressionEnabled) {
+            this.contentCompressionEnabled = contentCompressionEnabled;
+            return this;
+        }
+
         public RequestConfig build() {
             return new RequestConfig(
                     expectContinueEnabled,
@@ -473,7 +497,8 @@ public class RequestConfig implements Cloneable {
                     connectionRequestTimeout,
                     connectTimeout,
                     socketTimeout,
-                    decompressionEnabled);
+                    decompressionEnabled,
+                    contentCompressionEnabled);
         }
 
     }
