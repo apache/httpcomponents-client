@@ -315,7 +315,9 @@ public class RequestConfig implements Cloneable {
      * </p>
      *
      * @since 4.4
+     * @deprecated (4.5) Use {@link #isContentCompressionEnabled()}
      */
+    @Deprecated
     public boolean isDecompressionEnabled() {
         return decompressionEnabled;
     }
@@ -501,6 +503,11 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
+        /**
+         * @deprecated (4.5) Set {@link #setContentCompressionEnabled(boolean)} to {@code false} and
+         * add the {@code Accept-Encoding} request header.
+         */
+        @Deprecated
         public Builder setDecompressionEnabled(final boolean decompressionEnabled) {
             this.decompressionEnabled = decompressionEnabled;
             return this;
