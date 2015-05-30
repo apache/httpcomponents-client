@@ -28,6 +28,9 @@ Changelog:
 * [HTTPCLIENT-1651]: Add ability to disable content compression on a request basis
   Contributed by Michael Osipov <michaelo at apache.org>
 
+* [HTTPCLIENT-1654]: Deprecate/remove RequestConfig#decompressionEnabled in favor of #contentCompressionEnabled
+  Contributed by Michael Osipov <michaelo at apache.org>
+
 
 
 Release 4.4.1
