@@ -33,6 +33,7 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.annotation.Immutable;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -76,8 +77,11 @@ public class RequestAcceptEncoding implements HttpRequestInterceptor {
             final HttpRequest request,
             final HttpContext context) throws HttpException, IOException {
 
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+        final RequestConfig requestConfig = clientContext.getRequestConfig();
+
         /* Signal support for Accept-Encoding transfer encodings. */
-        if (!request.containsHeader("Accept-Encoding")) {
+        if (!request.containsHeader("Accept-Encoding") && requestConfig.isContentCompressionEnabled()) {
             request.addHeader("Accept-Encoding", acceptEncoding);
         }
     }
