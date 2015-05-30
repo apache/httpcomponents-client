@@ -163,7 +163,7 @@ public class TestResponseContentEncoding {
         response.setEntity(original);
 
         final RequestConfig config = RequestConfig.custom()
-                .setDecompressionEnabled(false)
+                .setContentCompressionEnabled(false)
                 .build();
 
         final HttpContext context = new BasicHttpContext();
