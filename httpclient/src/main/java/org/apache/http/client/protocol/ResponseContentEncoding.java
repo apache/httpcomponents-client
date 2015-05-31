@@ -129,7 +129,7 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
         final RequestConfig requestConfig = clientContext.getRequestConfig();
         // entity can be null in case of 304 Not Modified, 204 No Content or similar
         // check for zero length entity.
-        if (requestConfig.isDecompressionEnabled() && entity != null && entity.getContentLength() != 0) {
+        if (requestConfig.isContentCompressionEnabled() && entity != null && entity.getContentLength() != 0) {
             final Header ceheader = entity.getContentEncoding();
             if (ceheader != null) {
                 final HeaderElement[] codecs = ceheader.getElements();
