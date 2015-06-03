@@ -79,7 +79,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
 
     public void setProtocolVersion(final ProtocolVersion version) {
         this.version = version;
-        cachedRequestLine = null;
+        this.cachedRequestLine = null;
     }
 
     @Override
@@ -89,7 +89,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
 
     public void setURI(final URI uri) {
         this.uri = uri;
-        cachedRequestLine = null;
+        this.cachedRequestLine = null;
     }
 
     @Override
