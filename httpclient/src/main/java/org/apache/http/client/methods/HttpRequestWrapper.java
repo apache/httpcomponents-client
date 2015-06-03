@@ -109,7 +109,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
 
     @Override
     public RequestLine getRequestLine() {
-        if (cachedRequestLine == null) {
+        if (this.cachedRequestLine == null) {
             String requestUri = null;
             if (this.uri != null) {
                 requestUri = this.uri.toASCIIString();
@@ -119,9 +119,9 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
             if (requestUri == null || requestUri.isEmpty()) {
                 requestUri = "/";
             }
-            cachedRequestLine = new BasicRequestLine(this.method, requestUri, getProtocolVersion());
+            this.cachedRequestLine = new BasicRequestLine(this.method, requestUri, getProtocolVersion());
         }
-        return cachedRequestLine;
+        return this.cachedRequestLine;
     }
 
     public HttpRequest getOriginal() {
