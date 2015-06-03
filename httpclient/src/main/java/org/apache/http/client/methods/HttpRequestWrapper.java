@@ -54,6 +54,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
     private final HttpRequest original;
     private final HttpHost target;
     private final String method;
+    private RequestLine cachedRequestLine = null;
     private ProtocolVersion version;
     private URI uri;
 
@@ -78,6 +79,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
 
     public void setProtocolVersion(final ProtocolVersion version) {
         this.version = version;
+        cachedRequestLine = null;
     }
 
     @Override
@@ -87,6 +89,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
 
     public void setURI(final URI uri) {
         this.uri = uri;
+        cachedRequestLine = null;
     }
 
     @Override
@@ -106,16 +109,19 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
 
     @Override
     public RequestLine getRequestLine() {
-        String requestUri = null;
-        if (this.uri != null) {
-            requestUri = this.uri.toASCIIString();
-        } else {
-            requestUri = this.original.getRequestLine().getUri();
+        if (cachedRequestLine == null) {
+            String requestUri = null;
+            if (this.uri != null) {
+                requestUri = this.uri.toASCIIString();
+            } else {
+                requestUri = this.original.getRequestLine().getUri();
+            }
+            if (requestUri == null || requestUri.isEmpty()) {
+                requestUri = "/";
+            }
+            cachedRequestLine = new BasicRequestLine(this.method, requestUri, getProtocolVersion());
         }
-        if (requestUri == null || requestUri.isEmpty()) {
-            requestUri = "/";
-        }
-        return new BasicRequestLine(this.method, requestUri, getProtocolVersion());
+        return cachedRequestLine;
     }
 
     public HttpRequest getOriginal() {
