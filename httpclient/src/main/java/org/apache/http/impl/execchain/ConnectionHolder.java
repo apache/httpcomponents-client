@@ -30,6 +30,7 @@ package org.apache.http.impl.execchain;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.http.HttpClientConnection;
@@ -50,12 +51,11 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
 
     private final HttpClientConnectionManager manager;
     private final HttpClientConnection managedConn;
+    private final AtomicBoolean released;
     private volatile boolean reusable;
     private volatile Object state;
     private volatile long validDuration;
     private volatile TimeUnit tunit;
-
-    private volatile boolean released;
 
     public ConnectionHolder(
             final Log log,
@@ -65,6 +65,7 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
         this.log = log;
         this.manager = manager;
         this.managedConn = managedConn;
+        this.released = new AtomicBoolean(false);
     }
 
     public boolean isReusable() {
@@ -90,19 +91,40 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
         }
     }
 
+    private void releaseConnection(final boolean reusable) {
+        if (this.released.compareAndSet(false, true)) {
+            synchronized (this.managedConn) {
+                if (reusable) {
+                    this.manager.releaseConnection(this.managedConn,
+                            this.state, this.validDuration, this.tunit);
+                } else {
+                    try {
+                        this.managedConn.close();
+                        log.debug("Connection discarded");
+                    } catch (final IOException ex) {
+                        if (this.log.isDebugEnabled()) {
+                            this.log.debug(ex.getMessage(), ex);
+                        }
+                    } finally {
+                        this.manager.releaseConnection(
+                                this.managedConn, null, 0, TimeUnit.MILLISECONDS);
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void releaseConnection() {
-        synchronized (this.managedConn) {
-            if (this.released) {
-                return;
-            }
-            this.released = true;
-            if (this.reusable) {
-                this.manager.releaseConnection(this.managedConn,
-                        this.state, this.validDuration, this.tunit);
-            } else {
+        releaseConnection(this.reusable);
+    }
+
+    @Override
+    public void abortConnection() {
+        if (this.released.compareAndSet(false, true)) {
+            synchronized (this.managedConn) {
                 try {
-                    this.managedConn.close();
+                    this.managedConn.shutdown();
                     log.debug("Connection discarded");
                 } catch (final IOException ex) {
                     if (this.log.isDebugEnabled()) {
@@ -117,41 +139,20 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
     }
 
     @Override
-    public void abortConnection() {
-        synchronized (this.managedConn) {
-            if (this.released) {
-                return;
-            }
-            this.released = true;
-            try {
-                this.managedConn.shutdown();
-                log.debug("Connection discarded");
-            } catch (final IOException ex) {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug(ex.getMessage(), ex);
-                }
-            } finally {
-                this.manager.releaseConnection(
-                        this.managedConn, null, 0, TimeUnit.MILLISECONDS);
-            }
-        }
-    }
-
-    @Override
     public boolean cancel() {
-        final boolean alreadyReleased = this.released;
+        final boolean alreadyReleased = this.released.get();
         log.debug("Cancelling request execution");
         abortConnection();
         return !alreadyReleased;
     }
 
     public boolean isReleased() {
-        return this.released;
+        return this.released.get();
     }
 
     @Override
     public void close() throws IOException {
-        abortConnection();
+        releaseConnection(false);
     }
 
 }

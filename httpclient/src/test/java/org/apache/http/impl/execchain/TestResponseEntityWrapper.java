@@ -85,7 +85,7 @@ public class TestResponseEntityWrapper {
         Mockito.when(connHolder.isReleased()).thenReturn(true);
         Mockito.doThrow(new SocketException()).when(instream).close();
         EntityUtils.consume(wrapper);
-        Mockito.verify(connHolder).abortConnection();
+        Mockito.verify(connHolder).close();
     }
 
     @Test

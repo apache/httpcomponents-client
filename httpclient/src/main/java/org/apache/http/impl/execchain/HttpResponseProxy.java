@@ -61,7 +61,7 @@ class HttpResponseProxy implements CloseableHttpResponse {
     @Override
     public void close() throws IOException {
         if (this.connHolder != null) {
-            this.connHolder.abortConnection();
+            this.connHolder.close();
         }
     }
 

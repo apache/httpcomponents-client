@@ -202,7 +202,7 @@ public class TestMinimalClientExec {
 
         Mockito.verify(connManager, Mockito.times(1)).releaseConnection(
                 managedConn, null, 0, TimeUnit.MILLISECONDS);
-        Mockito.verify(managedConn, Mockito.times(1)).shutdown();
+        Mockito.verify(managedConn, Mockito.times(1)).close();
     }
 
     @Test

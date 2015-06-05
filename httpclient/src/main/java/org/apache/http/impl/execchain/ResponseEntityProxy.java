@@ -61,7 +61,13 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
         this.connHolder = connHolder;
     }
 
-    private void cleanup() {
+    private void cleanup() throws IOException {
+        if (this.connHolder != null) {
+            this.connHolder.close();
+        }
+    }
+
+    private void abortConnection() throws IOException {
         if (this.connHolder != null) {
             this.connHolder.abortConnection();
         }
@@ -69,13 +75,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
 
     public void releaseConnection() throws IOException {
         if (this.connHolder != null) {
-            try {
-                if (this.connHolder.isReusable()) {
-                    this.connHolder.releaseConnection();
-                }
-            } finally {
-                cleanup();
-            }
+            this.connHolder.releaseConnection();
         }
     }
 
@@ -100,6 +100,12 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
         try {
             this.wrappedEntity.writeTo(outstream);
             releaseConnection();
+        } catch (IOException ex) {
+            abortConnection();
+            throw ex;
+        } catch (RuntimeException ex) {
+            abortConnection();
+            throw ex;
         } finally {
             cleanup();
         }
@@ -112,6 +118,12 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
             // reading trailers after the response body:
             wrapped.close();
             releaseConnection();
+        } catch (IOException ex) {
+            abortConnection();
+            throw ex;
+        } catch (RuntimeException ex) {
+            abortConnection();
+            throw ex;
         } finally {
             cleanup();
         }
@@ -132,6 +144,12 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
                     throw ex;
                 }
             }
+        } catch (IOException ex) {
+            abortConnection();
+            throw ex;
+        } catch (RuntimeException ex) {
+            abortConnection();
+            throw ex;
         } finally {
             cleanup();
         }
