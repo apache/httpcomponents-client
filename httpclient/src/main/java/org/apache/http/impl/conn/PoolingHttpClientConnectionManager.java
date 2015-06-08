@@ -100,6 +100,9 @@ public class PoolingHttpClientConnectionManager
 
     private final Log log = LogFactory.getLog(getClass());
 
+    public static final int DEFAULT_MAX_TOTAL_CONNECTIONS = 25;
+    public static final int DEFAULT_MAX_CONNECTIONS_PER_ROUTE = 5;
+
     private final ConfigData configData;
     private final CPool pool;
     private final HttpClientConnectionOperator connectionOperator;
@@ -172,7 +175,9 @@ public class PoolingHttpClientConnectionManager
         super();
         this.configData = new ConfigData();
         this.pool = new CPool(new InternalConnectionFactory(
-                this.configData, connFactory), 2, 20, timeToLive, tunit);
+                this.configData, connFactory),
+                DEFAULT_MAX_CONNECTIONS_PER_ROUTE, DEFAULT_MAX_TOTAL_CONNECTIONS,
+                timeToLive, tunit);
         this.pool.setValidateAfterInactivity(2000);
         this.connectionOperator = Args.notNull(httpClientConnectionOperator, "HttpClientConnectionOperator");
         this.isShutDown = new AtomicBoolean(false);
