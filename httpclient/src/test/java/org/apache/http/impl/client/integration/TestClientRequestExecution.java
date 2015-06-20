@@ -126,6 +126,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
 
             @Override
             public boolean retryRequest(
+                    final HttpRequest request,
                     final IOException exception,
                     final int executionCount,
                     final HttpContext context) {
@@ -166,6 +167,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
 
             @Override
             public boolean retryRequest(
+                    final HttpRequest request,
                     final IOException exception,
                     final int executionCount,
                     final HttpContext context) {

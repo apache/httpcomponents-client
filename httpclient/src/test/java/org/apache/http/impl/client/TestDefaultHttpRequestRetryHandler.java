@@ -26,16 +26,12 @@
  */
 package org.apache.http.impl.client;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.IOException;
 import java.net.UnknownHostException;
 
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,70 +41,49 @@ public class TestDefaultHttpRequestRetryHandler {
 
     @Test
     public void noRetryOnConnectTimeout() throws Exception {
-        final HttpContext context = mock(HttpContext.class);
-        final HttpUriRequest request = mock(HttpUriRequest.class);
+        final HttpUriRequest request = new HttpGet("/");
 
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
         Assert.assertEquals(3, retryHandler.getRetryCount());
 
-        when(request.isAborted()).thenReturn(Boolean.FALSE);
-        when(context.getAttribute(HttpCoreContext.HTTP_REQUEST)).thenReturn(request);
-
-        Assert.assertFalse(retryHandler.retryRequest(new ConnectTimeoutException(), 1, context));
+        Assert.assertFalse(retryHandler.retryRequest(request, new ConnectTimeoutException(), 1, null));
     }
 
     @Test
     public void noRetryOnUnknownHost() throws Exception {
-        final HttpContext context = mock(HttpContext.class);
-        final HttpUriRequest request = mock(HttpUriRequest.class);
+        final HttpUriRequest request = new HttpGet("/");
 
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
-        when(request.isAborted()).thenReturn(Boolean.FALSE);
-        when(context.getAttribute(HttpCoreContext.HTTP_REQUEST)).thenReturn(request);
-
-        Assert.assertFalse(retryHandler.retryRequest(new UnknownHostException(), 1, context));
+        Assert.assertFalse(retryHandler.retryRequest(request, new UnknownHostException(), 1, null));
     }
 
     @Test
     public void noRetryOnAbortedRequests() throws Exception{
-        final HttpContext context = mock(HttpContext.class);
-        final HttpUriRequest request = mock(HttpUriRequest.class);
+        final HttpUriRequest request = new HttpGet("/");
+        request.abort();
 
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
-        when(request.isAborted()).thenReturn(Boolean.TRUE);
-        when(context.getAttribute(HttpCoreContext.HTTP_REQUEST)).thenReturn(request);
-
-        Assert.assertFalse(retryHandler.retryRequest(new IOException(),3,context));
+        Assert.assertFalse(retryHandler.retryRequest(request, new IOException(), 3, null));
     }
 
     @Test
     public void retryOnNonAbortedRequests() throws Exception{
-
-        final HttpContext context = mock(HttpContext.class);
-        final HttpUriRequest request = mock(HttpUriRequest.class);
+        final HttpUriRequest request = new HttpGet("/");
 
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
-        when(request.isAborted()).thenReturn(Boolean.FALSE);
-        when(context.getAttribute(HttpCoreContext.HTTP_REQUEST)).thenReturn(request);
-
-        Assert.assertTrue(retryHandler.retryRequest(new IOException(),3,context));
+        Assert.assertTrue(retryHandler.retryRequest(request, new IOException(), 3, null));
     }
 
     @Test
     public void noRetryOnConnectionTimeout() throws Exception{
-
-        final HttpContext context = mock(HttpContext.class);
-        final HttpUriRequest request = mock(HttpUriRequest.class);
+        final HttpUriRequest request = new HttpGet("/");
 
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
-        when(request.isAborted()).thenReturn(false);
-        when(context.getAttribute(HttpCoreContext.HTTP_REQUEST)).thenReturn(request);
-
-        Assert.assertFalse(retryHandler.retryRequest(new ConnectTimeoutException(),3,context));
+        Assert.assertFalse(retryHandler.retryRequest(request, new ConnectTimeoutException(), 3, null));
     }
 
 }

@@ -34,16 +34,17 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.net.ssl.SSLException;
 
-import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 
@@ -60,9 +61,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
     /** the number of times a method will be retried */
     private final int retryCount;
 
-    /** Whether or not methods that have successfully sent their request will be retried */
-    private final boolean requestSentRetryEnabled;
-
+    private final Map<String, Boolean> idempotentMethods;
     private final Set<Class<? extends IOException>> nonRetriableClasses;
 
     /**
@@ -79,7 +78,13 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
             final Collection<Class<? extends IOException>> clazzes) {
         super();
         this.retryCount = retryCount;
-        this.requestSentRetryEnabled = requestSentRetryEnabled;
+        this.idempotentMethods = new ConcurrentHashMap<>();
+        this.idempotentMethods.put("GET", Boolean.TRUE);
+        this.idempotentMethods.put("HEAD", Boolean.TRUE);
+        this.idempotentMethods.put("PUT", Boolean.TRUE);
+        this.idempotentMethods.put("DELETE", Boolean.TRUE);
+        this.idempotentMethods.put("OPTIONS", Boolean.TRUE);
+        this.idempotentMethods.put("TRACE", Boolean.TRUE);
         this.nonRetriableClasses = new HashSet<>();
         for (final Class<? extends IOException> clazz: clazzes) {
             this.nonRetriableClasses.add(clazz);
@@ -120,17 +125,20 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
     public DefaultHttpRequestRetryHandler() {
         this(3, false);
     }
+
     /**
      * Used {@code retryCount} and {@code requestSentRetryEnabled} to determine
      * if the given method should be retried.
      */
     @Override
     public boolean retryRequest(
+            final HttpRequest request,
             final IOException exception,
             final int executionCount,
             final HttpContext context) {
-        Args.notNull(exception, "Exception parameter");
-        Args.notNull(context, "HTTP context");
+        Args.notNull(request, "HTTP request");
+        Args.notNull(exception, "I/O exception");
+
         if (executionCount > this.retryCount) {
             // Do not retry if over max retry count
             return false;
@@ -144,33 +152,15 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
                 }
             }
         }
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
-        final HttpRequest request = clientContext.getRequest();
-
         if (request instanceof HttpUriRequest && ((HttpUriRequest)request).isAborted()) {
             return false;
         }
-
         if (handleAsIdempotent(request)) {
             // Retry if the request is considered idempotent
             return true;
         }
-
-        if (!clientContext.isRequestSent() || this.requestSentRetryEnabled) {
-            // Retry if the request has not been sent fully or
-            // if it's OK to retry methods that have been sent
-            return true;
-        }
         // otherwise do not retry
         return false;
-    }
-
-    /**
-     * @return {@code true} if this handler will retry methods that have
-     * successfully sent their request, {@code false} otherwise
-     */
-    public boolean isRequestSentRetryEnabled() {
-        return requestSentRetryEnabled;
     }
 
     /**
@@ -184,7 +174,9 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
      * @since 4.2
      */
     protected boolean handleAsIdempotent(final HttpRequest request) {
-        return !(request instanceof HttpEntityEnclosingRequest);
+        final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
+        final Boolean b = this.idempotentMethods.get(method);
+        return b != null && b.booleanValue();
     }
 
 }

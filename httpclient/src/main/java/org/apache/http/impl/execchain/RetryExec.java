@@ -91,7 +91,7 @@ public class RetryExec implements ClientExecChain {
                     this.log.debug("Request has been aborted");
                     throw ex;
                 }
-                if (retryHandler.retryRequest(ex, execCount, context)) {
+                if (retryHandler.retryRequest(request, ex, execCount, context)) {
                     if (this.log.isInfoEnabled()) {
                         this.log.info("I/O exception ("+ ex.getClass().getName() +
                                 ") caught when processing request to "

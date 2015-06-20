@@ -29,6 +29,7 @@ package org.apache.http.client;
 
 import java.io.IOException;
 
+import org.apache.http.HttpRequest;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -47,6 +48,7 @@ public interface HttpRequestRetryHandler {
      * Determines if a method should be retried after an IOException
      * occurs during execution.
      *
+     * @param request request failed die to an I/O exception.
      * @param exception the exception that occurred
      * @param executionCount the number of times this method has been
      * unsuccessfully executed
@@ -55,6 +57,6 @@ public interface HttpRequestRetryHandler {
      * @return {@code true} if the method should be retried, {@code false}
      * otherwise
      */
-    boolean retryRequest(IOException exception, int executionCount, HttpContext context);
+    boolean retryRequest(HttpRequest request, IOException exception, int executionCount, HttpContext context);
 
 }

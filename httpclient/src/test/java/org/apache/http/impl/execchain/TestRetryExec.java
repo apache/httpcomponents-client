@@ -29,6 +29,7 @@ package org.apache.http.impl.execchain;
 import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.entity.EntityBuilder;
@@ -101,6 +102,7 @@ public class TestRetryExec {
 
         });
         Mockito.when(retryHandler.retryRequest(
+                Mockito.<HttpRequest>any(),
                 Mockito.<IOException>any(),
                 Mockito.eq(1),
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
@@ -139,6 +141,7 @@ public class TestRetryExec {
                     Mockito.same(context),
                     Mockito.same(execAware));
             Mockito.verify(retryHandler, Mockito.never()).retryRequest(
+                    Mockito.<HttpRequest>any(),
                     Mockito.<IOException>any(),
                     Mockito.anyInt(),
                     Mockito.<HttpContext>any());
@@ -173,6 +176,7 @@ public class TestRetryExec {
 
         });
         Mockito.when(retryHandler.retryRequest(
+                Mockito.<HttpRequest>any(),
                 Mockito.<IOException>any(),
                 Mockito.eq(1),
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
