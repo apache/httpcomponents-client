@@ -79,7 +79,7 @@ public class RequestAddCookies implements HttpRequestInterceptor {
         Args.notNull(context, "HTTP context");
 
         final String method = request.getRequestLine().getMethod();
-        if (method.equalsIgnoreCase("CONNECT")) {
+        if (method.equalsIgnoreCase("CONNECT") || method.equalsIgnoreCase("TRACE")) {
             return;
         }
 

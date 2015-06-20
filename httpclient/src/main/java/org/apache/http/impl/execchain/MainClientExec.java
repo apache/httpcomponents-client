@@ -277,6 +277,11 @@ public class MainClientExec implements ClientExecChain {
                     connHolder.markNonReusable();
                 }
 
+                if (request.getMethod().equalsIgnoreCase("TRACE")) {
+                    // Do not perform authentication for TRACE request
+                    break;
+                }
+
                 if (needAuthentication(
                         targetAuthState, proxyAuthState, route, response, context)) {
                     // Make sure the response body is fully consumed, if present
