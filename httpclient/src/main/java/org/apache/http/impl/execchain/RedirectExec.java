@@ -111,7 +111,7 @@ public class RedirectExec implements ClientExecChain {
                     currentRoute, currentRequest, context, execAware);
             try {
                 if (config.isRedirectsEnabled() &&
-                        this.redirectStrategy.isRedirected(currentRequest, response, context)) {
+                        this.redirectStrategy.isRedirected(currentRequest.getOriginal(), response, context)) {
 
                     if (redirectCount >= maxRedirects) {
                         throw new RedirectException("Maximum redirects ("+ maxRedirects + ") exceeded");
@@ -119,7 +119,7 @@ public class RedirectExec implements ClientExecChain {
                     redirectCount++;
 
                     final HttpRequest redirect = this.redirectStrategy.getRedirect(
-                            currentRequest, response, context);
+                            currentRequest.getOriginal(), response, context);
                     if (!redirect.headerIterator().hasNext()) {
                         final HttpRequest original = request.getOriginal();
                         redirect.setHeaders(original.getAllHeaders());

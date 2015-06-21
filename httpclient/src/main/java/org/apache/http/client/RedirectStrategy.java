@@ -27,9 +27,9 @@
 
 package org.apache.http.client;
 
+import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolException;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.HttpContext;
 
@@ -60,7 +60,7 @@ public interface RedirectStrategy {
     boolean isRedirected(
             HttpRequest request,
             HttpResponse response,
-            HttpContext context) throws ProtocolException;
+            HttpContext context) throws HttpException;
 
     /**
      * Determines the redirect location given the response from the target
@@ -76,6 +76,6 @@ public interface RedirectStrategy {
     HttpUriRequest getRedirect(
             HttpRequest request,
             HttpResponse response,
-            HttpContext context) throws ProtocolException;
+            HttpContext context) throws HttpException;
 
 }

@@ -120,11 +120,11 @@ public class TestRedirectExec {
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenReturn(response2);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(redirectStrategy.getRedirect(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
@@ -216,11 +216,11 @@ public class TestRedirectExec {
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenReturn(response2);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(redirectStrategy.getRedirect(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
@@ -261,11 +261,11 @@ public class TestRedirectExec {
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenReturn(response2);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(redirectStrategy.getRedirect(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
@@ -332,11 +332,11 @@ public class TestRedirectExec {
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenReturn(response1);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.doThrow(new ProtocolException("Oppsie")).when(redirectStrategy).getRedirect(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any());
 

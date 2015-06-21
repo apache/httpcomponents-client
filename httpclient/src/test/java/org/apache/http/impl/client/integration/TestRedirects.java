@@ -549,27 +549,6 @@ public class TestRedirects extends LocalServerTestBase {
     }
 
     @Test
-    public void testPostNoRedirect() throws Exception {
-        this.serverBootstrap.registerHandler("*", new BasicRedirectService());
-
-        final HttpHost target = start();
-
-        final HttpClientContext context = HttpClientContext.create();
-
-        final HttpPost httppost = new HttpPost("/oldlocation/");
-        httppost.setEntity(new StringEntity("stuff"));
-
-        final HttpResponse response = this.httpclient.execute(target, httppost, context);
-        EntityUtils.consume(response.getEntity());
-
-        final HttpRequest reqWrapper = context.getRequest();
-
-        Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
-        Assert.assertEquals("POST", reqWrapper.getRequestLine().getMethod());
-    }
-
-    @Test
     public void testPostRedirectSeeOther() throws Exception {
         this.serverBootstrap.registerHandler("*", new BasicRedirectService(HttpStatus.SC_SEE_OTHER));
 
