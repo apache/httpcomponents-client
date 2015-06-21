@@ -616,23 +616,6 @@ public class TestRedirects extends LocalServerTestBase {
     }
 
     @Test(expected=ClientProtocolException.class)
-    public void testRejectRelativeRedirect() throws Exception {
-        this.serverBootstrap.registerHandler("*", new RelativeRedirectService());
-
-        final HttpHost target = start();
-
-        final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(false).build();
-        final HttpGet httpget = new HttpGet("/oldlocation/");
-        httpget.setConfig(config);
-        try {
-            this.httpclient.execute(target, httpget);
-        } catch (final ClientProtocolException e) {
-            Assert.assertTrue(e.getCause() instanceof ProtocolException);
-            throw e;
-        }
-    }
-
-    @Test(expected=ClientProtocolException.class)
     public void testRejectBogusRedirectLocation() throws Exception {
         this.serverBootstrap.registerHandler("*", new BogusRedirectService("xxx://bogus"));
 

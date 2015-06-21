@@ -48,7 +48,6 @@ public class RequestConfig implements Cloneable {
     private final InetAddress localAddress;
     private final String cookieSpec;
     private final boolean redirectsEnabled;
-    private final boolean relativeRedirectsAllowed;
     private final boolean circularRedirectsAllowed;
     private final int maxRedirects;
     private final boolean authenticationEnabled;
@@ -89,7 +88,6 @@ public class RequestConfig implements Cloneable {
         this.localAddress = localAddress;
         this.cookieSpec = cookieSpec;
         this.redirectsEnabled = redirectsEnabled;
-        this.relativeRedirectsAllowed = relativeRedirectsAllowed;
         this.circularRedirectsAllowed = circularRedirectsAllowed;
         this.maxRedirects = maxRedirects;
         this.authenticationEnabled = authenticationEnabled;
@@ -171,17 +169,6 @@ public class RequestConfig implements Cloneable {
      */
     public boolean isRedirectsEnabled() {
         return redirectsEnabled;
-    }
-
-    /**
-     * Determines whether relative redirects should be rejected. HTTP specification
-     * requires the location value be an absolute URI.
-     * <p>
-     * Default: {@code true}
-     * </p>
-     */
-    public boolean isRelativeRedirectsAllowed() {
-        return relativeRedirectsAllowed;
     }
 
     /**
@@ -312,7 +299,6 @@ public class RequestConfig implements Cloneable {
         builder.append(", localAddress=").append(localAddress);
         builder.append(", cookieSpec=").append(cookieSpec);
         builder.append(", redirectsEnabled=").append(redirectsEnabled);
-        builder.append(", relativeRedirectsAllowed=").append(relativeRedirectsAllowed);
         builder.append(", maxRedirects=").append(maxRedirects);
         builder.append(", circularRedirectsAllowed=").append(circularRedirectsAllowed);
         builder.append(", authenticationEnabled=").append(authenticationEnabled);
@@ -337,7 +323,6 @@ public class RequestConfig implements Cloneable {
             .setLocalAddress(config.getLocalAddress())
             .setCookieSpec(config.getCookieSpec())
             .setRedirectsEnabled(config.isRedirectsEnabled())
-            .setRelativeRedirectsAllowed(config.isRelativeRedirectsAllowed())
             .setCircularRedirectsAllowed(config.isCircularRedirectsAllowed())
             .setMaxRedirects(config.getMaxRedirects())
             .setAuthenticationEnabled(config.isAuthenticationEnabled())

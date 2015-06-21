@@ -240,21 +240,6 @@ public class TestDefaultRedirectStrategy {
         Assert.assertEquals(URI.create("http://localhost/morestuff"), uri);
     }
 
-    @Test(expected=ProtocolException.class)
-    public void testGetLocationUriRelativeLocationNotAllowed() throws Exception {
-        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, new HttpHost("localhost"));
-        final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(false).build();
-        context.setRequestConfig(config);
-
-        final HttpGet httpget = new HttpGet("http://localhost/");
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
-                HttpStatus.SC_MOVED_TEMPORARILY, "Redirect");
-        response.addHeader("Location", "/stuff");
-        redirectStrategy.getLocationURI(httpget, response, context);
-    }
-
     @Test
     public void testGetLocationUriAllowCircularRedirects() throws Exception {
         final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();

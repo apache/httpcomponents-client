@@ -51,7 +51,6 @@ public class TestRequestConfig {
         Assert.assertEquals(false, config.isExpectContinueEnabled());
         Assert.assertEquals(true, config.isAuthenticationEnabled());
         Assert.assertEquals(true, config.isRedirectsEnabled());
-        Assert.assertEquals(true, config.isRelativeRedirectsAllowed());
         Assert.assertEquals(false, config.isCircularRedirectsAllowed());
         Assert.assertEquals(50, config.getMaxRedirects());
         Assert.assertEquals(null, config.getCookieSpec());
@@ -88,7 +87,6 @@ public class TestRequestConfig {
         Assert.assertEquals(true, config.isExpectContinueEnabled());
         Assert.assertEquals(false, config.isAuthenticationEnabled());
         Assert.assertEquals(false, config.isRedirectsEnabled());
-        Assert.assertEquals(false, config.isRelativeRedirectsAllowed());
         Assert.assertEquals(true, config.isCircularRedirectsAllowed());
         Assert.assertEquals(100, config.getMaxRedirects());
         Assert.assertEquals(CookieSpecs.STANDARD, config.getCookieSpec());

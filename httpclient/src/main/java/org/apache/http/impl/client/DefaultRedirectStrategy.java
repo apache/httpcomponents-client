@@ -123,16 +123,9 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         final RequestConfig config = clientContext.getRequestConfig();
 
         URI uri = createLocationURI(location);
-
-        // rfc2616 demands the location value be a complete URI
-        // Location       = "Location" ":" absoluteURI
         try {
             if (!uri.isAbsolute()) {
-                if (!config.isRelativeRedirectsAllowed()) {
-                    throw new ProtocolException("Relative redirect location '"
-                            + uri + "' not allowed");
-                }
-                // Adjust location URI
+                // Resolve location URI
                 final HttpHost target = clientContext.getTargetHost();
                 Asserts.notNull(target, "Target host");
                 final URI requestURI = new URI(request.getRequestLine().getUri());
