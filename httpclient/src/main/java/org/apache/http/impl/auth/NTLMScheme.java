@@ -139,14 +139,14 @@ public class NTLMScheme extends AuthSchemeBase {
             throw new AuthenticationException("NTLM authentication failed");
         } else if (this.state == State.CHALLENGE_RECEIVED) {
             response = this.engine.generateType1Msg(
-                    ntcredentials.getDomain(),
+                    ntcredentials.getNetbiosDomain(),
                     ntcredentials.getWorkstation());
             this.state = State.MSG_TYPE1_GENERATED;
         } else if (this.state == State.MSG_TYPE2_RECEVIED) {
             response = this.engine.generateType3Msg(
                     ntcredentials.getUserName(),
                     ntcredentials.getPassword(),
-                    ntcredentials.getDomain(),
+                    ntcredentials.getNetbiosDomain(),
                     ntcredentials.getWorkstation(),
                     this.challenge);
             this.state = State.MSG_TYPE3_GENERATED;

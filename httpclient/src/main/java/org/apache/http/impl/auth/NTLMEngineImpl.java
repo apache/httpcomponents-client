@@ -175,28 +175,6 @@ final class NTLMEngineImpl implements NTLMEngine {
                 targetInformation).getResponse();
     }
 
-    /** Strip dot suffix from a name */
-    private static String stripDotSuffix(final String value) {
-        if (value == null) {
-            return null;
-        }
-        final int index = value.indexOf(".");
-        if (index != -1) {
-            return value.substring(0, index);
-        }
-        return value;
-    }
-
-    /** Convert host to standard form */
-    private static String convertHost(final String host) {
-        return stripDotSuffix(host);
-    }
-
-    /** Convert domain to standard form */
-    private static String convertDomain(final String domain) {
-        return stripDotSuffix(domain);
-    }
-
     private static int readULong(final byte[] src, final int index) throws NTLMEngineException {
         if (src.length < index + 4) {
             throw new NTLMEngineException("NTLM authentication - buffer too small for DWORD");
@@ -973,10 +951,10 @@ final class NTLMEngineImpl implements NTLMEngine {
             if (UNICODE_LITTLE_UNMARKED == null) {
                 throw new NTLMEngineException("Unicode not supported");
             }
-            // Strip off domain name from the host!
-            final String unqualifiedHost = convertHost(host);
-            // Use only the base domain name!
-            final String unqualifiedDomain = convertDomain(domain);
+            // All host name manipulations now take place in the credentials
+            final String unqualifiedHost = host;
+            // All domain name manipulations now take place in the credentials
+            final String unqualifiedDomain = domain;
 
             hostBytes = unqualifiedHost != null ?
                     unqualifiedHost.getBytes(UNICODE_LITTLE_UNMARKED) : null;
@@ -1169,10 +1147,10 @@ final class NTLMEngineImpl implements NTLMEngine {
             // Save the flags
             this.type2Flags = type2Flags;
 
-            // Strip off domain name from the host!
-            final String unqualifiedHost = convertHost(host);
-            // Use only the base domain name!
-            final String unqualifiedDomain = convertDomain(domain);
+            // All host name manipulations now take place in the credentials
+            final String unqualifiedHost = host;
+            // All domain name manipulations now take place in the credentials
+            final String unqualifiedDomain = domain;
 
             // Create a cipher generator class.  Use domain BEFORE it gets modified!
             final CipherGen gen = new CipherGen(unqualifiedDomain, user, password, nonce, target, targetInformation);

@@ -51,8 +51,11 @@ public class NTCredentials implements Credentials, Serializable {
     /** Password */
     private final String password;
 
-    /** The host the authentication request is originating from.  */
+    /** The netbios hostname the authentication request is originating from.  */
     private final String workstation;
+
+    /** The netbios domain the authentication request is against */
+    private final String netbiosDomain;
 
     /**
      * The constructor with the fully qualified username and password combined
@@ -83,6 +86,7 @@ public class NTCredentials implements Credentials, Serializable {
                     username.substring(atSlash + 1));
         }
         this.workstation = null;
+        this.netbiosDomain = null;
     }
 
     /**
@@ -99,6 +103,25 @@ public class NTCredentials implements Credentials, Serializable {
             final String password,
             final String workstation,
             final String domain) {
+        this(userName, password, convertHost(workstation), domain, convertDomain(domain));
+    }
+
+    /**
+     * Constructor.
+     * @param userName The user name.  This should not include the domain to authenticate with.
+     * For example: "user" is correct whereas "DOMAIN\\user" is not.
+     * @param password The password.
+     * @param workstation The netbios workstation name that the authentication request is originating from.
+     * Essentially, the computer name for this machine.
+     * @param domain The domain to authenticate within.
+     * @param netbiosDomain The netbios version of the domain name.
+     */
+    public NTCredentials(
+            final String userName,
+            final String password,
+            final String workstation,
+            final String domain,
+            final String netbiosDomain) {
         super();
         Args.notNull(userName, "User name");
         this.principal = new NTUserPrincipal(domain, userName);
@@ -108,6 +131,7 @@ public class NTCredentials implements Credentials, Serializable {
         } else {
             this.workstation = null;
         }
+        this.netbiosDomain = netbiosDomain;
     }
 
     @Override
@@ -134,9 +158,17 @@ public class NTCredentials implements Credentials, Serializable {
     }
 
     /**
-     * Retrieves the workstation name of the computer originating the request.
+    * Retrieves the netbios domain to authenticate with.
+    * @return String the netbios domain name.
+    */
+    public String getNetbiosDomain() {
+        return this.netbiosDomain;
+    }
+
+    /**
+     * Retrieves the netbios workstation name of the computer originating the request.
      *
-     * @return String the workstation the user is logged into.
+     * @return String the netbios workstation the user is logged into.
      */
     public String getWorkstation() {
         return this.workstation;
@@ -147,6 +179,7 @@ public class NTCredentials implements Credentials, Serializable {
         int hash = LangUtils.HASH_SEED;
         hash = LangUtils.hashCode(hash, this.principal);
         hash = LangUtils.hashCode(hash, this.workstation);
+        hash = LangUtils.hashCode(hash, this.netbiosDomain);
         return hash;
     }
 
@@ -158,7 +191,8 @@ public class NTCredentials implements Credentials, Serializable {
         if (o instanceof NTCredentials) {
             final NTCredentials that = (NTCredentials) o;
             if (LangUtils.equals(this.principal, that.principal)
-                    && LangUtils.equals(this.workstation, that.workstation)) {
+                    && LangUtils.equals(this.workstation, that.workstation)
+                    && LangUtils.equals(this.netbiosDomain, that.netbiosDomain)) {
                 return true;
             }
         }
@@ -172,8 +206,33 @@ public class NTCredentials implements Credentials, Serializable {
         buffer.append(this.principal);
         buffer.append("][workstation: ");
         buffer.append(this.workstation);
+        buffer.append("][netbiosDomain: ");
+        buffer.append(this.netbiosDomain);
         buffer.append("]");
         return buffer.toString();
+    }
+
+    /** Strip dot suffix from a name */
+    private static String stripDotSuffix(final String value) {
+        if (value == null) {
+            return null;
+        }
+        final int index = value.indexOf(".");
+        if (index != -1) {
+            return value.substring(0, index);
+        }
+        return value;
+    }
+
+    /** Convert host to standard form */
+    private static String convertHost(final String host) {
+        return stripDotSuffix(host);
+    }
+
+    /** Convert domain to standard form */
+    private static String convertDomain(final String domain) {
+        final String returnString = stripDotSuffix(domain);
+        return returnString == null ? returnString : returnString.toUpperCase(Locale.ROOT);
     }
 
 }
