@@ -86,10 +86,12 @@ public class ServiceUnavailableRetryExec implements ClientExecChain {
             try {
                 if (this.retryStrategy.retryRequest(response, c, context)) {
                     response.close();
-                    final long nextInterval = this.retryStrategy.getRetryInterval();
+                    final long nextInterval = this.retryStrategy.getRetryInterval(response, context);
                     if (nextInterval > 0) {
                         try {
-                            this.log.trace("Wait for " + nextInterval);
+                            if (this.log.isDebugEnabled()) {
+                                this.log.debug("Wait for " + ((double) nextInterval / 1000) + " seconds" );
+                            }
                             Thread.sleep(nextInterval);
                         } catch (final InterruptedException e) {
                             Thread.currentThread().interrupt();

@@ -53,8 +53,8 @@ public interface ServiceUnavailableRetryStrategy {
     boolean retryRequest(HttpResponse response, int executionCount, HttpContext context);
 
     /**
-     * @return The interval between the subsequent auto-retries.
+     * @return The interval between the subsequent retry in milliseconds.
      */
-    long getRetryInterval();
+    long getRetryInterval(HttpResponse response, HttpContext context);
 
 }

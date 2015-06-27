@@ -27,10 +27,15 @@
 
 package org.apache.http.impl.client;
 
+import java.util.Date;
+
+import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 
@@ -54,14 +59,14 @@ public class DefaultServiceUnavailableRetryStrategy implements ServiceUnavailabl
      * Retry interval between subsequent requests, in milliseconds. Default
      * value is 1 second.
      */
-    private final long retryInterval;
+    private final long defaultRetryInterval;
 
-    public DefaultServiceUnavailableRetryStrategy(final int maxRetries, final int retryInterval) {
+    public DefaultServiceUnavailableRetryStrategy(final int maxRetries, final int defaultRetryInterval) {
         super();
         Args.positive(maxRetries, "Max retries");
-        Args.positive(retryInterval, "Retry interval");
+        Args.positive(defaultRetryInterval, "Retry interval");
         this.maxRetries = maxRetries;
-        this.retryInterval = retryInterval;
+        this.defaultRetryInterval = defaultRetryInterval;
     }
 
     public DefaultServiceUnavailableRetryStrategy() {
@@ -75,8 +80,21 @@ public class DefaultServiceUnavailableRetryStrategy implements ServiceUnavailabl
     }
 
     @Override
-    public long getRetryInterval() {
-        return retryInterval;
+    public long getRetryInterval(final HttpResponse response, final HttpContext context) {
+        final Header header = response.getFirstHeader(HttpHeaders.RETRY_AFTER);
+        if (header != null) {
+            final String value = header.getValue();
+            try {
+                return Long.parseLong(value) * 1000;
+            } catch (NumberFormatException ignore) {
+                final Date date = DateUtils.parseDate(value);
+                if (date != null) {
+                    final long n = date.getTime() - System.currentTimeMillis();
+                    return n > 0 ? n : 0;
+                }
+            }
+        }
+        return this.defaultRetryInterval;
     }
 
 }

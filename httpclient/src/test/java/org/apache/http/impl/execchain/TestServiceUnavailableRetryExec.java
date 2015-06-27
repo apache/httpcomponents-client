@@ -80,7 +80,9 @@ public class TestServiceUnavailableRetryExec {
                 Mockito.<HttpResponse>any(),
                 Mockito.anyInt(),
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
-        Mockito.when(retryStrategy.getRetryInterval()).thenReturn(0L);
+        Mockito.when(retryStrategy.getRetryInterval(
+                Mockito.<HttpResponse>any(),
+                Mockito.<HttpContext>any())).thenReturn(0L);
 
         retryExec.execute(route, request, context, execAware);
 
