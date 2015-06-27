@@ -32,16 +32,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.CredentialsStore;
 import org.apache.http.util.Args;
 
 /**
- * Default implementation of {@link CredentialsProvider}.
+ * Default implementation of {@link CredentialsStore}.
  *
  * @since 4.0
  */
 @ThreadSafe
-public class BasicCredentialsProvider implements CredentialsProvider {
+public class BasicCredentialsProvider implements CredentialsStore {
 
     private final ConcurrentHashMap<AuthScope, Credentials> credMap;
 

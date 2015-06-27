@@ -31,7 +31,7 @@ import java.util.Map;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.CredentialsStore;
 import org.apache.http.osgi.services.ProxyConfiguration;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -39,7 +39,7 @@ import org.osgi.framework.ServiceRegistration;
 /**
  * @since 4.3
  */
-final class OSGiCredentialsProvider implements CredentialsProvider {
+final class OSGiCredentialsProvider implements CredentialsStore {
 
     private final BundleContext bundleContext;
 

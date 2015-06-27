@@ -33,9 +33,9 @@ import java.util.List;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthState;
+import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Lookup;
 import org.apache.http.conn.routing.HttpRoute;
@@ -94,7 +94,7 @@ public class HttpClientContext extends HttpCoreContext {
     public static final String COOKIE_STORE          = "http.cookie-store";
 
     /**
-     * Attribute name of a {@link org.apache.http.client.CredentialsProvider}
+     * Attribute name of a {@link CredentialsProvider}
      * object that represents the actual credentials provider.
      */
     public static final String CREDS_PROVIDER        = "http.auth.credentials-provider";

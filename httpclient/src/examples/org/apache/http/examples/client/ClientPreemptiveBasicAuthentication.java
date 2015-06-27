@@ -30,7 +30,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -53,7 +52,7 @@ public class ClientPreemptiveBasicAuthentication {
 
     public static void main(String[] args) throws Exception {
         HttpHost target = new HttpHost("localhost", 80, "http");
-        CredentialsProvider credsProvider = new BasicCredentialsProvider();
+        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
                 new AuthScope(target.getHostName(), target.getPort()),
                 new UsernamePasswordCredentials("username", "password"));

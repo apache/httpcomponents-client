@@ -38,18 +38,18 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.CredentialsStore;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.util.Args;
 
 /**
- * Implementation of {@link CredentialsProvider} backed by standard
+ * Implementation of {@link CredentialsStore} backed by standard
  * JRE {@link Authenticator}.
  *
  * @since 4.3
  */
 @ThreadSafe
-public class SystemDefaultCredentialsProvider implements CredentialsProvider {
+public class SystemDefaultCredentialsProvider implements CredentialsStore {
 
     private static final Map<String, String> SCHEME_MAP;
 

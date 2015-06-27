@@ -39,8 +39,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.CredentialsStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
@@ -48,7 +49,6 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.protocol.HttpProcessor;
 import org.apache.http.util.Args;
@@ -142,14 +142,12 @@ public class ProtocolExec implements ClientExecChain {
         if (uri != null) {
             final String userinfo = uri.getUserInfo();
             if (userinfo != null) {
-                CredentialsProvider credsProvider = context.getCredentialsProvider();
-                if (credsProvider == null) {
-                    credsProvider = new BasicCredentialsProvider();
-                    context.setCredentialsProvider(credsProvider);
+                final CredentialsProvider credsProvider = context.getCredentialsProvider();
+                if (credsProvider instanceof CredentialsStore) {
+                    ((CredentialsStore) credsProvider).setCredentials(
+                            new AuthScope(target),
+                            new UsernamePasswordCredentials(userinfo));
                 }
-                credsProvider.setCredentials(
-                        new AuthScope(target),
-                        new UsernamePasswordCredentials(userinfo));
             }
         }
 

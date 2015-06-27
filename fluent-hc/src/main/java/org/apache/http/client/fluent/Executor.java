@@ -43,7 +43,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.CredentialsStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
@@ -110,7 +110,7 @@ public class Executor {
 
     private final HttpClient httpclient;
     private volatile AuthCache authCache;
-    private volatile CredentialsProvider credentialsProvider;
+    private volatile CredentialsStore credentialsStore;
     private volatile CookieStore cookieStore;
 
     Executor(final HttpClient httpclient) {
@@ -122,16 +122,16 @@ public class Executor {
     /**
      * @since 4.5
      */
-    public Executor use(final CredentialsProvider credentialsProvider) {
-        this.credentialsProvider = credentialsProvider;
+    public Executor use(final CredentialsStore credentialsStore) {
+        this.credentialsStore = credentialsStore;
         return this;
     }
 
     public Executor auth(final AuthScope authScope, final Credentials creds) {
-        if (this.credentialsProvider == null) {
-            this.credentialsProvider = new BasicCredentialsProvider();
+        if (this.credentialsStore == null) {
+            this.credentialsStore = new BasicCredentialsProvider();
         }
-        this.credentialsProvider.setCredentials(authScope, creds);
+        this.credentialsStore.setCredentials(authScope, creds);
         return this;
     }
 
@@ -207,8 +207,8 @@ public class Executor {
     }
 
     public Executor clearAuth() {
-        if (this.credentialsProvider != null) {
-            this.credentialsProvider.clear();
+        if (this.credentialsStore != null) {
+            this.credentialsStore.clear();
         }
         return this;
     }
@@ -248,8 +248,8 @@ public class Executor {
     public Response execute(
             final Request request) throws ClientProtocolException, IOException {
         final HttpClientContext localContext = HttpClientContext.create();
-        if (this.credentialsProvider != null) {
-            localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsProvider);
+        if (this.credentialsStore != null) {
+            localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsStore);
         }
         if (this.authCache != null) {
             localContext.setAttribute(HttpClientContext.AUTH_CACHE, this.authCache);

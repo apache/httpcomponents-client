@@ -38,7 +38,6 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.Registry;
@@ -155,7 +154,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         final HttpHost target = start();
 
         final AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
-        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         final Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
 
@@ -186,7 +185,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
 
         final AuthSchemeProvider nsf = new NegotiateSchemeProviderWithMockGssManager();
 
-        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         final Credentials use_jaas_creds = new UseJaasCredentials();
         credentialsProvider.setCredentials(new AuthScope(null, -1, null), use_jaas_creds);
 

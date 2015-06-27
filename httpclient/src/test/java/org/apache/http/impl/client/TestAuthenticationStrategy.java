@@ -41,9 +41,9 @@ import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -227,7 +227,7 @@ public class TestAuthenticationStrategy {
             .register("digest", new DigestSchemeFactory()).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);
 
-        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(new AuthScope("somehost", 80, "realm2"),
                 new UsernamePasswordCredentials("user", "pwd"));
         context.setCredentialsProvider(credentialsProvider);
@@ -256,7 +256,7 @@ public class TestAuthenticationStrategy {
             .register("digest", new DigestSchemeFactory()).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);
 
-        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(new AuthScope("somehost", 80),
                 new UsernamePasswordCredentials("user", "pwd"));
         context.setCredentialsProvider(credentialsProvider);
@@ -291,7 +291,7 @@ public class TestAuthenticationStrategy {
         context.setAuthSchemeRegistry(authSchemeRegistry);
         context.setRequestConfig(config);
 
-        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(new AuthScope("somehost", 80),
                 new UsernamePasswordCredentials("user", "pwd"));
         context.setCredentialsProvider(credentialsProvider);

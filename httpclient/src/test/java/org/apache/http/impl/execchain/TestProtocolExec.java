@@ -33,13 +33,14 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
@@ -185,11 +186,11 @@ public class TestProtocolExec {
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
                 new HttpGet("http://somefella:secret@bar/test"));
         final HttpClientContext context = HttpClientContext.create();
+        context.setCredentialsProvider(new BasicCredentialsProvider());
         protocolExec.execute(route, request, context, execAware);
         Assert.assertEquals(new URI("/test"), request.getURI());
         Assert.assertEquals(new HttpHost("bar", -1), context.getTargetHost());
         final CredentialsProvider credentialsProvider = context.getCredentialsProvider();
-        Assert.assertNotNull(credentialsProvider);
         final Credentials creds = credentialsProvider.getCredentials(new AuthScope("bar", -1, null));
         Assert.assertNotNull(creds);
         Assert.assertEquals("somefella", creds.getUserPrincipal().getName());

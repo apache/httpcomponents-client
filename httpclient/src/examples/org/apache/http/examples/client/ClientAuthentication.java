@@ -28,7 +28,6 @@ package org.apache.http.examples.client;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -43,7 +42,7 @@ import org.apache.http.util.EntityUtils;
 public class ClientAuthentication {
 
     public static void main(String[] args) throws Exception {
-        CredentialsProvider credsProvider = new BasicCredentialsProvider();
+        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
                 new AuthScope("localhost", 443),
                 new UsernamePasswordCredentials("username", "password"));

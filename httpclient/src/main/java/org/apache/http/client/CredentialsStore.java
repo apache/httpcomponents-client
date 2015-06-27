@@ -28,10 +28,10 @@ package org.apache.http.client;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
+import org.apache.http.auth.CredentialsProvider;
 
 /**
- * Abstract credentials provider that maintains a collection of user
- * credentials.
+ * Abstract store of authentication credentials.
  * <p>
  * Implementations of this interface must be thread-safe. Access to shared
  * data must be synchronized as methods of this interface may be executed
@@ -39,7 +39,7 @@ import org.apache.http.auth.Credentials;
  *
  * @since 4.0
  */
-public interface CredentialsProvider {
+public interface CredentialsStore extends CredentialsProvider {
 
     /**
      * Sets the {@link Credentials credentials} for the given authentication
@@ -52,16 +52,6 @@ public interface CredentialsProvider {
      * @see #getCredentials(AuthScope)
      */
     void setCredentials(AuthScope authscope, Credentials credentials);
-
-    /**
-     * Get the {@link Credentials credentials} for the given authentication scope.
-     *
-     * @param authscope the {@link AuthScope authentication scope}
-     * @return the credentials
-     *
-     * @see #setCredentials(AuthScope, Credentials)
-     */
-    Credentials getCredentials(AuthScope authscope);
 
     /**
      * Clears all credentials.

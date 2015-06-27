@@ -29,12 +29,12 @@ package org.apache.http.impl.auth.win;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.CredentialsStore;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.util.Args;
 
 /**
- * {@link org.apache.http.client.CredentialsProvider} implementation that always returns
+ * {@link CredentialsStore} implementation that always returns
  * {@link org.apache.http.impl.auth.win.CurrentWindowsCredentials} instance to NTLM
  * and SPNego authentication challenges.
  * <p>
@@ -44,11 +44,11 @@ import org.apache.http.util.Args;
  * @since 4.4
  */
 @ThreadSafe
-public class WindowsCredentialsProvider implements CredentialsProvider {
+public class WindowsCredentialsProvider implements CredentialsStore {
 
-    private final CredentialsProvider provider;
+    private final CredentialsStore provider;
 
-    public WindowsCredentialsProvider(final CredentialsProvider provider) {
+    public WindowsCredentialsProvider(final CredentialsStore provider) {
         this.provider = Args.notNull(provider, "Credentials provider");
     }
 

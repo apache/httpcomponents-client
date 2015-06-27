@@ -41,10 +41,10 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
+import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -150,17 +150,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         }
 
         @Override
-        public void clear() {
-        }
-
-        @Override
         public Credentials getCredentials(final AuthScope authscope) {
             this.authscope = authscope;
             return this.creds;
-        }
-
-        @Override
-        public void setCredentials(final AuthScope authscope, final Credentials credentials) {
         }
 
         public AuthScope getAuthScope() {
