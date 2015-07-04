@@ -29,11 +29,11 @@ package org.apache.http.impl.auth.win;
 import java.io.IOException;
 
 import org.apache.http.HttpException;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.CredentialsProvider;
@@ -75,7 +75,7 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
                     final HttpRequest request,
                     final HttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
-                response.addHeader(AUTH.WWW_AUTH, AuthSchemes.SPNEGO);
+                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, AuthSchemes.SPNEGO);
                 response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
             }
 

@@ -35,8 +35,8 @@ import java.util.List;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Consts;
 import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpRequest;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.ChallengeType;
@@ -105,7 +105,7 @@ public class TestBasicScheme {
 
         final String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
-        Assert.assertEquals(AUTH.WWW_AUTH_RESP, authResponse.getName());
+        Assert.assertEquals(HttpHeaders.AUTHORIZATION, authResponse.getName());
         Assert.assertEquals(expected, authResponse.getValue());
         Assert.assertEquals("test", authscheme.getRealm());
         Assert.assertTrue(authscheme.isComplete());
@@ -127,7 +127,7 @@ public class TestBasicScheme {
 
         final String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
-        Assert.assertEquals(AUTH.PROXY_AUTH_RESP, authResponse.getName());
+        Assert.assertEquals(HttpHeaders.PROXY_AUTHORIZATION, authResponse.getName());
         Assert.assertEquals(expected, authResponse.getValue());
         Assert.assertEquals("test", authscheme.getRealm());
         Assert.assertTrue(authscheme.isComplete());

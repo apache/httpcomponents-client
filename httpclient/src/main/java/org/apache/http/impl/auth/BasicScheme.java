@@ -35,9 +35,9 @@ import java.nio.charset.Charset;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Consts;
 import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ChallengeType;
@@ -107,9 +107,9 @@ public class BasicScheme extends StandardAuthScheme {
         Args.notNull(request, "HTTP request");
         final CharArrayBuffer buffer = new CharArrayBuffer(32);
         if (isProxy()) {
-            buffer.append(AUTH.PROXY_AUTH_RESP);
+            buffer.append(HttpHeaders.PROXY_AUTHORIZATION);
         } else {
-            buffer.append(AUTH.WWW_AUTH_RESP);
+            buffer.append(HttpHeaders.AUTHORIZATION);
         }
         buffer.append(": Basic ");
 

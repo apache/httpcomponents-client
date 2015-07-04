@@ -31,12 +31,12 @@ import java.io.IOException;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpStatus;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.CredentialsProvider;
@@ -68,8 +68,8 @@ public class TestClientAuthenticationFallBack extends LocalServerTestBase {
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-                response.addHeader(AUTH.WWW_AUTH, "Digest realm=\"test realm\" invalid");
-                response.addHeader(AUTH.WWW_AUTH, "Basic realm=\"test realm\"");
+                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"test realm\" invalid");
+                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test realm\"");
             }
         }
 

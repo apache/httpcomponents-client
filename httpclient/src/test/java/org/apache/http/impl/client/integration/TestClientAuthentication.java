@@ -35,12 +35,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpInetConnection;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthScope;
@@ -424,7 +424,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
             final String givenCreds = (String) context.getAttribute("creds");
             if (givenCreds == null || !givenCreds.equals(this.realmCreds)) {
                 response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
-                response.addHeader(AUTH.WWW_AUTH, "Basic realm=\"" + this.realm + "\"");
+                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"" + this.realm + "\"");
             } else {
                 response.setStatusCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("success", Consts.ASCII);

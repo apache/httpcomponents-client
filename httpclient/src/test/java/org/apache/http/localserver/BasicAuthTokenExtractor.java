@@ -32,9 +32,9 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
-import org.apache.http.auth.AUTH;
 import org.apache.http.util.EncodingUtils;
 
 public class BasicAuthTokenExtractor {
@@ -42,7 +42,7 @@ public class BasicAuthTokenExtractor {
     public String extract(final HttpRequest request) throws HttpException {
         String auth = null;
 
-        final Header h = request.getFirstHeader(AUTH.WWW_AUTH_RESP);
+        final Header h = request.getFirstHeader(HttpHeaders.AUTHORIZATION);
         if (h != null) {
             final String s = h.getValue();
             if (s != null) {

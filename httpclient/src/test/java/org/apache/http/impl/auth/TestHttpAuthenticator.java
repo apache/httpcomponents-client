@@ -35,7 +35,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthScheme;
@@ -160,9 +159,9 @@ public class TestHttpAuthenticator {
     public void testAuthentication() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "whatever realm=\"realm1\", stuff=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
@@ -196,8 +195,8 @@ public class TestHttpAuthenticator {
     public void testAuthenticationNoSupportedChallenges() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "This realm=\"test\""));
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "That realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "This realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "That realm=\"realm1\", nonce=\"1234\""));
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
@@ -209,8 +208,8 @@ public class TestHttpAuthenticator {
     public void testAuthenticationNoCredentials() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
 
         this.credentialsProvider.clear();
 
@@ -224,8 +223,8 @@ public class TestHttpAuthenticator {
     public void testAuthenticationFailed() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
 
         this.authState.setState(AuthProtocolState.CHALLENGED);
         this.authState.update(this.authScheme, this.credentials);
@@ -244,8 +243,8 @@ public class TestHttpAuthenticator {
     public void testAuthenticationFailedPreviously() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
 
         this.authState.setState(AuthProtocolState.FAILURE);
 
@@ -261,9 +260,9 @@ public class TestHttpAuthenticator {
     public void testAuthenticationFailure() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "whatever realm=\"realm1\", stuff=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
@@ -280,9 +279,9 @@ public class TestHttpAuthenticator {
     public void testAuthenticationHandshaking() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", stale=true, nonce=\"1234\""));
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "whatever realm=\"realm1\", stuff=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", stale=true, nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
@@ -299,8 +298,8 @@ public class TestHttpAuthenticator {
     public void testAuthenticationNoMatchingChallenge() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "whatever realm=\"realm1\", stuff=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
@@ -323,7 +322,7 @@ public class TestHttpAuthenticator {
     public void testAuthenticationException() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        response.addHeader(new BasicHeader(AUTH.WWW_AUTH, "blah blah blah"));
+        response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "blah blah blah"));
 
         this.authState.setState(AuthProtocolState.CHALLENGED);
 
@@ -345,7 +344,7 @@ public class TestHttpAuthenticator {
 
         this.httpAuthenticator.generateAuthResponse(request, authState, context);
 
-        Assert.assertFalse(request.containsHeader(AUTH.WWW_AUTH_RESP));
+        Assert.assertFalse(request.containsHeader(HttpHeaders.AUTHORIZATION));
 
         Mockito.verify(this.authScheme, Mockito.never()).authenticate(
                 Mockito.any(Credentials.class),
@@ -362,11 +361,11 @@ public class TestHttpAuthenticator {
         Mockito.when(this.authScheme.authenticate(
                 Mockito.any(Credentials.class),
                 Mockito.any(HttpRequest.class),
-                Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(AUTH.WWW_AUTH_RESP, "stuff"));
+                Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(HttpHeaders.AUTHORIZATION, "stuff"));
 
         this.httpAuthenticator.generateAuthResponse(request, authState, context);
 
-        Assert.assertTrue(request.containsHeader(AUTH.WWW_AUTH_RESP));
+        Assert.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
 
         Mockito.verify(this.authScheme).authenticate(this.credentials, request, this.context);
     }
@@ -382,7 +381,7 @@ public class TestHttpAuthenticator {
         Mockito.when(this.authScheme.authenticate(
                 Mockito.any(Credentials.class),
                 Mockito.any(HttpRequest.class),
-                Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(AUTH.WWW_AUTH_RESP, "stuff"));
+                Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(HttpHeaders.AUTHORIZATION, "stuff"));
 
         this.httpAuthenticator.generateAuthResponse(request, authState, context);
 
@@ -390,7 +389,7 @@ public class TestHttpAuthenticator {
         Assert.assertSame(this.credentials, this.authState.getCredentials());
         Assert.assertNull(this.authState.getAuthOptions());
 
-        Assert.assertTrue(request.containsHeader(AUTH.WWW_AUTH_RESP));
+        Assert.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
 
         Mockito.verify(this.authScheme).authenticate(this.credentials, request, this.context);
     }
@@ -410,7 +409,7 @@ public class TestHttpAuthenticator {
         Mockito.when(authScheme2.authenticate(
                 Mockito.any(Credentials.class),
                 Mockito.any(HttpRequest.class),
-                Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(AUTH.WWW_AUTH_RESP, "stuff"));
+                Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(HttpHeaders.AUTHORIZATION, "stuff"));
         authOptions.add(new AuthOption(authScheme1, this.credentials));
         authOptions.add(new AuthOption(authScheme2, this.credentials));
         this.authState.update(authOptions);
@@ -421,7 +420,7 @@ public class TestHttpAuthenticator {
         Assert.assertSame(this.credentials, this.authState.getCredentials());
         Assert.assertNull(this.authState.getAuthOptions());
 
-        Assert.assertTrue(request.containsHeader(AUTH.WWW_AUTH_RESP));
+        Assert.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
 
         Mockito.verify(authScheme1, Mockito.times(1)).authenticate(this.credentials, request, this.context);
         Mockito.verify(authScheme2, Mockito.times(1)).authenticate(this.credentials, request, this.context);
@@ -437,7 +436,7 @@ public class TestHttpAuthenticator {
         Mockito.when(this.authScheme.authenticate(
                 Mockito.any(Credentials.class),
                 Mockito.any(HttpRequest.class),
-                Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(AUTH.WWW_AUTH_RESP, "stuff"));
+                Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(HttpHeaders.AUTHORIZATION, "stuff"));
 
         this.httpAuthenticator.generateAuthResponse(request, authState, context);
 
@@ -445,7 +444,7 @@ public class TestHttpAuthenticator {
         Assert.assertSame(this.credentials, this.authState.getCredentials());
         Assert.assertNull(this.authState.getAuthOptions());
 
-        Assert.assertTrue(request.containsHeader(AUTH.WWW_AUTH_RESP));
+        Assert.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
 
         Mockito.verify(this.authScheme).authenticate(this.credentials, request, this.context);
     }
@@ -460,11 +459,11 @@ public class TestHttpAuthenticator {
         Mockito.when(this.authScheme.authenticate(
                 Mockito.any(Credentials.class),
                 Mockito.any(HttpRequest.class),
-                Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(AUTH.WWW_AUTH_RESP, "stuff"));
+                Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(HttpHeaders.AUTHORIZATION, "stuff"));
 
         this.httpAuthenticator.generateAuthResponse(request, authState, context);
 
-        Assert.assertFalse(request.containsHeader(AUTH.WWW_AUTH_RESP));
+        Assert.assertFalse(request.containsHeader(HttpHeaders.AUTHORIZATION));
 
         Mockito.verify(this.authScheme, Mockito.never()).authenticate(
                 Mockito.any(Credentials.class),

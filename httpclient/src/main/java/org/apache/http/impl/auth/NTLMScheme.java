@@ -27,9 +27,9 @@
 package org.apache.http.impl.auth;
 
 import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ChallengeType;
@@ -144,9 +144,9 @@ public class NTLMScheme extends NonStandardAuthScheme {
         }
         final CharArrayBuffer buffer = new CharArrayBuffer(32);
         if (isProxy()) {
-            buffer.append(AUTH.PROXY_AUTH_RESP);
+            buffer.append(HttpHeaders.PROXY_AUTHORIZATION);
         } else {
-            buffer.append(AUTH.WWW_AUTH_RESP);
+            buffer.append(HttpHeaders.AUTHORIZATION);
         }
         buffer.append(": NTLM ");
         buffer.append(response);

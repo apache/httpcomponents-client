@@ -30,10 +30,10 @@ package org.apache.http.localserver;
 import java.io.IOException;
 
 import org.apache.http.HttpException;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.HttpStatus;
-import org.apache.http.auth.AUTH;
 import org.apache.http.protocol.HttpContext;
 
 public class ResponseBasicUnauthorized implements HttpResponseInterceptor {
@@ -43,8 +43,8 @@ public class ResponseBasicUnauthorized implements HttpResponseInterceptor {
             final HttpResponse response,
             final HttpContext context) throws HttpException, IOException {
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-            if (!response.containsHeader(AUTH.WWW_AUTH)) {
-                response.addHeader(AUTH.WWW_AUTH, "Basic realm=\"test realm\"");
+            if (!response.containsHeader(HttpHeaders.WWW_AUTHENTICATE)) {
+                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test realm\"");
             }
         }
     }

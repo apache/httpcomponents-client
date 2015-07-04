@@ -30,10 +30,10 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ChallengeType;
@@ -205,9 +205,9 @@ public class WindowsNegotiateScheme extends NonStandardAuthScheme {
 
         final CharArrayBuffer buffer = new CharArrayBuffer(scheme.length() + 30);
         if (isProxy()) {
-            buffer.append(AUTH.PROXY_AUTH_RESP);
+            buffer.append(HttpHeaders.PROXY_AUTHORIZATION);
         } else {
-            buffer.append(AUTH.WWW_AUTH_RESP);
+            buffer.append(HttpHeaders.AUTHORIZATION);
         }
         buffer.append(": ");
         buffer.append(scheme); // NTLM or Negotiate

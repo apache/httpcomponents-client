@@ -33,11 +33,11 @@ import java.net.Socket;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
@@ -198,7 +198,7 @@ public class ProxyClient {
                         conn.close();
                     }
                     // discard previous auth header
-                    connect.removeHeaders(AUTH.PROXY_AUTH_RESP);
+                    connect.removeHeaders(HttpHeaders.PROXY_AUTHORIZATION);
                 } else {
                     break;
                 }

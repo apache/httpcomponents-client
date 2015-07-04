@@ -48,7 +48,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
-import org.apache.http.cookie.SM;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
@@ -679,7 +678,7 @@ public class TestRedirects extends LocalServerTestBase {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
 
-        final Header[] headers = reqWrapper.getHeaders(SM.COOKIE);
+        final Header[] headers = reqWrapper.getHeaders("Cookie");
         Assert.assertEquals("There can only be one (cookie)", 1, headers.length);
     }
 

@@ -43,7 +43,6 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
-import org.apache.http.cookie.SM;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 
@@ -88,7 +87,7 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             this.log.debug("Cookie origin not specified in HTTP context");
             return;
         }
-        final HeaderIterator it = response.headerIterator(SM.SET_COOKIE);
+        final HeaderIterator it = response.headerIterator("Set-Cookie");
         processCookies(it, cookieSpec, cookieOrigin, cookieStore);
     }
 

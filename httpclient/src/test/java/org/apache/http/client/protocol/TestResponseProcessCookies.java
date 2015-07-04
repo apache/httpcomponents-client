@@ -35,7 +35,6 @@ import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
-import org.apache.http.cookie.SM;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.RFC6265LaxSpec;
 import org.apache.http.message.BasicHttpResponse;
@@ -73,7 +72,7 @@ public class TestResponseProcessCookies {
     @Test
     public void testParseCookies() throws Exception {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        response.addHeader(SM.SET_COOKIE, "name1=value1");
+        response.addHeader("Set-Cookie", "name1=value1");
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.COOKIE_ORIGIN, this.cookieOrigin);
@@ -96,7 +95,7 @@ public class TestResponseProcessCookies {
     @Test
     public void testNoCookieOrigin() throws Exception {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        response.addHeader(SM.SET_COOKIE, "name1=value1");
+        response.addHeader("Set-Cookie", "name1=value1");
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.COOKIE_ORIGIN, null);
@@ -114,7 +113,7 @@ public class TestResponseProcessCookies {
     @Test
     public void testNoCookieSpec() throws Exception {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        response.addHeader(SM.SET_COOKIE, "name1=value1");
+        response.addHeader("Set-Cookie", "name1=value1");
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.COOKIE_ORIGIN, this.cookieOrigin);
@@ -132,7 +131,7 @@ public class TestResponseProcessCookies {
     @Test
     public void testNoCookieStore() throws Exception {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
-        response.addHeader(SM.SET_COOKIE, "name1=value1");
+        response.addHeader("Set-Cookie", "name1=value1");
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.COOKIE_ORIGIN, this.cookieOrigin);

@@ -39,11 +39,11 @@ import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.ChallengeType;
@@ -244,13 +244,13 @@ public class MainClientExec implements ClientExecChain {
                     this.log.debug("Executing request " + request.getRequestLine());
                 }
 
-                if (!request.containsHeader(AUTH.WWW_AUTH_RESP)) {
+                if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Target auth state: " + targetAuthState.getState());
                     }
                     this.authenticator.generateAuthResponse(request, targetAuthState, context);
                 }
-                if (!request.containsHeader(AUTH.PROXY_AUTH_RESP) && !route.isTunnelled()) {
+                if (!request.containsHeader(HttpHeaders.PROXY_AUTHORIZATION) && !route.isTunnelled()) {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Proxy auth state: " + proxyAuthState.getState());
                     }
@@ -306,11 +306,11 @@ public class MainClientExec implements ClientExecChain {
                     }
                     // discard previous auth headers
                     final HttpRequest original = request.getOriginal();
-                    if (!original.containsHeader(AUTH.WWW_AUTH_RESP)) {
-                        request.removeHeaders(AUTH.WWW_AUTH_RESP);
+                    if (!original.containsHeader(HttpHeaders.AUTHORIZATION)) {
+                        request.removeHeaders(HttpHeaders.AUTHORIZATION);
                     }
-                    if (!original.containsHeader(AUTH.PROXY_AUTH_RESP)) {
-                        request.removeHeaders(AUTH.PROXY_AUTH_RESP);
+                    if (!original.containsHeader(HttpHeaders.PROXY_AUTHORIZATION)) {
+                        request.removeHeaders(HttpHeaders.PROXY_AUTHORIZATION);
                     }
                 } else {
                     break;
@@ -454,7 +454,7 @@ public class MainClientExec implements ClientExecChain {
                         context);
             }
 
-            connect.removeHeaders(AUTH.PROXY_AUTH_RESP);
+            connect.removeHeaders(HttpHeaders.PROXY_AUTHORIZATION);
             this.authenticator.generateAuthResponse(connect, proxyAuthState, context);
 
             response = this.requestExecutor.execute(connect, managedConn, context);

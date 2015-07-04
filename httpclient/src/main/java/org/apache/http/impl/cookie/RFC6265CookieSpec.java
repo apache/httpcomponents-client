@@ -47,7 +47,6 @@ import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookiePriorityComparator;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
-import org.apache.http.cookie.SM;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.message.ParserCursor;
 import org.apache.http.message.TokenParser;
@@ -110,7 +109,7 @@ public class RFC6265CookieSpec implements CookieSpec {
     public final List<Cookie> parse(final Header header, final CookieOrigin origin) throws MalformedCookieException {
         Args.notNull(header, "Header");
         Args.notNull(origin, "Cookie origin");
-        if (!header.getName().equalsIgnoreCase(SM.SET_COOKIE)) {
+        if (!header.getName().equalsIgnoreCase("Set-Cookie")) {
             throw new MalformedCookieException("Unrecognized cookie header: '" + header.toString() + "'");
         }
         final CharArrayBuffer buffer;
@@ -217,7 +216,7 @@ public class RFC6265CookieSpec implements CookieSpec {
             sortedCookies = cookies;
         }
         final CharArrayBuffer buffer = new CharArrayBuffer(20 * sortedCookies.size());
-        buffer.append(SM.COOKIE);
+        buffer.append("Cookie");
         buffer.append(": ");
         for (int n = 0; n < sortedCookies.size(); n++) {
             final Cookie cookie = sortedCookies.get(n);

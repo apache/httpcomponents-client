@@ -245,5 +245,5 @@ public class TestAuthenticationStrategy {
         final AuthOption option1 = options.remove();
         Assert.assertTrue(option1.getAuthScheme() instanceof BasicScheme);
     }
-    
+
 }
