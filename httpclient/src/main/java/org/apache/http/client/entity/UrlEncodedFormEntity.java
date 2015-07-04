@@ -26,7 +26,6 @@
  */
 package org.apache.http.client.entity;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -50,22 +49,6 @@ public class UrlEncodedFormEntity extends StringEntity {
      * Constructs a new {@link UrlEncodedFormEntity} with the list
      * of parameters in the specified encoding.
      *
-     * @param parameters list of name/value pairs
-     * @param charset encoding the name/value pairs be encoded with
-     * @throws UnsupportedEncodingException if the encoding isn't supported
-     */
-    public UrlEncodedFormEntity (
-        final List <? extends NameValuePair> parameters,
-        final String charset) throws UnsupportedEncodingException {
-        super(URLEncodedUtils.format(parameters,
-                charset != null ? charset : HTTP.DEF_CONTENT_CHARSET.name()),
-                ContentType.create(URLEncodedUtils.CONTENT_TYPE, charset));
-    }
-
-    /**
-     * Constructs a new {@link UrlEncodedFormEntity} with the list
-     * of parameters in the specified encoding.
-     *
      * @param parameters iterable collection of name/value pairs
      * @param charset encoding the name/value pairs be encoded with
      *
@@ -84,11 +67,9 @@ public class UrlEncodedFormEntity extends StringEntity {
      * of parameters with the default encoding of {@link HTTP#DEFAULT_CONTENT_CHARSET}
      *
      * @param parameters list of name/value pairs
-     * @throws UnsupportedEncodingException if the default encoding isn't supported
      */
-    public UrlEncodedFormEntity (
-        final List <? extends NameValuePair> parameters) throws UnsupportedEncodingException {
-        this(parameters, (Charset) null);
+    public UrlEncodedFormEntity (final List <? extends NameValuePair> parameters){
+        this(parameters, null);
     }
 
     /**
