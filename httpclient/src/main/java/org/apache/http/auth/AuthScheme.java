@@ -60,9 +60,32 @@ public interface AuthScheme {
      * may involve multiple challenge-response exchanges. Such schemes must be able
      * to maintain the state information when dealing with sequential challenges
      *
-     * @param header the challenge header
+     * @param challengeType the challenge type
+     * @param authChallenge the auth challenge
+     *
+     * @since 5.0
      */
-    void processChallenge(final Header header) throws MalformedChallengeException;
+    void processChallenge(
+            ChallengeType challengeType,
+            AuthChallenge authChallenge) throws  MalformedChallengeException;
+
+    /**
+     * Produces an authorization string for the given set of {@link Credentials}.
+     *
+     * @param credentials The credentials to be used for authentication
+     * @param request The request being authenticated
+     * @param context HTTP context
+     * @throws AuthenticationException if authorization string cannot
+     *   be generated due to an authentication failure
+     *
+     * @return authorization header
+     *
+     * @since 5.0
+     */
+    Header authenticate(
+            Credentials credentials,
+            HttpRequest request,
+            HttpContext context) throws AuthenticationException;
 
     /**
      * Returns textual designation of the given authentication scheme.
@@ -108,24 +131,5 @@ public interface AuthScheme {
      * {@code false} otherwise.
      */
     boolean isComplete();
-
-    /**
-     * Produces an authorization string for the given set of
-     * {@link Credentials}.
-     *
-     * @param credentials The set of credentials to be used for athentication
-     * @param request The request being authenticated
-     * @param context HTTP context
-     * @throws AuthenticationException if authorization string cannot
-     *   be generated due to an authentication failure
-     *
-     * @return the authorization string
-     *
-     * @since 5.0
-     */
-    Header authenticate(
-            Credentials credentials,
-            HttpRequest request,
-            HttpContext context) throws AuthenticationException;
 
 }

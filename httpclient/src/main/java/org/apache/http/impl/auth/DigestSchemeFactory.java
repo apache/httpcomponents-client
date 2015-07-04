@@ -27,8 +27,6 @@
 
 package org.apache.http.impl.auth;
 
-import java.nio.charset.Charset;
-
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
@@ -43,23 +41,9 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class DigestSchemeFactory implements AuthSchemeProvider {
 
-    private final Charset charset;
-
-    /**
-     * @since 4.3
-     */
-    public DigestSchemeFactory(final Charset charset) {
-        super();
-        this.charset = charset;
-    }
-
-    public DigestSchemeFactory() {
-        this(null);
-    }
-
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new DigestScheme(this.charset);
+        return new DigestScheme();
     }
 
 }

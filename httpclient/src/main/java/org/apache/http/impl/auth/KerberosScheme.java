@@ -26,13 +26,8 @@
  */
 package org.apache.http.impl.auth;
 
-import org.apache.http.Header;
-import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.Args;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
@@ -66,59 +61,11 @@ public class KerberosScheme extends GGSSchemeBase {
         return "Kerberos";
     }
 
-    /**
-     * Produces KERBEROS authorization Header based on token created by
-     * processChallenge.
-     *
-     * @param credentials not used by the KERBEROS scheme.
-     * @param request The request being authenticated
-     *
-     * @throws AuthenticationException if authentication string cannot
-     *   be generated due to an authentication failure
-     *
-     * @return KERBEROS authentication Header
-     */
-    @Override
-    public Header authenticate(
-            final Credentials credentials,
-            final HttpRequest request,
-            final HttpContext context) throws AuthenticationException {
-        return super.authenticate(credentials, request, context);
-    }
-
     @Override
     protected byte[] generateToken(final byte[] input, final String authServer, final Credentials credentials) throws GSSException {
         return generateGSSToken(input, new Oid(KERBEROS_OID), authServer, credentials);
     }
 
-    /**
-     * There are no valid parameters for KERBEROS authentication so this
-     * method always returns {@code null}.
-     *
-     * @return {@code null}
-     */
-    @Override
-    public String getParameter(final String name) {
-        Args.notNull(name, "Parameter name");
-        return null;
-    }
-
-    /**
-     * The concept of an authentication realm is not supported by the Negotiate
-     * authentication scheme. Always returns {@code null}.
-     *
-     * @return {@code null}
-     */
-    @Override
-    public String getRealm() {
-        return null;
-    }
-
-    /**
-     * Returns {@code true}. KERBEROS authentication scheme is connection based.
-     *
-     * @return {@code true}.
-     */
     @Override
     public boolean isConnectionBased() {
         return true;

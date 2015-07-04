@@ -26,6 +26,10 @@
  */
 package org.apache.http.impl.auth;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
 import java.nio.charset.Charset;
 
 import org.apache.commons.codec.binary.Base64;
@@ -34,13 +38,16 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
+import org.apache.http.util.CharsetUtils;
 import org.apache.http.util.EncodingUtils;
 
 /**
@@ -49,18 +56,18 @@ import org.apache.http.util.EncodingUtils;
  * @since 4.0
  */
 @NotThreadSafe
-public class BasicScheme extends RFC2617Scheme {
+public class BasicScheme extends StandardAuthScheme {
 
     private static final long serialVersionUID = -1931571557597830536L;
 
-    /** Whether the basic authentication process is complete */
+    private transient Charset charset;
     private boolean complete;
 
     /**
      * @since 4.3
      */
-    public BasicScheme(final Charset credentialsCharset) {
-        super(credentialsCharset);
+    public BasicScheme(final Charset charset) {
+        this.charset = charset != null ? charset : Consts.ASCII;
         this.complete = false;
     }
 
@@ -68,64 +75,28 @@ public class BasicScheme extends RFC2617Scheme {
         this(Consts.ASCII);
     }
 
-    /**
-     * Returns textual designation of the basic authentication scheme.
-     *
-     * @return {@code basic}
-     */
     @Override
     public String getSchemeName() {
         return "basic";
     }
 
-    /**
-     * Processes the Basic challenge.
-     *
-     * @param header the challenge header
-     *
-     * @throws MalformedChallengeException is thrown if the authentication challenge
-     * is malformed
-     */
-    @Override
     public void processChallenge(
-            final Header header) throws MalformedChallengeException {
-        super.processChallenge(header);
+            final ChallengeType challengeType,
+            final AuthChallenge authChallenge) throws MalformedChallengeException {
+        update(challengeType, authChallenge);
         this.complete = true;
     }
 
-    /**
-     * Tests if the Basic authentication process has been completed.
-     *
-     * @return {@code true} if Basic authorization has been processed,
-     *   {@code false} otherwise.
-     */
     @Override
     public boolean isComplete() {
         return this.complete;
     }
 
-    /**
-     * Returns {@code false}. Basic authentication scheme is request based.
-     *
-     * @return {@code false}.
-     */
     @Override
     public boolean isConnectionBased() {
         return false;
     }
 
-    /**
-     * Produces basic authorization header for the given set of {@link Credentials}.
-     *
-     * @param credentials The set of credentials to be used for authentication
-     * @param request The request being authenticated
-     * @throws org.apache.http.auth.InvalidCredentialsException if authentication
-     *   credentials are not valid or not applicable for this authentication scheme
-     * @throws AuthenticationException if authorization string cannot
-     *   be generated due to an authentication failure
-     *
-     * @return a basic authorization string
-     */
     @Override
     public Header authenticate(
             final Credentials credentials,
@@ -134,15 +105,6 @@ public class BasicScheme extends RFC2617Scheme {
 
         Args.notNull(credentials, "Credentials");
         Args.notNull(request, "HTTP request");
-        final StringBuilder tmp = new StringBuilder();
-        tmp.append(credentials.getUserPrincipal().getName());
-        tmp.append(":");
-        tmp.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
-
-        final Base64 base64codec = new Base64(0);
-        final byte[] base64password = base64codec.encode(
-                EncodingUtils.getBytes(tmp.toString(), getCredentialsCharset(request)));
-
         final CharArrayBuffer buffer = new CharArrayBuffer(32);
         if (isProxy()) {
             buffer.append(AUTH.PROXY_AUTH_RESP);
@@ -150,16 +112,34 @@ public class BasicScheme extends RFC2617Scheme {
             buffer.append(AUTH.WWW_AUTH_RESP);
         }
         buffer.append(": Basic ");
-        buffer.append(base64password, 0, base64password.length);
 
+        final StringBuilder tmp = new StringBuilder();
+        tmp.append(credentials.getUserPrincipal().getName());
+        tmp.append(":");
+        tmp.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
+
+        final Base64 base64codec = new Base64(0);
+        final byte[] base64password = base64codec.encode(EncodingUtils.getBytes(tmp.toString(), charset.name()));
+
+        buffer.append(base64password, 0, base64password.length);
         return new BufferedHeader(buffer);
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("BASIC [complete=").append(complete)
-                .append("]");
-        return builder.toString();
+    private void writeObject(final ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeUTF(this.charset.name());
     }
+
+    @SuppressWarnings("unchecked")
+    private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        this.charset = CharsetUtils.get(in.readUTF());
+        if (this.charset == null) {
+            this.charset = Consts.ASCII;
+        }
+    }
+
+    private void readObjectNoData() throws ObjectStreamException {
+    }
+
 }

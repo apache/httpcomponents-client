@@ -27,11 +27,11 @@
 package org.apache.http.auth;
 
 /**
- * Challenge mode (TARGET or PROXY)
+ * Challenge type (TARGET or PROXY)
  *
  * @since 4.2
  */
-public enum ChallengeState {
+public enum ChallengeType {
 
     TARGET, PROXY
 

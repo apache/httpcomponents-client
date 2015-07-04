@@ -37,7 +37,9 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.KerberosCredentials;
@@ -59,7 +61,7 @@ import org.ietf.jgss.Oid;
  * @since 4.2
  */
 @NotThreadSafe
-public abstract class GGSSchemeBase extends AuthSchemeBase {
+public abstract class GGSSchemeBase extends NonStandardAuthScheme {
 
     enum State {
         UNINITIATED,
@@ -70,7 +72,6 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
 
     private final Log log = LogFactory.getLog(getClass());
 
-    private final Base64 base64codec;
     private final boolean stripPort;
     private final boolean useCanonicalHostname;
 
@@ -82,7 +83,6 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
 
     GGSSchemeBase(final boolean stripPort, final boolean useCanonicalHostname) {
         super();
-        this.base64codec = new Base64(0);
         this.stripPort = stripPort;
         this.useCanonicalHostname = useCanonicalHostname;
         this.state = State.UNINITIATED;
@@ -94,6 +94,23 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
 
     GGSSchemeBase() {
         this(true,true);
+    }
+
+    public void processChallenge(
+            final ChallengeType challengeType,
+            final AuthChallenge authChallenge) throws MalformedChallengeException {
+        update(challengeType, authChallenge);
+        if (state == State.UNINITIATED) {
+            final String challenge = getChallenge();
+            token = Base64.decodeBase64(challenge.getBytes());
+            if (log.isDebugEnabled()) {
+                log.debug("Received token '" + token + "' from the auth server");
+            }
+            state = State.CHALLENGE_RECEIVED;
+        } else {
+            log.debug("Authentication already attempted");
+            state = State.FAILED;
+        }
     }
 
     protected GSSManager getManager() {
@@ -211,7 +228,8 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                 throw new AuthenticationException(gsse.getMessage());
             }
         case TOKEN_GENERATED:
-            final String tokenstr = new String(base64codec.encode(token));
+            final Base64 codec = new Base64(0);
+            final String tokenstr = new String(codec.encode(token));
             if (log.isDebugEnabled()) {
                 log.debug("Sending response '" + tokenstr + "' back to the auth server");
             }
@@ -226,23 +244,6 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
             return new BufferedHeader(buffer);
         default:
             throw new IllegalStateException("Illegal state: " + state);
-        }
-    }
-
-    @Override
-    protected void parseChallenge(
-            final CharArrayBuffer buffer,
-            final int beginIndex, final int endIndex) throws MalformedChallengeException {
-        final String challenge = buffer.substringTrimmed(beginIndex, endIndex);
-        if (log.isDebugEnabled()) {
-            log.debug("Received challenge '" + challenge + "' from the auth server");
-        }
-        if (state == State.UNINITIATED) {
-            token = Base64.decodeBase64(challenge.getBytes());
-            state = State.CHALLENGE_RECEIVED;
-        } else {
-            log.debug("Authentication already attempted");
-            state = State.FAILED;
         }
     }
 

@@ -27,6 +27,7 @@
 package org.apache.http.auth;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,6 +54,10 @@ public final class AuthChallenge {
         this.scheme = scheme;
         this.value = value;
         this.params = params != null ? Collections.unmodifiableList(new ArrayList<>(params)) : null;
+    }
+
+    public AuthChallenge(final String scheme, final NameValuePair... params) {
+        this(scheme, null, Arrays.asList(params));
     }
 
     public String getScheme() {

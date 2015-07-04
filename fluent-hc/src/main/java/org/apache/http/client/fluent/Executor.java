@@ -29,13 +29,16 @@ package org.apache.http.client.fluent;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpHost;
-import org.apache.http.auth.AUTH;
+import org.apache.http.NameValuePair;
+import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.NTCredentials;
@@ -58,7 +61,6 @@ import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.message.BasicHeader;
 
 /**
  * An Executor for fluent requests.
@@ -151,7 +153,7 @@ public class Executor {
     public Executor authPreemptive(final HttpHost host) {
         final BasicScheme basicScheme = new BasicScheme();
         try {
-            basicScheme.processChallenge(new BasicHeader(AUTH.WWW_AUTH, "BASIC "));
+            basicScheme.processChallenge(ChallengeType.TARGET, new AuthChallenge("basic", null, Collections.<NameValuePair>emptyList()));
         } catch (final MalformedChallengeException ignore) {
         }
         this.authCache.put(host, basicScheme);
@@ -168,7 +170,7 @@ public class Executor {
     public Executor authPreemptiveProxy(final HttpHost proxy) {
         final BasicScheme basicScheme = new BasicScheme();
         try {
-            basicScheme.processChallenge(new BasicHeader(AUTH.PROXY_AUTH, "BASIC "));
+            basicScheme.processChallenge(ChallengeType.PROXY, new AuthChallenge("basic", null, Collections.<NameValuePair>emptyList()));
         } catch (final MalformedChallengeException ignore) {
         }
         this.authCache.put(proxy, basicScheme);

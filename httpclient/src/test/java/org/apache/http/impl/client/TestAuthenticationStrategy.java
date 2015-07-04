@@ -27,23 +27,19 @@
 package org.apache.http.impl.client;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 
-import org.apache.http.Header;
 import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthOption;
-import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.AuthCache;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -53,98 +49,38 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.auth.DigestSchemeFactory;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 /**
- * Simple tests for {@link AuthenticationStrategyImpl}.
+ * Simple tests for {@link DefaultAuthenticationStrategy}.
  */
 @SuppressWarnings("boxing") // test code
 public class TestAuthenticationStrategy {
 
-    @Test(expected=IllegalArgumentException.class)
-    public void testIsAuthenticationRequestedInvalidInput() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpHost host = new HttpHost("localhost", 80);
-        final HttpClientContext context = HttpClientContext.create();
-        authStrategy.isAuthenticationRequested(host, null, context);
-    }
-
-    @Test
-    public void testTargetAuthRequested() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        final HttpHost host = new HttpHost("localhost", 80);
-        final HttpClientContext context = HttpClientContext.create();
-        Assert.assertTrue(authStrategy.isAuthenticationRequested(host, response, context));
-    }
-
-    @Test
-    public void testProxyAuthRequested() throws Exception {
-        final ProxyAuthenticationStrategy authStrategy = new ProxyAuthenticationStrategy();
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED, "UNAUTHORIZED");
-        final HttpHost host = new HttpHost("localhost", 80);
-        final HttpClientContext context = HttpClientContext.create();
-        Assert.assertTrue(authStrategy.isAuthenticationRequested(host, response, context));
-    }
-
-    @Test(expected=IllegalArgumentException.class)
-    public void testGetChallengesInvalidInput() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpHost host = new HttpHost("localhost", 80);
-        final HttpClientContext context = HttpClientContext.create();
-        authStrategy.getChallenges(host, null, context);
-    }
-
-    @Test
-    public void testGetChallenges() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpClientContext context = HttpClientContext.create();
-        final HttpHost host = new HttpHost("localhost", 80);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
-        final Header h1 = new BasicHeader(AUTH.WWW_AUTH, "  Basic  realm=\"test\"");
-        final Header h2 = new BasicHeader(AUTH.WWW_AUTH, "\t\tDigest   realm=\"realm1\", nonce=\"1234\"");
-        final Header h3 = new BasicHeader(AUTH.WWW_AUTH, "WhatEver realm=\"realm1\", stuff=\"1234\"");
-        response.addHeader(h1);
-        response.addHeader(h2);
-        response.addHeader(h3);
-
-        final Map<String, Header> challenges = authStrategy.getChallenges(host, response, context);
-
-        Assert.assertNotNull(challenges);
-        Assert.assertEquals(3, challenges.size());
-        Assert.assertSame(h1, challenges.get("basic"));
-        Assert.assertSame(h2, challenges.get("digest"));
-        Assert.assertSame(h3, challenges.get("whatever"));
-    }
-
     @Test
     public void testSelectInvalidInput() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final Map<String, Header> challenges = new HashMap<>();
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
+        final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpHost authhost = new HttpHost("locahost", 80);
         final HttpClientContext context = HttpClientContext.create();
         try {
-            authStrategy.select(null, authhost, response, context);
+            authStrategy.select(null, authhost, Collections.<String, AuthChallenge>emptyMap(), context);
             Assert.fail("IllegalArgumentException expected");
         } catch (final IllegalArgumentException ex) {
         }
         try {
-            authStrategy.select(challenges, null, response, context);
+            authStrategy.select(ChallengeType.TARGET, null, Collections.<String, AuthChallenge>emptyMap(), context);
             Assert.fail("IllegalArgumentException expected");
         } catch (final IllegalArgumentException ex) {
         }
         try {
-            authStrategy.select(challenges, authhost, null, context);
+            authStrategy.select(ChallengeType.TARGET, authhost, null, context);
             Assert.fail("IllegalArgumentException expected");
         } catch (final IllegalArgumentException ex) {
         }
         try {
-            authStrategy.select(challenges, authhost, response, null);
+            authStrategy.select(ChallengeType.TARGET, authhost, Collections.<String, AuthChallenge>emptyMap(), null);
             Assert.fail("IllegalArgumentException expected");
         } catch (final IllegalArgumentException ex) {
         }
@@ -152,51 +88,54 @@ public class TestAuthenticationStrategy {
 
     @Test
     public void testSelectNoSchemeRegistry() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
+        final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpHost authhost = new HttpHost("locahost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
-        final Map<String, Header> challenges = new HashMap<>();
-        challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
-        challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
+        final Map<String, AuthChallenge> challenges = new HashMap<>();
+        challenges.put("basic", new AuthChallenge("Basic",
+                new BasicNameValuePair("realm", "test")));
+        challenges.put("digest", new AuthChallenge("Digest",
+                new BasicNameValuePair("realm", "test"), new BasicNameValuePair("nonce", "1234")));
 
-        final Queue<AuthOption> options = authStrategy.select(challenges, authhost, response, context);
+        final Queue<AuthOption> options = authStrategy.select(ChallengeType.TARGET, authhost, challenges, context);
         Assert.assertNotNull(options);
         Assert.assertEquals(0, options.size());
     }
 
     @Test
     public void testSelectNoCredentialsProvider() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
+        final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpHost authhost = new HttpHost("locahost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
-        final Map<String, Header> challenges = new HashMap<>();
-        challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\""));
-        challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm1\", nonce=\"1234\""));
+        final Map<String, AuthChallenge> challenges = new HashMap<>();
+        challenges.put("basic", new AuthChallenge("Basic",
+                new BasicNameValuePair("realm", "test")));
+        challenges.put("digest", new AuthChallenge("Digest",
+                new BasicNameValuePair("realm", "test"), new BasicNameValuePair("nonce", "1234")));
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register("basic", new BasicSchemeFactory())
             .register("digest", new DigestSchemeFactory()).build();
         context.setAuthSchemeRegistry(authSchemeRegistry);
 
-        final Queue<AuthOption> options = authStrategy.select(challenges, authhost, response, context);
+        final Queue<AuthOption> options = authStrategy.select(ChallengeType.TARGET, authhost, challenges, context);
         Assert.assertNotNull(options);
         Assert.assertEquals(0, options.size());
     }
 
     @Test
     public void testNoCredentials() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
+        final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpHost authhost = new HttpHost("locahost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
-        final Map<String, Header> challenges = new HashMap<>();
-        challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"realm1\""));
-        challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm2\", nonce=\"1234\""));
+        final Map<String, AuthChallenge> challenges = new HashMap<>();
+        challenges.put("basic", new AuthChallenge("Basic",
+                new BasicNameValuePair("realm", "realm1")));
+        challenges.put("digest", new AuthChallenge("Digest",
+                new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register("basic", new BasicSchemeFactory())
@@ -206,21 +145,22 @@ public class TestAuthenticationStrategy {
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         context.setCredentialsProvider(credentialsProvider);
 
-        final Queue<AuthOption> options = authStrategy.select(challenges, authhost, response, context);
+        final Queue<AuthOption> options = authStrategy.select(ChallengeType.TARGET, authhost, challenges, context);
         Assert.assertNotNull(options);
         Assert.assertEquals(0, options.size());
     }
 
     @Test
     public void testCredentialsFound() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
+        final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpHost authhost = new HttpHost("somehost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
-        final Map<String, Header> challenges = new HashMap<>();
-        challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"realm1\""));
-        challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm2\", nonce=\"1234\""));
+        final Map<String, AuthChallenge> challenges = new HashMap<>();
+        challenges.put("basic", new AuthChallenge("Basic",
+                new BasicNameValuePair("realm", "realm1")));
+        challenges.put("digest", new AuthChallenge("Digest",
+                new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register("basic", new BasicSchemeFactory())
@@ -232,7 +172,7 @@ public class TestAuthenticationStrategy {
                 new UsernamePasswordCredentials("user", "pwd"));
         context.setCredentialsProvider(credentialsProvider);
 
-        final Queue<AuthOption> options = authStrategy.select(challenges, authhost, response, context);
+        final Queue<AuthOption> options = authStrategy.select(ChallengeType.TARGET, authhost, challenges, context);
         Assert.assertNotNull(options);
         Assert.assertEquals(1, options.size());
         final AuthOption option = options.remove();
@@ -241,15 +181,17 @@ public class TestAuthenticationStrategy {
 
     @Test
     public void testUnsupportedScheme() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
+        final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final HttpHost authhost = new HttpHost("somehost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
-        final Map<String, Header> challenges = new HashMap<>();
-        challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"realm1\""));
-        challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm2\", nonce=\"1234\""));
-        challenges.put("whatever", new BasicHeader(AUTH.WWW_AUTH, "Whatever realm=\"realm3\""));
+        final Map<String, AuthChallenge> challenges = new HashMap<>();
+        challenges.put("basic", new AuthChallenge("Basic",
+                new BasicNameValuePair("realm", "realm1")));
+        challenges.put("digest", new AuthChallenge("Digest",
+                new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
+        challenges.put("whatever", new AuthChallenge("Whatever",
+                new BasicNameValuePair("realm", "realm3")));
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register("basic", new BasicSchemeFactory())
@@ -261,7 +203,7 @@ public class TestAuthenticationStrategy {
                 new UsernamePasswordCredentials("user", "pwd"));
         context.setCredentialsProvider(credentialsProvider);
 
-        final Queue<AuthOption> options = authStrategy.select(challenges, authhost, response, context);
+        final Queue<AuthOption> options = authStrategy.select(ChallengeType.TARGET, authhost, challenges, context);
         Assert.assertNotNull(options);
         Assert.assertEquals(2, options.size());
         final AuthOption option1 = options.remove();
@@ -272,8 +214,7 @@ public class TestAuthenticationStrategy {
 
     @Test
     public void testCustomAuthPreference() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
+        final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
         final RequestConfig config = RequestConfig.custom()
             .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC))
             .build();
@@ -281,9 +222,11 @@ public class TestAuthenticationStrategy {
         final HttpHost authhost = new HttpHost("somehost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
-        final Map<String, Header> challenges = new HashMap<>();
-        challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"realm1\""));
-        challenges.put("digest", new BasicHeader(AUTH.WWW_AUTH, "Digest realm=\"realm2\", nonce=\"1234\""));
+        final Map<String, AuthChallenge> challenges = new HashMap<>();
+        challenges.put("basic", new AuthChallenge("Basic",
+                new BasicNameValuePair("realm", "realm1")));
+        challenges.put("digest", new AuthChallenge("Digest",
+                new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register("basic", new BasicSchemeFactory())
@@ -296,143 +239,11 @@ public class TestAuthenticationStrategy {
                 new UsernamePasswordCredentials("user", "pwd"));
         context.setCredentialsProvider(credentialsProvider);
 
-        final Queue<AuthOption> options = authStrategy.select(challenges, authhost, response, context);
+        final Queue<AuthOption> options = authStrategy.select(ChallengeType.TARGET, authhost, challenges, context);
         Assert.assertNotNull(options);
         Assert.assertEquals(1, options.size());
         final AuthOption option1 = options.remove();
         Assert.assertTrue(option1.getAuthScheme() instanceof BasicScheme);
     }
-
-    @Test
-    public void testAuthSucceededInvalidInput() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("locahost", 80);
-        final BasicScheme authScheme = new BasicScheme();
-        final HttpClientContext context = HttpClientContext.create();
-        try {
-            authStrategy.authSucceeded(null, authScheme, context);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException ex) {
-        }
-        try {
-            authStrategy.authSucceeded(authhost, null, context);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException ex) {
-        }
-        try {
-            authStrategy.authSucceeded(authhost, authScheme, null);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException ex) {
-        }
-    }
-
-    @Test
-    public void testAuthSucceeded() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("somehost", 80);
-        final BasicScheme authScheme = new BasicScheme();
-        authScheme.processChallenge(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=test"));
-
-        final AuthCache authCache = Mockito.mock(AuthCache.class);
-
-        final HttpClientContext context = HttpClientContext.create();
-        context.setAuthCache(authCache);
-
-        authStrategy.authSucceeded(authhost, authScheme, context);
-        Mockito.verify(authCache).put(authhost, authScheme);
-    }
-
-    @Test
-    public void testAuthSucceededNoCache() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("somehost", 80);
-        final BasicScheme authScheme = new BasicScheme();
-        authScheme.processChallenge(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=test"));
-
-        final HttpClientContext context = HttpClientContext.create();
-        context.setAuthCache(null);
-
-        authStrategy.authSucceeded(authhost, authScheme, context);
-        final AuthCache authCache = context.getAuthCache();
-        Assert.assertNotNull(authCache);
-    }
-
-    @Test
-    public void testAuthScemeNotCompleted() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("somehost", 80);
-        final BasicScheme authScheme = new BasicScheme();
-
-        final AuthCache authCache = Mockito.mock(AuthCache.class);
-
-        final HttpClientContext context = HttpClientContext.create();
-        context.setAuthCache(authCache);
-
-        authStrategy.authSucceeded(authhost, authScheme, context);
-        Mockito.verify(authCache, Mockito.never()).put(authhost, authScheme);
-    }
-
-    @Test
-    public void testAuthScemeNonCacheable() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("somehost", 80);
-        final AuthScheme authScheme = Mockito.mock(AuthScheme.class);
-        Mockito.when(authScheme.isComplete()).thenReturn(true);
-        Mockito.when(authScheme.getSchemeName()).thenReturn("whatever");
-
-        final AuthCache authCache = Mockito.mock(AuthCache.class);
-
-        final HttpClientContext context = HttpClientContext.create();
-        context.setAuthCache(authCache);
-
-        authStrategy.authSucceeded(authhost, authScheme, context);
-        Mockito.verify(authCache, Mockito.never()).put(authhost, authScheme);
-    }
-
-    @Test
-    public void testAuthFailedInvalidInput() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("locahost", 80);
-        final BasicScheme authScheme = new BasicScheme();
-        final HttpClientContext context = HttpClientContext.create();
-        try {
-            authStrategy.authFailed(null, authScheme, context);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException ex) {
-        }
-        try {
-            authStrategy.authFailed(authhost, authScheme, null);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException ex) {
-        }
-    }
-
-    @Test
-    public void testAuthFailed() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("somehost", 80);
-        final BasicScheme authScheme = new BasicScheme();
-        authScheme.processChallenge(new BasicHeader(AUTH.WWW_AUTH, "Basic realm=test"));
-
-        final AuthCache authCache = Mockito.mock(AuthCache.class);
-
-        final HttpClientContext context = HttpClientContext.create();
-        context.setAuthCache(authCache);
-
-        authStrategy.authFailed(authhost, authScheme, context);
-        Mockito.verify(authCache).remove(authhost);
-    }
-
-    @Test
-    public void testAuthFailedNoCache() throws Exception {
-        final TargetAuthenticationStrategy authStrategy = new TargetAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("somehost", 80);
-        final BasicScheme authScheme = new BasicScheme();
-
-        final HttpClientContext context = HttpClientContext.create();
-        context.setAuthCache(null);
-
-        authStrategy.authFailed(authhost, authScheme, context);
-    }
-
+    
 }

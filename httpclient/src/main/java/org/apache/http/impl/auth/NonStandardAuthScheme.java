@@ -24,34 +24,47 @@
  * <http://www.apache.org/>.
  *
  */
+package org.apache.http.impl.auth;
 
-package org.apache.http.impl.client;
+import org.apache.http.auth.AuthChallenge;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.ChallengeType;
+import org.apache.http.auth.MalformedChallengeException;
 
-import java.util.Collection;
+public abstract class NonStandardAuthScheme implements AuthScheme {
 
-import org.apache.http.HttpStatus;
-import org.apache.http.annotation.Immutable;
-import org.apache.http.auth.AUTH;
-import org.apache.http.client.config.RequestConfig;
+    private ChallengeType challengeType;
+    private String challenge;
 
-/**
- * Default {@link org.apache.http.client.AuthenticationStrategy} implementation
- * for proxy host authentication.
- *
- * @since 4.2
- */
-@Immutable
-public class ProxyAuthenticationStrategy extends AuthenticationStrategyImpl {
+    public boolean isProxy() {
+        return this.challengeType != null && this.challengeType == ChallengeType.PROXY;
+    }
 
-    public static final ProxyAuthenticationStrategy INSTANCE = new ProxyAuthenticationStrategy();
+    protected void update(final ChallengeType challengeType, final AuthChallenge authChallenge) throws MalformedChallengeException{
+        if (authChallenge.getValue() == null) {
+            throw new MalformedChallengeException("Missing auth challenge");
+        }
+        this.challengeType = challengeType;
+        this.challenge = authChallenge.getValue();
+    }
 
-    public ProxyAuthenticationStrategy() {
-        super(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED, AUTH.PROXY_AUTH);
+    protected String getChallenge() {
+        return this.challenge;
     }
 
     @Override
-    Collection<String> getPreferredAuthSchemes(final RequestConfig config) {
-        return config.getProxyPreferredAuthSchemes();
+    public String getParameter(final String name) {
+        return null;
+    }
+
+    @Override
+    public String getRealm() {
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return getSchemeName() + "(" + this.challengeType + ") " + this.challenge;
     }
 
 }

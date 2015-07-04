@@ -32,25 +32,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.ConnectionReuseStrategy;
-import org.apache.http.Header;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
-import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthState;
+import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthenticationStrategy;
@@ -74,7 +75,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.NTLMScheme;
 import org.apache.http.impl.conn.ConnectionShutdownException;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpProcessor;
@@ -132,39 +132,6 @@ public class TestMainClientExec {
                 Mockito.<HttpRoute>any(), Mockito.any())).thenReturn(connRequest);
         Mockito.when(connRequest.get(
                 Mockito.anyLong(), Mockito.<TimeUnit>any())).thenReturn(managedConn);
-        final Map<String, Header> challenges = new HashMap<>();
-        challenges.put("basic", new BasicHeader(AUTH.WWW_AUTH, "Basic realm=test"));
-        final AuthOption authOption = new AuthOption(
-                new BasicScheme(), new UsernamePasswordCredentials("user:pass"));
-        Mockito.when(targetAuthStrategy.getChallenges(
-                Mockito.eq(target),
-                Mockito.<HttpResponse>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(challenges);
-        Mockito.when(targetAuthStrategy.getChallenges(
-                Mockito.eq(target),
-                Mockito.<HttpResponse>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(challenges);
-        Mockito.when(targetAuthStrategy.select(
-                Mockito.same(challenges),
-                Mockito.eq(target),
-                Mockito.<HttpResponse>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(
-                new LinkedList<>(Arrays.asList(authOption)));
-        Mockito.when(proxyAuthStrategy.getChallenges(
-                Mockito.eq(proxy),
-                Mockito.<HttpResponse>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(challenges);
-        Mockito.when(proxyAuthStrategy.getChallenges(
-                Mockito.eq(proxy),
-                Mockito.<HttpResponse>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(challenges);
-        Mockito.when(proxyAuthStrategy.select(
-                Mockito.same(challenges),
-                Mockito.eq(proxy),
-                Mockito.<HttpResponse>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(
-                new LinkedList<>(Arrays.asList(authOption)));
-
     }
 
     @Test
@@ -418,6 +385,7 @@ public class TestMainClientExec {
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
         final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
+        response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
         final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
                 .setStream(instream1)
@@ -437,10 +405,14 @@ public class TestMainClientExec {
         Mockito.when(reuseStrategy.keepAlive(
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
-        Mockito.when(targetAuthStrategy.isAuthenticationRequested(
+        Mockito.when(targetAuthStrategy.select(
+                Mockito.eq(ChallengeType.TARGET),
                 Mockito.eq(target),
-                Mockito.same(response1),
-                Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
+                Mockito.<Map<String, AuthChallenge>>any(),
+                Mockito.<HttpClientContext>any())).thenReturn(new LinkedList<>(
+                    Collections.singleton(new AuthOption(
+                            new BasicScheme(),
+                            new UsernamePasswordCredentials("user", "pass")))));
 
         final CloseableHttpResponse finalResponse = mainClientExec.execute(
                 route, request, context, execAware);
@@ -457,6 +429,7 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
         final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
+        response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
         final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
                 .setStream(instream1)
@@ -483,10 +456,15 @@ public class TestMainClientExec {
         Mockito.when(reuseStrategy.keepAlive(
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.FALSE);
-        Mockito.when(targetAuthStrategy.isAuthenticationRequested(
+
+        final AuthOption authOption = new AuthOption(
+                new BasicScheme(), new UsernamePasswordCredentials("user:pass"));
+        Mockito.when(targetAuthStrategy.select(
+                Mockito.eq(ChallengeType.TARGET),
                 Mockito.eq(target),
-                Mockito.same(response1),
-                Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
+                Mockito.<Map<String, AuthChallenge>>any(),
+                Mockito.<HttpClientContext>any())).thenReturn(
+                new LinkedList<>(Arrays.asList(authOption)));
 
         final CloseableHttpResponse finalResponse = mainClientExec.execute(
                 route, request, context, execAware);
@@ -512,6 +490,7 @@ public class TestMainClientExec {
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(post);
 
         final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
+        response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
         final InputStream instream1 = new ByteArrayInputStream(new byte[] {1, 2, 3});
         response1.setEntity(EntityBuilder.create()
                 .setStream(instream1)
@@ -536,10 +515,15 @@ public class TestMainClientExec {
         Mockito.when(reuseStrategy.keepAlive(
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
-        Mockito.when(targetAuthStrategy.isAuthenticationRequested(
+
+        final AuthOption authOption = new AuthOption(
+                new BasicScheme(), new UsernamePasswordCredentials("user:pass"));
+        Mockito.when(targetAuthStrategy.select(
+                Mockito.eq(ChallengeType.TARGET),
                 Mockito.eq(target),
-                Mockito.same(response1),
-                Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
+                Mockito.<Map<String, AuthChallenge>>any(),
+                Mockito.<HttpClientContext>any())).thenReturn(
+                new LinkedList<>(Arrays.asList(authOption)));
 
         mainClientExec.execute(route, request, context, execAware);
     }
@@ -732,7 +716,8 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
-        final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
+        final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 407, "Huh?");
+        response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, "Basic realm=test");
         final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
                 .setStream(instream1)
@@ -740,10 +725,6 @@ public class TestMainClientExec {
         final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
-        Mockito.when(proxyAuthStrategy.isAuthenticationRequested(
-                Mockito.eq(proxy),
-                Mockito.same(response1),
-                Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(reuseStrategy.keepAlive(
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
@@ -751,6 +732,15 @@ public class TestMainClientExec {
                 Mockito.<HttpRequest>any(),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response1, response2);
+
+        final AuthOption authOption = new AuthOption(
+                new BasicScheme(), new UsernamePasswordCredentials("user:pass"));
+        Mockito.when(proxyAuthStrategy.select(
+                Mockito.eq(ChallengeType.PROXY),
+                Mockito.eq(proxy),
+                Mockito.<Map<String, AuthChallenge>>any(),
+                Mockito.<HttpClientContext>any())).thenReturn(
+                new LinkedList<>(Arrays.asList(authOption)));
 
         mainClientExec.establishRoute(authState, managedConn, route, request, context);
 
@@ -765,7 +755,8 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
-        final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
+        final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 407, "Huh?");
+        response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, "Basic realm=test");
         final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
                 .setStream(instream1)
@@ -773,10 +764,6 @@ public class TestMainClientExec {
         final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
-        Mockito.when(proxyAuthStrategy.isAuthenticationRequested(
-                Mockito.eq(proxy),
-                Mockito.same(response1),
-                Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(reuseStrategy.keepAlive(
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.FALSE);
@@ -784,6 +771,15 @@ public class TestMainClientExec {
                 Mockito.<HttpRequest>any(),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response1, response2);
+
+        final AuthOption authOption = new AuthOption(
+                new BasicScheme(), new UsernamePasswordCredentials("user:pass"));
+        Mockito.when(proxyAuthStrategy.select(
+                Mockito.eq(ChallengeType.PROXY),
+                Mockito.eq(proxy),
+                Mockito.<Map<String, AuthChallenge>>any(),
+                Mockito.<HttpClientContext>any())).thenReturn(
+                new LinkedList<>(Arrays.asList(authOption)));
 
         mainClientExec.establishRoute(authState, managedConn, route, request, context);
 

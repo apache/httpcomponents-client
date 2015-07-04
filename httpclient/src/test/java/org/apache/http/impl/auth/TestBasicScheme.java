@@ -30,18 +30,22 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
+import org.apache.http.message.ParserCursor;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EncodingUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,12 +55,21 @@ import org.junit.Test;
  */
 public class TestBasicScheme {
 
+    private static AuthChallenge parse(final String s) {
+        final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
+        buffer.append(s);
+        final ParserCursor cursor = new ParserCursor(0, buffer.length());
+        final List<AuthChallenge> authChallenges = AuthChallengeParser.INSTANCE.parse(buffer, cursor);
+        Assert.assertEquals(1, authChallenges.size());
+        return authChallenges.get(0);
+    }
+
     @Test
     public void testBasicAuthenticationEmptyChallenge() throws Exception {
         final String challenge = "Basic";
-        final Header header = new BasicHeader(AUTH.WWW_AUTH, challenge);
+        final AuthChallenge authChallenge = parse(challenge);
         final AuthScheme authscheme = new BasicScheme();
-        authscheme.processChallenge(header);
+        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
         Assert.assertNull(authscheme.getRealm());
     }
 
@@ -79,13 +92,12 @@ public class TestBasicScheme {
 
     @Test
     public void testBasicAuthentication() throws Exception {
-        final UsernamePasswordCredentials creds =
-            new UsernamePasswordCredentials("testuser", "testpass");
+        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("testuser", "testpass");
 
-        final Header challenge = new BasicHeader(AUTH.WWW_AUTH, "Basic realm=\"test\"");
+        final AuthChallenge authChallenge = parse("Basic realm=\"test\"");
 
         final BasicScheme authscheme = new BasicScheme();
-        authscheme.processChallenge(challenge);
+        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
 
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpContext context = new BasicHttpContext();
@@ -102,13 +114,12 @@ public class TestBasicScheme {
 
     @Test
     public void testBasicProxyAuthentication() throws Exception {
-        final UsernamePasswordCredentials creds =
-            new UsernamePasswordCredentials("testuser", "testpass");
+        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("testuser", "testpass");
 
-        final Header challenge = new BasicHeader(AUTH.PROXY_AUTH, "Basic realm=\"test\"");
+        final AuthChallenge authChallenge = parse("Basic realm=\"test\"");
 
         final BasicScheme authscheme = new BasicScheme();
-        authscheme.processChallenge(challenge);
+        authscheme.processChallenge(ChallengeType.PROXY, authChallenge);
 
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpContext context = new BasicHttpContext();
@@ -125,10 +136,10 @@ public class TestBasicScheme {
 
     @Test
     public void testSerialization() throws Exception {
-        final Header challenge = new BasicHeader(AUTH.PROXY_AUTH, "Basic realm=\"test\"");
+        final AuthChallenge authChallenge = parse("Basic realm=\"test\"");
 
         final BasicScheme basicScheme = new BasicScheme();
-        basicScheme.processChallenge(challenge);
+        basicScheme.processChallenge(ChallengeType.PROXY, authChallenge);
 
         final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         final ObjectOutputStream out = new ObjectOutputStream(buffer);

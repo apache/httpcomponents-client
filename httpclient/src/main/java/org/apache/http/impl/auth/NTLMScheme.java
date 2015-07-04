@@ -30,7 +30,9 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
@@ -47,7 +49,7 @@ import org.apache.http.util.CharArrayBuffer;
  * @since 4.0
  */
 @NotThreadSafe
-public class NTLMScheme extends AuthSchemeBase {
+public class NTLMScheme extends NonStandardAuthScheme {
 
     enum State {
         UNINITIATED,
@@ -61,14 +63,12 @@ public class NTLMScheme extends AuthSchemeBase {
     private final NTLMEngine engine;
 
     private State state;
-    private String challenge;
 
     public NTLMScheme(final NTLMEngine engine) {
         super();
         Args.notNull(engine, "NTLM engine");
         this.engine = engine;
         this.state = State.UNINITIATED;
-        this.challenge = null;
     }
 
     /**
@@ -84,28 +84,17 @@ public class NTLMScheme extends AuthSchemeBase {
     }
 
     @Override
-    public String getParameter(final String name) {
-        // String parameters not supported
-        return null;
-    }
-
-    @Override
-    public String getRealm() {
-        // NTLM does not support the concept of an authentication realm
-        return null;
-    }
-
-    @Override
     public boolean isConnectionBased() {
         return true;
     }
 
     @Override
-    protected void parseChallenge(
-            final CharArrayBuffer buffer,
-            final int beginIndex, final int endIndex) throws MalformedChallengeException {
-        this.challenge = buffer.substringTrimmed(beginIndex, endIndex);
-        if (this.challenge.isEmpty()) {
+    public void processChallenge(
+            final ChallengeType challengeType, final AuthChallenge authChallenge) throws MalformedChallengeException {
+        Args.notNull(challengeType, "ChallengeType");
+        Args.notNull(authChallenge, "AuthChallenge");
+        final String value = authChallenge.getValue();
+        if (value == null || value.isEmpty()) {
             if (this.state == State.UNINITIATED) {
                 this.state = State.CHALLENGE_RECEIVED;
             } else {
@@ -126,7 +115,7 @@ public class NTLMScheme extends AuthSchemeBase {
             final Credentials credentials,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
-        NTCredentials ntcredentials = null;
+        final NTCredentials ntcredentials;
         try {
             ntcredentials = (NTCredentials) credentials;
         } catch (final ClassCastException e) {
@@ -134,7 +123,7 @@ public class NTLMScheme extends AuthSchemeBase {
              "Credentials cannot be used for NTLM authentication: "
               + credentials.getClass().getName());
         }
-        String response = null;
+        final String response;
         if (this.state == State.FAILED) {
             throw new AuthenticationException("NTLM authentication failed");
         } else if (this.state == State.CHALLENGE_RECEIVED) {
@@ -148,7 +137,7 @@ public class NTLMScheme extends AuthSchemeBase {
                     ntcredentials.getPassword(),
                     ntcredentials.getNetbiosDomain(),
                     ntcredentials.getWorkstation(),
-                    this.challenge);
+                    getChallenge());
             this.state = State.MSG_TYPE3_GENERATED;
         } else {
             throw new AuthenticationException("Unexpected state: " + this.state);

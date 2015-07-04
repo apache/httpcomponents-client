@@ -34,14 +34,16 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.RouteInfo;
-import org.apache.http.impl.auth.AuthSchemeBase;
+import org.apache.http.impl.auth.NonStandardAuthScheme;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
@@ -68,7 +70,7 @@ import com.sun.jna.ptr.IntByReference;
  * @since 4.4
  */
 @NotThreadSafe
-public class WindowsNegotiateScheme extends AuthSchemeBase {
+public class WindowsNegotiateScheme extends NonStandardAuthScheme {
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -79,13 +81,11 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
     private CredHandle clientCred;
     private CtxtHandle sspiContext;
     private boolean continueNeeded;
-    private String challenge;
 
     public WindowsNegotiateScheme(final String scheme, final String servicePrincipalName) {
         super();
 
         this.scheme = (scheme == null) ? AuthSchemes.SPNEGO : scheme;
-        this.challenge = null;
         this.continueNeeded = true;
         this.servicePrincipalName = servicePrincipalName;
 
@@ -123,35 +123,21 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
         return scheme;
     }
 
-    // String parameters not supported
-    @Override
-    public String getParameter(final String name) {
-        return null;
-    }
-
-    // NTLM/Negotiate do not support authentication realms
-    @Override
-    public String getRealm() {
-        return null;
-    }
-
     @Override
     public boolean isConnectionBased() {
         return true;
     }
 
     @Override
-    protected void parseChallenge(
-            final CharArrayBuffer buffer,
-            final int beginIndex,
-            final int endIndex) throws MalformedChallengeException {
-        this.challenge = buffer.substringTrimmed(beginIndex, endIndex);
-
-        if (this.challenge.isEmpty()) {
+    public void processChallenge(
+            final ChallengeType challengeType, final AuthChallenge authChallenge) throws MalformedChallengeException {
+        update(challengeType, authChallenge);
+        final String challenge = getChallenge();
+        if (challenge.isEmpty()) {
             if (clientCred != null) {
                 dispose(); // run cleanup first before throwing an exception otherwise can leak OS resources
                 if (continueNeeded) {
-                    throw new RuntimeException("Unexpected token");
+                    throw new IllegalStateException("Unexpected token");
                 }
             }
         }
@@ -163,6 +149,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
 
+        final String challenge = getChallenge();
         final String response;
         if (clientCred == null) {
             // ?? We don't use the credentials, should we allow anything?
@@ -196,12 +183,12 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
                     throw ex;
                 }
             }
-        } else if (this.challenge == null || this.challenge.isEmpty()) {
+        } else if (challenge == null || challenge.isEmpty()) {
             failAuthCleanup();
             throw new AuthenticationException("Authentication Failed");
         } else {
             try {
-                final byte[] continueTokenBytes = Base64.decodeBase64(this.challenge);
+                final byte[] continueTokenBytes = Base64.decodeBase64(challenge);
                 final SecBufferDesc continueTokenBuffer = new SecBufferDesc(
                         Sspi.SECBUFFER_TOKEN, continueTokenBytes);
                 final String targetName = getServicePrincipalName(context);

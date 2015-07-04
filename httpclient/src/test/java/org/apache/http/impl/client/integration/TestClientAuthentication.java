@@ -28,6 +28,8 @@ package org.apache.http.impl.client.integration;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.http.Consts;
@@ -39,9 +41,13 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthChallenge;
+import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.CredentialsProvider;
+import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.ClientProtocolException;
@@ -56,7 +62,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.TargetAuthenticationStrategy;
+import org.apache.http.impl.client.DefaultAuthenticationStrategy;
 import org.apache.http.localserver.BasicAuthTokenExtractor;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.localserver.RequestBasicAuth;
@@ -342,7 +348,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         }
     }
 
-    static class TestTargetAuthenticationStrategy extends TargetAuthenticationStrategy {
+    static class TestTargetAuthenticationStrategy extends DefaultAuthenticationStrategy {
 
         private final AtomicLong count;
 
@@ -352,15 +358,14 @@ public class TestClientAuthentication extends LocalServerTestBase {
         }
 
         @Override
-        public boolean isAuthenticationRequested(
+        public Queue<AuthOption> select(
+                final ChallengeType challengeType,
                 final HttpHost host,
-                final HttpResponse response,
-                final HttpContext context) {
-            final boolean res = super.isAuthenticationRequested(host, response, context);
-            if (res == true) {
-                this.count.incrementAndGet();
-            }
-            return res;
+                final Map<String, AuthChallenge> challenges,
+                final HttpContext context) throws MalformedChallengeException {
+            final Queue<AuthOption> authOptions = super.select(challengeType, host, challenges, context);
+            this.count.incrementAndGet();
+            return authOptions;
         }
 
         public long getCount() {

@@ -59,6 +59,17 @@ public class TestAuthChallengeParser {
     }
 
     @Test
+    public void testParseTokenWithBlank() throws Exception {
+        final CharArrayBuffer buffer = new CharArrayBuffer(64);
+        buffer.append("blah ");
+        final ParserCursor cursor = new ParserCursor(0, buffer.length());
+        final NameValuePair nvp = parser.parseTokenOrParameter(buffer, cursor);
+        Assert.assertNotNull(nvp);
+        Assert.assertEquals("blah", nvp.getName());
+        Assert.assertEquals(null, nvp.getValue());
+    }
+
+    @Test
     public void testParseTokenWithBlanks() throws Exception {
         final CharArrayBuffer buffer = new CharArrayBuffer(64);
         buffer.append("  blah  blah ");

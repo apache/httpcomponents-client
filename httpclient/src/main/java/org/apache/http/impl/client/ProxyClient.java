@@ -41,7 +41,9 @@ import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
+import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
+import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -86,7 +88,7 @@ public class ProxyClient {
     private final RequestConfig requestConfig;
     private final HttpProcessor httpProcessor;
     private final HttpRequestExecutor requestExec;
-    private final ProxyAuthenticationStrategy proxyAuthStrategy;
+    private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
     private final AuthState proxyAuthState;
     private final Lookup<AuthSchemeProvider> authSchemeRegistry;
@@ -106,7 +108,7 @@ public class ProxyClient {
         this.httpProcessor = new ImmutableHttpProcessor(
                 new RequestTargetHost(), new RequestClientConnControl(), new RequestUserAgent());
         this.requestExec = new HttpRequestExecutor();
-        this.proxyAuthStrategy = new ProxyAuthenticationStrategy();
+        this.proxyAuthStrategy = new DefaultAuthenticationStrategy();
         this.authenticator = new HttpAuthenticator();
         this.proxyAuthState = new AuthState();
         this.authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
@@ -184,9 +186,8 @@ public class ProxyClient {
                 throw new HttpException("Unexpected response to CONNECT request: " +
                         response.getStatusLine());
             }
-            if (this.authenticator.isAuthenticationRequested(proxy, response,
-                    this.proxyAuthStrategy, this.proxyAuthState, context)) {
-                if (this.authenticator.handleAuthChallenge(proxy, response,
+            if (this.authenticator.updateAuthState(proxy, ChallengeType.PROXY, response, this.proxyAuthState, context)) {
+                if (this.authenticator.handleAuthChallenge(proxy, ChallengeType.PROXY, response,
                         this.proxyAuthStrategy, this.proxyAuthState, context)) {
                     // Retry request
                     if (this.reuseStrategy.keepAlive(response, context)) {

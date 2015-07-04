@@ -41,6 +41,8 @@ import org.apache.http.util.CharArrayBuffer;
 
 public class AuthChallengeParser {
 
+    public static final AuthChallengeParser INSTANCE = new AuthChallengeParser();
+
     private final TokenParser tokenParser = TokenParser.INSTANCE;
 
     private final static char BLANK            = ' ';
@@ -60,7 +62,7 @@ public class AuthChallengeParser {
             if (buffer.charAt(cursor.getPos()) == BLANK) {
                 tokenParser.skipWhiteSpace(buffer, cursor);
             }
-            if (buffer.charAt(cursor.getPos()) == EQUAL_CHAR) {
+            if (!cursor.atEnd() && buffer.charAt(cursor.getPos()) == EQUAL_CHAR) {
                 cursor.updatePos(cursor.getPos() + 1);
                 final String value = tokenParser.parseValue(buffer, cursor, DELIMITER);
                 return new BasicNameValuePair(token, value);

@@ -949,11 +949,11 @@ public class HttpClientBuilder {
         }
         AuthenticationStrategy targetAuthStrategyCopy = this.targetAuthStrategy;
         if (targetAuthStrategyCopy == null) {
-            targetAuthStrategyCopy = TargetAuthenticationStrategy.INSTANCE;
+            targetAuthStrategyCopy = DefaultAuthenticationStrategy.INSTANCE;
         }
         AuthenticationStrategy proxyAuthStrategyCopy = this.proxyAuthStrategy;
         if (proxyAuthStrategyCopy == null) {
-            proxyAuthStrategyCopy = ProxyAuthenticationStrategy.INSTANCE;
+            proxyAuthStrategyCopy = DefaultAuthenticationStrategy.INSTANCE;
         }
         UserTokenHandler userTokenHandlerCopy = this.userTokenHandler;
         if (userTokenHandlerCopy == null) {

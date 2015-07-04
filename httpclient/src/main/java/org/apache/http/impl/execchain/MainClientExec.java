@@ -46,6 +46,7 @@ import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthState;
+import org.apache.http.auth.ChallengeType;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.UserTokenHandler;
@@ -465,9 +466,9 @@ public class MainClientExec implements ClientExecChain {
             }
 
             if (config.isAuthenticationEnabled()) {
-                if (this.authenticator.isAuthenticationRequested(proxy, response,
-                        this.proxyAuthStrategy, proxyAuthState, context)) {
-                    if (this.authenticator.handleAuthChallenge(proxy, response,
+                if (this.authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
+                        proxyAuthState, context)) {
+                    if (this.authenticator.handleAuthChallenge(proxy, ChallengeType.PROXY, response,
                             this.proxyAuthStrategy, proxyAuthState, context)) {
                         // Retry request
                         if (this.reuseStrategy.keepAlive(response, context)) {
@@ -546,23 +547,23 @@ public class MainClientExec implements ClientExecChain {
                         route.getTargetHost().getPort(),
                         target.getSchemeName());
             }
-            final boolean targetAuthRequested = this.authenticator.isAuthenticationRequested(
-                    target, response, this.targetAuthStrategy, targetAuthState, context);
+            final boolean targetAuthRequested = this.authenticator.updateAuthState(
+                    target, ChallengeType.TARGET, response, targetAuthState, context);
 
             HttpHost proxy = route.getProxyHost();
             // if proxy is not set use target host instead
             if (proxy == null) {
                 proxy = route.getTargetHost();
             }
-            final boolean proxyAuthRequested = this.authenticator.isAuthenticationRequested(
-                    proxy, response, this.proxyAuthStrategy, proxyAuthState, context);
+            final boolean proxyAuthRequested = this.authenticator.updateAuthState(
+                    proxy, ChallengeType.PROXY, response, proxyAuthState, context);
 
             if (targetAuthRequested) {
-                return this.authenticator.handleAuthChallenge(target, response,
+                return this.authenticator.handleAuthChallenge(target, ChallengeType.TARGET, response,
                         this.targetAuthStrategy, targetAuthState, context);
             }
             if (proxyAuthRequested) {
-                return this.authenticator.handleAuthChallenge(proxy, response,
+                return this.authenticator.handleAuthChallenge(proxy, ChallengeType.PROXY, response,
                         this.proxyAuthStrategy, proxyAuthState, context);
             }
         }

@@ -46,6 +46,7 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Registry;
@@ -53,7 +54,6 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.BasicSchemeFactory;
-import org.apache.http.impl.client.TargetAuthenticationStrategy;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.protocol.HttpContext;
@@ -162,15 +162,6 @@ public class TestClientReauthentication extends LocalServerTestBase {
 
         };
 
-        final TargetAuthenticationStrategy myAuthStrategy = new TargetAuthenticationStrategy() {
-
-            @Override
-            protected boolean isCachable(final AuthScheme authScheme) {
-                return "MyBasic".equalsIgnoreCase(authScheme.getSchemeName());
-            }
-
-        };
-
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
                 new UsernamePasswordCredentials("test", "test"));
 
@@ -182,7 +173,6 @@ public class TestClientReauthentication extends LocalServerTestBase {
             .build();
         this.httpclient = this.clientBuilder
             .setDefaultAuthSchemeRegistry(authSchemeRegistry)
-            .setTargetAuthenticationStrategy(myAuthStrategy)
             .setDefaultCredentialsProvider(credsProvider)
             .build();
 
@@ -192,11 +182,12 @@ public class TestClientReauthentication extends LocalServerTestBase {
         for (int i = 0; i < 10; i++) {
             final HttpGet httpget = new HttpGet("/");
             httpget.setConfig(config);
-            final HttpResponse response = this.httpclient.execute(target, httpget, context);
-            final HttpEntity entity = response.getEntity();
-            Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-            Assert.assertNotNull(entity);
-            EntityUtils.consume(entity);
+            try (final CloseableHttpResponse response = this.httpclient.execute(target, httpget, context)) {
+                final HttpEntity entity = response.getEntity();
+                Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+                Assert.assertNotNull(entity);
+                EntityUtils.consume(entity);
+            }
         }
     }
 

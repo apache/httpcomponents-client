@@ -27,7 +27,6 @@
 package org.apache.http.impl.auth;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -38,14 +37,15 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeaderValueFormatter;
@@ -71,7 +71,7 @@ import org.apache.http.util.EncodingUtils;
  * @since 4.0
  */
 @NotThreadSafe
-public class DigestScheme extends RFC2617Scheme {
+public class DigestScheme extends StandardAuthScheme {
 
     private static final long serialVersionUID = 3883908186234566916L;
 
@@ -100,42 +100,23 @@ public class DigestScheme extends RFC2617Scheme {
     private String a1;
     private String a2;
 
-    /**
-     * @since 4.3
-     */
-    public DigestScheme(final Charset credentialsCharset) {
-        super(credentialsCharset);
+    public DigestScheme() {
         this.complete = false;
     }
 
-    public DigestScheme() {
-        this(Consts.ASCII);
-    }
-
-    /**
-     * Processes the Digest challenge.
-     *
-     * @param header the challenge header
-     *
-     * @throws MalformedChallengeException is thrown if the authentication challenge
-     * is malformed
-     */
     @Override
     public void processChallenge(
-            final Header header) throws MalformedChallengeException {
-        super.processChallenge(header);
-        this.complete = true;
+            final ChallengeType challengeType,
+            final AuthChallenge authChallenge) throws MalformedChallengeException {
+        Args.notNull(challengeType, "ChallengeType");
+        Args.notNull(authChallenge, "AuthChallenge");
+        update(challengeType, authChallenge);
         if (getParameters().isEmpty()) {
-            throw new MalformedChallengeException("Authentication challenge is empty");
+            throw new MalformedChallengeException("Missing digest auth parameters");
         }
+        this.complete = true;
     }
 
-    /**
-     * Tests if the Digest authentication process has been completed.
-     *
-     * @return {@code true} if Digest authorization has been processed,
-     *   {@code false} otherwise.
-     */
     @Override
     public boolean isComplete() {
         final String s = getParameter("stale");
@@ -146,21 +127,11 @@ public class DigestScheme extends RFC2617Scheme {
         }
     }
 
-    /**
-     * Returns textual designation of the digest authentication scheme.
-     *
-     * @return {@code digest}
-     */
     @Override
     public String getSchemeName() {
         return "digest";
     }
 
-    /**
-     * Returns {@code false}. Digest authentication scheme is request based.
-     *
-     * @return {@code false}.
-     */
     @Override
     public boolean isConnectionBased() {
         return false;
@@ -170,20 +141,6 @@ public class DigestScheme extends RFC2617Scheme {
         getParameters().put(name, value);
     }
 
-    /**
-     * Produces a digest authorization string for the given set of
-     * {@link Credentials}, method name and URI.
-     *
-     * @param credentials A set of credentials to be used for athentication
-     * @param request    The request being authenticated
-     *
-     * @throws org.apache.http.auth.InvalidCredentialsException if authentication credentials
-     *         are not valid or not applicable for this authentication scheme
-     * @throws AuthenticationException if authorization string cannot
-     *   be generated due to an authentication failure
-     *
-     * @return a digest authorization string
-     */
     @Override
     public Header authenticate(
             final Credentials credentials,
@@ -201,10 +158,6 @@ public class DigestScheme extends RFC2617Scheme {
         // Add method name and request-URI to the parameter map
         getParameters().put("methodname", request.getRequestLine().getMethod());
         getParameters().put("uri", request.getRequestLine().getUri());
-        final String charset = getParameter("charset");
-        if (charset == null) {
-            getParameters().put("charset", getCredentialsCharset(request));
-        }
         return createDigestHeader(credentials, request);
     }
 
@@ -219,13 +172,6 @@ public class DigestScheme extends RFC2617Scheme {
         }
     }
 
-    /**
-     * Creates digest-response header as defined in RFC2617.
-     *
-     * @param credentials User credentials
-     *
-     * @return The digest-response as String.
-     */
     private Header createDigestHeader(
             final Credentials credentials,
             final HttpRequest request) throws AuthenticationException {
@@ -447,7 +393,6 @@ public class DigestScheme extends RFC2617Scheme {
         return new String(buffer);
     }
 
-
     /**
      * Creates a random cnonce value based on the current time.
      *
@@ -458,16 +403,6 @@ public class DigestScheme extends RFC2617Scheme {
         final byte[] tmp = new byte[8];
         rnd.nextBytes(tmp);
         return encode(tmp);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("DIGEST [complete=").append(complete)
-                .append(", nonce=").append(lastNonce)
-                .append(", nc=").append(nounceCount)
-                .append("]");
-        return builder.toString();
     }
 
 }
