@@ -28,6 +28,7 @@
 package org.apache.http.client.utils;
 
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -390,6 +391,21 @@ public class TestURLEncodedUtils {
         params.clear();
         params.add(new BasicNameValuePair("Name8", "xx,  yy  ,zz"));
         Assert.assertEquals("Name8=xx%2C++yy++%2Czz", URLEncodedUtils.format(params, "US-ASCII"));
+    }
+
+    @Test
+    public void testFormatMatrixParameters() throws Exception {
+        final List <NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("Name0", "Value0"));
+        params.add(new BasicNameValuePair("Name1", "Value1"));
+        Assert.assertEquals("Name0=Value0;Name1=Value1", URLEncodedUtils.format(params,
+                URLEncodedUtils.QP_SEP_S, URLEncodedUtils.Type.MATRIX_PARAMETER, Charset.forName("UTF-8")));
+
+        params.clear();
+        params.add(new BasicNameValuePair("Name-2", "Value%2"));
+        params.add(new BasicNameValuePair("Name;3", "Value=3"));
+        Assert.assertEquals("Name-2=Value%252;Name%3B3=Value%3D3", URLEncodedUtils.format(params,
+                URLEncodedUtils.QP_SEP_S, URLEncodedUtils.Type.MATRIX_PARAMETER, Charset.forName("UTF-8")));
     }
 
     private List <NameValuePair> parse (final String params) {

@@ -67,8 +67,19 @@ public class URLEncodedUtils {
      */
     public static final String CONTENT_TYPE = "application/x-www-form-urlencoded";
 
+    static final char QP_SEP_S = ';';
+
+    /**
+     * Types of parameters
+     */
+    enum Type {
+
+        MATRIX_PARAMETER,
+
+        FORM_INPUT_PARAMETER
+    }
+
     private static final char QP_SEP_A = '&';
-    private static final char QP_SEP_S = ';';
     private static final String NAME_VALUE_SEPARATOR = "=";
 
     /**
@@ -306,10 +317,35 @@ public class URLEncodedUtils {
             final Iterable<? extends NameValuePair> parameters,
             final char parameterSeparator,
             final Charset charset) {
+        return format(parameters, parameterSeparator, Type.FORM_INPUT_PARAMETER, charset);
+    }
+
+    /**
+     * Returns a String that is suitable for use as an {@code application/x-www-form-urlencoded} or matrix parameter
+     * compatible list of parameters in an HTTP PUT or HTTP POST.
+     *
+     * @param parameters  The parameters to include.
+     * @param parameterSeparator The parameter separator, by convention, {@code '&'} or {@code ';'}.
+     * @param type the {@link Type} of the parameters
+     * @param charset The encoding to use.
+     * @return An {@code application/x-www-form-urlencoded} string
+     */
+    public static String format(
+            final Iterable<? extends NameValuePair> parameters,
+            final char parameterSeparator,
+            final Type type,
+            final Charset charset) {
         final StringBuilder result = new StringBuilder();
         for (final NameValuePair parameter : parameters) {
-            final String encodedName = encodeFormFields(parameter.getName(), charset);
-            final String encodedValue = encodeFormFields(parameter.getValue(), charset);
+            final String encodedName;
+            final String encodedValue;
+            if(type.equals(Type.MATRIX_PARAMETER)) {
+                encodedName = encodeMatrixParameter(parameter.getName(), charset);
+                encodedValue = encodeMatrixParameter(parameter.getValue(), charset);
+            } else { //there is only form input type left
+                encodedName = encodeFormFields(parameter.getName(), charset);
+                encodedValue = encodeFormFields(parameter.getValue(), charset);
+            }
             if (result.length() > 0) {
                 result.append(parameterSeparator);
             }
@@ -344,6 +380,9 @@ public class URLEncodedUtils {
     /** Characters which are safe to use in a query or a fragment,
      * i.e. {@link #RESERVED} plus {@link #UNRESERVED} */
     private static final BitSet URIC     = new BitSet(256);
+    /** Characters which are safe to use in a matrix parameter,
+     * i.e. {@link #UNRESERVED} plus {@link #PUNCT}uation without ';' and '=' */
+    private static final BitSet MATRIX     = new BitSet(256);
 
     /**
      * Reserved characters, i.e. {@code ;/?:@&=+$,[]}
@@ -385,13 +424,16 @@ public class URLEncodedUtils {
         UNRESERVED.set('\'');
         UNRESERVED.set('(');
         UNRESERVED.set(')');
+        // safe for matrix parameters
+        MATRIX.or(UNRESERVED);
         // punct chars
         PUNCT.set(',');
-        PUNCT.set(';');
         PUNCT.set(':');
         PUNCT.set('$');
         PUNCT.set('&');
         PUNCT.set('+');
+        MATRIX.or(PUNCT); // skip remaining punctuation characters
+        PUNCT.set(';');
         PUNCT.set('=');
         // Safe for userinfo
         USERINFO.or(UNRESERVED);
@@ -579,6 +621,19 @@ public class URLEncodedUtils {
      */
     static String encPath(final String content, final Charset charset) {
         return urlEncode(content, charset, PATHSAFE, false);
+    }
+
+    /**
+     * Encode a String using the {@link #MATRIX} set of characters.
+     * <p>
+     * Used by URIBuilder to encode matrix parameters.
+     *
+     * @param content the string to encode, does not convert space to '+'
+     * @param charset the charset to use
+     * @return the encoded string
+     */
+    static String encodeMatrixParameter(final String content, final Charset charset) {
+        return urlEncode(content, charset, MATRIX, false);
     }
 
 }
