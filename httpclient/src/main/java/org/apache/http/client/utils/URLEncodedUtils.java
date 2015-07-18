@@ -272,20 +272,7 @@ public class URLEncodedUtils {
             final List <? extends NameValuePair> parameters,
             final char parameterSeparator,
             final String charset) {
-        final StringBuilder result = new StringBuilder();
-        for (final NameValuePair parameter : parameters) {
-            final String encodedName = encodeFormFields(parameter.getName(), charset);
-            final String encodedValue = encodeFormFields(parameter.getValue(), charset);
-            if (result.length() > 0) {
-                result.append(parameterSeparator);
-            }
-            result.append(encodedName);
-            if (encodedValue != null) {
-                result.append(NAME_VALUE_SEPARATOR);
-                result.append(encodedValue);
-            }
-        }
-        return result.toString();
+        return format(parameters, parameterSeparator, Charset.forName(charset));
     }
 
     /**
@@ -535,24 +522,6 @@ public class URLEncodedUtils {
             return null;
         }
         return urlDecode(content, charset != null ? charset : Consts.UTF_8, true);
-    }
-
-    /**
-     * Encode/escape www-url-form-encoded content.
-     * <p>
-     * Uses the {@link #URLENCODER} set of characters, rather than
-     * the {@link #UNRESERVED} set; this is for compatibilty with previous
-     * releases, URLEncoder.encode() and most browsers.
-     *
-     * @param content the content to encode, will convert space to '+'
-     * @param charset the charset to use
-     * @return encoded string
-     */
-    private static String encodeFormFields(final String content, final String charset) {
-        if (content == null) {
-            return null;
-        }
-        return urlEncode(content, charset != null ? Charset.forName(charset) : Consts.UTF_8, URLENCODER, true);
     }
 
     /**
