@@ -151,6 +151,53 @@ public class TestURIBuilder {
     }
 
     @Test
+    public void testAddMatrixParameter() throws Exception {
+        final URI uri = new URI("https://somehost.com/stuff");
+        final URIBuilder uribuilder = new URIBuilder(uri)
+                .addMatrixParameter("param", "some other stuff")
+                .addMatrixParameter("blah", "blah");
+        final URI result = uribuilder.build();
+        Assert.assertEquals(new URI("https://somehost.com/stuff;param=some%20other%20stuff;blah=blah"), result);
+    }
+
+    @Test
+    public void testAddMatrixParameters() throws Exception {
+        final URI uri = new URI("https://somehost.com/stuff");
+        final List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("param", "some other stuff"));
+        params.add(new BasicNameValuePair("blah", "blah"));
+        final URIBuilder uribuilder = new URIBuilder(uri).addMatrixParameters(params);
+        final URI result = uribuilder.build();
+        Assert.assertEquals(new URI("https://somehost.com/stuff;param=some%20other%20stuff;blah=blah"), result);
+    }
+
+    @Test
+    public void testSetMatrixParameter() throws Exception {
+        final URI uri = new URI("https://somehost.com/stuff");
+        final URIBuilder uribuilder = new URIBuilder(uri)
+                .addMatrixParameter("param", "some other stuff")
+                .addMatrixParameter("blah", "blah");
+        uribuilder.setMatrixParameter("blah", "foo");
+        final URI result = uribuilder.build();
+        Assert.assertEquals(new URI("https://somehost.com/stuff;param=some%20other%20stuff;blah=foo"), result);
+    }
+
+    @Test
+    public void testSetMatrixParameters() throws Exception {
+        final URI uri = new URI("https://somehost.com/stuff");
+        final List<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("param", "some other stuff"));
+        params.add(new BasicNameValuePair("blah", "blah"));
+        params.add(new BasicNameValuePair("tobe", "removed"));
+        final URIBuilder uribuilder = new URIBuilder(uri).addMatrixParameters(params);
+        uribuilder.setMatrixParameters(new BasicNameValuePair[]{
+                new BasicNameValuePair("param", "some other value"),
+                new BasicNameValuePair("blah", "foo")});
+        final URI result = uribuilder.build();
+        Assert.assertEquals(new URI("https://somehost.com/stuff;param=some%20other%20value;blah=foo"), result);
+    }
+
+    @Test
     public void testQueryEncoding() throws Exception {
         final URI uri1 = new URI("https://somehost.com/stuff?client_id=1234567890" +
                 "&redirect_uri=https%3A%2F%2Fsomehost.com%2Fblah+blah%2F");

@@ -30,6 +30,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -58,6 +59,7 @@ public class URIBuilder {
     private String encodedPath;
     private String encodedQuery;
     private List<NameValuePair> queryParams;
+    private List<NameValuePair> matrixParams;
     private String query;
     private Charset charset;
     private String fragment;
@@ -151,6 +153,9 @@ public class URIBuilder {
             } else if (this.path != null) {
                 sb.append(encodePath(normalizePath(this.path)));
             }
+            if(this.matrixParams != null) {
+                sb.append(";").append(encodeMatrixParameters(this.matrixParams));
+            }
             if (this.encodedQuery != null) {
                 sb.append("?").append(this.encodedQuery);
             } else if (this.queryParams != null) {
@@ -193,6 +198,11 @@ public class URIBuilder {
 
     private String encodeUrlForm(final List<NameValuePair> params) {
         return URLEncodedUtils.format(params, this.charset != null ? this.charset : Consts.UTF_8);
+    }
+
+    private String encodeMatrixParameters(final List<NameValuePair> params) {
+        return URLEncodedUtils.format(params, URLEncodedUtils.QP_SEP_S, URLEncodedUtils.Type.MATRIX_PARAMETER,
+                this.charset != null ? this.charset : Consts.UTF_8);
     }
 
     private String encodeUric(final String fragment) {
@@ -424,6 +434,79 @@ public class URIBuilder {
     }
 
     /**
+     * Adds matrix parameters to be added to the last path segment.
+     * The parameter name / values are expected to be unescaped and may contain non ASCII characters.
+     */
+    public URIBuilder addMatrixParameters(final List <NameValuePair> nvps) {
+        if (this.matrixParams == null) {
+            this.matrixParams = new ArrayList<>();
+        }
+        this.matrixParams.addAll(nvps);
+        this.encodedSchemeSpecificPart = null;
+        return this;
+    }
+
+    /**
+     * Sets matrix parameters to be added to the last path segment, overriding all existing values if set.
+     * The parameter name / values are expected to be unescaped and may contain non ASCII characters.
+     */
+    public URIBuilder setMatrixParameters(final NameValuePair... nvps) {
+        if (this.matrixParams == null) {
+            this.matrixParams = new ArrayList<>();
+        } else {
+            this.matrixParams.clear();
+        }
+        Collections.addAll(this.matrixParams, nvps);
+        this.encodedSchemeSpecificPart = null;
+        return this;
+    }
+
+    /**
+     * Adds matrix parameter to be added to the last path segment.
+     * The parameter name and value are expected to be unescaped and may contain non ASCII characters.
+     */
+    public URIBuilder addMatrixParameter(final String param, final String value) {
+        if (this.matrixParams == null) {
+            this.matrixParams = new ArrayList<>();
+        }
+        this.matrixParams.add(new BasicNameValuePair(param, value));
+        this.encodedSchemeSpecificPart = null;
+        return this;
+    }
+
+    /**
+     * Sets matrix parameter to be added to the last path segment, overriding existing value if set.
+     * The parameter name and value are expected to be unescaped and may contain non ASCII characters.
+     */
+    public URIBuilder setMatrixParameter(final String param, final String value) {
+        if (this.matrixParams == null) {
+            this.matrixParams = new ArrayList<>();
+        }
+        if (!this.matrixParams.isEmpty()) {
+            for (final Iterator<NameValuePair> it = this.matrixParams.iterator(); it.hasNext(); ) {
+                final NameValuePair nvp = it.next();
+                if (nvp.getName().equals(param)) {
+                    it.remove();
+                }
+            }
+        }
+        this.matrixParams.add(new BasicNameValuePair(param, value));
+        this.encodedSchemeSpecificPart = null;
+        return this;
+    }
+
+    /**
+     * Clears matrix parameters.
+     *
+     * @since 4.3
+     */
+    public URIBuilder clearMatrixParameters() {
+        this.matrixParams = null;
+        this.encodedSchemeSpecificPart = null;
+        return this;
+    }
+
+    /**
      * @since 4.3
      */
     public boolean isAbsolute() {
@@ -460,6 +543,14 @@ public class URIBuilder {
     public List<NameValuePair> getQueryParams() {
         if (this.queryParams != null) {
             return new ArrayList<>(this.queryParams);
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
+    public List<NameValuePair> getMatrixParams() {
+        if (this.matrixParams != null) {
+            return new ArrayList<>(this.matrixParams);
         } else {
             return new ArrayList<>();
         }
