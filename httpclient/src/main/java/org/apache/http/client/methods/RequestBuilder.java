@@ -463,7 +463,7 @@ public class RequestBuilder {
         if (parameters != null && !parameters.isEmpty()) {
             if (entityCopy == null && (HttpPost.METHOD_NAME.equalsIgnoreCase(method)
                     || HttpPut.METHOD_NAME.equalsIgnoreCase(method))) {
-                entityCopy = new UrlEncodedFormEntity(parameters, HTTP.DEF_CONTENT_CHARSET);
+                entityCopy = new UrlEncodedFormEntity(parameters, charset != null ? charset : HTTP.DEF_CONTENT_CHARSET);
             } else {
                 try {
                     uriNotNull = new URIBuilder(uriNotNull)
