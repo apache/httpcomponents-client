@@ -101,7 +101,7 @@ public class TestHttpAuthenticator {
     public void testUpdateAuthState() throws Exception {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
-        Assert.assertTrue(this.httpAuthenticator.updateAuthState(
+        Assert.assertTrue(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authState, this.context));
         Mockito.verifyZeroInteractions(this.authCache);
     }
@@ -114,7 +114,7 @@ public class TestHttpAuthenticator {
         this.authState.update(this.authScheme, this.credentials);
         this.authState.setState(AuthProtocolState.SUCCESS);
 
-        Assert.assertTrue(this.httpAuthenticator.updateAuthState(
+        Assert.assertTrue(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authState, this.context));
 
         Mockito.verify(this.authCache).remove(this.defaultHost);
@@ -124,7 +124,7 @@ public class TestHttpAuthenticator {
     public void testAuthenticationNotRequestedUnchallenged() throws Exception {
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
 
-        Assert.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assert.assertFalse(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authState, this.context));
         Assert.assertEquals(AuthProtocolState.UNCHALLENGED, this.authState.getState());
     }
@@ -135,7 +135,7 @@ public class TestHttpAuthenticator {
         this.authState.update(this.authScheme, this.credentials);
         this.authState.setState(AuthProtocolState.CHALLENGED);
 
-        Assert.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assert.assertFalse(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authState, this.context));
         Assert.assertEquals(AuthProtocolState.SUCCESS, this.authState.getState());
 
@@ -148,7 +148,7 @@ public class TestHttpAuthenticator {
         this.authState.update(this.authScheme, this.credentials);
         this.authState.setState(AuthProtocolState.HANDSHAKE);
 
-        Assert.assertFalse(this.httpAuthenticator.updateAuthState(
+        Assert.assertFalse(this.httpAuthenticator.isChallenged(
                 this.defaultHost, ChallengeType.TARGET, response, this.authState, this.context));
         Assert.assertEquals(AuthProtocolState.SUCCESS, this.authState.getState());
 
@@ -165,8 +165,8 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertTrue(this.httpAuthenticator.handleAuthChallenge(
-                host,ChallengeType.TARGET, response, authStrategy, this.authState, this.context));
+        Assert.assertTrue(this.httpAuthenticator.prepareAuthResponse(
+                host, ChallengeType.TARGET, response, authStrategy, this.authState, this.context));
         Assert.assertEquals(AuthProtocolState.CHALLENGED, this.authState.getState());
 
         final Queue<AuthOption> options = this.authState.getAuthOptions();
@@ -187,7 +187,7 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertFalse(this.httpAuthenticator.handleAuthChallenge(
+        Assert.assertFalse(this.httpAuthenticator.prepareAuthResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authState, this.context));
     }
 
@@ -200,7 +200,7 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertFalse(this.httpAuthenticator.handleAuthChallenge(
+        Assert.assertFalse(this.httpAuthenticator.prepareAuthResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authState, this.context));
     }
 
@@ -215,7 +215,7 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertFalse(this.httpAuthenticator.handleAuthChallenge(
+        Assert.assertFalse(this.httpAuthenticator.prepareAuthResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authState, this.context));
     }
 
@@ -231,7 +231,7 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertFalse(this.httpAuthenticator.handleAuthChallenge(
+        Assert.assertFalse(this.httpAuthenticator.prepareAuthResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authState, this.context));
 
         Assert.assertEquals(AuthProtocolState.FAILURE, this.authState.getState());
@@ -250,7 +250,7 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertFalse(this.httpAuthenticator.handleAuthChallenge(
+        Assert.assertFalse(this.httpAuthenticator.prepareAuthResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authState, this.context));
 
         Assert.assertEquals(AuthProtocolState.FAILURE, this.authState.getState());
@@ -269,7 +269,7 @@ public class TestHttpAuthenticator {
         this.authState.setState(AuthProtocolState.CHALLENGED);
         this.authState.update(new BasicScheme(), this.credentials);
 
-        Assert.assertFalse(this.httpAuthenticator.handleAuthChallenge(
+        Assert.assertFalse(this.httpAuthenticator.prepareAuthResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authState, this.context));
         Assert.assertEquals(AuthProtocolState.FAILURE, this.authState.getState());
         Assert.assertNull(this.authState.getCredentials());
@@ -288,7 +288,7 @@ public class TestHttpAuthenticator {
         this.authState.setState(AuthProtocolState.CHALLENGED);
         this.authState.update(new DigestScheme(), this.credentials);
 
-        Assert.assertTrue(this.httpAuthenticator.handleAuthChallenge(
+        Assert.assertTrue(this.httpAuthenticator.prepareAuthResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authState, this.context));
 
         Assert.assertEquals(AuthProtocolState.HANDSHAKE, this.authState.getState());
@@ -306,7 +306,7 @@ public class TestHttpAuthenticator {
         this.authState.setState(AuthProtocolState.CHALLENGED);
         this.authState.update(new BasicScheme(), this.credentials);
 
-        Assert.assertTrue(this.httpAuthenticator.handleAuthChallenge(
+        Assert.assertTrue(this.httpAuthenticator.prepareAuthResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authState, this.context));
         Assert.assertEquals(AuthProtocolState.CHALLENGED, this.authState.getState());
 
@@ -328,7 +328,7 @@ public class TestHttpAuthenticator {
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertFalse(this.httpAuthenticator.handleAuthChallenge(
+        Assert.assertFalse(this.httpAuthenticator.prepareAuthResponse(
                 host, ChallengeType.TARGET, response, authStrategy, this.authState, this.context));
 
         Assert.assertEquals(AuthProtocolState.UNCHALLENGED, this.authState.getState());
@@ -342,7 +342,7 @@ public class TestHttpAuthenticator {
         this.authState.setState(AuthProtocolState.FAILURE);
         this.authState.update(this.authScheme, this.credentials);
 
-        this.httpAuthenticator.generateAuthResponse(request, authState, context);
+        this.httpAuthenticator.addAuthResponse(request, authState, context);
 
         Assert.assertFalse(request.containsHeader(HttpHeaders.AUTHORIZATION));
 
@@ -363,7 +363,7 @@ public class TestHttpAuthenticator {
                 Mockito.any(HttpRequest.class),
                 Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(HttpHeaders.AUTHORIZATION, "stuff"));
 
-        this.httpAuthenticator.generateAuthResponse(request, authState, context);
+        this.httpAuthenticator.addAuthResponse(request, authState, context);
 
         Assert.assertTrue(request.containsHeader(HttpHeaders.AUTHORIZATION));
 
@@ -383,7 +383,7 @@ public class TestHttpAuthenticator {
                 Mockito.any(HttpRequest.class),
                 Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(HttpHeaders.AUTHORIZATION, "stuff"));
 
-        this.httpAuthenticator.generateAuthResponse(request, authState, context);
+        this.httpAuthenticator.addAuthResponse(request, authState, context);
 
         Assert.assertSame(this.authScheme, this.authState.getAuthScheme());
         Assert.assertSame(this.credentials, this.authState.getCredentials());
@@ -414,7 +414,7 @@ public class TestHttpAuthenticator {
         authOptions.add(new AuthOption(authScheme2, this.credentials));
         this.authState.update(authOptions);
 
-        this.httpAuthenticator.generateAuthResponse(request, authState, context);
+        this.httpAuthenticator.addAuthResponse(request, authState, context);
 
         Assert.assertSame(authScheme2, this.authState.getAuthScheme());
         Assert.assertSame(this.credentials, this.authState.getCredentials());
@@ -438,7 +438,7 @@ public class TestHttpAuthenticator {
                 Mockito.any(HttpRequest.class),
                 Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(HttpHeaders.AUTHORIZATION, "stuff"));
 
-        this.httpAuthenticator.generateAuthResponse(request, authState, context);
+        this.httpAuthenticator.addAuthResponse(request, authState, context);
 
         Assert.assertSame(this.authScheme, this.authState.getAuthScheme());
         Assert.assertSame(this.credentials, this.authState.getCredentials());
@@ -461,7 +461,7 @@ public class TestHttpAuthenticator {
                 Mockito.any(HttpRequest.class),
                 Mockito.any(HttpContext.class))).thenReturn(new BasicHeader(HttpHeaders.AUTHORIZATION, "stuff"));
 
-        this.httpAuthenticator.generateAuthResponse(request, authState, context);
+        this.httpAuthenticator.addAuthResponse(request, authState, context);
 
         Assert.assertFalse(request.containsHeader(HttpHeaders.AUTHORIZATION));
 

@@ -81,7 +81,7 @@ public class HttpAuthenticator {
         this(null);
     }
 
-    public boolean updateAuthState(
+    public boolean isChallenged(
             final HttpHost host,
             final ChallengeType challengeType,
             final HttpResponse response,
@@ -121,7 +121,7 @@ public class HttpAuthenticator {
         }
     }
 
-    public boolean handleAuthChallenge(
+    public boolean prepareAuthResponse(
             final HttpHost host,
             final ChallengeType challengeType,
             final HttpResponse response,
@@ -184,13 +184,7 @@ public class HttpAuthenticator {
                 break;
             case CHALLENGED:
             case HANDSHAKE:
-                if (authScheme == null) {
-                    this.log.debug("Auth scheme is null");
-                    clearCache(host, context);
-                    authState.reset();
-                    authState.setState(AuthProtocolState.FAILURE);
-                    return false;
-                }
+                Asserts.notNull(authScheme, "AuthScheme");
             case UNCHALLENGED:
                 if (authScheme != null) {
                     final String id = authScheme.getSchemeName();
@@ -234,13 +228,13 @@ public class HttpAuthenticator {
         }
     }
 
-    public void generateAuthResponse(
+    public void addAuthResponse(
             final HttpRequest request,
             final AuthState authState,
             final HttpContext context) throws HttpException, IOException {
         AuthScheme authScheme = authState.getAuthScheme();
         Credentials creds = authState.getCredentials();
-        switch (authState.getState()) { // TODO add UNCHALLENGED and HANDSHAKE cases
+        switch (authState.getState()) {
         case FAILURE:
             return;
         case SUCCESS:
@@ -248,6 +242,9 @@ public class HttpAuthenticator {
             if (authScheme.isConnectionBased()) {
                 return;
             }
+            break;
+        case HANDSHAKE:
+            Asserts.notNull(authScheme, "AuthScheme");
             break;
         case CHALLENGED:
             final Queue<AuthOption> authOptions = authState.getAuthOptions();
@@ -275,6 +272,7 @@ public class HttpAuthenticator {
             } else {
                 Asserts.notNull(authScheme, "AuthScheme");
             }
+        default:
         }
         if (authScheme != null) {
             try {

@@ -248,13 +248,13 @@ public class MainClientExec implements ClientExecChain {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Target auth state: " + targetAuthState.getState());
                     }
-                    this.authenticator.generateAuthResponse(request, targetAuthState, context);
+                    this.authenticator.addAuthResponse(request, targetAuthState, context);
                 }
                 if (!request.containsHeader(HttpHeaders.PROXY_AUTHORIZATION) && !route.isTunnelled()) {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Proxy auth state: " + proxyAuthState.getState());
                     }
-                    this.authenticator.generateAuthResponse(request, proxyAuthState, context);
+                    this.authenticator.addAuthResponse(request, proxyAuthState, context);
                 }
 
                 response = requestExecutor.execute(request, managedConn, context);
@@ -455,7 +455,7 @@ public class MainClientExec implements ClientExecChain {
             }
 
             connect.removeHeaders(HttpHeaders.PROXY_AUTHORIZATION);
-            this.authenticator.generateAuthResponse(connect, proxyAuthState, context);
+            this.authenticator.addAuthResponse(connect, proxyAuthState, context);
 
             response = this.requestExecutor.execute(connect, managedConn, context);
 
@@ -466,9 +466,9 @@ public class MainClientExec implements ClientExecChain {
             }
 
             if (config.isAuthenticationEnabled()) {
-                if (this.authenticator.updateAuthState(proxy, ChallengeType.PROXY, response,
+                if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response,
                         proxyAuthState, context)) {
-                    if (this.authenticator.handleAuthChallenge(proxy, ChallengeType.PROXY, response,
+                    if (this.authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
                             this.proxyAuthStrategy, proxyAuthState, context)) {
                         // Retry request
                         if (this.reuseStrategy.keepAlive(response, context)) {
@@ -547,7 +547,7 @@ public class MainClientExec implements ClientExecChain {
                         route.getTargetHost().getPort(),
                         target.getSchemeName());
             }
-            final boolean targetAuthRequested = this.authenticator.updateAuthState(
+            final boolean targetAuthRequested = this.authenticator.isChallenged(
                     target, ChallengeType.TARGET, response, targetAuthState, context);
 
             HttpHost proxy = route.getProxyHost();
@@ -555,15 +555,15 @@ public class MainClientExec implements ClientExecChain {
             if (proxy == null) {
                 proxy = route.getTargetHost();
             }
-            final boolean proxyAuthRequested = this.authenticator.updateAuthState(
+            final boolean proxyAuthRequested = this.authenticator.isChallenged(
                     proxy, ChallengeType.PROXY, response, proxyAuthState, context);
 
             if (targetAuthRequested) {
-                return this.authenticator.handleAuthChallenge(target, ChallengeType.TARGET, response,
+                return this.authenticator.prepareAuthResponse(target, ChallengeType.TARGET, response,
                         this.targetAuthStrategy, targetAuthState, context);
             }
             if (proxyAuthRequested) {
-                return this.authenticator.handleAuthChallenge(proxy, ChallengeType.PROXY, response,
+                return this.authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
                         this.proxyAuthStrategy, proxyAuthState, context);
             }
         }

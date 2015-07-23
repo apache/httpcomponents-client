@@ -177,7 +177,7 @@ public class ProxyClient {
                 conn.bind(socket);
             }
 
-            this.authenticator.generateAuthResponse(connect, this.proxyAuthState, context);
+            this.authenticator.addAuthResponse(connect, this.proxyAuthState, context);
 
             response = this.requestExec.execute(connect, conn, context);
 
@@ -186,8 +186,8 @@ public class ProxyClient {
                 throw new HttpException("Unexpected response to CONNECT request: " +
                         response.getStatusLine());
             }
-            if (this.authenticator.updateAuthState(proxy, ChallengeType.PROXY, response, this.proxyAuthState, context)) {
-                if (this.authenticator.handleAuthChallenge(proxy, ChallengeType.PROXY, response,
+            if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response, this.proxyAuthState, context)) {
+                if (this.authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
                         this.proxyAuthStrategy, this.proxyAuthState, context)) {
                     // Retry request
                     if (this.reuseStrategy.keepAlive(response, context)) {
