@@ -27,28 +27,21 @@
 
 package org.apache.http.impl.client;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Queue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpHost;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthChallenge;
-import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.ChallengeType;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.CredentialsProvider;
-import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.RequestConfig;
@@ -78,26 +71,19 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
                 AuthSchemes.BASIC));
 
     @Override
-    public Queue<AuthOption> select(
+    public List<AuthScheme> select(
             final ChallengeType challengeType,
-            final HttpHost authhost,
             final Map<String, AuthChallenge> challenges,
-            final HttpContext context) throws MalformedChallengeException {
+            final HttpContext context) {
         Args.notNull(challengeType, "ChallengeType");
         Args.notNull(challenges, "Map of auth challenges");
-        Args.notNull(authhost, "Host");
         Args.notNull(context, "HTTP context");
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
 
-        final Queue<AuthOption> options = new LinkedList<>();
+        final List<AuthScheme> options = new ArrayList<>();
         final Lookup<AuthSchemeProvider> registry = clientContext.getAuthSchemeRegistry();
         if (registry == null) {
             this.log.debug("Auth scheme registry not set in the context");
-            return options;
-        }
-        final CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
-        if (credsProvider == null) {
-            this.log.debug("Credentials provider not set in the context");
             return options;
         }
         final RequestConfig config = clientContext.getRequestConfig();
@@ -122,22 +108,10 @@ public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
                     continue;
                 }
                 final AuthScheme authScheme = authSchemeProvider.create(context);
-                authScheme.processChallenge(challengeType, challenge);
-
-                final AuthScope authScope = new AuthScope(
-                        authhost.getHostName(),
-                        authhost.getPort(),
-                        authScheme.getRealm(),
-                        authScheme.getSchemeName());
-
-                final Credentials credentials = credsProvider.getCredentials(authScope);
-                if (credentials != null) {
-                    options.add(new AuthOption(authScheme, credentials));
-                }
+                options.add(authScheme);
             } else {
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("Challenge for " + id + " authentication scheme not available");
-                    // Try again
                 }
             }
         }

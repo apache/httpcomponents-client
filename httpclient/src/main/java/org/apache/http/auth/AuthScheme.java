@@ -34,19 +34,6 @@ import org.apache.http.protocol.HttpContext;
  * This interface represents an abstract challenge-response oriented
  * authentication scheme.
  * <p>
- * An authentication scheme should be able to support the following
- * functions:
- * <ul>
- *   <li>Parse and process the challenge sent by the target server
- *       in response to request for a protected resource
- *   <li>Provide its textual designation
- *   <li>Provide its parameters, if available
- *   <li>Provide the realm this authentication scheme is applicable to,
- *       if available
- *   <li>Generate authorization string for the given set of credentials
- *       and the HTTP request in response to the authorization challenge.
- * </ul>
- * <p>
  * Authentication schemes may be stateful involving a series of
  * challenge-response exchanges.
  *

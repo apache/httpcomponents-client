@@ -29,16 +29,14 @@ package org.apache.http.impl.client;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 
-import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthChallenge;
-import org.apache.http.auth.AuthOption;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.ChallengeType;
-import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.RequestConfig;
@@ -62,25 +60,19 @@ public class TestAuthenticationStrategy {
     @Test
     public void testSelectInvalidInput() throws Exception {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("locahost", 80);
         final HttpClientContext context = HttpClientContext.create();
         try {
-            authStrategy.select(null, authhost, Collections.<String, AuthChallenge>emptyMap(), context);
+            authStrategy.select(null, Collections.<String, AuthChallenge>emptyMap(), context);
             Assert.fail("IllegalArgumentException expected");
         } catch (final IllegalArgumentException ex) {
         }
         try {
-            authStrategy.select(ChallengeType.TARGET, null, Collections.<String, AuthChallenge>emptyMap(), context);
+            authStrategy.select(ChallengeType.TARGET, null, context);
             Assert.fail("IllegalArgumentException expected");
         } catch (final IllegalArgumentException ex) {
         }
         try {
-            authStrategy.select(ChallengeType.TARGET, authhost, null, context);
-            Assert.fail("IllegalArgumentException expected");
-        } catch (final IllegalArgumentException ex) {
-        }
-        try {
-            authStrategy.select(ChallengeType.TARGET, authhost, Collections.<String, AuthChallenge>emptyMap(), null);
+            authStrategy.select(ChallengeType.TARGET, Collections.<String, AuthChallenge>emptyMap(), null);
             Assert.fail("IllegalArgumentException expected");
         } catch (final IllegalArgumentException ex) {
         }
@@ -89,7 +81,6 @@ public class TestAuthenticationStrategy {
     @Test
     public void testSelectNoSchemeRegistry() throws Exception {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("locahost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
         final Map<String, AuthChallenge> challenges = new HashMap<>();
@@ -98,91 +89,14 @@ public class TestAuthenticationStrategy {
         challenges.put("digest", new AuthChallenge("Digest",
                 new BasicNameValuePair("realm", "test"), new BasicNameValuePair("nonce", "1234")));
 
-        final Queue<AuthOption> options = authStrategy.select(ChallengeType.TARGET, authhost, challenges, context);
-        Assert.assertNotNull(options);
-        Assert.assertEquals(0, options.size());
-    }
-
-    @Test
-    public void testSelectNoCredentialsProvider() throws Exception {
-        final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("locahost", 80);
-        final HttpClientContext context = HttpClientContext.create();
-
-        final Map<String, AuthChallenge> challenges = new HashMap<>();
-        challenges.put("basic", new AuthChallenge("Basic",
-                new BasicNameValuePair("realm", "test")));
-        challenges.put("digest", new AuthChallenge("Digest",
-                new BasicNameValuePair("realm", "test"), new BasicNameValuePair("nonce", "1234")));
-
-        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register("basic", new BasicSchemeFactory())
-            .register("digest", new DigestSchemeFactory()).build();
-        context.setAuthSchemeRegistry(authSchemeRegistry);
-
-        final Queue<AuthOption> options = authStrategy.select(ChallengeType.TARGET, authhost, challenges, context);
-        Assert.assertNotNull(options);
-        Assert.assertEquals(0, options.size());
-    }
-
-    @Test
-    public void testNoCredentials() throws Exception {
-        final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("locahost", 80);
-        final HttpClientContext context = HttpClientContext.create();
-
-        final Map<String, AuthChallenge> challenges = new HashMap<>();
-        challenges.put("basic", new AuthChallenge("Basic",
-                new BasicNameValuePair("realm", "realm1")));
-        challenges.put("digest", new AuthChallenge("Digest",
-                new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
-
-        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register("basic", new BasicSchemeFactory())
-            .register("digest", new DigestSchemeFactory()).build();
-        context.setAuthSchemeRegistry(authSchemeRegistry);
-
-        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        context.setCredentialsProvider(credentialsProvider);
-
-        final Queue<AuthOption> options = authStrategy.select(ChallengeType.TARGET, authhost, challenges, context);
-        Assert.assertNotNull(options);
-        Assert.assertEquals(0, options.size());
-    }
-
-    @Test
-    public void testCredentialsFound() throws Exception {
-        final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("somehost", 80);
-        final HttpClientContext context = HttpClientContext.create();
-
-        final Map<String, AuthChallenge> challenges = new HashMap<>();
-        challenges.put("basic", new AuthChallenge("Basic",
-                new BasicNameValuePair("realm", "realm1")));
-        challenges.put("digest", new AuthChallenge("Digest",
-                new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
-
-        final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-            .register("basic", new BasicSchemeFactory())
-            .register("digest", new DigestSchemeFactory()).build();
-        context.setAuthSchemeRegistry(authSchemeRegistry);
-
-        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope("somehost", 80, "realm2"),
-                new UsernamePasswordCredentials("user", "pwd"));
-        context.setCredentialsProvider(credentialsProvider);
-
-        final Queue<AuthOption> options = authStrategy.select(ChallengeType.TARGET, authhost, challenges, context);
-        Assert.assertNotNull(options);
-        Assert.assertEquals(1, options.size());
-        final AuthOption option = options.remove();
-        Assert.assertTrue(option.getAuthScheme() instanceof DigestScheme);
+        final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
+        Assert.assertNotNull(authSchemes);
+        Assert.assertEquals(0, authSchemes.size());
     }
 
     @Test
     public void testUnsupportedScheme() throws Exception {
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
-        final HttpHost authhost = new HttpHost("somehost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
         final Map<String, AuthChallenge> challenges = new HashMap<>();
@@ -203,13 +117,13 @@ public class TestAuthenticationStrategy {
                 new UsernamePasswordCredentials("user", "pwd"));
         context.setCredentialsProvider(credentialsProvider);
 
-        final Queue<AuthOption> options = authStrategy.select(ChallengeType.TARGET, authhost, challenges, context);
-        Assert.assertNotNull(options);
-        Assert.assertEquals(2, options.size());
-        final AuthOption option1 = options.remove();
-        Assert.assertTrue(option1.getAuthScheme() instanceof DigestScheme);
-        final AuthOption option2 = options.remove();
-        Assert.assertTrue(option2.getAuthScheme() instanceof BasicScheme);
+        final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
+        Assert.assertNotNull(authSchemes);
+        Assert.assertEquals(2, authSchemes.size());
+        final AuthScheme authScheme1 = authSchemes.get(0);
+        Assert.assertTrue(authScheme1 instanceof DigestScheme);
+        final AuthScheme authScheme2 = authSchemes.get(1);
+        Assert.assertTrue(authScheme2 instanceof BasicScheme);
     }
 
     @Test
@@ -219,7 +133,6 @@ public class TestAuthenticationStrategy {
             .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC))
             .build();
 
-        final HttpHost authhost = new HttpHost("somehost", 80);
         final HttpClientContext context = HttpClientContext.create();
 
         final Map<String, AuthChallenge> challenges = new HashMap<>();
@@ -239,11 +152,11 @@ public class TestAuthenticationStrategy {
                 new UsernamePasswordCredentials("user", "pwd"));
         context.setCredentialsProvider(credentialsProvider);
 
-        final Queue<AuthOption> options = authStrategy.select(ChallengeType.TARGET, authhost, challenges, context);
-        Assert.assertNotNull(options);
-        Assert.assertEquals(1, options.size());
-        final AuthOption option1 = options.remove();
-        Assert.assertTrue(option1.getAuthScheme() instanceof BasicScheme);
+        final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
+        Assert.assertNotNull(authSchemes);
+        Assert.assertEquals(1, authSchemes.size());
+        final AuthScheme authScheme1 = authSchemes.get(0);
+        Assert.assertTrue(authScheme1 instanceof BasicScheme);
     }
 
 }

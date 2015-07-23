@@ -31,9 +31,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -48,8 +46,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthChallenge;
-import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthProtocolState;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.NTCredentials;
@@ -74,6 +73,7 @@ import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.NTLMScheme;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.protocol.HttpContext;
@@ -396,6 +396,10 @@ public class TestMainClientExec {
                 .setStream(instream2)
                 .build());
 
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user:pass"));
+        context.setCredentialsProvider(credentialsProvider);
+
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
         Mockito.when(managedConn.isStale()).thenReturn(Boolean.FALSE);
         Mockito.when(requestExecutor.execute(
@@ -407,12 +411,8 @@ public class TestMainClientExec {
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(targetAuthStrategy.select(
                 Mockito.eq(ChallengeType.TARGET),
-                Mockito.eq(target),
                 Mockito.<Map<String, AuthChallenge>>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(new LinkedList<>(
-                    Collections.singleton(new AuthOption(
-                            new BasicScheme(),
-                            new UsernamePasswordCredentials("user", "pass")))));
+                Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
         final CloseableHttpResponse finalResponse = mainClientExec.execute(
                 route, request, context, execAware);
@@ -447,6 +447,10 @@ public class TestMainClientExec {
         final HttpClientContext context = new HttpClientContext();
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
 
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user:pass"));
+        context.setCredentialsProvider(credentialsProvider);
+
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
         Mockito.when(managedConn.isStale()).thenReturn(Boolean.FALSE);
         Mockito.when(requestExecutor.execute(
@@ -457,14 +461,10 @@ public class TestMainClientExec {
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.FALSE);
 
-        final AuthOption authOption = new AuthOption(
-                new BasicScheme(), new UsernamePasswordCredentials("user:pass"));
         Mockito.when(targetAuthStrategy.select(
                 Mockito.eq(ChallengeType.TARGET),
-                Mockito.eq(target),
                 Mockito.<Map<String, AuthChallenge>>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(
-                new LinkedList<>(Arrays.asList(authOption)));
+                Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
         final CloseableHttpResponse finalResponse = mainClientExec.execute(
                 route, request, context, execAware);
@@ -496,6 +496,10 @@ public class TestMainClientExec {
                 .setStream(instream1)
                 .build());
 
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user:pass"));
+        context.setCredentialsProvider(credentialsProvider);
+
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
         Mockito.when(managedConn.isStale()).thenReturn(Boolean.FALSE);
         Mockito.when(requestExecutor.execute(
@@ -516,14 +520,10 @@ public class TestMainClientExec {
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
 
-        final AuthOption authOption = new AuthOption(
-                new BasicScheme(), new UsernamePasswordCredentials("user:pass"));
         Mockito.when(targetAuthStrategy.select(
                 Mockito.eq(ChallengeType.TARGET),
-                Mockito.eq(target),
                 Mockito.<Map<String, AuthChallenge>>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(
-                new LinkedList<>(Arrays.asList(authOption)));
+                Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
         mainClientExec.execute(route, request, context, execAware);
     }
@@ -724,6 +724,10 @@ public class TestMainClientExec {
                 .build());
         final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials("user:pass"));
+        context.setCredentialsProvider(credentialsProvider);
+
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
         Mockito.when(reuseStrategy.keepAlive(
                 Mockito.<HttpResponse>any(),
@@ -733,14 +737,10 @@ public class TestMainClientExec {
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response1, response2);
 
-        final AuthOption authOption = new AuthOption(
-                new BasicScheme(), new UsernamePasswordCredentials("user:pass"));
         Mockito.when(proxyAuthStrategy.select(
                 Mockito.eq(ChallengeType.PROXY),
-                Mockito.eq(proxy),
                 Mockito.<Map<String, AuthChallenge>>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(
-                new LinkedList<>(Arrays.asList(authOption)));
+                Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
         mainClientExec.establishRoute(authState, managedConn, route, request, context);
 
@@ -763,6 +763,10 @@ public class TestMainClientExec {
                 .build());
         final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials("user:pass"));
+        context.setCredentialsProvider(credentialsProvider);
+
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
         Mockito.when(reuseStrategy.keepAlive(
                 Mockito.<HttpResponse>any(),
@@ -772,14 +776,10 @@ public class TestMainClientExec {
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response1, response2);
 
-        final AuthOption authOption = new AuthOption(
-                new BasicScheme(), new UsernamePasswordCredentials("user:pass"));
         Mockito.when(proxyAuthStrategy.select(
                 Mockito.eq(ChallengeType.PROXY),
-                Mockito.eq(proxy),
                 Mockito.<Map<String, AuthChallenge>>any(),
-                Mockito.<HttpClientContext>any())).thenReturn(
-                new LinkedList<>(Arrays.asList(authOption)));
+                Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
         mainClientExec.establishRoute(authState, managedConn, route, request, context);
 

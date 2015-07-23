@@ -28,8 +28,8 @@ package org.apache.http.impl.client.integration;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.http.Consts;
@@ -42,12 +42,11 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthChallenge;
-import org.apache.http.auth.AuthOption;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.CredentialsProvider;
-import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.ClientProtocolException;
@@ -358,14 +357,13 @@ public class TestClientAuthentication extends LocalServerTestBase {
         }
 
         @Override
-        public Queue<AuthOption> select(
+        public List<AuthScheme> select(
                 final ChallengeType challengeType,
-                final HttpHost host,
                 final Map<String, AuthChallenge> challenges,
-                final HttpContext context) throws MalformedChallengeException {
-            final Queue<AuthOption> authOptions = super.select(challengeType, host, challenges, context);
+                final HttpContext context) {
+            final List<AuthScheme> authSchemes = super.select(challengeType, challenges, context);
             this.count.incrementAndGet();
-            return authOptions;
+            return authSchemes;
         }
 
         public long getCount() {
