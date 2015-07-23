@@ -159,7 +159,7 @@ interface HttpCache {
      * @param target host of the upstream client request
      * @param req request sent by upstream client
      * @param variant variant cache entry to reuse
-     * @throws IOException may be thrown during cache update
+     * @throws IOException may be thrown during cache processChallenge
      */
     void reuseVariantEntryFor(HttpHost target, final HttpRequest req,
             final Variant variant) throws IOException;

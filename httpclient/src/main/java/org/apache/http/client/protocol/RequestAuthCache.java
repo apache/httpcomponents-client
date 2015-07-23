@@ -38,9 +38,7 @@ import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
-import org.apache.http.auth.Credentials;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.AuthCache;
 import org.apache.http.conn.routing.RouteInfo;
@@ -106,7 +104,10 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         if (targetState != null && targetState.getState() == AuthProtocolState.UNCHALLENGED) {
             final AuthScheme authScheme = authCache.get(target);
             if (authScheme != null) {
-                doPreemptiveAuth(target, authScheme, targetState, credsProvider);
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug("Re-using cached '" + authScheme.getName() + "' auth scheme for " + target);
+                }
+                targetState.update(authScheme);
             }
         }
 
@@ -115,33 +116,11 @@ public class RequestAuthCache implements HttpRequestInterceptor {
         if (proxy != null && proxyState != null && proxyState.getState() == AuthProtocolState.UNCHALLENGED) {
             final AuthScheme authScheme = authCache.get(proxy);
             if (authScheme != null) {
-                doPreemptiveAuth(proxy, authScheme, proxyState, credsProvider);
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug("Re-using cached '" + authScheme.getName() + "' auth scheme for " + proxy);
+                }
+                proxyState.update(authScheme);
             }
-        }
-    }
-
-    private void doPreemptiveAuth(
-            final HttpHost host,
-            final AuthScheme authScheme,
-            final AuthState authState,
-            final CredentialsProvider credsProvider) {
-        final String schemeName = authScheme.getSchemeName();
-        if (this.log.isDebugEnabled()) {
-            this.log.debug("Re-using cached '" + schemeName + "' auth scheme for " + host);
-        }
-
-        final AuthScope authScope = new AuthScope(host, AuthScope.ANY_REALM, schemeName);
-        final Credentials creds = credsProvider.getCredentials(authScope);
-
-        if (creds != null) {
-            if ("BASIC".equalsIgnoreCase(authScheme.getSchemeName())) {
-                authState.setState(AuthProtocolState.CHALLENGED);
-            } else {
-                authState.setState(AuthProtocolState.SUCCESS);
-            }
-            authState.update(authScheme, creds);
-        } else {
-            this.log.debug("No credentials for preemptive authentication");
         }
     }
 

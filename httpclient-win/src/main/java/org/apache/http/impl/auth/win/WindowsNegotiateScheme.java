@@ -26,29 +26,28 @@
  */
 package org.apache.http.impl.auth.win;
 
+import java.security.Principal;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthChallenge;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ChallengeType;
-import org.apache.http.auth.Credentials;
-import org.apache.http.auth.InvalidCredentialsException;
+import org.apache.http.auth.BasicUserPrincipal;
+import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.RouteInfo;
-import org.apache.http.impl.auth.NonStandardAuthScheme;
-import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.CharArrayBuffer;
+import org.apache.http.util.Args;
 
 import com.sun.jna.platform.win32.Secur32;
+import com.sun.jna.platform.win32.Secur32Util;
 import com.sun.jna.platform.win32.Sspi;
 import com.sun.jna.platform.win32.Sspi.CredHandle;
 import com.sun.jna.platform.win32.Sspi.CtxtHandle;
@@ -70,7 +69,7 @@ import com.sun.jna.ptr.IntByReference;
  * @since 4.4
  */
 @NotThreadSafe
-public class WindowsNegotiateScheme extends NonStandardAuthScheme {
+public class WindowsNegotiateScheme implements AuthScheme {
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -78,6 +77,7 @@ public class WindowsNegotiateScheme extends NonStandardAuthScheme {
     private final String scheme;
     private final String servicePrincipalName;
 
+    private String challenge;
     private CredHandle clientCred;
     private CtxtHandle sspiContext;
     private boolean continueNeeded;
@@ -119,7 +119,7 @@ public class WindowsNegotiateScheme extends NonStandardAuthScheme {
     }
 
     @Override
-    public String getSchemeName() {
+    public String getName() {
         return scheme;
     }
 
@@ -129,10 +129,19 @@ public class WindowsNegotiateScheme extends NonStandardAuthScheme {
     }
 
     @Override
+    public String getRealm() {
+        return null;
+    }
+
+    @Override
     public void processChallenge(
-            final ChallengeType challengeType, final AuthChallenge authChallenge) throws MalformedChallengeException {
-        update(challengeType, authChallenge);
-        final String challenge = getChallenge();
+            final AuthChallenge authChallenge,
+            final HttpContext context) throws MalformedChallengeException {
+        Args.notNull(authChallenge, "AuthChallenge");
+        if (authChallenge.getValue() == null) {
+            throw new MalformedChallengeException("Missing auth challenge");
+        }
+        challenge = authChallenge.getValue();
         if (challenge.isEmpty()) {
             if (clientCred != null) {
                 dispose(); // run cleanup first before throwing an exception otherwise can leak OS resources
@@ -144,24 +153,38 @@ public class WindowsNegotiateScheme extends NonStandardAuthScheme {
     }
 
     @Override
-    public Header authenticate(
-            final Credentials credentials,
+    public boolean isResponseReady(
+            final HttpHost host,
+            final CredentialsProvider credentialsProvider,
+            final HttpContext context) throws AuthenticationException {
+        return true;
+    }
+
+    /**
+     * Get the SAM-compatible username of the currently logged-on user.
+     *
+     * @return String.
+     */
+    public static String getCurrentUsername() {
+        return Secur32Util.getUserNameEx(Secur32.EXTENDED_NAME_FORMAT.NameSamCompatible);
+    }
+
+    @Override
+    public Principal getPrinciple() {
+        return new BasicUserPrincipal(getCurrentUsername());
+    }
+
+    @Override
+    public String generateAuthResponse(
+            final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
 
-        final String challenge = getChallenge();
         final String response;
         if (clientCred == null) {
-            // ?? We don't use the credentials, should we allow anything?
-            if (!(credentials instanceof CurrentWindowsCredentials)) {
-                throw new InvalidCredentialsException(
-                        "Credentials cannot be used for " + getSchemeName() + " authentication: "
-                                + credentials.getClass().getName());
-            }
-
             // client credentials handle
             try {
-                final String username = CurrentWindowsCredentials.getCurrentUsername();
+                final String username = getCurrentUsername();
                 final TimeStamp lifetime = new TimeStamp();
 
                 clientCred = new CredHandle();
@@ -202,18 +225,7 @@ public class WindowsNegotiateScheme extends NonStandardAuthScheme {
                 }
             }
         }
-
-        final CharArrayBuffer buffer = new CharArrayBuffer(scheme.length() + 30);
-        if (isProxy()) {
-            buffer.append(HttpHeaders.PROXY_AUTHORIZATION);
-        } else {
-            buffer.append(HttpHeaders.AUTHORIZATION);
-        }
-        buffer.append(": ");
-        buffer.append(scheme); // NTLM or Negotiate
-        buffer.append(" ");
-        buffer.append(response);
-        return new BufferedHeader(buffer);
+        return scheme + " " + response;
     }
 
     private void failAuthCleanup() {
@@ -281,7 +293,7 @@ public class WindowsNegotiateScheme extends NonStandardAuthScheme {
     }
 
     @Override
-    public boolean isComplete() {
+    public boolean isChallengeComplete() {
         return !continueNeeded;
     }
 

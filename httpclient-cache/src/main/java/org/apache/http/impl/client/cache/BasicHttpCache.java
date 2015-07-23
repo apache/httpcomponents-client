@@ -165,7 +165,7 @@ class BasicHttpCache implements HttpCache {
         try {
             storage.updateEntry(parentURI, callback);
         } catch (final HttpCacheUpdateException e) {
-            log.warn("Could not update key [" + parentURI + "]", e);
+            log.warn("Could not processChallenge key [" + parentURI + "]", e);
         }
     }
 
@@ -189,7 +189,7 @@ class BasicHttpCache implements HttpCache {
         try {
             storage.updateEntry(parentCacheKey, callback);
         } catch (final HttpCacheUpdateException e) {
-            log.warn("Could not update key [" + parentCacheKey + "]", e);
+            log.warn("Could not processChallenge key [" + parentCacheKey + "]", e);
         }
     }
 

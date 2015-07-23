@@ -1574,7 +1574,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 i++;
             }
 
-            // Very important: update the digest with the ipad buffer
+            // Very important: processChallenge the digest with the ipad buffer
             md5.reset();
             md5.update(ipad);
 

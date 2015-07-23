@@ -45,11 +45,8 @@ public class AuthState {
     /** Actual authentication scheme */
     private AuthScheme authScheme;
 
-    /** Credentials selected for authentication */
-    private Credentials credentials;
-
     /** Available auth options */
-    private Queue<AuthOption> authOptions;
+    private Queue<AuthScheme> authOptions;
 
     public AuthState() {
         super();
@@ -65,7 +62,6 @@ public class AuthState {
         this.state = AuthProtocolState.UNCHALLENGED;
         this.authOptions = null;
         this.authScheme = null;
-        this.credentials = null;
     }
 
     /**
@@ -90,71 +86,48 @@ public class AuthState {
     }
 
     /**
-     * Returns actual {@link Credentials}. May be null.
-     */
-    public Credentials getCredentials() {
-        return this.credentials;
-    }
-
-    /**
-     * Updates the auth state with {@link AuthScheme} and {@link Credentials}.
+     * Updates the auth state with {@link AuthScheme} and clears auth options.
      *
      * @param authScheme auth scheme. May not be null.
-     * @param credentials user crednetials. May not be null.
      *
      * @since 4.2
      */
-    public void update(final AuthScheme authScheme, final Credentials credentials) {
+    public void update(final AuthScheme authScheme) {
         Args.notNull(authScheme, "Auth scheme");
-        Args.notNull(credentials, "Credentials");
         this.authScheme = authScheme;
-        this.credentials = credentials;
         this.authOptions = null;
     }
 
     /**
-     * Returns available {@link AuthOption}s. May be null.
+     * Returns available auth options. May be null.
      *
      * @since 4.2
      */
-    public Queue<AuthOption> getAuthOptions() {
+    public Queue<AuthScheme> getAuthOptions() {
         return this.authOptions;
     }
 
     /**
-     * Returns {@code true} if {@link AuthOption}s are available, {@code false}
-     * otherwise.
-     *
-     * @since 4.2
-     */
-    public boolean hasAuthOptions() {
-        return this.authOptions != null && !this.authOptions.isEmpty();
-    }
-
-    /**
-     * Updates the auth state with a queue of {@link AuthOption}s.
+     * Updates the auth state with a queue of auth options.
      *
      * @param authOptions a queue of auth options. May not be null or empty.
      *
      * @since 4.2
      */
-    public void update(final Queue<AuthOption> authOptions) {
+    public void update(final Queue<AuthScheme> authOptions) {
         Args.notEmpty(authOptions, "Queue of auth options");
         this.authOptions = authOptions;
         this.authScheme = null;
-        this.credentials = null;
     }
 
     @Override
     public String toString() {
         final StringBuilder buffer = new StringBuilder();
-        buffer.append("state:").append(this.state).append(";");
+        buffer.append("[").append(this.state);
         if (this.authScheme != null) {
-            buffer.append("auth scheme:").append(this.authScheme.getSchemeName()).append(";");
+            buffer.append(" ").append(this.authScheme);
         }
-        if (this.credentials != null) {
-            buffer.append("credentials present");
-        }
+        buffer.append("]");
         return buffer.toString();
     }
 

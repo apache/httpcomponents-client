@@ -712,7 +712,7 @@ public class CachingExec implements ClientExecChain {
             responseEntry = responseCache.updateVariantCacheEntry(target, conditionalRequest,
                     matchedEntry, backendResponse, requestDate, responseDate, matchingVariant.getCacheKey());
         } catch (final IOException ioe) {
-            log.warn("Could not update cache entry", ioe);
+            log.warn("Could not processChallenge cache entry", ioe);
         } finally {
             backendResponse.close();
         }
@@ -726,7 +726,7 @@ public class CachingExec implements ClientExecChain {
         try {
             responseCache.reuseVariantEntryFor(target, request, matchingVariant);
         } catch (final IOException ioe) {
-            log.warn("Could not update cache entry to reuse variant", ioe);
+            log.warn("Could not processChallenge cache entry to reuse variant", ioe);
         }
     }
 

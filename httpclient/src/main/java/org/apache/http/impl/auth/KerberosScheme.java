@@ -27,7 +27,6 @@
 package org.apache.http.impl.auth;
 
 import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.auth.Credentials;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
@@ -57,13 +56,13 @@ public class KerberosScheme extends GGSSchemeBase {
     }
 
     @Override
-    public String getSchemeName() {
+    public String getName() {
         return "Kerberos";
     }
 
     @Override
-    protected byte[] generateToken(final byte[] input, final String authServer, final Credentials credentials) throws GSSException {
-        return generateGSSToken(input, new Oid(KERBEROS_OID), authServer, credentials);
+    protected byte[] generateToken(final byte[] input, final String authServer) throws GSSException {
+        return generateGSSToken(input, new Oid(KERBEROS_OID), authServer);
     }
 
     @Override

@@ -2198,8 +2198,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     /*
-     * "If a cache uses a received 304 response to update a cache entry, the
-     * cache MUST update the entry to reflect any new field values given in the
+     * "If a cache uses a received 304 response to processChallenge a cache entry, the
+     * cache MUST processChallenge the entry to reflect any new field values given in the
      * response.
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
@@ -4539,7 +4539,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * the ETag header field in its 304 (Not Modified) response to
      * tell the cache which entry is appropriate. If the entity-tag of
      * the new response matches that of an existing entry, the new
-     * response SHOULD be used to update the header fields of the
+     * response SHOULD be used to processChallenge the header fields of the
      * existing entry, and the result MUST be returned to the client.
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6

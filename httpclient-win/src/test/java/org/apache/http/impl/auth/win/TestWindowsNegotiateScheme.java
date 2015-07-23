@@ -36,7 +36,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -44,7 +43,6 @@ import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.apache.http.impl.client.WinHttpClients;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.protocol.HttpContext;
@@ -105,10 +103,7 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
                     return new WindowsNegotiateSchemeGetTokenFail(AuthSchemes.SPNEGO, "HTTP/example.com");
                 }
             }).build();
-        final CredentialsProvider credsProvider =
-                new WindowsCredentialsProvider(new SystemDefaultCredentialsProvider());
         final CloseableHttpClient customClient = HttpClientBuilder.create()
-                .setDefaultCredentialsProvider(credsProvider)
                 .setDefaultAuthSchemeRegistry(authSchemeRegistry).build();
 
         final HttpHost target = start();

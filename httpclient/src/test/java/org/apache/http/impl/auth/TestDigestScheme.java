@@ -36,26 +36,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.ParserCursor;
-import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
 import org.junit.Assert;
 import org.junit.Test;
@@ -78,27 +77,33 @@ public class TestDigestScheme {
     public void testDigestAuthenticationEmptyChallenge1() throws Exception {
         final AuthChallenge authChallenge = parse("Digest");
         final AuthScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
+        authscheme.processChallenge(authChallenge, null);
     }
 
     @Test(expected=MalformedChallengeException.class)
     public void testDigestAuthenticationEmptyChallenge2() throws Exception {
         final AuthChallenge authChallenge = parse("Digest ");
         final AuthScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
+        authscheme.processChallenge(authChallenge, null);
     }
 
     @Test
     public void testDigestAuthenticationWithDefaultCreds() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "realm1", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
-        final HttpRequest request = new BasicHttpRequest("Simple", "/");
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
         final DigestScheme authscheme = new DigestScheme();
-        final HttpContext context = new BasicHttpContext();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
-        final Header authResponse = authscheme.authenticate(cred, request, context);
-        Assert.assertTrue(authscheme.isComplete());
+        authscheme.processChallenge(authChallenge, null);
+
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+        Assert.assertTrue(authscheme.isChallengeComplete());
         Assert.assertFalse(authscheme.isConnectionBased());
 
         final Map<String, String> table = parseAuthResponse(authResponse);
@@ -111,14 +116,20 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthentication() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "realm1", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
-        final HttpRequest request = new BasicHttpRequest("Simple", "/");
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
         final DigestScheme authscheme = new DigestScheme();
-        final HttpContext context = new BasicHttpContext();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
-        final Header authResponse = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge, null);
+
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
         final Map<String, String> table = parseAuthResponse(authResponse);
         Assert.assertEquals("username", table.get("username"));
@@ -130,20 +141,29 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthenticationInvalidInput() throws Exception {
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "realm1", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
-        final HttpRequest request = new BasicHttpRequest("Simple", "/");
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
         final DigestScheme authscheme = new DigestScheme();
-        final HttpContext context = new BasicHttpContext();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
+        authscheme.processChallenge(authChallenge, null);
+
         try {
-            authscheme.authenticate(null, request, context);
+            authscheme.isResponseReady(null, credentialsProvider, null);
             Assert.fail("IllegalArgumentException should have been thrown");
         } catch (final IllegalArgumentException ex) {
         }
         try {
-            authscheme.authenticate(cred, null, context);
+            authscheme.isResponseReady(host, null, null);
+            Assert.fail("IllegalArgumentException should have been thrown");
+        } catch (final IllegalArgumentException ex) {
+        }
+        try {
+            authscheme.generateAuthResponse(host, null, null);
             Assert.fail("IllegalArgumentException should have been thrown");
         } catch (final IllegalArgumentException ex) {
         }
@@ -151,16 +171,22 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthenticationWithSHA() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "realm1", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge = "Digest realm=\"realm1\", " +
                 "nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "algorithm=SHA";
         final AuthChallenge authChallenge = parse(challenge);
-        final HttpRequest request = new BasicHttpRequest("Simple", "/");
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
-        final HttpContext context = new BasicHttpContext();
         final DigestScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
-        final Header authResponse = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge, null);
+
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
         final Map<String, String> table = parseAuthResponse(authResponse);
         Assert.assertEquals("username", table.get("username"));
@@ -172,14 +198,20 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthenticationWithQueryStringInDigestURI() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("Simple", "/?param=value");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "realm1", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
-        final HttpRequest request = new BasicHttpRequest("Simple", "/?param=value");
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
-        final HttpContext context = new BasicHttpContext();
         final DigestScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
-        final Header authResponse = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge, null);
+
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
         final Map<String, String> table = parseAuthResponse(authResponse);
         Assert.assertEquals("username", table.get("username"));
@@ -189,64 +221,40 @@ public class TestDigestScheme {
         Assert.assertEquals("a847f58f5fef0bc087bcb9c3eb30e042", table.get("response"));
     }
 
-    @Test
-    public void testDigestAuthenticationWithMultipleRealms() throws Exception {
-        final String challenge1 = "Digest realm=\"realm1\", nonce=\"abcde\"";
-        final String challenge2 = "Digest realm=\"realm2\", nonce=\"123546\"";
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
-        final Credentials cred2 = new UsernamePasswordCredentials("uname2","password2");
-
-        final AuthChallenge authChallenge1 = parse(challenge1);
-        final HttpRequest request = new BasicHttpRequest("Simple", "/");
-        final HttpContext context = new BasicHttpContext();
-        final DigestScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge1);
-        Header authResponse = authscheme.authenticate(cred, request, context);
-
-        Map<String, String> table = parseAuthResponse(authResponse);
-        Assert.assertEquals("username", table.get("username"));
-        Assert.assertEquals("realm1", table.get("realm"));
-        Assert.assertEquals("/", table.get("uri"));
-        Assert.assertEquals("abcde", table.get("nonce"));
-        Assert.assertEquals("786f500303eac1478f3c2865e676ed68", table.get("response"));
-
-        final AuthChallenge authChallenge2 = parse(challenge2);
-        final DigestScheme authscheme2 = new DigestScheme();
-        authscheme2.processChallenge(ChallengeType.TARGET, authChallenge2);
-        authResponse = authscheme2.authenticate(cred2, request, context);
-
-        table = parseAuthResponse(authResponse);
-        Assert.assertEquals("uname2", table.get("username"));
-        Assert.assertEquals("realm2", table.get("realm"));
-        Assert.assertEquals("/", table.get("uri"));
-        Assert.assertEquals("123546", table.get("nonce"));
-        Assert.assertEquals("0283edd9ef06a38b378b3b74661391e9", table.get("response"));
-    }
-
     @Test(expected=AuthenticationException.class)
     public void testDigestAuthenticationNoRealm() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "realm1", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge = "Digest no-realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
-        final HttpContext context = new BasicHttpContext();
         final DigestScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
+        authscheme.processChallenge(authChallenge, null);
 
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
-        final HttpRequest request = new BasicHttpRequest("Simple", "/");
-        authscheme.authenticate(cred, request, context);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        authscheme.generateAuthResponse(host, request, null);
     }
 
     @Test(expected=AuthenticationException.class)
     public void testDigestAuthenticationNoNonce() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "realm1", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge = "Digest realm=\"realm1\", no-nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
         final AuthChallenge authChallenge = parse(challenge);
-        final HttpContext context = new BasicHttpContext();
         final DigestScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
+        authscheme.processChallenge(authChallenge, null);
 
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
-        final HttpRequest request = new BasicHttpRequest("Simple", "/");
-        authscheme.authenticate(cred, request, context);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        authscheme.generateAuthResponse(host, request, null);
     }
 
     /**
@@ -261,6 +269,13 @@ public class TestDigestScheme {
         final String password="password";
         final String nonce="e273f1776275974f1a120d8b92c5b3cb";
 
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, realm, null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials(username, password);
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge="Digest realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
             + "opaque=\"SomeString\", "
@@ -270,17 +285,14 @@ public class TestDigestScheme {
 
         final AuthChallenge authChallenge = parse(challenge);
 
-        final Credentials cred = new UsernamePasswordCredentials(username, password);
-        final HttpRequest request = new BasicHttpRequest("Simple", "/");
-        final HttpContext context = new BasicHttpContext();
-
         final DigestScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
-        final Header authResponse = authscheme.authenticate(cred, request, context);
-        final String response = authResponse.getValue();
+        authscheme.processChallenge(authChallenge, null);
 
-        Assert.assertTrue(response.indexOf("nc=00000001") > 0); // test for quotes
-        Assert.assertTrue(response.indexOf("qop=auth") > 0); // test for quotes
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+
+        Assert.assertTrue(authResponse.indexOf("nc=00000001") > 0); // test for quotes
+        Assert.assertTrue(authResponse.indexOf("qop=auth") > 0); // test for quotes
 
         final Map<String, String> table = parseAuthResponse(authResponse);
         Assert.assertEquals(username, table.get("username"));
@@ -308,6 +320,13 @@ public class TestDigestScheme {
         final String password="password";
         final String nonce="e273f1776275974f1a120d8b92c5b3cb";
 
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, realm, null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials(username, password);
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge="Digest realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
             + "opaque=\"SomeString\", "
@@ -316,14 +335,10 @@ public class TestDigestScheme {
 
         final AuthChallenge authChallenge = parse(challenge);
 
-        final Credentials cred = new UsernamePasswordCredentials(username, password);
-
-        final HttpRequest request = new BasicHttpRequest("Simple", "/");
-        final HttpContext context = new BasicHttpContext();
-
         final DigestScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
-        final Header authResponse = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge, null);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
         final Map<String, String> table = parseAuthResponse(authResponse);
         Assert.assertEquals(username, table.get("username"));
@@ -350,6 +365,13 @@ public class TestDigestScheme {
         final String password="password";
         final String nonce="e273f1776275974f1a120d8b92c5b3cb";
 
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, realm, null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials(username, password);
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge="Digest realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
             + "opaque=\"SomeString\", "
@@ -360,12 +382,10 @@ public class TestDigestScheme {
         final AuthChallenge authChallenge = parse(challenge);
 
         final DigestScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
+        authscheme.processChallenge(authChallenge, null);
 
-        final Credentials cred = new UsernamePasswordCredentials(username, password);
-        final HttpRequest request = new BasicHttpRequest("Simple", "/");
-        final HttpContext context = new BasicHttpContext();
-        authscheme.authenticate(cred, request, context);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        authscheme.generateAuthResponse(host, request, null);
     }
 
     /**
@@ -380,6 +400,13 @@ public class TestDigestScheme {
         final String password="password";
         final String nonce="e273f1776275974f1a120d8b92c5b3cb";
 
+        final HttpRequest request = new BasicHttpRequest("Simple", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, realm, null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials(username, password);
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge="Digest realm=\"" + realm + "\", "
             + "nonce=\"" + nonce + "\", "
             + "opaque=\"SomeString\", "
@@ -390,12 +417,10 @@ public class TestDigestScheme {
         final AuthChallenge authChallenge = parse(challenge);
 
         final DigestScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
+        authscheme.processChallenge(authChallenge, null);
 
-        final Credentials cred = new UsernamePasswordCredentials(username, password);
-        final HttpRequest request = new BasicHttpRequest("Simple", "/");
-        final HttpContext context = new BasicHttpContext();
-        authscheme.authenticate(cred, request, context);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        authscheme.generateAuthResponse(host, request, null);
     }
 
     @Test
@@ -404,17 +429,16 @@ public class TestDigestScheme {
                 "nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", stale=\"true\"";
         final AuthChallenge authChallenge = parse(challenge);
         final AuthScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
+        authscheme.processChallenge(authChallenge, null);
 
-        Assert.assertFalse(authscheme.isComplete());
+        Assert.assertFalse(authscheme.isChallengeComplete());
     }
 
-    private static Map<String, String> parseAuthResponse(final Header authResponse) {
-        final String s = authResponse.getValue();
-        if (!s.startsWith("Digest ")) {
+    private static Map<String, String> parseAuthResponse(final String authResponse) {
+        if (!authResponse.startsWith("Digest ")) {
             return null;
         }
-        final HeaderElement[] elements = BasicHeaderValueParser.parseElements(s.substring(7), null);
+        final HeaderElement[] elements = BasicHeaderValueParser.parseElements(authResponse.substring(7), null);
         final Map<String, String> map = new HashMap<>(elements.length);
         for (final HeaderElement element : elements) {
             map.put(element.getName(), element.getValue());
@@ -424,50 +448,73 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestNouceCount() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "realm1", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge1 = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=auth";
         final AuthChallenge authChallenge1 = parse(challenge1);
-        final HttpRequest request = new BasicHttpRequest("GET", "/");
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
-        final HttpContext context = new BasicHttpContext();
+
         final DigestScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge1);
-        final Header authResponse1 = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge1, null);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse1 = authscheme.generateAuthResponse(host, request, null);
+
         final Map<String, String> table1 = parseAuthResponse(authResponse1);
         Assert.assertEquals("00000001", table1.get("nc"));
-        final Header authResponse2 = authscheme.authenticate(cred, request, context);
+
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse2 = authscheme.generateAuthResponse(host, request, null);
+
         final Map<String, String> table2 = parseAuthResponse(authResponse2);
         Assert.assertEquals("00000002", table2.get("nc"));
         final String challenge2 = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=auth";
         final AuthChallenge authChallenge2 = parse(challenge2);
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge2);
-        final Header authResponse3 = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge2, null);
+
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse3 = authscheme.generateAuthResponse(host, request, null);
+
         final Map<String, String> table3 = parseAuthResponse(authResponse3);
         Assert.assertEquals("00000003", table3.get("nc"));
         final String challenge3 = "Digest realm=\"realm1\", nonce=\"e273f1776275974f1a120d8b92c5b3cb\", qop=auth";
         final AuthChallenge authChallenge3 = parse(challenge3);
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge3);
-        final Header authResponse4 = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge3, null);
+
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse4 = authscheme.generateAuthResponse(host, request, null);
+
         final Map<String, String> table4 = parseAuthResponse(authResponse4);
         Assert.assertEquals("00000001", table4.get("nc"));
     }
 
     @Test
     public void testDigestMD5SessA1AndCnonceConsistency() throws Exception {
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "subnet.domain.com", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge1 = "Digest qop=\"auth\", algorithm=MD5-sess, nonce=\"1234567890abcdef\", " +
                 "charset=utf-8, realm=\"subnet.domain.com\"";
         final AuthChallenge authChallenge1 = parse(challenge1);
-        final HttpRequest request = new BasicHttpRequest("GET", "/");
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
-        final HttpContext context = new BasicHttpContext();
         final DigestScheme authscheme = new DigestScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge1);
-        final Header authResponse1 = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge1, null);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse1 = authscheme.generateAuthResponse(host, request, null);
+
         final Map<String, String> table1 = parseAuthResponse(authResponse1);
         Assert.assertEquals("00000001", table1.get("nc"));
         final String cnonce1 = authscheme.getCnonce();
         final String sessionKey1 = authscheme.getA1();
 
-        final Header authResponse2 = authscheme.authenticate(cred, request, context);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse2 = authscheme.generateAuthResponse(host, request, null);
         final Map<String, String> table2 = parseAuthResponse(authResponse2);
         Assert.assertEquals("00000002", table2.get("nc"));
         final String cnonce2 = authscheme.getCnonce();
@@ -479,8 +526,9 @@ public class TestDigestScheme {
         final String challenge2 = "Digest qop=\"auth\", algorithm=MD5-sess, nonce=\"1234567890abcdef\", " +
             "charset=utf-8, realm=\"subnet.domain.com\"";
         final AuthChallenge authChallenge2 = parse(challenge2);
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge2);
-        final Header authResponse3 = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge2, null);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse3 = authscheme.generateAuthResponse(host, request, null);
         final Map<String, String> table3 = parseAuthResponse(authResponse3);
         Assert.assertEquals("00000003", table3.get("nc"));
 
@@ -493,8 +541,9 @@ public class TestDigestScheme {
         final String challenge3 = "Digest qop=\"auth\", algorithm=MD5-sess, nonce=\"fedcba0987654321\", " +
             "charset=utf-8, realm=\"subnet.domain.com\"";
         final AuthChallenge authChallenge3 = parse(challenge3);
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge3);
-        final Header authResponse4 = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge3, null);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse4 = authscheme.generateAuthResponse(host, request, null);
         final Map<String, String> table4 = parseAuthResponse(authResponse4);
         Assert.assertEquals("00000001", table4.get("nc"));
 
@@ -533,16 +582,21 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthenticationQopAuthInt() throws Exception {
+        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
+        request.setEntity(new StringEntity("abc\u00e4\u00f6\u00fcabc", HTTP.DEF_CONTENT_CHARSET));
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "realm1", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth,auth-int\"";
         final AuthChallenge authChallenge = parse(challenge);
-        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
-        request.setEntity(new StringEntity("abc\u00e4\u00f6\u00fcabc", HTTP.DEF_CONTENT_CHARSET));
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
         final DigestScheme authscheme = new DigestScheme();
-        final HttpContext context = new BasicHttpContext();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
-        final Header authResponse = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge, null);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
         Assert.assertEquals("Post:/:acd2b59cd01c7737d8069015584c6cac", authscheme.getA2());
 
@@ -556,15 +610,20 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthenticationQopAuthIntNullEntity() throws Exception {
+        final HttpRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "realm1", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth,auth-int\"";
         final AuthChallenge authChallenge = parse(challenge);
-        final HttpRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
         final DigestScheme authscheme = new DigestScheme();
-        final HttpContext context = new BasicHttpContext();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
-        final Header authResponse = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge, null);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
         Assert.assertEquals("Post:/:d41d8cd98f00b204e9800998ecf8427e", authscheme.getA2());
 
@@ -578,16 +637,21 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthenticationQopAuthOrAuthIntNonRepeatableEntity() throws Exception {
+        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
+        request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1));
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "realm1", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth,auth-int\"";
         final AuthChallenge authChallenge = parse(challenge);
-        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
-        request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1));
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
         final DigestScheme authscheme = new DigestScheme();
-        final HttpContext context = new BasicHttpContext();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
-        final Header authResponse = authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge, null);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
         Assert.assertEquals("Post:/", authscheme.getA2());
 
@@ -601,32 +665,43 @@ public class TestDigestScheme {
 
     @Test
     public void testParameterCaseSensitivity() throws Exception {
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "-", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge = "Digest Realm=\"-\", " +
                 "nonce=\"YjYuNGYyYmJhMzUuY2I5ZDhlZDE5M2ZlZDM 1Mjk3NGJkNTIyYjgyNTcwMjQ=\", " +
                 "opaque=\"98700A3D9CE17065E2246B41035C6609\", qop=\"auth\"";
         final AuthChallenge authChallenge = parse(challenge);
-        final HttpRequest request = new BasicHttpRequest("GET", "/");
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
         final DigestScheme authscheme = new DigestScheme();
-        final HttpContext context = new BasicHttpContext();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
+        authscheme.processChallenge(authChallenge, null);
         Assert.assertEquals("-", authscheme.getRealm());
 
-        authscheme.authenticate(cred, request, context);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        authscheme.generateAuthResponse(host, request, null);
     }
 
     @Test(expected=AuthenticationException.class)
     public void testDigestAuthenticationQopIntOnlyNonRepeatableEntity() throws Exception {
+        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
+        request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1));
+        final HttpHost host = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "realm1", null);
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        credentialsProvider.setCredentials(authScope, creds);
+
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
                 "qop=\"auth-int\"";
         final AuthChallenge authChallenge = parse(challenge);
-        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
-        request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1));
-        final Credentials cred = new UsernamePasswordCredentials("username","password");
         final DigestScheme authscheme = new DigestScheme();
-        final HttpContext context = new BasicHttpContext();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
-        authscheme.authenticate(cred, request, context);
+        authscheme.processChallenge(authChallenge, null);
+
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        authscheme.generateAuthResponse(host, request, null);
     }
 
     @Test
@@ -635,7 +710,7 @@ public class TestDigestScheme {
                 "qop=\"auth,auth-int\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme digestScheme = new DigestScheme();
-        digestScheme.processChallenge(ChallengeType.TARGET, authChallenge);
+        digestScheme.processChallenge(authChallenge, null);
 
         final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         final ObjectOutputStream out = new ObjectOutputStream(buffer);
@@ -645,9 +720,9 @@ public class TestDigestScheme {
         final ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
         final DigestScheme authScheme = (DigestScheme) in.readObject();
 
-        Assert.assertEquals(digestScheme.getSchemeName(), authScheme.getSchemeName());
+        Assert.assertEquals(digestScheme.getName(), authScheme.getName());
         Assert.assertEquals(digestScheme.getRealm(), authScheme.getRealm());
-        Assert.assertEquals(digestScheme.isComplete(), authScheme.isComplete());
+        Assert.assertEquals(digestScheme.isChallengeComplete(), authScheme.isChallengeComplete());
         Assert.assertEquals(digestScheme.getA1(), authScheme.getA1());
         Assert.assertEquals(digestScheme.getA2(), authScheme.getA2());
         Assert.assertEquals(digestScheme.getCnonce(), authScheme.getCnonce());

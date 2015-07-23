@@ -28,7 +28,7 @@ package org.apache.http.client.cache;
 
 /**
  * Signals that {@link HttpCacheStorage} encountered an error performing an
- * update operation.
+ * processChallenge operation.
  *
  * @since 4.1
  */

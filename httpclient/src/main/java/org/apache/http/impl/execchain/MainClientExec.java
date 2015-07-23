@@ -248,13 +248,15 @@ public class MainClientExec implements ClientExecChain {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Target auth state: " + targetAuthState.getState());
                     }
-                    this.authenticator.addAuthResponse(request, targetAuthState, context);
+                    this.authenticator.addAuthResponse(
+                            route.getTargetHost(), ChallengeType.TARGET, request, targetAuthState, context);
                 }
                 if (!request.containsHeader(HttpHeaders.PROXY_AUTHORIZATION) && !route.isTunnelled()) {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Proxy auth state: " + proxyAuthState.getState());
                     }
-                    this.authenticator.addAuthResponse(request, proxyAuthState, context);
+                    this.authenticator.addAuthResponse(
+                            route.getProxyHost(), ChallengeType.PROXY, request, proxyAuthState, context);
                 }
 
                 response = requestExecutor.execute(request, managedConn, context);
@@ -423,7 +425,7 @@ public class MainClientExec implements ClientExecChain {
      * The connection must be established to the (last) proxy.
      * A CONNECT request for tunnelling through the proxy will
      * be created and sent, the response received and checked.
-     * This method does <i>not</i> update the connection with
+     * This method does <i>not</i> processChallenge the connection with
      * information about the tunnel, that is left to the caller.
      */
     private boolean createTunnelToTarget(
@@ -455,7 +457,7 @@ public class MainClientExec implements ClientExecChain {
             }
 
             connect.removeHeaders(HttpHeaders.PROXY_AUTHORIZATION);
-            this.authenticator.addAuthResponse(connect, proxyAuthState, context);
+            this.authenticator.addAuthResponse(proxy, ChallengeType.PROXY, connect, proxyAuthState, context);
 
             response = this.requestExecutor.execute(connect, managedConn, context);
 

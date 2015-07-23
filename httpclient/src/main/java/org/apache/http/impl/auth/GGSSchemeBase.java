@@ -28,28 +28,25 @@ package org.apache.http.impl.auth;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.Principal;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthChallenge;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
+import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.KerberosCredentials;
 import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
-import org.apache.http.util.CharArrayBuffer;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSException;
@@ -61,7 +58,7 @@ import org.ietf.jgss.Oid;
  * @since 4.2
  */
 @NotThreadSafe
-public abstract class GGSSchemeBase extends NonStandardAuthScheme {
+public abstract class GGSSchemeBase implements AuthScheme {
 
     enum State {
         UNINITIATED,
@@ -77,8 +74,8 @@ public abstract class GGSSchemeBase extends NonStandardAuthScheme {
 
     /** Authentication process state */
     private State state;
-
-    /** base64 decoded challenge **/
+    private GSSCredential gssCredential;
+    private String challenge;
     private byte[] token;
 
     GGSSchemeBase(final boolean stripPort, final boolean useCanonicalHostname) {
@@ -93,19 +90,25 @@ public abstract class GGSSchemeBase extends NonStandardAuthScheme {
     }
 
     GGSSchemeBase() {
-        this(true,true);
+        this(true, true);
     }
 
+    @Override
+    public String getRealm() {
+        return null;
+    }
+
+    @Override
     public void processChallenge(
-            final ChallengeType challengeType,
-            final AuthChallenge authChallenge) throws MalformedChallengeException {
-        update(challengeType, authChallenge);
+            final AuthChallenge authChallenge,
+            final HttpContext context) throws MalformedChallengeException {
+        Args.notNull(authChallenge, "AuthChallenge");
+        if (authChallenge.getValue() == null) {
+            throw new MalformedChallengeException("Missing auth challenge");
+        }
+        this.challenge = authChallenge.getValue();
         if (state == State.UNINITIATED) {
-            final String challenge = getChallenge();
             token = Base64.decodeBase64(challenge.getBytes());
-            if (log.isDebugEnabled()) {
-                log.debug("Received token '" + token + "' from the auth server");
-            }
             state = State.CHALLENGE_RECEIVED;
         } else {
             log.debug("Authentication already attempted");
@@ -117,30 +120,16 @@ public abstract class GGSSchemeBase extends NonStandardAuthScheme {
         return GSSManager.getInstance();
     }
 
-    protected byte[] generateGSSToken(
-            final byte[] input, final Oid oid, final String authServer) throws GSSException {
-        return generateGSSToken(input, oid, authServer, null);
-    }
-
     /**
      * @since 4.4
      */
-    protected byte[] generateGSSToken(
-            final byte[] input, final Oid oid, final String authServer,
-            final Credentials credentials) throws GSSException {
+    protected byte[] generateGSSToken(final byte[] input, final Oid oid, final String authServer) throws GSSException {
         byte[] inputBuff = input;
         if (inputBuff == null) {
             inputBuff = new byte[0];
         }
         final GSSManager manager = getManager();
         final GSSName serverName = manager.createName("HTTP@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
-
-        final GSSCredential gssCredential;
-        if (credentials instanceof KerberosCredentials) {
-            gssCredential = ((KerberosCredentials) credentials).getGSSCredential();
-        } else {
-            gssCredential = null;
-        }
 
         final GSSContext gssContext = manager.createContext(
                 serverName.canonicalize(oid), oid, gssCredential, GSSContext.DEFAULT_LIFETIME);
@@ -152,43 +141,52 @@ public abstract class GGSSchemeBase extends NonStandardAuthScheme {
     /**
      * @since 4.4
      */
-    protected abstract byte[] generateToken(
-            byte[] input, String authServer, Credentials credentials) throws GSSException;
+    protected abstract byte[] generateToken(byte[] input, String authServer) throws GSSException;
 
     @Override
-    public boolean isComplete() {
+    public boolean isChallengeComplete() {
         return this.state == State.TOKEN_GENERATED || this.state == State.FAILED;
     }
 
     @Override
-    public Header authenticate(
-            final Credentials credentials,
+    public boolean isResponseReady(
+            final HttpHost host,
+            final CredentialsProvider credentialsProvider,
+            final HttpContext context) throws AuthenticationException {
+
+        Args.notNull(host, "Auth host");
+        Args.notNull(credentialsProvider, "CredentialsProvider");
+
+        final Credentials credentials = credentialsProvider.getCredentials(new AuthScope(host, null, getName()));
+        if (credentials instanceof KerberosCredentials) {
+            this.gssCredential = ((KerberosCredentials) credentials).getGSSCredential();
+        } else {
+            this.gssCredential = null;
+        }
+        return true;
+    }
+
+    @Override
+    public Principal getPrinciple() {
+        return null;
+    }
+
+    @Override
+    public String generateAuthResponse(
+            final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
+        Args.notNull(host, "HTTP host");
         Args.notNull(request, "HTTP request");
         switch (state) {
         case UNINITIATED:
-            throw new AuthenticationException(getSchemeName() + " authentication has not been initiated");
+            throw new AuthenticationException(getName() + " authentication has not been initiated");
         case FAILED:
-            throw new AuthenticationException(getSchemeName() + " authentication has failed");
+            throw new AuthenticationException(getName() + " authentication has failed");
         case CHALLENGE_RECEIVED:
             try {
-                final HttpRoute route = (HttpRoute) context.getAttribute(HttpClientContext.HTTP_ROUTE);
-                if (route == null) {
-                    throw new AuthenticationException("Connection route is not available");
-                }
-                HttpHost host;
-                if (isProxy()) {
-                    host = route.getProxyHost();
-                    if (host == null) {
-                        host = route.getTargetHost();
-                    }
-                } else {
-                    host = route.getTargetHost();
-                }
                 final String authServer;
                 String hostname = host.getHostName();
-
                 if (this.useCanonicalHostname){
                     try {
                          //TODO: uncomment this statement and delete the resolveCanonicalHostname,
@@ -208,7 +206,7 @@ public abstract class GGSSchemeBase extends NonStandardAuthScheme {
                 if (log.isDebugEnabled()) {
                     log.debug("init " + authServer);
                 }
-                token = generateToken(token, authServer, credentials);
+                token = generateToken(token, authServer);
                 state = State.TOKEN_GENERATED;
             } catch (final GSSException gsse) {
                 state = State.FAILED;
@@ -233,15 +231,7 @@ public abstract class GGSSchemeBase extends NonStandardAuthScheme {
             if (log.isDebugEnabled()) {
                 log.debug("Sending response '" + tokenstr + "' back to the auth server");
             }
-            final CharArrayBuffer buffer = new CharArrayBuffer(32);
-            if (isProxy()) {
-                buffer.append(HttpHeaders.PROXY_AUTHORIZATION);
-            } else {
-                buffer.append(HttpHeaders.AUTHORIZATION);
-            }
-            buffer.append(": Negotiate ");
-            buffer.append(tokenstr);
-            return new BufferedHeader(buffer);
+            return "Negotiate " + tokenstr;
         default:
             throw new IllegalStateException("Illegal state: " + state);
         }
@@ -254,6 +244,11 @@ public abstract class GGSSchemeBase extends NonStandardAuthScheme {
             return host;
         }
         return canonicalServer;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + this.state + " " + challenge + ']';
     }
 
 }

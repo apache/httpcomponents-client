@@ -26,21 +26,21 @@
  */
 package org.apache.http.impl.auth;
 
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
+import java.security.Principal;
+
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthChallenge;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
-import org.apache.http.auth.InvalidCredentialsException;
+import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.NTCredentials;
-import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
-import org.apache.http.util.CharArrayBuffer;
 
 /**
  * NTLM is a proprietary authentication scheme developed by Microsoft
@@ -49,7 +49,7 @@ import org.apache.http.util.CharArrayBuffer;
  * @since 4.0
  */
 @NotThreadSafe
-public class NTLMScheme extends NonStandardAuthScheme {
+public class NTLMScheme implements AuthScheme {
 
     enum State {
         UNINITIATED,
@@ -63,6 +63,8 @@ public class NTLMScheme extends NonStandardAuthScheme {
     private final NTLMEngine engine;
 
     private State state;
+    private String challenge;
+    private NTCredentials credentials;
 
     public NTLMScheme(final NTLMEngine engine) {
         super();
@@ -79,7 +81,7 @@ public class NTLMScheme extends NonStandardAuthScheme {
     }
 
     @Override
-    public String getSchemeName() {
+    public String getName() {
         return "ntlm";
     }
 
@@ -89,12 +91,20 @@ public class NTLMScheme extends NonStandardAuthScheme {
     }
 
     @Override
+    public String getRealm() {
+        return null;
+    }
+
+    @Override
     public void processChallenge(
-            final ChallengeType challengeType, final AuthChallenge authChallenge) throws MalformedChallengeException {
-        Args.notNull(challengeType, "ChallengeType");
+            final AuthChallenge authChallenge,
+            final HttpContext context) throws MalformedChallengeException {
         Args.notNull(authChallenge, "AuthChallenge");
-        final String value = authChallenge.getValue();
-        if (value == null || value.isEmpty()) {
+        if (authChallenge.getValue() == null) {
+            throw new MalformedChallengeException("Missing auth challenge");
+        }
+        this.challenge = authChallenge.getValue();
+        if (this.challenge == null || this.challenge.isEmpty()) {
             if (this.state == State.UNINITIATED) {
                 this.state = State.CHALLENGE_RECEIVED;
             } else {
@@ -111,51 +121,66 @@ public class NTLMScheme extends NonStandardAuthScheme {
     }
 
     @Override
-    public Header authenticate(
-            final Credentials credentials,
+    public boolean isResponseReady(
+            final HttpHost host,
+            final CredentialsProvider credentialsProvider,
+            final HttpContext context) throws AuthenticationException {
+
+        Args.notNull(host, "Auth host");
+        Args.notNull(credentialsProvider, "CredentialsProvider");
+
+        final Credentials credentials = credentialsProvider.getCredentials(new AuthScope(host, null, getName()));
+        if (credentials instanceof NTCredentials) {
+            this.credentials = (NTCredentials) credentials;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public Principal getPrinciple() {
+        return this.credentials != null ? this.credentials.getUserPrincipal() : null;
+    }
+
+    @Override
+    public String generateAuthResponse(
+            final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
-        final NTCredentials ntcredentials;
-        try {
-            ntcredentials = (NTCredentials) credentials;
-        } catch (final ClassCastException e) {
-            throw new InvalidCredentialsException(
-             "Credentials cannot be used for NTLM authentication: "
-              + credentials.getClass().getName());
+        if (this.credentials == null) {
+            throw new AuthenticationException("NT credentials not available");
         }
         final String response;
         if (this.state == State.FAILED) {
             throw new AuthenticationException("NTLM authentication failed");
         } else if (this.state == State.CHALLENGE_RECEIVED) {
             response = this.engine.generateType1Msg(
-                    ntcredentials.getNetbiosDomain(),
-                    ntcredentials.getWorkstation());
+                    this.credentials.getNetbiosDomain(),
+                    this.credentials.getWorkstation());
             this.state = State.MSG_TYPE1_GENERATED;
         } else if (this.state == State.MSG_TYPE2_RECEVIED) {
             response = this.engine.generateType3Msg(
-                    ntcredentials.getUserName(),
-                    ntcredentials.getPassword(),
-                    ntcredentials.getNetbiosDomain(),
-                    ntcredentials.getWorkstation(),
-                    getChallenge());
+                    this.credentials.getUserName(),
+                    this.credentials.getPassword(),
+                    this.credentials.getNetbiosDomain(),
+                    this.credentials.getWorkstation(),
+                    this.challenge);
             this.state = State.MSG_TYPE3_GENERATED;
         } else {
             throw new AuthenticationException("Unexpected state: " + this.state);
         }
-        final CharArrayBuffer buffer = new CharArrayBuffer(32);
-        if (isProxy()) {
-            buffer.append(HttpHeaders.PROXY_AUTHORIZATION);
-        } else {
-            buffer.append(HttpHeaders.AUTHORIZATION);
-        }
-        buffer.append(": NTLM ");
-        buffer.append(response);
-        return new BufferedHeader(buffer);
+        return "NTLM " + response;
     }
 
     @Override
-    public boolean isComplete() {
+    public boolean isChallengeComplete() {
         return this.state == State.MSG_TYPE3_GENERATED || this.state == State.FAILED;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + this.state + " " + challenge + ']';
     }
 
 }

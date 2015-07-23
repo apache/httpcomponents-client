@@ -177,7 +177,7 @@ public class ProxyClient {
                 conn.bind(socket);
             }
 
-            this.authenticator.addAuthResponse(connect, this.proxyAuthState, context);
+            this.authenticator.addAuthResponse(proxy, ChallengeType.PROXY, connect, this.proxyAuthState, context);
 
             response = this.requestExec.execute(connect, conn, context);
 

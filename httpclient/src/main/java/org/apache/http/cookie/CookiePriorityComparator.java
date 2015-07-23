@@ -54,7 +54,7 @@ public class CookiePriorityComparator implements Comparator<Cookie> {
     public int compare(final Cookie c1, final Cookie c2) {
         final int l1 = getPathLength(c1);
         final int l2 = getPathLength(c2);
-        //TODO: update this class once Cookie interface has been expended with #getCreationTime method
+        //TODO: processChallenge this class once Cookie interface has been expended with #getCreationTime method
         final int result = l2 - l1;
         if (result == 0 && c1 instanceof BasicClientCookie && c2 instanceof BasicClientCookie) {
             final Date d1 = ((BasicClientCookie) c1).getCreationDate();

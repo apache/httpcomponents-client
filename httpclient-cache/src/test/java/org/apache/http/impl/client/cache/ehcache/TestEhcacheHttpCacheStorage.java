@@ -168,7 +168,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         when(mockCache.get(key)).thenReturn(existingElement);
         when(mockSerializer.readFrom(isA(InputStream.class))).thenReturn(existingValue);
 
-        // update
+        // processChallenge
         mockSerializer.writeTo(same(updatedValue), isA(OutputStream.class));
         when(mockCache.replace(same(existingElement), isA(Element.class))).thenReturn(true);
 
@@ -231,7 +231,7 @@ public class TestEhcacheHttpCacheStorage extends TestCase {
         when(mockCache.get(key)).thenReturn(existingElement);
         when(mockSerializer.readFrom(isA(InputStream.class))).thenReturn(existingValue);
 
-        // update but fail
+        // processChallenge but fail
         when(mockCache.replace(same(existingElement), isA(Element.class))).thenReturn(false);
 
         try{

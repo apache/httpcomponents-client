@@ -268,6 +268,6 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
             }
         } while (numRetries <= maxUpdateRetries);
 
-        throw new HttpCacheUpdateException("Failed to update");
+        throw new HttpCacheUpdateException("Failed to processChallenge");
     }
 }

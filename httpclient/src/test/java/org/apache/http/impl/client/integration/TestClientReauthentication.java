@@ -153,7 +153,7 @@ public class TestClientReauthentication extends LocalServerTestBase {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public String getSchemeName() {
+                    public String getName() {
                         return "MyBasic";
                     }
 

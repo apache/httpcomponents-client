@@ -27,7 +27,6 @@
 package org.apache.http.examples.client;
 
 import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -35,7 +34,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -53,23 +51,14 @@ public class ClientPreemptiveDigestAuthentication {
 
     public static void main(String[] args) throws Exception {
         HttpHost target = new HttpHost("localhost", 80, "http");
-        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(
-                new AuthScope(target.getHostName(), target.getPort()),
-                new UsernamePasswordCredentials("username", "password"));
-        try (CloseableHttpClient httpclient = HttpClients.custom()
-                .setDefaultCredentialsProvider(credsProvider)
-                .build()) {
+        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
 
             // Create AuthCache instance
             AuthCache authCache = new BasicAuthCache();
-            // Generate DIGEST scheme object, initialize it and add it to the local
-            // auth cache
+            // Generate DIGEST scheme object, initialize it and add it to the local auth cache
             DigestScheme digestAuth = new DigestScheme();
-            // Suppose we already know the realm name
-            digestAuth.overrideParamter("realm", "some realm");
-            // Suppose we already know the expected nonce value
-            digestAuth.overrideParamter("nonce", "whatever");
+            // Suppose we already know the realm name and the expected nonce value
+            digestAuth.initPreemptive(new UsernamePasswordCredentials("username", "password"), "whatever", "realm");
             authCache.put(target, digestAuth);
 
             // Add AuthCache to the execution context

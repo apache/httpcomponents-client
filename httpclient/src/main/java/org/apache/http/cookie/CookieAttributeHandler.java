@@ -41,7 +41,7 @@ package org.apache.http.cookie;
 public interface CookieAttributeHandler {
 
   /**
-   * Parse the given cookie attribute value and update the corresponding
+   * Parse the given cookie attribute value and processChallenge the corresponding
    * {@link org.apache.http.cookie.Cookie} property.
    *
    * @param cookie {@link org.apache.http.cookie.Cookie} to be updated

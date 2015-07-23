@@ -51,7 +51,6 @@ import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.ChallengeType;
-import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.NonRepeatableRequestException;
@@ -442,7 +441,7 @@ public class TestMainClientExec {
 
         final AuthState proxyAuthState = new AuthState();
         proxyAuthState.setState(AuthProtocolState.SUCCESS);
-        proxyAuthState.update(new NTLMScheme(), new NTCredentials("user:pass"));
+        proxyAuthState.update(new NTLMScheme());
 
         final HttpClientContext context = new HttpClientContext();
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
@@ -475,7 +474,6 @@ public class TestMainClientExec {
         Assert.assertNotNull(finalResponse);
         Assert.assertEquals(200, finalResponse.getStatusLine().getStatusCode());
         Assert.assertNull(proxyAuthState.getAuthScheme());
-        Assert.assertNull(proxyAuthState.getCredentials());
     }
 
     @Test(expected = NonRepeatableRequestException.class)

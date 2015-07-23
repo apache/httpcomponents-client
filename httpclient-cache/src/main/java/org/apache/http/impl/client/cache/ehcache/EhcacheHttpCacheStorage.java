@@ -156,6 +156,6 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
                 }
             }
         }while(numRetries <= maxUpdateRetries);
-        throw new HttpCacheUpdateException("Failed to update");
+        throw new HttpCacheUpdateException("Failed to processChallenge");
     }
 }

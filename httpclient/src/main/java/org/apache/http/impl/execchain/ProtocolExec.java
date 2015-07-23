@@ -57,7 +57,7 @@ import org.apache.http.util.Args;
  * Request executor in the request execution chain that is responsible
  * for implementation of HTTP specification requirements.
  * Internally this executor relies on a {@link HttpProcessor} to populate
- * requisite HTTP request headers, process HTTP response headers and update
+ * requisite HTTP request headers, process HTTP response headers and processChallenge
  * session state in {@link HttpClientContext}.
  * <p>
  * Further responsibilities such as communication with the opposite

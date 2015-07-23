@@ -30,23 +30,29 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Consts;
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.NameValuePair;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthChallenge;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
+import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.MalformedChallengeException;
-import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
-import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.CharsetUtils;
 import org.apache.http.util.EncodingUtils;
 
@@ -56,17 +62,21 @@ import org.apache.http.util.EncodingUtils;
  * @since 4.0
  */
 @NotThreadSafe
-public class BasicScheme extends StandardAuthScheme {
+public class BasicScheme implements AuthScheme, Serializable {
 
     private static final long serialVersionUID = -1931571557597830536L;
 
+    private final Map<String, String> paramMap;
     private transient Charset charset;
     private boolean complete;
+    private String username;
+    private String password;
 
     /**
      * @since 4.3
      */
     public BasicScheme(final Charset charset) {
+        this.paramMap = new HashMap<>();
         this.charset = charset != null ? charset : Consts.ASCII;
         this.complete = false;
     }
@@ -75,21 +85,19 @@ public class BasicScheme extends StandardAuthScheme {
         this(Consts.ASCII);
     }
 
+    public void initPreemptive(final Credentials credentials) {
+        if (credentials != null) {
+            this.username = credentials.getUserPrincipal().getName();
+            this.password = credentials.getPassword();
+        } else {
+            this.username = null;
+            this.password = null;
+        }
+    }
+
     @Override
-    public String getSchemeName() {
+    public String getName() {
         return "basic";
-    }
-
-    public void processChallenge(
-            final ChallengeType challengeType,
-            final AuthChallenge authChallenge) throws MalformedChallengeException {
-        update(challengeType, authChallenge);
-        this.complete = true;
-    }
-
-    @Override
-    public boolean isComplete() {
-        return this.complete;
     }
 
     @Override
@@ -98,31 +106,67 @@ public class BasicScheme extends StandardAuthScheme {
     }
 
     @Override
-    public Header authenticate(
-            final Credentials credentials,
-            final HttpRequest request,
+    public String getRealm() {
+        return this.paramMap.get("realm");
+    }
+
+    @Override
+    public void processChallenge(
+            final AuthChallenge authChallenge,
+            final HttpContext context) throws MalformedChallengeException {
+        this.paramMap.clear();
+        final List<NameValuePair> params = authChallenge.getParams();
+        if (params != null) {
+            for (NameValuePair param: params) {
+                this.paramMap.put(param.getName().toLowerCase(Locale.ROOT), param.getValue());
+            }
+        }
+        this.complete = true;
+    }
+
+    @Override
+    public boolean isChallengeComplete() {
+        return this.complete;
+    }
+
+    @Override
+    public boolean isResponseReady(
+            final HttpHost host,
+            final CredentialsProvider credentialsProvider,
             final HttpContext context) throws AuthenticationException {
 
-        Args.notNull(credentials, "Credentials");
-        Args.notNull(request, "HTTP request");
-        final CharArrayBuffer buffer = new CharArrayBuffer(32);
-        if (isProxy()) {
-            buffer.append(HttpHeaders.PROXY_AUTHORIZATION);
+        Args.notNull(host, "Auth host");
+        Args.notNull(credentialsProvider, "CredentialsProvider");
+
+        final Credentials credentials = credentialsProvider.getCredentials(new AuthScope(host, getRealm(), getName()));
+        if (credentials != null) {
+            this.username = credentials.getUserPrincipal().getName();
+            this.password = credentials.getPassword();
+            return true;
         } else {
-            buffer.append(HttpHeaders.AUTHORIZATION);
+            this.username = null;
+            this.password = null;
+            return false;
         }
-        buffer.append(": Basic ");
+    }
 
-        final StringBuilder tmp = new StringBuilder();
-        tmp.append(credentials.getUserPrincipal().getName());
-        tmp.append(":");
-        tmp.append((credentials.getPassword() == null) ? "null" : credentials.getPassword());
+    @Override
+    public Principal getPrinciple() {
+        return null;
+    }
 
+    @Override
+    public String generateAuthResponse(
+            final HttpHost host,
+            final HttpRequest request,
+            final HttpContext context) throws AuthenticationException {
+        final StringBuilder buffer = new StringBuilder();
+        buffer.append(this.username);
+        buffer.append(":");
+        buffer.append(this.password);
         final Base64 base64codec = new Base64(0);
-        final byte[] base64password = base64codec.encode(EncodingUtils.getBytes(tmp.toString(), charset.name()));
-
-        buffer.append(base64password, 0, base64password.length);
-        return new BufferedHeader(buffer);
+        final byte[] encodedCreds = base64codec.encode(EncodingUtils.getBytes(buffer.toString(), charset.name()));
+        return "Basic " + new String(encodedCreds, 0, encodedCreds.length, Consts.ASCII);
     }
 
     private void writeObject(final ObjectOutputStream out) throws IOException {
@@ -140,6 +184,11 @@ public class BasicScheme extends StandardAuthScheme {
     }
 
     private void readObjectNoData() throws ObjectStreamException {
+    }
+
+    @Override
+    public String toString() {
+        return this.paramMap.toString();
     }
 
 }

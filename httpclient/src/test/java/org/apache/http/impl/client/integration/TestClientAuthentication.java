@@ -588,14 +588,12 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpHost target = start();
 
+        final BasicScheme basicScheme = new BasicScheme();
+        basicScheme.initPreemptive(new UsernamePasswordCredentials("test", "test"));
         final HttpClientContext context = HttpClientContext.create();
         final AuthCache authCache = new BasicAuthCache();
-        authCache.put(target, new BasicScheme());
+        authCache.put(target, basicScheme);
         context.setAuthCache(authCache);
-        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(AuthScope.ANY,
-                new UsernamePasswordCredentials("test", "test"));
-        context.setCredentialsProvider(credsProvider);
 
         final HttpGet httpget = new HttpGet("/");
         final HttpResponse response1 = this.httpclient.execute(target, httpget, context);

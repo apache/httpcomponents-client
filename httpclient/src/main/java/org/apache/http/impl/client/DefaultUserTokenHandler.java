@@ -34,7 +34,6 @@ import org.apache.http.HttpConnection;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
-import org.apache.http.auth.Credentials;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ManagedHttpClientConnection;
@@ -90,11 +89,8 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
 
     private static Principal getAuthPrincipal(final AuthState authState) {
         final AuthScheme scheme = authState.getAuthScheme();
-        if (scheme != null && scheme.isComplete() && scheme.isConnectionBased()) {
-            final Credentials creds = authState.getCredentials();
-            if (creds != null) {
-                return creds.getUserPrincipal();
-            }
+        if (scheme != null && scheme.isConnectionBased()) {
+            return scheme.getPrinciple();
         }
         return null;
     }

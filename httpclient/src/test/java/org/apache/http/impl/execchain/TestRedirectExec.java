@@ -26,6 +26,10 @@
  */
 package org.apache.http.impl.execchain;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
@@ -35,8 +39,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
 import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthState;
-import org.apache.http.auth.NTCredentials;
-import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.RequestConfig;
@@ -59,10 +61,6 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
 public class TestRedirectExec {
@@ -240,10 +238,10 @@ public class TestRedirectExec {
 
         final AuthState targetAuthState = new AuthState();
         targetAuthState.setState(AuthProtocolState.SUCCESS);
-        targetAuthState.update(new BasicScheme(), new UsernamePasswordCredentials("user:pass"));
+        targetAuthState.update(new BasicScheme());
         final AuthState proxyAuthState = new AuthState();
         proxyAuthState.setState(AuthProtocolState.SUCCESS);
-        proxyAuthState.update(new NTLMScheme(), new NTCredentials("user:pass"));
+        proxyAuthState.update(new NTLMScheme());
         context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, targetAuthState);
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
 

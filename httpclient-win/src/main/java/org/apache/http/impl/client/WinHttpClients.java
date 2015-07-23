@@ -29,13 +29,11 @@ package org.apache.http.impl.client;
 import java.util.Locale;
 
 import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestSchemeFactory;
-import org.apache.http.impl.auth.win.WindowsCredentialsProvider;
 import org.apache.http.impl.auth.win.WindowsNTLMSchemeFactory;
 import org.apache.http.impl.auth.win.WindowsNegotiateSchemeFactory;
 
@@ -74,9 +72,7 @@ public class WinHttpClients {
                     .register(AuthSchemes.NTLM, new WindowsNTLMSchemeFactory(null))
                     .register(AuthSchemes.SPNEGO, new WindowsNegotiateSchemeFactory(null))
                     .build();
-            final CredentialsProvider credsProvider = new WindowsCredentialsProvider(new SystemDefaultCredentialsProvider());
             return HttpClientBuilder.create()
-                    .setDefaultCredentialsProvider(credsProvider)
                     .setDefaultAuthSchemeRegistry(authSchemeRegistry);
         } else {
             return HttpClientBuilder.create();

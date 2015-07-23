@@ -34,17 +34,15 @@ import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Consts;
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.ChallengeType;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.message.ParserCursor;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EncodingUtils;
 import org.junit.Assert;
@@ -69,7 +67,7 @@ public class TestBasicScheme {
         final String challenge = "Basic";
         final AuthChallenge authChallenge = parse(challenge);
         final AuthScheme authscheme = new BasicScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
+        authscheme.processChallenge(authChallenge, null);
         Assert.assertNull(authscheme.getRealm());
     }
 
@@ -81,56 +79,66 @@ public class TestBasicScheme {
             buffer.append((char)germanChar);
         }
 
+        final HttpHost host  = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "some realm", null);
         final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("dh", buffer.toString());
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(authScope, creds);
         final BasicScheme authscheme = new BasicScheme(Consts.ISO_8859_1);
 
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final HttpRequest request = new BasicHttpRequest("GET", "/");
-        final HttpContext context = new BasicHttpContext();
-        final Header header = authscheme.authenticate(creds, request, context);
-        Assert.assertEquals("Basic ZGg65C32Lfw=", header.getValue());
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
+        Assert.assertEquals("Basic ZGg65C32Lfw=", authResponse);
     }
 
     @Test
     public void testBasicAuthentication() throws Exception {
-        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("testuser", "testpass");
-
         final AuthChallenge authChallenge = parse("Basic realm=\"test\"");
 
         final BasicScheme authscheme = new BasicScheme();
-        authscheme.processChallenge(ChallengeType.TARGET, authChallenge);
+        authscheme.processChallenge(authChallenge, null);
+
+        final HttpHost host  = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "test", null);
+        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("testuser", "testpass");
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(authScope, creds);
 
         final HttpRequest request = new BasicHttpRequest("GET", "/");
-        final HttpContext context = new BasicHttpContext();
-        final Header authResponse = authscheme.authenticate(creds, request, context);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
         final String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
-        Assert.assertEquals(HttpHeaders.AUTHORIZATION, authResponse.getName());
-        Assert.assertEquals(expected, authResponse.getValue());
+        Assert.assertEquals(expected, authResponse);
         Assert.assertEquals("test", authscheme.getRealm());
-        Assert.assertTrue(authscheme.isComplete());
+        Assert.assertTrue(authscheme.isChallengeComplete());
         Assert.assertFalse(authscheme.isConnectionBased());
     }
 
     @Test
     public void testBasicProxyAuthentication() throws Exception {
-        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("testuser", "testpass");
-
         final AuthChallenge authChallenge = parse("Basic realm=\"test\"");
 
         final BasicScheme authscheme = new BasicScheme();
-        authscheme.processChallenge(ChallengeType.PROXY, authChallenge);
+        authscheme.processChallenge(authChallenge, null);
+
+        final HttpHost host  = new HttpHost("somehost", 80);
+        final AuthScope authScope = new AuthScope(host, "test", null);
+        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("testuser", "testpass");
+        final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(authScope, creds);
 
         final HttpRequest request = new BasicHttpRequest("GET", "/");
-        final HttpContext context = new BasicHttpContext();
-        final Header authResponse = authscheme.authenticate(creds, request, context);
+        Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
+        final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
         final String expected = "Basic " + EncodingUtils.getAsciiString(
             Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
-        Assert.assertEquals(HttpHeaders.PROXY_AUTHORIZATION, authResponse.getName());
-        Assert.assertEquals(expected, authResponse.getValue());
+        Assert.assertEquals(expected, authResponse);
         Assert.assertEquals("test", authscheme.getRealm());
-        Assert.assertTrue(authscheme.isComplete());
+        Assert.assertTrue(authscheme.isChallengeComplete());
         Assert.assertFalse(authscheme.isConnectionBased());
     }
 
@@ -139,7 +147,7 @@ public class TestBasicScheme {
         final AuthChallenge authChallenge = parse("Basic realm=\"test\"");
 
         final BasicScheme basicScheme = new BasicScheme();
-        basicScheme.processChallenge(ChallengeType.PROXY, authChallenge);
+        basicScheme.processChallenge(authChallenge, null);
 
         final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         final ObjectOutputStream out = new ObjectOutputStream(buffer);
@@ -149,10 +157,9 @@ public class TestBasicScheme {
         final ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
         final BasicScheme authScheme = (BasicScheme) in.readObject();
 
-        Assert.assertEquals(basicScheme.getSchemeName(), authScheme.getSchemeName());
+        Assert.assertEquals(basicScheme.getName(), authScheme.getName());
         Assert.assertEquals(basicScheme.getRealm(), authScheme.getRealm());
-        Assert.assertEquals(basicScheme.isComplete(), authScheme.isComplete());
-        Assert.assertEquals(true, basicScheme.isProxy());
+        Assert.assertEquals(basicScheme.isChallengeComplete(), authScheme.isChallengeComplete());
     }
 
     @Test
@@ -167,10 +174,9 @@ public class TestBasicScheme {
         final ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(raw));
         final BasicScheme authScheme = (BasicScheme) in.readObject();
 
-        Assert.assertEquals(basicScheme.getSchemeName(), authScheme.getSchemeName());
+        Assert.assertEquals(basicScheme.getName(), authScheme.getName());
         Assert.assertEquals(basicScheme.getRealm(), authScheme.getRealm());
-        Assert.assertEquals(basicScheme.isComplete(), authScheme.isComplete());
-        Assert.assertEquals(false, basicScheme.isProxy());
+        Assert.assertEquals(basicScheme.isChallengeComplete(), authScheme.isChallengeComplete());
     }
 
 }

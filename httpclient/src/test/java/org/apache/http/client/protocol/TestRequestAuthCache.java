@@ -113,9 +113,7 @@ public class TestRequestAuthCache {
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
         Assert.assertNotNull(this.targetState.getAuthScheme());
-        Assert.assertSame(this.creds1, this.targetState.getCredentials());
         Assert.assertNotNull(this.proxyState.getAuthScheme());
-        Assert.assertSame(this.creds2, this.proxyState.getCredentials());
     }
 
     @Test
@@ -138,9 +136,7 @@ public class TestRequestAuthCache {
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
         Assert.assertNull(this.targetState.getAuthScheme());
-        Assert.assertNull(this.targetState.getCredentials());
         Assert.assertNull(this.proxyState.getAuthScheme());
-        Assert.assertNull(this.proxyState.getCredentials());
     }
 
     @Test
@@ -158,9 +154,7 @@ public class TestRequestAuthCache {
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
         Assert.assertNull(this.targetState.getAuthScheme());
-        Assert.assertNull(this.targetState.getCredentials());
         Assert.assertNull(this.proxyState.getAuthScheme());
-        Assert.assertNull(this.proxyState.getCredentials());
     }
 
     @Test
@@ -180,36 +174,7 @@ public class TestRequestAuthCache {
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
         Assert.assertNull(this.targetState.getAuthScheme());
-        Assert.assertNull(this.targetState.getCredentials());
         Assert.assertNull(this.proxyState.getAuthScheme());
-        Assert.assertNull(this.proxyState.getCredentials());
-    }
-
-    @Test
-    public void testNoMatchingCredentials() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("GET", "/");
-
-        this.credProvider.clear();
-
-        final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credProvider);
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
-        context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
-        context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, this.targetState);
-        context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, this.proxyState);
-
-        final AuthCache authCache = new BasicAuthCache();
-        authCache.put(this.target, this.authscheme1);
-        authCache.put(this.proxy, this.authscheme2);
-
-        context.setAttribute(HttpClientContext.AUTH_CACHE, authCache);
-
-        final HttpRequestInterceptor interceptor = new RequestAuthCache();
-        interceptor.process(request, context);
-        Assert.assertNull(this.targetState.getAuthScheme());
-        Assert.assertNull(this.targetState.getCredentials());
-        Assert.assertNull(this.proxyState.getAuthScheme());
-        Assert.assertNull(this.proxyState.getCredentials());
     }
 
     @Test
@@ -230,16 +195,14 @@ public class TestRequestAuthCache {
         context.setAttribute(HttpClientContext.AUTH_CACHE, authCache);
 
         this.targetState.setState(AuthProtocolState.CHALLENGED);
-        this.targetState.update(new BasicScheme(), new UsernamePasswordCredentials("user3", "secret3"));
+        this.targetState.update(new BasicScheme());
         this.proxyState.setState(AuthProtocolState.CHALLENGED);
-        this.proxyState.update(new BasicScheme(), new UsernamePasswordCredentials("user4", "secret4"));
+        this.proxyState.update(new BasicScheme());
 
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
         Assert.assertNotSame(this.authscheme1, this.targetState.getAuthScheme());
-        Assert.assertNotSame(this.creds1, this.targetState.getCredentials());
         Assert.assertNotSame(this.authscheme2, this.proxyState.getAuthScheme());
-        Assert.assertNotSame(this.creds2, this.proxyState.getCredentials());
     }
 
 }

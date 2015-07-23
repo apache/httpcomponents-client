@@ -29,18 +29,13 @@ package org.apache.http.client.fluent;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpHost;
-import org.apache.http.NameValuePair;
-import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
-import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
@@ -151,12 +146,14 @@ public class Executor {
     }
 
     public Executor authPreemptive(final HttpHost host) {
-        final BasicScheme basicScheme = new BasicScheme();
-        try {
-            basicScheme.processChallenge(ChallengeType.TARGET, new AuthChallenge("basic", null, Collections.<NameValuePair>emptyList()));
-        } catch (final MalformedChallengeException ignore) {
+        if (this.credentialsStore != null) {
+            final Credentials credentials = this.credentialsStore.getCredentials(new AuthScope(host));
+            if (credentials == null) {
+                final BasicScheme basicScheme = new BasicScheme();
+                basicScheme.initPreemptive(credentials);
+                this.authCache.put(host, basicScheme);
+            }
         }
-        this.authCache.put(host, basicScheme);
         return this;
     }
 
@@ -168,12 +165,14 @@ public class Executor {
     }
 
     public Executor authPreemptiveProxy(final HttpHost proxy) {
-        final BasicScheme basicScheme = new BasicScheme();
-        try {
-            basicScheme.processChallenge(ChallengeType.PROXY, new AuthChallenge("basic", null, Collections.<NameValuePair>emptyList()));
-        } catch (final MalformedChallengeException ignore) {
+        if (this.credentialsStore != null) {
+            final Credentials credentials = this.credentialsStore.getCredentials(new AuthScope(proxy));
+            if (credentials == null) {
+                final BasicScheme basicScheme = new BasicScheme();
+                basicScheme.initPreemptive(credentials);
+                this.authCache.put(proxy, basicScheme);
+            }
         }
-        this.authCache.put(proxy, basicScheme);
         return this;
     }
 

@@ -98,7 +98,7 @@ public class DefaultFailureCache implements FailureCache {
          *
          * In case there is a lot of contention on that identifier, a thread
          * might starve. Thus it gives up after a certain number of failed
-         * update tries.
+         * processChallenge tries.
          */
         for (int i = 0; i < MAX_UPDATE_TRIES; i++) {
             final FailureCacheValue oldValue = storage.get(identifier);

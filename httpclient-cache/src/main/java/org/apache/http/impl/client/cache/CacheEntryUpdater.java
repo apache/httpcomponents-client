@@ -48,7 +48,7 @@ import org.apache.http.util.Args;
 /**
  * Update a {@link HttpCacheEntry} with new or updated information based on the latest
  * 304 status response from the Server.  Use the {@link HttpResponse} to perform
- * the update.
+ * the processChallenge.
  *
  * @since 4.1
  */

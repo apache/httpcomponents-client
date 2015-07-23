@@ -546,7 +546,7 @@ HttpRoutePlanner routePlanner = new HttpRoutePlanner() {
             HttpRequest request,
             HttpContext context) throws HttpException {
         return new HttpRoute(target, null,  new HttpHost("someproxy", 8080),
-                "https".equalsIgnoreCase(target.getSchemeName()));
+                "https".equalsIgnoreCase(target.getName()));
     }
 
 };

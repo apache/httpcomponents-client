@@ -27,30 +27,35 @@
 package org.apache.http.impl.auth;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.security.MessageDigest;
+import java.security.Principal;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Formatter;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHeaders;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
+import org.apache.http.NameValuePair;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthChallenge;
+import org.apache.http.auth.AuthScheme;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
+import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.message.BasicHeaderValueFormatter;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
@@ -71,7 +76,7 @@ import org.apache.http.util.EncodingUtils;
  * @since 4.0
  */
 @NotThreadSafe
-public class DigestScheme extends StandardAuthScheme {
+public class DigestScheme implements AuthScheme, Serializable {
 
     private static final long serialVersionUID = 3883908186234566916L;
 
@@ -86,49 +91,37 @@ public class DigestScheme extends StandardAuthScheme {
         'e', 'f'
     };
 
-    /** Whether the digest authentication process is complete */
-    private boolean complete;
-
     private static final int QOP_UNKNOWN = -1;
     private static final int QOP_MISSING = 0;
     private static final int QOP_AUTH_INT = 1;
     private static final int QOP_AUTH = 2;
 
+    private final Map<String, String> paramMap;
+    private boolean complete;
     private String lastNonce;
     private long nounceCount;
     private String cnonce;
     private String a1;
     private String a2;
 
+    private String username;
+    private String password;
+
     public DigestScheme() {
+        this.paramMap = new HashMap<>();
         this.complete = false;
     }
 
-    @Override
-    public void processChallenge(
-            final ChallengeType challengeType,
-            final AuthChallenge authChallenge) throws MalformedChallengeException {
-        Args.notNull(challengeType, "ChallengeType");
-        Args.notNull(authChallenge, "AuthChallenge");
-        update(challengeType, authChallenge);
-        if (getParameters().isEmpty()) {
-            throw new MalformedChallengeException("Missing digest auth parameters");
-        }
-        this.complete = true;
+    public void initPreemptive(final Credentials credentials, final String cnonce, final String realm) {
+        Args.notNull(credentials, "Credentials");
+        this.username = credentials.getUserPrincipal().getName();
+        this.password = credentials.getPassword();
+        this.paramMap.put("cnonce", cnonce);
+        this.paramMap.put("realm", realm);
     }
 
     @Override
-    public boolean isComplete() {
-        final String s = getParameter("stale");
-        if ("true".equalsIgnoreCase(s)) {
-            return false;
-        } else {
-            return this.complete;
-        }
-    }
-
-    @Override
-    public String getSchemeName() {
+    public String getName() {
         return "digest";
     }
 
@@ -137,28 +130,79 @@ public class DigestScheme extends StandardAuthScheme {
         return false;
     }
 
-    public void overrideParamter(final String name, final String value) {
-        getParameters().put(name, value);
+    @Override
+    public String getRealm() {
+        return this.paramMap.get("realm");
     }
 
     @Override
-    public Header authenticate(
-            final Credentials credentials,
+    public void processChallenge(
+            final AuthChallenge authChallenge,
+            final HttpContext context) throws MalformedChallengeException {
+        Args.notNull(authChallenge, "AuthChallenge");
+        this.paramMap.clear();
+        final List<NameValuePair> params = authChallenge.getParams();
+        if (params != null) {
+            for (NameValuePair param: params) {
+                this.paramMap.put(param.getName().toLowerCase(Locale.ROOT), param.getValue());
+            }
+        }
+        if (this.paramMap.isEmpty()) {
+            throw new MalformedChallengeException("Missing digest auth parameters");
+        }
+        this.complete = true;
+    }
+
+    @Override
+    public boolean isChallengeComplete() {
+        final String s = this.paramMap.get("stale");
+        if ("true".equalsIgnoreCase(s)) {
+            return false;
+        } else {
+            return this.complete;
+        }
+    }
+
+    @Override
+    public boolean isResponseReady(
+            final HttpHost host,
+            final CredentialsProvider credentialsProvider,
+            final HttpContext context) throws AuthenticationException {
+
+        Args.notNull(host, "Auth host");
+        Args.notNull(credentialsProvider, "CredentialsProvider");
+
+        final Credentials credentials = credentialsProvider.getCredentials(new AuthScope(host, getRealm(), getName()));
+        if (credentials != null) {
+            this.username = credentials.getUserPrincipal().getName();
+            this.password = credentials.getPassword();
+            return true;
+        } else {
+            this.username = null;
+            this.password = null;
+            return false;
+        }
+    }
+
+    @Override
+    public Principal getPrinciple() {
+        return null;
+    }
+
+    @Override
+    public String generateAuthResponse(
+            final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
 
-        Args.notNull(credentials, "Credentials");
         Args.notNull(request, "HTTP request");
-        if (getParameter("realm") == null) {
-            throw new AuthenticationException("missing realm in challenge");
+        if (this.paramMap.get("realm") == null) {
+            throw new AuthenticationException("missing realm");
         }
-        if (getParameter("nonce") == null) {
-            throw new AuthenticationException("missing nonce in challenge");
+        if (this.paramMap.get("nonce") == null) {
+            throw new AuthenticationException("missing nonce");
         }
-        // Add method name and request-URI to the parameter map
-        getParameters().put("methodname", request.getRequestLine().getMethod());
-        getParameters().put("uri", request.getRequestLine().getUri());
-        return createDigestHeader(credentials, request);
+        return createDigestResponse(request);
     }
 
     private static MessageDigest createMessageDigest(
@@ -172,15 +216,14 @@ public class DigestScheme extends StandardAuthScheme {
         }
     }
 
-    private Header createDigestHeader(
-            final Credentials credentials,
-            final HttpRequest request) throws AuthenticationException {
-        final String uri = getParameter("uri");
-        final String realm = getParameter("realm");
-        final String nonce = getParameter("nonce");
-        final String opaque = getParameter("opaque");
-        final String method = getParameter("methodname");
-        String algorithm = getParameter("algorithm");
+    private String createDigestResponse(final HttpRequest request) throws AuthenticationException {
+
+        final String uri = request.getRequestLine().getUri();
+        final String method = request.getRequestLine().getMethod();
+        final String realm = this.paramMap.get("realm");
+        final String nonce = this.paramMap.get("nonce");
+        final String opaque = this.paramMap.get("opaque");
+        String algorithm = this.paramMap.get("algorithm");
         // If an algorithm is not specified, default to MD5.
         if (algorithm == null) {
             algorithm = "MD5";
@@ -188,7 +231,7 @@ public class DigestScheme extends StandardAuthScheme {
 
         final Set<String> qopset = new HashSet<>(8);
         int qop = QOP_UNKNOWN;
-        final String qoplist = getParameter("qop");
+        final String qoplist = this.paramMap.get("qop");
         if (qoplist != null) {
             final StringTokenizer tok = new StringTokenizer(qoplist, ",");
             while (tok.hasMoreTokens()) {
@@ -208,7 +251,7 @@ public class DigestScheme extends StandardAuthScheme {
             throw new AuthenticationException("None of the qop methods is supported: " + qoplist);
         }
 
-        String charset = getParameter("charset");
+        String charset = this.paramMap.get("charset");
         if (charset == null) {
             charset = "ISO-8859-1";
         }
@@ -224,9 +267,6 @@ public class DigestScheme extends StandardAuthScheme {
         } catch (final UnsupportedDigestAlgorithmException ex) {
             throw new AuthenticationException("Unsuppported digest algorithm: " + digAlg);
         }
-
-        final String uname = credentials.getUserPrincipal().getName();
-        final String pwd = credentials.getPassword();
 
         if (nonce.equals(this.lastNonce)) {
             nounceCount++;
@@ -255,7 +295,7 @@ public class DigestScheme extends StandardAuthScheme {
 
             // calculated one per session
             sb.setLength(0);
-            sb.append(uname).append(':').append(realm).append(':').append(pwd);
+            sb.append(username).append(':').append(realm).append(':').append(password);
             final String checksum = encode(digester.digest(EncodingUtils.getBytes(sb.toString(), charset)));
             sb.setLength(0);
             sb.append(checksum).append(':').append(nonce).append(':').append(cnonce);
@@ -263,7 +303,7 @@ public class DigestScheme extends StandardAuthScheme {
         } else {
             // unq(username-value) ":" unq(realm-value) ":" passwd
             sb.setLength(0);
-            sb.append(uname).append(':').append(realm).append(':').append(pwd);
+            sb.append(username).append(':').append(realm).append(':').append(password);
             a1 = sb.toString();
         }
 
@@ -323,15 +363,10 @@ public class DigestScheme extends StandardAuthScheme {
         final String digest = encode(digester.digest(EncodingUtils.getAsciiBytes(digestValue)));
 
         final CharArrayBuffer buffer = new CharArrayBuffer(128);
-        if (isProxy()) {
-            buffer.append(HttpHeaders.PROXY_AUTHORIZATION);
-        } else {
-            buffer.append(HttpHeaders.AUTHORIZATION);
-        }
-        buffer.append(": Digest ");
+        buffer.append("Digest ");
 
         final List<BasicNameValuePair> params = new ArrayList<>(20);
-        params.add(new BasicNameValuePair("username", uname));
+        params.add(new BasicNameValuePair("username", username));
         params.add(new BasicNameValuePair("realm", realm));
         params.add(new BasicNameValuePair("nonce", nonce));
         params.add(new BasicNameValuePair("uri", uri));
@@ -358,7 +393,7 @@ public class DigestScheme extends StandardAuthScheme {
                     || "algorithm".equals(name));
             BasicHeaderValueFormatter.INSTANCE.formatNameValuePair(buffer, param, !noQuotes);
         }
-        return new BufferedHeader(buffer);
+        return buffer.toString();
     }
 
     String getCnonce() {
@@ -403,6 +438,11 @@ public class DigestScheme extends StandardAuthScheme {
         final byte[] tmp = new byte[8];
         rnd.nextBytes(tmp);
         return encode(tmp);
+    }
+
+    @Override
+    public String toString() {
+        return this.paramMap.toString();
     }
 
 }

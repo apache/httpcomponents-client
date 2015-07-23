@@ -1208,7 +1208,7 @@ public class TestProtocolRecommendations extends AbstractProtocolTest {
     }
 
     /* "If the entity-tag of the new response matches that of an existing
-     * entry, the new response SHOULD be used to update the header fields
+     * entry, the new response SHOULD be used to processChallenge the header fields
      * of the existing entry, and the result MUST be returned to the
      * client."
      *

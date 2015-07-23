@@ -113,7 +113,7 @@ public class CacheConfig implements Cloneable {
     public final static int DEFAULT_MAX_CACHE_ENTRIES = 1000;
 
     /** Default setting for the number of retries on a failed
-     * cache update
+     * cache processChallenge
      */
     public final static int DEFAULT_MAX_UPDATE_RETRIES = 1;
 
@@ -234,7 +234,7 @@ public class CacheConfig implements Cloneable {
     }
 
     /**
-     * Returns the number of times to retry a cache update on failure
+     * Returns the number of times to retry a cache processChallenge on failure
      */
     public int getMaxUpdateRetries(){
         return maxUpdateRetries;
@@ -400,7 +400,7 @@ public class CacheConfig implements Cloneable {
         }
 
         /**
-         * Sets the number of times to retry a cache update on failure
+         * Sets the number of times to retry a cache processChallenge on failure
          */
         public Builder setMaxUpdateRetries(final int maxUpdateRetries) {
             this.maxUpdateRetries = maxUpdateRetries;
