@@ -163,7 +163,7 @@ public class Request {
             builder.setSocketTimeout(this.socketTmeout);
         }
         if (this.connectTimeout != null) {
-            builder.setSocketTimeout(this.connectTimeout);
+            builder.setConnectTimeout(this.connectTimeout);
         }
         if (this.proxy != null) {
             builder.setProxy(this.proxy);
