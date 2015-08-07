@@ -188,7 +188,7 @@ public class BasicScheme implements AuthScheme, Serializable {
 
     @Override
     public String toString() {
-        return this.paramMap.toString();
+        return getName() + this.paramMap.toString();
     }
 
 }

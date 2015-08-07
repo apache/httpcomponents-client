@@ -248,7 +248,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
 
     @Override
     public String toString() {
-        return "[" + this.state + " " + challenge + ']';
+        return getName() + "{" + this.state + " " + challenge + '}';
     }
 
 }
