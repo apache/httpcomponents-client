@@ -57,6 +57,7 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.ParserCursor;
 import org.apache.http.protocol.HttpContext;
@@ -329,13 +330,15 @@ public class HttpAuthenticator {
 
     private void updateCache(final HttpHost host, final AuthScheme authScheme, final HttpClientContext clientContext) {
         if (isCachable(authScheme)) {
-            final AuthCache authCache = clientContext.getAuthCache();
-            if (authCache != null) {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("Caching '" + authScheme.getName() + "' auth scheme for " + host);
-                }
-                authCache.put(host, authScheme);
+            AuthCache authCache = clientContext.getAuthCache();
+            if (authCache == null) {
+                authCache = new BasicAuthCache();
+                clientContext.setAuthCache(authCache);
             }
+            if (this.log.isDebugEnabled()) {
+                this.log.debug("Caching '" + authScheme.getName() + "' auth scheme for " + host);
+            }
+            authCache.put(host, authScheme);
         }
     }
 
