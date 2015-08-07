@@ -45,7 +45,7 @@ public class QuickStart {
     public static void main(String[] args) throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            HttpGet httpGet = new HttpGet("http://targethost/homepage");
+            HttpGet httpGet = new HttpGet("http://httpbin.org/get");
             CloseableHttpResponse response1 = httpclient.execute(httpGet);
             // The underlying HTTP connection is still held by the response object
             // to allow the response content to be streamed directly from the network socket.
@@ -64,7 +64,7 @@ public class QuickStart {
                 response1.close();
             }
 
-            HttpPost httpPost = new HttpPost("http://targethost/login");
+            HttpPost httpPost = new HttpPost("http://httpbin.org/post");
             List <NameValuePair> nvps = new ArrayList <NameValuePair>();
             nvps.add(new BasicNameValuePair("username", "vip"));
             nvps.add(new BasicNameValuePair("password", "secret"));

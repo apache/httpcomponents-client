@@ -64,7 +64,7 @@ public class ClientWithRequestFuture {
             };
 
             // Simple request ...
-            HttpGet request1 = new HttpGet("http://google.com");
+            HttpGet request1 = new HttpGet("http://httpbin.org/get");
             HttpRequestFutureTask<Boolean> futureTask1 = requestExecService.execute(request1,
                     HttpClientContext.create(), handler);
             Boolean wasItOk1 = futureTask1.get();
@@ -72,7 +72,7 @@ public class ClientWithRequestFuture {
 
             // Cancel a request
             try {
-                HttpGet request2 = new HttpGet("http://google.com");
+                HttpGet request2 = new HttpGet("http://httpbin.org/get");
                 HttpRequestFutureTask<Boolean> futureTask2 = requestExecService.execute(request2,
                         HttpClientContext.create(), handler);
                 futureTask2.cancel(true);
@@ -83,7 +83,7 @@ public class ClientWithRequestFuture {
             }
 
             // Request with a timeout
-            HttpGet request3 = new HttpGet("http://google.com");
+            HttpGet request3 = new HttpGet("http://httpbin.org/get");
             HttpRequestFutureTask<Boolean> futureTask3 = requestExecService.execute(request3,
                     HttpClientContext.create(), handler);
             Boolean wasItOk3 = futureTask3.get(10, TimeUnit.SECONDS);
@@ -107,7 +107,7 @@ public class ClientWithRequestFuture {
             };
 
             // Simple request with a callback
-            HttpGet request4 = new HttpGet("http://google.com");
+            HttpGet request4 = new HttpGet("http://httpbin.org/get");
             // using a null HttpContext here since it is optional
             // the callback will be called when the task completes, fails, or is cancelled
             HttpRequestFutureTask<Boolean> futureTask4 = requestExecService.execute(request4,

@@ -81,6 +81,7 @@ import org.apache.http.message.BasicLineParser;
 import org.apache.http.message.LineParser;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.CharArrayBuffer;
+import org.apache.http.util.EntityUtils;
 
 /**
  * This example demonstrates how to customize and configure the most common aspects
@@ -221,7 +222,7 @@ public class ClientConfiguration {
             .build();
 
         try {
-            HttpGet httpget = new HttpGet("http://www.apache.org/");
+            HttpGet httpget = new HttpGet("http://httpbin.org/get");
             // Request configuration can be overridden at the request level.
             // They will take precedence over the one set at the client level.
             RequestConfig requestConfig = RequestConfig.copy(defaultRequestConfig)
@@ -242,13 +243,9 @@ public class ClientConfiguration {
             System.out.println("executing request " + httpget.getURI());
             CloseableHttpResponse response = httpclient.execute(httpget, context);
             try {
-                HttpEntity entity = response.getEntity();
-
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                if (entity != null) {
-                    System.out.println("Response content length: " + entity.getContentLength());
-                }
+                System.out.println(EntityUtils.toString(response.getEntity()));
                 System.out.println("----------------------------------------");
 
                 // Once the request has been executed the local context can

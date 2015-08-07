@@ -40,7 +40,7 @@ public class ClientAbortMethod {
     public final static void main(String[] args) throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            HttpGet httpget = new HttpGet("http://www.apache.org/");
+            HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
             System.out.println("Executing request " + httpget.getURI());
             CloseableHttpResponse response = httpclient.execute(httpget);

@@ -53,11 +53,11 @@ import org.apache.http.util.EntityUtils;
 public class ClientPreemptiveDigestAuthentication {
 
     public static void main(String[] args) throws Exception {
-        HttpHost target = new HttpHost("localhost", 80, "http");
+        HttpHost target = new HttpHost("httpbin.org", 80, "http");
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
                 new AuthScope(target.getHostName(), target.getPort()),
-                new UsernamePasswordCredentials("username", "password"));
+                new UsernamePasswordCredentials("user", "passwd"));
         CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
                 .build();
@@ -78,7 +78,7 @@ public class ClientPreemptiveDigestAuthentication {
             HttpClientContext localContext = HttpClientContext.create();
             localContext.setAuthCache(authCache);
 
-            HttpGet httpget = new HttpGet("/");
+            HttpGet httpget = new HttpGet("http://httpbin.org/digest-auth/auth/user/passwd");
 
             System.out.println("Executing request " + httpget.getRequestLine() + " to target " + target);
             for (int i = 0; i < 3; i++) {
@@ -86,7 +86,7 @@ public class ClientPreemptiveDigestAuthentication {
                 try {
                     System.out.println("----------------------------------------");
                     System.out.println(response.getStatusLine());
-                    EntityUtils.consume(response.getEntity());
+                    System.out.println(EntityUtils.toString(response.getEntity()));
                 } finally {
                     response.close();
                 }

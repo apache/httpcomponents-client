@@ -56,7 +56,7 @@ public class ClientCustomContext {
             // Bind custom cookie store to the local context
             localContext.setCookieStore(cookieStore);
 
-            HttpGet httpget = new HttpGet("http://localhost/");
+            HttpGet httpget = new HttpGet("http://httpbin.org/cookies");
             System.out.println("Executing request " + httpget.getRequestLine());
 
             // Pass local context as a parameter

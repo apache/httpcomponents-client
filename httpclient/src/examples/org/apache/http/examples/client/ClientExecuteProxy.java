@@ -45,7 +45,7 @@ public class ClientExecuteProxy {
     public static void main(String[] args)throws Exception {
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            HttpHost target = new HttpHost("localhost", 443, "https");
+            HttpHost target = new HttpHost("httpbin.org", 443, "https");
             HttpHost proxy = new HttpHost("127.0.0.1", 8080, "http");
 
             RequestConfig config = RequestConfig.custom()
@@ -60,7 +60,7 @@ public class ClientExecuteProxy {
             try {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                EntityUtils.consume(response.getEntity());
+                System.out.println(EntityUtils.toString(response.getEntity()));
             } finally {
                 response.close();
             }

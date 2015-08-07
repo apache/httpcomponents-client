@@ -73,7 +73,7 @@ public class ClientCustomPublicSuffixList {
                 .build();
         try {
 
-            HttpGet httpget = new HttpGet("https://remotehost/");
+            HttpGet httpget = new HttpGet("https://httpbin.org/");
 
             System.out.println("executing request " + httpget.getRequestLine());
 

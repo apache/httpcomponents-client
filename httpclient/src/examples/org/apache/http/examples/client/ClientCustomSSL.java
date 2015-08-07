@@ -63,9 +63,9 @@ public class ClientCustomSSL {
                 .build();
         try {
 
-            HttpGet httpget = new HttpGet("https://localhost/");
+            HttpGet httpget = new HttpGet("https://httpbin.org/");
 
-            System.out.println("executing request " + httpget.getRequestLine());
+            System.out.println("Executing request " + httpget.getRequestLine());
 
             CloseableHttpResponse response = httpclient.execute(httpget);
             try {

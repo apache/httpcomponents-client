@@ -47,18 +47,21 @@ public class ClientProxyAuthentication {
     public static void main(String[] args) throws Exception {
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
-                new AuthScope("localhost", 8080),
-                new UsernamePasswordCredentials("username", "password"));
+                new AuthScope("localhost", 8888),
+                new UsernamePasswordCredentials("squid", "squid"));
+        credsProvider.setCredentials(
+                new AuthScope("httpbin.org", 80),
+                new UsernamePasswordCredentials("user", "passwd"));
         CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider).build();
         try {
-            HttpHost target = new HttpHost("www.verisign.com", 443, "https");
-            HttpHost proxy = new HttpHost("localhost", 8080);
+            HttpHost target = new HttpHost("httpbin.org", 80, "http");
+            HttpHost proxy = new HttpHost("localhost", 8888);
 
             RequestConfig config = RequestConfig.custom()
                 .setProxy(proxy)
                 .build();
-            HttpGet httpget = new HttpGet("/");
+            HttpGet httpget = new HttpGet("/basic-auth/user/passwd");
             httpget.setConfig(config);
 
             System.out.println("Executing request " + httpget.getRequestLine() + " to " + target + " via " + proxy);
@@ -67,7 +70,7 @@ public class ClientProxyAuthentication {
             try {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                EntityUtils.consume(response.getEntity());
+                System.out.println(EntityUtils.toString(response.getEntity()));
             } finally {
                 response.close();
             }

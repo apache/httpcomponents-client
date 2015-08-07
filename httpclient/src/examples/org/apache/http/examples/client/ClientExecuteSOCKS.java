@@ -67,7 +67,7 @@ public class ClientExecuteSOCKS {
             HttpClientContext context = HttpClientContext.create();
             context.setAttribute("socks.address", socksaddr);
 
-            HttpHost target = new HttpHost("localhost", 80, "http");
+            HttpHost target = new HttpHost("httpbin.org", 80, "http");
             HttpGet request = new HttpGet("/");
 
             System.out.println("Executing request " + request + " to " + target + " via SOCKS proxy " + socksaddr);

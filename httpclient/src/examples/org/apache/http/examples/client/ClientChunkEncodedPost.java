@@ -49,7 +49,7 @@ public class ClientChunkEncodedPost {
         }
         CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
-            HttpPost httppost = new HttpPost("http://localhost/");
+            HttpPost httppost = new HttpPost("http://httpbin.org/post");
 
             File file = new File(args[0]);
 
@@ -69,7 +69,7 @@ public class ClientChunkEncodedPost {
             try {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                EntityUtils.consume(response.getEntity());
+                System.out.println(EntityUtils.toString(response.getEntity()));
             } finally {
                 response.close();
             }
