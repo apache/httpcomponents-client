@@ -32,11 +32,12 @@ import javax.net.ssl.SSLSession;
 
 import org.apache.http.HttpConnection;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthExchange;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ManagedHttpClientConnection;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -59,18 +60,18 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
     public static final DefaultUserTokenHandler INSTANCE = new DefaultUserTokenHandler();
 
     @Override
-    public Object getUserToken(final HttpContext context) {
+    public Object getUserToken(final HttpRoute route, final HttpContext context) {
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
 
         Principal userPrincipal = null;
 
-        final AuthExchange targetAuthState = clientContext.getTargetAuthState();
-        if (targetAuthState != null) {
-            userPrincipal = getAuthPrincipal(targetAuthState);
-            if (userPrincipal == null) {
-                final AuthExchange proxyAuthState = clientContext.getProxyAuthState();
-                userPrincipal = getAuthPrincipal(proxyAuthState);
+        final AuthExchange targetAuthExchnage = clientContext.getAuthExchange(route.getTargetHost());
+        if (targetAuthExchnage != null) {
+            userPrincipal = getAuthPrincipal(targetAuthExchnage);
+            if (userPrincipal == null && route.getProxyHost() != null) {
+                final AuthExchange proxyAuthExchange = clientContext.getAuthExchange(route.getProxyHost());
+                userPrincipal = getAuthPrincipal(proxyAuthExchange);
             }
         }
 

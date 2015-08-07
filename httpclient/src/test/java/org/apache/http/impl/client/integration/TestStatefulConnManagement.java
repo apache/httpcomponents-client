@@ -38,6 +38,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.protocol.BasicHttpContext;
@@ -83,7 +84,7 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
         final UserTokenHandler userTokenHandler = new UserTokenHandler() {
 
             @Override
-            public Object getUserToken(final HttpContext context) {
+            public Object getUserToken(final HttpRoute route, final HttpContext context) {
                 final String id = (String) context.getAttribute("user");
                 return id;
             }
@@ -209,7 +210,7 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
         final UserTokenHandler userTokenHandler = new UserTokenHandler() {
 
             @Override
-            public Object getUserToken(final HttpContext context) {
+            public Object getUserToken(final HttpRoute route, final HttpContext context) {
                 return context.getAttribute("user");
             }
 

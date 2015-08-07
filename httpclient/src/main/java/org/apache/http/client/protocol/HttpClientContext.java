@@ -28,10 +28,14 @@
 package org.apache.http.client.protocol;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.http.HttpHost;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthExchange;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.AuthCache;
@@ -106,16 +110,10 @@ public class HttpClientContext extends HttpCoreContext {
     public static final String AUTH_CACHE            = "http.auth.auth-cache";
 
     /**
-     * Attribute name of a {@link org.apache.http.auth.AuthExchange}
-     * object that represents the actual target authentication state.
+     * Attribute name of a map containing actual {@link AuthExchange}s keyed by their respective
+     * {@link org.apache.http.HttpHost}.
      */
-    public static final String TARGET_AUTH_STATE     = "http.auth.target-scope";
-
-    /**
-     * Attribute name of a {@link org.apache.http.auth.AuthExchange}
-     * object that represents the actual proxy authentication state.
-     */
-    public static final String PROXY_AUTH_STATE      = "http.auth.proxy-scope";
+    public static final String AUTH_EXCHANGE_MAP     = "http.auth.exchanges";
 
     /**
      * Attribute name of a {@link java.lang.Object} object that represents
@@ -217,12 +215,48 @@ public class HttpClientContext extends HttpCoreContext {
         setAttribute(AUTH_CACHE, authCache);
     }
 
-    public AuthExchange getTargetAuthState() {
-        return getAttribute(TARGET_AUTH_STATE, AuthExchange.class);
+    /**
+     * @since 5.0
+     */
+    @SuppressWarnings("unchecked")
+    public Map<HttpHost, AuthExchange> getAuthExchanges() {
+        Map<HttpHost, AuthExchange> map = (Map<HttpHost, AuthExchange>) getAttribute(AUTH_EXCHANGE_MAP);
+        if (map == null) {
+            map = new HashMap<>();
+            setAttribute(AUTH_EXCHANGE_MAP, map);
+        }
+        return map;
     }
 
-    public AuthExchange getProxyAuthState() {
-        return getAttribute(PROXY_AUTH_STATE, AuthExchange.class);
+    /**
+     * @since 5.0
+     */
+    public AuthExchange getAuthExchange(final HttpHost host) {
+        final Map<HttpHost, AuthExchange> authExchangeMap = getAuthExchanges();
+        AuthExchange authExchange = authExchangeMap.get(host);
+        if (authExchange == null) {
+            authExchange = new AuthExchange();
+            authExchangeMap.put(host, authExchange);
+        }
+        return authExchange;
+    }
+
+    /**
+     * @since 5.0
+     */
+    public void setAuthExchange(final HttpHost host, final AuthExchange authExchange) {
+        final Map<HttpHost, AuthExchange> authExchangeMap = getAuthExchanges();
+        authExchangeMap.put(host, authExchange);
+    }
+
+    /**
+     * @since 5.0
+     */
+    public void resetAuthExchange(final HttpHost host, final AuthScheme authScheme) {
+        final AuthExchange authExchange = new AuthExchange();
+        authExchange.select(authScheme);
+        final Map<HttpHost, AuthExchange> authExchangeMap = getAuthExchanges();
+        authExchangeMap.put(host, authExchange);
     }
 
     public <T> T getUserToken(final Class<T> clazz) {

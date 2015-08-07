@@ -257,10 +257,8 @@ public class ClientConfiguration {
                 context.getRequest();
                 // Execution route
                 context.getHttpRoute();
-                // Target auth state
-                context.getTargetAuthState();
-                // Proxy auth state
-                context.getTargetAuthState();
+                // Auth exchanges
+                context.getAuthExchanges();
                 // Cookie origin
                 context.getCookieOrigin();
                 // Cookie spec used

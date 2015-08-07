@@ -28,6 +28,7 @@ package org.apache.http.impl.client;
 
 import org.apache.http.annotation.Immutable;
 import org.apache.http.client.UserTokenHandler;
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -41,7 +42,7 @@ public class NoopUserTokenHandler implements UserTokenHandler {
     public static final NoopUserTokenHandler INSTANCE = new NoopUserTokenHandler();
 
     @Override
-    public Object getUserToken(final HttpContext context) {
+    public Object getUserToken(final HttpRoute route, final HttpContext context) {
         return null;
     }
 

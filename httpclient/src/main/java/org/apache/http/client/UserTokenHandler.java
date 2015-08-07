@@ -27,6 +27,7 @@
 
 package org.apache.http.client;
 
+import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.protocol.HttpContext;
 
 /**
@@ -49,11 +50,12 @@ public interface UserTokenHandler {
      * identify the current user if the context is user specific or to be
      * {@code null} if it is not.
      *
+     * @param route HTTP route
      * @param context the execution context
      *
      * @return user token that uniquely identifies the user or
      * {@code null} if the context is not user specific.
      */
-    Object getUserToken(HttpContext context);
+    Object getUserToken(HttpRoute route, HttpContext context);
 
 }

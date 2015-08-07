@@ -139,17 +139,15 @@ public class RedirectExec implements ClientExecChain {
 
                     // Reset virtual host and auth states if redirecting to another host
                     if (!currentRoute.getTargetHost().equals(newTarget)) {
-                        final AuthExchange targetAuthState = context.getTargetAuthState();
-                        if (targetAuthState != null) {
-                            this.log.debug("Resetting target auth state");
-                            targetAuthState.reset();
-                        }
-                        final AuthExchange proxyAuthState = context.getProxyAuthState();
-                        if (proxyAuthState != null) {
-                            final AuthScheme authScheme = proxyAuthState.getAuthScheme();
+                        final AuthExchange targetAuthExchange = context.getAuthExchange(currentRoute.getTargetHost());
+                        this.log.debug("Resetting target auth state");
+                        targetAuthExchange.reset();
+                        if (currentRoute.getProxyHost() != null) {
+                            final AuthExchange proxyAuthExchange = context.getAuthExchange(currentRoute.getProxyHost());
+                            final AuthScheme authScheme = proxyAuthExchange.getAuthScheme();
                             if (authScheme != null && authScheme.isConnectionBased()) {
                                 this.log.debug("Resetting proxy auth state");
-                                proxyAuthState.reset();
+                                proxyAuthExchange.reset();
                             }
                         }
                     }

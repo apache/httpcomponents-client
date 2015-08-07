@@ -38,9 +38,9 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.AuthenticationStrategy;
@@ -90,7 +90,7 @@ public class ProxyClient {
     private final HttpRequestExecutor requestExec;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
-    private final AuthExchange proxyAuthState;
+    private final AuthExchange proxyAuthExchange;
     private final Lookup<AuthSchemeProvider> authSchemeRegistry;
     private final ConnectionReuseStrategy reuseStrategy;
 
@@ -110,7 +110,7 @@ public class ProxyClient {
         this.requestExec = new HttpRequestExecutor();
         this.proxyAuthStrategy = new DefaultAuthenticationStrategy();
         this.authenticator = new HttpAuthenticator();
-        this.proxyAuthState = new AuthExchange();
+        this.proxyAuthExchange = new AuthExchange();
         this.authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
                 .register(AuthSchemes.BASIC, new BasicSchemeFactory())
                 .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
@@ -164,7 +164,6 @@ public class ProxyClient {
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
         context.setAttribute(HttpCoreContext.HTTP_REQUEST, connect);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
-        context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, this.proxyAuthState);
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, credsProvider);
         context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
         context.setAttribute(HttpClientContext.REQUEST_CONFIG, this.requestConfig);
@@ -177,7 +176,7 @@ public class ProxyClient {
                 conn.bind(socket);
             }
 
-            this.authenticator.addAuthResponse(proxy, ChallengeType.PROXY, connect, this.proxyAuthState, context);
+            this.authenticator.addAuthResponse(proxy, ChallengeType.PROXY, connect, this.proxyAuthExchange, context);
 
             response = this.requestExec.execute(connect, conn, context);
 
@@ -186,9 +185,9 @@ public class ProxyClient {
                 throw new HttpException("Unexpected response to CONNECT request: " +
                         response.getStatusLine());
             }
-            if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response, this.proxyAuthState, context)) {
+            if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response, this.proxyAuthExchange, context)) {
                 if (this.authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
-                        this.proxyAuthStrategy, this.proxyAuthState, context)) {
+                        this.proxyAuthStrategy, this.proxyAuthExchange, context)) {
                     // Retry request
                     if (this.reuseStrategy.keepAlive(response, context)) {
                         // Consume response content

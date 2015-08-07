@@ -230,19 +230,21 @@ public class TestRedirectExec {
 
     @Test
     public void testCrossSiteRedirect() throws Exception {
-        final HttpRoute route = new HttpRoute(target);
+
+        final HttpHost proxy = new HttpHost("proxy");
+        final HttpRoute route = new HttpRoute(target, proxy);
         final HttpGet get = new HttpGet("/test");
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(get);
         final HttpClientContext context = HttpClientContext.create();
 
-        final AuthExchange targetAuthState = new AuthExchange();
-        targetAuthState.setState(AuthExchange.State.SUCCESS);
-        targetAuthState.select(new BasicScheme());
-        final AuthExchange proxyAuthState = new AuthExchange();
-        proxyAuthState.setState(AuthExchange.State.SUCCESS);
-        proxyAuthState.select(new NTLMScheme());
-        context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, targetAuthState);
-        context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
+        final AuthExchange targetAuthExchange = new AuthExchange();
+        targetAuthExchange.setState(AuthExchange.State.SUCCESS);
+        targetAuthExchange.select(new BasicScheme());
+        final AuthExchange proxyAuthExchange = new AuthExchange();
+        proxyAuthExchange.setState(AuthExchange.State.SUCCESS);
+        proxyAuthExchange.select(new NTLMScheme());
+        context.setAuthExchange(target, targetAuthExchange);
+        context.setAuthExchange(proxy, proxyAuthExchange);
 
         final CloseableHttpResponse response1 = Mockito.mock(CloseableHttpResponse.class);
         final CloseableHttpResponse response2 = Mockito.mock(CloseableHttpResponse.class);
@@ -272,12 +274,14 @@ public class TestRedirectExec {
 
         redirectExec.execute(route, request, context, execAware);
 
-        Assert.assertNotNull(context.getTargetAuthState());
-        Assert.assertEquals(AuthExchange.State.UNCHALLENGED, context.getTargetAuthState().getState());
-        Assert.assertEquals(null, context.getTargetAuthState().getAuthScheme());
-        Assert.assertNotNull(context.getProxyAuthState());
-        Assert.assertEquals(AuthExchange.State.UNCHALLENGED, context.getProxyAuthState().getState());
-        Assert.assertEquals(null, context.getProxyAuthState().getAuthScheme());
+        final AuthExchange authExchange1 = context.getAuthExchange(target);
+        Assert.assertNotNull(authExchange1);
+        Assert.assertEquals(AuthExchange.State.UNCHALLENGED, authExchange1.getState());
+        Assert.assertEquals(null, authExchange1.getAuthScheme());
+        final AuthExchange authExchange2 = context.getAuthExchange(proxy);
+        Assert.assertNotNull(authExchange2);
+        Assert.assertEquals(AuthExchange.State.UNCHALLENGED, authExchange2.getState());
+        Assert.assertEquals(null, authExchange2.getAuthScheme());
     }
 
     @Test(expected = RuntimeException.class)

@@ -36,8 +36,8 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthExchange;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.AuthCache;
 import org.apache.http.conn.routing.RouteInfo;
@@ -99,26 +99,28 @@ public class RequestAuthCache implements HttpRequestInterceptor {
                     target.getSchemeName());
         }
 
-        final AuthExchange targetState = clientContext.getTargetAuthState();
-        if (targetState != null && targetState.getState() == AuthExchange.State.UNCHALLENGED) {
+        final AuthExchange targetAuthExchange = clientContext.getAuthExchange(target);
+        if (targetAuthExchange.getState() == AuthExchange.State.UNCHALLENGED) {
             final AuthScheme authScheme = authCache.get(target);
             if (authScheme != null) {
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("Re-using cached '" + authScheme.getName() + "' auth scheme for " + target);
                 }
-                targetState.select(authScheme);
+                targetAuthExchange.select(authScheme);
             }
         }
 
         final HttpHost proxy = route.getProxyHost();
-        final AuthExchange proxyState = clientContext.getProxyAuthState();
-        if (proxy != null && proxyState != null && proxyState.getState() == AuthExchange.State.UNCHALLENGED) {
-            final AuthScheme authScheme = authCache.get(proxy);
-            if (authScheme != null) {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("Re-using cached '" + authScheme.getName() + "' auth scheme for " + proxy);
+        if (proxy != null) {
+            final AuthExchange proxyAuthExchange = clientContext.getAuthExchange(proxy);
+            if (proxyAuthExchange.getState() == AuthExchange.State.UNCHALLENGED) {
+                final AuthScheme authScheme = authCache.get(proxy);
+                if (authScheme != null) {
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug("Re-using cached '" + authScheme.getName() + "' auth scheme for " + proxy);
+                    }
+                    proxyAuthExchange.select(authScheme);
                 }
-                proxyState.select(authScheme);
             }
         }
     }

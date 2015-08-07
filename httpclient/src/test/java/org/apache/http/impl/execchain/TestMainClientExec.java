@@ -46,9 +46,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthChallenge;
+import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthenticationStrategy;
@@ -162,8 +162,6 @@ public class TestMainClientExec {
         Mockito.verify(managedConn, Mockito.times(1)).close();
         Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
 
-        Assert.assertNotNull(context.getTargetAuthState());
-        Assert.assertNotNull(context.getProxyAuthState());
         Assert.assertSame(managedConn, context.getConnection());
         Assert.assertNull(context.getUserToken());
         Assert.assertNotNull(finalResponse);
@@ -219,6 +217,7 @@ public class TestMainClientExec {
                 Mockito.same(response),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(userTokenHandler.getUserToken(
+                Mockito.same(route),
                 Mockito.<HttpClientContext>any())).thenReturn("this and that");
 
         mainClientExec.execute(route, request, context, execAware);
@@ -424,7 +423,7 @@ public class TestMainClientExec {
 
     @Test
     public void testExecEntityEnclosingRequestRetryOnAuthChallenge() throws Exception {
-        final HttpRoute route = new HttpRoute(target);
+        final HttpRoute route = new HttpRoute(target, proxy);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
         final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
         response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
@@ -438,12 +437,12 @@ public class TestMainClientExec {
                 .setStream(instream2)
                 .build());
 
-        final AuthExchange proxyAuthState = new AuthExchange();
-        proxyAuthState.setState(AuthExchange.State.SUCCESS);
-        proxyAuthState.select(new NTLMScheme());
-
         final HttpClientContext context = new HttpClientContext();
-        context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
+
+        final AuthExchange proxyAuthExchange = new AuthExchange();
+        proxyAuthExchange.setState(AuthExchange.State.SUCCESS);
+        proxyAuthExchange.select(new NTLMScheme());
+        context.setAuthExchange(proxy, proxyAuthExchange);
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user:pass"));
@@ -472,7 +471,7 @@ public class TestMainClientExec {
 
         Assert.assertNotNull(finalResponse);
         Assert.assertEquals(200, finalResponse.getStatusLine().getStatusCode());
-        Assert.assertNull(proxyAuthState.getAuthScheme());
+        Assert.assertNull(proxyAuthExchange.getAuthScheme());
     }
 
     @Test(expected = NonRepeatableRequestException.class)
@@ -601,14 +600,13 @@ public class TestMainClientExec {
 
     @Test
     public void testEstablishDirectRoute() throws Exception {
-        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
 
-        mainClientExec.establishRoute(authState, managedConn, route, request, context);
+        mainClientExec.establishRoute(managedConn, route, request, context);
 
         Mockito.verify(connManager).connect(managedConn, route, 0, context);
         Mockito.verify(connManager).routeComplete(managedConn, route, context);
@@ -616,14 +614,13 @@ public class TestMainClientExec {
 
     @Test
     public void testEstablishRouteDirectProxy() throws Exception {
-        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target, null, proxy, false);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
 
-        mainClientExec.establishRoute(authState, managedConn, route, request, context);
+        mainClientExec.establishRoute(managedConn, route, request, context);
 
         Mockito.verify(connManager).connect(managedConn, route, 0, context);
         Mockito.verify(connManager).routeComplete(managedConn, route, context);
@@ -631,7 +628,6 @@ public class TestMainClientExec {
 
     @Test
     public void testEstablishRouteViaProxyTunnel() throws Exception {
-        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
@@ -647,7 +643,7 @@ public class TestMainClientExec {
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
-        mainClientExec.establishRoute(authState, managedConn, route, request, context);
+        mainClientExec.establishRoute(managedConn, route, request, context);
 
         Mockito.verify(connManager).connect(managedConn, route, 321, context);
         Mockito.verify(connManager).routeComplete(managedConn, route, context);
@@ -665,7 +661,6 @@ public class TestMainClientExec {
 
     @Test(expected = HttpException.class)
     public void testEstablishRouteViaProxyTunnelUnexpectedResponse() throws Exception {
-        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
@@ -677,12 +672,11 @@ public class TestMainClientExec {
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
-        mainClientExec.establishRoute(authState, managedConn, route, request, context);
+        mainClientExec.establishRoute(managedConn, route, request, context);
     }
 
     @Test(expected = HttpException.class)
     public void testEstablishRouteViaProxyTunnelFailure() throws Exception {
-        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
@@ -696,7 +690,7 @@ public class TestMainClientExec {
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
         try {
-            mainClientExec.establishRoute(authState, managedConn, route, request, context);
+            mainClientExec.establishRoute(managedConn, route, request, context);
         } catch (final TunnelRefusedException ex) {
             final HttpResponse r = ex.getResponse();
             Assert.assertEquals("Ka-boom", EntityUtils.toString(r.getEntity()));
@@ -709,7 +703,6 @@ public class TestMainClientExec {
 
     @Test
     public void testEstablishRouteViaProxyTunnelRetryOnAuthChallengePersistentConnection() throws Exception {
-        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
@@ -739,7 +732,7 @@ public class TestMainClientExec {
                 Mockito.<Map<String, AuthChallenge>>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
-        mainClientExec.establishRoute(authState, managedConn, route, request, context);
+        mainClientExec.establishRoute(managedConn, route, request, context);
 
         Mockito.verify(connManager).connect(managedConn, route, 0, context);
         Mockito.verify(connManager).routeComplete(managedConn, route, context);
@@ -748,7 +741,6 @@ public class TestMainClientExec {
 
     @Test
     public void testEstablishRouteViaProxyTunnelRetryOnAuthChallengeNonPersistentConnection() throws Exception {
-        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
@@ -778,7 +770,7 @@ public class TestMainClientExec {
                 Mockito.<Map<String, AuthChallenge>>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
-        mainClientExec.establishRoute(authState, managedConn, route, request, context);
+        mainClientExec.establishRoute(managedConn, route, request, context);
 
         Mockito.verify(connManager).connect(managedConn, route, 0, context);
         Mockito.verify(connManager).routeComplete(managedConn, route, context);
@@ -788,7 +780,6 @@ public class TestMainClientExec {
 
     @Test(expected = HttpException.class)
     public void testEstablishRouteViaProxyTunnelMultipleHops() throws Exception {
-        final AuthExchange authState = new AuthExchange();
         final HttpHost proxy1 = new HttpHost("this", 8888);
         final HttpHost proxy2 = new HttpHost("that", 8888);
         final HttpRoute route = new HttpRoute(target, null, new HttpHost[] {proxy1, proxy2},
@@ -798,7 +789,7 @@ public class TestMainClientExec {
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
 
-        mainClientExec.establishRoute(authState, managedConn, route, request, context);
+        mainClientExec.establishRoute(managedConn, route, request, context);
     }
 
 }

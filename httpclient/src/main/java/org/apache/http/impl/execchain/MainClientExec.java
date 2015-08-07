@@ -154,17 +154,6 @@ public class MainClientExec implements ClientExecChain {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        AuthExchange targetAuthState = context.getTargetAuthState();
-        if (targetAuthState == null) {
-            targetAuthState = new AuthExchange();
-            context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, targetAuthState);
-        }
-        AuthExchange proxyAuthState = context.getProxyAuthState();
-        if (proxyAuthState == null) {
-            proxyAuthState = new AuthExchange();
-            context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
-        }
-
         if (request instanceof HttpEntityEnclosingRequest) {
             RequestEntityProxy.enhance((HttpEntityEnclosingRequest) request);
         }
@@ -206,6 +195,10 @@ public class MainClientExec implements ClientExecChain {
                 execAware.setCancellable(connHolder);
             }
 
+            final AuthExchange targetAuthExchange = context.getAuthExchange(route.getTargetHost());
+            final AuthExchange proxyAuthExchange = route.getProxyHost() != null ?
+                    context.getAuthExchange(route.getProxyHost()) : new AuthExchange();
+
             HttpResponse response;
             for (int execCount = 1;; execCount++) {
 
@@ -221,7 +214,7 @@ public class MainClientExec implements ClientExecChain {
                 if (!managedConn.isOpen()) {
                     this.log.debug("Opening connection " + route);
                     try {
-                        establishRoute(proxyAuthState, managedConn, route, request, context);
+                        establishRoute(managedConn, route, request, context);
                     } catch (final TunnelRefusedException ex) {
                         if (this.log.isDebugEnabled()) {
                             this.log.debug(ex.getMessage());
@@ -245,17 +238,17 @@ public class MainClientExec implements ClientExecChain {
 
                 if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
                     if (this.log.isDebugEnabled()) {
-                        this.log.debug("Target auth state: " + targetAuthState.getState());
+                        this.log.debug("Target auth state: " + targetAuthExchange.getState());
                     }
                     this.authenticator.addAuthResponse(
-                            route.getTargetHost(), ChallengeType.TARGET, request, targetAuthState, context);
+                            route.getTargetHost(), ChallengeType.TARGET, request, targetAuthExchange, context);
                 }
                 if (!request.containsHeader(HttpHeaders.PROXY_AUTHORIZATION) && !route.isTunnelled()) {
                     if (this.log.isDebugEnabled()) {
-                        this.log.debug("Proxy auth state: " + proxyAuthState.getState());
+                        this.log.debug("Proxy auth state: " + proxyAuthExchange.getState());
                     }
                     this.authenticator.addAuthResponse(
-                            route.getProxyHost(), ChallengeType.PROXY, request, proxyAuthState, context);
+                            route.getProxyHost(), ChallengeType.PROXY, request, proxyAuthExchange, context);
                 }
 
                 response = requestExecutor.execute(request, managedConn, context);
@@ -285,24 +278,24 @@ public class MainClientExec implements ClientExecChain {
                 }
 
                 if (needAuthentication(
-                        targetAuthState, proxyAuthState, route, response, context)) {
+                        targetAuthExchange, proxyAuthExchange, route, response, context)) {
                     // Make sure the response body is fully consumed, if present
                     final HttpEntity entity = response.getEntity();
                     if (connHolder.isReusable()) {
                         EntityUtils.consume(entity);
                     } else {
                         managedConn.close();
-                        if (proxyAuthState.getState() == AuthExchange.State.SUCCESS
-                                && proxyAuthState.getAuthScheme() != null
-                                && proxyAuthState.getAuthScheme().isConnectionBased()) {
+                        if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
+                                && proxyAuthExchange.getAuthScheme() != null
+                                && proxyAuthExchange.getAuthScheme().isConnectionBased()) {
                             this.log.debug("Resetting proxy auth state");
-                            proxyAuthState.reset();
+                            proxyAuthExchange.reset();
                         }
-                        if (targetAuthState.getState() == AuthExchange.State.SUCCESS
-                                && targetAuthState.getAuthScheme() != null
-                                && targetAuthState.getAuthScheme().isConnectionBased()) {
+                        if (targetAuthExchange.getState() == AuthExchange.State.SUCCESS
+                                && targetAuthExchange.getAuthScheme() != null
+                                && targetAuthExchange.getAuthScheme().isConnectionBased()) {
                             this.log.debug("Resetting target auth state");
-                            targetAuthState.reset();
+                            targetAuthExchange.reset();
                         }
                     }
                     // discard previous auth headers
@@ -319,7 +312,7 @@ public class MainClientExec implements ClientExecChain {
             }
 
             if (userToken == null) {
-                userToken = userTokenHandler.getUserToken(context);
+                userToken = userTokenHandler.getUserToken(route, context);
                 context.setAttribute(HttpClientContext.USER_TOKEN, userToken);
             }
             if (userToken != null) {
@@ -350,7 +343,6 @@ public class MainClientExec implements ClientExecChain {
      * Establishes the target route.
      */
     void establishRoute(
-            final AuthExchange proxyAuthState,
             final HttpClientConnection managedConn,
             final HttpRoute route,
             final HttpRequest request,
@@ -383,8 +375,7 @@ public class MainClientExec implements ClientExecChain {
                 tracker.connectProxy(proxy, false);
                 break;
             case HttpRouteDirector.TUNNEL_TARGET: {
-                final boolean secure = createTunnelToTarget(
-                        proxyAuthState, managedConn, route, request, context);
+                final boolean secure = createTunnelToTarget(managedConn, route, request, context);
                 this.log.debug("Tunnel to target created.");
                 tracker.tunnelTarget(secure);
             }   break;
@@ -428,7 +419,6 @@ public class MainClientExec implements ClientExecChain {
      * information about the tunnel, that is left to the caller.
      */
     private boolean createTunnelToTarget(
-            final AuthExchange proxyAuthState,
             final HttpClientConnection managedConn,
             final HttpRoute route,
             final HttpRequest request,
@@ -439,6 +429,7 @@ public class MainClientExec implements ClientExecChain {
 
         final HttpHost target = route.getTargetHost();
         final HttpHost proxy = route.getProxyHost();
+        final AuthExchange proxyAuthExchange = context.getAuthExchange(proxy);
         HttpResponse response = null;
 
         final String authority = target.toHostString();
@@ -456,7 +447,7 @@ public class MainClientExec implements ClientExecChain {
             }
 
             connect.removeHeaders(HttpHeaders.PROXY_AUTHORIZATION);
-            this.authenticator.addAuthResponse(proxy, ChallengeType.PROXY, connect, proxyAuthState, context);
+            this.authenticator.addAuthResponse(proxy, ChallengeType.PROXY, connect, proxyAuthExchange, context);
 
             response = this.requestExecutor.execute(connect, managedConn, context);
 
@@ -468,9 +459,9 @@ public class MainClientExec implements ClientExecChain {
 
             if (config.isAuthenticationEnabled()) {
                 if (this.authenticator.isChallenged(proxy, ChallengeType.PROXY, response,
-                        proxyAuthState, context)) {
+                        proxyAuthExchange, context)) {
                     if (this.authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
-                            this.proxyAuthStrategy, proxyAuthState, context)) {
+                            this.proxyAuthStrategy, proxyAuthExchange, context)) {
                         // Retry request
                         if (this.reuseStrategy.keepAlive(response, context)) {
                             this.log.debug("Connection kept alive");
@@ -531,8 +522,8 @@ public class MainClientExec implements ClientExecChain {
     }
 
     private boolean needAuthentication(
-            final AuthExchange targetAuthState,
-            final AuthExchange proxyAuthState,
+            final AuthExchange targetAuthExchange,
+            final AuthExchange proxyAuthExchange,
             final HttpRoute route,
             final HttpResponse response,
             final HttpClientContext context) {
@@ -549,7 +540,7 @@ public class MainClientExec implements ClientExecChain {
                         target.getSchemeName());
             }
             final boolean targetAuthRequested = this.authenticator.isChallenged(
-                    target, ChallengeType.TARGET, response, targetAuthState, context);
+                    target, ChallengeType.TARGET, response, targetAuthExchange, context);
 
             HttpHost proxy = route.getProxyHost();
             // if proxy is not set use target host instead
@@ -557,15 +548,15 @@ public class MainClientExec implements ClientExecChain {
                 proxy = route.getTargetHost();
             }
             final boolean proxyAuthRequested = this.authenticator.isChallenged(
-                    proxy, ChallengeType.PROXY, response, proxyAuthState, context);
+                    proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
 
             if (targetAuthRequested) {
                 return this.authenticator.prepareAuthResponse(target, ChallengeType.TARGET, response,
-                        this.targetAuthStrategy, targetAuthState, context);
+                        this.targetAuthStrategy, targetAuthExchange, context);
             }
             if (proxyAuthRequested) {
                 return this.authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
-                        this.proxyAuthStrategy, proxyAuthState, context);
+                        this.proxyAuthStrategy, proxyAuthExchange, context);
             }
         }
         return false;
