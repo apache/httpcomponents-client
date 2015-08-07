@@ -46,10 +46,9 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthChallenge;
-import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.AuthState;
+import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthenticationStrategy;
@@ -439,9 +438,9 @@ public class TestMainClientExec {
                 .setStream(instream2)
                 .build());
 
-        final AuthState proxyAuthState = new AuthState();
-        proxyAuthState.setState(AuthProtocolState.SUCCESS);
-        proxyAuthState.update(new NTLMScheme());
+        final AuthExchange proxyAuthState = new AuthExchange();
+        proxyAuthState.setState(AuthExchange.State.SUCCESS);
+        proxyAuthState.select(new NTLMScheme());
 
         final HttpClientContext context = new HttpClientContext();
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
@@ -602,7 +601,7 @@ public class TestMainClientExec {
 
     @Test
     public void testEstablishDirectRoute() throws Exception {
-        final AuthState authState = new AuthState();
+        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
@@ -617,7 +616,7 @@ public class TestMainClientExec {
 
     @Test
     public void testEstablishRouteDirectProxy() throws Exception {
-        final AuthState authState = new AuthState();
+        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target, null, proxy, false);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
@@ -632,7 +631,7 @@ public class TestMainClientExec {
 
     @Test
     public void testEstablishRouteViaProxyTunnel() throws Exception {
-        final AuthState authState = new AuthState();
+        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
@@ -666,7 +665,7 @@ public class TestMainClientExec {
 
     @Test(expected = HttpException.class)
     public void testEstablishRouteViaProxyTunnelUnexpectedResponse() throws Exception {
-        final AuthState authState = new AuthState();
+        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
@@ -683,7 +682,7 @@ public class TestMainClientExec {
 
     @Test(expected = HttpException.class)
     public void testEstablishRouteViaProxyTunnelFailure() throws Exception {
-        final AuthState authState = new AuthState();
+        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
@@ -710,7 +709,7 @@ public class TestMainClientExec {
 
     @Test
     public void testEstablishRouteViaProxyTunnelRetryOnAuthChallengePersistentConnection() throws Exception {
-        final AuthState authState = new AuthState();
+        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
@@ -749,7 +748,7 @@ public class TestMainClientExec {
 
     @Test
     public void testEstablishRouteViaProxyTunnelRetryOnAuthChallengeNonPersistentConnection() throws Exception {
-        final AuthState authState = new AuthState();
+        final AuthExchange authState = new AuthExchange();
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"));
@@ -789,7 +788,7 @@ public class TestMainClientExec {
 
     @Test(expected = HttpException.class)
     public void testEstablishRouteViaProxyTunnelMultipleHops() throws Exception {
-        final AuthState authState = new AuthState();
+        final AuthExchange authState = new AuthExchange();
         final HttpHost proxy1 = new HttpHost("this", 8888);
         final HttpHost proxy2 = new HttpHost("that", 8888);
         final HttpRoute route = new HttpRoute(target, null, new HttpHost[] {proxy1, proxy2},

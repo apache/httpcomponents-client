@@ -40,7 +40,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.AuthState;
+import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.ChallengeType;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.AuthenticationStrategy;
@@ -90,7 +90,7 @@ public class ProxyClient {
     private final HttpRequestExecutor requestExec;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
-    private final AuthState proxyAuthState;
+    private final AuthExchange proxyAuthState;
     private final Lookup<AuthSchemeProvider> authSchemeRegistry;
     private final ConnectionReuseStrategy reuseStrategy;
 
@@ -110,7 +110,7 @@ public class ProxyClient {
         this.requestExec = new HttpRequestExecutor();
         this.proxyAuthStrategy = new DefaultAuthenticationStrategy();
         this.authenticator = new HttpAuthenticator();
-        this.proxyAuthState = new AuthState();
+        this.proxyAuthState = new AuthExchange();
         this.authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
                 .register(AuthSchemes.BASIC, new BasicSchemeFactory())
                 .register(AuthSchemes.DIGEST, new DigestSchemeFactory())

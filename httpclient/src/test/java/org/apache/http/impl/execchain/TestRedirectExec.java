@@ -37,8 +37,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
-import org.apache.http.auth.AuthProtocolState;
-import org.apache.http.auth.AuthState;
+import org.apache.http.auth.AuthExchange;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.RequestConfig;
@@ -236,12 +235,12 @@ public class TestRedirectExec {
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(get);
         final HttpClientContext context = HttpClientContext.create();
 
-        final AuthState targetAuthState = new AuthState();
-        targetAuthState.setState(AuthProtocolState.SUCCESS);
-        targetAuthState.update(new BasicScheme());
-        final AuthState proxyAuthState = new AuthState();
-        proxyAuthState.setState(AuthProtocolState.SUCCESS);
-        proxyAuthState.update(new NTLMScheme());
+        final AuthExchange targetAuthState = new AuthExchange();
+        targetAuthState.setState(AuthExchange.State.SUCCESS);
+        targetAuthState.select(new BasicScheme());
+        final AuthExchange proxyAuthState = new AuthExchange();
+        proxyAuthState.setState(AuthExchange.State.SUCCESS);
+        proxyAuthState.select(new NTLMScheme());
         context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, targetAuthState);
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
 
@@ -274,10 +273,10 @@ public class TestRedirectExec {
         redirectExec.execute(route, request, context, execAware);
 
         Assert.assertNotNull(context.getTargetAuthState());
-        Assert.assertEquals(AuthProtocolState.UNCHALLENGED, context.getTargetAuthState().getState());
+        Assert.assertEquals(AuthExchange.State.UNCHALLENGED, context.getTargetAuthState().getState());
         Assert.assertEquals(null, context.getTargetAuthState().getAuthScheme());
         Assert.assertNotNull(context.getProxyAuthState());
-        Assert.assertEquals(AuthProtocolState.UNCHALLENGED, context.getProxyAuthState().getState());
+        Assert.assertEquals(AuthExchange.State.UNCHALLENGED, context.getProxyAuthState().getState());
         Assert.assertEquals(null, context.getProxyAuthState().getAuthScheme());
     }
 

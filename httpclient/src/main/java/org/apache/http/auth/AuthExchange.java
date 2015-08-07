@@ -32,50 +32,41 @@ import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.util.Args;
 
 /**
- * This class provides detailed information about the state of the authentication process.
+ * This class represents the actual state of authentication handshake including the current {@link AuthScheme}
+ * used for request authorization as well as a collection of backup authentication options if available.
  *
- * @since 4.0
+ * @since 4.5
  */
 @NotThreadSafe
-public class AuthState {
+public class AuthExchange {
 
-    /** Actual state of authentication protocol */
-    private AuthProtocolState state;
+    public enum State {
 
-    /** Actual authentication scheme */
-    private AuthScheme authScheme;
+        UNCHALLENGED, CHALLENGED, HANDSHAKE, FAILURE, SUCCESS
 
-    /** Available auth options */
-    private Queue<AuthScheme> authOptions;
-
-    public AuthState() {
-        super();
-        this.state = AuthProtocolState.UNCHALLENGED;
     }
 
-    /**
-     * Resets the auth state.
-     *
-     * @since 4.2
-     */
+    private State state;
+    private AuthScheme authScheme;
+    private Queue<AuthScheme> authOptions;
+
+    public AuthExchange() {
+        super();
+        this.state = State.UNCHALLENGED;
+    }
+
     public void reset() {
-        this.state = AuthProtocolState.UNCHALLENGED;
+        this.state = State.UNCHALLENGED;
         this.authOptions = null;
         this.authScheme = null;
     }
 
-    /**
-     * @since 4.2
-     */
-    public AuthProtocolState getState() {
+    public State getState() {
         return this.state;
     }
 
-    /**
-     * @since 4.2
-     */
-    public void setState(final AuthProtocolState state) {
-        this.state = state != null ? state : AuthProtocolState.UNCHALLENGED;
+    public void setState(final State state) {
+        this.state = state != null ? state : State.UNCHALLENGED;
     }
 
     /**
@@ -86,13 +77,11 @@ public class AuthState {
     }
 
     /**
-     * Updates the auth state with {@link AuthScheme} and clears auth options.
+     * Resets the auth state with {@link AuthScheme} and clears auth options.
      *
      * @param authScheme auth scheme. May not be null.
-     *
-     * @since 4.2
      */
-    public void update(final AuthScheme authScheme) {
+    public void select(final AuthScheme authScheme) {
         Args.notNull(authScheme, "Auth scheme");
         this.authScheme = authScheme;
         this.authOptions = null;
@@ -100,8 +89,6 @@ public class AuthState {
 
     /**
      * Returns available auth options. May be null.
-     *
-     * @since 4.2
      */
     public Queue<AuthScheme> getAuthOptions() {
         return this.authOptions;
@@ -111,13 +98,10 @@ public class AuthState {
      * Updates the auth state with a queue of auth options.
      *
      * @param authOptions a queue of auth options. May not be null or empty.
-     *
-     * @since 4.2
      */
-    public void update(final Queue<AuthScheme> authOptions) {
+    public void setOptions(final Queue<AuthScheme> authOptions) {
         Args.notEmpty(authOptions, "Queue of auth options");
         this.authOptions = authOptions;
-        this.authScheme = null;
     }
 
     @Override

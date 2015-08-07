@@ -36,9 +36,8 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthState;
+import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.AuthCache;
 import org.apache.http.conn.routing.RouteInfo;
@@ -100,26 +99,26 @@ public class RequestAuthCache implements HttpRequestInterceptor {
                     target.getSchemeName());
         }
 
-        final AuthState targetState = clientContext.getTargetAuthState();
-        if (targetState != null && targetState.getState() == AuthProtocolState.UNCHALLENGED) {
+        final AuthExchange targetState = clientContext.getTargetAuthState();
+        if (targetState != null && targetState.getState() == AuthExchange.State.UNCHALLENGED) {
             final AuthScheme authScheme = authCache.get(target);
             if (authScheme != null) {
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("Re-using cached '" + authScheme.getName() + "' auth scheme for " + target);
                 }
-                targetState.update(authScheme);
+                targetState.select(authScheme);
             }
         }
 
         final HttpHost proxy = route.getProxyHost();
-        final AuthState proxyState = clientContext.getProxyAuthState();
-        if (proxy != null && proxyState != null && proxyState.getState() == AuthProtocolState.UNCHALLENGED) {
+        final AuthExchange proxyState = clientContext.getProxyAuthState();
+        if (proxy != null && proxyState != null && proxyState.getState() == AuthExchange.State.UNCHALLENGED) {
             final AuthScheme authScheme = authCache.get(proxy);
             if (authScheme != null) {
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("Re-using cached '" + authScheme.getName() + "' auth scheme for " + proxy);
                 }
-                proxyState.update(authScheme);
+                proxyState.select(authScheme);
             }
         }
     }

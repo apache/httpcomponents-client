@@ -44,8 +44,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.annotation.Immutable;
-import org.apache.http.auth.AuthProtocolState;
-import org.apache.http.auth.AuthState;
+import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.ChallengeType;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.NonRepeatableRequestException;
@@ -155,14 +154,14 @@ public class MainClientExec implements ClientExecChain {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        AuthState targetAuthState = context.getTargetAuthState();
+        AuthExchange targetAuthState = context.getTargetAuthState();
         if (targetAuthState == null) {
-            targetAuthState = new AuthState();
+            targetAuthState = new AuthExchange();
             context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, targetAuthState);
         }
-        AuthState proxyAuthState = context.getProxyAuthState();
+        AuthExchange proxyAuthState = context.getProxyAuthState();
         if (proxyAuthState == null) {
-            proxyAuthState = new AuthState();
+            proxyAuthState = new AuthExchange();
             context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
         }
 
@@ -293,13 +292,13 @@ public class MainClientExec implements ClientExecChain {
                         EntityUtils.consume(entity);
                     } else {
                         managedConn.close();
-                        if (proxyAuthState.getState() == AuthProtocolState.SUCCESS
+                        if (proxyAuthState.getState() == AuthExchange.State.SUCCESS
                                 && proxyAuthState.getAuthScheme() != null
                                 && proxyAuthState.getAuthScheme().isConnectionBased()) {
                             this.log.debug("Resetting proxy auth state");
                             proxyAuthState.reset();
                         }
-                        if (targetAuthState.getState() == AuthProtocolState.SUCCESS
+                        if (targetAuthState.getState() == AuthExchange.State.SUCCESS
                                 && targetAuthState.getAuthScheme() != null
                                 && targetAuthState.getAuthScheme().isConnectionBased()) {
                             this.log.debug("Resetting target auth state");
@@ -351,7 +350,7 @@ public class MainClientExec implements ClientExecChain {
      * Establishes the target route.
      */
     void establishRoute(
-            final AuthState proxyAuthState,
+            final AuthExchange proxyAuthState,
             final HttpClientConnection managedConn,
             final HttpRoute route,
             final HttpRequest request,
@@ -429,7 +428,7 @@ public class MainClientExec implements ClientExecChain {
      * information about the tunnel, that is left to the caller.
      */
     private boolean createTunnelToTarget(
-            final AuthState proxyAuthState,
+            final AuthExchange proxyAuthState,
             final HttpClientConnection managedConn,
             final HttpRoute route,
             final HttpRequest request,
@@ -532,8 +531,8 @@ public class MainClientExec implements ClientExecChain {
     }
 
     private boolean needAuthentication(
-            final AuthState targetAuthState,
-            final AuthState proxyAuthState,
+            final AuthExchange targetAuthState,
+            final AuthExchange proxyAuthState,
             final HttpRoute route,
             final HttpResponse response,
             final HttpClientContext context) {

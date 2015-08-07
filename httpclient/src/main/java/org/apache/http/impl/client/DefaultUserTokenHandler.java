@@ -33,7 +33,7 @@ import javax.net.ssl.SSLSession;
 import org.apache.http.HttpConnection;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthState;
+import org.apache.http.auth.AuthExchange;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ManagedHttpClientConnection;
@@ -65,11 +65,11 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
 
         Principal userPrincipal = null;
 
-        final AuthState targetAuthState = clientContext.getTargetAuthState();
+        final AuthExchange targetAuthState = clientContext.getTargetAuthState();
         if (targetAuthState != null) {
             userPrincipal = getAuthPrincipal(targetAuthState);
             if (userPrincipal == null) {
-                final AuthState proxyAuthState = clientContext.getProxyAuthState();
+                final AuthExchange proxyAuthState = clientContext.getProxyAuthState();
                 userPrincipal = getAuthPrincipal(proxyAuthState);
             }
         }
@@ -87,7 +87,7 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
         return userPrincipal;
     }
 
-    private static Principal getAuthPrincipal(final AuthState authState) {
+    private static Principal getAuthPrincipal(final AuthExchange authState) {
         final AuthScheme scheme = authState.getAuthScheme();
         if (scheme != null && scheme.isConnectionBased()) {
             return scheme.getPrinciple();

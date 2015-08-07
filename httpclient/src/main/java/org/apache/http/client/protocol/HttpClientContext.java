@@ -31,8 +31,8 @@ import java.net.URI;
 import java.util.List;
 
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.auth.AuthState;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
@@ -106,13 +106,13 @@ public class HttpClientContext extends HttpCoreContext {
     public static final String AUTH_CACHE            = "http.auth.auth-cache";
 
     /**
-     * Attribute name of a {@link org.apache.http.auth.AuthState}
+     * Attribute name of a {@link org.apache.http.auth.AuthExchange}
      * object that represents the actual target authentication state.
      */
     public static final String TARGET_AUTH_STATE     = "http.auth.target-scope";
 
     /**
-     * Attribute name of a {@link org.apache.http.auth.AuthState}
+     * Attribute name of a {@link org.apache.http.auth.AuthExchange}
      * object that represents the actual proxy authentication state.
      */
     public static final String PROXY_AUTH_STATE      = "http.auth.proxy-scope";
@@ -217,12 +217,12 @@ public class HttpClientContext extends HttpCoreContext {
         setAttribute(AUTH_CACHE, authCache);
     }
 
-    public AuthState getTargetAuthState() {
-        return getAttribute(TARGET_AUTH_STATE, AuthState.class);
+    public AuthExchange getTargetAuthState() {
+        return getAttribute(TARGET_AUTH_STATE, AuthExchange.class);
     }
 
-    public AuthState getProxyAuthState() {
-        return getAttribute(PROXY_AUTH_STATE, AuthState.class);
+    public AuthExchange getProxyAuthState() {
+        return getAttribute(PROXY_AUTH_STATE, AuthExchange.class);
     }
 
     public <T> T getUserToken(final Class<T> clazz) {

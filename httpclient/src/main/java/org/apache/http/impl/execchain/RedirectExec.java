@@ -40,7 +40,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.annotation.ThreadSafe;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthState;
+import org.apache.http.auth.AuthExchange;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.RequestConfig;
@@ -139,12 +139,12 @@ public class RedirectExec implements ClientExecChain {
 
                     // Reset virtual host and auth states if redirecting to another host
                     if (!currentRoute.getTargetHost().equals(newTarget)) {
-                        final AuthState targetAuthState = context.getTargetAuthState();
+                        final AuthExchange targetAuthState = context.getTargetAuthState();
                         if (targetAuthState != null) {
                             this.log.debug("Resetting target auth state");
                             targetAuthState.reset();
                         }
-                        final AuthState proxyAuthState = context.getProxyAuthState();
+                        final AuthExchange proxyAuthState = context.getProxyAuthState();
                         if (proxyAuthState != null) {
                             final AuthScheme authScheme = proxyAuthState.getAuthScheme();
                             if (authScheme != null && authScheme.isConnectionBased()) {

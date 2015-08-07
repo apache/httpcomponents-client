@@ -29,9 +29,8 @@ package org.apache.http.client.protocol;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.AuthState;
+import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
@@ -56,8 +55,8 @@ public class TestRequestAuthCache {
     private BasicScheme authscheme1;
     private BasicScheme authscheme2;
     private BasicCredentialsProvider credProvider;
-    private AuthState targetState;
-    private AuthState proxyState;
+    private AuthExchange targetState;
+    private AuthExchange proxyState;
 
     @Before
     public void setUp() {
@@ -75,8 +74,8 @@ public class TestRequestAuthCache {
         this.credProvider.setCredentials(this.authscope1, this.creds1);
         this.credProvider.setCredentials(this.authscope2, this.creds2);
 
-        this.targetState = new AuthState();
-        this.proxyState = new AuthState();
+        this.targetState = new AuthExchange();
+        this.proxyState = new AuthExchange();
     }
 
     @Test(expected=IllegalArgumentException.class)
@@ -194,10 +193,10 @@ public class TestRequestAuthCache {
 
         context.setAttribute(HttpClientContext.AUTH_CACHE, authCache);
 
-        this.targetState.setState(AuthProtocolState.CHALLENGED);
-        this.targetState.update(new BasicScheme());
-        this.proxyState.setState(AuthProtocolState.CHALLENGED);
-        this.proxyState.update(new BasicScheme());
+        this.targetState.setState(AuthExchange.State.CHALLENGED);
+        this.targetState.select(new BasicScheme());
+        this.proxyState.setState(AuthExchange.State.CHALLENGED);
+        this.proxyState.select(new BasicScheme());
 
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
         interceptor.process(request, context);
