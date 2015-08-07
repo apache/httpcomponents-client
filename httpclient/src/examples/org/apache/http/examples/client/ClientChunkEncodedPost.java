@@ -48,7 +48,7 @@ public class ClientChunkEncodedPost {
             System.exit(1);
         }
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpPost httppost = new HttpPost("http://localhost/");
+            HttpPost httppost = new HttpPost("http://httpbin.org/post");
 
             File file = new File(args[0]);
 

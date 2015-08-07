@@ -72,7 +72,7 @@ public class ClientCustomPublicSuffixList {
                 .setDefaultCookieSpecRegistry(cookieSpecRegistry)
                 .build()) {
 
-            HttpGet httpget = new HttpGet("https://remotehost/");
+            HttpGet httpget = new HttpGet("https://httpbin.org/get");
 
             System.out.println("executing request " + httpget.getRequestLine());
 

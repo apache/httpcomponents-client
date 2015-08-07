@@ -27,6 +27,7 @@
 package org.apache.http.examples.client;
 
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -34,6 +35,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -50,7 +52,6 @@ import org.apache.http.util.EntityUtils;
 public class ClientPreemptiveDigestAuthentication {
 
     public static void main(String[] args) throws Exception {
-        HttpHost target = new HttpHost("localhost", 80, "http");
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
 
             // Create AuthCache instance
@@ -58,14 +59,16 @@ public class ClientPreemptiveDigestAuthentication {
             // Generate DIGEST scheme object, initialize it and add it to the local auth cache
             DigestScheme digestAuth = new DigestScheme();
             // Suppose we already know the realm name and the expected nonce value
-            digestAuth.initPreemptive(new UsernamePasswordCredentials("username", "password"), "whatever", "realm");
+            digestAuth.initPreemptive(new UsernamePasswordCredentials("user", "passwd"), "whatever", "realm");
+
+            HttpHost target = new HttpHost("httpbin.org", 80, "http");
             authCache.put(target, digestAuth);
 
             // Add AuthCache to the execution context
             HttpClientContext localContext = HttpClientContext.create();
             localContext.setAuthCache(authCache);
 
-            HttpGet httpget = new HttpGet("/");
+            HttpGet httpget = new HttpGet("http://httpbin.org/digest-auth/auth/user/passwd");
 
             System.out.println("Executing request " + httpget.getRequestLine() + " to target " + target);
             for (int i = 0; i < 3; i++) {

@@ -44,7 +44,7 @@ public class ClientConnectionRelease {
 
     public final static void main(String[] args) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpGet httpget = new HttpGet("http://localhost/");
+            HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
             System.out.println("Executing request " + httpget.getRequestLine());
             try (CloseableHttpResponse response = httpclient.execute(httpget)) {

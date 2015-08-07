@@ -44,12 +44,12 @@ public class ClientAuthentication {
     public static void main(String[] args) throws Exception {
         BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
-                new AuthScope("localhost", 443),
-                new UsernamePasswordCredentials("username", "password"));
+                new AuthScope("httpbin.org", 80),
+                new UsernamePasswordCredentials("user", "passwd"));
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
                 .build()) {
-            HttpGet httpget = new HttpGet("http://localhost/");
+            HttpGet httpget = new HttpGet("http://httpbin.org/basic-auth/user/passwd");
 
             System.out.println("Executing request " + httpget.getRequestLine());
             try (CloseableHttpResponse response = httpclient.execute(httpget)) {

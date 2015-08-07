@@ -27,6 +27,7 @@
 package org.apache.http.examples.client;
 
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -34,6 +35,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -49,28 +51,26 @@ import org.apache.http.util.EntityUtils;
 public class ClientPreemptiveBasicAuthentication {
 
     public static void main(String[] args) throws Exception {
-        HttpHost target = new HttpHost("localhost", 80, "http");
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
 
-            // Create AuthCache instance
-            AuthCache authCache = new BasicAuthCache();
             // Generate BASIC scheme object and add it to the local auth cache
             BasicScheme basicAuth = new BasicScheme();
-            basicAuth.initPreemptive(new UsernamePasswordCredentials("username", "password"));
-            authCache.put(target, basicAuth);
+            basicAuth.initPreemptive(new UsernamePasswordCredentials("user", "passwd"));
+
+            HttpHost target = new HttpHost("httpbin.org", 80, "http");
 
             // Add AuthCache to the execution context
             HttpClientContext localContext = HttpClientContext.create();
-            localContext.setAuthCache(authCache);
+            localContext.resetAuthExchange(target, basicAuth);
 
-            HttpGet httpget = new HttpGet("/");
+            HttpGet httpget = new HttpGet("http://httpbin.org/hidden-basic-auth/user/passwd");
 
             System.out.println("Executing request " + httpget.getRequestLine() + " to target " + target);
             for (int i = 0; i < 3; i++) {
-                try (CloseableHttpResponse response = httpclient.execute(target, httpget, localContext)) {
+                try (CloseableHttpResponse response = httpclient.execute(httpget, localContext)) {
                     System.out.println("----------------------------------------");
                     System.out.println(response.getStatusLine());
-                    EntityUtils.consume(response.getEntity());
+                    System.out.println(EntityUtils.toString(response.getEntity()));
                 }
             }
         }

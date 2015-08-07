@@ -44,13 +44,13 @@ public class ClientExecuteProxy {
 
     public static void main(String[] args)throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpHost target = new HttpHost("localhost", 443, "https");
+            HttpHost target = new HttpHost("httpbin.org", 443, "https");
             HttpHost proxy = new HttpHost("127.0.0.1", 8080, "http");
 
             RequestConfig config = RequestConfig.custom()
                     .setProxy(proxy)
                     .build();
-            HttpGet request = new HttpGet("/");
+            HttpGet request = new HttpGet("/get");
             request.setConfig(config);
 
             System.out.println("Executing request " + request.getRequestLine() + " to " + target + " via " + proxy);

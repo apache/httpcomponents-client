@@ -220,7 +220,7 @@ public class ClientConfiguration {
                 .setProxy(new HttpHost("myproxy", 8080))
                 .setDefaultRequestConfig(defaultRequestConfig)
                 .build()) {
-            HttpGet httpget = new HttpGet("http://www.apache.org/");
+            HttpGet httpget = new HttpGet("http://httpbin.org/get");
             // Request configuration can be overridden at the request level.
             // They will take precedence over the one set at the client level.
             RequestConfig requestConfig = RequestConfig.copy(defaultRequestConfig)
