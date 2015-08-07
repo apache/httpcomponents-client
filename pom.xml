@@ -35,7 +35,7 @@
   <name>Apache HttpComponents Client</name>
   <version>4.5.1-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
-  <url>http://hc.apache.org/httpcomponents-client</url>
+  <url>http://hc.apache.org/httpcomponents-client-ga/</url>
   <inceptionYear>1999</inceptionYear>
   <packaging>pom</packaging>
 
