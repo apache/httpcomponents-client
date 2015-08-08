@@ -67,7 +67,7 @@ public class ClientChunkEncodedPost {
             try (CloseableHttpResponse response = httpclient.execute(httppost)) {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                EntityUtils.consume(response.getEntity());
+                System.out.println(EntityUtils.toString(response.getEntity()));
             }
         }
     }

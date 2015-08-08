@@ -71,7 +71,7 @@ public class ClientCustomSSL {
 
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                EntityUtils.consume(entity);
+                System.out.println(EntityUtils.toString(response.getEntity()));
             }
         }
     }

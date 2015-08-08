@@ -81,6 +81,7 @@ import org.apache.http.message.BasicLineParser;
 import org.apache.http.message.LineParser;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.CharArrayBuffer;
+import org.apache.http.util.EntityUtils;
 
 /**
  * This example demonstrates how to customize and configure the most common aspects
@@ -244,10 +245,7 @@ public class ClientConfiguration {
 
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                if (entity != null) {
-                    System.out.println("Response content length: " + entity.getContentLength());
-                }
-                System.out.println("----------------------------------------");
+                System.out.println(EntityUtils.toString(response.getEntity()));
 
                 // Once the request has been executed the local context can
                 // be used to examine updated state and various objects affected

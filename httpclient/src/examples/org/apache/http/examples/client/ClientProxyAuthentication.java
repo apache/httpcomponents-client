@@ -67,7 +67,7 @@ public class ClientProxyAuthentication {
             try (CloseableHttpResponse response = httpclient.execute(target, httpget)) {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getStatusLine());
-                EntityUtils.consume(response.getEntity());
+                System.out.println(EntityUtils.toString(response.getEntity()));
             }
         }
     }
