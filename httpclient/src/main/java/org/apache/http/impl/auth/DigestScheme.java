@@ -28,6 +28,7 @@ package org.apache.http.impl.auth;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.Principal;
 import java.security.SecureRandom;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
@@ -54,12 +56,13 @@ import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.MalformedChallengeException;
+import org.apache.http.auth.util.ByteArrayBuilder;
 import org.apache.http.message.BasicHeaderValueFormatter;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
-import org.apache.http.util.EncodingUtils;
+import org.apache.http.util.CharsetUtils;
 
 /**
  * Digest authentication scheme as defined in RFC 2617.
@@ -84,7 +87,7 @@ public class DigestScheme implements AuthScheme, Serializable {
      * Hexa values used when creating 32 character long digest in HTTP DigestScheme
      * in case of authentication.
      *
-     * @see #encode(byte[])
+     * @see #formatHex(byte[])
      */
     private static final char[] HEXADECIMAL = {
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
@@ -98,11 +101,13 @@ public class DigestScheme implements AuthScheme, Serializable {
 
     private final Map<String, String> paramMap;
     private boolean complete;
+    private transient ByteArrayBuilder buffer;
+
     private String lastNonce;
     private long nounceCount;
     private String cnonce;
-    private String a1;
-    private String a2;
+    private byte[] a1;
+    private byte[] a2;
 
     private String username;
     private String password;
@@ -251,9 +256,10 @@ public class DigestScheme implements AuthScheme, Serializable {
             throw new AuthenticationException("None of the qop methods is supported: " + qoplist);
         }
 
-        String charset = this.paramMap.get("charset");
+        final String charsetName = this.paramMap.get("charset");
+        Charset charset = charsetName != null ? CharsetUtils.lookup(charsetName) : null;
         if (charset == null) {
-            charset = "ISO-8859-1";
+            charset = Consts.ISO_8859_1;
         }
 
         String digAlg = algorithm;
@@ -275,15 +281,23 @@ public class DigestScheme implements AuthScheme, Serializable {
             cnonce = null;
             lastNonce = nonce;
         }
-        final StringBuilder sb = new StringBuilder(256);
+
+        final StringBuilder sb = new StringBuilder(8);
         final Formatter formatter = new Formatter(sb, Locale.US);
-        formatter.format("%08x", Long.valueOf(nounceCount));
+        formatter.format("%08x", nounceCount);
         formatter.close();
         final String nc = sb.toString();
 
         if (cnonce == null) {
-            cnonce = createCnonce();
+            cnonce = formatHex(createCnonce());
         }
+
+        if (buffer == null) {
+            buffer = new ByteArrayBuilder();
+        } else {
+            buffer.reset();
+        }
+        buffer.charset(charset);
 
         a1 = null;
         a2 = null;
@@ -294,24 +308,23 @@ public class DigestScheme implements AuthScheme, Serializable {
             //      ":" unq(cnonce-value)
 
             // calculated one per session
-            sb.setLength(0);
-            sb.append(username).append(':').append(realm).append(':').append(password);
-            final String checksum = encode(digester.digest(EncodingUtils.getBytes(sb.toString(), charset)));
-            sb.setLength(0);
-            sb.append(checksum).append(':').append(nonce).append(':').append(cnonce);
-            a1 = sb.toString();
+            buffer.append(username).append(":").append(realm).append(":").append(password);
+            final String checksum = formatHex(digester.digest(this.buffer.toByteArray()));
+            buffer.reset();
+            buffer.append(checksum).append(":").append(nonce).append(":").append(cnonce);
+            a1 = buffer.toByteArray();
         } else {
             // unq(username-value) ":" unq(realm-value) ":" passwd
-            sb.setLength(0);
-            sb.append(username).append(':').append(realm).append(':').append(password);
-            a1 = sb.toString();
+            buffer.append(username).append(":").append(realm).append(":").append(password);
+            a1 = buffer.toByteArray();
         }
 
-        final String hasha1 = encode(digester.digest(EncodingUtils.getBytes(a1, charset)));
+        final String hasha1 = formatHex(digester.digest(a1));
+        buffer.reset();
 
         if (qop == QOP_AUTH) {
             // Method ":" digest-uri-value
-            a2 = method + ':' + uri;
+            a2 = buffer.append(method).append(":").append(uri).toByteArray();
         } else if (qop == QOP_AUTH_INT) {
             // Method ":" digest-uri-value ":" H(entity-body)
             HttpEntity entity = null;
@@ -322,7 +335,7 @@ public class DigestScheme implements AuthScheme, Serializable {
                 // If the entity is not repeatable, try falling back onto QOP_AUTH
                 if (qopset.contains("auth")) {
                     qop = QOP_AUTH;
-                    a2 = method + ':' + uri;
+                    a2 = buffer.append(method).append(":").append(uri).toByteArray();
                 } else {
                     throw new AuthenticationException("Qop auth-int cannot be used with " +
                             "a non-repeatable entity");
@@ -337,30 +350,31 @@ public class DigestScheme implements AuthScheme, Serializable {
                 } catch (final IOException ex) {
                     throw new AuthenticationException("I/O error reading entity content", ex);
                 }
-                a2 = method + ':' + uri + ':' + encode(entityDigester.getDigest());
+                a2 = buffer.append(method).append(":").append(uri)
+                        .append(":").append(formatHex(entityDigester.getDigest())).toByteArray();
             }
         } else {
-            a2 = method + ':' + uri;
+            a2 = buffer.append(method).append(":").append(uri).toByteArray();
         }
 
-        final String hasha2 = encode(digester.digest(EncodingUtils.getBytes(a2, charset)));
+        final String hasha2 = formatHex(digester.digest(a2));
+        buffer.reset();
 
         // 3.2.2.1
 
-        final String digestValue;
+        final byte[] digestInput;
         if (qop == QOP_MISSING) {
-            sb.setLength(0);
-            sb.append(hasha1).append(':').append(nonce).append(':').append(hasha2);
-            digestValue = sb.toString();
+            buffer.append(hasha1).append(":").append(nonce).append(":").append(hasha2);
+            digestInput = buffer.toByteArray();
         } else {
-            sb.setLength(0);
-            sb.append(hasha1).append(':').append(nonce).append(':').append(nc).append(':')
-                .append(cnonce).append(':').append(qop == QOP_AUTH_INT ? "auth-int" : "auth")
-                .append(':').append(hasha2);
-            digestValue = sb.toString();
+            buffer.append(hasha1).append(":").append(nonce).append(":").append(nc).append(":")
+                .append(cnonce).append(":").append(qop == QOP_AUTH_INT ? "auth-int" : "auth")
+                .append(":").append(hasha2);
+            digestInput = buffer.toByteArray();
         }
+        buffer.reset();
 
-        final String digest = encode(digester.digest(EncodingUtils.getAsciiBytes(digestValue)));
+        final String digest = formatHex(digester.digest(digestInput));
 
         final CharArrayBuffer buffer = new CharArrayBuffer(128);
         buffer.append("Digest ");
@@ -401,11 +415,11 @@ public class DigestScheme implements AuthScheme, Serializable {
     }
 
     String getA1() {
-        return a1;
+        return a1 != null ? new String(a1, Consts.ASCII) : null;
     }
 
     String getA2() {
-        return a2;
+        return a2 != null ? new String(a2, Consts.ASCII) : null;
     }
 
     /**
@@ -415,7 +429,7 @@ public class DigestScheme implements AuthScheme, Serializable {
      * @param binaryData array containing the digest
      * @return encoded MD5, or <CODE>null</CODE> if encoding failed
      */
-    static String encode(final byte[] binaryData) {
+    static String formatHex(final byte[] binaryData) {
         final int n = binaryData.length;
         final char[] buffer = new char[n * 2];
         for (int i = 0; i < n; i++) {
@@ -433,11 +447,11 @@ public class DigestScheme implements AuthScheme, Serializable {
      *
      * @return The cnonce value as String.
      */
-    public static String createCnonce() {
+    static byte[] createCnonce() {
         final SecureRandom rnd = new SecureRandom();
         final byte[] tmp = new byte[8];
         rnd.nextBytes(tmp);
-        return encode(tmp);
+        return tmp;
     }
 
     @Override

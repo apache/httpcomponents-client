@@ -51,10 +51,10 @@ import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.MalformedChallengeException;
+import org.apache.http.auth.util.ByteArrayBuilder;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharsetUtils;
-import org.apache.http.util.EncodingUtils;
 
 /**
  * Basic authentication scheme as defined in RFC 2617.
@@ -68,7 +68,10 @@ public class BasicScheme implements AuthScheme, Serializable {
 
     private final Map<String, String> paramMap;
     private transient Charset charset;
+    private transient ByteArrayBuilder buffer;
+    private transient Base64 base64codec;
     private boolean complete;
+
     private String username;
     private String password;
 
@@ -160,12 +163,17 @@ public class BasicScheme implements AuthScheme, Serializable {
             final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
-        final StringBuilder buffer = new StringBuilder();
-        buffer.append(this.username);
-        buffer.append(":");
-        buffer.append(this.password);
-        final Base64 base64codec = new Base64(0);
-        final byte[] encodedCreds = base64codec.encode(EncodingUtils.getBytes(buffer.toString(), charset.name()));
+        if (this.buffer == null) {
+            this.buffer = new ByteArrayBuilder(64).charset(this.charset);
+        } else {
+            this.buffer.reset();
+        }
+        this.buffer.append(this.username).append(":").append(this.password);
+        if (this.base64codec == null) {
+            this.base64codec = new Base64(0);
+        }
+        final byte[] encodedCreds = this.base64codec.encode(this.buffer.toByteArray());
+        this.buffer.reset();
         return "Basic " + new String(encodedCreds, 0, encodedCreds.length, Consts.ASCII);
     }
 

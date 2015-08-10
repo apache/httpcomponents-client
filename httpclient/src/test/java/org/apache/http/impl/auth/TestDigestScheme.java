@@ -567,7 +567,7 @@ public class TestDigestScheme {
         digester.write(new byte[] { 'a', 'b', 'c'});
         Assert.assertNull(digester.getDigest());
         digester.close();
-        Assert.assertEquals("acd2b59cd01c7737d8069015584c6cac", DigestScheme.encode(digester.getDigest()));
+        Assert.assertEquals("acd2b59cd01c7737d8069015584c6cac", DigestScheme.formatHex(digester.getDigest()));
         try {
             digester.write('a');
             Assert.fail("IOException should have been thrown");
