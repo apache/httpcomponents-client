@@ -66,16 +66,15 @@ public class TestRequestDefaultHeaders {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         request.addHeader("custom", "stuff");
         final List<Header> defheaders = new ArrayList<>();
-        defheaders.add(new BasicHeader("custom", "more stuff"));
+        defheaders.add(new BasicHeader("custom", "other stuff"));
         final HttpContext context = new BasicHttpContext();
 
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
         interceptor.process(request, context);
         final Header[] headers = request.getHeaders("custom");
         Assert.assertNotNull(headers);
-        Assert.assertEquals(2, headers.length);
+        Assert.assertEquals(1, headers.length);
         Assert.assertEquals("stuff", headers[0].getValue());
-        Assert.assertEquals("more stuff", headers[1].getValue());
     }
 
 }

@@ -72,7 +72,9 @@ public class RequestDefaultHeaders implements HttpRequestInterceptor {
 
         if (this.defaultHeaders != null) {
             for (final Header defHeader : this.defaultHeaders) {
-                request.addHeader(defHeader);
+                if(!request.containsHeader(defHeader.getName())) {
+                    request.addHeader(defHeader);
+                }
             }
         }
     }
