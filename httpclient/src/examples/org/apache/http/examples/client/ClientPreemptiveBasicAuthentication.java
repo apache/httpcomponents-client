@@ -51,7 +51,7 @@ public class ClientPreemptiveBasicAuthentication {
 
             // Generate BASIC scheme object and add it to the local auth cache
             BasicScheme basicAuth = new BasicScheme();
-            basicAuth.initPreemptive(new UsernamePasswordCredentials("user", "passwd"));
+            basicAuth.initPreemptive(new UsernamePasswordCredentials("user", "passwd".toCharArray()));
 
             HttpHost target = new HttpHost("httpbin.org", 80, "http");
 

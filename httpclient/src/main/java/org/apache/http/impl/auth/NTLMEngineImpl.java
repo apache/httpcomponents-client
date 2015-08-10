@@ -39,6 +39,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Consts;
 import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.auth.util.ByteArrayBuilder;
 import org.apache.http.util.CharsetUtils;
 import org.apache.http.util.EncodingUtils;
 
@@ -117,7 +118,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @throws org.apache.http.HttpException
      *             If the messages cannot be retrieved.
      */
-    static String getResponseFor(final String message, final String username, final String password,
+    static String getResponseFor(final String message, final String username, final char[] password,
             final String host, final String domain) throws NTLMEngineException {
 
         final String response;
@@ -168,7 +169,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @throws NTLMEngineException
      *             If {@encrypt(byte[],byte[])} fails.
      */
-    static String getType3Message(final String user, final String password, final String host, final String domain,
+    static String getType3Message(final String user, final char[] password, final String host, final String domain,
             final byte[] nonce, final int type2Flags, final String target, final byte[] targetInformation)
             throws NTLMEngineException {
         return new Type3Message(domain, host, user, password, nonce, type2Flags, target,
@@ -230,7 +231,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
         protected final String domain;
         protected final String user;
-        protected final String password;
+        protected final char[] password;
         protected final byte[] challenge;
         protected final String target;
         protected final byte[] targetInformation;
@@ -259,7 +260,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         protected byte[] ntlm2SessionResponseUserSessionKey = null;
         protected byte[] lanManagerSessionKey = null;
 
-        public CipherGen(final String domain, final String user, final String password,
+        public CipherGen(final String domain, final String user, final char[] password,
             final byte[] challenge, final String target, final byte[] targetInformation,
             final byte[] clientChallenge, final byte[] clientChallenge2,
             final byte[] secondaryKey, final byte[] timestamp) {
@@ -275,7 +276,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             this.timestamp = timestamp;
         }
 
-        public CipherGen(final String domain, final String user, final String password,
+        public CipherGen(final String domain, final String user, final char[] password,
             final byte[] challenge, final String target, final byte[] targetInformation) {
             this(domain, user, password, challenge, target, targetInformation, null, null, null, null);
         }
@@ -557,9 +558,13 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @return The LM Hash of the given password, used in the calculation of the
      *         LM Response.
      */
-    private static byte[] lmHash(final String password) throws NTLMEngineException {
+    private static byte[] lmHash(final char[] password) throws NTLMEngineException {
         try {
-            final byte[] oemPassword = password.toUpperCase(Locale.ROOT).getBytes(Consts.ASCII);
+            final char[] tmp = new char[password.length];
+            for (int i = 0; i < password.length; i++) {
+                tmp[i] = Character.toUpperCase(password[i]);
+            }
+            final byte[] oemPassword = new ByteArrayBuilder().append(tmp).toByteArray();
             final int length = Math.min(oemPassword.length, 14);
             final byte[] keyBytes = new byte[14];
             System.arraycopy(oemPassword, 0, keyBytes, 0, length);
@@ -589,11 +594,12 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @return The NTLM Hash of the given password, used in the calculation of
      *         the NTLM Response and the NTLMv2 and LMv2 Hashes.
      */
-    private static byte[] ntlmHash(final String password) throws NTLMEngineException {
+    private static byte[] ntlmHash(final char[] password) throws NTLMEngineException {
         if (UNICODE_LITTLE_UNMARKED == null) {
             throw new NTLMEngineException("Unicode not supported");
         }
-        final byte[] unicodePassword = password.getBytes(UNICODE_LITTLE_UNMARKED);
+        final byte[] unicodePassword = new ByteArrayBuilder()
+                .charset(UNICODE_LITTLE_UNMARKED).append(password).toByteArray();
         final MD4 md4 = new MD4();
         md4.update(unicodePassword);
         return md4.getOutput();
@@ -1141,7 +1147,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
 
         /** Constructor. Pass the arguments we will need */
-        Type3Message(final String domain, final String host, final String user, final String password, final byte[] nonce,
+        Type3Message(final String domain, final String host, final String user, final char[] password, final byte[] nonce,
                 final int type2Flags, final String target, final byte[] targetInformation)
                 throws NTLMEngineException {
             // Save the flags
@@ -1609,7 +1615,7 @@ final class NTLMEngineImpl implements NTLMEngine {
     @Override
     public String generateType3Msg(
             final String username,
-            final String password,
+            final char[] password,
             final String domain,
             final String workstation,
             final String challenge) throws NTLMEngineException {

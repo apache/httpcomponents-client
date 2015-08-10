@@ -114,7 +114,7 @@ public class TestAuthenticationStrategy {
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(new AuthScope("somehost", 80),
-                new UsernamePasswordCredentials("user", "pwd"));
+                new UsernamePasswordCredentials("user", "pwd".toCharArray()));
         context.setCredentialsProvider(credentialsProvider);
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
@@ -149,7 +149,7 @@ public class TestAuthenticationStrategy {
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(new AuthScope("somehost", 80),
-                new UsernamePasswordCredentials("user", "pwd"));
+                new UsernamePasswordCredentials("user", "pwd".toCharArray()));
         context.setCredentialsProvider(credentialsProvider);
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);

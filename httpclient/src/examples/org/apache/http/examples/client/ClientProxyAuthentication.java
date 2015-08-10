@@ -47,10 +47,10 @@ public class ClientProxyAuthentication {
         BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
                 new AuthScope("localhost", 8888),
-                new UsernamePasswordCredentials("squid", "squid"));
+                new UsernamePasswordCredentials("squid", "squid".toCharArray()));
         credsProvider.setCredentials(
                 new AuthScope("httpbin.org", 80),
-                new UsernamePasswordCredentials("user", "passwd"));
+                new UsernamePasswordCredentials("user", "passwd".toCharArray()));
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider).build()) {
             HttpHost target = new HttpHost("httpbin.org", 80, "http");

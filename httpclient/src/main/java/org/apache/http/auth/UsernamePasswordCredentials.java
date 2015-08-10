@@ -45,7 +45,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
     private static final long serialVersionUID = 243343858802739403L;
 
     private final BasicUserPrincipal principal;
-    private final String password;
+    private final char[] password;
 
     /**
      * The constructor with the username and password combined string argument.
@@ -59,7 +59,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
         final int atColon = usernamePassword.indexOf(':');
         if (atColon >= 0) {
             this.principal = new BasicUserPrincipal(usernamePassword.substring(0, atColon));
-            this.password = usernamePassword.substring(atColon + 1);
+            this.password = usernamePassword.substring(atColon + 1).toCharArray();
         } else {
             this.principal = new BasicUserPrincipal(usernamePassword);
             this.password = null;
@@ -73,7 +73,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
      * @param userName the user name
      * @param password the password
      */
-    public UsernamePasswordCredentials(final String userName, final String password) {
+    public UsernamePasswordCredentials(final String userName, final char[] password) {
         super();
         Args.notNull(userName, "Username");
         this.principal = new BasicUserPrincipal(userName);
@@ -90,7 +90,7 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
     }
 
     @Override
-    public String getPassword() {
+    public char[] getPassword() {
         return password;
     }
 

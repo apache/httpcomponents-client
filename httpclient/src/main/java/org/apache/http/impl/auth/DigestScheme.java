@@ -110,7 +110,7 @@ public class DigestScheme implements AuthScheme, Serializable {
     private byte[] a2;
 
     private String username;
-    private String password;
+    private char[] password;
 
     public DigestScheme() {
         this.paramMap = new HashMap<>();
@@ -293,7 +293,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
 
         if (buffer == null) {
-            buffer = new ByteArrayBuilder();
+            buffer = new ByteArrayBuilder(128);
         } else {
             buffer.reset();
         }

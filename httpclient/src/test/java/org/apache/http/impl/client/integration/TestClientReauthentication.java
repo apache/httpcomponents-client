@@ -163,7 +163,7 @@ public class TestClientReauthentication extends LocalServerTestBase {
         };
 
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test"));
+                new UsernamePasswordCredentials("test", "test".toCharArray()));
 
         final RequestConfig config = RequestConfig.custom()
             .setTargetPreferredAuthSchemes(Arrays.asList("MyBasic"))

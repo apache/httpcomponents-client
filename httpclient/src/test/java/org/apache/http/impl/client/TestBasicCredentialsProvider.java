@@ -39,9 +39,9 @@ import org.junit.Test;
 public class TestBasicCredentialsProvider {
 
     public final static Credentials CREDS1 =
-        new UsernamePasswordCredentials("user1", "pass1");
+        new UsernamePasswordCredentials("user1", "pass1".toCharArray());
     public final static Credentials CREDS2 =
-        new UsernamePasswordCredentials("user2", "pass2");
+        new UsernamePasswordCredentials("user2", "pass2".toCharArray());
 
     public final static AuthScope SCOPE1 =
         new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, "realm1");
@@ -78,7 +78,7 @@ public class TestBasicCredentialsProvider {
     @Test
     public void testDefaultCredentials() throws Exception {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
-        final Credentials expected = new UsernamePasswordCredentials("name", "pass");
+        final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(AuthScope.ANY, expected);
         final Credentials got = state.getCredentials(DEFSCOPE);
         Assert.assertEquals(got, expected);
@@ -87,7 +87,7 @@ public class TestBasicCredentialsProvider {
     @Test
     public void testRealmCredentials() throws Exception {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
-        final Credentials expected = new UsernamePasswordCredentials("name", "pass");
+        final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(DEFSCOPE, expected);
         final Credentials got = state.getCredentials(DEFSCOPE);
         Assert.assertEquals(expected, got);
@@ -96,7 +96,7 @@ public class TestBasicCredentialsProvider {
     @Test
     public void testHostCredentials() throws Exception {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
-        final Credentials expected = new UsernamePasswordCredentials("name", "pass");
+        final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(
             new AuthScope("host", AuthScope.ANY_PORT, AuthScope.ANY_REALM), expected);
         final Credentials got = state.getCredentials(DEFSCOPE);
@@ -106,7 +106,7 @@ public class TestBasicCredentialsProvider {
     @Test
     public void testWrongHostCredentials() throws Exception {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
-        final Credentials expected = new UsernamePasswordCredentials("name", "pass");
+        final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(
             new AuthScope("host1", AuthScope.ANY_PORT, "realm"), expected);
         final Credentials got = state.getCredentials(
@@ -117,7 +117,7 @@ public class TestBasicCredentialsProvider {
     @Test
     public void testWrongRealmCredentials() throws Exception {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
-        final Credentials cred = new UsernamePasswordCredentials("name", "pass");
+        final Credentials cred = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(
             new AuthScope("host", AuthScope.ANY_PORT, "realm1"), cred);
         final Credentials got = state.getCredentials(
@@ -129,7 +129,7 @@ public class TestBasicCredentialsProvider {
     public void testMixedCaseHostname() throws Exception {
         final HttpHost httpHost = new HttpHost("hOsT", 80);
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
-        final Credentials expected = new UsernamePasswordCredentials("name", "pass");
+        final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(new AuthScope(httpHost), expected);
         final Credentials got = state.getCredentials(DEFSCOPE);
         Assert.assertEquals(expected, got);
@@ -137,9 +137,9 @@ public class TestBasicCredentialsProvider {
 
     @Test
     public void testCredentialsMatching() {
-        final Credentials creds1 = new UsernamePasswordCredentials("name1", "pass1");
-        final Credentials creds2 = new UsernamePasswordCredentials("name2", "pass2");
-        final Credentials creds3 = new UsernamePasswordCredentials("name3", "pass3");
+        final Credentials creds1 = new UsernamePasswordCredentials("name1", "pass1".toCharArray());
+        final Credentials creds2 = new UsernamePasswordCredentials("name2", "pass2".toCharArray());
+        final Credentials creds3 = new UsernamePasswordCredentials("name3", "pass3".toCharArray());
 
         final AuthScope scope1 = new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, AuthScope.ANY_REALM);
         final AuthScope scope2 = new AuthScope(AuthScope.ANY_HOST, AuthScope.ANY_PORT, "somerealm");

@@ -73,8 +73,9 @@ final class OSGiCredentialsProvider implements CredentialsStore {
                 if (proxyConfiguration.isEnabled()) {
                     final AuthScope actual = new AuthScope(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
                     if (authscope.equals(actual)) {
-                        return new UsernamePasswordCredentials(proxyConfiguration.getUsername(),
-                                                               proxyConfiguration.getPassword());
+                        final String username = proxyConfiguration.getUsername();
+                        final String password = proxyConfiguration.getPassword();
+                        return new UsernamePasswordCredentials(username, password != null ? password.toCharArray() : null);
                     }
 
                 }

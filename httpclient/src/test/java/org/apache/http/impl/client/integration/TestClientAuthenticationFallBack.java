@@ -137,7 +137,7 @@ public class TestClientAuthenticationFallBack extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test"));
+                new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 

@@ -42,8 +42,8 @@ public class FluentExecutor {
 
     public static void main(String[] args)throws Exception {
         Executor executor = Executor.newInstance()
-                .auth(new HttpHost("somehost"), "username", "password")
-                .auth(new HttpHost("myproxy", 8080), "username", "password")
+                .auth(new HttpHost("somehost"), "username", "password".toCharArray())
+                .auth(new HttpHost("myproxy", 8080), "username", "password".toCharArray())
                 .authPreemptive(new HttpHost("myproxy", 8080));
 
         // Execute a GET with timeout settings and return response content as String.

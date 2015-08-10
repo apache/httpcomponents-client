@@ -81,7 +81,7 @@ public class TestBasicScheme {
 
         final HttpHost host  = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "some realm", null);
-        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("dh", buffer.toString());
+        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("dh", buffer.toString().toCharArray());
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(authScope, creds);
         final BasicScheme authscheme = new BasicScheme(Consts.ISO_8859_1);
@@ -101,7 +101,7 @@ public class TestBasicScheme {
 
         final HttpHost host  = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "test", null);
-        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("testuser", "testpass");
+        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("testuser", "testpass".toCharArray());
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(authScope, creds);
 
@@ -126,7 +126,7 @@ public class TestBasicScheme {
 
         final HttpHost host  = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "test", null);
-        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("testuser", "testpass");
+        final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("testuser", "testpass".toCharArray());
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(authScope, creds);
 

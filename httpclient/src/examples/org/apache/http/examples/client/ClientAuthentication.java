@@ -45,7 +45,7 @@ public class ClientAuthentication {
         BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
                 new AuthScope("httpbin.org", 80),
-                new UsernamePasswordCredentials("user", "passwd"));
+                new UsernamePasswordCredentials("user", "passwd".toCharArray()));
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
                 .build()) {

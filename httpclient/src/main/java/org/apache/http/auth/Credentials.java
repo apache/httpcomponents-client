@@ -39,6 +39,6 @@ public interface Credentials {
 
     Principal getUserPrincipal();
 
-    String getPassword();
+    char[] getPassword();
 
 }

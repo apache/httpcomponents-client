@@ -118,7 +118,7 @@ public class TestSPNegoScheme extends LocalServerTestBase {
     private static class UseJaasCredentials implements Credentials {
 
         @Override
-        public String getPassword() {
+        public char[] getPassword() {
             return null;
         }
 

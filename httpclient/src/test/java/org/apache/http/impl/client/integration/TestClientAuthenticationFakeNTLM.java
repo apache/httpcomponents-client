@@ -78,7 +78,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new NTCredentials("test", "test", null, null));
+                new NTCredentials("test", "test".toCharArray(), null, null));
 
         this.httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
@@ -128,7 +128,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new NTCredentials("test", "test", null, null));
+                new NTCredentials("test", "test".toCharArray(), null, null));
 
         this.httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
@@ -152,7 +152,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new NTCredentials("test", "test", null, null));
+                new NTCredentials("test", "test".toCharArray(), null, null));
 
         this.httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
@@ -200,7 +200,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         final HttpClientContext context = HttpClientContext.create();
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new NTCredentials("test", "test", null, null));
+                new NTCredentials("test", "test".toCharArray(), null, null));
         context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 
@@ -221,7 +221,7 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         final HttpClientContext context = HttpClientContext.create();
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new NTCredentials("test", "test", null, null));
+                new NTCredentials("test", "test".toCharArray(), null, null));
         context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 

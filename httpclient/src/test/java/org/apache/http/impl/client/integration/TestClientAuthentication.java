@@ -195,7 +195,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "all-wrong"));
+                new UsernamePasswordCredentials("test", "all-wrong".toCharArray()));
         context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 
@@ -216,7 +216,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/");
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test"));
+                new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
         final HttpHost target = start();
@@ -257,7 +257,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
                         -1));
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test"));
+                new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
         final HttpResponse response = this.httpclient.execute(target, httpput, context);
@@ -282,7 +282,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "boom"));
+                new UsernamePasswordCredentials("test", "boom".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
         try {
@@ -307,7 +307,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test"));
+                new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
         final HttpResponse response = this.httpclient.execute(target, httppost, context);
@@ -333,7 +333,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
-                new UsernamePasswordCredentials("test", "test"));
+                new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
         try {
@@ -384,7 +384,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpClientContext context = HttpClientContext.create();
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new UsernamePasswordCredentials("test", "test"));
+                new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
         final HttpGet httpget = new HttpGet("/");
@@ -445,9 +445,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final TestTargetAuthenticationStrategy authStrategy = new TestTargetAuthenticationStrategy();
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(new AuthScope(target, "this realm", null),
-                new UsernamePasswordCredentials("test", "this"));
+                new UsernamePasswordCredentials("test", "this".toCharArray()));
         credsProvider.setCredentials(new AuthScope(target, "that realm", null),
-                new UsernamePasswordCredentials("test", "that"));
+                new UsernamePasswordCredentials("test", "that".toCharArray()));
 
         this.clientBuilder.setTargetAuthenticationStrategy(authStrategy);
         this.httpclient = this.clientBuilder.build();
@@ -589,7 +589,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpHost target = start();
 
         final BasicScheme basicScheme = new BasicScheme();
-        basicScheme.initPreemptive(new UsernamePasswordCredentials("test", "test"));
+        basicScheme.initPreemptive(new UsernamePasswordCredentials("test", "test".toCharArray()));
         final HttpClientContext context = HttpClientContext.create();
         final AuthCache authCache = new BasicAuthCache();
         authCache.put(target, basicScheme);
@@ -618,7 +618,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         context.setAuthCache(authCache);
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new UsernamePasswordCredentials("test", "stuff"));
+                new UsernamePasswordCredentials("test", "stuff".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
         final HttpGet httpget = new HttpGet("/");
@@ -697,7 +697,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpClientContext context = HttpClientContext.create();
         final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new UsernamePasswordCredentials("test", "test"));
+                new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
         for (int i = 0; i < 2; i++) {

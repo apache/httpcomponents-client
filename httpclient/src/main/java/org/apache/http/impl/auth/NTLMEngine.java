@@ -62,7 +62,7 @@ public interface NTLMEngine {
      */
     String generateType3Msg(
             String username,
-            String password,
+            char[] password,
             String domain,
             String workstation,
             String challenge) throws NTLMEngineException;

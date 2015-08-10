@@ -62,7 +62,7 @@ public class KerberosCredentials implements Credentials, Serializable {
         return null;
     }
 
-    public String getPassword() {
+    public char[] getPassword() {
         return null;
     }
 

@@ -73,7 +73,7 @@ public class BasicScheme implements AuthScheme, Serializable {
     private boolean complete;
 
     private String username;
-    private String password;
+    private char[] password;
 
     /**
      * @since 4.3

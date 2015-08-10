@@ -121,21 +121,14 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
             if (systemcreds != null) {
                 final String domain = System.getProperty("http.auth.ntlm.domain");
                 if (domain != null) {
-                    return new NTCredentials(
-                            systemcreds.getUserName(),
-                            new String(systemcreds.getPassword()),
-                            null, domain);
+                    return new NTCredentials(systemcreds.getUserName(), systemcreds.getPassword(), null, domain);
                 } else {
                     if (AuthSchemes.NTLM.equalsIgnoreCase(authscope.getScheme())) {
                         // Domian may be specified in a fully qualified user name
                         return new NTCredentials(
-                                systemcreds.getUserName(),
-                                new String(systemcreds.getPassword()),
-                                null, null);
+                                systemcreds.getUserName(), systemcreds.getPassword(), null, null);
                     } else {
-                        return new UsernamePasswordCredentials(
-                                systemcreds.getUserName(),
-                                new String(systemcreds.getPassword()));
+                        return new UsernamePasswordCredentials(systemcreds.getUserName(), systemcreds.getPassword());
                     }
                 }
             }

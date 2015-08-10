@@ -93,7 +93,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
@@ -120,7 +120,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
@@ -144,7 +144,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
@@ -175,7 +175,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest realm=\"realm1\", " +
@@ -202,7 +202,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
@@ -227,7 +227,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest no-realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
@@ -245,7 +245,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest realm=\"realm1\", no-nonce=\"f2a3f18799759d4f1a1c068b92b573cb\"";
@@ -273,7 +273,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, realm, null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials(username, password);
+        final Credentials creds = new UsernamePasswordCredentials(username, password.toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge="Digest realm=\"" + realm + "\", "
@@ -324,7 +324,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, realm, null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials(username, password);
+        final Credentials creds = new UsernamePasswordCredentials(username, password.toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge="Digest realm=\"" + realm + "\", "
@@ -369,7 +369,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, realm, null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials(username, password);
+        final Credentials creds = new UsernamePasswordCredentials(username, password.toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge="Digest realm=\"" + realm + "\", "
@@ -404,7 +404,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, realm, null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials(username, password);
+        final Credentials creds = new UsernamePasswordCredentials(username, password.toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge="Digest realm=\"" + realm + "\", "
@@ -452,7 +452,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge1 = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", qop=auth";
@@ -497,7 +497,7 @@ public class TestDigestScheme {
         final AuthScope authScope = new AuthScope(host, "subnet.domain.com", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         final HttpRequest request = new BasicHttpRequest("GET", "/");
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge1 = "Digest qop=\"auth\", algorithm=MD5-sess, nonce=\"1234567890abcdef\", " +
@@ -587,7 +587,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
@@ -614,7 +614,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
@@ -642,7 +642,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
@@ -669,7 +669,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "-", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest Realm=\"-\", " +
@@ -691,7 +691,7 @@ public class TestDigestScheme {
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        final Credentials creds = new UsernamePasswordCredentials("username","password");
+        final Credentials creds = new UsernamePasswordCredentials("username","password".toCharArray());
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +

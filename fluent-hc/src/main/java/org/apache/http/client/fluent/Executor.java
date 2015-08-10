@@ -187,22 +187,22 @@ public class Executor {
         return auth(AuthScope.ANY, cred);
     }
 
-    public Executor auth(final String username, final String password) {
+    public Executor auth(final String username, final char[] password) {
         return auth(new UsernamePasswordCredentials(username, password));
     }
 
-    public Executor auth(final String username, final String password,
+    public Executor auth(final String username, final char[] password,
             final String workstation, final String domain) {
         return auth(new NTCredentials(username, password, workstation, domain));
     }
 
     public Executor auth(final HttpHost host,
-            final String username, final String password) {
+            final String username, final char[] password) {
         return auth(host, new UsernamePasswordCredentials(username, password));
     }
 
     public Executor auth(final HttpHost host,
-            final String username, final String password,
+            final String username, final char[] password,
             final String workstation, final String domain) {
         return auth(host, new NTCredentials(username, password, workstation, domain));
     }

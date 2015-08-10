@@ -49,7 +49,7 @@ public class NTCredentials implements Credentials, Serializable {
     private final NTUserPrincipal principal;
 
     /** Password */
-    private final String password;
+    private final char[] password;
 
     /** The netbios hostname the authentication request is originating from.  */
     private final String workstation;
@@ -70,7 +70,7 @@ public class NTCredentials implements Credentials, Serializable {
         final int atColon = usernamePassword.indexOf(':');
         if (atColon >= 0) {
             username = usernamePassword.substring(0, atColon);
-            this.password = usernamePassword.substring(atColon + 1);
+            this.password = usernamePassword.substring(atColon + 1).toCharArray();
         } else {
             username = usernamePassword;
             this.password = null;
@@ -100,7 +100,7 @@ public class NTCredentials implements Credentials, Serializable {
      */
     public NTCredentials(
             final String userName,
-            final String password,
+            final char[] password,
             final String workstation,
             final String domain) {
         this(userName, password, convertHost(workstation), domain, convertDomain(domain));
@@ -118,7 +118,7 @@ public class NTCredentials implements Credentials, Serializable {
      */
     public NTCredentials(
             final String userName,
-            final String password,
+            final char[] password,
             final String workstation,
             final String domain,
             final String netbiosDomain) {
@@ -144,7 +144,7 @@ public class NTCredentials implements Credentials, Serializable {
     }
 
     @Override
-    public String getPassword() {
+    public char[] getPassword() {
         return this.password;
     }
 

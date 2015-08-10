@@ -91,7 +91,7 @@ public class TestNTLMEngineImpl {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             null,
             null,
-            "SecREt01",
+            "SecREt01".toCharArray(),
             toBytes("0123456789abcdef"),
             null,
             null,
@@ -109,7 +109,7 @@ public class TestNTLMEngineImpl {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             null,
             null,
-            "SecREt01",
+            "SecREt01".toCharArray(),
             toBytes("0123456789abcdef"),
             null,
             null,
@@ -127,7 +127,7 @@ public class TestNTLMEngineImpl {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             "DOMAIN",
             "user",
-            "SecREt01",
+            "SecREt01".toCharArray(),
             toBytes("0123456789abcdef"),
             "DOMAIN",
             null,
@@ -145,7 +145,7 @@ public class TestNTLMEngineImpl {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             "DOMAIN",
             "user",
-            "SecREt01",
+            "SecREt01".toCharArray(),
             toBytes("0123456789abcdef"),
             "DOMAIN",
             toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
@@ -165,7 +165,7 @@ public class TestNTLMEngineImpl {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             "DOMAIN",
             "user",
-            "SecREt01",
+            "SecREt01".toCharArray(),
             toBytes("0123456789abcdef"),
             "DOMAIN",
             toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
@@ -183,7 +183,7 @@ public class TestNTLMEngineImpl {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             "DOMAIN",
             "user",
-            "SecREt01",
+            "SecREt01".toCharArray(),
             toBytes("0123456789abcdef"),
             "DOMAIN",
             toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
@@ -201,7 +201,7 @@ public class TestNTLMEngineImpl {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
             "DOMAIN",
             "user",
-            "SecREt01",
+            "SecREt01".toCharArray(),
             toBytes("0123456789abcdef"),
             "DOMAIN",
             toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
@@ -221,11 +221,11 @@ public class TestNTLMEngineImpl {
 
     @Test
     public void testType3Message() throws Exception {
-        new NTLMEngineImpl().getType3Message("me", "mypassword", "myhost", "mydomain",
+        new NTLMEngineImpl().getType3Message("me", "mypassword".toCharArray(), "myhost", "mydomain",
             toBytes("0001020304050607"),
             0xffffffff,
             null,null);
-        new NTLMEngineImpl().getType3Message("me", "mypassword", "myhost", "mydomain",
+        new NTLMEngineImpl().getType3Message("me", "mypassword".toCharArray(), "myhost", "mydomain",
             toBytes("0001020304050607"),
             0xffffffff,
             "mytarget",

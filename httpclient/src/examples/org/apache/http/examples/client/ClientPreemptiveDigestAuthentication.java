@@ -57,7 +57,7 @@ public class ClientPreemptiveDigestAuthentication {
             // Generate DIGEST scheme object, initialize it and add it to the local auth cache
             DigestScheme digestAuth = new DigestScheme();
             // Suppose we already know the realm name and the expected nonce value
-            digestAuth.initPreemptive(new UsernamePasswordCredentials("user", "passwd"), "whatever", "realm");
+            digestAuth.initPreemptive(new UsernamePasswordCredentials("user", "passwd".toCharArray()), "whatever", "realm");
 
             HttpHost target = new HttpHost("httpbin.org", 80, "http");
             authCache.put(target, digestAuth);
