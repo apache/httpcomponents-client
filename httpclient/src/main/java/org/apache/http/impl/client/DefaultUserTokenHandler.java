@@ -88,8 +88,8 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
         return userPrincipal;
     }
 
-    private static Principal getAuthPrincipal(final AuthExchange authState) {
-        final AuthScheme scheme = authState.getAuthScheme();
+    private static Principal getAuthPrincipal(final AuthExchange authExchange) {
+        final AuthScheme scheme = authExchange.getAuthScheme();
         if (scheme != null && scheme.isConnectionBased()) {
             return scheme.getPrincipal();
         }

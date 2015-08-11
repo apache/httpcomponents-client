@@ -86,7 +86,7 @@ public class HttpAuthenticator {
             final HttpHost host,
             final ChallengeType challengeType,
             final HttpResponse response,
-            final AuthExchange authState,
+            final AuthExchange authExchange,
             final HttpContext context) {
         final int challengeCode;
         switch (challengeType) {
@@ -104,22 +104,22 @@ public class HttpAuthenticator {
 
         if (response.getStatusLine().getStatusCode() == challengeCode) {
             this.log.debug("Authentication required");
-            if (authState.getState() == AuthExchange.State.SUCCESS) {
+            if (authExchange.getState() == AuthExchange.State.SUCCESS) {
                 clearCache(host, clientContext);
             }
             return true;
         } else {
-            switch (authState.getState()) {
+            switch (authExchange.getState()) {
             case CHALLENGED:
             case HANDSHAKE:
                 this.log.debug("Authentication succeeded");
-                authState.setState(AuthExchange.State.SUCCESS);
-                updateCache(host, authState.getAuthScheme(), clientContext);
+                authExchange.setState(AuthExchange.State.SUCCESS);
+                updateCache(host, authExchange.getAuthScheme(), clientContext);
                 break;
             case SUCCESS:
                 break;
             default:
-                authState.setState(AuthExchange.State.UNCHALLENGED);
+                authExchange.setState(AuthExchange.State.UNCHALLENGED);
             }
             return false;
         }
@@ -130,7 +130,7 @@ public class HttpAuthenticator {
             final ChallengeType challengeType,
             final HttpResponse response,
             final AuthenticationStrategy authStrategy,
-            final AuthExchange authState,
+            final AuthExchange authExchange,
             final HttpContext context) {
 
         if (this.log.isDebugEnabled()) {
@@ -177,21 +177,21 @@ public class HttpAuthenticator {
         if (challengeMap.isEmpty()) {
             this.log.debug("Response contains no valid authentication challenges");
             clearCache(host, clientContext);
-            authState.reset();
+            authExchange.reset();
             return false;
         }
 
-        switch (authState.getState()) {
+        switch (authExchange.getState()) {
             case FAILURE:
                 return false;
             case SUCCESS:
-                authState.reset();
+                authExchange.reset();
                 break;
             case CHALLENGED:
             case HANDSHAKE:
-                Asserts.notNull(authState.getAuthScheme(), "AuthScheme");
+                Asserts.notNull(authExchange.getAuthScheme(), "AuthScheme");
             case UNCHALLENGED:
-                final AuthScheme authScheme = authState.getAuthScheme();
+                final AuthScheme authScheme = authExchange.getAuthScheme();
                 if (authScheme != null) {
                     final String id = authScheme.getName();
                     final AuthChallenge challenge = challengeMap.get(id.toLowerCase(Locale.ROOT));
@@ -204,21 +204,21 @@ public class HttpAuthenticator {
                                 this.log.warn(ex.getMessage());
                             }
                             clearCache(host, clientContext);
-                            authState.reset();
+                            authExchange.reset();
                             return false;
                         }
                         if (authScheme.isChallengeComplete()) {
                             this.log.debug("Authentication failed");
                             clearCache(host, clientContext);
-                            authState.reset();
-                            authState.setState(AuthExchange.State.FAILURE);
+                            authExchange.reset();
+                            authExchange.setState(AuthExchange.State.FAILURE);
                             return false;
                         } else {
-                            authState.setState(AuthExchange.State.HANDSHAKE);
+                            authExchange.setState(AuthExchange.State.HANDSHAKE);
                             return true;
                         }
                     } else {
-                        authState.reset();
+                        authExchange.reset();
                         // Retry authentication with a different scheme
                     }
                 }
@@ -250,9 +250,9 @@ public class HttpAuthenticator {
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Selected authentication options: " + authOptions);
             }
-            authState.reset();
-            authState.setState(AuthExchange.State.CHALLENGED);
-            authState.setOptions(authOptions);
+            authExchange.reset();
+            authExchange.setState(AuthExchange.State.CHALLENGED);
+            authExchange.setOptions(authOptions);
             return true;
         } else {
             return false;
@@ -263,10 +263,10 @@ public class HttpAuthenticator {
             final HttpHost host,
             final ChallengeType challengeType,
             final HttpRequest request,
-            final AuthExchange authState,
+            final AuthExchange authExchange,
             final HttpContext context) throws HttpException, IOException {
-        AuthScheme authScheme = authState.getAuthScheme();
-        switch (authState.getState()) {
+        AuthScheme authScheme = authExchange.getAuthScheme();
+        switch (authExchange.getState()) {
         case FAILURE:
             return;
         case SUCCESS:
@@ -279,11 +279,11 @@ public class HttpAuthenticator {
             Asserts.notNull(authScheme, "AuthScheme");
             break;
         case CHALLENGED:
-            final Queue<AuthScheme> authOptions = authState.getAuthOptions();
+            final Queue<AuthScheme> authOptions = authExchange.getAuthOptions();
             if (authOptions != null) {
                 while (!authOptions.isEmpty()) {
                     authScheme = authOptions.remove();
-                    authState.select(authScheme);
+                    authExchange.select(authScheme);
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Generating response to an authentication challenge using "
                                 + authScheme.getName() + " scheme");
