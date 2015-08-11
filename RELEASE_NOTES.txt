@@ -174,7 +174,7 @@ Changelog:
 * [HTTPCLIENT-1547] HttpClient OSGi bundle doesn't import the package "javax.naming".
   Contributed by Willem Jiang <ningjiang at apache.org>
 
-* [HTTPCLIENT-1541] Use correct (HTTP/hostname) service principle name for Windows native
+* [HTTPCLIENT-1541] Use correct (HTTP/hostname) service principal name for Windows native
   Negotiate/NTLM auth schemes.
   Contributed by Ka-Lok Fung <ka-lok.fung at sap.com>
 
