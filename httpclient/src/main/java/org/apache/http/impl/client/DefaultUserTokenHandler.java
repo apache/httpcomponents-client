@@ -47,7 +47,7 @@ import org.apache.http.protocol.HttpContext;
  * persistent connections created with a particular user identity within
  * a particular security context can be reused by the same user only.
  * <p>
- * DefaultUserTokenHandler will use the user principle of connection
+ * DefaultUserTokenHandler will use the user principal of connection
  * based authentication schemes such as NTLM or that of the SSL session
  * with the client authentication turned on. If both are unavailable,
  * {@code null} token will be returned.

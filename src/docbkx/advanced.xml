@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE preface PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
                  "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
-<!-- 
+<!--
     ====================================================================
     Licensed to the Apache Software Foundation (ASF) under one
     or more contributor license agreements.  See the NOTICE file
@@ -99,7 +99,7 @@ CloseableHttpClient httpclient = HttpClients.custom()
             <para>The default implementation of the <interfacename>UserTokenHandler</interfacename>
                 interface uses an instance of Principal class to represent a state object for HTTP
                 connections, if it can be obtained from the given execution context.
-                    <classname>DefaultUserTokenHandler</classname> will use the user principle of
+                    <classname>DefaultUserTokenHandler</classname> will use the user principal of
                 connection based authentication schemes such as <literal>NTLM</literal> or that of
                 the SSL session with client authentication turned on. If both are unavailable, null
                 token will be returned.</para>
