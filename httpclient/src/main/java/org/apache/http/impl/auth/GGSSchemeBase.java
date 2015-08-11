@@ -167,7 +167,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
     }
 
     @Override
-    public Principal getPrinciple() {
+    public Principal getPrincipal() {
         return null;
     }
 

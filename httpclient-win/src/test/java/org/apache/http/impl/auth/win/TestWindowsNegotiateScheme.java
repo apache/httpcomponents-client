@@ -90,7 +90,7 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
         Assume.assumeTrue("Test can only be run on Windows", WinHttpClients.isWinAuthAvailable());
 
         // HTTPCLIENT-1545
-        // If a service principle name (SPN) from outside your Windows domain tree (e.g., HTTP/example.com) is used,
+        // If a service principal name (SPN) from outside your Windows domain tree (e.g., HTTP/example.com) is used,
         // InitializeSecurityContext will return SEC_E_DOWNGRADE_DETECTED (decimal: -2146892976, hex: 0x80090350).
         // Because WindowsNegotiateScheme wasn't setting the completed state correctly when authentication fails,
         // HttpClient goes into an infinite loop, constantly retrying the negotiate authentication to kingdom

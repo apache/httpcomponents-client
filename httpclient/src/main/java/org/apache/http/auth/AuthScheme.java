@@ -41,7 +41,7 @@ import org.apache.http.protocol.HttpContext;
  * Care must be taken when re-using connections authorized through a connection based
  * authentication scheme and they may carry a particular security context and be authorized
  * for a particular user identity. It is important that such schemes always provide
- * the user identity they represent through the {@link #getPrinciple()} method.
+ * the user identity they represent through the {@link #getPrincipal()} method.
  * <p>
  * Authentication scheme are expected to transition through a series of standard phases or
  * states.
@@ -162,13 +162,13 @@ public interface AuthScheme {
      * an authentication response. Connection based schemes are required
      * to return a user {@link Principal} if authorization applies to
      * for the entire life span of connection.
-     * @return user principle
+     * @return user principal
      *
      * @see #isConnectionBased()
      *
      * @since 5.0
      */
-    Principal getPrinciple();
+    Principal getPrincipal();
 
     /**
      * Generates an authorization response based on the current state. Some authentication

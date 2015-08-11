@@ -170,7 +170,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
     }
 
     @Override
-    public Principal getPrinciple() {
+    public Principal getPrincipal() {
         return new BasicUserPrincipal(getCurrentUsername());
     }
 

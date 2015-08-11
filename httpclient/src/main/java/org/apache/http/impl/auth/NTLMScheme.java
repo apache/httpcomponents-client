@@ -139,7 +139,7 @@ public class NTLMScheme implements AuthScheme {
     }
 
     @Override
-    public Principal getPrinciple() {
+    public Principal getPrincipal() {
         return this.credentials != null ? this.credentials.getUserPrincipal() : null;
     }
 

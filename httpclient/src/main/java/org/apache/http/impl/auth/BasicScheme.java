@@ -154,7 +154,7 @@ public class BasicScheme implements AuthScheme, Serializable {
     }
 
     @Override
-    public Principal getPrinciple() {
+    public Principal getPrincipal() {
         return null;
     }
 
