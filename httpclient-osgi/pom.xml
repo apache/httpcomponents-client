@@ -121,6 +121,7 @@
             org.apache.http.conn.*;version=${project.version},
             org.apache.http.client.*;version=${project.version},
             org.apache.http.entity.mime.*;version=${project.version},
+            org.apache.http.entity.mime.content.*;version=${project.version},
             org.apache.http.impl.auth.*;version=${project.version},
             org.apache.http.impl.cookie.*;version=${project.version},
             org.apache.http.impl.conn.*;version=${project.version},
