@@ -58,41 +58,9 @@ public class NTCredentials implements Credentials, Serializable {
     private final String netbiosDomain;
 
     /**
-     * The constructor with the fully qualified username and password combined
-     * string argument.
-     *
-     * @param usernamePassword the domain/username:password formed string
-     */
-    public NTCredentials(final String usernamePassword) {
-        super();
-        Args.notNull(usernamePassword, "Username:password string");
-        final String username;
-        final int atColon = usernamePassword.indexOf(':');
-        if (atColon >= 0) {
-            username = usernamePassword.substring(0, atColon);
-            this.password = usernamePassword.substring(atColon + 1).toCharArray();
-        } else {
-            username = usernamePassword;
-            this.password = null;
-        }
-        final int atSlash = username.indexOf('/');
-        if (atSlash >= 0) {
-            this.principal = new NTUserPrincipal(
-                    username.substring(0, atSlash).toUpperCase(Locale.ROOT),
-                    username.substring(atSlash + 1));
-        } else {
-            this.principal = new NTUserPrincipal(
-                    null,
-                    username.substring(atSlash + 1));
-        }
-        this.workstation = null;
-        this.netbiosDomain = null;
-    }
-
-    /**
      * Constructor.
      * @param userName The user name.  This should not include the domain to authenticate with.
-     * For example: "user" is correct whereas "DOMAIN\\user" is not.
+     * For example: "user" is correct whereas "DOMAIN&#x5c;user" is not.
      * @param password The password.
      * @param workstation The workstation the authentication request is originating from.
      * Essentially, the computer name for this machine.
@@ -109,7 +77,7 @@ public class NTCredentials implements Credentials, Serializable {
     /**
      * Constructor.
      * @param userName The user name.  This should not include the domain to authenticate with.
-     * For example: "user" is correct whereas "DOMAIN\\user" is not.
+     * For example: "user" is correct whereas "DOMAIN&#x5c;user" is not.
      * @param password The password.
      * @param workstation The netbios workstation name that the authentication request is originating from.
      * Essentially, the computer name for this machine.

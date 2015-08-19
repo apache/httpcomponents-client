@@ -394,7 +394,7 @@ public class TestMainClientExec {
                 .build());
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user:pass"));
+        credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user", "pass".toCharArray()));
         context.setCredentialsProvider(credentialsProvider);
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
@@ -445,7 +445,7 @@ public class TestMainClientExec {
         context.setAuthExchange(proxy, proxyAuthExchange);
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user:pass"));
+        credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user", "pass".toCharArray()));
         context.setCredentialsProvider(credentialsProvider);
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
@@ -493,7 +493,7 @@ public class TestMainClientExec {
                 .build());
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user:pass"));
+        credentialsProvider.setCredentials(new AuthScope(target), new UsernamePasswordCredentials("user", "pass".toCharArray()));
         context.setCredentialsProvider(credentialsProvider);
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
@@ -715,7 +715,7 @@ public class TestMainClientExec {
         final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials("user:pass"));
+        credentialsProvider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials("user", "pass".toCharArray()));
         context.setCredentialsProvider(credentialsProvider);
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
@@ -753,7 +753,7 @@ public class TestMainClientExec {
         final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials("user:pass"));
+        credentialsProvider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials("user", "pass".toCharArray()));
         context.setCredentialsProvider(credentialsProvider);
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);

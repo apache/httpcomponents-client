@@ -48,26 +48,6 @@ public class UsernamePasswordCredentials implements Credentials, Serializable {
     private final char[] password;
 
     /**
-     * The constructor with the username and password combined string argument.
-     *
-     * @param usernamePassword the username:password formed string
-     * @see #toString
-     */
-    public UsernamePasswordCredentials(final String usernamePassword) {
-        super();
-        Args.notNull(usernamePassword, "Username:password string");
-        final int atColon = usernamePassword.indexOf(':');
-        if (atColon >= 0) {
-            this.principal = new BasicUserPrincipal(usernamePassword.substring(0, atColon));
-            this.password = usernamePassword.substring(atColon + 1).toCharArray();
-        } else {
-            this.principal = new BasicUserPrincipal(usernamePassword);
-            this.password = null;
-        }
-    }
-
-
-    /**
      * The constructor with the username and password arguments.
      *
      * @param userName the user name

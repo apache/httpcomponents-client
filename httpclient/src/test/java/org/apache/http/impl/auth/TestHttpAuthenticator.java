@@ -159,7 +159,7 @@ public class TestHttpAuthenticator {
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
-        final Credentials credentials = new UsernamePasswordCredentials("user:pass");
+        final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
         Mockito.when(this.credentialsProvider.getCredentials(Mockito.<AuthScope>any())).thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
@@ -186,7 +186,7 @@ public class TestHttpAuthenticator {
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
 
-        final Credentials credentials = new UsernamePasswordCredentials("user:pass");
+        final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
         Mockito.when(this.credentialsProvider.getCredentials(new AuthScope(host, "test", "basic"))).thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
@@ -321,7 +321,7 @@ public class TestHttpAuthenticator {
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
-        final Credentials credentials = new UsernamePasswordCredentials("user:pass");
+        final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
         Mockito.when(this.credentialsProvider.getCredentials(new AuthScope(host, "realm1", "digest"))).thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();

@@ -144,9 +144,19 @@ public class ProtocolExec implements ClientExecChain {
             if (userinfo != null) {
                 final CredentialsProvider credsProvider = context.getCredentialsProvider();
                 if (credsProvider instanceof CredentialsStore) {
+                    final int atColon = userinfo.indexOf(':');
+                    final String userName;
+                    final char[] password;
+                    if (atColon >= 0) {
+                        userName = userinfo.substring(0, atColon);
+                        password = userinfo.substring(atColon + 1).toCharArray();
+                    } else {
+                        userName = userinfo.substring(0, atColon);
+                        password = null;
+                    }
                     ((CredentialsStore) credsProvider).setCredentials(
                             new AuthScope(target),
-                            new UsernamePasswordCredentials(userinfo));
+                            new UsernamePasswordCredentials(userName, password));
                 }
             }
         }
