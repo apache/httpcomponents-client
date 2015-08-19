@@ -59,6 +59,7 @@ public class NTCredentials implements Credentials, Serializable {
      * string argument.
      *
      * @param usernamePassword the domain/username:password formed string
+     * @deprecated (4.5) will be replaced with {@code String}, {@code char[]} in 5.0
      */
     public NTCredentials(final String usernamePassword) {
         super();
@@ -88,7 +89,7 @@ public class NTCredentials implements Credentials, Serializable {
     /**
      * Constructor.
      * @param userName The user name.  This should not include the domain to authenticate with.
-     * For example: "user" is correct whereas "DOMAIN\\user" is not.
+     * For example: "user" is correct whereas "DOMAIN&#x5c;user" is not.
      * @param password The password.
      * @param workstation The workstation the authentication request is originating from.
      * Essentially, the computer name for this machine.
