@@ -27,12 +27,7 @@
 
 package org.apache.http.osgi.impl;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.ByteArrayBody;
-import org.apache.http.entity.mime.content.StringBody;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
@@ -93,17 +88,6 @@ public class MimeExportedIT {
 
     @Test
     public void useContentBody() {
-        final HttpPost httppost = new HttpPost("http://localhost:8181/cxf/annotator/annotate");
-        httppost.addHeader("Accept", "application/json");
-        final StringBody options = new StringBody("{}", ContentType.APPLICATION_JSON);
-        final byte[] atData = new byte[] { 1 };
-        final ByteArrayBody bab = new ByteArrayBody(atData, ContentType.APPLICATION_JSON, "at.json");
-
-        final HttpEntity reqEntity = MultipartEntityBuilder.create()
-                .setContentType(ContentType.create("multipart/mixed"))
-                .addPart("options", options)
-                .addPart("text", bab)
-                .build();
-        httppost.setEntity(reqEntity);
+       new ByteArrayBody(new byte[0], "filename.txt");
     }
 }
