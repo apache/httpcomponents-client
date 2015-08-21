@@ -42,10 +42,6 @@
   <properties>
     <httpcore.osgi.import.version>"[4.4.0, 4.5.0)"</httpcore.osgi.import.version>
     <commons-logging.osgi.import.version>"[1.1.0, 1.3.0)"</commons-logging.osgi.import.version>
-    <pax.url.version>2.4.1</pax.url.version>
-    <pax.exam.version>4.5.0</pax.exam.version>
-    <osgi.framework.version>5.0.0</osgi.framework.version>
-    <slf4j.version>1.7.5</slf4j.version>
   </properties>
 
   <dependencies>
@@ -53,49 +49,48 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>${project.version}</version>
+      <scope>compile</scope>
     </dependency>
-      <!-- Depend on the OSGi bundle - the bundle plugin knows what to do. -->
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore-osgi</artifactId>
-      <version>${httpcore.version}</version>
-        <exclusions>
-          <exclusion>
-              <groupId>org.apache.httpcomponents</groupId>
-              <artifactId>httpcore-nio</artifactId>
-          </exclusion>
-        </exclusions>
+      <artifactId>httpcore</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <version>${commons-codec.version}</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpmime</artifactId>
       <version>${project.version}</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient-cache</artifactId>
       <version>${project.version}</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>fluent-hc</artifactId>
       <version>${project.version}</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.core</artifactId>
-      <version>${osgi.framework.version}</version>
+      <version>4.2.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.compendium</artifactId>
-      <version>${osgi.framework.version}</version>
+      <version>4.2.0</version>
+      <scope>provided</scope>
     </dependency>
     <!-- test dependencies, mainly OSGi runtime environment -->
     <dependency>
@@ -103,42 +98,6 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>org.ops4j.pax.exam</groupId>
-          <artifactId>pax-exam-container-native</artifactId>
-          <version>${pax.exam.version}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.felix</groupId>
-          <artifactId>org.apache.felix.framework</artifactId>
-          <version>5.0.1</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.ops4j.pax.exam</groupId>
-          <artifactId>pax-exam-junit4</artifactId>
-          <scope>test</scope>
-          <version>${pax.exam.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.ops4j.pax.exam</groupId>
-          <artifactId>pax-exam-link-mvn</artifactId>
-          <scope>test</scope>
-          <version>${pax.exam.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.ops4j.pax.url</groupId>
-          <artifactId>pax-url-aether</artifactId>
-          <version>${pax.url.version}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-          <version>${slf4j.version}</version>
-          <scope>test</scope>
-      </dependency>
   </dependencies>
 
   <build>
@@ -148,29 +107,6 @@
       </resource>
     </resources>
     <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <executions>
-                <execution>
-                    <id>copy-bundles</id>
-                    <phase>generate-test-resources</phase>
-                    <goals>
-                        <goal>copy-dependencies</goal>
-                    </goals>
-                    <configuration>
-                        <outputDirectory>${project.build.directory}/bundles</outputDirectory>
-                        <!--
-                          Exclude the ones that are not OSGi
-                          components, plus OSGi itself.
-                      -->
-                        <excludeGroupIds>org.slf4j</excludeGroupIds>
-                        <excludeArtifactIds>httpclient,httpmime,httpclient-cache,fluent-hc,httpcore,org.osgi.core</excludeArtifactIds>
-                        <includeScope>compile</includeScope>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
@@ -185,6 +121,7 @@
             org.apache.http.conn.*;version=${project.version},
             org.apache.http.client.*;version=${project.version},
             org.apache.http.entity.mime.*;version=${project.version},
+            org.apache.http.entity.mime.content.*;version=${project.version},
             org.apache.http.impl.auth.*;version=${project.version},
             org.apache.http.impl.cookie.*;version=${project.version},
             org.apache.http.impl.conn.*;version=${project.version},
@@ -237,26 +174,6 @@
           <skip>true</skip>
         </configuration>
       </plugin>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-failsafe-plugin</artifactId>
-            <version>2.18.1</version>
-            <executions>
-                <execution>
-                    <goals>
-                        <goal>integration-test</goal>
-                        <goal>verify</goal>
-                    </goals>
-                    <configuration>
-                        <systemPropertyVariables>
-                            <java.awt.headless>true</java.awt.headless>
-                            <project.build.directory>${project.build.directory}</project.build.directory>
-                            <project.version>${project.version}</project.version>
-                        </systemPropertyVariables>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
     </plugins>
     <finalName>org.apache.httpcomponents.httpclient_${project.version}</finalName>
   </build>
