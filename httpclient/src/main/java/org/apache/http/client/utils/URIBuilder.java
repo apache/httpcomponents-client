@@ -26,18 +26,18 @@
  */
 package org.apache.http.client.utils;
 
+import org.apache.http.Consts;
+import org.apache.http.NameValuePair;
+import org.apache.http.annotation.NotThreadSafe;
+import org.apache.http.conn.util.InetAddressUtils;
+import org.apache.http.message.BasicNameValuePair;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import org.apache.http.Consts;
-import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.conn.util.InetAddressUtils;
-import org.apache.http.message.BasicNameValuePair;
 
 /**
  * Builder for {@link URI} instances.
@@ -355,6 +355,22 @@ public class URIBuilder {
         this.query = null;
         return this;
     }
+
+    /**
+     * Adds parameter to URI query if the value is not null or empty. The parameter name and value are expected to be unescaped
+     * and may contain non ASCII characters.
+     * <p>
+     * Please note query parameters and custom query component are mutually exclusive. This method
+     * will remove custom query if present.
+     * </p>
+     */
+    public URIBuilder addParameterIfValueNotBlank(final String param, final String value) {
+        if (value == null || value.isEmpty()) {
+            return this;
+        }
+        return addParameter(param, value);
+    }
+
 
     /**
      * Sets parameter of URI query overriding existing value if set. The parameter name and value

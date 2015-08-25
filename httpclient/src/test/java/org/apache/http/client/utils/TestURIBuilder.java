@@ -151,6 +151,16 @@ public class TestURIBuilder {
     }
 
     @Test
+    public void testAddParameterIfValueNotBlank() throws Exception {
+        final URI uri = new URI("http", null, "localhost", 80, "/", "param=stuff&blah&blah", null);
+        final URIBuilder uribuilder = new URIBuilder(uri).addParameter("param", "some other stuff")
+                .addParameterIfValueNotBlank("blah", "").addParameterIfValueNotBlank("blah", null);
+        final URI result = uribuilder.build();
+        Assert.assertEquals(new URI("http://localhost:80/?param=stuff&blah&blah&" +
+                "param=some+other+stuff"), result);
+    }
+
+    @Test
     public void testQueryEncoding() throws Exception {
         final URI uri1 = new URI("https://somehost.com/stuff?client_id=1234567890" +
                 "&redirect_uri=https%3A%2F%2Fsomehost.com%2Fblah+blah%2F");
