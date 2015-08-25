@@ -373,6 +373,7 @@
             <exclude>src/docbkx/resources/**</exclude>
             <exclude>src/test/resources/*.truststore</exclude>
             <exclude>.checkstyle</exclude>
+            <exclude>.externalToolBuilders</exclude>			
             <exclude>maven-eclipse.xml</exclude>
           </excludes>
         </configuration>
