@@ -60,6 +60,27 @@
   </dependencies>
 
   <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <version>${hc.rat.version}</version>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <excludes>
+            <exclude>.externalToolBuilders/**</exclude>			
+            <exclude>maven-eclipse.xml</exclude>
+          </excludes>
+        </configuration>
+      </plugin>  
+    </plugins>
     <resources>
       <resource>
         <directory>src/main/resources</directory>
