@@ -70,7 +70,7 @@
     <commons-logging.version>1.2</commons-logging.version>
     <commons-codec.version>1.10</commons-codec.version>
     <ehcache.version>2.6.9</ehcache.version>
-    <memcached.version>2.11.7</memcached.version>
+    <memcached.version>2.12.0</memcached.version>
     <slf4j.version>1.7.7</slf4j.version>
     <junit.version>4.11</junit.version>
     <easymock.version>2.5.2</easymock.version>
