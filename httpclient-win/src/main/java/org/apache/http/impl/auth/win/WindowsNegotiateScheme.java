@@ -202,9 +202,8 @@ public class WindowsNegotiateScheme implements AuthScheme {
                 failAuthCleanup();
                 if (ex instanceof Win32Exception) {
                     throw new AuthenticationException("Authentication Failed", ex);
-                } else {
-                    throw ex;
                 }
+                throw ex;
             }
         } else if (challenge == null || challenge.isEmpty()) {
             failAuthCleanup();
@@ -220,9 +219,8 @@ public class WindowsNegotiateScheme implements AuthScheme {
                 failAuthCleanup();
                 if (ex instanceof Win32Exception) {
                     throw new AuthenticationException("Authentication Failed", ex);
-                } else {
-                    throw ex;
                 }
+                throw ex;
             }
         }
         return scheme + " " + response;

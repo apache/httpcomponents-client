@@ -74,9 +74,8 @@ public class WinHttpClients {
                     .build();
             return HttpClientBuilder.create()
                     .setDefaultAuthSchemeRegistry(authSchemeRegistry);
-        } else {
-            return HttpClientBuilder.create();
         }
+        return HttpClientBuilder.create();
     }
 
     /**
