@@ -88,9 +88,8 @@ public class Header implements Iterable<MinimalField> {
         final List<MinimalField> list = this.fieldMap.get(key);
         if (list == null || list.isEmpty()) {
             return Collections.emptyList();
-        } else {
-            return new ArrayList<>(list);
         }
+        return new ArrayList<>(list);
     }
 
     public int removeFields(final String name) {

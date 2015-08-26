@@ -67,9 +67,8 @@ public abstract class AbstractContentBody implements ContentBody {
         final int i = mimeType.indexOf('/');
         if (i != -1) {
             return mimeType.substring(0, i);
-        } else {
-            return mimeType;
         }
+        return mimeType;
     }
 
     @Override
@@ -78,9 +77,8 @@ public abstract class AbstractContentBody implements ContentBody {
         final int i = mimeType.indexOf('/');
         if (i != -1) {
             return mimeType.substring(i + 1);
-        } else {
-            return null;
         }
+        return null;
     }
 
     @Override
