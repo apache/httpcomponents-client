@@ -61,7 +61,7 @@ class ResponseCachingPolicy {
     private final boolean neverCache1_0ResponsesWithQueryString;
     private final Log log = LogFactory.getLog(getClass());
     private static final Set<Integer> cacheableStatuses =
-        new HashSet<Integer>(Arrays.asList(HttpStatus.SC_OK,
+        new HashSet<>(Arrays.asList(HttpStatus.SC_OK,
                 HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION,
                 HttpStatus.SC_MULTIPLE_CHOICES,
                 HttpStatus.SC_MOVED_PERMANENTLY,
@@ -87,10 +87,10 @@ class ResponseCachingPolicy {
         this.sharedCache = sharedCache;
         this.neverCache1_0ResponsesWithQueryString = neverCache1_0ResponsesWithQueryString;
         if (allow303Caching) {
-            uncacheableStatuses = new HashSet<Integer>(
+            uncacheableStatuses = new HashSet<>(
                     Arrays.asList(HttpStatus.SC_PARTIAL_CONTENT));
         } else {
-            uncacheableStatuses = new HashSet<Integer>(Arrays.asList(
+            uncacheableStatuses = new HashSet<>(Arrays.asList(
                     HttpStatus.SC_PARTIAL_CONTENT, HttpStatus.SC_SEE_OTHER));
         }
     }
