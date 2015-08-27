@@ -253,15 +253,14 @@ public class MemcachedHttpCacheStorage implements HttpCacheStorage {
                     putEntry(url, updatedEntry);
                     return;
 
+                }
+                final byte[] updatedBytes = serializeEntry(url, updatedEntry);
+                final CASResponse casResult = client.cas(key, v.getCas(),
+                        updatedBytes);
+                if (casResult != CASResponse.OK) {
+                    numRetries++;
                 } else {
-                    final byte[] updatedBytes = serializeEntry(url, updatedEntry);
-                    final CASResponse casResult = client.cas(key, v.getCas(),
-                            updatedBytes);
-                    if (casResult != CASResponse.OK) {
-                        numRetries++;
-                    } else {
-                        return;
-                    }
+                    return;
                 }
             } catch (final OperationTimeoutException ex) {
                 throw new MemcachedOperationTimeoutException(ex);
