@@ -120,11 +120,11 @@ public class TestRedirectExec {
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenReturn(response2);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(redirectStrategy.getRedirect(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
@@ -216,11 +216,11 @@ public class TestRedirectExec {
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenReturn(response2);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(redirectStrategy.getRedirect(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
@@ -240,10 +240,10 @@ public class TestRedirectExec {
 
         final AuthState targetAuthState = new AuthState();
         targetAuthState.setState(AuthProtocolState.SUCCESS);
-        targetAuthState.update(new BasicScheme(), new UsernamePasswordCredentials("user:pass"));
+        targetAuthState.update(new BasicScheme(), new UsernamePasswordCredentials("user", "pass"));
         final AuthState proxyAuthState = new AuthState();
         proxyAuthState.setState(AuthProtocolState.SUCCESS);
-        proxyAuthState.update(new NTLMScheme(), new NTCredentials("user:pass"));
+        proxyAuthState.update(new NTLMScheme(), new NTCredentials("user", "pass", null, null));
         context.setAttribute(HttpClientContext.TARGET_AUTH_STATE, targetAuthState);
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
 
@@ -261,11 +261,11 @@ public class TestRedirectExec {
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenReturn(response2);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(redirectStrategy.getRedirect(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
@@ -332,11 +332,11 @@ public class TestRedirectExec {
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenReturn(response1);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.doThrow(new ProtocolException("Oppsie")).when(redirectStrategy).getRedirect(
-                Mockito.same(request),
+                Mockito.same(get),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any());
 
