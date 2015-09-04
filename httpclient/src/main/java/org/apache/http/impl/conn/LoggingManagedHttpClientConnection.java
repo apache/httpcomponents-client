@@ -75,10 +75,21 @@ class LoggingManagedHttpClientConnection extends DefaultManagedHttpClientConnect
 
     @Override
     public void close() throws IOException {
-        if (this.log.isDebugEnabled()) {
-            this.log.debug(getId() + ": Close connection");
+
+        if (super.isOpen()) {
+            if (this.log.isDebugEnabled()) {
+                this.log.debug(getId() + ": Close connection");
+            }
+            super.close();
         }
-        super.close();
+    }
+
+    @Override
+    public void setSocketTimeout(final int timeout) {
+        if (this.log.isDebugEnabled()) {
+            this.log.debug(getId() + ": set socket timeout to " + timeout);
+        }
+        super.setSocketTimeout(timeout);
     }
 
     @Override
