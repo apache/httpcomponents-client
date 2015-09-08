@@ -26,17 +26,17 @@
  */
 package org.apache.http.client.utils;
 
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.http.Consts;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestURIBuilder {
 
@@ -151,10 +151,10 @@ public class TestURIBuilder {
     }
 
     @Test
-    public void testAddParameterIfValueNotBlank() throws Exception {
+    public void testAddParameterIfValueNotEmpty() throws Exception {
         final URI uri = new URI("http", null, "localhost", 80, "/", "param=stuff&blah&blah", null);
         final URIBuilder uribuilder = new URIBuilder(uri).addParameter("param", "some other stuff")
-                .addParameterIfValueNotBlank("blah", "").addParameterIfValueNotBlank("blah", null);
+                .addParameterIfValueNotEmpty("blah", "").addParameterIfValueNotEmpty("blah", null);
         final URI result = uribuilder.build();
         Assert.assertEquals(new URI("http://localhost:80/?param=stuff&blah&blah&" +
                 "param=some+other+stuff"), result);

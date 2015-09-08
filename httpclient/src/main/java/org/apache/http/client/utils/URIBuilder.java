@@ -364,7 +364,7 @@ public class URIBuilder {
      * will remove custom query if present.
      * </p>
      */
-    public URIBuilder addParameterIfValueNotBlank(final String param, final String value) {
+    public URIBuilder addParameterIfValueNotEmpty(final String param, final String value) {
         if (value == null || value.isEmpty()) {
             return this;
         }
