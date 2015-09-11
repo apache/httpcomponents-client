@@ -1,3 +1,32 @@
+Release 4.5.1
+-------------------
+
+HttpClient 4.5.1 (GA) is a maintenance release that fixes a number of minor defects found since 4.5.
+
+Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+
+Changelog:
+-------------------
+
+* [HTTPCLIENT-1680] redirect of a POST request causes ClientProtocolException.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1673] org.apache.http.entity.mime.content.* missing from OSGi exports.
+  Contributed by Benson Margulies <benson at basistech.com>
+
+* [HTTPCLIENT-1668] Fluent request incorrectly handles connect timeout setting.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1667] RequestBuilder does not take charset into account when creating 
+  UrlEncodedFormEntity. 
+  Contributed by Sergey Smith <smithsv at bk.ru>
+
+* [HTTPCLIENT-1655] HttpClient sends RST instead of FIN ACK sequence when using non-persistant 
+  connections.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
+
 Release 4.5
 -------------------
 
