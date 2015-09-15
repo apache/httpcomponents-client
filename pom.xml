@@ -33,7 +33,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>httpcomponents-client</artifactId>
   <name>Apache HttpComponents Client</name>
-  <version>4.5.1-SNAPSHOT</version>
+  <version>4.5.2-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
   <url>http://hc.apache.org/httpcomponents-client-ga/</url>
   <inceptionYear>1999</inceptionYear>
