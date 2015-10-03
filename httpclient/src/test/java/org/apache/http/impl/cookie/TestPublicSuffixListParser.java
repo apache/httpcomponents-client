@@ -79,6 +79,32 @@ public class TestPublicSuffixListParser {
     }
 
     @Test
+    public void testParseLocal() throws Exception {
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+
+        cookie.setDomain("localhost");
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("localhost", 80, "/stuff", false)));
+
+        cookie.setDomain("somehost");
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost", 80, "/stuff", false)));
+
+        cookie.setDomain(".localdomain");
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.localdomain", 80, "/stuff", false)));
+
+        cookie.setDomain(".local.");
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.local.", 80, "/stuff", false)));
+
+        cookie.setDomain(".localhost.");
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.localhost.", 80, "/stuff", false)));
+
+        cookie.setDomain(".local");
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.local", 80, "/stuff", false)));
+
+        cookie.setDomain(".blah");
+        Assert.assertFalse(filter.match(cookie, new CookieOrigin("somehost.blah", 80, "/stuff", false)));
+    }
+
+    @Test
     public void testUnicode() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
 
