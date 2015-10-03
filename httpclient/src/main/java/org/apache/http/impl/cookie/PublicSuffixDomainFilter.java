@@ -26,6 +26,9 @@
  */
 package org.apache.http.impl.cookie;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.util.PublicSuffixList;
 import org.apache.http.conn.util.PublicSuffixMatcher;
@@ -52,11 +55,23 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
 
     private final CommonCookieAttributeHandler handler;
     private final PublicSuffixMatcher publicSuffixMatcher;
+    private final Map<String, Boolean> localDomainMap;
+
+    private static Map<String, Boolean> createLocalDomainMap() {
+        final ConcurrentHashMap<String, Boolean> map = new ConcurrentHashMap<>();
+        map.put(".localhost.", Boolean.TRUE);  // RFC 6761
+        map.put(".test.", Boolean.TRUE);       // RFC 6761
+        map.put(".local.", Boolean.TRUE);      // RFC 6762
+        map.put(".local", Boolean.TRUE);
+        map.put(".localdomain", Boolean.TRUE);
+        return map;
+    }
 
     public PublicSuffixDomainFilter(
             final CommonCookieAttributeHandler handler, final PublicSuffixMatcher publicSuffixMatcher) {
         this.handler = Args.notNull(handler, "Cookie handler");
         this.publicSuffixMatcher = Args.notNull(publicSuffixMatcher, "Public suffix matcher");
+        this.localDomainMap = createLocalDomainMap();
     }
 
     public PublicSuffixDomainFilter(
@@ -65,6 +80,7 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
         Args.notNull(suffixList, "Public suffix list");
         this.handler = handler;
         this.publicSuffixMatcher = new PublicSuffixMatcher(suffixList.getRules(), suffixList.getExceptions());
+        this.localDomainMap = createLocalDomainMap();
     }
 
     /**
@@ -72,12 +88,23 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
      */
     @Override
     public boolean match(final Cookie cookie, final CookieOrigin origin) {
-        final String domain = cookie.getDomain();
-        if (!domain.equalsIgnoreCase("localhost") && publicSuffixMatcher.matches(domain)) {
-            return false;
+        final String host = cookie.getDomain();
+        final int i = host.indexOf('.');
+        if (i >= 0) {
+            final String domain = host.substring(i);
+            if (!this.localDomainMap.containsKey(domain)) {
+                if (this.publicSuffixMatcher.matches(host)) {
+                    return false;
+                }
+            }
         } else {
-            return handler.match(cookie, origin);
+            if (!host.equalsIgnoreCase(origin.getHost())) {
+                if (this.publicSuffixMatcher.matches(host)) {
+                    return false;
+                }
+            }
         }
+        return handler.match(cookie, origin);
     }
 
     @Override

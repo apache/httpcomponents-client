@@ -81,6 +81,39 @@ public class TestPublicSuffixListParser {
     }
 
     @Test
+    public void testParseLocal() throws Exception {
+        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
+
+        cookie.setDomain("localhost");
+        cookie.setAttribute(Cookie.DOMAIN_ATTR, "localhost");
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("localhost", 80, "/stuff", false)));
+
+        cookie.setDomain("somehost");
+        cookie.setAttribute(Cookie.DOMAIN_ATTR, "somehost");
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost", 80, "/stuff", false)));
+
+        cookie.setDomain(".localdomain");
+        cookie.setAttribute(Cookie.DOMAIN_ATTR, ".localdomain");
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.localdomain", 80, "/stuff", false)));
+
+        cookie.setDomain(".local.");
+        cookie.setAttribute(Cookie.DOMAIN_ATTR, ".local.");
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.local.", 80, "/stuff", false)));
+
+        cookie.setDomain(".localhost.");
+        cookie.setAttribute(Cookie.DOMAIN_ATTR, ".localhost.");
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.localhost.", 80, "/stuff", false)));
+
+        cookie.setDomain(".local");
+        cookie.setAttribute(Cookie.DOMAIN_ATTR, ".local");
+        Assert.assertTrue(filter.match(cookie, new CookieOrigin("somehost.local", 80, "/stuff", false)));
+
+        cookie.setDomain(".blah");
+        cookie.setAttribute(Cookie.DOMAIN_ATTR, ".blah");
+        Assert.assertFalse(filter.match(cookie, new CookieOrigin("somehost.blah", 80, "/stuff", false)));
+    }
+
+    @Test
     public void testUnicode() throws Exception {
         final BasicClientCookie cookie = new BasicClientCookie("name", "value");
 
