@@ -97,6 +97,12 @@ public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
                     return false;
                 }
             }
+        } else {
+            if (!host.equalsIgnoreCase(origin.getHost())) {
+                if (this.publicSuffixMatcher.matches(host)) {
+                    return false;
+                }
+            }
         }
         return handler.match(cookie, origin);
     }
