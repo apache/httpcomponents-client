@@ -33,7 +33,11 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 class MultipartFormEntity implements HttpEntity {
 
@@ -91,10 +95,11 @@ class MultipartFormEntity implements HttpEntity {
 
     @Override
     public InputStream getContent() throws IOException {
-        try (ByteArrayOutputStream outstream = new ByteArrayOutputStream()) {
-            writeTo(outstream);
-            return new ByteArrayInputStream(outstream.toByteArray());
-        }
+        ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+        writeTo(outstream);
+        InputStream instream = new ByteArrayInputStream(outstream.toByteArray());
+        outstream.close();
+        return instream;
     }
 
     @Override
