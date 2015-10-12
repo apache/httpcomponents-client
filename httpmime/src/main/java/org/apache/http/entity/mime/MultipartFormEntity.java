@@ -27,15 +27,13 @@
 
 package org.apache.http.entity.mime;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
+
+import java.io.*;
 
 class MultipartFormEntity implements HttpEntity {
 
@@ -93,8 +91,10 @@ class MultipartFormEntity implements HttpEntity {
 
     @Override
     public InputStream getContent() throws IOException {
-        throw new UnsupportedOperationException(
-                    "Multipart form entity does not implement #getContent()");
+        try (ByteArrayOutputStream outstream = new ByteArrayOutputStream()) {
+            writeTo(outstream);
+            return new ByteArrayInputStream(outstream.toByteArray());
+        }
     }
 
     @Override
