@@ -70,7 +70,7 @@ public class MultipartEntity implements HttpEntity {
         super();
         this.builder = new MultipartEntityBuilder()
                 .setMode(mode)
-                .setCharset(charset)
+                .setCharset(charset != null ? charset : MIME.DEFAULT_CHARSET)
                 .setBoundary(boundary);
         this.entity = null;
     }
