@@ -27,15 +27,18 @@
 
 package org.apache.http.entity.mime;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import org.apache.http.ContentTooLongException;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 @SuppressWarnings("deprecation")
 class MultipartFormEntity implements HttpEntity {
@@ -94,8 +97,15 @@ class MultipartFormEntity implements HttpEntity {
 
     @Override
     public InputStream getContent() throws IOException {
-        throw new UnsupportedOperationException(
-                    "Multipart form entity does not implement #getContent()");
+        if (this.contentLength < 0) {
+            throw new ContentTooLongException("Content length is unknown");
+        } else if (this.contentLength > 25 * 1024) {
+            throw new ContentTooLongException("Content length is too long: " + this.contentLength);
+        }
+        final ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+        writeTo(outstream);
+        outstream.flush();
+        return new ByteArrayInputStream(outstream.toByteArray());
     }
 
     @Override
