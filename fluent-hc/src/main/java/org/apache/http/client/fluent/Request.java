@@ -78,6 +78,14 @@ public class Request {
 
     private SimpleDateFormat dateFormatter;
 
+    public static Request create(final String methodName, final String uri) {
+        return new Request(new InternalHttpRequest(methodName, URI.create(uri)));
+    }
+
+    public static Request create(final String methodName, final URI uri) {
+        return new Request(new InternalHttpRequest(methodName, uri));
+    }
+
     public static Request Get(final URI uri) {
         return new Request(new InternalHttpRequest(HttpGet.METHOD_NAME, uri));
     }

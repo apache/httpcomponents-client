@@ -1,3 +1,10 @@
+Release 5.0
+-------------------
+
+* [HTTPCLIENT-1696]: Add convenience methods to fluent API class Request.
+  Contributed by Gary Gregory <ggregory @ apache.org>
+
+
 Release 4.5
 -------------------
 
@@ -30,7 +37,6 @@ Changelog:
 
 * [HTTPCLIENT-1654]: Deprecate/remove RequestConfig#decompressionEnabled in favor of #contentCompressionEnabled
   Contributed by Michael Osipov <michaelo at apache.org>
-
 
 
 Release 4.4.1

@@ -28,6 +28,7 @@ package org.apache.http.client.fluent;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.Charset;
 
 import org.apache.http.HttpEntity;
@@ -103,6 +104,22 @@ public class TestFluent extends LocalServerTestBase {
         final HttpHost target = start();
         final String baseURL = "http://localhost:" + target.getPort();
         final String message = Request.Get(baseURL + "/").execute().returnContent().asString();
+        Assert.assertEquals("All is well", message);
+    }
+
+    @Test
+    public void testGetRequestByName() throws Exception {
+        final HttpHost target = start();
+        final String baseURL = "http://localhost:" + target.getPort();
+        final String message = Request.create("GET", baseURL + "/").execute().returnContent().asString();
+        Assert.assertEquals("All is well", message);
+    }
+
+    @Test
+    public void testGetRequestByNameWithURI() throws Exception {
+        final HttpHost target = start();
+        final String baseURL = "http://localhost:" + target.getPort();
+        final String message = Request.create("GET", new URI(baseURL + "/")).execute().returnContent().asString();
         Assert.assertEquals("All is well", message);
     }
 
