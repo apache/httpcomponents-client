@@ -128,10 +128,10 @@ public class RFC6265CookieSpec implements CookieSpec {
         }
         final String name = tokenParser.parseToken(buffer, cursor, TOKEN_DELIMS);
         if (name.length() == 0) {
-            throw new MalformedCookieException("Cookie name is invalid: '" + header.toString() + "'");
+            return Collections.emptyList();
         }
         if (cursor.atEnd()) {
-            throw new MalformedCookieException("Cookie value is invalid: '" + header.toString() + "'");
+            return Collections.emptyList();
         }
         final int valueDelim = buffer.charAt(cursor.getPos());
         cursor.updatePos(cursor.getPos() + 1);

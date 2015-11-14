@@ -93,22 +93,24 @@ public class TestRFC6265CookieSpec {
         cookiespec.parse(header, origin);
     }
 
-    @Test(expected = MalformedCookieException.class)
+    @Test
     public void testParseCookieMissingName() throws Exception {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "=blah ; this = stuff;");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
-        cookiespec.parse(header, origin);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        Assert.assertEquals(0, cookies.size());
     }
 
-    @Test(expected = MalformedCookieException.class)
+    @Test
     public void testParseCookieMissingValue1() throws Exception {
         final RFC6265CookieSpec cookiespec = new RFC6265CookieSpec();
 
         final Header header = new BasicHeader("Set-Cookie", "blah");
         final CookieOrigin origin = new CookieOrigin("host", 80, "/path/", true);
-        cookiespec.parse(header, origin);
+        final List<Cookie> cookies = cookiespec.parse(header, origin);
+        Assert.assertEquals(0, cookies.size());
     }
 
     @Test(expected = MalformedCookieException.class)
