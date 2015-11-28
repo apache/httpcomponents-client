@@ -64,6 +64,8 @@ import org.apache.http.conn.util.PublicSuffixMatcher;
 @Immutable
 public final class DefaultHostnameVerifier implements HostnameVerifier {
 
+    enum TYPE { IPv4, IPv6, DNS };
+
     final static int DNS_NAME_TYPE        = 2;
     final static int IP_ADDRESS_TYPE      = 7;
 
@@ -96,17 +98,30 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
 
     public void verify(
             final String host, final X509Certificate cert) throws SSLException {
-        final boolean ipv4 = InetAddressUtils.isIPv4Address(host);
-        final boolean ipv6 = InetAddressUtils.isIPv6Address(host);
-        final int subjectType = ipv4 || ipv6 ? IP_ADDRESS_TYPE : DNS_NAME_TYPE;
+        TYPE hostFormat = TYPE.DNS;
+        if (InetAddressUtils.isIPv4Address(host)) {
+            hostFormat = TYPE.IPv4;
+        } else {
+            String s = host;
+            if (s.startsWith("[") && s.endsWith("]")) {
+                s = host.substring(1, host.length() - 1);
+            }
+            if (InetAddressUtils.isIPv6Address(s)) {
+                hostFormat = TYPE.IPv6;
+            }
+        }
+        final int subjectType = hostFormat == TYPE.IPv4 || hostFormat == TYPE.IPv6 ? IP_ADDRESS_TYPE : DNS_NAME_TYPE;
         final List<String> subjectAlts = extractSubjectAlts(cert, subjectType);
         if (subjectAlts != null && !subjectAlts.isEmpty()) {
-            if (ipv4) {
-                matchIPAddress(host, subjectAlts);
-            } else if (ipv6) {
-                matchIPv6Address(host, subjectAlts);
-            } else {
-                matchDNSName(host, subjectAlts, this.publicSuffixMatcher);
+            switch (hostFormat) {
+                case IPv4:
+                    matchIPAddress(host, subjectAlts);
+                    break;
+                case IPv6:
+                    matchIPv6Address(host, subjectAlts);
+                    break;
+                default:
+                    matchDNSName(host, subjectAlts, this.publicSuffixMatcher);
             }
         } else {
             // CN matching has been deprecated by rfc2818 and can be used
