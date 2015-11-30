@@ -29,15 +29,12 @@ package org.apache.http.client.entity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
@@ -67,32 +64,6 @@ public class TestGZip {
         final ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray());
         final GzipDecompressingEntity gunzipe = new GzipDecompressingEntity(out);
         Assert.assertEquals("some kind of text", EntityUtils.toString(gunzipe, Consts.ASCII));
-    }
-
-    @Test
-    public void testGzipDecompressingEntityDoesNotCrashInConstructorAndLeaveInputStreamOpen()
-            throws Exception {
-        final AtomicBoolean inputStreamIsClosed = new AtomicBoolean(false);
-        final HttpEntity in = new InputStreamEntity(new InputStream() {
-            @Override
-            public int read() throws IOException {
-                throw new IOException("An exception occurred");
-            }
-
-            @Override
-            public void close() throws IOException {
-                inputStreamIsClosed.set(true);
-            }
-
-        }, 123);
-        final GzipDecompressingEntity gunzipe = new GzipDecompressingEntity(in);
-        try {
-            gunzipe.getContent();
-        } catch (final IOException e) {
-            // As I cannot get the content, GzipDecompressingEntity is supposed
-            // to have released everything
-            Assert.assertTrue(inputStreamIsClosed.get());
-        }
     }
 
     @Test
