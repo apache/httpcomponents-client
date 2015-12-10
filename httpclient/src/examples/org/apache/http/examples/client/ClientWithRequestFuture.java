@@ -58,7 +58,7 @@ public class ClientWithRequestFuture {
                 @Override
                 public Boolean handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
                     // simply return true if the status was OK
-                    return response.getStatusLine().getStatusCode() == 200;
+                    return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
                 }
             };
 
