@@ -53,127 +53,6 @@ This is the successor to the widely used Jakarta Commons HttpClient 3.1.
     <category rdf:resource="http://projects.apache.org/category/library" />
     <category rdf:resource="http://projects.apache.org/category/network-client" />
 
-    <!-- multiple releases can be listed, each in it's own section -->
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.0-alpha1</name>
-        <created>2007-07-20</created>
-        <revision>4.0-alpha1</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.0-alpha2</name>
-        <created>2007-11-07</created>
-        <revision>4.0-alpha2</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.0-alpha3</name>
-        <created>2008-02-26</created>
-        <revision>4.0-alpha3</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.0-alpha4</name>
-        <created>2008-05-09</created>
-        <revision>4.0-alpha4</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.0-beta1</name>
-        <created>2008-08-29</created>
-        <revision>4.0-beta1</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.0-beta2</name>
-        <created>2008-12-20</created>
-        <revision>4.0-beta2</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.0</name>
-        <created>2009-08-14</created>
-        <revision>4.0</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.0.1</name>
-        <created>2009-12-11</created>
-        <revision>4.0.1</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.1-alpha1</name>
-        <created>2009-12-11</created>
-        <revision>4.1-alpha1</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.1-alpha2</name>
-        <created>2010-05-19</created>
-        <revision>4.1-alpha2</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.0.2</name>
-        <created>2010-09-09</created>
-        <revision>4.0.2</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.0.3</name>
-        <created>2010-09-19</created>
-        <revision>4.0.3</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.1-beta1</name>
-        <created>2010-11-21</created>
-        <revision>4.1-beta1</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.1 GA</name>
-        <created>2011-01-24</created>
-        <revision>4.1 GA</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.1.1 GA</name>
-        <created>2011-03-20</created>
-        <revision>4.1.1 GA</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.1.2 GA</name>
-        <created>2011-08-07</created>
-        <revision>4.1.2 GA</revision>
-      </Version>
-    </release>
-    <release>
-      <Version>
-        <name>httpcomponents-client-4.2-alpha1</name>
-        <created>2011-11-03</created>
-        <revision>4.2-alpha1</revision>
-      </Version>
-    </release>
-
     <repository>
       <SVNRepository>
         <location rdf:resource="http://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk"/>
@@ -181,11 +60,24 @@ This is the successor to the widely used Jakarta Commons HttpClient 3.1.
       </SVNRepository>
     </repository>
 
+
     <asfext:implements><asfext:Standard>
-      <asfext:title>Hypertext Transfer Protocol -- HTTP/1.1</asfext:title>
+      <asfext:title>Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing</asfext:title>
       <asfext:body>IETF</asfext:body>
-      <asfext:id>RFC 2616</asfext:id>
-      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc2616"/>
+      <asfext:id>RFC 7230</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc7230"/>
+    </asfext:Standard></asfext:implements>
+    <asfext:implements><asfext:Standard>
+      <asfext:title>Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content</asfext:title>
+      <asfext:body>IETF</asfext:body>
+      <asfext:id>RFC 7231</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc7231"/>
+    </asfext:Standard></asfext:implements>
+    <asfext:implements><asfext:Standard>
+      <asfext:title>Hypertext Transfer Protocol (HTTP/1.1): Authentication</asfext:title>
+      <asfext:body>IETF</asfext:body>
+      <asfext:id>RFC 7235</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc7235"/>
     </asfext:Standard></asfext:implements>
     <asfext:implements><asfext:Standard>
       <asfext:title>Hypertext Transfer Protocol -- HTTP/1.0</asfext:title>
@@ -206,22 +98,10 @@ This is the successor to the widely used Jakarta Commons HttpClient 3.1.
       <asfext:url rdf:resource="http://tools.ietf.org/html/rfc2818"/>
     </asfext:Standard></asfext:implements>
     <asfext:implements><asfext:Standard>
-      <asfext:title>HTTP Authentication: Basic and Digest Access Authentication</asfext:title>
+      <asfext:title>HTTP State Management Mechanism</asfext:title>
       <asfext:body>IETF</asfext:body>
-      <asfext:id>RFC 2617</asfext:id>
-      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc2617"/>
-    </asfext:Standard></asfext:implements>
-    <asfext:implements><asfext:Standard>
-      <asfext:title>HTTP State Management Mechanism (Cookies)</asfext:title>
-      <asfext:body>IETF</asfext:body>
-      <asfext:id>RFC 2109</asfext:id>
-      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc2109"/>
-    </asfext:Standard></asfext:implements>
-    <asfext:implements><asfext:Standard>
-      <asfext:title>HTTP State Management Mechanism (Cookie2)</asfext:title>
-      <asfext:body>IETF</asfext:body>
-      <asfext:id>RFC 2965</asfext:id>
-      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc2965"/>
+      <asfext:id>RFC 6265</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc6265"/>
     </asfext:Standard></asfext:implements>
 
   </Project>
