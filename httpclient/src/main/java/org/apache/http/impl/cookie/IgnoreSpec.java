@@ -56,6 +56,11 @@ public class IgnoreSpec extends CookieSpecBase {
     }
 
     @Override
+    public boolean match(final Cookie cookie, final CookieOrigin origin) {
+        return false;
+    }
+
+    @Override
     public List<Header> formatCookies(final List<Cookie> cookies) {
         return Collections.emptyList();
     }
