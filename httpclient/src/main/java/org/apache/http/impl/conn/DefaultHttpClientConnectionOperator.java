@@ -120,6 +120,9 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             sock.setReuseAddress(socketConfig.isSoReuseAddress());
             sock.setTcpNoDelay(socketConfig.isTcpNoDelay());
             sock.setKeepAlive(socketConfig.isSoKeepAlive());
+            sock.setReceiveBufferSize(socketConfig.getRcvBufSize());
+            sock.setSendBufferSize(socketConfig.getSndBufSize());
+
             final int linger = socketConfig.getSoLinger();
             if (linger >= 0) {
                 sock.setSoLinger(true, linger);
