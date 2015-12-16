@@ -28,9 +28,9 @@ package org.apache.http.impl.conn;
 
 import java.io.IOException;
 import java.net.ConnectException;
-import java.net.NoRouteToHostException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NoRouteToHostException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
@@ -120,6 +120,13 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             sock.setReuseAddress(socketConfig.isSoReuseAddress());
             sock.setTcpNoDelay(socketConfig.isTcpNoDelay());
             sock.setKeepAlive(socketConfig.isSoKeepAlive());
+            if (socketConfig.getRcvBufSize() > 0) {
+                sock.setReceiveBufferSize(socketConfig.getRcvBufSize());
+            }
+            if (socketConfig.getSndBufSize() > 0) {
+                sock.setSendBufferSize(socketConfig.getSndBufSize());
+            }
+
             final int linger = socketConfig.getSoLinger();
             if (linger >= 0) {
                 sock.setSoLinger(true, linger);
