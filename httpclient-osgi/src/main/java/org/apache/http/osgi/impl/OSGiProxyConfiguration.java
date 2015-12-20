@@ -135,7 +135,7 @@ public final class OSGiProxyConfiguration implements ProxyConfiguration {
     @Override
     public String toString() {
         return format("ProxyConfiguration [enabled=%s, hostname=%s, port=%s, username=%s, password=%s, proxyExceptions=%s]",
-                      proxyExceptions, enabled, hostname, port, username, password, proxyExceptions);
+                      enabled, hostname, port, username, password, proxyExceptions);
     }
 
 }
