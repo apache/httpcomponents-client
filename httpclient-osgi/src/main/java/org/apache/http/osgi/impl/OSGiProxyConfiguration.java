@@ -27,6 +27,7 @@
 package org.apache.http.osgi.impl;
 
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static org.apache.http.osgi.impl.PropertiesUtils.to;
 
 import java.util.Dictionary;
@@ -135,7 +136,7 @@ public final class OSGiProxyConfiguration implements ProxyConfiguration {
     @Override
     public String toString() {
         return format("ProxyConfiguration [enabled=%s, hostname=%s, port=%s, username=%s, password=%s, proxyExceptions=%s]",
-                      proxyExceptions, enabled, hostname, port, username, password, proxyExceptions);
+                      enabled, hostname, port, username, password, asList(proxyExceptions));
     }
 
 }
