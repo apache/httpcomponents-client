@@ -42,6 +42,8 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
@@ -154,6 +156,8 @@ import org.apache.http.util.VersionInfo;
  */
 @NotThreadSafe
 public class HttpClientBuilder {
+
+    private final Log log = LogFactory.getLog(getClass());
 
     private HttpRequestExecutor requestExec;
     private HostnameVerifier hostnameVerifier;
@@ -929,7 +933,35 @@ public class HttpClientBuilder {
                 poolingmgr.setDefaultMaxPerRoute(maxConnPerRoute);
             }
             connManagerCopy = poolingmgr;
+        } else {
+            // log warnings if user may have not read the docs and misconfigured the builder
+            if (sslSocketFactory != null) {
+                log.warn("LayeredConnectionSocketFactory has been set but will not be used because HttpClientConnectionManager has been set!");
+
+                if (hostnameVerifier != null) {
+                    log.warn("HostnameVerifier has been set but will not be used because HttpClientConnectionManager has been set!");
+                }
+                if (sslContext != null) {
+                    log.warn("SSLContext has been set but will not be used because HttpClientConnectionManager has been set!");
+                }
+            }
+            if (connTimeToLive > 0 || connTimeToLiveTimeUnit != null) {
+                log.warn("Connection time-to-live options has been set but will not be used because HttpClientConnectionManager has been set!");
+            }
+            if (defaultSocketConfig != null) {
+                log.warn("Default SocketConfig has been set but will not be used because HttpClientConnectionManager has been set!");
+            }
+            if (defaultConnectionConfig != null) {
+                log.warn("Default ConnectionConfig has been set but will not be used because HttpClientConnectionManager has been set!");
+            }
+            if (maxConnTotal > 0) {
+                log.warn("Max connections total has been set but will not be used because HttpClientConnectionManager has been set!");
+            }
+            if (maxConnPerRoute > 0) {
+                log.warn("Max connections per route has been set but will not be used because HttpClientConnectionManager has been set!");
+            }
         }
+
         ConnectionReuseStrategy reuseStrategyCopy = this.reuseStrategy;
         if (reuseStrategyCopy == null) {
             if (systemProperties) {
