@@ -73,7 +73,7 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
     @Override
     protected HttpHost determineProxy(final HttpHost target, final HttpRequest request, final HttpContext context) throws HttpException {
         ProxyConfiguration proxyConfiguration = null;
-
+        HttpHost proxyHost = null;
         for (final ServiceRegistration registration : registeredConfigurations.values()) {
             final Object proxyConfigurationObject = bundleContext.getService(registration.getReference());
             if (proxyConfigurationObject != null) {
@@ -82,15 +82,17 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
                     for (final String exception : proxyConfiguration.getProxyExceptions()) {
                         if (createMatcher(exception).matches(target.getHostName())) {
                             return null;
-                        } else {
-                            return new HttpHost(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
                         }
+                    }
+                    if (null == proxyHost)
+                    {
+                        proxyHost = new HttpHost(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
                     }
                 }
             }
         }
 
-        return null;
+        return proxyHost;
     }
 
     private static HostMatcher createMatcher(final String name) {
@@ -174,7 +176,7 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
                         final int i4 = toInt(nameMatcher.group(4), 255);
                         final int ip = i1 << 24 | i2 << 16 | i3 << 8 | i4;
 
-                        int mask = toInt(nameMatcher.group(6), 32);
+                        int mask = toInt(nameMatcher.group(4), 32);
                         mask = (mask == 32) ? -1 : -1 - (-1 >>> mask);
 
                         return new NetworkAddress(ip, mask);
