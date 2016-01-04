@@ -92,7 +92,7 @@ public abstract class CookieSpecBase extends AbstractCookieSpec {
             final String name = headerelement.getName();
             final String value = headerelement.getValue();
             if (name == null || name.isEmpty()) {
-                throw new MalformedCookieException("Cookie name may not be empty");
+                continue;
             }
 
             final BasicClientCookie cookie = new BasicClientCookie(name, value);
