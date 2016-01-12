@@ -31,20 +31,21 @@ import java.io.InputStream;
 import java.util.Locale;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpException;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponseInterceptor;
+import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.message.BasicHeaderValueParser;
+import org.apache.hc.core5.http.message.ParserCursor;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.DecompressingEntity;
 import org.apache.http.client.entity.DeflateInputStream;
 import org.apache.http.client.entity.InputStreamFactory;
-import org.apache.http.config.Lookup;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * {@link HttpResponseInterceptor} responsible for processing Content-Encoding
@@ -130,9 +131,10 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
         // entity can be null in case of 304 Not Modified, 204 No Content or similar
         // check for zero length entity.
         if (requestConfig.isContentCompressionEnabled() && entity != null && entity.getContentLength() != 0) {
-            final Header ceheader = entity.getContentEncoding();
-            if (ceheader != null) {
-                final HeaderElement[] codecs = ceheader.getElements();
+            final String contentEncoding = entity.getContentEncoding();
+            if (contentEncoding != null) {
+                final ParserCursor cursor = new ParserCursor(0, contentEncoding.length());
+                final HeaderElement[] codecs = BasicHeaderValueParser.INSTANCE.parseElements(contentEncoding, cursor);
                 for (final HeaderElement codec : codecs) {
                     final String codecname = codec.getName().toLowerCase(Locale.ROOT);
                     final InputStreamFactory decoderFactory = decoderRegistry.lookup(codecname);

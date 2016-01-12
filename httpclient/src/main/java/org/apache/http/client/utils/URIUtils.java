@@ -32,11 +32,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Stack;
 
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TextUtils;
 import org.apache.http.conn.routing.RouteInfo;
-import org.apache.http.util.Args;
-import org.apache.http.util.TextUtils;
 
 /**
  * A collection of utilities for {@link URI URIs}, to workaround

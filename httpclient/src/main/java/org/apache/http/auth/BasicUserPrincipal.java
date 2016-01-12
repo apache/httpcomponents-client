@@ -29,9 +29,9 @@ package org.apache.http.auth;
 import java.io.Serializable;
 import java.security.Principal;
 
-import org.apache.http.annotation.Immutable;
-import org.apache.http.util.Args;
-import org.apache.http.util.LangUtils;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.LangUtils;
 
 /**
  * Basic user principal used for HTTP authentication

@@ -29,7 +29,8 @@ package org.apache.http.impl.cookie;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.conn.util.PublicSuffixList;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
@@ -37,7 +38,6 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SetCookie;
-import org.apache.http.util.Args;
 
 /**
  * Wraps a {@link org.apache.http.cookie.CookieAttributeHandler} and leverages its match method

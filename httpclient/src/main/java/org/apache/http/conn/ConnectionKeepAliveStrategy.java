@@ -26,8 +26,8 @@
  */
 package org.apache.http.conn;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * Interface for deciding how long a connection can remain

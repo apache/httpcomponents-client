@@ -29,11 +29,11 @@ package org.apache.http.conn.util;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.http.Consts;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,7 +47,7 @@ public class TestPublicSuffixListParser {
         final PublicSuffixList suffixList;
         try {
             final PublicSuffixListParser parser = new PublicSuffixListParser();
-            suffixList = parser.parse(new InputStreamReader(in, Consts.UTF_8));
+            suffixList = parser.parse(new InputStreamReader(in, StandardCharsets.UTF_8));
         } finally {
             in.close();
         }
@@ -64,7 +64,7 @@ public class TestPublicSuffixListParser {
         final List<PublicSuffixList> suffixLists;
         try {
             final PublicSuffixListParser parser = new PublicSuffixListParser();
-            suffixLists = parser.parseByType(new InputStreamReader(in, Consts.UTF_8));
+            suffixLists = parser.parseByType(new InputStreamReader(in, StandardCharsets.UTF_8));
         } finally {
             in.close();
         }

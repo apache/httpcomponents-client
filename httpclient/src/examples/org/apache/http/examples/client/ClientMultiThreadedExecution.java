@@ -26,15 +26,15 @@
  */
 package org.apache.http.examples.client;
 
-import org.apache.http.HttpEntity;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.protocol.BasicHttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
 
 /**
  * An example that performs GETs from multiple threads.

@@ -42,12 +42,30 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.apache.http.ConnectionReuseStrategy;
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.ConnectionReuseStrategy;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponseInterceptor;
+import org.apache.hc.core5.http.config.ConnectionConfig;
+import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.config.SocketConfig;
+import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
+import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
+import org.apache.hc.core5.http.protocol.ImmutableHttpProcessor;
+import org.apache.hc.core5.http.protocol.RequestContent;
+import org.apache.hc.core5.http.protocol.RequestTargetHost;
+import org.apache.hc.core5.http.protocol.RequestUserAgent;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.TextUtils;
+import org.apache.hc.core5.util.VersionInfo;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.AuthenticationStrategy;
@@ -69,10 +87,6 @@ import org.apache.http.client.protocol.RequestDefaultHeaders;
 import org.apache.http.client.protocol.RequestExpectContinue;
 import org.apache.http.client.protocol.ResponseContentEncoding;
 import org.apache.http.client.protocol.ResponseProcessCookies;
-import org.apache.http.config.ConnectionConfig;
-import org.apache.http.config.Lookup;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.SchemePortResolver;
@@ -85,8 +99,6 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.impl.DefaultConnectionReuseStrategy;
-import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.auth.BasicSchemeFactory;
 import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.auth.KerberosSchemeFactory;
@@ -104,16 +116,6 @@ import org.apache.http.impl.execchain.ProtocolExec;
 import org.apache.http.impl.execchain.RedirectExec;
 import org.apache.http.impl.execchain.RetryExec;
 import org.apache.http.impl.execchain.ServiceUnavailableRetryExec;
-import org.apache.http.protocol.HttpProcessor;
-import org.apache.http.protocol.HttpProcessorBuilder;
-import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.protocol.ImmutableHttpProcessor;
-import org.apache.http.protocol.RequestContent;
-import org.apache.http.protocol.RequestTargetHost;
-import org.apache.http.protocol.RequestUserAgent;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.util.TextUtils;
-import org.apache.http.util.VersionInfo;
 
 /**
  * Builder for {@link CloseableHttpClient} instances.
@@ -448,7 +450,7 @@ public class HttpClientBuilder {
      * Assigns {@code User-Agent} value.
      * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
-     * org.apache.http.protocol.HttpProcessor)} method.
+     * org.apache.hc.core5.http.protocol.HttpProcessor)} method.
      * </p>
      */
     public final HttpClientBuilder setUserAgent(final String userAgent) {
@@ -460,7 +462,7 @@ public class HttpClientBuilder {
      * Assigns default request header values.
      * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
-     * org.apache.http.protocol.HttpProcessor)} method.
+     * org.apache.hc.core5.http.protocol.HttpProcessor)} method.
      * </p>
      */
     public final HttpClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
@@ -472,7 +474,7 @@ public class HttpClientBuilder {
      * Adds this protocol interceptor to the head of the protocol processing list.
      * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
-     * org.apache.http.protocol.HttpProcessor)} method.
+     * org.apache.hc.core5.http.protocol.HttpProcessor)} method.
      * </p>
      */
     public final HttpClientBuilder addInterceptorFirst(final HttpResponseInterceptor itcp) {
@@ -490,7 +492,7 @@ public class HttpClientBuilder {
      * Adds this protocol interceptor to the tail of the protocol processing list.
      * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
-     * org.apache.http.protocol.HttpProcessor)} method.
+     * org.apache.hc.core5.http.protocol.HttpProcessor)} method.
      * </p>
      */
     public final HttpClientBuilder addInterceptorLast(final HttpResponseInterceptor itcp) {
@@ -508,7 +510,7 @@ public class HttpClientBuilder {
      * Adds this protocol interceptor to the head of the protocol processing list.
      * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
-     * org.apache.http.protocol.HttpProcessor)} method.
+     * org.apache.hc.core5.http.protocol.HttpProcessor)} method.
      */
     public final HttpClientBuilder addInterceptorFirst(final HttpRequestInterceptor itcp) {
         if (itcp == null) {
@@ -525,7 +527,7 @@ public class HttpClientBuilder {
      * Adds this protocol interceptor to the tail of the protocol processing list.
      * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
-     * org.apache.http.protocol.HttpProcessor)} method.
+     * org.apache.hc.core5.http.protocol.HttpProcessor)} method.
      */
     public final HttpClientBuilder addInterceptorLast(final HttpRequestInterceptor itcp) {
         if (itcp == null) {
@@ -542,7 +544,7 @@ public class HttpClientBuilder {
      * Disables state (cookie) management.
      * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
-     * org.apache.http.protocol.HttpProcessor)} method.
+     * org.apache.hc.core5.http.protocol.HttpProcessor)} method.
      */
     public final HttpClientBuilder disableCookieManagement() {
         this.cookieManagementDisabled = true;
@@ -553,7 +555,7 @@ public class HttpClientBuilder {
      * Disables automatic content decompression.
      * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
-     * org.apache.http.protocol.HttpProcessor)} method.
+     * org.apache.hc.core5.http.protocol.HttpProcessor)} method.
      */
     public final HttpClientBuilder disableContentCompression() {
         contentCompressionDisabled = true;
@@ -564,7 +566,7 @@ public class HttpClientBuilder {
      * Disables authentication scheme caching.
      * <p>
      * Please note this value can be overridden by the {@link #setHttpProcessor(
-     * org.apache.http.protocol.HttpProcessor)} method.
+     * org.apache.hc.core5.http.protocol.HttpProcessor)} method.
      */
     public final HttpClientBuilder disableAuthCaching() {
         this.authCachingDisabled = true;
@@ -937,7 +939,13 @@ public class HttpClientBuilder {
                 if ("true".equalsIgnoreCase(s)) {
                     reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
                 } else {
-                    reuseStrategyCopy = NoConnectionReuseStrategy.INSTANCE;
+                    reuseStrategyCopy = new ConnectionReuseStrategy() {
+                        @Override
+                        public boolean keepAlive(
+                                final HttpRequest request, final HttpResponse response, final HttpContext context) {
+                            return false;
+                        }
+                    };
                 }
             } else {
                 reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;

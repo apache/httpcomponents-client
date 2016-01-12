@@ -29,9 +29,9 @@ package org.apache.http.client.fluent;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
-import org.apache.http.Consts;
-import org.apache.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.ContentType;
 
 /**
  * This class represents arbitrary content of a specfic type that can be consumed
@@ -61,7 +61,7 @@ public class Content {
     public String asString() {
         Charset charset = this.type.getCharset();
         if (charset == null) {
-            charset = Consts.ISO_8859_1;
+            charset = StandardCharsets.ISO_8859_1;
         }
         return asString(charset);
     }

@@ -28,9 +28,9 @@ package org.apache.http.cookie;
 
 import java.util.Locale;
 
-import org.apache.http.annotation.Immutable;
-import org.apache.http.util.Args;
-import org.apache.http.util.TextUtils;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TextUtils;
 
 /**
  * CookieOrigin class encapsulates details of an origin server that

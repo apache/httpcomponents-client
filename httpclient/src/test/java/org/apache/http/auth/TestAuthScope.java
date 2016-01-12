@@ -26,7 +26,7 @@
  */
 package org.apache.http.auth;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
 import org.junit.Assert;
 import org.junit.Test;
 

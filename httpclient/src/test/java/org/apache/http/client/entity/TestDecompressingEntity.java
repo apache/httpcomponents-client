@@ -31,15 +31,15 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.Checksum;
 
-import org.apache.http.Consts;
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.entity.InputStreamEntity;
+import org.apache.hc.core5.http.entity.StringEntity;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -48,7 +48,7 @@ public class TestDecompressingEntity {
     @Test
     public void testNonStreaming() throws Exception {
         final CRC32 crc32 = new CRC32();
-        final StringEntity wrapped = new StringEntity("1234567890", "ASCII");
+        final StringEntity wrapped = new StringEntity("1234567890", StandardCharsets.US_ASCII);
         final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
         Assert.assertFalse(entity.isStreaming());
         final String s = EntityUtils.toString(entity);
@@ -62,7 +62,7 @@ public class TestDecompressingEntity {
     @Test
     public void testStreaming() throws Exception {
         final CRC32 crc32 = new CRC32();
-        final ByteArrayInputStream in = new ByteArrayInputStream("1234567890".getBytes(Consts.ASCII));
+        final ByteArrayInputStream in = new ByteArrayInputStream("1234567890".getBytes(StandardCharsets.US_ASCII));
         final InputStreamEntity wrapped = new InputStreamEntity(in, -1);
         final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
         Assert.assertTrue(entity.isStreaming());
@@ -79,14 +79,14 @@ public class TestDecompressingEntity {
     @Test
     public void testWriteToStream() throws Exception {
         final CRC32 crc32 = new CRC32();
-        final StringEntity wrapped = new StringEntity("1234567890", "ASCII");
+        final StringEntity wrapped = new StringEntity("1234567890", StandardCharsets.US_ASCII);
         final ChecksumEntity entity = new ChecksumEntity(wrapped, crc32);
         Assert.assertFalse(entity.isStreaming());
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
         entity.writeTo(out);
 
-        final String s = new String(out.toByteArray(), "ASCII");
+        final String s = new String(out.toByteArray(), StandardCharsets.US_ASCII);
         Assert.assertEquals("1234567890", s);
         Assert.assertEquals(639479525L, crc32.getValue());
     }

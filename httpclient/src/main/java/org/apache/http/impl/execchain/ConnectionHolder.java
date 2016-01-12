@@ -33,9 +33,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
-import org.apache.http.HttpClientConnection;
-import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.concurrent.Cancellable;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.conn.HttpClientConnectionManager;
 

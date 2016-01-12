@@ -26,10 +26,10 @@
  */
 package org.apache.http.impl.client;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * Noop implementation of {@link UserTokenHandler} that always returns {@code null}.

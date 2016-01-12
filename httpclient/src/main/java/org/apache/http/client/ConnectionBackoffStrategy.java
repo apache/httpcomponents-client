@@ -26,7 +26,7 @@
  */
 package org.apache.http.client;
 
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponse;
 
 /**
  * When managing a dynamic number of connections for a given route, this

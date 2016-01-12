@@ -30,10 +30,10 @@ package org.apache.http.client;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.ChallengeType;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * Strategy to select auth schemes in order of preference based on auth challenges

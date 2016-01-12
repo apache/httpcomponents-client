@@ -29,10 +29,15 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
+import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.protocol.BasicHttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -42,12 +47,7 @@ import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.execchain.MinimalClientExec;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.util.Args;
 
 /**
  * Internal class.
@@ -75,7 +75,7 @@ class MinimalHttpClient extends CloseableHttpClient {
     protected CloseableHttpResponse doExecute(
             final HttpHost target,
             final HttpRequest request,
-            final HttpContext context) throws IOException, ClientProtocolException {
+            final HttpContext context) throws IOException {
         Args.notNull(target, "Target host");
         Args.notNull(request, "HTTP request");
         HttpExecutionAware execAware = null;
@@ -83,7 +83,7 @@ class MinimalHttpClient extends CloseableHttpClient {
             execAware = (HttpExecutionAware) request;
         }
         try {
-            final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
+            final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request, target);
             final HttpClientContext localcontext = HttpClientContext.adapt(
                 context != null ? context : new BasicHttpContext());
             final HttpRoute route = new HttpRoute(target);

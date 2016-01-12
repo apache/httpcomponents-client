@@ -29,7 +29,7 @@ package org.apache.http.impl.execchain;
 
 import java.io.InterruptedIOException;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * Signals that the request has been aborted.

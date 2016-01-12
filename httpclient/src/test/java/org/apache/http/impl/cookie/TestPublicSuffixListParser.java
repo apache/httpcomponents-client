@@ -29,8 +29,8 @@ package org.apache.http.impl.cookie;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
-import org.apache.http.Consts;
 import org.apache.http.conn.util.PublicSuffixList;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.cookie.Cookie;
@@ -53,7 +53,7 @@ public class TestPublicSuffixListParser {
         final PublicSuffixList suffixList;
         try {
             final org.apache.http.conn.util.PublicSuffixListParser parser = new org.apache.http.conn.util.PublicSuffixListParser();
-            suffixList = parser.parse(new InputStreamReader(in, Consts.UTF_8));
+            suffixList = parser.parse(new InputStreamReader(in, StandardCharsets.UTF_8));
         } finally {
             in.close();
         }

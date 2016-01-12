@@ -27,13 +27,7 @@
 
 package org.apache.http.client.methods;
 
-import java.io.ByteArrayInputStream;
-
-import org.apache.http.Header;
-import org.apache.http.HttpVersion;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.LangUtils;
+import org.apache.hc.core5.http.HttpVersion;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -51,57 +45,6 @@ public class TestHttpRequestBase {
     public void testEmptyURI() throws Exception {
         final HttpGet httpget = new HttpGet("");
         Assert.assertEquals("/", httpget.getRequestLine().getUri());
-    }
-
-    @Test
-    public void testCloneBasicRequests() throws Exception {
-        final HttpGet httpget = new HttpGet("http://host/path");
-        httpget.addHeader("h1", "this header");
-        httpget.addHeader("h2", "that header");
-        httpget.addHeader("h3", "all sorts of headers");
-        final HttpGet clone = (HttpGet) httpget.clone();
-
-        Assert.assertEquals(httpget.getMethod(), clone.getMethod());
-        Assert.assertEquals(httpget.getURI(), clone.getURI());
-
-        final Header[] headers1 = httpget.getAllHeaders();
-        final Header[] headers2 = clone.getAllHeaders();
-
-        Assert.assertTrue(LangUtils.equals(headers1, headers2));
-    }
-
-    @Test
-    public void testCloneEntityEnclosingRequests() throws Exception {
-        final HttpPost httppost = new HttpPost("http://host/path");
-        httppost.addHeader("h1", "this header");
-        httppost.addHeader("h2", "that header");
-        httppost.addHeader("h3", "all sorts of headers");
-        HttpPost clone = (HttpPost) httppost.clone();
-
-        Assert.assertEquals(httppost.getMethod(), clone.getMethod());
-        Assert.assertEquals(httppost.getURI(), clone.getURI());
-
-        final Header[] headers1 = httppost.getAllHeaders();
-        final Header[] headers2 = clone.getAllHeaders();
-
-        Assert.assertTrue(LangUtils.equals(headers1, headers2));
-
-        Assert.assertNull(clone.getEntity());
-
-        final StringEntity e1 = new StringEntity("stuff");
-        httppost.setEntity(e1);
-        clone = (HttpPost) httppost.clone();
-        Assert.assertTrue(clone.getEntity() instanceof StringEntity);
-        Assert.assertFalse(clone.getEntity().equals(e1));
-    }
-
-    @Test(expected=CloneNotSupportedException.class)
-    public void testCloneStreamingEntityEnclosingRequests() throws Exception {
-        final ByteArrayInputStream instream = new ByteArrayInputStream(new byte[] {});
-        final InputStreamEntity e2 = new InputStreamEntity(instream, -1);
-        final HttpPost httppost = new HttpPost("http://host/path");
-        httppost.setEntity(e2);
-        httppost.clone();
     }
 
 }

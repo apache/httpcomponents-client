@@ -30,13 +30,11 @@ package org.apache.http.client.config;
 import java.net.InetAddress;
 import java.util.Collection;
 
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpHost;
 
 /**
  *  Immutable class encapsulating request configuration items.
- *  The default setting for stale connection checking changed
- *  to false, and the feature was deprecated starting with version 4.4.
  */
 @Immutable
 public class RequestConfig implements Cloneable {
@@ -438,6 +436,11 @@ public class RequestConfig implements Cloneable {
 
         public Builder setContentCompressionEnabled(final boolean contentCompressionEnabled) {
             this.contentCompressionEnabled = contentCompressionEnabled;
+            return this;
+        }
+
+        public Builder setStaleConnectionCheckEnabled(final boolean staleConnectionCheckEnabled) {
+            this.staleConnectionCheckEnabled = staleConnectionCheckEnabled;
             return this;
         }
 

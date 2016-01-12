@@ -26,7 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * The error count with a creation timestamp and its associated key.

@@ -31,11 +31,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.pool.io.AbstractConnPool;
+import org.apache.hc.core5.pool.io.ConnFactory;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.pool.AbstractConnPool;
-import org.apache.http.pool.ConnFactory;
 
 /**
  * @since 4.3

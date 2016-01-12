@@ -30,8 +30,8 @@ package org.apache.http.impl.cookie;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.http.Header;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.http.Header;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;

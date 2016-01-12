@@ -33,17 +33,17 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheInvalidator;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.protocol.HTTP;
 
 /**
  * Given a particular HttpRequest, flush any cache entries that this request
@@ -282,8 +282,8 @@ class CacheInvalidator implements HttpCacheInvalidator {
 
     private boolean responseDateOlderThanEntryDate(final HttpResponse response,
             final HttpCacheEntry entry) {
-        final Header entryDateHeader = entry.getFirstHeader(HTTP.DATE_HEADER);
-        final Header responseDateHeader = response.getFirstHeader(HTTP.DATE_HEADER);
+        final Header entryDateHeader = entry.getFirstHeader(HttpHeaders.DATE);
+        final Header responseDateHeader = response.getFirstHeader(HttpHeaders.DATE);
         if (entryDateHeader == null || responseDateHeader == null) {
             /* be conservative; should probably flush */
             return false;

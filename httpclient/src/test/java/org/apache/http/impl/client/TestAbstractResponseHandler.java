@@ -30,14 +30,14 @@ package org.apache.http.impl.client;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
-import org.apache.http.StatusLine;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.StatusLine;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicStatusLine;
 import org.apache.http.client.HttpResponseException;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.message.BasicStatusLine;
-import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -59,7 +59,7 @@ public class TestAbstractResponseHandler {
 
           @Override
           public Integer handleEntity(final HttpEntity entity) throws IOException {
-            return Integer.valueOf(EntityUtils.toString(entity));
+            return Integer.valueOf(new String(EntityUtils.toByteArray(entity)));
           }
         };
         final Integer number = handler.handleResponse(response);

@@ -27,16 +27,15 @@
 
 package org.apache.http.impl.conn;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpResponseFactory;
-import org.apache.http.annotation.Immutable;
-import org.apache.http.config.MessageConstraints;
-import org.apache.http.impl.DefaultHttpResponseFactory;
-import org.apache.http.io.HttpMessageParser;
-import org.apache.http.io.HttpMessageParserFactory;
-import org.apache.http.io.SessionInputBuffer;
-import org.apache.http.message.BasicLineParser;
-import org.apache.http.message.LineParser;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponseFactory;
+import org.apache.hc.core5.http.config.MessageConstraints;
+import org.apache.hc.core5.http.impl.DefaultHttpResponseFactory;
+import org.apache.hc.core5.http.io.HttpMessageParser;
+import org.apache.hc.core5.http.io.HttpMessageParserFactory;
+import org.apache.hc.core5.http.message.BasicLineParser;
+import org.apache.hc.core5.http.message.LineParser;
 
 /**
  * Default factory for response message parsers.
@@ -56,12 +55,10 @@ public class DefaultHttpResponseParserFactory implements HttpMessageParserFactor
             final HttpResponseFactory responseFactory) {
         super();
         this.lineParser = lineParser != null ? lineParser : BasicLineParser.INSTANCE;
-        this.responseFactory = responseFactory != null ? responseFactory
-                : DefaultHttpResponseFactory.INSTANCE;
+        this.responseFactory = responseFactory != null ? responseFactory : DefaultHttpResponseFactory.INSTANCE;
     }
 
-    public DefaultHttpResponseParserFactory(
-            final HttpResponseFactory responseFactory) {
+    public DefaultHttpResponseParserFactory(final HttpResponseFactory responseFactory) {
         this(null, responseFactory);
     }
 
@@ -70,9 +67,8 @@ public class DefaultHttpResponseParserFactory implements HttpMessageParserFactor
     }
 
     @Override
-    public HttpMessageParser<HttpResponse> create(final SessionInputBuffer buffer,
-            final MessageConstraints constraints) {
-        return new DefaultHttpResponseParser(buffer, lineParser, responseFactory, constraints);
+    public HttpMessageParser<HttpResponse> create(final MessageConstraints constraints) {
+        return new LenientHttpResponseParser(this.lineParser, this.responseFactory, constraints);
     }
 
 }

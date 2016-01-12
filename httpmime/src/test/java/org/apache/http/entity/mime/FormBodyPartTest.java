@@ -27,12 +27,12 @@
 
 package org.apache.http.entity.mime;
 
-import org.apache.http.entity.ContentType;
+import java.io.File;
+
+import org.apache.hc.core5.http.entity.ContentType;
 import org.apache.http.entity.mime.content.FileBody;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.File;
 
 public class FormBodyPartTest {
 

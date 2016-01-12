@@ -31,18 +31,18 @@ import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.http.HttpVersion;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.RequestLine;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.RequestLine;
+import org.apache.hc.core5.http.message.AbstractHttpMessage;
+import org.apache.hc.core5.http.message.BasicRequestLine;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.Configurable;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.concurrent.Cancellable;
-import org.apache.http.message.AbstractHttpMessage;
-import org.apache.http.message.BasicRequestLine;
-import org.apache.http.util.Args;
 
 @NotThreadSafe
 class InternalHttpRequest extends AbstractHttpMessage

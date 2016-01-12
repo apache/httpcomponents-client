@@ -36,7 +36,7 @@ import java.net.InetAddress;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.http.osgi.services.ProxyConfiguration;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -120,7 +120,7 @@ public class TestOSGiHttpRoutePlanner {
         final BundleContext bc = mock(BundleContext.class);
         when(bc.getService(sRef1)).thenReturn(this.pc1);
 
-        final Map<String, ServiceRegistration> registrations = new TreeMap<String, ServiceRegistration>(); // TreeMap for order
+        final Map<String, ServiceRegistration> registrations = new TreeMap<>(); // TreeMap for order
         registrations.put("foo1", sReg1);
 
         OSGiHttpRoutePlanner planner = new OSGiHttpRoutePlanner(bc, registrations);
@@ -176,7 +176,7 @@ public class TestOSGiHttpRoutePlanner {
         when(sReg2.getReference()).thenReturn(sRef2);
         final BundleContext bc = mock(BundleContext.class);
         when(bc.getService(sRef2)).thenReturn(this.pc2);
-        final Map<String, ServiceRegistration> registrations = new TreeMap<String, ServiceRegistration>();
+        final Map<String, ServiceRegistration> registrations = new TreeMap<>();
         registrations.put("foo2", sReg2);
 
         final OSGiHttpRoutePlanner planner = new OSGiHttpRoutePlanner(bc, registrations);

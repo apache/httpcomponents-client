@@ -29,12 +29,11 @@ package org.apache.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.apache.http.Consts;
-import org.apache.http.Header;
-import org.apache.http.entity.ContentType;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -52,13 +51,13 @@ public class TestMultipartEntityBuilder {
     public void testMultipartOptions() throws Exception {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .setBoundary("blah-blah")
-                .setCharset(Consts.UTF_8)
+                .setCharset(StandardCharsets.UTF_8)
                 .setLaxMode()
                 .buildEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity.getMultipart() instanceof HttpBrowserCompatibleMultipart);
         Assert.assertEquals("blah-blah", entity.getMultipart().boundary);
-        Assert.assertEquals(Consts.UTF_8, entity.getMultipart().charset);
+        Assert.assertEquals(StandardCharsets.UTF_8, entity.getMultipart().charset);
     }
 
     @Test
@@ -80,13 +79,11 @@ public class TestMultipartEntityBuilder {
         final MultipartFormEntity entity = MultipartEntityBuilder.create()
                 .setContentType(ContentType.APPLICATION_XML)
                 .setBoundary("blah-blah")
-                .setCharset(Consts.UTF_8)
+                .setCharset(StandardCharsets.UTF_8)
                 .setLaxMode()
                 .buildEntity();
         Assert.assertNotNull(entity);
-        final Header contentType = entity.getContentType();
-        Assert.assertNotNull(contentType);
-        Assert.assertEquals("application/xml; boundary=blah-blah; charset=UTF-8", contentType.getValue());
+        Assert.assertEquals("application/xml; boundary=blah-blah; charset=UTF-8", entity.getContentType());
     }
 
     @Test
@@ -97,12 +94,9 @@ public class TestMultipartEntityBuilder {
                         new BasicNameValuePair("charset", "ascii")))
                 .buildEntity();
         Assert.assertNotNull(entity);
-        final Header contentType = entity.getContentType();
-        Assert.assertNotNull(contentType);
-        Assert.assertEquals("multipart/form-data; boundary=yada-yada; charset=US-ASCII",
-                contentType.getValue());
+        Assert.assertEquals("multipart/form-data; boundary=yada-yada; charset=US-ASCII", entity.getContentType());
         Assert.assertEquals("yada-yada", entity.getMultipart().boundary);
-        Assert.assertEquals(Consts.ASCII, entity.getMultipart().charset);
+        Assert.assertEquals(StandardCharsets.US_ASCII, entity.getMultipart().charset);
     }
 
     @Test
@@ -113,14 +107,12 @@ public class TestMultipartEntityBuilder {
                         new BasicNameValuePair("charset", "ascii"),
                         new BasicNameValuePair("my", "stuff")))
                 .setBoundary("blah-blah")
-                .setCharset(Consts.UTF_8)
+                .setCharset(StandardCharsets.UTF_8)
                 .setLaxMode()
                 .buildEntity();
         Assert.assertNotNull(entity);
-        final Header contentType = entity.getContentType();
-        Assert.assertNotNull(contentType);
         Assert.assertEquals("multipart/form-data; boundary=blah-blah; charset=UTF-8; my=stuff",
-                contentType.getValue());
+                entity.getContentType());
     }
 
 }

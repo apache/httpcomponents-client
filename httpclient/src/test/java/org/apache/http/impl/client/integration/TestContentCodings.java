@@ -31,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -39,23 +40,22 @@ import java.util.concurrent.Executors;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPOutputStream;
 
-import org.apache.http.Consts;
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.entity.InputStreamEntity;
+import org.apache.hc.core5.http.entity.StringEntity;
+import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.localserver.LocalServerTestBase;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestHandler;
-import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -305,7 +305,7 @@ public class TestContentCodings extends LocalServerTestBase {
                             // response.setEntity(new InputStreamEntity(new DeflaterInputStream(new
                             // ByteArrayInputStream(
                             // entityText.getBytes("utf-8"))), -1));
-                            final byte[] uncompressed = entityText.getBytes(Consts.UTF_8);
+                            final byte[] uncompressed = entityText.getBytes(StandardCharsets.UTF_8);
                             final Deflater compressor = new Deflater(Deflater.DEFAULT_COMPRESSION, rfc1951);
                             compressor.setInput(uncompressed);
                             compressor.finish();
@@ -363,7 +363,7 @@ public class TestContentCodings extends LocalServerTestBase {
                             final OutputStream out = new GZIPOutputStream(bytes);
 
                             final ByteArrayInputStream uncompressed = new ByteArrayInputStream(
-                                    entityText.getBytes(Consts.UTF_8));
+                                    entityText.getBytes(StandardCharsets.UTF_8));
 
                             final byte[] buf = new byte[60];
 

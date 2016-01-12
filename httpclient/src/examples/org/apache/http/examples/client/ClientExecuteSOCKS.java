@@ -33,19 +33,19 @@ import java.net.Proxy;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.EntityUtils;
 
 /**
  * How to send a request via SOCKS proxy.
@@ -94,7 +94,7 @@ public class ClientExecuteSOCKS {
                 final HttpHost host,
                 final InetSocketAddress remoteAddress,
                 final InetSocketAddress localAddress,
-                final HttpContext context) throws IOException, ConnectTimeoutException {
+                final HttpContext context) throws IOException {
             Socket sock;
             if (socket != null) {
                 sock = socket;

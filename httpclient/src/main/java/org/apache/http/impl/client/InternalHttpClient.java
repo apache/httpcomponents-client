@@ -33,10 +33,14 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.protocol.BasicHttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.ClientProtocolException;
@@ -47,15 +51,11 @@ import org.apache.http.client.methods.Configurable;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.config.Lookup;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.execchain.ClientExecChain;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.Args;
 
 /**
  * Internal class.
@@ -131,7 +131,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     protected CloseableHttpResponse doExecute(
             final HttpHost target,
             final HttpRequest request,
-            final HttpContext context) throws IOException, ClientProtocolException {
+            final HttpContext context) throws IOException {
         Args.notNull(request, "HTTP request");
         HttpExecutionAware execAware = null;
         if (request instanceof HttpExecutionAware) {

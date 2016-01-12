@@ -27,15 +27,16 @@
 
 package org.apache.http.localserver;
 
+import java.nio.charset.StandardCharsets;
+
 import org.apache.commons.codec.BinaryDecoder;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.Header;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpRequest;
-import org.apache.http.ProtocolException;
-import org.apache.http.util.EncodingUtils;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.ProtocolException;
 
 public class BasicAuthTokenExtractor {
 
@@ -59,9 +60,9 @@ public class BasicAuthTokenExtractor {
             if (authscheme.equalsIgnoreCase("basic")) {
                 final String s = auth.substring(i + 1).trim();
                 try {
-                    final byte[] credsRaw = EncodingUtils.getAsciiBytes(s);
+                    final byte[] credsRaw = s.getBytes(StandardCharsets.US_ASCII);
                     final BinaryDecoder codec = new Base64();
-                    auth = EncodingUtils.getAsciiString(codec.decode(credsRaw));
+                    auth = new String(codec.decode(credsRaw), StandardCharsets.US_ASCII);
                 } catch (final DecoderException ex) {
                     throw new ProtocolException("Malformed BASIC credentials");
                 }

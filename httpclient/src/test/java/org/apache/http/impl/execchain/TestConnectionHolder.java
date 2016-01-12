@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
-import org.apache.http.HttpClientConnection;
+import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.junit.Assert;
 import org.junit.Before;

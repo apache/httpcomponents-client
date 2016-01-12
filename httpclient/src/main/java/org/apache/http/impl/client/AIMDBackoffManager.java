@@ -29,10 +29,10 @@ package org.apache.http.impl.client;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.hc.core5.pool.ConnPoolControl;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.BackoffManager;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.pool.ConnPoolControl;
-import org.apache.http.util.Args;
 
 /**
  * <p>The {@code AIMDBackoffManager} applies an additive increase,

@@ -30,17 +30,33 @@ package org.apache.http.examples.client;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.Consts;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.ParseException;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.config.ConnectionConfig;
+import org.apache.hc.core5.http.config.MessageConstraints;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.config.SocketConfig;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.impl.DefaultHttpResponseFactory;
+import org.apache.hc.core5.http.impl.io.DefaultHttpRequestWriterFactory;
+import org.apache.hc.core5.http.io.HttpMessageParser;
+import org.apache.hc.core5.http.io.HttpMessageParserFactory;
+import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicLineParser;
+import org.apache.hc.core5.http.message.LineParser;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.AuthSchemes;
@@ -49,11 +65,6 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.config.ConnectionConfig;
-import org.apache.http.config.MessageConstraints;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpConnectionFactory;
 import org.apache.http.conn.ManagedHttpClientConnection;
@@ -61,27 +72,15 @@ import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.DefaultHttpResponseParser;
 import org.apache.http.impl.conn.DefaultHttpResponseParserFactory;
+import org.apache.http.impl.conn.LenientHttpResponseParser;
 import org.apache.http.impl.conn.ManagedHttpClientConnectionFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultDnsResolver;
-import org.apache.http.impl.io.DefaultHttpRequestWriterFactory;
-import org.apache.http.io.HttpMessageParser;
-import org.apache.http.io.HttpMessageParserFactory;
-import org.apache.http.io.HttpMessageWriterFactory;
-import org.apache.http.io.SessionInputBuffer;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicLineParser;
-import org.apache.http.message.LineParser;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.util.CharArrayBuffer;
-import org.apache.http.util.EntityUtils;
 
 /**
  * This example demonstrates how to customize and configure the most common aspects
@@ -96,8 +95,7 @@ public class ClientConfiguration {
         HttpMessageParserFactory<HttpResponse> responseParserFactory = new DefaultHttpResponseParserFactory() {
 
             @Override
-            public HttpMessageParser<HttpResponse> create(
-                SessionInputBuffer buffer, MessageConstraints constraints) {
+            public HttpMessageParser<HttpResponse> create(MessageConstraints constraints) {
                 LineParser lineParser = new BasicLineParser() {
 
                     @Override
@@ -110,16 +108,7 @@ public class ClientConfiguration {
                     }
 
                 };
-                return new DefaultHttpResponseParser(
-                    buffer, lineParser, DefaultHttpResponseFactory.INSTANCE, constraints) {
-
-                    @Override
-                    protected boolean reject(final CharArrayBuffer line, int count) {
-                        // try to ignore all garbage preceding a status line infinitely
-                        return false;
-                    }
-
-                };
+                return new LenientHttpResponseParser(lineParser, DefaultHttpResponseFactory.INSTANCE, constraints);
             }
 
         };
@@ -186,7 +175,7 @@ public class ClientConfiguration {
         ConnectionConfig connectionConfig = ConnectionConfig.custom()
             .setMalformedInputAction(CodingErrorAction.IGNORE)
             .setUnmappableInputAction(CodingErrorAction.IGNORE)
-            .setCharset(Consts.UTF_8)
+            .setCharset(StandardCharsets.UTF_8)
             .setMessageConstraints(messageConstraints)
             .build();
         // Configure the connection manager to use connection configuration either

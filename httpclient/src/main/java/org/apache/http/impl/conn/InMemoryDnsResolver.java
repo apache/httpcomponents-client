@@ -34,8 +34,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.conn.DnsResolver;
-import org.apache.http.util.Args;
 
 /**
  * In-memory {@link DnsResolver} implementation.

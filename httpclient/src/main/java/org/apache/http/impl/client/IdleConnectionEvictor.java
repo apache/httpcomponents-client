@@ -30,8 +30,8 @@ package org.apache.http.impl.client;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hc.core5.util.Args;
 import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.util.Args;
 
 /**
  * This class maintains a background thread to enforce an eviction policy for expired / idle

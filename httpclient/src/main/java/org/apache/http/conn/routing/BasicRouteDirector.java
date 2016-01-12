@@ -27,8 +27,8 @@
 
 package org.apache.http.conn.routing;
 
-import org.apache.http.annotation.Immutable;
-import org.apache.http.util.Args;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Basic {@link HttpRouteDirector} implementation.

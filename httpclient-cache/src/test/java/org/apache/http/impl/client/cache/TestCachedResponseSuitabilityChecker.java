@@ -28,14 +28,14 @@ package org.apache.http.impl.client.cache;
 
 import java.util.Date;
 
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpVersion;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHttpRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

@@ -31,15 +31,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.StatusLine;
+import org.apache.hc.core5.http.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.EntityUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.util.EntityUtils;
 
 public class Response {
 
@@ -84,7 +83,7 @@ public class Response {
      * Handles the response using the specified {@link ResponseHandler}
      */
     public <T> T handleResponse(
-            final ResponseHandler<T> handler) throws ClientProtocolException, IOException {
+            final ResponseHandler<T> handler) throws IOException {
         assertNotConsumed();
         try {
             return handler.handleResponse(this.response);
@@ -93,7 +92,7 @@ public class Response {
         }
     }
 
-    public Content returnContent() throws ClientProtocolException, IOException {
+    public Content returnContent() throws IOException {
         return handleResponse(new ContentResponseHandler());
     }
 

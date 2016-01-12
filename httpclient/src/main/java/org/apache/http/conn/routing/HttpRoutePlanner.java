@@ -27,10 +27,10 @@
 
 package org.apache.http.conn.routing;
 
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * Encapsulates logic to compute a {@link HttpRoute} to a target host.
@@ -61,8 +61,8 @@ public interface HttpRoutePlanner {
      *
      * @throws HttpException    in case of a problem
      */
-    public HttpRoute determineRoute(HttpHost target,
-                                    HttpRequest request,
-                                    HttpContext context) throws HttpException;
+    HttpRoute determineRoute(HttpHost target,
+                             HttpRequest request,
+                             HttpContext context) throws HttpException;
 
 }

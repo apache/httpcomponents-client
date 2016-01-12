@@ -36,12 +36,15 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheInvalidator;
@@ -52,9 +55,6 @@ import org.apache.http.client.cache.Resource;
 import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.protocol.HTTP;
 
 class BasicHttpCache implements HttpCache {
     private static final Set<String> safeRequestMethods = new HashSet<>(
@@ -199,7 +199,7 @@ class BasicHttpCache implements HttpCache {
             && status != HttpStatus.SC_PARTIAL_CONTENT) {
             return false;
         }
-        final Header hdr = resp.getFirstHeader(HTTP.CONTENT_LEN);
+        final Header hdr = resp.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
         if (hdr == null) {
             return false;
         }
@@ -217,7 +217,7 @@ class BasicHttpCache implements HttpCache {
 
     CloseableHttpResponse generateIncompleteResponseError(
             final HttpResponse response, final Resource resource) {
-        final Integer contentLength = Integer.valueOf(response.getFirstHeader(HTTP.CONTENT_LEN).getValue());
+        final Integer contentLength = Integer.valueOf(response.getFirstHeader(HttpHeaders.CONTENT_LENGTH).getValue());
         final HttpResponse error =
             new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_GATEWAY, "Bad Gateway");
         error.setHeader("Content-Type","text/plain;charset=UTF-8");

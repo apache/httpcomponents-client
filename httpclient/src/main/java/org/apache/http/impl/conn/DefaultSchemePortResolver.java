@@ -26,11 +26,11 @@
  */
 package org.apache.http.impl.conn;
 
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.UnsupportedSchemeException;
-import org.apache.http.util.Args;
 
 /**
  * Default {@link SchemePortResolver}.

@@ -33,17 +33,17 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.FileEntity;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.SerializableEntity;
-import org.apache.http.entity.StringEntity;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.entity.AbstractHttpEntity;
+import org.apache.hc.core5.http.entity.BasicHttpEntity;
+import org.apache.hc.core5.http.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.FileEntity;
+import org.apache.hc.core5.http.entity.InputStreamEntity;
+import org.apache.hc.core5.http.entity.SerializableEntity;
+import org.apache.hc.core5.http.entity.StringEntity;
 
 /**
  * Builder for {@link HttpEntity} instances.

@@ -27,11 +27,11 @@
 
 package org.apache.http.impl.auth.win;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.client.config.AuthSchemes;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * {@link AuthSchemeProvider} implementation that creates and initializes
@@ -45,7 +45,7 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class WindowsNegotiateSchemeFactory implements AuthSchemeProvider {
 
-    private String servicePrincipalName;
+    private final String servicePrincipalName;
 
     public WindowsNegotiateSchemeFactory(final String servicePrincipalName) {
         super();

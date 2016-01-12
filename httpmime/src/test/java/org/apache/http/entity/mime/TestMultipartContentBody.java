@@ -28,9 +28,9 @@
 package org.apache.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 
-import org.apache.http.Consts;
-import org.apache.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.ContentType;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.junit.Assert;
@@ -53,9 +53,9 @@ public class TestMultipartContentBody {
         Assert.assertEquals(MIME.ENC_8BIT, b1.getTransferEncoding());
 
         final StringBody b2 = new StringBody("more text",
-                ContentType.create("text/other", MIME.DEFAULT_CHARSET));
+                ContentType.create("text/other", StandardCharsets.ISO_8859_1));
         Assert.assertEquals(9, b2.getContentLength());
-        Assert.assertEquals(MIME.DEFAULT_CHARSET.name(), b2.getCharset());
+        Assert.assertEquals(StandardCharsets.ISO_8859_1.name(), b2.getCharset());
 
         Assert.assertNull(b2.getFilename());
         Assert.assertEquals("text/other", b2.getMimeType());
@@ -72,12 +72,12 @@ public class TestMultipartContentBody {
 
     @Test(expected=IllegalArgumentException.class)
     public void testStringBodyInvalidConstruction2() throws Exception {
-        Assert.assertNotNull(new StringBody("stuff", (ContentType) null)); // avoid unused warning
+        Assert.assertNotNull(new StringBody("stuff", null)); // avoid unused warning
     }
 
     @Test
     public void testInputStreamBody() throws Exception {
-        final byte[] stuff = "Stuff".getBytes(Consts.ASCII);
+        final byte[] stuff = "Stuff".getBytes(StandardCharsets.US_ASCII);
         final InputStreamBody b1 = new InputStreamBody(new ByteArrayInputStream(stuff), "stuff");
         Assert.assertEquals(-1, b1.getContentLength());
 

@@ -27,7 +27,7 @@
 
 package org.apache.http.client.methods;
 
-import org.apache.http.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.Cancellable;
 
 /**
  * Interface to be implemented by any object that wishes to be notified of

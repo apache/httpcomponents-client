@@ -27,12 +27,12 @@
 
 package org.apache.http.conn;
 
-import org.apache.http.HttpHost;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.net.InetAddress;
+
+import org.apache.hc.core5.http.HttpHost;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Unit tests for exceptions.

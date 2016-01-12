@@ -33,14 +33,15 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.ProtocolException;
-import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.auth.AuthScheme;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.auth.AuthExchange;
+import org.apache.http.auth.AuthScheme;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.RequestConfig;
@@ -51,8 +52,6 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
-import org.apache.http.util.Args;
-import org.apache.http.util.EntityUtils;
 
 /**
  * Request executor in the request execution chain that is responsible
@@ -124,11 +123,8 @@ public class RedirectExec implements ClientExecChain {
                         final HttpRequest original = request.getOriginal();
                         redirect.setHeaders(original.getAllHeaders());
                     }
-                    currentRequest = HttpRequestWrapper.wrap(redirect);
-
-                    if (currentRequest instanceof HttpEntityEnclosingRequest) {
-                        RequestEntityProxy.enhance((HttpEntityEnclosingRequest) currentRequest);
-                    }
+                    currentRequest = HttpRequestWrapper.wrap(redirect, currentRequest.getTarget());
+                    RequestEntityProxy.enhance(currentRequest);
 
                     final URI uri = currentRequest.getURI();
                     final HttpHost newTarget = URIUtils.extractHost(uri);

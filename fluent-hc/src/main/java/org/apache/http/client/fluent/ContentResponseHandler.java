@@ -28,14 +28,14 @@ package org.apache.http.client.fluent;
 
 import java.io.IOException;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.EntityUtils;
 import org.apache.http.impl.client.AbstractResponseHandler;
-import org.apache.http.util.EntityUtils;
 
 /**
  * {@link org.apache.http.client.ResponseHandler} implementation that converts
- * {@link org.apache.http.HttpResponse} messages to {@link org.apache.http.client.fluent.Content}
+ * {@link org.apache.hc.core5.http.HttpResponse} messages to {@link org.apache.http.client.fluent.Content}
  * instances.
  *
  * @see org.apache.http.client.fluent.Content

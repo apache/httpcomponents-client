@@ -29,7 +29,7 @@ package org.apache.http.localserver;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.ssl.SSLContexts;
+import org.apache.hc.core5.ssl.SSLContexts;
 
 public class SSLTestContexts {
 

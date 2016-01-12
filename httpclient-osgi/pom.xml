@@ -56,8 +56,8 @@
     </dependency>
       <!-- Depend on the OSGi bundle - the bundle plugin knows what to do. -->
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore-osgi</artifactId>
+      <groupId>org.apache.httpcomponents.core5</groupId>
+      <artifactId>httpcore5-osgi</artifactId>
       <version>${httpcore.version}</version>
         <exclusions>
           <exclusion>

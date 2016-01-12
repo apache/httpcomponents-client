@@ -32,9 +32,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.util.Args;
+import org.apache.hc.core5.http.entity.AbstractHttpEntity;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.util.Args;
 
 class InternalByteArrayEntity extends AbstractHttpEntity implements Cloneable {
 

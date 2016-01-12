@@ -33,9 +33,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 
-import org.apache.http.Consts;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * Builder class for sequences of bytes.
@@ -102,7 +102,7 @@ public class ByteArrayBuilder {
 
     private void doAppend(final CharBuffer charBuffer) {
         if (this.charsetEncoder == null) {
-            this.charsetEncoder = Consts.ASCII.newEncoder()
+            this.charsetEncoder = StandardCharsets.US_ASCII.newEncoder()
                     .onMalformedInput(CodingErrorAction.IGNORE)
                     .onUnmappableCharacter(CodingErrorAction.REPLACE);
         }

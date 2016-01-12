@@ -28,8 +28,8 @@ package org.apache.http.auth;
 
 import java.util.Queue;
 
-import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.util.Args;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.util.Args;
 
 /**
  * This class represents the actual state of authentication handshake including the current {@link AuthScheme}

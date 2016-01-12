@@ -29,9 +29,9 @@ package org.apache.http.conn;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.HttpClientConnection;
+import org.apache.hc.core5.http.io.HttpClientConnection;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * Represents a manager of persistent client connections.
@@ -59,18 +59,12 @@ public interface HttpClientConnectionManager {
      * Please note that newly allocated connections can be returned
      * in the closed state. The consumer of that connection is responsible
      * for fully establishing the route the to the connection target
-     * by calling {@link #connect(org.apache.http.HttpClientConnection,
-     *   org.apache.http.conn.routing.HttpRoute, int,
-     *   org.apache.http.protocol.HttpContext) connect} in order to connect
+     * by calling {@link #connect(HttpClientConnection, HttpRoute, int, HttpContext)}  connect} in order to connect
      * directly to the target or to the first proxy hop, optionally calling
-     * {@link #upgrade(org.apache.http.HttpClientConnection,
-     *   org.apache.http.conn.routing.HttpRoute,
-     *   org.apache.http.protocol.HttpContext) upgrade} method to upgrade
+     * {@link #upgrade(HttpClientConnection, HttpRoute, HttpContext)}  upgrade} method to upgrade
      * the connection after having executed {@code CONNECT} method to
-     * all intermediate proxy hops and and finally calling {@link #routeComplete(
-     *  org.apache.http.HttpClientConnection,
-     *  org.apache.http.conn.routing.HttpRoute,
-     *  org.apache.http.protocol.HttpContext) routeComplete} to mark the route
+     * all intermediate proxy hops and and finally calling {@link #routeComplete(HttpClientConnection, HttpRoute,
+     * HttpContext)} routeComplete} to mark the route
      *  as fully completed.
      * </p>
      *

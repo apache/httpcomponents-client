@@ -29,9 +29,9 @@ package org.apache.http.client.methods;
 
 import java.util.Set;
 
-import org.apache.http.ProtocolVersion;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.message.BasicStatusLine;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.message.BasicStatusLine;
 import org.junit.Assert;
 import org.junit.Test;
 

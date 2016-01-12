@@ -29,7 +29,7 @@ package org.apache.http.impl.client.cache;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 import org.apache.http.client.cache.Resource;
 
 /**

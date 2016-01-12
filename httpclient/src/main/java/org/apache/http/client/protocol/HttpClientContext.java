@@ -32,8 +32,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.protocol.BasicHttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
@@ -41,15 +45,11 @@ import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.Lookup;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecProvider;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
 
 /**
  * Adaptor class that provides convenience type safe setters and getters
@@ -74,7 +74,7 @@ public class HttpClientContext extends HttpCoreContext {
     public static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
     /**
-     * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
+     * Attribute name of a {@link org.apache.hc.core5.http.config.Lookup} object that represents
      * the actual {@link CookieSpecProvider} registry.
      */
     public static final String COOKIESPEC_REGISTRY   = "http.cookiespec-registry";
@@ -111,7 +111,7 @@ public class HttpClientContext extends HttpCoreContext {
 
     /**
      * Attribute name of a map containing actual {@link AuthExchange}s keyed by their respective
-     * {@link org.apache.http.HttpHost}.
+     * {@link org.apache.hc.core5.http.HttpHost}.
      */
     public static final String AUTH_EXCHANGE_MAP     = "http.auth.exchanges";
 
@@ -122,7 +122,7 @@ public class HttpClientContext extends HttpCoreContext {
     public static final String USER_TOKEN            = "http.user-token";
 
     /**
-     * Attribute name of a {@link org.apache.http.config.Lookup} object that represents
+     * Attribute name of a {@link org.apache.hc.core5.http.config.Lookup} object that represents
      * the actual {@link AuthSchemeProvider} registry.
      */
     public static final String AUTHSCHEME_REGISTRY   = "http.authscheme-registry";

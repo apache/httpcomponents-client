@@ -26,7 +26,8 @@
  */
 package org.apache.http.impl.auth;
 
-import org.apache.http.Consts;
+import java.nio.charset.StandardCharsets;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -70,7 +71,7 @@ public class TestNTLMEngineImpl {
     static void checkMD4(final String input, final String hexOutput) throws Exception {
         NTLMEngineImpl.MD4 md4;
         md4 = new NTLMEngineImpl.MD4();
-        md4.update(input.getBytes(Consts.ASCII));
+        md4.update(input.getBytes(StandardCharsets.US_ASCII));
         final byte[] answer = md4.getOutput();
         final byte[] correctAnswer = toBytes(hexOutput);
         if (answer.length != correctAnswer.length) {

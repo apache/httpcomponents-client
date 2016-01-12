@@ -33,14 +33,14 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.util.Date;
 
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHttpResponse;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -90,7 +90,7 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Date", DateUtils.formatDate(responseDate)),
                 new BasicHeader("ETag", "\"etag\"")};
         entry = HttpTestUtils.makeCacheEntry(headers);
-        response.setHeaders(new Header[]{});
+        response.setHeaders();
 
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 new Date(), new Date(), response);
@@ -112,9 +112,8 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("Cache-Control", "max-age=0"),};
         entry = HttpTestUtils.makeCacheEntry(headers);
 
-        response.setHeaders(new Header[] {
-                new BasicHeader("Last-Modified", DateUtils.formatDate(responseDate)),
-                new BasicHeader("Cache-Control", "public")});
+        response.setHeaders(new BasicHeader("Last-Modified", DateUtils.formatDate(responseDate)),
+                new BasicHeader("Cache-Control", "public"));
 
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 new Date(), new Date(), response);
@@ -136,9 +135,8 @@ public class TestCacheEntryUpdater {
                 new BasicHeader("ETag", "\"etag\"")};
 
         entry = HttpTestUtils.makeCacheEntry(headers);
-        response.setHeaders(new Header[]{
-                new BasicHeader("Last-Modified", DateUtils.formatDate(responseDate)),
-                new BasicHeader("Cache-Control", "public"),});
+        response.setHeaders(new BasicHeader("Last-Modified", DateUtils.formatDate(responseDate)),
+                new BasicHeader("Cache-Control", "public"));
 
         final HttpCacheEntry updatedEntry = impl.updateCacheEntry(null, entry,
                 new Date(), new Date(), response);

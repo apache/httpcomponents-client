@@ -29,15 +29,15 @@ package org.apache.http.client.utils;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.http.Consts;
-import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.http.conn.util.InetAddressUtils;
-import org.apache.http.message.BasicNameValuePair;
 
 /**
  * Builder for {@link URI} instances.
@@ -178,25 +178,25 @@ public class URIBuilder {
         this.encodedPath = uri.getRawPath();
         this.path = uri.getPath();
         this.encodedQuery = uri.getRawQuery();
-        this.queryParams = parseQuery(uri.getRawQuery(), this.charset != null ? this.charset : Consts.UTF_8);
+        this.queryParams = parseQuery(uri.getRawQuery(), this.charset != null ? this.charset : StandardCharsets.UTF_8);
         this.encodedFragment = uri.getRawFragment();
         this.fragment = uri.getFragment();
     }
 
     private String encodeUserInfo(final String userInfo) {
-        return URLEncodedUtils.encUserInfo(userInfo, this.charset != null ? this.charset : Consts.UTF_8);
+        return URLEncodedUtils.encUserInfo(userInfo, this.charset != null ? this.charset : StandardCharsets.UTF_8);
     }
 
     private String encodePath(final String path) {
-        return URLEncodedUtils.encPath(path, this.charset != null ? this.charset : Consts.UTF_8);
+        return URLEncodedUtils.encPath(path, this.charset != null ? this.charset : StandardCharsets.UTF_8);
     }
 
     private String encodeUrlForm(final List<NameValuePair> params) {
-        return URLEncodedUtils.format(params, this.charset != null ? this.charset : Consts.UTF_8);
+        return URLEncodedUtils.format(params, this.charset != null ? this.charset : StandardCharsets.UTF_8);
     }
 
     private String encodeUric(final String fragment) {
-        return URLEncodedUtils.encUric(fragment, this.charset != null ? this.charset : Consts.UTF_8);
+        return URLEncodedUtils.encUric(fragment, this.charset != null ? this.charset : StandardCharsets.UTF_8);
     }
 
     /**

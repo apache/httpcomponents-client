@@ -29,14 +29,15 @@ package org.apache.http.examples.client;
 
 import java.io.IOException;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.entity.EntityUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 
 /**
  * This example demonstrates the use of the {@link ResponseHandler} to simplify
@@ -55,11 +56,15 @@ public class ClientWithResponseHandler {
 
                 @Override
                 public String handleResponse(
-                        final HttpResponse response) throws ClientProtocolException, IOException {
+                        final HttpResponse response) throws IOException {
                     int status = response.getStatusLine().getStatusCode();
                     if (status >= 200 && status < 300) {
                         HttpEntity entity = response.getEntity();
-                        return entity != null ? EntityUtils.toString(entity) : null;
+                        try {
+                            return entity != null ? EntityUtils.toString(entity) : null;
+                        } catch (ParseException ex) {
+                            throw new ClientProtocolException(ex);
+                        }
                     } else {
                         throw new ClientProtocolException("Unexpected response status: " + status);
                     }

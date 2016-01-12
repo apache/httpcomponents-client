@@ -30,20 +30,20 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderIterator;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.StatusLine;
+import org.apache.hc.core5.http.message.HeaderGroup;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.message.HeaderGroup;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.Args;
 
 /**
- * Structure used to store an {@link org.apache.http.HttpResponse} in a cache.
+ * Structure used to store an {@link org.apache.hc.core5.http.HttpResponse} in a cache.
  * Some entries can optionally depend on system resources that may require
  * explicit deallocation. In such a case {@link #getResource()} should return
  * a non null instance of {@link Resource} that must be deallocated by calling
@@ -186,7 +186,7 @@ public class HttpCacheEntry implements Serializable {
      * @return the Date value of the header or null if the header is not present
      */
     private Date parseDate() {
-        final Header dateHdr = getFirstHeader(HTTP.DATE_HEADER);
+        final Header dateHdr = getFirstHeader(HttpHeaders.DATE);
         if (dateHdr == null) {
             return null;
         }
@@ -195,7 +195,7 @@ public class HttpCacheEntry implements Serializable {
 
     /**
      * Returns the {@link StatusLine} from the origin
-     * {@link org.apache.http.HttpResponse}.
+     * {@link org.apache.hc.core5.http.HttpResponse}.
      */
     public StatusLine getStatusLine() {
         return this.statusLine;
@@ -203,7 +203,7 @@ public class HttpCacheEntry implements Serializable {
 
     /**
      * Returns the {@link ProtocolVersion} from the origin
-     * {@link org.apache.http.HttpResponse}.
+     * {@link org.apache.hc.core5.http.HttpResponse}.
      */
     public ProtocolVersion getProtocolVersion() {
         return this.statusLine.getProtocolVersion();
@@ -211,7 +211,7 @@ public class HttpCacheEntry implements Serializable {
 
     /**
      * Gets the reason phrase from the origin
-     * {@link org.apache.http.HttpResponse}, for example, "Not Modified".
+     * {@link org.apache.hc.core5.http.HttpResponse}, for example, "Not Modified".
      */
     public String getReasonPhrase() {
         return this.statusLine.getReasonPhrase();
@@ -219,7 +219,7 @@ public class HttpCacheEntry implements Serializable {
 
     /**
      * Returns the HTTP response code from the origin
-     * {@link org.apache.http.HttpResponse}.
+     * {@link org.apache.hc.core5.http.HttpResponse}.
      */
     public int getStatusCode() {
         return this.statusLine.getStatusCode();
@@ -247,9 +247,8 @@ public class HttpCacheEntry implements Serializable {
      */
     public Header[] getAllHeaders() {
         final HeaderGroup filteredHeaders = new HeaderGroup();
-        for (final HeaderIterator iterator = responseHeaders.iterator(); iterator
-                .hasNext();) {
-            final Header header = (Header) iterator.next();
+        for (final Iterator<Header> iterator = responseHeaders.headerIterator(); iterator.hasNext();) {
+            final Header header = iterator.next();
             if (!REQUEST_METHOD_HEADER_NAME.equals(header.getName())) {
                 filteredHeaders.addHeader(header);
             }

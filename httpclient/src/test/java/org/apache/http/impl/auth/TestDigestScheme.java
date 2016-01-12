@@ -31,15 +31,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HeaderElement;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.entity.InputStreamEntity;
+import org.apache.hc.core5.http.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicHeaderValueParser;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.ParserCursor;
+import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
@@ -47,15 +54,7 @@ import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.message.BasicHeaderValueParser;
-import org.apache.http.message.BasicHttpEntityEnclosingRequest;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.message.ParserCursor;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.CharArrayBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -64,7 +63,7 @@ import org.junit.Test;
  */
 public class TestDigestScheme {
 
-    private static AuthChallenge parse(final String s) {
+    private static AuthChallenge parse(final String s) throws ParseException {
         final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
         buffer.append(s);
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -434,11 +433,13 @@ public class TestDigestScheme {
         Assert.assertFalse(authscheme.isChallengeComplete());
     }
 
-    private static Map<String, String> parseAuthResponse(final String authResponse) {
+    private static Map<String, String> parseAuthResponse(final String authResponse) throws ParseException {
         if (!authResponse.startsWith("Digest ")) {
             return null;
         }
-        final HeaderElement[] elements = BasicHeaderValueParser.parseElements(authResponse.substring(7), null);
+        final String s = authResponse.substring(7);
+        final ParserCursor cursor = new ParserCursor(0, s.length());
+        final HeaderElement[] elements = BasicHeaderValueParser.INSTANCE.parseElements(s, cursor);
         final Map<String, String> map = new HashMap<>(elements.length);
         for (final HeaderElement element : elements) {
             map.put(element.getName(), element.getValue());
@@ -582,8 +583,8 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthenticationQopAuthInt() throws Exception {
-        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
-        request.setEntity(new StringEntity("abc\u00e4\u00f6\u00fcabc", HTTP.DEF_CONTENT_CHARSET));
+        final HttpRequest request = new BasicHttpRequest("Post", "/");
+        request.setEntity(new StringEntity("abc\u00e4\u00f6\u00fcabc", StandardCharsets.ISO_8859_1));
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -610,7 +611,7 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthenticationQopAuthIntNullEntity() throws Exception {
-        final HttpRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
+        final HttpRequest request = new BasicHttpRequest("Post", "/");
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -618,7 +619,7 @@ public class TestDigestScheme {
         credentialsProvider.setCredentials(authScope, creds);
 
         final String challenge = "Digest realm=\"realm1\", nonce=\"f2a3f18799759d4f1a1c068b92b573cb\", " +
-                "qop=\"auth,auth-int\"";
+                "qop=\"auth-int\"";
         final AuthChallenge authChallenge = parse(challenge);
         final DigestScheme authscheme = new DigestScheme();
         authscheme.processChallenge(authChallenge, null);
@@ -637,7 +638,7 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthenticationQopAuthOrAuthIntNonRepeatableEntity() throws Exception {
-        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
+        final HttpRequest request = new BasicHttpRequest("Post", "/");
         request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1));
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
@@ -686,7 +687,7 @@ public class TestDigestScheme {
 
     @Test(expected=AuthenticationException.class)
     public void testDigestAuthenticationQopIntOnlyNonRepeatableEntity() throws Exception {
-        final HttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("Post", "/");
+        final HttpRequest request = new BasicHttpRequest("Post", "/");
         request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1));
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);

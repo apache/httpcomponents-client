@@ -28,10 +28,10 @@ package org.apache.http.impl.client.cache;
 
 import java.util.Map;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.ProtocolException;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpRequestWrapper;
@@ -44,8 +44,8 @@ class ConditionalRequestBuilder {
 
     /**
      * When a {@link HttpCacheEntry} is stale but 'might' be used as a response
-     * to an {@link org.apache.http.HttpRequest} we will attempt to revalidate
-     * the entry with the origin.  Build the origin {@link org.apache.http.HttpRequest}
+     * to an {@link org.apache.hc.core5.http.HttpRequest} we will attempt to revalidate
+     * the entry with the origin.  Build the origin {@link org.apache.hc.core5.http.HttpRequest}
      * here and return it.
      *
      * @param request the original request from the caller
@@ -55,7 +55,7 @@ class ConditionalRequestBuilder {
      */
     public HttpRequestWrapper buildConditionalRequest(final HttpRequestWrapper request, final HttpCacheEntry cacheEntry)
             throws ProtocolException {
-        final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
+        final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal(), request.getTarget());
         newRequest.setHeaders(request.getAllHeaders());
         final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
         if (eTag != null) {
@@ -84,9 +84,9 @@ class ConditionalRequestBuilder {
 
     /**
      * When a {@link HttpCacheEntry} does not exist for a specific
-     * {@link org.apache.http.HttpRequest} we attempt to see if an existing
+     * {@link org.apache.hc.core5.http.HttpRequest} we attempt to see if an existing
      * {@link HttpCacheEntry} is appropriate by building a conditional
-     * {@link org.apache.http.HttpRequest} using the variants' ETag values.
+     * {@link org.apache.hc.core5.http.HttpRequest} using the variants' ETag values.
      * If no such values exist, the request is unmodified
      *
      * @param request the original request from the caller
@@ -95,7 +95,7 @@ class ConditionalRequestBuilder {
      */
     public HttpRequestWrapper buildConditionalRequestFromVariants(final HttpRequestWrapper request,
             final Map<String, Variant> variants) {
-        final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
+        final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal(), request.getTarget());
         newRequest.setHeaders(request.getAllHeaders());
 
         // we do not support partial content so all etags are used
@@ -125,7 +125,7 @@ class ConditionalRequestBuilder {
      * @return an unconditional validation request
      */
     public HttpRequestWrapper buildUnconditionalRequest(final HttpRequestWrapper request, final HttpCacheEntry entry) {
-        final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal());
+        final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal(), request.getTarget());
         newRequest.setHeaders(request.getAllHeaders());
         newRequest.addHeader(HeaderConstants.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.addHeader(HeaderConstants.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);

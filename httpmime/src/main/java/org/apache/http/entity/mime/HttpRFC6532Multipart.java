@@ -30,6 +30,7 @@ package org.apache.http.entity.mime;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -64,7 +65,7 @@ class HttpRFC6532Multipart extends AbstractMultipartForm {
         // For RFC6532, we output all fields with UTF-8 encoding.
         final Header header = part.getHeader();
         for (final MinimalField field: header) {
-            writeField(field, MIME.UTF8_CHARSET, out);
+            writeField(field, StandardCharsets.UTF_8, out);
         }
     }
 

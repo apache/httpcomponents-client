@@ -26,7 +26,7 @@
  */
 package org.apache.http.impl.client.cache;
 
-import org.apache.http.util.Args;
+import org.apache.hc.core5.util.Args;
 
 /**
  * <p>Java Beans-style configuration for caching {@link org.apache.http.client.HttpClient}.

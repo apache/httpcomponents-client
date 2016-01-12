@@ -28,7 +28,7 @@ package org.apache.http.client;
 
 import java.io.IOException;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * Signals an error in the HTTP protocol.

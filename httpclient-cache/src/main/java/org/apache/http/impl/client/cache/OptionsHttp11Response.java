@@ -26,21 +26,19 @@
  */
 package org.apache.http.impl.client.cache;
 
+import java.util.Iterator;
 import java.util.Locale;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderIterator;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
-import org.apache.http.annotation.Immutable;
-import org.apache.http.message.AbstractHttpMessage;
-import org.apache.http.message.BasicStatusLine;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.StatusLine;
+import org.apache.hc.core5.http.message.AbstractHttpMessage;
+import org.apache.hc.core5.http.message.BasicStatusLine;
 
 /**
  * @since 4.1
@@ -55,6 +53,11 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
     @Override
     public StatusLine getStatusLine() {
         return statusLine;
+    }
+
+    @Override
+    public int getCode() {
+        return statusLine.getStatusCode();
     }
 
     @Override
@@ -109,27 +112,27 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
 
     @Override
     public boolean containsHeader(final String name) {
-        return this.headergroup.containsHeader(name);
+        return super.containsHeader(name);
     }
 
     @Override
     public Header[] getHeaders(final String name) {
-        return this.headergroup.getHeaders(name);
+        return super.getHeaders(name);
     }
 
     @Override
     public Header getFirstHeader(final String name) {
-        return this.headergroup.getFirstHeader(name);
+        return super.getFirstHeader(name);
     }
 
     @Override
     public Header getLastHeader(final String name) {
-        return this.headergroup.getLastHeader(name);
+        return super.getLastHeader(name);
     }
 
     @Override
     public Header[] getAllHeaders() {
-        return this.headergroup.getAllHeaders();
+        return super.getAllHeaders();
     }
 
     @Override
@@ -138,7 +141,7 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
     }
 
     @Override
-    public void addHeader(final String name, final String value) {
+    public void addHeader(final String name, final Object value) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
@@ -148,7 +151,7 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
     }
 
     @Override
-    public void setHeader(final String name, final String value) {
+    public void setHeader(final String name, final Object value) {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
@@ -168,25 +171,14 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
     }
 
     @Override
-    public HeaderIterator headerIterator() {
-        return this.headergroup.iterator();
+    public Iterator<Header> headerIterator() {
+        return super.headerIterator();
     }
 
     @Override
-    public HeaderIterator headerIterator(final String name) {
-        return this.headergroup.iterator(name);
+    public Iterator<Header> headerIterator(final String name) {
+        return super.headerIterator(name);
     }
 
-    @Override
-    public HttpParams getParams() {
-        if (this.params == null) {
-            this.params = new BasicHttpParams();
-        }
-        return this.params;
-    }
 
-    @Override
-    public void setParams(final HttpParams params) {
-        // No-op on purpose, this class is not going to be doing any work.
-    }
 }

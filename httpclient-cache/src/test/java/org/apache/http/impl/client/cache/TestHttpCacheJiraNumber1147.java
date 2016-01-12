@@ -36,9 +36,10 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.util.Date;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.client.methods.HttpExecutionAware;
@@ -48,7 +49,6 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.execchain.ClientExecChain;
-import org.apache.http.message.BasicHttpResponse;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -95,7 +95,7 @@ public class TestHttpCacheJiraNumber1147 {
         final HttpCacheStorage httpCacheStorage = new ManagedHttpCacheStorage(cacheConfig);
 
         final ClientExecChain backend = mock(ClientExecChain.class);
-        final HttpRequestWrapper get = HttpRequestWrapper.wrap(new HttpGet("http://somehost/"));
+        final HttpRequestWrapper get = HttpRequestWrapper.wrap(new HttpGet("http://somehost/"), new HttpHost("somehost"));
         final HttpClientContext context = HttpClientContext.create();
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);

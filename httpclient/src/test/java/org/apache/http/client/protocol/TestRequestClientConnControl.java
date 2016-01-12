@@ -26,15 +26,16 @@
  */
 package org.apache.http.client.protocol;
 
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElements;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.RouteInfo.LayerType;
 import org.apache.http.conn.routing.RouteInfo.TunnelType;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.protocol.HTTP;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -56,8 +57,8 @@ public class TestRequestClientConnControl {
         interceptor.process(request, context);
         final Header header1 = request.getFirstHeader("Proxy-Connection");
         Assert.assertNotNull(header1);
-        Assert.assertEquals(HTTP.CONN_KEEP_ALIVE, header1.getValue());
-        final Header header2 = request.getFirstHeader(HTTP.CONN_DIRECTIVE);
+        Assert.assertEquals(HeaderElements.KEEP_ALIVE, header1.getValue());
+        final Header header2 = request.getFirstHeader(HttpHeaders.CONNECTION);
         Assert.assertNull(header2);
     }
 
@@ -74,9 +75,9 @@ public class TestRequestClientConnControl {
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);
 
-        final Header header1 = request.getFirstHeader(HTTP.CONN_DIRECTIVE);
+        final Header header1 = request.getFirstHeader(HttpHeaders.CONNECTION);
         Assert.assertNotNull(header1);
-        Assert.assertEquals(HTTP.CONN_KEEP_ALIVE, header1.getValue());
+        Assert.assertEquals(HeaderElements.KEEP_ALIVE, header1.getValue());
         final Header header2 = request.getFirstHeader("Proxy-Connection");
         Assert.assertNull(header2);
     }
@@ -96,9 +97,9 @@ public class TestRequestClientConnControl {
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);
 
-        final Header header1 = request.getFirstHeader(HTTP.CONN_DIRECTIVE);
+        final Header header1 = request.getFirstHeader(HttpHeaders.CONNECTION);
         Assert.assertNotNull(header1);
-        Assert.assertEquals(HTTP.CONN_KEEP_ALIVE, header1.getValue());
+        Assert.assertEquals(HeaderElements.KEEP_ALIVE, header1.getValue());
         final Header header2 = request.getFirstHeader("Proxy-Connection");
         Assert.assertNull(header2);
     }
@@ -120,15 +121,15 @@ public class TestRequestClientConnControl {
 
         final Header header1 = request.getFirstHeader("Proxy-Connection");
         Assert.assertNotNull(header1);
-        Assert.assertEquals(HTTP.CONN_KEEP_ALIVE, header1.getValue());
-        final Header header2 = request.getFirstHeader(HTTP.CONN_DIRECTIVE);
+        Assert.assertEquals(HeaderElements.KEEP_ALIVE, header1.getValue());
+        final Header header2 = request.getFirstHeader(HttpHeaders.CONNECTION);
         Assert.assertNull(header2);
     }
 
     @Test
     public void testPreserveCustomConnectionHeader() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
-        request.addHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
+        request.addHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpHost target = new HttpHost("localhost", 443, "https");
@@ -141,9 +142,9 @@ public class TestRequestClientConnControl {
         final HttpRequestInterceptor interceptor = new RequestClientConnControl();
         interceptor.process(request, context);
 
-        final Header header1 = request.getFirstHeader(HTTP.CONN_DIRECTIVE);
+        final Header header1 = request.getFirstHeader(HttpHeaders.CONNECTION);
         Assert.assertNotNull(header1);
-        Assert.assertEquals(HTTP.CONN_CLOSE, header1.getValue());
+        Assert.assertEquals(HeaderElements.CLOSE, header1.getValue());
         final Header header2 = request.getFirstHeader("Proxy-Connection");
         Assert.assertNull(header2);
     }
@@ -151,7 +152,7 @@ public class TestRequestClientConnControl {
     @Test
     public void testPreserveCustomProxyConnectionHeader() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
-        request.addHeader("Proxy-Connection", HTTP.CONN_CLOSE);
+        request.addHeader("Proxy-Connection", HeaderElements.CLOSE);
         final HttpClientContext context = HttpClientContext.create();
 
         final HttpHost target = new HttpHost("localhost", 80, "http");
@@ -166,7 +167,7 @@ public class TestRequestClientConnControl {
 
         final Header header1 = request.getFirstHeader("Proxy-Connection");
         Assert.assertNotNull(header1);
-        Assert.assertEquals(HTTP.CONN_CLOSE, header1.getValue());
+        Assert.assertEquals(HeaderElements.CLOSE, header1.getValue());
     }
 
 }

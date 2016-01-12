@@ -30,13 +30,13 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolException;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.http.auth.AuthExchange;
 import org.apache.http.client.RedirectException;
 import org.apache.http.client.RedirectStrategy;
@@ -89,7 +89,7 @@ public class TestRedirectExec {
         final HttpGet get = new HttpGet("/test");
         get.addHeader("header", "this");
         get.addHeader("header", "that");
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get);
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get, target);
         final HttpClientContext context = HttpClientContext.create();
 
         final CloseableHttpResponse response1 = Mockito.mock(CloseableHttpResponse.class);
@@ -160,7 +160,7 @@ public class TestRedirectExec {
     public void testMaxRedirect() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet get = new HttpGet("/test");
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get);
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get, target);
         final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom()
                 .setRedirectsEnabled(true)
@@ -196,7 +196,7 @@ public class TestRedirectExec {
     public void testRelativeRedirect() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet get = new HttpGet("/test");
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get);
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get, target);
         final HttpClientContext context = HttpClientContext.create();
 
         final CloseableHttpResponse response1 = Mockito.mock(CloseableHttpResponse.class);
@@ -234,7 +234,7 @@ public class TestRedirectExec {
         final HttpHost proxy = new HttpHost("proxy");
         final HttpRoute route = new HttpRoute(target, proxy);
         final HttpGet get = new HttpGet("/test");
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get);
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get, target);
         final HttpClientContext context = HttpClientContext.create();
 
         final AuthExchange targetAuthExchange = new AuthExchange();
@@ -288,7 +288,7 @@ public class TestRedirectExec {
     public void testRedirectRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet get = new HttpGet("/test");
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get);
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get, target);
         final HttpClientContext context = HttpClientContext.create();
 
         final CloseableHttpResponse response1 = Mockito.mock(CloseableHttpResponse.class);
@@ -318,7 +318,7 @@ public class TestRedirectExec {
     public void testRedirectProtocolException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet get = new HttpGet("/test");
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get);
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get, target);
         final HttpClientContext context = HttpClientContext.create();
 
         final CloseableHttpResponse response1 = Mockito.mock(CloseableHttpResponse.class);

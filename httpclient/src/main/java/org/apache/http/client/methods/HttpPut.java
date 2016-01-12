@@ -29,7 +29,7 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
 
 /**
  * HTTP PUT method.
@@ -47,7 +47,7 @@ import org.apache.http.annotation.NotThreadSafe;
  * @since 4.0
  */
 @NotThreadSafe
-public class HttpPut extends HttpEntityEnclosingRequestBase {
+public class HttpPut extends HttpRequestBase {
 
     public final static String METHOD_NAME = "PUT";
 

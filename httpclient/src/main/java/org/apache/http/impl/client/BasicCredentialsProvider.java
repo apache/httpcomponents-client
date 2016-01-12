@@ -29,11 +29,11 @@ package org.apache.http.impl.client;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.CredentialsStore;
-import org.apache.http.util.Args;
 
 /**
  * Default implementation of {@link CredentialsStore}.

@@ -28,13 +28,13 @@ package org.apache.http.examples.client;
 
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.pool.PoolStats;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.pool.PoolStats;
-import org.apache.http.util.EntityUtils;
 
 /**
  * Example demonstrating how to evict expired and idle connections

@@ -27,8 +27,8 @@
 package org.apache.http.auth.util;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
-import org.apache.http.Consts;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -126,7 +126,7 @@ public class TestByteArrayBuilder {
 
         final byte[] bytes = buffer.toByteArray();
         Assert.assertNotNull(bytes);
-        Assert.assertEquals("123456789abcdef", new String(bytes, Consts.ASCII));
+        Assert.assertEquals("123456789abcdef", new String(bytes, StandardCharsets.US_ASCII));
     }
 
     @Test
@@ -176,13 +176,13 @@ public class TestByteArrayBuilder {
 
         final byte[] bytes1 = buffer.toByteArray();
         Assert.assertNotNull(bytes1);
-        Assert.assertEquals("abcdef", new String(bytes1, Consts.ASCII));
+        Assert.assertEquals("abcdef", new String(bytes1, StandardCharsets.US_ASCII));
 
         buffer.reset();
 
         final byte[] bytes2 = buffer.toByteArray();
         Assert.assertNotNull(bytes2);
-        Assert.assertEquals("", new String(bytes2, Consts.ASCII));
+        Assert.assertEquals("", new String(bytes2, StandardCharsets.US_ASCII));
     }
 
     @Test
@@ -200,15 +200,15 @@ public class TestByteArrayBuilder {
 
         final byte[] bytes1 = buffer.toByteArray();
         Assert.assertNotNull(bytes1);
-        Assert.assertEquals("?-?-?", new String(bytes1, Consts.ASCII));
+        Assert.assertEquals("?-?-?", new String(bytes1, StandardCharsets.US_ASCII));
 
         buffer.reset();
-        buffer.charset(Consts.UTF_8);
+        buffer.charset(StandardCharsets.UTF_8);
         buffer.append(umlauts);
 
         final byte[] bytes2 = buffer.toByteArray();
         Assert.assertNotNull(bytes2);
-        Assert.assertEquals(umlauts, new String(bytes2, Consts.UTF_8));
+        Assert.assertEquals(umlauts, new String(bytes2, StandardCharsets.UTF_8));
     }
 
 }

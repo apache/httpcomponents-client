@@ -27,8 +27,8 @@
 
 package org.apache.http.client;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * Strategy interface that allows API users to plug in their own logic to

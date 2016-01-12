@@ -35,24 +35,21 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.http.Consts;
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.annotation.Immutable;
-import org.apache.http.entity.ContentType;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.message.ParserCursor;
-import org.apache.http.message.TokenParser;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.Args;
-import org.apache.http.util.CharArrayBuffer;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.message.ParserCursor;
+import org.apache.hc.core5.http.message.TokenParser;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.CharArrayBuffer;
 
 /**
  * A collection of utilities for encoding URLs.
@@ -114,7 +111,7 @@ public class URLEncodedUtils {
         }
         final long len = entity.getContentLength();
         Args.check(len <= Integer.MAX_VALUE, "HTTP entity is too large");
-        final Charset charset = contentType.getCharset() != null ? contentType.getCharset() : HTTP.DEF_CONTENT_CHARSET;
+        final Charset charset = contentType.getCharset() != null ? contentType.getCharset() : StandardCharsets.ISO_8859_1;
         final InputStream instream = entity.getContent();
         if (instream == null) {
             return Collections.emptyList();
@@ -143,15 +140,8 @@ public class URLEncodedUtils {
      * {@code application/x-www-form-urlencoded}.
      */
     public static boolean isEncoded(final HttpEntity entity) {
-        final Header h = entity.getContentType();
-        if (h != null) {
-            final HeaderElement[] elems = h.getElements();
-            if (elems.length > 0) {
-                final String contentType = elems[0].getName();
-                return contentType.equalsIgnoreCase(CONTENT_TYPE);
-            }
-        }
-        return false;
+        final ContentType contentType = ContentType.parse(entity.getContentType());
+        return contentType != null && CONTENT_TYPE.equalsIgnoreCase(contentType.getMimeType());
     }
 
     /**
@@ -520,7 +510,7 @@ public class URLEncodedUtils {
         if (content == null) {
             return null;
         }
-        return urlDecode(content, charset != null ? Charset.forName(charset) : Consts.UTF_8, true);
+        return urlDecode(content, charset != null ? Charset.forName(charset) : StandardCharsets.UTF_8, true);
     }
 
     /**
@@ -534,7 +524,7 @@ public class URLEncodedUtils {
         if (content == null) {
             return null;
         }
-        return urlDecode(content, charset != null ? charset : Consts.UTF_8, true);
+        return urlDecode(content, charset != null ? charset : StandardCharsets.UTF_8, true);
     }
 
     /**
@@ -552,7 +542,7 @@ public class URLEncodedUtils {
         if (content == null) {
             return null;
         }
-        return urlEncode(content, charset != null ? Charset.forName(charset) : Consts.UTF_8, URLENCODER, true);
+        return urlEncode(content, charset != null ? Charset.forName(charset) : StandardCharsets.UTF_8, URLENCODER, true);
     }
 
     /**
@@ -570,7 +560,7 @@ public class URLEncodedUtils {
         if (content == null) {
             return null;
         }
-        return urlEncode(content, charset != null ? charset : Consts.UTF_8, URLENCODER, true);
+        return urlEncode(content, charset != null ? charset : StandardCharsets.UTF_8, URLENCODER, true);
     }
 
     /**

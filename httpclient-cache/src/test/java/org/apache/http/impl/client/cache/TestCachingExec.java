@@ -45,11 +45,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
+import org.apache.hc.core5.http.HeaderElements;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.entity.InputStreamEntity;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.message.BasicStatusLine;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
@@ -58,14 +64,9 @@ import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.execchain.ClientExecChain;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.message.BasicStatusLine;
-import org.apache.http.protocol.HTTP;
-import org.easymock.IExpectationSetters;
 import org.easymock.EasyMock;
+import org.easymock.IExpectationSetters;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -252,7 +253,7 @@ public class TestCachingExec extends TestCachingExecChain {
         mockImplMethods(GET_CURRENT_DATE, HANDLE_BACKEND_RESPONSE);
 
         final HttpRequestWrapper validate = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
+                new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1), host);
         final CloseableHttpResponse originResponse = Proxies.enhanceResponse(
                 new BasicHttpResponse(HttpVersion.HTTP_1_1,  HttpStatus.SC_NOT_FOUND, "Not Found"));
         final CloseableHttpResponse finalResponse = Proxies.enhanceResponse(
@@ -284,7 +285,7 @@ public class TestCachingExec extends TestCachingExecChain {
         mockImplMethods(GET_CURRENT_DATE);
 
         final HttpRequestWrapper validate = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1));
+                new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1), host);
         final HttpResponse originResponse = Proxies.enhanceResponse(
             new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_NOT_MODIFIED, "Not Modified"));
         final HttpCacheEntry updatedEntry = HttpTestUtils.makeCacheEntry();
@@ -318,9 +319,9 @@ public class TestCachingExec extends TestCachingExecChain {
         EasyMock.resetToStrict(mockBackend);
 
         final HttpRequestWrapper validate = HttpRequestWrapper.wrap(
-                new HttpGet("http://foo.example.com/resource"));
+                new HttpGet("http://foo.example.com/resource"), host);
         final HttpRequestWrapper relativeValidate = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET", "/resource", HttpVersion.HTTP_1_1));
+                new BasicHttpRequest("GET", "/resource", HttpVersion.HTTP_1_1), host);
         final CloseableHttpResponse originResponse = Proxies.enhanceResponse(
             new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "Okay"));
 
@@ -346,7 +347,7 @@ public class TestCachingExec extends TestCachingExecChain {
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         resp1.setHeader("Date", DateUtils.formatDate(new Date()));
         resp1.setHeader("Server", "MockOrigin/1.0");
-        resp1.setHeader(HTTP.TRANSFER_ENCODING, HTTP.CHUNK_CODING);
+        resp1.setHeader(HttpHeaders.TRANSFER_ENCODING, HeaderElements.CHUNKED_ENCODING);
 
         final AtomicInteger size = new AtomicInteger();
         final AtomicInteger maxlength = new AtomicInteger(Integer.MAX_VALUE);
@@ -380,7 +381,7 @@ public class TestCachingExec extends TestCachingExecChain {
                 EasyMock.<HttpExecutionAware>isNull());
         EasyMock.expect(resp).andReturn(Proxies.enhanceResponse(resp1));
 
-        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest(), host);
 
         replayMocks();
         final CloseableHttpResponse resp2 = impl.execute(route, req1, context, null);

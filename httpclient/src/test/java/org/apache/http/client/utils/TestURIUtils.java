@@ -29,7 +29,7 @@ package org.apache.http.client.utils;
 import java.net.URI;
 import java.util.Arrays;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.http.conn.routing.HttpRoute;
 import org.junit.Assert;
 import org.junit.Test;

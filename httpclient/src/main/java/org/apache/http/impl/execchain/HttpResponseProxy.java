@@ -28,20 +28,19 @@
 package org.apache.http.impl.execchain;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Locale;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderIterator;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.StatusLine;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.params.HttpParams;
 
 /**
- * A proxy class for {@link org.apache.http.HttpResponse} that can be used to release client connection
+ * A proxy class for {@link org.apache.hc.core5.http.HttpResponse} that can be used to release client connection
  * associated with the original response.
  *
  * @since 4.3
@@ -68,6 +67,11 @@ class HttpResponseProxy implements CloseableHttpResponse {
     @Override
     public StatusLine getStatusLine() {
         return original.getStatusLine();
+    }
+
+    @Override
+    public int getCode() {
+        return original.getCode();
     }
 
     @Override
@@ -121,6 +125,11 @@ class HttpResponseProxy implements CloseableHttpResponse {
     }
 
     @Override
+    public int containsHeaders(final String name) {
+        return original.containsHeaders(name);
+    }
+
+    @Override
     public boolean containsHeader(final String name) {
         return original.containsHeader(name);
     }
@@ -151,7 +160,7 @@ class HttpResponseProxy implements CloseableHttpResponse {
     }
 
     @Override
-    public void addHeader(final String name, final String value) {
+    public void addHeader(final String name, final Object value) {
         original.addHeader(name, value);
     }
 
@@ -161,7 +170,7 @@ class HttpResponseProxy implements CloseableHttpResponse {
     }
 
     @Override
-    public void setHeader(final String name, final String value) {
+    public void setHeader(final String name, final Object value) {
         original.setHeader(name, value);
     }
 
@@ -181,25 +190,13 @@ class HttpResponseProxy implements CloseableHttpResponse {
     }
 
     @Override
-    public HeaderIterator headerIterator() {
+    public Iterator<Header> headerIterator() {
         return original.headerIterator();
     }
 
     @Override
-    public HeaderIterator headerIterator(final String name) {
+    public Iterator<Header> headerIterator(final String name) {
         return original.headerIterator(name);
-    }
-
-    @Override
-    @Deprecated
-    public HttpParams getParams() {
-        return original.getParams();
-    }
-
-    @Override
-    @Deprecated
-    public void setParams(final HttpParams params) {
-        original.setParams(params);
     }
 
     @Override

@@ -29,7 +29,7 @@ package org.apache.http.client.entity;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
 
 /**
  * Lazy init InputStream wrapper.

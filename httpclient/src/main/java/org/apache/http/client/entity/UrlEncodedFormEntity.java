@@ -27,14 +27,14 @@
 package org.apache.http.client.entity;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.StringEntity;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.protocol.HTTP;
 
 /**
  * An entity composed of a list of url-encoded pairs.
@@ -58,13 +58,13 @@ public class UrlEncodedFormEntity extends StringEntity {
         final Iterable <? extends NameValuePair> parameters,
         final Charset charset) {
         super(URLEncodedUtils.format(parameters,
-                charset != null ? charset : HTTP.DEF_CONTENT_CHARSET),
+                charset != null ? charset : StandardCharsets.ISO_8859_1),
                 ContentType.create(URLEncodedUtils.CONTENT_TYPE, charset));
     }
 
     /**
      * Constructs a new {@link UrlEncodedFormEntity} with the list
-     * of parameters with the default encoding of {@link HTTP#DEFAULT_CONTENT_CHARSET}
+     * of parameters with the default encoding of {@link StandardCharsets#ISO_8859_1}
      *
      * @param parameters list of name/value pairs
      */
@@ -74,7 +74,7 @@ public class UrlEncodedFormEntity extends StringEntity {
 
     /**
      * Constructs a new {@link UrlEncodedFormEntity} with the list
-     * of parameters with the default encoding of {@link HTTP#DEFAULT_CONTENT_CHARSET}
+     * of parameters with the default encoding of {@link StandardCharsets#ISO_8859_1}
      *
      * @param parameters iterable collection of name/value pairs
      *

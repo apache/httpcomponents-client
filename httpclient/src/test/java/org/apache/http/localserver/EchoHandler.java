@@ -30,31 +30,21 @@ package org.apache.http.localserver;
 import java.io.IOException;
 import java.util.Locale;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.MethodNotSupportedException;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestHandler;
-import org.apache.http.util.EntityUtils;
-
-
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.MethodNotSupportedException;
+import org.apache.hc.core5.http.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * A handler that echos the incoming request entity.
- *
- *
- *
- * <!-- empty lines to avoid 'svn diff' problems -->
  */
-public class EchoHandler
-    implements HttpRequestHandler {
-
-    // public default constructor
+public class EchoHandler implements HttpRequestHandler {
 
     /**
      * Handles a request by echoing the incoming request entity.
@@ -82,10 +72,7 @@ public class EchoHandler
                 (method + " not supported by " + getClass().getName());
         }
 
-        HttpEntity entity = null;
-        if (request instanceof HttpEntityEnclosingRequest) {
-            entity = ((HttpEntityEnclosingRequest)request).getEntity();
-        }
+        HttpEntity entity = request.getEntity();
 
         // For some reason, just putting the incoming entity into
         // the response will not work. We have to buffer the message.
@@ -104,8 +91,6 @@ public class EchoHandler
 
         response.setStatusCode(HttpStatus.SC_OK);
         response.setEntity(entity);
+    }
 
-    } // handle
-
-
-} // class EchoHandler
+}

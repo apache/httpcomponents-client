@@ -35,11 +35,12 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 import java.util.HashMap;
 
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.message.BasicHeader;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +48,7 @@ import org.junit.Test;
 @SuppressWarnings({"boxing","static-access"}) // test code
 public class TestCachedHttpResponseGenerator {
 
+    private HttpHost host;
     private HttpCacheEntry entry;
     private HttpRequestWrapper request;
     private CacheValidityPolicy mockValidityPolicy;
@@ -54,8 +56,9 @@ public class TestCachedHttpResponseGenerator {
 
     @Before
     public void setUp() {
+        host = new HttpHost("foo.example.com", 80);
         entry = HttpTestUtils.makeCacheEntry(new HashMap<String, String>());
-        request = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        request = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest(), host);
         mockValidityPolicy = mock(CacheValidityPolicy.class);
         impl = new CachedHttpResponseGenerator(mockValidityPolicy);
     }
@@ -159,7 +162,7 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testResponseDoesNotContainEntityToServeHEADRequestIfEntryContainsResource() throws Exception {
-        final HttpRequestWrapper headRequest = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultHEADRequest());
+        final HttpRequestWrapper headRequest = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultHEADRequest(), host);
         final HttpResponse response = impl.generateResponse(headRequest, entry);
 
         Assert.assertNull(response.getEntity());

@@ -29,7 +29,7 @@ package org.apache.http.impl.execchain;
 
 import java.io.IOException;
 
-import org.apache.http.HttpException;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;

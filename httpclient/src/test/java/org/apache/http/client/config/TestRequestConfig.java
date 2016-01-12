@@ -30,7 +30,7 @@ package org.apache.http.client.config;
 import java.net.InetAddress;
 import java.util.Arrays;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
 import org.junit.Assert;
 import org.junit.Test;
 

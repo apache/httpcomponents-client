@@ -26,8 +26,9 @@
  */
 package org.apache.http.impl.execchain;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
@@ -35,7 +36,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.protocol.HttpContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -66,7 +66,7 @@ public class TestServiceUnavailableRetryExec {
     public void testFundamentals() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet get = new HttpGet("/test");
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get);
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get, target);
         final HttpClientContext context = HttpClientContext.create();
 
         final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
@@ -97,7 +97,7 @@ public class TestServiceUnavailableRetryExec {
     @Test(expected = RuntimeException.class)
     public void testStrategyRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("/test"));
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("/test"), target);
         final HttpClientContext context = HttpClientContext.create();
 
         final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);

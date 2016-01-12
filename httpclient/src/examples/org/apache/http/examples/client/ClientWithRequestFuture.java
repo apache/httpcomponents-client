@@ -32,13 +32,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.impl.client.FutureRequestExecutionService;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpRequestFutureTask;
@@ -56,7 +56,7 @@ public class ClientWithRequestFuture {
             // Because things are asynchronous, you must provide a ResponseHandler
             ResponseHandler<Boolean> handler = new ResponseHandler<Boolean>() {
                 @Override
-                public Boolean handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
+                public Boolean handleResponse(HttpResponse response) throws IOException {
                     // simply return true if the status was OK
                     return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
                 }

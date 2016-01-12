@@ -27,7 +27,7 @@
 
 package org.apache.http.impl.conn;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * Signals that the connection has been shut down or released back to the

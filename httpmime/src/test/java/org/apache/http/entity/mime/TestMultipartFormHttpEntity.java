@@ -29,12 +29,14 @@ package org.apache.http.entity.mime;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.entity.ContentType;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.message.BasicHeaderValueParser;
+import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.junit.Assert;
 import org.junit.Test;
@@ -46,17 +48,13 @@ public class TestMultipartFormHttpEntity {
         final HttpEntity entity = MultipartEntityBuilder.create()
                 .setLaxMode()
                 .setBoundary("whatever")
-                .setCharset(MIME.UTF8_CHARSET)
+                .setCharset(StandardCharsets.UTF_8)
                 .build();
 
         Assert.assertNull(entity.getContentEncoding());
-        Assert.assertNotNull(entity.getContentType());
-        final Header header = entity.getContentType();
-        final HeaderElement[] elems = header.getElements();
-        Assert.assertNotNull(elems);
-        Assert.assertEquals(1, elems.length);
-
-        final HeaderElement elem = elems[0];
+        final String contentType = entity.getContentType();
+        final HeaderElement elem = BasicHeaderValueParser.INSTANCE.parseHeaderElement(contentType,
+                new ParserCursor(0, contentType.length()));
         Assert.assertEquals("multipart/form-data", elem.getName());
         final NameValuePair p1 = elem.getParameterByName("boundary");
         Assert.assertNotNull(p1);
@@ -70,13 +68,9 @@ public class TestMultipartFormHttpEntity {
     public void testImplictContractorParams() throws Exception {
         final HttpEntity entity = MultipartEntityBuilder.create().build();
         Assert.assertNull(entity.getContentEncoding());
-        Assert.assertNotNull(entity.getContentType());
-        final Header header = entity.getContentType();
-        final HeaderElement[] elems = header.getElements();
-        Assert.assertNotNull(elems);
-        Assert.assertEquals(1, elems.length);
-
-        final HeaderElement elem = elems[0];
+        final String contentType = entity.getContentType();
+        final HeaderElement elem = BasicHeaderValueParser.INSTANCE.parseHeaderElement(contentType,
+                new ParserCursor(0, contentType.length()));
         Assert.assertEquals("multipart/form-data", elem.getName());
         final NameValuePair p1 = elem.getParameterByName("boundary");
         Assert.assertNotNull(p1);

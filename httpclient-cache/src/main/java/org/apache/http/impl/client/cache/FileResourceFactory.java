@@ -31,7 +31,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 import org.apache.http.client.cache.InputLimit;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.client.cache.ResourceFactory;

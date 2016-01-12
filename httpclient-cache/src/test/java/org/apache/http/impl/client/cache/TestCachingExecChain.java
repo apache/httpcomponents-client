@@ -48,15 +48,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import junit.framework.AssertionFailedError;
-
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.StatusLine;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.StatusLine;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.entity.InputStreamEntity;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.cache.CacheResponseStatus;
@@ -72,18 +75,15 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.execchain.ClientExecChain;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.util.EntityUtils;
 import org.easymock.Capture;
-import org.easymock.IExpectationSetters;
 import org.easymock.EasyMock;
+import org.easymock.IExpectationSetters;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import junit.framework.AssertionFailedError;
 
 @SuppressWarnings("boxing") // test code
 public abstract class TestCachingExecChain {
@@ -142,7 +142,7 @@ public abstract class TestCachingExecChain {
         host = new HttpHost("foo.example.com", 80);
         route = new HttpRoute(host);
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/stuff",
-            HttpVersion.HTTP_1_1));
+            HttpVersion.HTTP_1_1), host);
         context = HttpCacheContext.create();
         context.setTargetHost(host);
         entry = HttpTestUtils.makeCacheEntry();
@@ -218,13 +218,13 @@ public abstract class TestCachingExecChain {
     public void testCacheableResponsesGoIntoCache() throws Exception {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
 
-        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest(), host);
         final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "max-age=3600");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest(), host);
 
         replayMocks();
         impl.execute(route, req1, context, null);
@@ -238,7 +238,7 @@ public abstract class TestCachingExecChain {
         final Date now = new Date();
         final Date fiveSecondsAgo = new Date(now.getTime() - 5 * 1000L);
 
-        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest(), host);
         final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
@@ -246,7 +246,7 @@ public abstract class TestCachingExecChain {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest(), host);
         req2.setHeader("Cache-Control", "no-cache");
         final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag", "\"old-etag\"");
@@ -255,7 +255,7 @@ public abstract class TestCachingExecChain {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest(), host);
 
         replayMocks();
         impl.execute(route, req1, context, null);
@@ -272,7 +272,7 @@ public abstract class TestCachingExecChain {
         final Date now = new Date();
         final Date fiveSecondsAgo = new Date(now.getTime() - 5 * 1000L);
 
-        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest(), host);
         final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(fiveSecondsAgo));
         resp1.setHeader("Cache-Control", "max-age=3600");
@@ -280,7 +280,7 @@ public abstract class TestCachingExecChain {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest(), host);
         req2.setHeader("Cache-Control", "max-age=0");
         final HttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag", "\"new-etag\"");
@@ -289,7 +289,7 @@ public abstract class TestCachingExecChain {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest(), host);
 
         replayMocks();
         impl.execute(route, req1, context, null);
@@ -332,7 +332,7 @@ public abstract class TestCachingExecChain {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(new HeapResourceFactory(),
             mockStorage, configDefault), configDefault);
 
-        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest());
+        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest(), host);
         final HttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "no-cache");
 
@@ -389,7 +389,7 @@ public abstract class TestCachingExecChain {
     public void testSetsModuleGeneratedResponseContextForCacheOptionsResponse() throws Exception {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req = HttpRequestWrapper.wrap(new BasicHttpRequest("OPTIONS", "*",
-            HttpVersion.HTTP_1_1));
+            HttpVersion.HTTP_1_1), host);
         req.setHeader("Max-Forwards", "0");
 
         impl.execute(route, req, context, null);
@@ -402,7 +402,7 @@ public abstract class TestCachingExecChain {
         throws Exception {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req.setHeader("Range", "bytes=0-50");
         req.setHeader("If-Range", "W/\"weak-etag\"");
 
@@ -416,7 +416,7 @@ public abstract class TestCachingExecChain {
         throws Exception {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/",
-            HttpVersion.HTTP_1_0));
+            HttpVersion.HTTP_1_0), host);
         req.setHeader("Cache-Control", "no-cache");
         final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
             HttpStatus.SC_NO_CONTENT, "No Content");
@@ -438,7 +438,7 @@ public abstract class TestCachingExecChain {
     public void testSetsCacheMissContextIfRequestNotServableFromCache() throws Exception {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req.setHeader("Cache-Control", "no-cache");
         final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
             HttpStatus.SC_NO_CONTENT, "No Content");
@@ -455,7 +455,7 @@ public abstract class TestCachingExecChain {
     public void testSetsViaHeaderOnResponseIfRequestNotServableFromCache() throws Exception {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req.setHeader("Cache-Control", "no-cache");
         final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
             HttpStatus.SC_NO_CONTENT, "No Content");
@@ -472,7 +472,7 @@ public abstract class TestCachingExecChain {
     public void testSetsViaHeaderOnResponseForCacheMiss() throws Exception {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
@@ -493,9 +493,9 @@ public abstract class TestCachingExecChain {
     public void testSetsCacheHitContextIfRequestServedFromCache() throws Exception {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
@@ -517,9 +517,9 @@ public abstract class TestCachingExecChain {
     public void testSetsViaHeaderOnResponseIfRequestServedFromCache() throws Exception {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
         resp1.setEntity(HttpTestUtils.makeBody(128));
@@ -543,9 +543,9 @@ public abstract class TestCachingExecChain {
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -573,10 +573,10 @@ public abstract class TestCachingExecChain {
         final Date inTenMinutes = new Date(now.getTime() + 600 * 1000L);
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req1.addHeader("If-Modified-Since", DateUtils.formatDate(oneHourAgo));
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req2.addHeader("If-Modified-Since", DateUtils.formatDate(oneHourAgo));
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
@@ -609,9 +609,9 @@ public abstract class TestCachingExecChain {
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -644,9 +644,9 @@ public abstract class TestCachingExecChain {
         final Date tenSecondsAfter = new Date(now.getTime() + 10 * 1000L);
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -674,9 +674,9 @@ public abstract class TestCachingExecChain {
     public void testReturns304ForIfNoneMatchHeaderIfRequestServedFromCache() throws Exception {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req2.addHeader("If-None-Match", "*");
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -700,9 +700,9 @@ public abstract class TestCachingExecChain {
     public void testReturns200ForIfNoneMatchHeaderFails() throws Exception {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -734,9 +734,9 @@ public abstract class TestCachingExecChain {
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -766,9 +766,9 @@ public abstract class TestCachingExecChain {
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req2.addHeader("If-None-Match", "\"abc\"");
         req2.addHeader("If-Modified-Since", DateUtils.formatDate(now));
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
@@ -798,10 +798,10 @@ public abstract class TestCachingExecChain {
             .setSharedCache(true).build());
         final Date now = new Date();
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpOptions(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req1.setHeader("Authorization", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req2.setHeader("Authorization", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
             HttpStatus.SC_NO_CONTENT, "No Content");
@@ -836,9 +836,9 @@ public abstract class TestCachingExecChain {
 
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -873,9 +873,9 @@ public abstract class TestCachingExecChain {
 
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -910,9 +910,9 @@ public abstract class TestCachingExecChain {
 
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -940,9 +940,9 @@ public abstract class TestCachingExecChain {
 
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -969,9 +969,9 @@ public abstract class TestCachingExecChain {
 
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -999,9 +999,9 @@ public abstract class TestCachingExecChain {
 
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -1036,9 +1036,9 @@ public abstract class TestCachingExecChain {
 
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -1076,9 +1076,9 @@ public abstract class TestCachingExecChain {
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -1115,9 +1115,9 @@ public abstract class TestCachingExecChain {
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -1155,7 +1155,7 @@ public abstract class TestCachingExecChain {
         final Date now = new Date();
 
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com"));
+            "http://foo.example.com"), host);
         req1.addHeader("Accept-Encoding", "gzip");
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
@@ -1168,11 +1168,11 @@ public abstract class TestCachingExecChain {
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com"));
+            "http://foo.example.com"), host);
         req2.addHeader("Accept-Encoding", "deflate");
 
         final HttpRequestWrapper req2Server = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com"));
+            "http://foo.example.com"), host);
         req2Server.addHeader("Accept-Encoding", "deflate");
         req2Server.addHeader("If-None-Match", "\"gzip_etag\"");
 
@@ -1186,11 +1186,11 @@ public abstract class TestCachingExecChain {
         resp2.setHeader("Cache-Control", "public, max-age=3600");
 
         final HttpRequestWrapper req3 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com"));
+            "http://foo.example.com"), host);
         req3.addHeader("Accept-Encoding", "gzip,deflate");
 
         final HttpRequestWrapper req3Server = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com"));
+            "http://foo.example.com"), host);
         req3Server.addHeader("Accept-Encoding", "gzip,deflate");
         req3Server.addHeader("If-None-Match", "\"gzip_etag\",\"deflate_etag\"");
 
@@ -1226,7 +1226,7 @@ public abstract class TestCachingExecChain {
         final Date now = new Date();
 
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com"));
+            "http://foo.example.com"), host);
         req1.addHeader("Accept-Encoding", "gzip");
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
@@ -1239,11 +1239,11 @@ public abstract class TestCachingExecChain {
         resp1.setHeader("Cache-Control", "public, max-age=3600");
 
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com"));
+            "http://foo.example.com"), host);
         req2.addHeader("Accept-Encoding", "deflate");
 
         final HttpRequestWrapper req2Server = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com"));
+            "http://foo.example.com"), host);
         req2Server.addHeader("Accept-Encoding", "deflate");
         req2Server.addHeader("If-None-Match", "\"gzip_etag\"");
 
@@ -1257,12 +1257,12 @@ public abstract class TestCachingExecChain {
         resp2.setHeader("Cache-Control", "public, max-age=3600");
 
         final HttpRequestWrapper req4 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com"));
+            "http://foo.example.com"), host);
         req4.addHeader("Accept-Encoding", "gzip,identity");
         req4.addHeader("If-None-Match", "\"gzip_etag\"");
 
         final HttpRequestWrapper req4Server = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com"));
+            "http://foo.example.com"), host);
         req4Server.addHeader("Accept-Encoding", "gzip,identity");
         req4Server.addHeader("If-None-Match", "\"gzip_etag\"");
 
@@ -1296,7 +1296,7 @@ public abstract class TestCachingExecChain {
         final Date now = new Date();
 
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com"));
+            "http://foo.example.com"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK,
             "OK");
@@ -1502,7 +1502,6 @@ public abstract class TestCachingExecChain {
         ctx.setTargetHost(host);
         impl.execute(route, request, context, null);
         impl.execute(route, request, ctx, null);
-        assertTrue(ctx.isRequestSent());
     }
 
     @Test
@@ -1527,7 +1526,7 @@ public abstract class TestCachingExecChain {
 
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req1.addHeader("If-None-Match", "\"etag\"");
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
@@ -1554,11 +1553,11 @@ public abstract class TestCachingExecChain {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
 
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req1.addHeader("If-None-Match", "etag");
 
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req2.addHeader("If-None-Match", "etag");
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
@@ -1594,11 +1593,11 @@ public abstract class TestCachingExecChain {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
 
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req1.addHeader("If-None-Match", "etag");
 
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req2.addHeader("If-None-Match", "etag");
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
@@ -1637,11 +1636,11 @@ public abstract class TestCachingExecChain {
         impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
 
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
         req1.addHeader("If-None-Match", "etag");
 
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(new HttpGet(
-            "http://foo.example.com/"));
+            "http://foo.example.com/"), host);
 
         final HttpResponse resp1 = new BasicHttpResponse(HttpVersion.HTTP_1_1,
             HttpStatus.SC_NOT_MODIFIED, "Not modified");

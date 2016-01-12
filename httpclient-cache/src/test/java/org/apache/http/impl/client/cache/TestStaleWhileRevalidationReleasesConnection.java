@@ -30,30 +30,30 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
-import org.apache.http.Consts;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.MethodNotSupportedException;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.MethodNotSupportedException;
+import org.apache.hc.core5.http.bootstrap.io.HttpServer;
+import org.apache.hc.core5.http.bootstrap.io.ServerBootstrap;
+import org.apache.hc.core5.http.config.SocketConfig;
+import org.apache.hc.core5.http.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.protocol.BasicHttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.cache.CacheResponseStatus;
 import org.apache.http.client.cache.HttpCacheContext;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.bootstrap.HttpServer;
-import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -253,7 +253,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
          * @param response  the response
          * @param context   the context
          *
-         * @throws org.apache.http.HttpException    in case of a problem
+         * @throws org.apache.hc.core5.http.HttpException    in case of a problem
          * @throws java.io.IOException      in case of an IO problem
          */
         @Override
@@ -271,7 +271,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
                         (method + " not supported by " + getClass().getName());
             }
 
-            response.setStatusCode(org.apache.http.HttpStatus.SC_OK);
+            response.setStatusCode(org.apache.hc.core5.http.HttpStatus.SC_OK);
             response.addHeader("Cache-Control",getCacheContent(request));
             final byte[] content = getHeaderContent(request);
             final ByteArrayEntity bae = new ByteArrayEntity(content);
@@ -285,7 +285,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
         public byte[] getHeaderContent(final HttpRequest request) {
             final Header contentHeader = request.getFirstHeader(DEFAULT_CLIENT_CONTROLLED_CONTENT_HEADER);
             if(contentHeader!=null) {
-                return contentHeader.getValue().getBytes(Consts.UTF_8);
+                return contentHeader.getValue().getBytes(StandardCharsets.UTF_8);
             } else {
                 return DEFAULT_CONTENT;
             }

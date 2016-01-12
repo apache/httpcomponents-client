@@ -29,7 +29,7 @@ package org.apache.http.auth;
 
 import java.util.Arrays;
 
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;
 

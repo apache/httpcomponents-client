@@ -32,29 +32,32 @@ import static junit.framework.TestCase.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.util.Date;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.entity.InputStreamEntity;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.message.BasicHttpEntityEnclosingRequest;
-import org.apache.http.message.BasicHttpResponse;
 import org.junit.Before;
 import org.junit.Test;
 
 public class TestResponseProtocolCompliance {
 
+    private HttpHost host;
     private ResponseProtocolCompliance impl;
 
     @Before
     public void setUp() {
+        host = new HttpHost("foo.example.com", 80);
         impl = new ResponseProtocolCompliance();
     }
 
@@ -88,7 +91,7 @@ public class TestResponseProtocolCompliance {
 
     @Test
     public void consumesBodyIfOriginSendsOneInResponseToHEAD() throws Exception {
-        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(new HttpHead("http://foo.example.com/"));
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(new HttpHead("http://foo.example.com/"), host);
         final int nbytes = 128;
         final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
         setMinimalResponseHeaders(resp);
@@ -105,7 +108,7 @@ public class TestResponseProtocolCompliance {
 
     @Test(expected=ClientProtocolException.class)
     public void throwsExceptionIfOriginReturnsPartialResponseWhenNotRequested() throws Exception {
-        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"), host);
         final int nbytes = 128;
         final HttpResponse resp = makePartialResponse(nbytes);
         resp.setEntity(HttpTestUtils.makeBody(nbytes));
@@ -115,7 +118,7 @@ public class TestResponseProtocolCompliance {
 
     @Test
     public void consumesPartialContentFromOriginEvenIfNotRequested() throws Exception {
-        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"));
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(new HttpGet("http://foo.example.com/"), host);
         final int nbytes = 128;
         final HttpResponse resp = makePartialResponse(nbytes);
 
@@ -132,13 +135,13 @@ public class TestResponseProtocolCompliance {
 
     @Test
     public void consumesBodyOf100ContinueResponseIfItArrives() throws Exception {
-        final HttpEntityEnclosingRequest req = new BasicHttpEntityEnclosingRequest("POST", "/", HttpVersion.HTTP_1_1);
+        final HttpRequest req = new BasicHttpRequest("POST", "/", HttpVersion.HTTP_1_1);
         final int nbytes = 128;
         req.setHeader("Content-Length","" + nbytes);
         req.setHeader("Content-Type", "application/octet-stream");
         final HttpEntity postBody = new ByteArrayEntity(HttpTestUtils.getRandomBytes(nbytes));
         req.setEntity(postBody);
-        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req);
+        final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(req, host);
 
         final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_CONTINUE, "Continue");
         final Flag closed = new Flag();

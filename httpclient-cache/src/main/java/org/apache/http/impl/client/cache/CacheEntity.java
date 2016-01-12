@@ -30,13 +30,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.util.Set;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.TrailerSupplier;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.cache.HttpCacheEntry;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.Args;
 
 @Immutable
 class CacheEntity implements HttpEntity, Serializable {
@@ -51,13 +53,15 @@ class CacheEntity implements HttpEntity, Serializable {
     }
 
     @Override
-    public Header getContentType() {
-        return this.cacheEntry.getFirstHeader(HTTP.CONTENT_TYPE);
+    public String getContentType() {
+        final Header header = this.cacheEntry.getFirstHeader(HttpHeaders.CONTENT_TYPE);
+        return header != null ? header.getValue() : null;
     }
 
     @Override
-    public Header getContentEncoding() {
-        return this.cacheEntry.getFirstHeader(HTTP.CONTENT_ENCODING);
+    public String getContentEncoding() {
+        final Header header = this.cacheEntry.getFirstHeader(HttpHeaders.CONTENT_ENCODING);
+        return header != null ? header.getValue() : null;
     }
 
     @Override
@@ -94,7 +98,13 @@ class CacheEntity implements HttpEntity, Serializable {
     }
 
     @Override
-    public void consumeContent() throws IOException {
+    public TrailerSupplier getTrailers() {
+        return null;
+    }
+
+    @Override
+    public Set<String> getTrailerNames() {
+        return null;
     }
 
 }

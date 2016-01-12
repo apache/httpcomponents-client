@@ -32,8 +32,8 @@ import java.io.InterruptedIOException;
 import java.net.InetAddress;
 import java.util.Arrays;
 
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpHost;
 
 /**
  * A timeout while connecting to an HTTP server or waiting for an

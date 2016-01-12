@@ -27,12 +27,12 @@
 
 package org.apache.http.client.entity;
 
+import java.nio.charset.StandardCharsets;
 import java.util.zip.Deflater;
 
-import org.apache.http.Consts;
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.entity.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,7 +42,7 @@ public class TestDeflate {
     public void testCompressDecompress() throws Exception {
 
         final String s = "some kind of text";
-        final byte[] input = s.getBytes(Consts.ASCII);
+        final byte[] input = s.getBytes(StandardCharsets.US_ASCII);
 
         // Compress the bytes
         final byte[] compressed = new byte[input.length * 2];

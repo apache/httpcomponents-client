@@ -28,23 +28,23 @@
 package org.apache.http.client.protocol;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.Header;
-import org.apache.http.HeaderIterator;
-import org.apache.http.HttpException;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponseInterceptor;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.Args;
 
 /**
  * Response interceptor that populates the current {@link CookieStore} with data
@@ -87,17 +87,17 @@ public class ResponseProcessCookies implements HttpResponseInterceptor {
             this.log.debug("Cookie origin not specified in HTTP context");
             return;
         }
-        final HeaderIterator it = response.headerIterator("Set-Cookie");
+        final Iterator<Header> it = response.headerIterator("Set-Cookie");
         processCookies(it, cookieSpec, cookieOrigin, cookieStore);
     }
 
     private void processCookies(
-            final HeaderIterator iterator,
+            final Iterator<Header> iterator,
             final CookieSpec cookieSpec,
             final CookieOrigin cookieOrigin,
             final CookieStore cookieStore) {
         while (iterator.hasNext()) {
-            final Header header = iterator.nextHeader();
+            final Header header = iterator.next();
             try {
                 final List<Cookie> cookies = cookieSpec.parse(header, cookieOrigin);
                 for (final Cookie cookie : cookies) {

@@ -31,12 +31,12 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * HttpAsyncClientWithFuture wraps calls to execute with a {@link HttpRequestFutureTask}

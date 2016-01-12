@@ -34,20 +34,21 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.config.MessageConstraints;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.ContentLengthStrategy;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.config.MessageConstraints;
+import org.apache.hc.core5.http.impl.io.DefaultBHttpClientConnection;
+import org.apache.hc.core5.http.io.HttpMessageParserFactory;
+import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.conn.ManagedHttpClientConnection;
-import org.apache.http.entity.ContentLengthStrategy;
-import org.apache.http.impl.DefaultBHttpClientConnection;
-import org.apache.http.io.HttpMessageParserFactory;
-import org.apache.http.io.HttpMessageWriterFactory;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * Default {@link ManagedHttpClientConnection} implementation.
@@ -59,6 +60,7 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
 
     private final String id;
     private final Map<String, Object> attributes;
+    private final AtomicReference<Socket> socketHolder;
 
     private volatile boolean shutdown;
 
@@ -78,6 +80,7 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
                 requestWriterFactory, responseParserFactory);
         this.id = id;
         this.attributes = new ConcurrentHashMap<>();
+        this.socketHolder = new AtomicReference<>(null);
     }
 
     public DefaultManagedHttpClientConnection(
@@ -119,17 +122,19 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
             // ...but if it doesn't, explicitly throw one ourselves.
             throw new InterruptedIOException("Connection already shutdown");
         }
-        super.bind(socket);
+        if (!this.socketHolder.compareAndSet(socket, socket)) {
+            super.bind(socket);
+        }
     }
 
     @Override
     public Socket getSocket() {
-        return super.getSocket();
+        return this.socketHolder.get();
     }
 
     @Override
     public SSLSession getSSLSession() {
-        final Socket socket = super.getSocket();
+        final Socket socket = this.socketHolder.get();
         if (socket instanceof SSLSocket) {
             return ((SSLSocket) socket).getSession();
         } else {

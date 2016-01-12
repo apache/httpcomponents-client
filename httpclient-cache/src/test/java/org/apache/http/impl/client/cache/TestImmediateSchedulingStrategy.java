@@ -28,10 +28,10 @@ package org.apache.http.impl.client.cache;
 
 import static org.mockito.Mockito.mock;
 
+import java.util.concurrent.ExecutorService;
+
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.concurrent.ExecutorService;
 
 public class TestImmediateSchedulingStrategy {
 

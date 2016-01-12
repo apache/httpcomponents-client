@@ -28,9 +28,9 @@ package org.apache.http.client.fluent;
 
 import java.util.concurrent.Future;
 
+import org.apache.hc.core5.concurrent.BasicFuture;
+import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.concurrent.BasicFuture;
-import org.apache.http.concurrent.FutureCallback;
 
 public class Async {
 

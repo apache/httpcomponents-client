@@ -29,8 +29,8 @@ package org.apache.http.conn;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.util.Args;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.util.Args;
 
 /**
  * A stream wrapper that triggers actions on {@link #close close()} and EOF.

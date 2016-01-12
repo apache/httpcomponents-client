@@ -27,18 +27,27 @@
 package org.apache.http.impl.client.integration;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.http.Header;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpInetConnection;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.ProtocolException;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpConnection;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.entity.StringEntity;
+import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.UriHttpRequestHandlerMapper;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
@@ -48,17 +57,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.localserver.LocalServerTestBase;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
-import org.apache.http.protocol.HttpRequestHandler;
-import org.apache.http.protocol.UriHttpRequestHandlerMapper;
-import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -85,12 +86,13 @@ public class TestRedirects extends LocalServerTestBase {
                 final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final HttpInetConnection conn = (HttpInetConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
-            String localhost = conn.getLocalAddress().getHostName();
+            final HttpConnection conn = (HttpConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
+            final InetSocketAddress socketAddress = (InetSocketAddress) conn.getLocalAddress();
+            String localhost = socketAddress.getHostName();
             if (localhost.equals("127.0.0.1")) {
                 localhost = "localhost";
             }
-            final int port = conn.getLocalPort();
+            final int port = socketAddress.getPort();
             final String uri = request.getRequestLine().getUri();
             if (uri.equals("/oldlocation/")) {
                 response.setStatusCode(this.statuscode);
@@ -684,7 +686,7 @@ public class TestRedirects extends LocalServerTestBase {
 
     @Test
     public void testDefaultHeadersRedirect() throws Exception {
-        this.clientBuilder.setDefaultHeaders(Arrays.asList(new BasicHeader(HTTP.USER_AGENT, "my-test-client")));
+        this.clientBuilder.setDefaultHeaders(Arrays.asList(new BasicHeader(HttpHeaders.USER_AGENT, "my-test-client")));
 
         this.serverBootstrap.registerHandler("*", new BasicRedirectService());
 
@@ -703,7 +705,7 @@ public class TestRedirects extends LocalServerTestBase {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
 
-        final Header header = reqWrapper.getFirstHeader(HTTP.USER_AGENT);
+        final Header header = reqWrapper.getFirstHeader(HttpHeaders.USER_AGENT);
         Assert.assertEquals("my-test-client", header.getValue());
     }
 

@@ -26,15 +26,16 @@
  */
 package org.apache.http.impl.client;
 
-import org.apache.http.HeaderElement;
-import org.apache.http.HeaderElementIterator;
-import org.apache.http.HttpResponse;
-import org.apache.http.annotation.Immutable;
+import java.util.Iterator;
+
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HeaderElements;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.message.BasicHeaderElementIterator;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
-import org.apache.http.message.BasicHeaderElementIterator;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.Args;
 
 /**
  * Default implementation of a strategy deciding duration
@@ -53,10 +54,10 @@ public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveSt
     @Override
     public long getKeepAliveDuration(final HttpResponse response, final HttpContext context) {
         Args.notNull(response, "HTTP response");
-        final HeaderElementIterator it = new BasicHeaderElementIterator(
-                response.headerIterator(HTTP.CONN_KEEP_ALIVE));
+        final Iterator<HeaderElement> it = new BasicHeaderElementIterator(
+                response.headerIterator(HeaderElements.KEEP_ALIVE));
         while (it.hasNext()) {
-            final HeaderElement he = it.nextElement();
+            final HeaderElement he = it.next();
             final String param = he.getName();
             final String value = he.getValue();
             if (value != null && param.equalsIgnoreCase("timeout")) {

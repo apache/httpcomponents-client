@@ -29,18 +29,18 @@ package org.apache.http.client.protocol;
 
 import java.io.IOException;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.HttpVersion;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HeaderElements;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpRequestInterceptor;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.Args;
 
 /**
  * RequestExpectContinue is responsible for enabling the 'expect-continue'
@@ -64,18 +64,16 @@ public class RequestExpectContinue implements HttpRequestInterceptor {
             throws HttpException, IOException {
         Args.notNull(request, "HTTP request");
 
-        if (!request.containsHeader(HTTP.EXPECT_DIRECTIVE)) {
-            if (request instanceof HttpEntityEnclosingRequest) {
-                final ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
-                final HttpEntity entity = ((HttpEntityEnclosingRequest)request).getEntity();
-                // Do not send the expect header if request body is known to be empty
-                if (entity != null
-                        && entity.getContentLength() != 0 && !ver.lessEquals(HttpVersion.HTTP_1_0)) {
-                    final HttpClientContext clientContext = HttpClientContext.adapt(context);
-                    final RequestConfig config = clientContext.getRequestConfig();
-                    if (config.isExpectContinueEnabled()) {
-                        request.addHeader(HTTP.EXPECT_DIRECTIVE, HTTP.EXPECT_CONTINUE);
-                    }
+        if (!request.containsHeader(HttpHeaders.EXPECT)) {
+            final ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
+            final HttpEntity entity = request.getEntity();
+            // Do not send the expect header if request body is known to be empty
+            if (entity != null
+                    && entity.getContentLength() != 0 && !ver.lessEquals(HttpVersion.HTTP_1_0)) {
+                final HttpClientContext clientContext = HttpClientContext.adapt(context);
+                final RequestConfig config = clientContext.getRequestConfig();
+                if (config.isExpectContinueEnabled()) {
+                    request.addHeader(HttpHeaders.EXPECT, HeaderElements.CONTINUE);
                 }
             }
         }

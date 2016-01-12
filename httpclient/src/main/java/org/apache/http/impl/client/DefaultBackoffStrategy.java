@@ -29,8 +29,8 @@ package org.apache.http.impl.client;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.http.client.ConnectionBackoffStrategy;
 
 /**

@@ -31,13 +31,13 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.message.ParserCursor;
+import org.apache.hc.core5.http.message.TokenParser;
+import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.http.auth.AuthChallenge;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.message.ParserCursor;
-import org.apache.http.message.TokenParser;
-import org.apache.http.util.CharArrayBuffer;
 
 public class AuthChallengeParser {
 
@@ -101,7 +101,7 @@ public class AuthChallengeParser {
         return list;
     }
 
-    private static AuthChallenge createAuthChallenge(final String scheme, final List<NameValuePair> params) {
+    private static AuthChallenge createAuthChallenge(final String scheme, final List<NameValuePair> params) throws ParseException {
         if (scheme != null) {
             if (params.size() == 1) {
                 final NameValuePair nvp = params.get(0);

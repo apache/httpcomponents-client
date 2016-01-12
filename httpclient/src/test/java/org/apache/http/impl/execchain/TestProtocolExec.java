@@ -29,8 +29,11 @@ package org.apache.http.impl.execchain;
 import java.io.IOException;
 import java.net.URI;
 
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.CredentialsProvider;
@@ -41,9 +44,6 @@ import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpProcessor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -76,7 +76,7 @@ public class TestProtocolExec {
     @Test
     public void testFundamentals() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("/test"));
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("/test"), target);
         final HttpClientContext context = HttpClientContext.create();
 
         final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
@@ -104,7 +104,7 @@ public class TestProtocolExec {
     public void testRewriteAbsoluteRequestURI() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
-                new HttpGet("http://foo/test"));
+                new HttpGet("http://foo/test"), target);
         protocolExec.rewriteRequestURI(request, route);
         Assert.assertEquals(new URI("/test"), request.getURI());
     }
@@ -113,7 +113,7 @@ public class TestProtocolExec {
     public void testRewriteEmptyRequestURI() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
-                new HttpGet(""));
+                new HttpGet(""), target);
         protocolExec.rewriteRequestURI(request, route);
         Assert.assertEquals(new URI("/"), request.getURI());
     }
@@ -122,7 +122,7 @@ public class TestProtocolExec {
     public void testRewriteAbsoluteRequestURIViaPRoxy() throws Exception {
         final HttpRoute route = new HttpRoute(target, proxy);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
-                new HttpGet("http://foo/test"));
+                new HttpGet("http://foo/test"), target);
         protocolExec.rewriteRequestURI(request, route);
         Assert.assertEquals(new URI("http://foo/test"), request.getURI());
     }
@@ -131,7 +131,7 @@ public class TestProtocolExec {
     public void testRewriteRelativeRequestURIViaPRoxy() throws Exception {
         final HttpRoute route = new HttpRoute(target, proxy);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
-                new HttpGet("/test"));
+                new HttpGet("/test"), target);
         protocolExec.rewriteRequestURI(request, route);
         Assert.assertEquals(new URI("http://foo:80/test"), request.getURI());
     }
@@ -140,7 +140,7 @@ public class TestProtocolExec {
     public void testHostHeaderUriRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
-                new HttpGet("http://bar/test"));
+                new HttpGet("http://bar/test"), target);
         final HttpClientContext context = HttpClientContext.create();
         protocolExec.execute(route, request, context, execAware);
         // ProtocolExect should have extracted the host from request URI
@@ -151,7 +151,7 @@ public class TestProtocolExec {
     public void testHostHeaderWhenNonUriRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET", "http://bar/test"));
+                new BasicHttpRequest("GET", "http://bar/test"), target);
         final HttpClientContext context = HttpClientContext.create();
         protocolExec.execute(route, request, context, execAware);
         // ProtocolExect should have extracted the host from request URI
@@ -162,7 +162,7 @@ public class TestProtocolExec {
     public void testHostHeaderWhenNonUriRequestAndInvalidUri() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET", "http://bar/test|"));
+                new BasicHttpRequest("GET", "http://bar/test|"), target);
         final HttpClientContext context = HttpClientContext.create();
         protocolExec.execute(route, request, context, execAware);
         // ProtocolExect should have fall back to physical host as request URI
@@ -172,19 +172,19 @@ public class TestProtocolExec {
 
     @Test
     public void testHostHeaderImplicitHost() throws Exception {
-        final HttpRoute route = new HttpRoute(new HttpHost("somehost", 8080));
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(
-                new HttpGet("/test"));
+        final HttpHost somehost = new HttpHost("somehost", 8080);
+        final HttpRoute route = new HttpRoute(somehost);
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("/test"), somehost);
         final HttpClientContext context = HttpClientContext.create();
         protocolExec.execute(route, request, context, execAware);
-        Assert.assertEquals(new HttpHost("somehost", 8080), context.getTargetHost());
+        Assert.assertEquals(somehost, context.getTargetHost());
     }
 
     @Test
     public void testUserInfoInRequestURI() throws Exception {
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 8080));
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(
-                new HttpGet("http://somefella:secret@bar/test"));
+                new HttpGet("http://somefella:secret@bar/test"), target);
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(new BasicCredentialsProvider());
         protocolExec.execute(route, request, context, execAware);
@@ -199,7 +199,7 @@ public class TestProtocolExec {
     @Test(expected = HttpException.class)
     public void testPostProcessHttpException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("/test"));
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("/test"), target);
         final HttpClientContext context = HttpClientContext.create();
 
         final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
@@ -222,7 +222,7 @@ public class TestProtocolExec {
     @Test(expected = IOException.class)
     public void testPostProcessIOException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("/test"));
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("/test"), target);
         final HttpClientContext context = HttpClientContext.create();
 
         final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
@@ -244,7 +244,7 @@ public class TestProtocolExec {
     @Test(expected = RuntimeException.class)
     public void testPostProcessRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("/test"));
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("/test"), target);
         final HttpClientContext context = HttpClientContext.create();
 
         final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);

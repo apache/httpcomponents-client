@@ -28,17 +28,16 @@
 package org.apache.http.impl.conn;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 
-import org.apache.http.config.MessageConstraints;
-import org.apache.http.impl.io.HttpTransportMetricsImpl;
-import org.apache.http.impl.io.SessionInputBufferImpl;
+import org.apache.hc.core5.http.config.MessageConstraints;
+import org.apache.hc.core5.http.impl.io.HttpTransportMetricsImpl;
+import org.apache.hc.core5.http.impl.io.SessionInputBufferImpl;
 
 /**
- * {@link org.apache.http.io.SessionInputBuffer} mockup implementation.
+ * {@link org.apache.hc.core5.http.io.SessionInputBuffer} mockup implementation.
  */
 public class SessionInputBufferMock extends SessionInputBufferImpl {
 
@@ -100,11 +99,6 @@ public class SessionInputBufferMock extends SessionInputBufferImpl {
             final String s,
             final Charset charset) {
         this(s.getBytes(charset), charset);
-    }
-
-    @Override
-    public boolean isDataAvailable(final int timeout) throws IOException {
-        return true;
     }
 
 }

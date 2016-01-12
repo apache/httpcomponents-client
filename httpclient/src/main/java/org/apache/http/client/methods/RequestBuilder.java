@@ -31,36 +31,35 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.http.Consts;
-import org.apache.http.Header;
-import org.apache.http.HeaderIterator;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpRequest;
-import org.apache.http.NameValuePair;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.message.HeaderGroup;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.entity.ContentType;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.message.HeaderGroup;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.Args;
 
 /**
  * Builder for {@link HttpUriRequest} instances.
  * <p>
  * Please note that this class treats parameters differently depending on composition
  * of the request: if the request has a content entity explicitly set with
- * {@link #setEntity(org.apache.http.HttpEntity)} or it is not an entity enclosing method
+ * {@link #setEntity(org.apache.hc.core5.http.HttpEntity)} or it is not an entity enclosing method
  * (such as POST or PUT), parameters will be added to the query component of the request URI.
  * Otherwise, parameters will be added as a URL encoded {@link UrlEncodedFormEntity entity}.
  * </p>
@@ -81,7 +80,7 @@ public class RequestBuilder {
 
     RequestBuilder(final String method) {
         super();
-        this.charset = Consts.UTF_8;
+        this.charset = StandardCharsets.UTF_8;
         this.method = method;
     }
 
@@ -274,21 +273,19 @@ public class RequestBuilder {
         parameters = null;
         entity = null;
 
-        if (request instanceof HttpEntityEnclosingRequest) {
-            final HttpEntity originalEntity = ((HttpEntityEnclosingRequest) request).getEntity();
-            final ContentType contentType = ContentType.get(originalEntity);
-            if (contentType != null &&
-                    contentType.getMimeType().equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType())) {
-                try {
-                    final List<NameValuePair> formParams = URLEncodedUtils.parse(originalEntity);
-                    if (!formParams.isEmpty()) {
-                        parameters = formParams;
-                    }
-                } catch (IOException ignore) {
+        final HttpEntity originalEntity = request.getEntity();
+        final ContentType contentType = ContentType.get(originalEntity);
+        if (contentType != null &&
+                contentType.getMimeType().equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType())) {
+            try {
+                final List<NameValuePair> formParams = URLEncodedUtils.parse(originalEntity);
+                if (!formParams.isEmpty()) {
+                    parameters = formParams;
                 }
-            } else {
-                entity = originalEntity;
+            } catch (IOException ignore) {
             }
+        } else {
+            entity = originalEntity;
         }
 
         final URI originalUri;
@@ -388,8 +385,8 @@ public class RequestBuilder {
         if (name == null || headergroup == null) {
             return this;
         }
-        for (final HeaderIterator i = headergroup.iterator(); i.hasNext(); ) {
-            final Header header = i.nextHeader();
+        for (final Iterator<Header> i = headergroup.headerIterator(); i.hasNext(); ) {
+            final Header header = i.next();
             if (name.equalsIgnoreCase(header.getName())) {
                 i.remove();
             }
@@ -401,7 +398,7 @@ public class RequestBuilder {
         if (headergroup == null) {
             headergroup = new HeaderGroup();
         }
-        this.headergroup.updateHeader(header);
+        this.headergroup.setHeader(header);
         return this;
     }
 
@@ -409,7 +406,7 @@ public class RequestBuilder {
         if (headergroup == null) {
             headergroup = new HeaderGroup();
         }
-        this.headergroup.updateHeader(new BasicHeader(name, value));
+        this.headergroup.setHeader(new BasicHeader(name, value));
         return this;
     }
 
@@ -463,7 +460,7 @@ public class RequestBuilder {
         if (parameters != null && !parameters.isEmpty()) {
             if (entityCopy == null && (HttpPost.METHOD_NAME.equalsIgnoreCase(method)
                     || HttpPut.METHOD_NAME.equalsIgnoreCase(method))) {
-                entityCopy = new UrlEncodedFormEntity(parameters, charset != null ? charset : HTTP.DEF_CONTENT_CHARSET);
+                entityCopy = new UrlEncodedFormEntity(parameters, charset != null ? charset : StandardCharsets.ISO_8859_1);
             } else {
                 try {
                     uriNotNull = new URIBuilder(uriNotNull)
@@ -475,18 +472,13 @@ public class RequestBuilder {
                 }
             }
         }
-        if (entityCopy == null) {
-            result = new InternalRequest(method);
-        } else {
-            final InternalEntityEclosingRequest request = new InternalEntityEclosingRequest(method);
-            request.setEntity(entityCopy);
-            result = request;
-        }
-        result.setProtocolVersion(this.version);
+        result = new InternalRequest(method);
+        result.setProtocolVersion(this.version != null ? this.version : HttpVersion.HTTP_1_1);
         result.setURI(uriNotNull);
         if (this.headergroup != null) {
             result.setHeaders(this.headergroup.getAllHeaders());
         }
+        result.setEntity(entityCopy);
         result.setConfig(this.config);
         return result;
     }
@@ -496,22 +488,6 @@ public class RequestBuilder {
         private final String method;
 
         InternalRequest(final String method) {
-            super();
-            this.method = method;
-        }
-
-        @Override
-        public String getMethod() {
-            return this.method;
-        }
-
-    }
-
-    static class InternalEntityEclosingRequest extends HttpEntityEnclosingRequestBase {
-
-        private final String method;
-
-        InternalEntityEclosingRequest(final String method) {
             super();
             this.method = method;
         }

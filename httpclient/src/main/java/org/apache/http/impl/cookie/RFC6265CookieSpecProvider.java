@@ -27,14 +27,14 @@
 
 package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.cookie.MalformedCookieException;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * {@link org.apache.http.cookie.CookieSpecProvider} implementation that provides an instance of

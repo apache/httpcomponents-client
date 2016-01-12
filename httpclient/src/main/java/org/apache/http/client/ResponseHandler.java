@@ -28,7 +28,7 @@ package org.apache.http.client;
 
 import java.io.IOException;
 
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponse;
 
 /**
  * Handler that encapsulates the process of generating a response object
@@ -49,6 +49,6 @@ public interface ResponseHandler<T> {
      * @throws ClientProtocolException in case of an http protocol error
      * @throws IOException in case of a problem or the connection was aborted
      */
-    T handleResponse(HttpResponse response) throws ClientProtocolException, IOException;
+    T handleResponse(HttpResponse response) throws IOException;
 
 }

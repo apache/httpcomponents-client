@@ -28,19 +28,35 @@ package org.apache.http.impl.client.integration;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.http.Consts;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpInetConnection;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HeaderElements;
+import org.apache.hc.core5.http.HttpConnection;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.entity.InputStreamEntity;
+import org.apache.hc.core5.http.entity.StringEntity;
+import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.http.protocol.HttpExpectationVerifier;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
+import org.apache.hc.core5.http.protocol.ResponseConnControl;
+import org.apache.hc.core5.http.protocol.ResponseContent;
+import org.apache.hc.core5.http.protocol.ResponseDate;
+import org.apache.hc.core5.http.protocol.ResponseServer;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
@@ -56,8 +72,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -66,19 +80,6 @@ import org.apache.http.localserver.BasicAuthTokenExtractor;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.localserver.RequestBasicAuth;
 import org.apache.http.localserver.ResponseBasicUnauthorized;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
-import org.apache.http.protocol.HttpExpectationVerifier;
-import org.apache.http.protocol.HttpProcessor;
-import org.apache.http.protocol.HttpProcessorBuilder;
-import org.apache.http.protocol.HttpRequestHandler;
-import org.apache.http.protocol.ResponseConnControl;
-import org.apache.http.protocol.ResponseContent;
-import org.apache.http.protocol.ResponseDate;
-import org.apache.http.protocol.ResponseServer;
-import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -113,7 +114,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
             } else {
                 response.setStatusCode(HttpStatus.SC_OK);
-                final StringEntity entity = new StringEntity("success", Consts.ASCII);
+                final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
                 response.setEntity(entity);
             }
         }
@@ -303,7 +304,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpPost httppost = new HttpPost("/");
-        httppost.setEntity(new StringEntity("some important stuff", Consts.ASCII));
+        httppost.setEntity(new StringEntity("some important stuff", StandardCharsets.US_ASCII));
 
         final HttpClientContext context = HttpClientContext.create();
         final TestCredentialsProvider credsProvider = new TestCredentialsProvider(
@@ -425,7 +426,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"" + this.realm + "\"");
             } else {
                 response.setStatusCode(HttpStatus.SC_OK);
-                final StringEntity entity = new StringEntity("success", Consts.ASCII);
+                final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
                 response.setEntity(entity);
             }
         }
@@ -523,9 +524,10 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 final HttpRequest request,
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final HttpInetConnection conn = (HttpInetConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
-            final String localhost = conn.getLocalAddress().getHostName();
-            final int port = conn.getLocalPort();
+            final HttpConnection conn = (HttpConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
+            final InetSocketAddress socketAddress = (InetSocketAddress) conn.getLocalAddress();
+            final String localhost = socketAddress.getHostName();
+            final int port = socketAddress.getPort();
             response.setStatusCode(HttpStatus.SC_MOVED_PERMANENTLY);
             response.addHeader(new BasicHeader("Location",
                     "http://test:test@" + localhost + ":" + port + "/"));
@@ -570,7 +572,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
             } else {
                 response.setStatusCode(HttpStatus.SC_OK);
-                final StringEntity entity = new StringEntity("success", Consts.ASCII);
+                final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
                 response.setEntity(entity);
             }
         }
@@ -643,7 +645,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 response.setStatusCode(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);
             } else {
                 response.setStatusCode(HttpStatus.SC_OK);
-                final StringEntity entity = new StringEntity("success", Consts.ASCII);
+                final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
                 response.setEntity(entity);
             }
         }
@@ -680,9 +682,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
             } else {
                 response.setStatusCode(HttpStatus.SC_OK);
-                final StringEntity entity = new StringEntity("success", Consts.ASCII);
+                final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
                 response.setEntity(entity);
-                response.setHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
+                response.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
             }
         }
 

@@ -32,14 +32,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.Consts;
-import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.util.Args;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.util.Args;
 
 /**
  * {@link org.apache.http.conn.util.PublicSuffixMatcher} loader.
@@ -51,7 +51,7 @@ public final class PublicSuffixMatcherLoader {
 
     private static PublicSuffixMatcher load(final InputStream in) throws IOException {
         final List<PublicSuffixList> lists = new PublicSuffixListParser().parseByType(
-                new InputStreamReader(in, Consts.UTF_8));
+                new InputStreamReader(in, StandardCharsets.UTF_8));
         return new PublicSuffixMatcher(lists);
     }
 

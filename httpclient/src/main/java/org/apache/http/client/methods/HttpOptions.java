@@ -29,14 +29,14 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HeaderIterator;
-import org.apache.http.HttpResponse;
-import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.util.Args;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.util.Args;
 
 /**
  * HTTP OPTIONS method.
@@ -85,10 +85,10 @@ public class HttpOptions extends HttpRequestBase {
     public Set<String> getAllowedMethods(final HttpResponse response) {
         Args.notNull(response, "HTTP response");
 
-        final HeaderIterator it = response.headerIterator("Allow");
+        final Iterator<Header> it = response.headerIterator("Allow");
         final Set<String> methods = new HashSet<>();
         while (it.hasNext()) {
-            final Header header = it.nextHeader();
+            final Header header = it.next();
             final HeaderElement[] elements = header.getElements();
             for (final HeaderElement element : elements) {
                 methods.add(element.getName());

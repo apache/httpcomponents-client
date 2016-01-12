@@ -31,17 +31,16 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.logging.Log;
-import org.apache.http.annotation.Immutable;
-import org.apache.http.util.Args;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Logs data to the wire LOG.
- * TODO: make package private. Should not be part of the public API.
  *
  * @since 4.0
  */
 @Immutable
-public class Wire {
+class Wire {
 
     private final Log log;
     private final String id;

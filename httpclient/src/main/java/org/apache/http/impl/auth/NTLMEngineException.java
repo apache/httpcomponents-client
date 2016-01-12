@@ -26,7 +26,7 @@
  */
 package org.apache.http.impl.auth;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 import org.apache.http.auth.AuthenticationException;
 
 /**

@@ -27,7 +27,7 @@
 
 package org.apache.http.cookie;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * Signals that a cookie violates a restriction imposed by the cookie

@@ -29,10 +29,10 @@ package org.apache.http.localserver;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.HttpHost;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.impl.bootstrap.HttpServer;
-import org.apache.http.impl.bootstrap.ServerBootstrap;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.bootstrap.io.HttpServer;
+import org.apache.hc.core5.http.bootstrap.io.ServerBootstrap;
+import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -40,8 +40,7 @@ import org.junit.After;
 import org.junit.Before;
 
 /**
- * Base class for tests using {@link LocalTestServer}. The server will not be started
- * per default.
+ * Base class for tests using local test server. The server will not be started per default.
  */
 public abstract class LocalServerTestBase {
 

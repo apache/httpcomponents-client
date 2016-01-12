@@ -30,13 +30,13 @@ package org.apache.http.client.entity;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
-import org.apache.http.Consts;
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.entity.StringEntity;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -52,7 +52,7 @@ public class TestGZip {
         Assert.assertTrue(gzipe.isChunked());
         Assert.assertEquals(-1, gzipe.getContentLength());
         Assert.assertNotNull(gzipe.getContentEncoding());
-        Assert.assertEquals("gzip", gzipe.getContentEncoding().getValue());
+        Assert.assertEquals("gzip", gzipe.getContentEncoding());
     }
 
     @Test
@@ -63,7 +63,7 @@ public class TestGZip {
         gzipe.writeTo(buf);
         final ByteArrayEntity out = new ByteArrayEntity(buf.toByteArray());
         final GzipDecompressingEntity gunzipe = new GzipDecompressingEntity(out);
-        Assert.assertEquals("some kind of text", EntityUtils.toString(gunzipe, Consts.ASCII));
+        Assert.assertEquals("some kind of text", EntityUtils.toString(gunzipe, StandardCharsets.US_ASCII));
     }
 
     @Test

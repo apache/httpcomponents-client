@@ -31,7 +31,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Random;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.http.client.BackoffManager;
 import org.apache.http.conn.routing.HttpRoute;
 import org.junit.Before;

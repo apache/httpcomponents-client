@@ -33,8 +33,8 @@ import java.security.SecureRandom;
 import java.util.Formatter;
 import java.util.Locale;
 
-import org.apache.http.annotation.GuardedBy;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.GuardedBy;
+import org.apache.hc.core5.annotation.ThreadSafe;
 
 /**
  * Should produce reasonably unique tokens.

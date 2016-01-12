@@ -31,8 +31,8 @@ import java.net.ConnectException;
 import java.net.InetAddress;
 import java.util.Arrays;
 
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpHost;
 
 /**
  * A {@link ConnectException} that specifies the {@link HttpHost} that was

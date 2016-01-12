@@ -30,8 +30,8 @@ package org.apache.http.conn;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.HttpClientConnection;
-import org.apache.http.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.http.io.HttpClientConnection;
 
 /**
  * Represents a request for a {@link HttpClientConnection} whose life cycle

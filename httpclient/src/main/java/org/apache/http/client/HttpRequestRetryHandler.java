@@ -29,8 +29,8 @@ package org.apache.http.client;
 
 import java.io.IOException;
 
-import org.apache.http.HttpRequest;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * A handler for determining if an HttpRequest should be retried after a

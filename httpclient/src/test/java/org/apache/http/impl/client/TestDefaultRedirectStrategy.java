@@ -29,15 +29,19 @@ package org.apache.http.impl.client;
 import java.net.URI;
 import java.util.List;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.ProtocolException;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.entity.BasicHttpEntity;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.protocol.BasicHttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -45,11 +49,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -355,8 +354,7 @@ public class TestDefaultRedirectStrategy {
         final HttpUriRequest redirect2 = redirectStrategy.getRedirect(
                 httppost, response, context2);
         Assert.assertEquals("POST", redirect2.getMethod());
-        Assert.assertTrue(redirect2 instanceof HttpEntityEnclosingRequest);
-        Assert.assertSame(entity, ((HttpEntityEnclosingRequest) redirect2).getEntity());
+        Assert.assertSame(entity, redirect2.getEntity());
     }
 
     @Test

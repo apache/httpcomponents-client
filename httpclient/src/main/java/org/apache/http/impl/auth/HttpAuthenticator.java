@@ -37,15 +37,20 @@ import java.util.Queue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.FormattedHeader;
-import org.apache.http.Header;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.ParseException;
+import org.apache.hc.core5.http.FormattedHeader;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.ParserCursor;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Asserts;
+import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.AuthScheme;
@@ -58,11 +63,6 @@ import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.ParserCursor;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.Asserts;
-import org.apache.http.util.CharArrayBuffer;
 
 /**
  * @since 4.3

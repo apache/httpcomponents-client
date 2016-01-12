@@ -29,6 +29,8 @@ package org.apache.http.conn.ssl;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+import org.apache.hc.core5.ssl.TrustStrategy;
+
 /**
  * A trust strategy that accepts self-signed certificates as trusted. Verification of all other
  * certificates is done by the trust manager configured in the SSL context.

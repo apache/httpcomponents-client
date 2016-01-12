@@ -29,6 +29,7 @@ package org.apache.http.impl.auth;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.Principal;
 import java.security.SecureRandom;
@@ -42,13 +43,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.apache.http.Consts;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicHeaderValueFormatter;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.hc.core5.util.CharsetUtils;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
@@ -57,12 +62,6 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.util.ByteArrayBuilder;
-import org.apache.http.message.BasicHeaderValueFormatter;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.Args;
-import org.apache.http.util.CharArrayBuffer;
-import org.apache.http.util.CharsetUtils;
 
 /**
  * Digest authentication scheme as defined in RFC 2617.
@@ -243,10 +242,12 @@ public class DigestScheme implements AuthScheme, Serializable {
                 final String variant = tok.nextToken().trim();
                 qopset.add(variant.toLowerCase(Locale.ROOT));
             }
-            if (request instanceof HttpEntityEnclosingRequest && qopset.contains("auth-int")) {
+            if (request.getEntity() != null && qopset.contains("auth-int")) {
                 qop = QOP_AUTH_INT;
             } else if (qopset.contains("auth")) {
                 qop = QOP_AUTH;
+            } else if (qopset.contains("auth-int")) {
+                qop = QOP_AUTH_INT;
             }
         } else {
             qop = QOP_MISSING;
@@ -259,7 +260,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         final String charsetName = this.paramMap.get("charset");
         Charset charset = charsetName != null ? CharsetUtils.lookup(charsetName) : null;
         if (charset == null) {
-            charset = Consts.ISO_8859_1;
+            charset = StandardCharsets.ISO_8859_1;
         }
 
         String digAlg = algorithm;
@@ -327,10 +328,7 @@ public class DigestScheme implements AuthScheme, Serializable {
             a2 = buffer.append(method).append(":").append(uri).toByteArray();
         } else if (qop == QOP_AUTH_INT) {
             // Method ":" digest-uri-value ":" H(entity-body)
-            HttpEntity entity = null;
-            if (request instanceof HttpEntityEnclosingRequest) {
-                entity = ((HttpEntityEnclosingRequest) request).getEntity();
-            }
+            final HttpEntity entity = request.getEntity();
             if (entity != null && !entity.isRepeatable()) {
                 // If the entity is not repeatable, try falling back onto QOP_AUTH
                 if (qopset.contains("auth")) {
@@ -415,11 +413,11 @@ public class DigestScheme implements AuthScheme, Serializable {
     }
 
     String getA1() {
-        return a1 != null ? new String(a1, Consts.ASCII) : null;
+        return a1 != null ? new String(a1, StandardCharsets.US_ASCII) : null;
     }
 
     String getA2() {
-        return a2 != null ? new String(a2, Consts.ASCII) : null;
+        return a2 != null ? new String(a2, StandardCharsets.US_ASCII) : null;
     }
 
     /**

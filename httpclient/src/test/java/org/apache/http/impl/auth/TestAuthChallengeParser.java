@@ -28,12 +28,12 @@ package org.apache.http.impl.auth;
 
 import java.util.List;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.message.ParserCursor;
+import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.http.auth.AuthChallenge;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.message.ParserCursor;
-import org.apache.http.util.CharArrayBuffer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -160,7 +160,7 @@ public class TestAuthChallengeParser {
         final List<NameValuePair> params = challenge1.getParams();
         Assert.assertNotNull(params);
         Assert.assertEquals(1, params.size());
-        Assert.assertEquals(new BasicNameValuePair("realm", "blah"), params.get(0));
+        assertNameValuePair(new BasicNameValuePair("realm", "blah"), params.get(0));
     }
 
     @Test
@@ -177,7 +177,7 @@ public class TestAuthChallengeParser {
         final List<NameValuePair> params = challenge1.getParams();
         Assert.assertNotNull(params);
         Assert.assertEquals(1, params.size());
-        Assert.assertEquals(new BasicNameValuePair("realm", "blah"), params.get(0));
+        assertNameValuePair(new BasicNameValuePair("realm", "blah"), params.get(0));
     }
 
     @Test
@@ -217,9 +217,9 @@ public class TestAuthChallengeParser {
         final List<NameValuePair> params1 = challenge1.getParams();
         Assert.assertNotNull(params1);
         Assert.assertEquals(3, params1.size());
-        Assert.assertEquals(new BasicNameValuePair("realm", "blah"), params1.get(0));
-        Assert.assertEquals(new BasicNameValuePair("param1", "this"), params1.get(1));
-        Assert.assertEquals(new BasicNameValuePair("param2", "that"), params1.get(2));
+        assertNameValuePair(new BasicNameValuePair("realm", "blah"), params1.get(0));
+        assertNameValuePair(new BasicNameValuePair("param1", "this"), params1.get(1));
+        assertNameValuePair(new BasicNameValuePair("param2", "that"), params1.get(2));
 
         final AuthChallenge challenge2 = challenges.get(1);
         Assert.assertEquals("Basic", challenge2.getScheme());
@@ -227,10 +227,10 @@ public class TestAuthChallengeParser {
         final List<NameValuePair> params2 = challenge2.getParams();
         Assert.assertNotNull(params2);
         Assert.assertEquals(4, params2.size());
-        Assert.assertEquals(new BasicNameValuePair("realm", "\"yada\""), params2.get(0));
-        Assert.assertEquals(new BasicNameValuePair("this", null), params2.get(1));
-        Assert.assertEquals(new BasicNameValuePair("that", ""), params2.get(2));
-        Assert.assertEquals(new BasicNameValuePair("this-and-that", null), params2.get(3));
+        assertNameValuePair(new BasicNameValuePair("realm", "\"yada\""), params2.get(0));
+        assertNameValuePair(new BasicNameValuePair("this", null), params2.get(1));
+        assertNameValuePair(new BasicNameValuePair("that", ""), params2.get(2));
+        assertNameValuePair(new BasicNameValuePair("this-and-that", null), params2.get(3));
     }
 
     @Test
@@ -302,8 +302,16 @@ public class TestAuthChallengeParser {
         final List<NameValuePair> params1 = challenge1.getParams();
         Assert.assertNotNull(params1);
         Assert.assertEquals(2, params1.size());
-        Assert.assertEquals(new BasicNameValuePair("blah", null), params1.get(0));
-        Assert.assertEquals(new BasicNameValuePair("blah", null), params1.get(1));
+        assertNameValuePair(new BasicNameValuePair("blah", null), params1.get(0));
+        assertNameValuePair(new BasicNameValuePair("blah", null), params1.get(1));
+    }
+
+    private static void assertNameValuePair (
+            final NameValuePair expected,
+            final NameValuePair result) {
+        Assert.assertNotNull(result);
+        Assert.assertEquals(expected.getName(), result.getName());
+        Assert.assertEquals(expected.getValue(), result.getValue());
     }
 
 }

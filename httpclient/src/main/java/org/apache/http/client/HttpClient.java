@@ -29,11 +29,11 @@ package org.apache.http.client;
 
 import java.io.IOException;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * This interface represents only the most basic contract for HTTP request
@@ -59,7 +59,7 @@ public interface HttpClient {
      * @throws ClientProtocolException in case of an http protocol error
      */
     HttpResponse execute(HttpUriRequest request)
-        throws IOException, ClientProtocolException;
+        throws IOException;
 
     /**
      * Executes HTTP request using the given context.
@@ -77,7 +77,7 @@ public interface HttpClient {
      * @throws ClientProtocolException in case of an http protocol error
      */
     HttpResponse execute(HttpUriRequest request, HttpContext context)
-        throws IOException, ClientProtocolException;
+        throws IOException;
 
     /**
      * Executes HTTP request using the default context.
@@ -97,7 +97,7 @@ public interface HttpClient {
      * @throws ClientProtocolException in case of an http protocol error
      */
     HttpResponse execute(HttpHost target, HttpRequest request)
-        throws IOException, ClientProtocolException;
+        throws IOException;
 
     /**
      * Executes HTTP request using the given context.
@@ -120,7 +120,7 @@ public interface HttpClient {
      */
     HttpResponse execute(HttpHost target, HttpRequest request,
                          HttpContext context)
-        throws IOException, ClientProtocolException;
+        throws IOException;
 
     /**
      * Executes HTTP request using the default context and processes the
@@ -143,7 +143,7 @@ public interface HttpClient {
     <T> T execute(
             HttpUriRequest request,
             ResponseHandler<? extends T> responseHandler)
-        throws IOException, ClientProtocolException;
+        throws IOException;
 
     /**
      * Executes HTTP request using the given context and processes the
@@ -169,7 +169,7 @@ public interface HttpClient {
             HttpUriRequest request,
             ResponseHandler<? extends T> responseHandler,
             HttpContext context)
-        throws IOException, ClientProtocolException;
+        throws IOException;
 
     /**
      * Executes HTTP request to the target using the default context and
@@ -197,7 +197,7 @@ public interface HttpClient {
             HttpHost target,
             HttpRequest request,
             ResponseHandler<? extends T> responseHandler)
-        throws IOException, ClientProtocolException;
+        throws IOException;
 
     /**
      * Executes HTTP request to the target using the given context and
@@ -228,6 +228,6 @@ public interface HttpClient {
             HttpRequest request,
             ResponseHandler<? extends T> responseHandler,
             HttpContext context)
-        throws IOException, ClientProtocolException;
+        throws IOException;
 
 }

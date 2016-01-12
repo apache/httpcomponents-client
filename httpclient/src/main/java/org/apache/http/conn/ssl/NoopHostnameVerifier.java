@@ -30,7 +30,7 @@ package org.apache.http.conn.ssl;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * The NO_OP HostnameVerifier essentially turns hostname verification

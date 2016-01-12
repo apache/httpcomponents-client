@@ -28,9 +28,9 @@ package org.apache.http.auth;
 
 import java.security.Principal;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * This interface represents an abstract challenge-response oriented authentication scheme.
@@ -112,7 +112,7 @@ public interface AuthScheme {
      */
     void processChallenge(
             AuthChallenge authChallenge,
-            HttpContext context) throws  MalformedChallengeException;
+            HttpContext context) throws MalformedChallengeException;
 
     /**
      * Authentication process may involve a series of challenge-response exchanges.

@@ -26,7 +26,7 @@
  */
 package org.apache.http.client.cache;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * Records static constants for various HTTP header names.

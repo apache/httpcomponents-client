@@ -27,8 +27,8 @@
 
 package org.apache.http.entity.mime;
 
+import org.apache.hc.core5.util.Args;
 import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.util.Args;
 
 /**
  * FormBodyPart class represents a content body that can be used as a part of multipart encoded

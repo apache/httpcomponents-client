@@ -27,7 +27,7 @@
 
 package org.apache.http.impl.client;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.impl.auth.BasicScheme;

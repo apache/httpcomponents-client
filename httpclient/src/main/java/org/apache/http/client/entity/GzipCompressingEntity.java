@@ -58,12 +58,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.HttpEntityWrapper;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.Args;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.entity.HttpEntityWrapper;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Wrapping entity that compresses content when {@link #writeTo writing}.
@@ -80,8 +77,8 @@ public class GzipCompressingEntity extends HttpEntityWrapper {
     }
 
     @Override
-    public Header getContentEncoding() {
-        return new BasicHeader(HTTP.CONTENT_ENCODING, GZIP_CODEC);
+    public String getContentEncoding() {
+        return GZIP_CODEC;
     }
 
     @Override
@@ -104,7 +101,7 @@ public class GzipCompressingEntity extends HttpEntityWrapper {
     public void writeTo(final OutputStream outstream) throws IOException {
         Args.notNull(outstream, "Output stream");
         final GZIPOutputStream gzip = new GZIPOutputStream(outstream);
-        wrappedEntity.writeTo(gzip);
+        super.writeTo(gzip);
         // Only close output stream if the wrapped entity has been
         // successfully written out
         gzip.close();

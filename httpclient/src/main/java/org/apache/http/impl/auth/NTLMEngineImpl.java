@@ -28,6 +28,7 @@ package org.apache.http.impl.auth;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.util.Arrays;
@@ -37,11 +38,9 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.Consts;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.util.CharsetUtils;
 import org.apache.http.auth.util.ByteArrayBuilder;
-import org.apache.http.util.CharsetUtils;
-import org.apache.http.util.EncodingUtils;
 
 /**
  * Provides an implementation for NTLMv1, NTLMv2, and NTLM2 Session forms of the NTLM
@@ -55,7 +54,7 @@ final class NTLMEngineImpl implements NTLMEngine {
     /** Unicode encoding */
     private static final Charset UNICODE_LITTLE_UNMARKED = CharsetUtils.lookup("UnicodeLittleUnmarked");
     /** Character encoding */
-    private static final Charset DEFAULT_CHARSET = Consts.ASCII;
+    private static final Charset DEFAULT_CHARSET = StandardCharsets.US_ASCII;
 
     // Flags we use; descriptions according to:
     // http://davenport.sourceforge.net/ntlm.html
@@ -93,7 +92,7 @@ final class NTLMEngineImpl implements NTLMEngine {
     private static final byte[] SIGNATURE;
 
     static {
-        final byte[] bytesWithoutNull = "NTLMSSP".getBytes(Consts.ASCII);
+        final byte[] bytesWithoutNull = "NTLMSSP".getBytes(StandardCharsets.US_ASCII);
         SIGNATURE = new byte[bytesWithoutNull.length + 1];
         System.arraycopy(bytesWithoutNull, 0, SIGNATURE, 0, bytesWithoutNull.length);
         SIGNATURE[bytesWithoutNull.length] = (byte) 0x00;
@@ -115,7 +114,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      * @param domain
      *            the NT domain to authenticate in.
      * @return The response.
-     * @throws org.apache.http.HttpException
+     * @throws org.apache.hc.core5.http.HttpException
      *             If the messages cannot be retrieved.
      */
     static String getResponseFor(final String message, final String username, final char[] password,
@@ -570,7 +569,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             System.arraycopy(oemPassword, 0, keyBytes, 0, length);
             final Key lowKey = createDESKey(keyBytes, 0);
             final Key highKey = createDESKey(keyBytes, 7);
-            final byte[] magicConstant = "KGS!@#$%".getBytes(Consts.ASCII);
+            final byte[] magicConstant = "KGS!@#$%".getBytes(StandardCharsets.US_ASCII);
             final Cipher des = Cipher.getInstance("DES/ECB/NoPadding");
             des.init(Cipher.ENCRYPT_MODE, lowKey);
             final byte[] lowHash = des.doFinal(magicConstant);
@@ -941,7 +940,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             } else {
                 resp = messageContents;
             }
-            return EncodingUtils.getAsciiString(Base64.encodeBase64(resp));
+            return new String(Base64.encodeBase64(resp), StandardCharsets.US_ASCII);
         }
 
     }

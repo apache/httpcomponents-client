@@ -29,18 +29,15 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.RequestLine;
-import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.message.AbstractHttpMessage;
-import org.apache.http.message.BasicRequestLine;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.Args;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.RequestLine;
+import org.apache.hc.core5.http.message.AbstractHttpMessage;
+import org.apache.hc.core5.http.message.BasicRequestLine;
+import org.apache.hc.core5.util.Args;
 
 /**
  * A wrapper class for {@link HttpRequest} that can be used to change properties of the current
@@ -57,6 +54,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
     private RequestLine requestLine;
     private ProtocolVersion version;
     private URI uri;
+    private HttpEntity entity;
 
     private HttpRequestWrapper(final HttpRequest request, final HttpHost target) {
         super();
@@ -70,6 +68,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
             this.uri = null;
         }
         setHeaders(request.getAllHeaders());
+        this.entity = request.getEntity();
     }
 
     @Override
@@ -124,6 +123,16 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
         return this.requestLine;
     }
 
+    @Override
+    public HttpEntity getEntity() {
+        return this.entity;
+    }
+
+    @Override
+    public void setEntity(final HttpEntity entity) {
+        this.entity = entity;
+    }
+
     public HttpRequest getOriginal() {
         return this.original;
     }
@@ -137,35 +146,7 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
 
     @Override
     public String toString() {
-        return getRequestLine() + " " + this.headergroup;
-    }
-
-    static class HttpEntityEnclosingRequestWrapper extends HttpRequestWrapper
-        implements HttpEntityEnclosingRequest {
-
-        private HttpEntity entity;
-
-        HttpEntityEnclosingRequestWrapper(final HttpEntityEnclosingRequest request, final HttpHost target) {
-            super(request, target);
-            this.entity = request.getEntity();
-        }
-
-        @Override
-        public HttpEntity getEntity() {
-            return this.entity;
-        }
-
-        @Override
-        public void setEntity(final HttpEntity entity) {
-            this.entity = entity;
-        }
-
-        @Override
-        public boolean expectContinue() {
-            final Header expect = getFirstHeader(HTTP.EXPECT_DIRECTIVE);
-            return expect != null && HTTP.EXPECT_CONTINUE.equalsIgnoreCase(expect.getValue());
-        }
-
+        return getRequestLine() + " " + super.toString();
     }
 
     /**
@@ -173,27 +154,9 @@ public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRe
      *
      * @param request original request
      * @return mutable request wrappering the original one
-     */
-    public static HttpRequestWrapper wrap(final HttpRequest request) {
-        return wrap(request, null);
-    }
-
-
-    /**
-     * Creates a mutable wrapper of the original request.
-     *
-     * @param request original request
-     * @param target original target, if explicitly specified
-     * @return mutable request wrappering the original one
-     * @since 4.4
      */
     public static HttpRequestWrapper wrap(final HttpRequest request, final HttpHost target) {
-        Args.notNull(request, "HTTP request");
-        if (request instanceof HttpEntityEnclosingRequest) {
-            return new HttpEntityEnclosingRequestWrapper((HttpEntityEnclosingRequest) request, target);
-        } else {
-            return new HttpRequestWrapper(request, target);
-        }
+        return new HttpRequestWrapper(request, target);
     }
 
 }

@@ -26,7 +26,7 @@
  */
 package org.apache.http.conn;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
 
 /**
  * Strategy for default port resolution for protocol schemes.

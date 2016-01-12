@@ -32,12 +32,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.entity.HttpEntityWrapper;
 import org.apache.http.conn.EofSensorInputStream;
 import org.apache.http.conn.EofSensorWatcher;
-import org.apache.http.entity.HttpEntityWrapper;
 
 /**
  * A wrapper class for {@link HttpEntity} enclosed in a response message.
@@ -86,24 +86,15 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
 
     @Override
     public InputStream getContent() throws IOException {
-        return new EofSensorInputStream(this.wrappedEntity.getContent(), this);
-    }
-
-    @Deprecated
-    @Override
-    public void consumeContent() throws IOException {
-        releaseConnection();
+        return new EofSensorInputStream(super.getContent(), this);
     }
 
     @Override
     public void writeTo(final OutputStream outstream) throws IOException {
         try {
-            this.wrappedEntity.writeTo(outstream);
+            super.writeTo(outstream);
             releaseConnection();
-        } catch (IOException ex) {
-            abortConnection();
-            throw ex;
-        } catch (RuntimeException ex) {
+        } catch (IOException | RuntimeException ex) {
             abortConnection();
             throw ex;
         } finally {
@@ -118,10 +109,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
             // reading trailers after the response body:
             wrapped.close();
             releaseConnection();
-        } catch (IOException ex) {
-            abortConnection();
-            throw ex;
-        } catch (RuntimeException ex) {
+        } catch (IOException | RuntimeException ex) {
             abortConnection();
             throw ex;
         } finally {
@@ -144,10 +132,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
                     throw ex;
                 }
             }
-        } catch (IOException ex) {
-            abortConnection();
-            throw ex;
-        } catch (RuntimeException ex) {
+        } catch (IOException | RuntimeException ex) {
             abortConnection();
             throw ex;
         } finally {
@@ -160,14 +145,6 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
     public boolean streamAbort(final InputStream wrapped) throws IOException {
         cleanup();
         return false;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("ResponseEntityProxy{");
-        sb.append(wrappedEntity);
-        sb.append('}');
-        return sb.toString();
     }
 
 }

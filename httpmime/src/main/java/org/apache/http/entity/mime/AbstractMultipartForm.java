@@ -33,11 +33,12 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.ByteArrayBuffer;
 import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.util.Args;
-import org.apache.http.util.ByteArrayBuffer;
 
 /**
  * HttpMultipart represents a collection of MIME multipart encoded content bodies. This class is
@@ -69,7 +70,7 @@ abstract class AbstractMultipartForm {
 
     private static void writeBytes(
             final String s, final OutputStream out) throws IOException {
-        final ByteArrayBuffer b = encode(MIME.DEFAULT_CHARSET, s);
+        final ByteArrayBuffer b = encode(StandardCharsets.ISO_8859_1, s);
         writeBytes(b, out);
     }
 
@@ -89,9 +90,9 @@ abstract class AbstractMultipartForm {
         writeBytes(CR_LF, out);
     }
 
-    private static final ByteArrayBuffer FIELD_SEP = encode(MIME.DEFAULT_CHARSET, ": ");
-    private static final ByteArrayBuffer CR_LF = encode(MIME.DEFAULT_CHARSET, "\r\n");
-    private static final ByteArrayBuffer TWO_DASHES = encode(MIME.DEFAULT_CHARSET, "--");
+    private static final ByteArrayBuffer FIELD_SEP = encode(StandardCharsets.ISO_8859_1, ": ");
+    private static final ByteArrayBuffer CR_LF = encode(StandardCharsets.ISO_8859_1, "\r\n");
+    private static final ByteArrayBuffer TWO_DASHES = encode(StandardCharsets.ISO_8859_1, "--");
 
     final Charset charset;
     final String boundary;
@@ -99,14 +100,14 @@ abstract class AbstractMultipartForm {
     /**
      * Creates an instance with the specified settings.
      *
-     * @param charset the character set to use. May be {@code null}, in which case {@link MIME#DEFAULT_CHARSET} - i.e. US-ASCII - is used.
+     * @param charset the character set to use. May be {@code null}, in which case {@link StandardCharsets#ISO_8859_1} is used.
      * @param boundary to use  - must not be {@code null}
      * @throws IllegalArgumentException if charset is null or boundary is null
      */
     public AbstractMultipartForm(final Charset charset, final String boundary) {
         super();
         Args.notNull(boundary, "Multipart boundary");
-        this.charset = charset != null ? charset : MIME.DEFAULT_CHARSET;
+        this.charset = charset != null ? charset : StandardCharsets.ISO_8859_1;
         this.boundary = boundary;
     }
 

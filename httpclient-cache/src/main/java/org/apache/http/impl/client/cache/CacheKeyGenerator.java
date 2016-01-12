@@ -31,16 +31,16 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.http.Consts;
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.utils.URIUtils;
@@ -162,10 +162,10 @@ class CacheKeyGenerator {
                 if (!first) {
                     buf.append("&");
                 }
-                buf.append(URLEncoder.encode(headerName, Consts.UTF_8.name()));
+                buf.append(URLEncoder.encode(headerName, StandardCharsets.UTF_8.name()));
                 buf.append("=");
                 buf.append(URLEncoder.encode(getFullHeaderValue(req.getHeaders(headerName)),
-                        Consts.UTF_8.name()));
+                        StandardCharsets.UTF_8.name()));
                 first = false;
             }
             buf.append("}");

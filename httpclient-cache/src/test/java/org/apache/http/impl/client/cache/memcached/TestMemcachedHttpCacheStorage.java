@@ -34,13 +34,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-
-import junit.framework.TestCase;
-import net.spy.memcached.CASResponse;
-import net.spy.memcached.CASValue;
-import net.spy.memcached.MemcachedClientIF;
-import net.spy.memcached.OperationTimeoutException;
 
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
@@ -49,6 +42,12 @@ import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.HttpTestUtils;
 import org.junit.Before;
 import org.junit.Test;
+
+import junit.framework.TestCase;
+import net.spy.memcached.CASResponse;
+import net.spy.memcached.CASValue;
+import net.spy.memcached.MemcachedClientIF;
+import net.spy.memcached.OperationTimeoutException;
 
 public class TestMemcachedHttpCacheStorage extends TestCase {
     private MemcachedHttpCacheStorage impl;
@@ -168,7 +167,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testSuccessfulCacheGet() throws UnsupportedEncodingException,
+    public void testSuccessfulCacheGet() throws
             IOException {
         final String url = "foo";
         final String key = "key";
@@ -195,7 +194,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testTreatsNoneByteArrayFromMemcachedAsCacheMiss() throws UnsupportedEncodingException,
+    public void testTreatsNoneByteArrayFromMemcachedAsCacheMiss() throws
             IOException {
         final String url = "foo";
         final String key = "key";
@@ -212,7 +211,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testTreatsNullFromMemcachedAsCacheMiss() throws UnsupportedEncodingException,
+    public void testTreatsNullFromMemcachedAsCacheMiss() throws
             IOException {
         final String url = "foo";
         final String key = "key";
@@ -229,7 +228,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testTreatsAsCacheMissIfCannotReconstituteEntry() throws UnsupportedEncodingException,
+    public void testTreatsAsCacheMissIfCannotReconstituteEntry() throws
             IOException {
         final String url = "foo";
         final String key = "key";
@@ -250,7 +249,7 @@ public class TestMemcachedHttpCacheStorage extends TestCase {
     }
 
     @Test
-    public void testTreatsAsCacheMissIfCantHashStorageKey() throws UnsupportedEncodingException,
+    public void testTreatsAsCacheMissIfCantHashStorageKey() throws
             IOException {
         final String url = "foo";
 

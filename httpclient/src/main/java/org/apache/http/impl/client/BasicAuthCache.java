@@ -37,14 +37,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.client.AuthCache;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.UnsupportedSchemeException;
 import org.apache.http.impl.conn.DefaultSchemePortResolver;
-import org.apache.http.util.Args;
 
 /**
  * Default implementation of {@link org.apache.http.client.AuthCache}. This implements

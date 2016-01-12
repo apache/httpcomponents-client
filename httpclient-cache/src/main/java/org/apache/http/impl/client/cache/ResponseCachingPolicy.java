@@ -33,17 +33,17 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HttpMessage;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpMessage;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.protocol.HTTP;
 
 /**
  * Determines if an HttpResponse can be cached.
@@ -123,7 +123,7 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        final Header contentLength = response.getFirstHeader(HTTP.CONTENT_LEN);
+        final Header contentLength = response.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
         if (contentLength != null) {
             final int contentLengthValue = Integer.parseInt(contentLength.getValue());
             if (contentLengthValue > this.maxObjectSizeBytes) {
@@ -143,7 +143,7 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        final Header[] dateHeaders = response.getHeaders(HTTP.DATE_HEADER);
+        final Header[] dateHeaders = response.getHeaders(HttpHeaders.DATE);
 
         if (dateHeaders.length != 1) {
             return false;
@@ -279,7 +279,7 @@ class ResponseCachingPolicy {
             return false;
         }
         final Header expiresHdr = response.getFirstHeader(HeaderConstants.EXPIRES);
-        final Header dateHdr = response.getFirstHeader(HTTP.DATE_HEADER);
+        final Header dateHdr = response.getFirstHeader(HttpHeaders.DATE);
         if (expiresHdr == null || dateHdr == null) {
             return false;
         }

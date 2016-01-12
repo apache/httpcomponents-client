@@ -27,27 +27,27 @@
 package org.apache.http.client.utils;
 
 
-import org.apache.http.Consts;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.message.BasicNameValuePair;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class TestRequestBuilder {
 
     @Test
     public void testBuildGETwithUTF8() throws Exception {
-        assertBuild(Consts.UTF_8);
+        assertBuild(StandardCharsets.UTF_8);
     }
 
     @Test
     public void testBuildGETwithISO88591() throws Exception {
-        assertBuild(Consts.ISO_8859_1);
+        assertBuild(StandardCharsets.ISO_8859_1);
     }
 
     private void assertBuild(final Charset charset) throws Exception {

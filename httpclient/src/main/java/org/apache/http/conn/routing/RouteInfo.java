@@ -29,7 +29,7 @@ package org.apache.http.conn.routing;
 
 import java.net.InetAddress;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
 
 /**
  * Read-only interface for route information.
@@ -46,7 +46,7 @@ public interface RouteInfo {
      * and tunnelling through all proxies to the target.
      * Routes without a proxy cannot be tunnelled.
      */
-    public enum TunnelType { PLAIN, TUNNELLED }
+    enum TunnelType { PLAIN, TUNNELLED }
 
     /**
      * The layering type of a route.
@@ -62,7 +62,7 @@ public interface RouteInfo {
      * But we don't want to exclude that use case.
      * </p>
      */
-    public enum LayerType  { PLAIN, LAYERED }
+    enum LayerType  { PLAIN, LAYERED }
 
     /**
      * Obtains the target host.

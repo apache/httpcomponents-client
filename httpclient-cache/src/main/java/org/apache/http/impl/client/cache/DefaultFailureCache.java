@@ -26,11 +26,11 @@
  */
 package org.apache.http.impl.client.cache;
 
-import org.apache.http.annotation.ThreadSafe;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import org.apache.hc.core5.annotation.ThreadSafe;
 
 /**
  * Implements a bounded failure cache. The oldest entries are discarded when

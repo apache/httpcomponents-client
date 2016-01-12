@@ -29,7 +29,7 @@ package org.apache.http.client.methods;
 
 import java.io.Closeable;
 
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponse;
 
 /**
  * Extended version of the {@link HttpResponse} interface that also extends {@link Closeable}.

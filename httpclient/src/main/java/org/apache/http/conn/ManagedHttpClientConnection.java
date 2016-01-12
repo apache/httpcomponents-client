@@ -32,8 +32,7 @@ import java.net.Socket;
 
 import javax.net.ssl.SSLSession;
 
-import org.apache.http.HttpClientConnection;
-import org.apache.http.HttpInetConnection;
+import org.apache.hc.core5.http.io.HttpClientConnection;
 
 /**
  * Represents a managed connection whose state and life cycle is managed by
@@ -43,7 +42,7 @@ import org.apache.http.HttpInetConnection;
  *
  * @since 4.3
  */
-public interface ManagedHttpClientConnection extends HttpClientConnection, HttpInetConnection {
+public interface ManagedHttpClientConnection extends HttpClientConnection {
 
     /**
      * Returns connection ID which is expected to be unique

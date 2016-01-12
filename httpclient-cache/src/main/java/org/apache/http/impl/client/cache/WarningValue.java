@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.Header;
+import org.apache.hc.core5.http.Header;
 import org.apache.http.client.utils.DateUtils;
 
 /** This class provides for parsing and understanding Warning headers. As

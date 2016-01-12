@@ -31,11 +31,11 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
-import org.apache.http.HttpClientConnection;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.http.io.HttpClientConnection;
+import org.apache.hc.core5.pool.PoolEntry;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.pool.PoolEntry;
 
 /**
  * @since 4.3

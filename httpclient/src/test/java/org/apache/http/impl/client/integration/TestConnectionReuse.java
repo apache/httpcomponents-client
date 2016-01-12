@@ -30,24 +30,25 @@ package org.apache.http.impl.client.integration;
 import java.io.IOException;
 import java.net.URI;
 
-import org.apache.http.Header;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpResponseInterceptor;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElements;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponseInterceptor;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
+import org.apache.hc.core5.http.protocol.ResponseConnControl;
+import org.apache.hc.core5.http.protocol.ResponseContent;
+import org.apache.hc.core5.http.protocol.ResponseDate;
+import org.apache.hc.core5.http.protocol.ResponseServer;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.localserver.RandomHandler;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpProcessor;
-import org.apache.http.protocol.HttpProcessorBuilder;
-import org.apache.http.protocol.ResponseConnControl;
-import org.apache.http.protocol.ResponseContent;
-import org.apache.http.protocol.ResponseDate;
-import org.apache.http.protocol.ResponseServer;
-import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -99,7 +100,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
         public void process(
                 final HttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            response.setHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE);
+            response.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
         }
 
     }
@@ -282,10 +283,10 @@ public class TestConnectionReuse extends LocalServerTestBase {
         @Override
         public void process(final HttpResponse response, final HttpContext context)
                 throws HttpException, IOException {
-            final Header connection = response.getFirstHeader(HTTP.CONN_DIRECTIVE);
+            final Header connection = response.getFirstHeader(HttpHeaders.CONNECTION);
             if(connection != null) {
                 if(!connection.getValue().equalsIgnoreCase("Close")) {
-                    response.addHeader(HTTP.CONN_KEEP_ALIVE, "timeout=1");
+                    response.addHeader(HeaderElements.KEEP_ALIVE, "timeout=1");
                 }
             }
         }

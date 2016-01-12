@@ -26,9 +26,9 @@
  */
 package org.apache.http.impl.client.cache;
 
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.message.BasicStatusLine;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.message.BasicStatusLine;
 
 public class OKStatus extends BasicStatusLine {
 

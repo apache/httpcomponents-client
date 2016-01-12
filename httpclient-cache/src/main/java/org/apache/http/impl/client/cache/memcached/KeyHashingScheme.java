@@ -68,5 +68,5 @@ public interface KeyHashingScheme {
      *   as its key for looking up cache entries
      * @return a cache key suitable for use with memcached
      */
-    public String hash(String storageKey);
+    String hash(String storageKey);
 }

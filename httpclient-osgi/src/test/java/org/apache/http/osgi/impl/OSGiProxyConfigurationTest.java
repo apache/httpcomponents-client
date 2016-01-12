@@ -26,13 +26,13 @@
  */
 package org.apache.http.osgi.impl;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertThat;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
 
 public class OSGiProxyConfigurationTest {
 

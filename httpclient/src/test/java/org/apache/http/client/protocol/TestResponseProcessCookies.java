@@ -28,16 +28,16 @@ package org.apache.http.client.protocol;
 
 import java.util.List;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.HttpVersion;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponseInterceptor;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.RFC6265LaxSpec;
-import org.apache.http.message.BasicHttpResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

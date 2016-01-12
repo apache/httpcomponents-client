@@ -32,6 +32,7 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
@@ -39,11 +40,13 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.Consts;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.CharsetUtils;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
@@ -52,9 +55,6 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.util.ByteArrayBuilder;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.Args;
-import org.apache.http.util.CharsetUtils;
 
 /**
  * Basic authentication scheme as defined in RFC 2617.
@@ -80,12 +80,12 @@ public class BasicScheme implements AuthScheme, Serializable {
      */
     public BasicScheme(final Charset charset) {
         this.paramMap = new HashMap<>();
-        this.charset = charset != null ? charset : Consts.ASCII;
+        this.charset = charset != null ? charset : StandardCharsets.US_ASCII;
         this.complete = false;
     }
 
     public BasicScheme() {
-        this(Consts.ASCII);
+        this(StandardCharsets.US_ASCII);
     }
 
     public void initPreemptive(final Credentials credentials) {
@@ -174,7 +174,7 @@ public class BasicScheme implements AuthScheme, Serializable {
         }
         final byte[] encodedCreds = this.base64codec.encode(this.buffer.toByteArray());
         this.buffer.reset();
-        return "Basic " + new String(encodedCreds, 0, encodedCreds.length, Consts.ASCII);
+        return "Basic " + new String(encodedCreds, 0, encodedCreds.length, StandardCharsets.US_ASCII);
     }
 
     private void writeObject(final ObjectOutputStream out) throws IOException {
@@ -187,7 +187,7 @@ public class BasicScheme implements AuthScheme, Serializable {
         in.defaultReadObject();
         this.charset = CharsetUtils.get(in.readUTF());
         if (this.charset == null) {
-            this.charset = Consts.ASCII;
+            this.charset = StandardCharsets.US_ASCII;
         }
     }
 

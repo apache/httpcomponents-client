@@ -30,9 +30,9 @@ package org.apache.http.conn;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import org.apache.http.HttpHost;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.config.SocketConfig;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * Connection operator that performs connection connect and upgrade operations. Usually, components

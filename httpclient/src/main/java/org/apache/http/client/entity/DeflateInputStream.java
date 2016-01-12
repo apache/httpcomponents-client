@@ -39,7 +39,7 @@ import java.util.zip.ZipException;
  */
 public class DeflateInputStream extends InputStream {
 
-    private InputStream sourceStream;
+    private final InputStream sourceStream;
 
     public DeflateInputStream(final InputStream wrapped) throws IOException {
 

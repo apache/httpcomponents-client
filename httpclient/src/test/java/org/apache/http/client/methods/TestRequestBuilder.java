@@ -30,19 +30,18 @@ package org.apache.http.client.methods;
 import java.net.URI;
 import java.util.List;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpVersion;
-import org.apache.http.NameValuePair;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.entity.BasicHttpEntity;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.entity.BasicHttpEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -55,7 +54,6 @@ public class TestRequestBuilder {
         Assert.assertEquals("GET", request.getMethod());
         Assert.assertEquals(URI.create("/"), request.getURI());
         Assert.assertEquals(HttpVersion.HTTP_1_1, request.getProtocolVersion());
-        Assert.assertFalse(request instanceof HttpEntityEnclosingRequest);
     }
 
     @Test
@@ -75,8 +73,7 @@ public class TestRequestBuilder {
         Assert.assertEquals("POST", request.getMethod());
         Assert.assertEquals(URI.create("/"), request.getURI());
         Assert.assertEquals(HttpVersion.HTTP_1_1, request.getProtocolVersion());
-        Assert.assertTrue(request instanceof HttpEntityEnclosingRequest);
-        Assert.assertSame(entity, ((HttpEntityEnclosingRequest) request).getEntity());
+        Assert.assertSame(entity, request.getEntity());
     }
 
     @Test
@@ -87,8 +84,7 @@ public class TestRequestBuilder {
         Assert.assertEquals("GET", request.getMethod());
         Assert.assertEquals(URI.create("/"), request.getURI());
         Assert.assertEquals(HttpVersion.HTTP_1_1, request.getProtocolVersion());
-        Assert.assertTrue(request instanceof HttpEntityEnclosingRequest);
-        Assert.assertSame(entity, ((HttpEntityEnclosingRequest) request).getEntity());
+        Assert.assertSame(entity, request.getEntity());
     }
 
     @Test
@@ -97,7 +93,6 @@ public class TestRequestBuilder {
                 .addParameter("p1", "this")
                 .addParameter("p2", "that")
                 .build();
-        Assert.assertFalse(request instanceof HttpEntityEnclosingRequest);
         Assert.assertEquals(new URI("/?p1=this&p2=that"), request.getURI());
     }
 
@@ -107,7 +102,6 @@ public class TestRequestBuilder {
                 .addParameter("p1", "this")
                 .addParameters(new BasicNameValuePair("p2", "that"))
                 .build();
-        Assert.assertFalse(request instanceof HttpEntityEnclosingRequest);
         Assert.assertEquals(new URI("/?p1=this&p2=that"), request.getURI());
     }
 
@@ -117,8 +111,7 @@ public class TestRequestBuilder {
                 .addParameter("p1", "this")
                 .addParameter("p2", "that")
                 .build();
-        Assert.assertTrue(request instanceof HttpEntityEnclosingRequest);
-        final HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+        final HttpEntity entity = request.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertEquals(new URI("/"), request.getURI());
         Assert.assertEquals("p1=this&p2=that", EntityUtils.toString(entity));
@@ -132,7 +125,6 @@ public class TestRequestBuilder {
                 .addParameter("p2", "that")
                 .setEntity(new StringEntity("blah"))
                 .build();
-        Assert.assertTrue(request instanceof HttpEntityEnclosingRequest);
         Assert.assertEquals(new URI("http://targethost/?blah&p1=this&p2=that"), request.getURI());
     }
 
@@ -152,13 +144,11 @@ public class TestRequestBuilder {
         Assert.assertEquals("PUT", request.getMethod());
         Assert.assertEquals(URI.create("/stuff"), request.getURI());
         Assert.assertEquals(HttpVersion.HTTP_1_0, request.getProtocolVersion());
-        Assert.assertTrue(request instanceof HttpEntityEnclosingRequest);
 
         final HttpUriRequest copy = RequestBuilder.copy(request).setUri("/other-stuff").build();
         Assert.assertEquals("PUT", copy.getMethod());
         Assert.assertEquals(URI.create("/other-stuff"), copy.getURI());
-        Assert.assertTrue(copy instanceof HttpEntityEnclosingRequest);
-        Assert.assertSame(entity, ((HttpEntityEnclosingRequest) copy).getEntity());
+        Assert.assertSame(entity, copy.getEntity());
         Assert.assertTrue(copy instanceof Configurable);
         Assert.assertSame(config, ((Configurable) copy).getConfig());
     }
@@ -181,10 +171,18 @@ public class TestRequestBuilder {
         final List<NameValuePair> parameters = builder.getParameters();
         Assert.assertNotNull(parameters);
         Assert.assertEquals(2, parameters.size());
-        Assert.assertEquals(new BasicNameValuePair("p1", "this"), parameters.get(0));
-        Assert.assertEquals(new BasicNameValuePair("p2", "that"), parameters.get(1));
+        assertNameValuePair(new BasicNameValuePair("p1", "this"), parameters.get(0));
+        assertNameValuePair(new BasicNameValuePair("p2", "that"), parameters.get(1));
         Assert.assertEquals(new URI("/stuff?p1=wtf"), builder.getUri());
         Assert.assertNull(builder.getEntity());
+    }
+
+    private static void assertNameValuePair (
+            final NameValuePair expected,
+            final NameValuePair result) {
+        Assert.assertNotNull(result);
+        Assert.assertEquals(expected.getName(), result.getName());
+        Assert.assertEquals(expected.getValue(), result.getValue());
     }
 
     @Test

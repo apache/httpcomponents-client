@@ -29,12 +29,12 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 
-import org.apache.http.ProtocolVersion;
-import org.apache.http.RequestLine;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.RequestLine;
+import org.apache.hc.core5.http.message.BasicRequestLine;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.message.BasicRequestLine;
-import org.apache.http.params.HttpProtocolParams;
 
 /**
  * Base implementation of {@link HttpUriRequest}.
@@ -61,7 +61,7 @@ public abstract class HttpRequestBase extends AbstractExecutionAwareRequest
 
     @Override
     public ProtocolVersion getProtocolVersion() {
-        return version != null ? version : HttpProtocolParams.getVersion(getParams());
+        return version != null ? version : HttpVersion.HTTP_1_1;
     }
 
     /**
@@ -78,7 +78,7 @@ public abstract class HttpRequestBase extends AbstractExecutionAwareRequest
     @Override
     public RequestLine getRequestLine() {
         final String method = getMethod();
-        final ProtocolVersion ver = getProtocolVersion();
+        final ProtocolVersion ver = this.version != null ? this.version : HttpVersion.HTTP_1_1;
         final URI uriCopy = getURI(); // avoids possible window where URI could be changed
         String uritext = null;
         if (uriCopy != null) {

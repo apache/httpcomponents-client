@@ -37,9 +37,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.FormattedHeader;
-import org.apache.http.Header;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.http.FormattedHeader;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.message.BufferedHeader;
+import org.apache.hc.core5.http.message.ParserCursor;
+import org.apache.hc.core5.http.message.TokenParser;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
@@ -47,11 +53,6 @@ import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookiePriorityComparator;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.MalformedCookieException;
-import org.apache.http.message.BufferedHeader;
-import org.apache.http.message.ParserCursor;
-import org.apache.http.message.TokenParser;
-import org.apache.http.util.Args;
-import org.apache.http.util.CharArrayBuffer;
 
 /**
  * Cookie management functions shared by RFC C6265 compliant specification.
@@ -244,7 +245,11 @@ public class RFC6265CookieSpec implements CookieSpec {
             }
         }
         final List<Header> headers = new ArrayList<>(1);
-        headers.add(new BufferedHeader(buffer));
+        try {
+            headers.add(new BufferedHeader(buffer));
+        } catch (ParseException ignore) {
+            // should never happen
+        }
         return headers;
     }
 

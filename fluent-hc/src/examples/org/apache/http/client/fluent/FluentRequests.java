@@ -28,9 +28,9 @@ package org.apache.http.client.fluent;
 
 import java.io.File;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpVersion;
-import org.apache.http.entity.ContentType;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.entity.ContentType;
 
 /**
  * This example demonstrates basics of request execution with the HttpClient fluent API.

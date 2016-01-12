@@ -30,24 +30,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HeaderElements;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.entity.AbstractHttpEntity;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.message.BasicStatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.message.BasicStatusLine;
-import org.apache.http.protocol.HTTP;
 
 /**
  * @since 4.1
@@ -110,7 +111,7 @@ class RequestProtocolCompliance {
         throws ClientProtocolException {
 
         if (requestMustNotHaveEntity(request)) {
-            ((HttpEntityEnclosingRequest) request).setEntity(null);
+            request.setEntity(null);
         }
 
         verifyRequestWithExpectContinueFlagHas100continueHeader(request);
@@ -159,8 +160,7 @@ class RequestProtocolCompliance {
     }
 
     private boolean requestMustNotHaveEntity(final HttpRequest request) {
-        return HeaderConstants.TRACE_METHOD.equals(request.getRequestLine().getMethod())
-                && request instanceof HttpEntityEnclosingRequest;
+        return HeaderConstants.TRACE_METHOD.equals(request.getRequestLine().getMethod());
     }
 
     private void decrementOPTIONSMaxForwardsIfGreaterThen0(final HttpRequest request) {
@@ -184,29 +184,19 @@ class RequestProtocolCompliance {
             return;
         }
 
-        if (!(request instanceof HttpEntityEnclosingRequest)) {
-            return;
-        }
-
-        addContentTypeHeaderIfMissing((HttpEntityEnclosingRequest) request);
+        addContentTypeHeaderIfMissing(request);
     }
 
-    private void addContentTypeHeaderIfMissing(final HttpEntityEnclosingRequest request) {
-        if (request.getEntity().getContentType() == null) {
-            ((AbstractHttpEntity) request.getEntity()).setContentType(
-                    ContentType.APPLICATION_OCTET_STREAM.getMimeType());
+    private void addContentTypeHeaderIfMissing(final HttpRequest request) {
+        final HttpEntity entity = request.getEntity();
+        if (entity != null && entity.getContentType() == null) {
+            ((AbstractHttpEntity) entity).setContentType(ContentType.APPLICATION_OCTET_STREAM.getMimeType());
         }
     }
 
     private void verifyRequestWithExpectContinueFlagHas100continueHeader(final HttpRequest request) {
-        if (request instanceof HttpEntityEnclosingRequest) {
-
-            if (((HttpEntityEnclosingRequest) request).expectContinue()
-                    && ((HttpEntityEnclosingRequest) request).getEntity() != null) {
-                add100ContinueHeaderIfMissing(request);
-            } else {
-                remove100ContinueHeaderIfExists(request);
-            }
+        if (request.containsHeader(HttpHeaders.EXPECT) && request.getEntity() != null) {
+            add100ContinueHeaderIfMissing(request);
         } else {
             remove100ContinueHeaderIfExists(request);
         }
@@ -215,12 +205,12 @@ class RequestProtocolCompliance {
     private void remove100ContinueHeaderIfExists(final HttpRequest request) {
         boolean hasHeader = false;
 
-        final Header[] expectHeaders = request.getHeaders(HTTP.EXPECT_DIRECTIVE);
+        final Header[] expectHeaders = request.getHeaders(HttpHeaders.EXPECT);
         List<HeaderElement> expectElementsThatAreNot100Continue = new ArrayList<>();
 
         for (final Header h : expectHeaders) {
             for (final HeaderElement elt : h.getElements()) {
-                if (!(HTTP.EXPECT_CONTINUE.equalsIgnoreCase(elt.getName()))) {
+                if (!(HeaderElements.CONTINUE.equalsIgnoreCase(elt.getName()))) {
                     expectElementsThatAreNot100Continue.add(elt);
                 } else {
                     hasHeader = true;
@@ -230,7 +220,7 @@ class RequestProtocolCompliance {
             if (hasHeader) {
                 request.removeHeader(h);
                 for (final HeaderElement elt : expectElementsThatAreNot100Continue) {
-                    final BasicHeader newHeader = new BasicHeader(HTTP.EXPECT_DIRECTIVE, elt.getName());
+                    final BasicHeader newHeader = new BasicHeader(HeaderElements.CONTINUE, elt.getName());
                     request.addHeader(newHeader);
                 }
                 return;
@@ -243,16 +233,16 @@ class RequestProtocolCompliance {
     private void add100ContinueHeaderIfMissing(final HttpRequest request) {
         boolean hasHeader = false;
 
-        for (final Header h : request.getHeaders(HTTP.EXPECT_DIRECTIVE)) {
+        for (final Header h : request.getHeaders(HttpHeaders.EXPECT)) {
             for (final HeaderElement elt : h.getElements()) {
-                if (HTTP.EXPECT_CONTINUE.equalsIgnoreCase(elt.getName())) {
+                if (HeaderElements.CONTINUE.equalsIgnoreCase(elt.getName())) {
                     hasHeader = true;
                 }
             }
         }
 
         if (!hasHeader) {
-            request.addHeader(HTTP.EXPECT_DIRECTIVE, HTTP.EXPECT_CONTINUE);
+            request.addHeader(HttpHeaders.EXPECT, HeaderElements.CONTINUE);
         }
     }
 

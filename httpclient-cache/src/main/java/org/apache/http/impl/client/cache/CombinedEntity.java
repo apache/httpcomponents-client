@@ -32,10 +32,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.SequenceInputStream;
 
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.entity.AbstractHttpEntity;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.cache.Resource;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.util.Args;
 
 @NotThreadSafe
 class CombinedEntity extends AbstractHttpEntity {

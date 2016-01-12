@@ -31,9 +31,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.annotation.Immutable;
-import org.apache.http.util.Args;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.util.Args;
 
 /**
  * This class represents an authentication challenge consisting of a auth scheme

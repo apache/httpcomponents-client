@@ -29,10 +29,10 @@ package org.apache.http.impl.client.cache;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.Resource;
-import org.apache.http.util.Args;
 
 @Immutable
 class ResourceReference extends PhantomReference<HttpCacheEntry> {

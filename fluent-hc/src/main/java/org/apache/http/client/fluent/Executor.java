@@ -33,19 +33,18 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
@@ -106,7 +105,7 @@ public class Executor {
     }
 
     private final HttpClient httpclient;
-    private volatile AuthCache authCache;
+    private final AuthCache authCache;
     private volatile CredentialsStore credentialsStore;
     private volatile CookieStore cookieStore;
 
@@ -215,15 +214,6 @@ public class Executor {
     }
 
     /**
-     * @deprecated (4.5) Use {@link #use(CookieStore)}.
-     */
-    @Deprecated
-    public Executor cookieStore(final CookieStore cookieStore) {
-        this.cookieStore = cookieStore;
-        return this;
-    }
-
-    /**
      * @since 4.5
      */
     public Executor use(final CookieStore cookieStore) {
@@ -247,7 +237,7 @@ public class Executor {
      * @see Response#discardContent()
      */
     public Response execute(
-            final Request request) throws ClientProtocolException, IOException {
+            final Request request) throws IOException {
         final HttpClientContext localContext = HttpClientContext.create();
         if (this.credentialsStore != null) {
             localContext.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credentialsStore);

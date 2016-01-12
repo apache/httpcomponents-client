@@ -33,17 +33,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.client.cache.ResourceFactory;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.Args;
 
 /**
  * Update a {@link HttpCacheEntry} with new or updated information based on the latest
@@ -149,9 +149,9 @@ class CacheEntryUpdater {
     }
 
     private boolean entryDateHeaderNewerThenResponse(final HttpCacheEntry entry, final HttpResponse response) {
-        final Date entryDate = DateUtils.parseDate(entry.getFirstHeader(HTTP.DATE_HEADER)
+        final Date entryDate = DateUtils.parseDate(entry.getFirstHeader(HttpHeaders.DATE)
                 .getValue());
-        final Date responseDate = DateUtils.parseDate(response.getFirstHeader(HTTP.DATE_HEADER)
+        final Date responseDate = DateUtils.parseDate(response.getFirstHeader(HttpHeaders.DATE)
                 .getValue());
         if (entryDate == null || responseDate == null) {
             return false;
@@ -163,8 +163,8 @@ class CacheEntryUpdater {
     }
 
     private boolean entryAndResponseHaveDateHeader(final HttpCacheEntry entry, final HttpResponse response) {
-        if (entry.getFirstHeader(HTTP.DATE_HEADER) != null
-                && response.getFirstHeader(HTTP.DATE_HEADER) != null) {
+        if (entry.getFirstHeader(HttpHeaders.DATE) != null
+                && response.getFirstHeader(HttpHeaders.DATE) != null) {
             return true;
         }
 

@@ -111,7 +111,7 @@ final class PropertiesUtils {
         // do nothing
     }
 
-    private static interface PropertyConverter<T> {
+    private interface PropertyConverter<T> {
 
         T to(Object propValue);
 

@@ -28,10 +28,10 @@ package org.apache.http.auth;
 
 import java.util.Locale;
 
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.Immutable;
-import org.apache.http.util.Args;
-import org.apache.http.util.LangUtils;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.LangUtils;
 
 /**
  * {@code AuthScope} represents an authentication scope consisting of a host name,

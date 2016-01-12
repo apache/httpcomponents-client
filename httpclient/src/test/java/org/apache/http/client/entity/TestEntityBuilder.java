@@ -30,9 +30,9 @@ package org.apache.http.client.entity;
 import java.io.File;
 import java.io.InputStream;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -52,7 +52,7 @@ public class TestEntityBuilder {
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContent());
         Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals("text/plain; charset=ISO-8859-1", entity.getContentType().getValue());
+        Assert.assertEquals("text/plain; charset=ISO-8859-1", entity.getContentType());
     }
 
     @Test
@@ -61,7 +61,7 @@ public class TestEntityBuilder {
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContent());
         Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals("application/octet-stream", entity.getContentType().getValue());
+        Assert.assertEquals("application/octet-stream", entity.getContentType());
     }
 
     @Test
@@ -72,7 +72,7 @@ public class TestEntityBuilder {
         Assert.assertNotNull(entity.getContent());
         Assert.assertNotNull(entity.getContentType());
         Assert.assertEquals(-1, entity.getContentLength());
-        Assert.assertEquals("application/octet-stream", entity.getContentType().getValue());
+        Assert.assertEquals("application/octet-stream", entity.getContentType());
     }
 
     @Test
@@ -81,7 +81,7 @@ public class TestEntityBuilder {
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContent());
         Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals("application/octet-stream", entity.getContentType().getValue());
+        Assert.assertEquals("application/octet-stream", entity.getContentType());
     }
 
     @Test
@@ -90,7 +90,7 @@ public class TestEntityBuilder {
         final HttpEntity entity = EntityBuilder.create().setFile(file).build();
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals("application/octet-stream", entity.getContentType().getValue());
+        Assert.assertEquals("application/octet-stream", entity.getContentType());
     }
 
     @Test
@@ -102,9 +102,9 @@ public class TestEntityBuilder {
             .setText("{\"stuff\"}").build();
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals("application/json; charset=UTF-8", entity.getContentType().getValue());
+        Assert.assertEquals("application/json; charset=UTF-8", entity.getContentType());
         Assert.assertNotNull(entity.getContentEncoding());
-        Assert.assertEquals("identity", entity.getContentEncoding().getValue());
+        Assert.assertEquals("identity", entity.getContentEncoding());
         Assert.assertEquals("{\"stuff\"}", EntityUtils.toString(entity));
     }
 
@@ -120,9 +120,9 @@ public class TestEntityBuilder {
         final HttpEntity entity = EntityBuilder.create().setText("stuff").gzipCompress().build();
         Assert.assertNotNull(entity);
         Assert.assertNotNull(entity.getContentType());
-        Assert.assertEquals("text/plain; charset=ISO-8859-1", entity.getContentType().getValue());
+        Assert.assertEquals("text/plain; charset=ISO-8859-1", entity.getContentType());
         Assert.assertNotNull(entity.getContentEncoding());
-        Assert.assertEquals("gzip", entity.getContentEncoding().getValue());
+        Assert.assertEquals("gzip", entity.getContentEncoding());
     }
 
 }

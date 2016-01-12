@@ -28,19 +28,19 @@ package org.apache.http.client.fluent;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.http.Consts;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.StatusLine;
+import org.apache.hc.core5.http.entity.ContentType;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.entity.ContentType;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -75,7 +75,7 @@ public class FluentResponseHandling {
                     }
                     Charset charset = contentType.getCharset();
                     if (charset == null) {
-                        charset = Consts.ISO_8859_1;
+                        charset = StandardCharsets.ISO_8859_1;
                     }
                     return docBuilder.parse(entity.getContent(), charset.name());
                 } catch (ParserConfigurationException ex) {

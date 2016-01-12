@@ -30,15 +30,15 @@ import java.io.File;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.HttpEntity;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.http.util.EntityUtils;
 
 /**
  * This example demonstrates how to create secure connections with a custom SSL

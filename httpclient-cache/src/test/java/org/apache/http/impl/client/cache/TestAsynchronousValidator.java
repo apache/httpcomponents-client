@@ -37,9 +37,10 @@ import java.io.IOException;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.HttpExecutionAware;
@@ -47,7 +48,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.message.BasicHeader;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,6 +59,7 @@ public class TestAsynchronousValidator {
     private AsynchronousValidator impl;
 
     private CachingExec mockClient;
+    private HttpHost host;
     private HttpRoute route;
     private HttpRequestWrapper request;
     private HttpClientContext context;
@@ -70,8 +71,9 @@ public class TestAsynchronousValidator {
     @Before
     public void setUp() {
         mockClient = mock(CachingExec.class);
-        route = new HttpRoute(new HttpHost("foo.example.com", 80));
-        request = HttpRequestWrapper.wrap(new HttpGet("/"));
+        host = new HttpHost("foo.example.com", 80);
+        route = new HttpRoute(host);
+        request = HttpRequestWrapper.wrap(new HttpGet("/"), host);
         context = HttpClientContext.create();
         context.setTargetHost(new HttpHost("foo.example.com"));
         mockExecAware = mock(HttpExecutionAware.class);
@@ -160,8 +162,8 @@ public class TestAsynchronousValidator {
         when(mockCacheEntry.getHeaders(HeaderConstants.VARY)).thenReturn(variantHeaders);
         mockSchedulingStrategy.schedule(isA(AsynchronousValidationRequest.class));
 
-        impl.revalidateCacheEntry(mockClient, route, HttpRequestWrapper.wrap(req1), context, mockExecAware, mockCacheEntry);
-        impl.revalidateCacheEntry(mockClient, route, HttpRequestWrapper.wrap(req2), context, mockExecAware, mockCacheEntry);
+        impl.revalidateCacheEntry(mockClient, route, HttpRequestWrapper.wrap(req1, host), context, mockExecAware, mockCacheEntry);
+        impl.revalidateCacheEntry(mockClient, route, HttpRequestWrapper.wrap(req2, host), context, mockExecAware, mockCacheEntry);
 
         verify(mockCacheEntry, times(2)).hasVariants();
         verify(mockCacheEntry, times(2)).getHeaders(HeaderConstants.VARY);

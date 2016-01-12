@@ -41,12 +41,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.net.ssl.SSLException;
 
-import org.apache.http.HttpRequest;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.util.Args;
 
 /**
  * The default {@link HttpRequestRetryHandler} used by request executors.

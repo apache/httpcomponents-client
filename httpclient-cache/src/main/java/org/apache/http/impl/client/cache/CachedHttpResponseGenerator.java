@@ -28,20 +28,20 @@ package org.apache.http.impl.client.cache;
 
 import java.util.Date;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.protocol.HTTP;
 
 /**
  * Rebuilds an {@link HttpResponse} from a {@link net.sf.ehcache.CacheEntry}
@@ -63,7 +63,7 @@ class CachedHttpResponseGenerator {
     }
 
     /**
-     * If I was able to use a {@link CacheEntity} to response to the {@link org.apache.http.HttpRequest} then
+     * If I was able to use a {@link CacheEntity} to response to the {@link org.apache.hc.core5.http.HttpRequest} then
      * generate an {@link HttpResponse} based on the cache entry.
      * @param request {@link HttpRequestWrapper} to generate the response for
      * @param entry {@link CacheEntity} to transform into an {@link HttpResponse}
@@ -107,9 +107,9 @@ class CachedHttpResponseGenerator {
         //  (http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
 
         // - Date, unless its omission is required by section 14.8.1
-        Header dateHeader = entry.getFirstHeader(HTTP.DATE_HEADER);
+        Header dateHeader = entry.getFirstHeader(HttpHeaders.DATE);
         if (dateHeader == null) {
-             dateHeader = new BasicHeader(HTTP.DATE_HEADER, DateUtils.formatDate(new Date()));
+             dateHeader = new BasicHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date()));
         }
         response.addHeader(dateHeader);
 
@@ -151,16 +151,16 @@ class CachedHttpResponseGenerator {
             return;
         }
 
-        Header contentLength = response.getFirstHeader(HTTP.CONTENT_LEN);
+        Header contentLength = response.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
         if (contentLength == null) {
-            contentLength = new BasicHeader(HTTP.CONTENT_LEN, Long.toString(entity
+            contentLength = new BasicHeader(HttpHeaders.CONTENT_LENGTH, Long.toString(entity
                     .getContentLength()));
             response.setHeader(contentLength);
         }
     }
 
     private boolean transferEncodingIsPresent(final HttpResponse response) {
-        final Header hdr = response.getFirstHeader(HTTP.TRANSFER_ENCODING);
+        final Header hdr = response.getFirstHeader(HttpHeaders.TRANSFER_ENCODING);
         return hdr != null;
     }
 

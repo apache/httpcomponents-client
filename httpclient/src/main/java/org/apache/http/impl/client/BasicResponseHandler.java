@@ -29,11 +29,12 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.annotation.Immutable;
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.http.client.ClientProtocolException;
 
 /**
  * A {@link org.apache.http.client.ResponseHandler} that returns the response body as a String
@@ -56,12 +57,16 @@ public class BasicResponseHandler extends AbstractResponseHandler<String> {
      */
     @Override
     public String handleEntity(final HttpEntity entity) throws IOException {
-        return EntityUtils.toString(entity);
+        try {
+            return EntityUtils.toString(entity);
+        } catch (ParseException ex) {
+            throw new ClientProtocolException(ex);
+        }
     }
 
     @Override
     public String handleResponse(
-            final HttpResponse response) throws HttpResponseException, IOException {
+            final HttpResponse response) throws IOException {
         return super.handleResponse(response);
     }
 

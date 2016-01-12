@@ -27,20 +27,19 @@
 package org.apache.http.impl.conn;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 
 import javax.net.ssl.SSLSession;
 
-import org.apache.http.HttpClientConnection;
-import org.apache.http.HttpConnectionMetrics;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.HttpConnectionMetrics;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.io.HttpClientConnection;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.conn.ManagedHttpClientConnection;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * @since 4.3
@@ -148,8 +147,18 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
     }
 
     @Override
-    public boolean isResponseAvailable(final int timeout) throws IOException {
-        return getValidConnection().isResponseAvailable(timeout);
+    public boolean isConsistent() {
+        return getValidConnection().isConsistent();
+    }
+
+    @Override
+    public void terminateRequest(final HttpRequest request) throws HttpException, IOException {
+        getValidConnection().terminateRequest(request);
+    }
+
+    @Override
+    public boolean isDataAvailable(final int timeout) throws IOException {
+        return getValidConnection().isDataAvailable(timeout);
     }
 
     @Override
@@ -158,7 +167,7 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
     }
 
     @Override
-    public void sendRequestEntity(final HttpEntityEnclosingRequest request) throws HttpException, IOException {
+    public void sendRequestEntity(final HttpRequest request) throws HttpException, IOException {
         getValidConnection().sendRequestEntity(request);
     }
 
@@ -183,23 +192,13 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
     }
 
     @Override
-    public InetAddress getLocalAddress() {
+    public SocketAddress getLocalAddress() {
         return getValidConnection().getLocalAddress();
     }
 
     @Override
-    public int getLocalPort() {
-        return getValidConnection().getLocalPort();
-    }
-
-    @Override
-    public InetAddress getRemoteAddress() {
+    public SocketAddress getRemoteAddress() {
         return getValidConnection().getRemoteAddress();
-    }
-
-    @Override
-    public int getRemotePort() {
-        return getValidConnection().getRemotePort();
     }
 
     @Override

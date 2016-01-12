@@ -27,10 +27,10 @@
 
 package org.apache.http.impl.conn;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import java.io.IOException;
 import java.io.OutputStream;
+
+import org.apache.hc.core5.annotation.NotThreadSafe;
 
 /**
  * Internal class.

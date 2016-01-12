@@ -29,7 +29,7 @@ package org.apache.http.client.entity;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.HttpEntity;
+import org.apache.hc.core5.http.HttpEntity;
 
 /**
  * {@link org.apache.http.entity.HttpEntityWrapper} responsible for handling

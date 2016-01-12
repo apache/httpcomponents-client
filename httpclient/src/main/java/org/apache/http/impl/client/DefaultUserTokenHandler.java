@@ -30,15 +30,15 @@ import java.security.Principal;
 
 import javax.net.ssl.SSLSession;
 
-import org.apache.http.HttpConnection;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpConnection;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.client.UserTokenHandler;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * Default implementation of {@link UserTokenHandler}. This class will use

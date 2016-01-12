@@ -30,7 +30,7 @@ package org.apache.http.cookie;
 import java.io.Serializable;
 import java.util.Comparator;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * This cookie comparator ensures that multiple cookies satisfying

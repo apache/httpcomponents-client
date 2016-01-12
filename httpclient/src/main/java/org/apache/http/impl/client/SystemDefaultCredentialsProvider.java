@@ -32,15 +32,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsStore;
 import org.apache.http.client.config.AuthSchemes;
-import org.apache.http.util.Args;
 
 /**
  * Implementation of {@link CredentialsStore} backed by standard

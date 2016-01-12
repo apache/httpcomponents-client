@@ -29,7 +29,7 @@ package org.apache.http.auth;
 import java.io.Serializable;
 import java.security.Principal;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 import org.ietf.jgss.GSSCredential;
 
 /**

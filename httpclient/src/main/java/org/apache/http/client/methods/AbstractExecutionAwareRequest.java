@@ -29,13 +29,11 @@ package org.apache.http.client.methods;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.http.HttpRequest;
-import org.apache.http.client.utils.CloneUtils;
-import org.apache.http.concurrent.Cancellable;
-import org.apache.http.message.AbstractHttpMessage;
+import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.message.AbstractHttpMessage;
 
-public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage implements
-        HttpExecutionAware, Cloneable, HttpRequest {
+public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage implements HttpExecutionAware, HttpRequest {
 
     private final AtomicBoolean aborted;
     private final AtomicReference<Cancellable> cancellableRef;
@@ -68,13 +66,6 @@ public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage 
         if (!this.aborted.get()) {
             this.cancellableRef.set(cancellable);
         }
-    }
-
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        final AbstractExecutionAwareRequest clone = (AbstractExecutionAwareRequest) super.clone();
-        clone.headergroup = CloneUtils.cloneObject(this.headergroup);
-        return clone;
     }
 
     /**

@@ -30,21 +30,21 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.Consts;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.ParserCursor;
+import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.http.auth.AuthChallenge;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.message.ParserCursor;
-import org.apache.http.util.CharArrayBuffer;
-import org.apache.http.util.EncodingUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -53,7 +53,7 @@ import org.junit.Test;
  */
 public class TestBasicScheme {
 
-    private static AuthChallenge parse(final String s) {
+    private static AuthChallenge parse(final String s) throws ParseException {
         final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
         buffer.append(s);
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
@@ -84,7 +84,7 @@ public class TestBasicScheme {
         final UsernamePasswordCredentials creds = new UsernamePasswordCredentials("dh", buffer.toString().toCharArray());
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(authScope, creds);
-        final BasicScheme authscheme = new BasicScheme(Consts.ISO_8859_1);
+        final BasicScheme authscheme = new BasicScheme(StandardCharsets.ISO_8859_1);
 
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final HttpRequest request = new BasicHttpRequest("GET", "/");
@@ -109,8 +109,9 @@ public class TestBasicScheme {
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
-        final String expected = "Basic " + EncodingUtils.getAsciiString(
-            Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
+        final String expected = "Basic " + new String(
+                Base64.encodeBase64("testuser:testpass".getBytes(StandardCharsets.US_ASCII)),
+                StandardCharsets.US_ASCII);
         Assert.assertEquals(expected, authResponse);
         Assert.assertEquals("test", authscheme.getRealm());
         Assert.assertTrue(authscheme.isChallengeComplete());
@@ -134,8 +135,9 @@ public class TestBasicScheme {
         Assert.assertTrue(authscheme.isResponseReady(host, credentialsProvider, null));
         final String authResponse = authscheme.generateAuthResponse(host, request, null);
 
-        final String expected = "Basic " + EncodingUtils.getAsciiString(
-            Base64.encodeBase64(EncodingUtils.getAsciiBytes("testuser:testpass")));
+        final String expected = "Basic " + new String(
+                Base64.encodeBase64("testuser:testpass".getBytes(StandardCharsets.US_ASCII)),
+                StandardCharsets.US_ASCII);
         Assert.assertEquals(expected, authResponse);
         Assert.assertEquals("test", authscheme.getRealm());
         Assert.assertTrue(authscheme.isChallengeComplete());

@@ -27,7 +27,7 @@
 
 package org.apache.http.cookie;
 
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * Factory for {@link CookieSpec} implementations.

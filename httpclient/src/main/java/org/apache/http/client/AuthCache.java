@@ -26,7 +26,7 @@
  */
 package org.apache.http.client;
 
-import org.apache.http.HttpHost;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.http.auth.AuthScheme;
 
 /**

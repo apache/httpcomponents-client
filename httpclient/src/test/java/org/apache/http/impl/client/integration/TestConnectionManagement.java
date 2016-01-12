@@ -37,16 +37,25 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.http.HttpClientConnection;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.io.HttpClientConnection;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.protocol.BasicHttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http.protocol.ImmutableHttpProcessor;
+import org.apache.hc.core5.http.protocol.RequestConnControl;
+import org.apache.hc.core5.http.protocol.RequestContent;
+import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -55,16 +64,6 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.localserver.LocalServerTestBase;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
-import org.apache.http.protocol.HttpProcessor;
-import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.protocol.ImmutableHttpProcessor;
-import org.apache.http.protocol.RequestConnControl;
-import org.apache.http.protocol.RequestContent;
-import org.apache.http.util.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -114,7 +113,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
 
         final HttpProcessor httpProcessor = new ImmutableHttpProcessor(
-                new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
+                new RequestTargetHost(), new RequestContent(), new RequestConnControl());
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
@@ -203,7 +202,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
 
         final HttpProcessor httpProcessor = new ImmutableHttpProcessor(
-                new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
+                new RequestTargetHost(), new RequestContent(), new RequestConnControl());
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
@@ -401,7 +400,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
 
         final HttpProcessor httpProcessor = new ImmutableHttpProcessor(
-                new HttpRequestInterceptor[] { new RequestContent(), new RequestConnControl() });
+                new RequestTargetHost(), new RequestContent(), new RequestConnControl());
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
@@ -654,7 +653,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
                 final HttpHost host,
                 final InetSocketAddress remoteAddress,
                 final InetSocketAddress localAddress,
-                final HttpContext context) throws IOException, ConnectTimeoutException {
+                final HttpContext context) throws IOException {
             if(waitPolicy == WaitPolicy.BEFORE_CONNECT) {
                 latch();
             }

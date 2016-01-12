@@ -29,7 +29,7 @@ package org.apache.http.conn;
 
 import java.io.IOException;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * Signals failure to establish connection using an unknown protocol scheme.

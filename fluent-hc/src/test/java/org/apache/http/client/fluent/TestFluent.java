@@ -31,20 +31,19 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.entity.StringEntity;
+import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.localserver.LocalServerTestBase;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestHandler;
-import org.apache.http.util.EntityUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -74,14 +73,12 @@ public class TestFluent extends LocalServerTestBase {
                     final HttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
                 HttpEntity responseEntity = null;
-                if (request instanceof HttpEntityEnclosingRequest) {
-                    final HttpEntity requestEntity = ((HttpEntityEnclosingRequest) request).getEntity();
-                    if (requestEntity != null) {
-                        final ContentType contentType = ContentType.getOrDefault(requestEntity);
-                        if (ContentType.TEXT_PLAIN.getMimeType().equals(contentType.getMimeType())) {
-                            responseEntity = new StringEntity(
-                                    EntityUtils.toString(requestEntity), ContentType.TEXT_PLAIN);
-                        }
+                final HttpEntity requestEntity = request.getEntity();
+                if (requestEntity != null) {
+                    final ContentType contentType = ContentType.getOrDefault(requestEntity);
+                    if (ContentType.TEXT_PLAIN.getMimeType().equals(contentType.getMimeType())) {
+                        responseEntity = new StringEntity(
+                                EntityUtils.toString(requestEntity), ContentType.TEXT_PLAIN);
                     }
                 }
                 if (responseEntity == null) {

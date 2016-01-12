@@ -29,13 +29,13 @@ package org.apache.http.impl.client;
 
 import java.io.IOException;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.StatusLine;
+import org.apache.hc.core5.http.entity.EntityUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
-import org.apache.http.util.EntityUtils;
 
 /**
  * A generic {@link ResponseHandler} that works with the response entity
@@ -61,7 +61,7 @@ public abstract class AbstractResponseHandler<T> implements ResponseHandler<T> {
      */
     @Override
     public T handleResponse(final HttpResponse response)
-            throws HttpResponseException, IOException {
+            throws IOException {
         final StatusLine statusLine = response.getStatusLine();
         final HttpEntity entity = response.getEntity();
         if (statusLine.getStatusCode() >= 300) {

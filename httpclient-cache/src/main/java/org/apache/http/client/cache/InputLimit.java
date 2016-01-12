@@ -26,7 +26,7 @@
  */
 package org.apache.http.client.cache;
 
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
 
 /**
  * Used to limiting the size of an incoming response body of

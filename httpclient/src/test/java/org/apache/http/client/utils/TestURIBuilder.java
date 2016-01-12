@@ -29,12 +29,12 @@ package org.apache.http.client.utils;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.Consts;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -241,12 +241,12 @@ public class TestURIBuilder {
 
     @Test
     public void testBuildAddParametersUTF8() throws Exception {
-        assertAddParameters(Consts.UTF_8);
+        assertAddParameters(StandardCharsets.UTF_8);
     }
 
     @Test
     public void testBuildAddParametersISO88591() throws Exception {
-        assertAddParameters(Consts.ISO_8859_1);
+        assertAddParameters(StandardCharsets.ISO_8859_1);
     }
 
     public void assertAddParameters(final Charset charset) throws Exception {
@@ -259,12 +259,12 @@ public class TestURIBuilder {
 
     @Test
     public void testBuildSetParametersUTF8() throws Exception {
-        assertSetParameters(Consts.UTF_8);
+        assertSetParameters(StandardCharsets.UTF_8);
     }
 
     @Test
     public void testBuildSetParametersISO88591() throws Exception {
-        assertSetParameters(Consts.ISO_8859_1);
+        assertSetParameters(StandardCharsets.ISO_8859_1);
     }
 
     public void assertSetParameters(final Charset charset) throws Exception {

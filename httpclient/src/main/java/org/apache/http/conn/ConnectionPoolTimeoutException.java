@@ -27,7 +27,7 @@
 
 package org.apache.http.conn;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * A timeout while waiting for an available connection

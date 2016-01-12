@@ -29,11 +29,11 @@ package org.apache.http.impl.client;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.concurrent.FutureCallback;
-import org.apache.http.protocol.HttpContext;
 
 class HttpRequestTaskCallable<V> implements Callable<V> {
 

@@ -34,14 +34,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 
-import org.apache.http.Header;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpVersion;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.protocol.HTTP;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -341,7 +341,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testCorrectContentLengthDoesntInvalidateEntry() {
         final int contentLength = 128;
-        final Header[] headers = { new BasicHeader(HTTP.CONTENT_LEN, Integer.toString(contentLength)) };
+        final Header[] headers = { new BasicHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(contentLength)) };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers, HttpTestUtils.getRandomBytes(contentLength));
         assertTrue(impl.contentLengthHeaderMatchesActualLength(entry));
     }
@@ -349,7 +349,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testWrongContentLengthInvalidatesEntry() {
         final int contentLength = 128;
-        final Header[] headers = {new BasicHeader(HTTP.CONTENT_LEN, Integer.toString(contentLength+1))};
+        final Header[] headers = {new BasicHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(contentLength+1))};
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(headers, HttpTestUtils.getRandomBytes(contentLength));
         assertFalse(impl.contentLengthHeaderMatchesActualLength(entry));
     }
@@ -357,7 +357,7 @@ public class TestCacheValidityPolicy {
     @Test
     public void testNullResourceInvalidatesEntry() {
         final int contentLength = 128;
-        final Header[] headers = {new BasicHeader(HTTP.CONTENT_LEN, Integer.toString(contentLength))};
+        final Header[] headers = {new BasicHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(contentLength))};
         final HttpCacheEntry entry = HttpTestUtils.makeHeadCacheEntry(headers);
         assertFalse(impl.contentLengthHeaderMatchesActualLength(entry));
     }

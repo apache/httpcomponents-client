@@ -30,7 +30,7 @@ package org.apache.http.cookie;
 import java.util.Comparator;
 import java.util.Date;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
 /**

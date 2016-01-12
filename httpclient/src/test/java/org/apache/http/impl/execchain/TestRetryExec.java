@@ -26,10 +26,14 @@
  */
 package org.apache.http.impl.execchain;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.entity.EntityBuilder;
@@ -39,7 +43,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,10 +51,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
 public class TestRetryExec {
@@ -79,7 +78,7 @@ public class TestRetryExec {
         final HttpGet get = new HttpGet("/test");
         get.addHeader("header", "this");
         get.addHeader("header", "that");
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get);
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get, target);
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(requestExecutor.execute(
@@ -122,7 +121,7 @@ public class TestRetryExec {
     public void testAbortedRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet get = new HttpGet("/test");
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get);
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get, target);
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(requestExecutor.execute(
@@ -157,7 +156,7 @@ public class TestRetryExec {
         post.setEntity(EntityBuilder.create()
                 .setStream(new ByteArrayInputStream(new byte[]{}))
                 .build());
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(post);
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(post, target);
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(requestExecutor.execute(
@@ -169,7 +168,7 @@ public class TestRetryExec {
             @Override
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
-                final HttpEntityEnclosingRequest req = (HttpEntityEnclosingRequest) args[1];
+                final HttpRequest req = (HttpRequest) args[1];
                 req.getEntity().writeTo(new ByteArrayOutputStream());
                 throw new IOException("Ka-boom");
             }

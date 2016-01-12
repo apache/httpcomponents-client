@@ -34,16 +34,24 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.ConnectionReuseStrategy;
-import org.apache.http.HttpClientConnection;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.ConnectionReuseStrategy;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.entity.BufferedHttpEntity;
+import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.io.HttpClientConnection;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http.protocol.ImmutableHttpProcessor;
+import org.apache.hc.core5.http.protocol.RequestTargetHost;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.auth.AuthExchange;
 import org.apache.http.auth.ChallengeType;
 import org.apache.http.client.AuthenticationStrategy;
@@ -61,17 +69,8 @@ import org.apache.http.conn.routing.BasicRouteDirector;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRouteDirector;
 import org.apache.http.conn.routing.RouteTracker;
-import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.auth.HttpAuthenticator;
 import org.apache.http.impl.conn.ConnectionShutdownException;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.protocol.HttpCoreContext;
-import org.apache.http.protocol.HttpProcessor;
-import org.apache.http.protocol.HttpRequestExecutor;
-import org.apache.http.protocol.ImmutableHttpProcessor;
-import org.apache.http.protocol.RequestTargetHost;
-import org.apache.http.util.Args;
-import org.apache.http.util.EntityUtils;
 
 /**
  * The last request executor in the HTTP request execution chain
@@ -154,9 +153,7 @@ public class MainClientExec implements ClientExecChain {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        if (request instanceof HttpEntityEnclosingRequest) {
-            RequestEntityProxy.enhance((HttpEntityEnclosingRequest) request);
-        }
+        RequestEntityProxy.enhance(request);
 
         Object userToken = context.getUserToken();
 
@@ -254,7 +251,7 @@ public class MainClientExec implements ClientExecChain {
                 response = requestExecutor.execute(request, managedConn, context);
 
                 // The connection is in or can be brought to a re-usable state.
-                if (reuseStrategy.keepAlive(response, context)) {
+                if (reuseStrategy.keepAlive(request, response, context)) {
                     // Set the idle duration of this connection
                     final long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
                     if (this.log.isDebugEnabled()) {
@@ -463,7 +460,7 @@ public class MainClientExec implements ClientExecChain {
                     if (this.authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
                             this.proxyAuthStrategy, proxyAuthExchange, context)) {
                         // Retry request
-                        if (this.reuseStrategy.keepAlive(response, context)) {
+                        if (this.reuseStrategy.keepAlive(request, response, context)) {
                             this.log.debug("Connection kept alive");
                             // Consume response content
                             final HttpEntity entity = response.getEntity();

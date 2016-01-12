@@ -29,12 +29,12 @@ package org.apache.http.impl.client.cache;
 import java.net.SocketTimeoutException;
 import java.util.Date;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.message.BasicHttpRequest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -49,7 +49,7 @@ public class TestProtocolAllowedBehavior extends AbstractProtocolTest {
     public void testNonSharedCacheReturnsStaleResponseWhenRevalidationFailsForProxyRevalidate()
         throws Exception {
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET","/", HttpVersion.HTTP_1_1));
+                new BasicHttpRequest("GET","/", HttpVersion.HTTP_1_1), host);
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         originResponse.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
@@ -59,7 +59,7 @@ public class TestProtocolAllowedBehavior extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET","/", HttpVersion.HTTP_1_1));
+                new BasicHttpRequest("GET","/", HttpVersion.HTTP_1_1), host);
 
         backendExpectsAnyRequest().andThrow(new SocketTimeoutException());
 
@@ -76,13 +76,13 @@ public class TestProtocolAllowedBehavior extends AbstractProtocolTest {
     public void testNonSharedCacheMayCacheResponsesWithCacheControlPrivate()
         throws Exception {
         final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET","/", HttpVersion.HTTP_1_1));
+                new BasicHttpRequest("GET","/", HttpVersion.HTTP_1_1), host);
         originResponse.setHeader("Cache-Control","private,max-age=3600");
 
         backendExpectsAnyRequest().andReturn(originResponse);
 
         final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET","/", HttpVersion.HTTP_1_1));
+                new BasicHttpRequest("GET","/", HttpVersion.HTTP_1_1), host);
 
         replayMocks();
         behaveAsNonSharedCache();

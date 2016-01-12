@@ -26,7 +26,7 @@
  */
 package org.apache.http.impl.auth;
 
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 

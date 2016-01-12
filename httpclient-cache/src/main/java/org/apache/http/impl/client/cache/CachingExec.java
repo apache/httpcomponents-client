@@ -37,19 +37,25 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpMessage;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.ProtocolException;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.RequestLine;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpMessage;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.RequestLine;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.VersionInfo;
 import org.apache.http.client.cache.CacheResponseStatus;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheContext;
@@ -64,12 +70,6 @@ import org.apache.http.client.utils.DateUtils;
 import org.apache.http.client.utils.URIUtils;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.execchain.ClientExecChain;
-import org.apache.http.message.BasicHttpResponse;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpCoreContext;
-import org.apache.http.util.Args;
-import org.apache.http.util.VersionInfo;
 
 /**
  * <p>
@@ -306,7 +306,6 @@ public class CachingExec implements ClientExecChain {
         context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
         context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
         context.setAttribute(HttpCoreContext.HTTP_RESPONSE, out);
-        context.setAttribute(HttpCoreContext.HTTP_REQ_SENT, Boolean.TRUE);
         return out;
     }
 
@@ -602,8 +601,8 @@ public class CachingExec implements ClientExecChain {
 
     private boolean revalidationResponseIsTooOld(final HttpResponse backendResponse,
             final HttpCacheEntry cacheEntry) {
-        final Header entryDateHeader = cacheEntry.getFirstHeader(HTTP.DATE_HEADER);
-        final Header responseDateHeader = backendResponse.getFirstHeader(HTTP.DATE_HEADER);
+        final Header entryDateHeader = cacheEntry.getFirstHeader(HttpHeaders.DATE);
+        final Header responseDateHeader = backendResponse.getFirstHeader(HttpHeaders.DATE);
         if (entryDateHeader != null && responseDateHeader != null) {
             final Date entryDate = DateUtils.parseDate(entryDateHeader.getValue());
             final Date respDate = DateUtils.parseDate(responseDateHeader.getValue());
@@ -866,11 +865,11 @@ public class CachingExec implements ClientExecChain {
         if (existing == null) {
             return false;
         }
-        final Header entryDateHeader = existing.getFirstHeader(HTTP.DATE_HEADER);
+        final Header entryDateHeader = existing.getFirstHeader(HttpHeaders.DATE);
         if (entryDateHeader == null) {
             return false;
         }
-        final Header responseDateHeader = backendResponse.getFirstHeader(HTTP.DATE_HEADER);
+        final Header responseDateHeader = backendResponse.getFirstHeader(HttpHeaders.DATE);
         if (responseDateHeader == null) {
             return false;
         }

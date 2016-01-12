@@ -29,9 +29,8 @@ package org.apache.http.conn.socket;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * Extended {@link ConnectionSocketFactory} interface for layered sockets such as SSL/TLS.
@@ -58,6 +57,6 @@ public interface LayeredConnectionSocketFactory extends ConnectionSocketFactory 
         Socket socket,
         String target,
         int port,
-        HttpContext context) throws IOException, UnknownHostException;
+        HttpContext context) throws IOException;
 
 }

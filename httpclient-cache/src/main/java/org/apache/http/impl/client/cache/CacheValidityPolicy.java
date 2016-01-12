@@ -28,14 +28,14 @@ package org.apache.http.impl.client.cache;
 
 import java.util.Date;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HttpRequest;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.protocol.HTTP;
 
 /**
  * @since 4.1
@@ -180,7 +180,7 @@ class CacheValidityPolicy {
     }
 
     protected long getContentLengthValue(final HttpCacheEntry entry) {
-        final Header cl = entry.getFirstHeader(HTTP.CONTENT_LEN);
+        final Header cl = entry.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
         if (cl == null) {
             return -1;
         }
@@ -193,7 +193,7 @@ class CacheValidityPolicy {
     }
 
     protected boolean hasContentLengthHeader(final HttpCacheEntry entry) {
-        return null != entry.getFirstHeader(HTTP.CONTENT_LEN);
+        return null != entry.getFirstHeader(HttpHeaders.CONTENT_LENGTH);
     }
 
     /**

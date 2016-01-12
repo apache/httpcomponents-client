@@ -34,11 +34,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
-import org.apache.http.Consts;
-import org.apache.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.entity.mime.MIME;
-import org.apache.http.util.Args;
 
 /**
  * Text body part backed by a byte array.
@@ -58,14 +58,14 @@ public class StringBody extends AbstractContentBody {
         super(contentType);
         Args.notNull(text, "Text");
         final Charset charset = contentType.getCharset();
-        this.content = text.getBytes(charset != null ? charset : Consts.ASCII);
+        this.content = text.getBytes(charset != null ? charset : StandardCharsets.US_ASCII);
     }
 
     public Reader getReader() {
         final Charset charset = getContentType().getCharset();
         return new InputStreamReader(
                 new ByteArrayInputStream(this.content),
-                charset != null ? charset : Consts.ASCII);
+                charset != null ? charset : StandardCharsets.US_ASCII);
     }
 
     @Override

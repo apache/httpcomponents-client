@@ -26,8 +26,8 @@
  */
 package org.apache.http.conn;
 
-import org.apache.http.HttpConnection;
-import org.apache.http.config.ConnectionConfig;
+import org.apache.hc.core5.http.HttpConnection;
+import org.apache.hc.core5.http.config.ConnectionConfig;
 
 /**
  * Generic {@link HttpConnection} factory.

@@ -27,8 +27,8 @@
 
 package org.apache.http.client;
 
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.protocol.HttpContext;
 
 /**
  * A handler for determining if the given execution context is user specific

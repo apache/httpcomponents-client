@@ -36,21 +36,19 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.ProtocolVersion;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicHttpEntityEnclosingRequest;
-import org.apache.http.message.BasicHttpRequest;
-import org.apache.http.message.BasicHttpResponse;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -103,7 +101,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesUrisInContentLocationHeadersOnPUTs() throws Exception {
-        final HttpEntityEnclosingRequest putRequest = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        final HttpRequest putRequest = new BasicHttpRequest("PUT","/",HTTP_1_1);
         putRequest.setEntity(HttpTestUtils.makeBody(128));
         putRequest.setHeader("Content-Length","128");
 
@@ -125,7 +123,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesUrisInLocationHeadersOnPUTs() throws Exception {
-        final HttpEntityEnclosingRequest putRequest = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        final HttpRequest putRequest = new BasicHttpRequest("PUT","/",HTTP_1_1);
         putRequest.setEntity(HttpTestUtils.makeBody(128));
         putRequest.setHeader("Content-Length","128");
 
@@ -147,7 +145,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesRelativeUrisInContentLocationHeadersOnPUTs() throws Exception {
-        final HttpEntityEnclosingRequest putRequest = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        final HttpRequest putRequest = new BasicHttpRequest("PUT","/",HTTP_1_1);
         putRequest.setEntity(HttpTestUtils.makeBody(128));
         putRequest.setHeader("Content-Length","128");
 
@@ -169,7 +167,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateUrisInContentLocationHeadersOnPUTsToDifferentHosts() throws Exception {
-        final HttpEntityEnclosingRequest putRequest = new BasicHttpEntityEnclosingRequest("PUT","/",HTTP_1_1);
+        final HttpRequest putRequest = new BasicHttpRequest("PUT","/",HTTP_1_1);
         putRequest.setEntity(HttpTestUtils.makeBody(128));
         putRequest.setHeader("Content-Length","128");
 

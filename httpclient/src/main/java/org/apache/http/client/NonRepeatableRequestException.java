@@ -26,8 +26,8 @@
  */
 package org.apache.http.client;
 
-import org.apache.http.ProtocolException;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.ProtocolException;
 
 /**
  * Signals failure to retry the request due to non-repeatable request

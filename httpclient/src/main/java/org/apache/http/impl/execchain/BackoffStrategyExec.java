@@ -30,8 +30,9 @@ package org.apache.http.impl.execchain;
 import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 
-import org.apache.http.HttpException;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.util.Args;
 import org.apache.http.client.BackoffManager;
 import org.apache.http.client.ConnectionBackoffStrategy;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -39,7 +40,6 @@ import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.util.Args;
 
 /**
  * @since 4.3

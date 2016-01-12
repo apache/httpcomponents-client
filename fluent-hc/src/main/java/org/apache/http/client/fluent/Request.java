@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,15 +40,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.apache.http.Consts;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.Configurable;
@@ -60,9 +61,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.entity.ContentType;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
 
 public class Request {
 
@@ -103,27 +101,27 @@ public class Request {
     }
 
     public static Request Post(final URI uri) {
-        return new Request(new InternalEntityEnclosingHttpRequest(HttpPost.METHOD_NAME, uri));
+        return new Request(new InternalHttpRequest(HttpPost.METHOD_NAME, uri));
     }
 
     public static Request Post(final String uri) {
-        return new Request(new InternalEntityEnclosingHttpRequest(HttpPost.METHOD_NAME, URI.create(uri)));
+        return new Request(new InternalHttpRequest(HttpPost.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Patch(final URI uri) {
-        return new Request(new InternalEntityEnclosingHttpRequest(HttpPatch.METHOD_NAME, uri));
+        return new Request(new InternalHttpRequest(HttpPatch.METHOD_NAME, uri));
     }
 
     public static Request Patch(final String uri) {
-        return new Request(new InternalEntityEnclosingHttpRequest(HttpPatch.METHOD_NAME, URI.create(uri)));
+        return new Request(new InternalHttpRequest(HttpPatch.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Put(final URI uri) {
-        return new Request(new InternalEntityEnclosingHttpRequest(HttpPut.METHOD_NAME, uri));
+        return new Request(new InternalHttpRequest(HttpPut.METHOD_NAME, uri));
     }
 
     public static Request Put(final String uri) {
-        return new Request(new InternalEntityEnclosingHttpRequest(HttpPut.METHOD_NAME, URI.create(uri)));
+        return new Request(new InternalHttpRequest(HttpPut.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Trace(final URI uri) {
@@ -157,7 +155,7 @@ public class Request {
 
     HttpResponse internalExecute(
             final HttpClient client,
-            final HttpContext localContext) throws ClientProtocolException, IOException {
+            final HttpContext localContext) throws IOException {
         final RequestConfig.Builder builder;
         if (client instanceof Configurable) {
             builder = RequestConfig.copy(((Configurable) client).getConfig());
@@ -181,7 +179,7 @@ public class Request {
         return client.execute(this.request, localContext);
     }
 
-    public Response execute() throws ClientProtocolException, IOException {
+    public Response execute() throws IOException {
         return new Response(internalExecute(Executor.CLIENT, null));
     }
 
@@ -273,7 +271,7 @@ public class Request {
     }
 
     public Request userAgent(final String agent) {
-        this.request.setHeader(HTTP.USER_AGENT, agent);
+        this.request.setHeader(HttpHeaders.USER_AGENT, agent);
         return this;
     }
 
@@ -307,12 +305,7 @@ public class Request {
     //// HTTP entity operations
 
     public Request body(final HttpEntity entity) {
-        if (this.request instanceof HttpEntityEnclosingRequest) {
-            ((HttpEntityEnclosingRequest) this.request).setEntity(entity);
-        } else {
-            throw new IllegalStateException(this.request.getMethod()
-                    + " request cannot enclose an entity");
-        }
+        this.request.setEntity(entity);
         return this;
     }
 
@@ -327,11 +320,11 @@ public class Request {
     }
 
     public Request bodyForm(final Iterable <? extends NameValuePair> formParams) {
-        return bodyForm(formParams, Consts.ISO_8859_1);
+        return bodyForm(formParams, StandardCharsets.ISO_8859_1);
     }
 
     public Request bodyForm(final NameValuePair... formParams) {
-        return bodyForm(Arrays.asList(formParams), Consts.ISO_8859_1);
+        return bodyForm(Arrays.asList(formParams), StandardCharsets.ISO_8859_1);
     }
 
     public Request bodyString(final String s, final ContentType contentType) {

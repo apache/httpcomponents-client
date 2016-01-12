@@ -26,7 +26,7 @@
  */
 package org.apache.http.client;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * Signals a non 2xx HTTP response.

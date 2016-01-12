@@ -29,15 +29,15 @@ package org.apache.http.impl.client.integration;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.entity.EntityUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.IdleConnectionEvictor;
 import org.apache.http.localserver.LocalServerTestBase;
-import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 
 public class TestIdleConnectionEviction extends LocalServerTestBase {

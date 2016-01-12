@@ -32,18 +32,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Set;
 
-import org.apache.http.ContentTooLongException;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
+import org.apache.hc.core5.http.ContentTooLongException;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.TrailerSupplier;
+import org.apache.hc.core5.http.entity.ContentType;
 
 class MultipartFormEntity implements HttpEntity {
 
     private final AbstractMultipartForm multipart;
-    private final Header contentType;
+    private final ContentType contentType;
     private final long contentLength;
 
     MultipartFormEntity(
@@ -52,7 +51,7 @@ class MultipartFormEntity implements HttpEntity {
             final long contentLength) {
         super();
         this.multipart = multipart;
-        this.contentType = new BasicHeader(HTTP.CONTENT_TYPE, contentType.toString());
+        this.contentType = contentType;
         this.contentLength = contentLength;
     }
 
@@ -81,17 +80,13 @@ class MultipartFormEntity implements HttpEntity {
     }
 
     @Override
-    public Header getContentType() {
-        return this.contentType;
+    public String getContentType() {
+        return this.contentType != null ? this.contentType.toString() : null;
     }
 
     @Override
-    public Header getContentEncoding() {
+    public String getContentEncoding() {
         return null;
-    }
-
-    @Override
-    public void consumeContent() {
     }
 
     @Override
@@ -110,6 +105,16 @@ class MultipartFormEntity implements HttpEntity {
     @Override
     public void writeTo(final OutputStream outstream) throws IOException {
         this.multipart.writeTo(outstream);
+    }
+
+    @Override
+    public TrailerSupplier getTrailers() {
+        return null;
+    }
+
+    @Override
+    public Set<String> getTrailerNames() {
+        return null;
     }
 
 }

@@ -29,8 +29,8 @@ package org.apache.http.conn.util;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
-import org.apache.http.Consts;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,7 +49,7 @@ public class TestPublicSuffixMatcher {
         final PublicSuffixList suffixList;
         try {
             final PublicSuffixListParser parser = new PublicSuffixListParser();
-            suffixList = parser.parse(new InputStreamReader(in, Consts.UTF_8));
+            suffixList = parser.parse(new InputStreamReader(in, StandardCharsets.UTF_8));
         } finally {
             in.close();
         }

@@ -26,9 +26,9 @@
  */
 package org.apache.http.client.cache;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
 
 /**
  * Given a particular HttpRequest, flush any cache entries that this request

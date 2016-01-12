@@ -30,17 +30,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.apache.http.HttpHost;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.impl.execchain.ClientExecChain;
-import org.apache.http.message.BasicHttpRequest;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class TestExponentialBackingOffSchedulingStrategy {
 
@@ -159,8 +159,9 @@ public class TestExponentialBackingOffSchedulingStrategy {
         final ClientExecChain clientExecChain = mock(ClientExecChain.class);
         final CachingExec cachingHttpClient = new CachingExec(clientExecChain);
         final AsynchronousValidator mockValidator = new AsynchronousValidator(impl);
-        final HttpRoute httpRoute = new HttpRoute(new HttpHost("foo.example.com", 80));
-        final HttpRequestWrapper httpRequestWrapper = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/"));
+        final HttpHost host = new HttpHost("foo.example.com", 80);
+        final HttpRoute httpRoute = new HttpRoute(host);
+        final HttpRequestWrapper httpRequestWrapper = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/"), host);
         final HttpClientContext httpClientContext = new HttpClientContext();
         return new AsynchronousValidationRequest(mockValidator, cachingHttpClient, httpRoute, httpRequestWrapper,
                 httpClientContext, null, null, "identifier", errorCount);

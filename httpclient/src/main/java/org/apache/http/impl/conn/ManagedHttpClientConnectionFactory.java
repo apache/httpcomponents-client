@@ -35,19 +35,18 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.annotation.Immutable;
-import org.apache.http.config.ConnectionConfig;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.ContentLengthStrategy;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.config.ConnectionConfig;
+import org.apache.hc.core5.http.impl.DefaultContentLengthStrategy;
+import org.apache.hc.core5.http.impl.io.DefaultHttpRequestWriterFactory;
+import org.apache.hc.core5.http.io.HttpMessageParserFactory;
+import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
 import org.apache.http.conn.HttpConnectionFactory;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.entity.ContentLengthStrategy;
-import org.apache.http.impl.entity.LaxContentLengthStrategy;
-import org.apache.http.impl.entity.StrictContentLengthStrategy;
-import org.apache.http.impl.io.DefaultHttpRequestWriterFactory;
-import org.apache.http.io.HttpMessageParserFactory;
-import org.apache.http.io.HttpMessageWriterFactory;
 
 /**
  * Factory for {@link ManagedHttpClientConnection} instances.
@@ -84,9 +83,9 @@ public class ManagedHttpClientConnectionFactory
         this.responseParserFactory = responseParserFactory != null ? responseParserFactory :
                 DefaultHttpResponseParserFactory.INSTANCE;
         this.incomingContentStrategy = incomingContentStrategy != null ? incomingContentStrategy :
-                LaxContentLengthStrategy.INSTANCE;
+                DefaultContentLengthStrategy.INSTANCE;
         this.outgoingContentStrategy = outgoingContentStrategy != null ? outgoingContentStrategy :
-                StrictContentLengthStrategy.INSTANCE;
+                DefaultContentLengthStrategy.INSTANCE;
     }
 
     public ManagedHttpClientConnectionFactory(

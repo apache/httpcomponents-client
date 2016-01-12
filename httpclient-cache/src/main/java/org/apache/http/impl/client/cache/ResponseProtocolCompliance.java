@@ -31,21 +31,21 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.HttpVersion;
-import org.apache.http.annotation.Immutable;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HeaderElements;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
 
 /**
  * @since 4.1
@@ -99,7 +99,7 @@ class ResponseProtocolCompliance {
 
     private void warningsWithNonMatchingWarnDatesAreRemoved(
             final HttpResponse response) {
-        final Date responseDate = DateUtils.parseDate(response.getFirstHeader(HTTP.DATE_HEADER).getValue());
+        final Date responseDate = DateUtils.parseDate(response.getFirstHeader(HttpHeaders.DATE).getValue());
         if (responseDate == null) {
             return;
         }
@@ -131,7 +131,7 @@ class ResponseProtocolCompliance {
     }
 
     private void identityIsNotUsedInContentEncoding(final HttpResponse response) {
-        final Header[] hdrs = response.getHeaders(HTTP.CONTENT_ENCODING);
+        final Header[] hdrs = response.getHeaders(HttpHeaders.CONTENT_ENCODING);
         if (hdrs == null || hdrs.length == 0) {
             return;
         }
@@ -153,21 +153,21 @@ class ResponseProtocolCompliance {
             }
             final String newHeaderValue = buf.toString();
             if (!"".equals(newHeaderValue)) {
-                newHeaders.add(new BasicHeader(HTTP.CONTENT_ENCODING, newHeaderValue));
+                newHeaders.add(new BasicHeader(HttpHeaders.CONTENT_ENCODING, newHeaderValue));
             }
         }
         if (!modified) {
             return;
         }
-        response.removeHeaders(HTTP.CONTENT_ENCODING);
+        response.removeHeaders(HttpHeaders.CONTENT_ENCODING);
         for (final Header h : newHeaders) {
             response.addHeader(h);
         }
     }
 
     private void ensure206ContainsDateHeader(final HttpResponse response) {
-        if (response.getFirstHeader(HTTP.DATE_HEADER) == null) {
-            response.addHeader(HTTP.DATE_HEADER, DateUtils.formatDate(new Date()));
+        if (response.getFirstHeader(HttpHeaders.DATE) == null) {
+            response.addHeader(HttpHeaders.DATE, DateUtils.formatDate(new Date()));
         }
 
     }
@@ -193,15 +193,15 @@ class ResponseProtocolCompliance {
             return;
         }
 
-        if (response.getFirstHeader(HTTP.CONTENT_LEN) == null) {
-            response.addHeader(HTTP.CONTENT_LEN, "0");
+        if (response.getFirstHeader(HttpHeaders.CONTENT_LENGTH) == null) {
+            response.addHeader(HttpHeaders.CONTENT_LENGTH, "0");
         }
     }
 
     private void ensure304DoesNotContainExtraEntityHeaders(final HttpResponse response) {
-        final String[] disallowedEntityHeaders = { HeaderConstants.ALLOW, HTTP.CONTENT_ENCODING,
-                "Content-Language", HTTP.CONTENT_LEN, "Content-MD5",
-                "Content-Range", HTTP.CONTENT_TYPE, HeaderConstants.LAST_MODIFIED
+        final String[] disallowedEntityHeaders = { HeaderConstants.ALLOW, HttpHeaders.CONTENT_ENCODING,
+                "Content-Language", HttpHeaders.CONTENT_LENGTH, "Content-MD5",
+                "Content-Range", HttpHeaders.CONTENT_TYPE, HeaderConstants.LAST_MODIFIED
         };
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
             for(final String hdr : disallowedEntityHeaders) {
@@ -224,10 +224,9 @@ class ResponseProtocolCompliance {
         }
 
         final HttpRequest originalRequest = request.getOriginal();
-        if (originalRequest instanceof HttpEntityEnclosingRequest) {
-            if (((HttpEntityEnclosingRequest)originalRequest).expectContinue()) {
-                return;
-            }
+        final Header header = originalRequest.getFirstHeader(HttpHeaders.EXPECT);
+        if (header != null && header.getValue().equalsIgnoreCase(HeaderElements.CONTINUE)) {
+            return;
         }
         consumeBody(response);
         throw new ClientProtocolException(UNEXPECTED_100_CONTINUE);
@@ -245,7 +244,7 @@ class ResponseProtocolCompliance {
 
     private void removeResponseTransferEncoding(final HttpResponse response) {
         response.removeHeaders("TE");
-        response.removeHeaders(HTTP.TRANSFER_ENCODING);
+        response.removeHeaders(HttpHeaders.TRANSFER_ENCODING);
     }
 
 }

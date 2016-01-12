@@ -28,9 +28,9 @@ package org.apache.http.impl.client.cache;
 
 import java.util.Date;
 
-import org.apache.http.Header;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.http.client.utils.DateUtils;
-import org.apache.http.message.BasicHeader;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -29,22 +29,22 @@ package org.apache.http.impl.execchain;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Set;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpRequest;
-import org.apache.http.annotation.NotThreadSafe;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.TrailerSupplier;
 
 /**
- * A Proxy class for {@link org.apache.http.HttpEntity} enclosed in a request message.
+ * A Proxy class for {@link org.apache.hc.core5.http.HttpEntity} enclosed in a request message.
  *
  * @since 4.3
  */
 @NotThreadSafe
 class RequestEntityProxy implements HttpEntity  {
 
-    static void enhance(final HttpEntityEnclosingRequest request) {
+    static void enhance(final HttpRequest request) {
         final HttpEntity entity = request.getEntity();
         if (entity != null && !entity.isRepeatable() && !isEnhanced(entity)) {
             request.setEntity(new RequestEntityProxy(entity));
@@ -56,17 +56,15 @@ class RequestEntityProxy implements HttpEntity  {
     }
 
     static boolean isRepeatable(final HttpRequest request) {
-        if (request instanceof HttpEntityEnclosingRequest) {
-            final HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-            if (entity != null) {
-                if (isEnhanced(entity)) {
-                    final RequestEntityProxy proxy = (RequestEntityProxy) entity;
-                    if (!proxy.isConsumed()) {
-                        return true;
-                    }
+        final HttpEntity entity = request.getEntity();
+        if (entity != null) {
+            if (isEnhanced(entity)) {
+                final RequestEntityProxy proxy = (RequestEntityProxy) entity;
+                if (!proxy.isConsumed()) {
+                    return true;
                 }
-                return entity.isRepeatable();
             }
+            return entity.isRepeatable();
         }
         return true;
     }
@@ -103,12 +101,12 @@ class RequestEntityProxy implements HttpEntity  {
     }
 
     @Override
-    public Header getContentType() {
+    public String getContentType() {
         return original.getContentType();
     }
 
     @Override
-    public Header getContentEncoding() {
+    public String getContentEncoding() {
         return original.getContentEncoding();
     }
 
@@ -129,10 +127,13 @@ class RequestEntityProxy implements HttpEntity  {
     }
 
     @Override
-    @Deprecated
-    public void consumeContent() throws IOException {
-        consumed = true;
-        original.consumeContent();
+    public TrailerSupplier getTrailers() {
+        return original.getTrailers();
+    }
+
+    @Override
+    public Set<String> getTrailerNames() {
+        return original.getTrailerNames();
     }
 
     @Override

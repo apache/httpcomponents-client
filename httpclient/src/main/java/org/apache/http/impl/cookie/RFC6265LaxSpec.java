@@ -27,7 +27,7 @@
 
 package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.ThreadSafe;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 
 /**

@@ -33,10 +33,10 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import org.apache.http.Consts;
-import org.apache.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.ContentType;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
@@ -63,7 +63,7 @@ public class TestMultipartForm {
         final FormBodyPart p2 = FormBodyPartBuilder.create(
                 "field2",
                 new StringBody("that stuff", ContentType.create(
-                        ContentType.TEXT_PLAIN.getMimeType(), Consts.UTF_8))).build();
+                        ContentType.TEXT_PLAIN.getMimeType(), StandardCharsets.UTF_8))).build();
         final FormBodyPart p3 = FormBodyPartBuilder.create(
                 "field3",
                 new StringBody("all kind of stuff", ContentType.DEFAULT_TEXT)).build();
@@ -317,7 +317,7 @@ public class TestMultipartForm {
                 "field2",
                 new InputStreamBody(new FileInputStream(tmpfile), s2 + ".tmp")).build();
         final HttpBrowserCompatibleMultipart multipart = new HttpBrowserCompatibleMultipart(
-                Consts.UTF_8, "foo",
+                StandardCharsets.UTF_8, "foo",
                 Arrays.asList(p1, p2));
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -368,17 +368,17 @@ public class TestMultipartForm {
             "Content-Disposition: form-data; name=\"field1\"\r\n" +
             "Content-Type: text/plain; charset=ISO-8859-1\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
-            "\r\n").getBytes(Consts.ASCII));
-        out2.write(s1.getBytes(Consts.ISO_8859_1));
+            "\r\n").getBytes(StandardCharsets.US_ASCII));
+        out2.write(s1.getBytes(StandardCharsets.ISO_8859_1));
         out2.write(("\r\n" +
             "--foo\r\n" +
             "Content-Disposition: form-data; name=\"field2\"\r\n" +
             "Content-Type: text/plain; charset=KOI8-R\r\n" +
             "Content-Transfer-Encoding: 8bit\r\n" +
-            "\r\n").getBytes(Consts.ASCII));
+            "\r\n").getBytes(StandardCharsets.US_ASCII));
         out2.write(s2.getBytes(Charset.forName("KOI8-R")));
         out2.write(("\r\n" +
-            "--foo--\r\n").getBytes(Consts.ASCII));
+            "--foo--\r\n").getBytes(StandardCharsets.US_ASCII));
         out2.close();
 
         final byte[] actual = out1.toByteArray();
