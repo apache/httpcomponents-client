@@ -234,6 +234,7 @@ public class BasicClientCookie implements SetCookie, Cloneable, Serializable, Co
     /**
      * @since 4.4
      */
+    @Override
     public Date getCreationDate() {
         return creationDate;
     }

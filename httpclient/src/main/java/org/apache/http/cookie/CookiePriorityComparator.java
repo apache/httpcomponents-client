@@ -31,7 +31,6 @@ import java.util.Comparator;
 import java.util.Date;
 
 import org.apache.hc.core5.annotation.Immutable;
-import org.apache.http.impl.cookie.BasicClientCookie;
 
 /**
  * This cookie comparator ensures that cookies with longer paths take precedence over
@@ -54,11 +53,10 @@ public class CookiePriorityComparator implements Comparator<Cookie> {
     public int compare(final Cookie c1, final Cookie c2) {
         final int l1 = getPathLength(c1);
         final int l2 = getPathLength(c2);
-        //TODO: processChallenge this class once Cookie interface has been expended with #getCreationTime method
         final int result = l2 - l1;
-        if (result == 0 && c1 instanceof BasicClientCookie && c2 instanceof BasicClientCookie) {
-            final Date d1 = ((BasicClientCookie) c1).getCreationDate();
-            final Date d2 = ((BasicClientCookie) c2).getCreationDate();
+        if (result == 0) {
+            final Date d1 = c1.getCreationDate();
+            final Date d2 = c2.getCreationDate();
             if (d1 != null && d2 != null) {
                 return (int) (d1.getTime() - d2.getTime());
             }

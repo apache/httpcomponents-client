@@ -124,7 +124,10 @@ public interface Cookie {
      */
     boolean isExpired(final Date date);
 
-    //TODO: RFC 6265 requires cookies to track their creation time; add #getCreationDate()
+    /**
+     * Returns creation time of the cookie.
+     */
+    Date getCreationDate();
 
 }
 
