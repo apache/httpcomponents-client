@@ -68,10 +68,11 @@ public final class HttpRoute implements RouteInfo, Cloneable {
     /** Whether the route is (supposed to be) secure. */
     private final boolean secure;
 
-    private HttpRoute(final HttpHost target, final InetAddress local, final List<HttpHost> proxies,
+    private HttpRoute(final HttpHost targetHost, final InetAddress local, final List<HttpHost> proxies,
                      final boolean secure, final TunnelType tunnelled, final LayerType layered) {
-        Args.notNull(target, "Target host");
-        this.targetHost = normalize(target);
+        Args.notNull(targetHost, "Target host");
+        Args.notNegative(targetHost.getPort(), "Target port");
+        this.targetHost = targetHost;
         this.localAddress = local;
         if (proxies != null && !proxies.isEmpty()) {
             this.proxyChain = new ArrayList<>(proxies);
@@ -84,34 +85,6 @@ public final class HttpRoute implements RouteInfo, Cloneable {
         this.secure       = secure;
         this.tunnelled    = tunnelled != null ? tunnelled : TunnelType.PLAIN;
         this.layered      = layered != null ? layered : LayerType.PLAIN;
-    }
-
-    //TODO: to be removed in 5.0
-    private static int getDefaultPort(final String schemeName) {
-        if ("http".equalsIgnoreCase(schemeName)) {
-            return 80;
-        } else if ("https".equalsIgnoreCase(schemeName)) {
-            return 443;
-        } else {
-            return -1;
-        }
-
-    }
-
-    //TODO: to be removed in 5.0
-    private static HttpHost normalize(final HttpHost target) {
-        if (target.getPort() >= 0 ) {
-            return target;
-        } else {
-            final InetAddress address = target.getAddress();
-            final String schemeName = target.getSchemeName();
-            if (address != null) {
-                return new HttpHost(address, getDefaultPort(schemeName), schemeName);
-            } else {
-                final String hostName = target.getHostName();
-                return new HttpHost(hostName, getDefaultPort(schemeName), schemeName);
-            }
-        }
     }
 
     /**

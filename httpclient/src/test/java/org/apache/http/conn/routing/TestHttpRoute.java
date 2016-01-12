@@ -577,48 +577,4 @@ public class TestHttpRoute {
         Assert.assertEquals("route was modified", route3, route1);
     }
 
-    @Test
-    public void testTargetHostNormalizationHttp() {
-        final HttpHost target = new HttpHost("somehost", -1, "http");
-        final HttpRoute route = new HttpRoute(target);
-        final HttpHost targetHost = route.getTargetHost();
-        Assert.assertEquals("somehost", targetHost.getHostName());
-        Assert.assertEquals(80, targetHost.getPort());
-        Assert.assertEquals("http", targetHost.getSchemeName());
-        Assert.assertEquals(null, targetHost.getAddress());
-    }
-
-    @Test
-    public void testTargetHostNormalizationHttps() {
-        final HttpHost target = new HttpHost("somehost", -1, "https");
-        final HttpRoute route = new HttpRoute(target);
-        final HttpHost targetHost = route.getTargetHost();
-        Assert.assertEquals("somehost", targetHost.getHostName());
-        Assert.assertEquals(443, targetHost.getPort());
-        Assert.assertEquals("https", targetHost.getSchemeName());
-        Assert.assertEquals(null, targetHost.getAddress());
-    }
-
-    @Test
-    public void testTargetHostNormalizationUnknownPorotocol() {
-        final HttpHost target = new HttpHost("somehost", -1, "blah");
-        final HttpRoute route = new HttpRoute(target);
-        final HttpHost targetHost = route.getTargetHost();
-        Assert.assertEquals("somehost", targetHost.getHostName());
-        Assert.assertEquals(-1, targetHost.getPort());
-        Assert.assertEquals("blah", targetHost.getSchemeName());
-        Assert.assertEquals(null, targetHost.getAddress());
-    }
-
-    @Test
-    public void testTargetHostNormalizationAddress() throws Exception {
-        final InetAddress address = InetAddress.getByAddress(new byte[]{127, 0, 0, 1});
-        final HttpHost target = new HttpHost(address, -1, "http");
-        final HttpRoute route = new HttpRoute(target);
-        final HttpHost targetHost = route.getTargetHost();
-        Assert.assertEquals(80, targetHost.getPort());
-        Assert.assertEquals("http", targetHost.getSchemeName());
-        Assert.assertEquals(address, targetHost.getAddress());
-    }
-
 }
