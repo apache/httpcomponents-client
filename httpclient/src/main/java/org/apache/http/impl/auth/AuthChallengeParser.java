@@ -36,7 +36,6 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.message.TokenParser;
-import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.http.auth.AuthChallenge;
 
 public class AuthChallengeParser {
@@ -54,7 +53,7 @@ public class AuthChallengeParser {
     private static final BitSet TERMINATORS = TokenParser.INIT_BITSET(BLANK, EQUAL_CHAR, COMMA_CHAR);
     private static final BitSet DELIMITER = TokenParser.INIT_BITSET(COMMA_CHAR);
 
-    NameValuePair parseTokenOrParameter(final CharArrayBuffer buffer, final ParserCursor cursor) throws ParseException {
+    NameValuePair parseTokenOrParameter(final CharSequence buffer, final ParserCursor cursor) throws ParseException {
 
         tokenParser.skipWhiteSpace(buffer, cursor);
         final String token = tokenParser.parseToken(buffer, cursor, TERMINATORS);
@@ -71,7 +70,7 @@ public class AuthChallengeParser {
         return new BasicNameValuePair(token, null);
     }
 
-    public List<AuthChallenge> parse(final CharArrayBuffer buffer, final ParserCursor cursor) throws ParseException {
+    public List<AuthChallenge> parse(final CharSequence buffer, final ParserCursor cursor) throws ParseException {
 
         final List<AuthChallenge> list = new ArrayList<>();
         String scheme = null;
