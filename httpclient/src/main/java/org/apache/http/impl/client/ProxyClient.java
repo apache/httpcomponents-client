@@ -76,6 +76,7 @@ import org.apache.http.impl.auth.KerberosSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
 import org.apache.http.impl.auth.SPNegoSchemeFactory;
 import org.apache.http.impl.conn.ManagedHttpClientConnectionFactory;
+import org.apache.http.impl.conn.SystemDefaultDnsResolver;
 import org.apache.http.impl.execchain.TunnelRefusedException;
 
 /**
@@ -115,8 +116,8 @@ public class ProxyClient {
                 .register(AuthSchemes.BASIC, new BasicSchemeFactory())
                 .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
                 .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
-                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory())
-                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory())
+                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(SystemDefaultDnsResolver.INSTANCE, true, true))
+                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(SystemDefaultDnsResolver.INSTANCE, true, true))
                 .build();
         this.reuseStrategy = new DefaultConnectionReuseStrategy();
     }

@@ -92,4 +92,12 @@ public class InMemoryDnsResolver implements DnsResolver {
         return resolvedAddresses;
     }
 
+    @Override
+    public String resolveCanonicalHostname(final String host) throws UnknownHostException {
+        final InetAddress[] resolvedAddresses = resolve(host);
+        if (resolvedAddresses.length > 0) {
+            return resolvedAddresses[0].getCanonicalHostName();
+        }
+        return host;
+    }
 }

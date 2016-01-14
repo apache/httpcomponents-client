@@ -45,4 +45,16 @@ public class SystemDefaultDnsResolver implements DnsResolver {
         return InetAddress.getAllByName(host);
     }
 
+    @Override
+    public String resolveCanonicalHostname(final String host) throws UnknownHostException {
+        if (host == null) {
+            return null;
+        }
+        final InetAddress in = InetAddress.getByName(host);
+        final String canonicalServer = in.getCanonicalHostName();
+        if (in.getHostAddress().contentEquals(canonicalServer)) {
+            return host;
+        }
+        return canonicalServer;
+    }
 }

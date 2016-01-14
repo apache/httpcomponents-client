@@ -27,6 +27,7 @@
 package org.apache.http.impl.auth;
 
 import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.http.conn.DnsResolver;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
@@ -44,8 +45,8 @@ public class SPNegoScheme extends GGSSchemeBase {
     /**
      * @since 4.4
      */
-    public SPNegoScheme(final boolean stripPort, final boolean useCanonicalHostname) {
-        super(stripPort, useCanonicalHostname);
+    public SPNegoScheme(final DnsResolver dnsResolver, final boolean stripPort, final boolean useCanonicalHostname) {
+        super(dnsResolver, stripPort, useCanonicalHostname);
     }
 
     public SPNegoScheme(final boolean stripPort) {

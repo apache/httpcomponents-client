@@ -30,6 +30,7 @@ import org.apache.hc.core5.annotation.Immutable;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.conn.DnsResolver;
 
 /**
  * {@link AuthSchemeProvider} implementation that creates and initializes
@@ -40,39 +41,23 @@ import org.apache.http.auth.AuthSchemeProvider;
 @Immutable
 public class KerberosSchemeFactory implements AuthSchemeProvider {
 
+    private final DnsResolver dnsResolver;
     private final boolean stripPort;
     private final boolean useCanonicalHostname;
 
     /**
      * @since 4.4
      */
-    public KerberosSchemeFactory(final boolean stripPort, final boolean useCanonicalHostname) {
+    public KerberosSchemeFactory(final DnsResolver dnsResolver, final boolean stripPort, final boolean useCanonicalHostname) {
         super();
+        this.dnsResolver = dnsResolver;
         this.stripPort = stripPort;
         this.useCanonicalHostname = useCanonicalHostname;
     }
 
-    public KerberosSchemeFactory(final boolean stripPort) {
-        super();
-        this.stripPort = stripPort;
-        this.useCanonicalHostname = true;
-    }
-
-    public KerberosSchemeFactory() {
-        this(true, true);
-    }
-
-    public boolean isStripPort() {
-        return stripPort;
-    }
-
-    public boolean isUseCanonicalHostname() {
-        return useCanonicalHostname;
-    }
-
     @Override
     public AuthScheme create(final HttpContext context) {
-        return new KerberosScheme(this.stripPort, this.useCanonicalHostname);
+        return new KerberosScheme(this.dnsResolver, this.stripPort, this.useCanonicalHostname);
     }
 
 }

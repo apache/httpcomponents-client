@@ -51,4 +51,10 @@ public interface DnsResolver {
      */
     InetAddress[] resolve(String host) throws UnknownHostException;
 
+    /**
+     * Gets the fully qualified domain name for given host name.
+     * @since 5.0
+     */
+    String resolveCanonicalHostname(String host) throws UnknownHostException;
+
 }

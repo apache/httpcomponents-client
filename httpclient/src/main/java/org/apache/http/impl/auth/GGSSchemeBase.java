@@ -26,7 +26,6 @@
  */
 package org.apache.http.impl.auth;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.Principal;
 
@@ -47,6 +46,8 @@ import org.apache.http.auth.CredentialsProvider;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.KerberosCredentials;
 import org.apache.http.auth.MalformedChallengeException;
+import org.apache.http.conn.DnsResolver;
+import org.apache.http.impl.conn.SystemDefaultDnsResolver;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSException;
@@ -69,6 +70,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
 
     private final Log log = LogFactory.getLog(getClass());
 
+    private final DnsResolver dnsResolver;
     private final boolean stripPort;
     private final boolean useCanonicalHostname;
 
@@ -78,19 +80,23 @@ public abstract class GGSSchemeBase implements AuthScheme {
     private String challenge;
     private byte[] token;
 
-    GGSSchemeBase(final boolean stripPort, final boolean useCanonicalHostname) {
+    GGSSchemeBase(
+            final DnsResolver dnsResolver,
+            final boolean stripPort,
+            final boolean useCanonicalHostname) {
         super();
+        this.dnsResolver = dnsResolver != null ? dnsResolver : SystemDefaultDnsResolver.INSTANCE;
         this.stripPort = stripPort;
         this.useCanonicalHostname = useCanonicalHostname;
         this.state = State.UNINITIATED;
     }
 
     GGSSchemeBase(final boolean stripPort) {
-        this(stripPort, true);
+        this(null, stripPort, true);
     }
 
     GGSSchemeBase() {
-        this(true, true);
+        this(null, true, true);
     }
 
     @Override
@@ -189,15 +195,11 @@ public abstract class GGSSchemeBase implements AuthScheme {
                 String hostname = host.getHostName();
                 if (this.useCanonicalHostname){
                     try {
-                         //TODO: uncomment this statement and delete the resolveCanonicalHostname,
-                         //TODO: as soon canonical hostname resolving is implemented in the SystemDefaultDnsResolver
-                         //final DnsResolver dnsResolver = SystemDefaultDnsResolver.INSTANCE;
-                         //hostname = dnsResolver.resolveCanonicalHostname(host.getHostName());
-                         hostname = resolveCanonicalHostname(hostname);
+                         hostname = dnsResolver.resolveCanonicalHostname(host.getHostName());
                     } catch (UnknownHostException ignore){
                     }
                 }
-                if (this.stripPort) { // || host.getPort()==80 || host.getPort()==443) {
+                if (this.stripPort) {
                     authServer = hostname;
                 } else {
                     authServer = hostname + ":" + host.getPort();
@@ -235,15 +237,6 @@ public abstract class GGSSchemeBase implements AuthScheme {
         default:
             throw new IllegalStateException("Illegal state: " + state);
         }
-    }
-
-    private String resolveCanonicalHostname(final String host) throws UnknownHostException {
-        final InetAddress in = InetAddress.getByName(host);
-        final String canonicalServer = in.getCanonicalHostName();
-        if (in.getHostAddress().contentEquals(canonicalServer)) {
-            return host;
-        }
-        return canonicalServer;
     }
 
     @Override

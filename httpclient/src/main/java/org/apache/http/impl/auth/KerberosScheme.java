@@ -27,6 +27,7 @@
 package org.apache.http.impl.auth;
 
 import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.http.conn.DnsResolver;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
@@ -43,8 +44,8 @@ public class KerberosScheme extends GGSSchemeBase {
     /**
      * @since 4.4
      */
-    public KerberosScheme(final boolean stripPort, final boolean useCanonicalHostname) {
-        super(stripPort, useCanonicalHostname);
+    public KerberosScheme(final DnsResolver dnsResolver, final boolean stripPort, final boolean useCanonicalHostname) {
+        super(dnsResolver, stripPort, useCanonicalHostname);
     }
 
     public KerberosScheme(final boolean stripPort) {
