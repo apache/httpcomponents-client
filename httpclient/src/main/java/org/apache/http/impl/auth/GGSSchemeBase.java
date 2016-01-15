@@ -28,6 +28,7 @@ package org.apache.http.impl.auth;
 
 import java.net.UnknownHostException;
 import java.security.Principal;
+import java.util.Locale;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -129,13 +130,14 @@ public abstract class GGSSchemeBase implements AuthScheme {
     /**
      * @since 4.4
      */
-    protected byte[] generateGSSToken(final byte[] input, final Oid oid, final String authServer) throws GSSException {
+    protected byte[] generateGSSToken(
+            final byte[] input, final Oid oid, final String serviceName, final String authServer) throws GSSException {
         byte[] inputBuff = input;
         if (inputBuff == null) {
             inputBuff = new byte[0];
         }
         final GSSManager manager = getManager();
-        final GSSName serverName = manager.createName("HTTP@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
+        final GSSName serverName = manager.createName(serviceName + "@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
 
         final GSSContext gssContext = manager.createContext(
                 serverName.canonicalize(oid), oid, gssCredential, GSSContext.DEFAULT_LIFETIME);
@@ -147,7 +149,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
     /**
      * @since 4.4
      */
-    protected abstract byte[] generateToken(byte[] input, String authServer) throws GSSException;
+    protected abstract byte[] generateToken(byte[] input, String serviceName, String authServer) throws GSSException;
 
     @Override
     public boolean isChallengeComplete() {
@@ -204,11 +206,12 @@ public abstract class GGSSchemeBase implements AuthScheme {
                 } else {
                     authServer = hostname + ":" + host.getPort();
                 }
+                final String serviceName = host.getSchemeName().toUpperCase(Locale.ROOT);
 
                 if (log.isDebugEnabled()) {
                     log.debug("init " + authServer);
                 }
-                token = generateToken(token, authServer);
+                token = generateToken(token, serviceName, authServer);
                 state = State.TOKEN_GENERATED;
             } catch (final GSSException gsse) {
                 state = State.FAILED;
