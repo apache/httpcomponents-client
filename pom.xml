@@ -222,6 +222,8 @@
           </links>
         </configuration>
       </plugin>
+
+      <!--
       <plugin>
         <groupId>com.agilejava.docbkx</groupId>
         <artifactId>docbkx-maven-plugin</artifactId>
@@ -274,6 +276,7 @@
           </postProcess>
         </configuration>
       </plugin>
+      -->
         <plugin>
           <artifactId>maven-resources-plugin</artifactId>
           <executions>
