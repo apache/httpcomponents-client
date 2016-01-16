@@ -151,7 +151,6 @@
 
   <modules>
     <module>httpclient</module>
-    <module>httpmime</module>
     <module>fluent-hc</module>
     <module>httpclient-cache</module>
     <module>httpclient-win</module>
