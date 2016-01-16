@@ -31,10 +31,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.hc.client5.http.conn.util.PublicSuffixList;
-import org.apache.hc.client5.http.conn.util.PublicSuffixMatcher;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
+import org.apache.hc.client5.http.psl.PublicSuffixList;
+import org.apache.hc.client5.http.psl.PublicSuffixListParser;
+import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +53,7 @@ public class TestPublicSuffixListParser {
         Assert.assertNotNull(in);
         final PublicSuffixList suffixList;
         try {
-            final org.apache.hc.client5.http.conn.util.PublicSuffixListParser parser = new org.apache.hc.client5.http.conn.util.PublicSuffixListParser();
+            final PublicSuffixListParser parser = new PublicSuffixListParser();
             suffixList = parser.parse(new InputStreamReader(in, StandardCharsets.UTF_8));
         } finally {
             in.close();

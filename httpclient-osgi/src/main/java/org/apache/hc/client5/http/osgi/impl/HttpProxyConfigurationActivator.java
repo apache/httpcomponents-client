@@ -35,7 +35,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.hc.client5.http.impl.client.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.osgi.services.HttpClientBuilderFactory;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.osgi.framework.BundleActivator;

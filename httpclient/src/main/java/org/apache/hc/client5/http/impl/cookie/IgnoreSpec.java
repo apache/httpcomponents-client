@@ -30,11 +30,11 @@ package org.apache.hc.client5.http.impl.cookie;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.hc.core5.annotation.ThreadSafe;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.http.Header;
 
 /**
  * CookieSpec that ignores all cookies

@@ -43,6 +43,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.apache.hc.client5.http.auth.AuthChallenge;
+import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.AuthenticationException;
+import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.MalformedChallengeException;
+import org.apache.hc.client5.http.auth.util.ByteArrayBuilder;
 import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
@@ -54,14 +62,6 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
 import org.apache.hc.core5.util.CharsetUtils;
-import org.apache.hc.client5.http.auth.AuthChallenge;
-import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthScope;
-import org.apache.hc.client5.http.auth.AuthenticationException;
-import org.apache.hc.client5.http.auth.Credentials;
-import org.apache.hc.client5.http.auth.CredentialsProvider;
-import org.apache.hc.client5.http.auth.MalformedChallengeException;
-import org.apache.hc.client5.http.auth.util.ByteArrayBuilder;
 
 /**
  * Digest authentication scheme as defined in RFC 2617.

@@ -28,16 +28,16 @@ package org.apache.hc.client5.http.examples.entity.mime;
 
 import java.io.File;
 
-import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.entity.ContentType;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.client5.http.client.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.client.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.entity.mime.content.FileBody;
 import org.apache.hc.client5.http.entity.mime.content.StringBody;
-import org.apache.hc.client5.http.impl.client.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.sync.HttpClients;
+import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.methods.HttpPost;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.entity.EntityUtils;
 
 /**
  * Example how to use multipart/form encoded POST request.

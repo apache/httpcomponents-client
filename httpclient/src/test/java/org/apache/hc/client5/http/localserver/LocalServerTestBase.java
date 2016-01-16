@@ -29,13 +29,13 @@ package org.apache.hc.client5.http.localserver;
 
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.bootstrap.io.HttpServer;
 import org.apache.hc.core5.http.bootstrap.io.ServerBootstrap;
 import org.apache.hc.core5.http.config.SocketConfig;
-import org.apache.hc.client5.http.impl.client.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.client.HttpClientBuilder;
-import org.apache.hc.client5.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.junit.After;
 import org.junit.Before;
 

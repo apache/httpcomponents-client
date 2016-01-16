@@ -31,9 +31,9 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.hc.core5.http.entity.ContentType;
 import org.apache.hc.client5.http.entity.mime.content.FileBody;
 import org.apache.hc.client5.http.entity.mime.content.StringBody;
+import org.apache.hc.core5.http.entity.ContentType;
 import org.junit.Assert;
 import org.junit.Test;
 

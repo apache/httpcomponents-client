@@ -26,8 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
+import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.core5.annotation.NotThreadSafe;
-import org.apache.hc.client5.http.conn.DnsResolver;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 

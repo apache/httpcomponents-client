@@ -29,15 +29,15 @@ package org.apache.hc.client5.http.impl.cookie;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.hc.core5.annotation.Immutable;
-import org.apache.hc.core5.util.Args;
-import org.apache.hc.client5.http.conn.util.PublicSuffixList;
-import org.apache.hc.client5.http.conn.util.PublicSuffixMatcher;
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.client5.http.cookie.SetCookie;
+import org.apache.hc.client5.http.psl.PublicSuffixList;
+import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Wraps a {@link org.apache.hc.client5.http.cookie.CookieAttributeHandler} and leverages its match method
@@ -45,8 +45,8 @@ import org.apache.hc.client5.http.cookie.SetCookie;
  * cross-site attack types by preventing cookies from apparent domains that are not publicly
  * available.
  *
- *  @see org.apache.hc.client5.http.conn.util.PublicSuffixList
- *  @see org.apache.hc.client5.http.conn.util.PublicSuffixMatcher
+ *  @see PublicSuffixList
+ *  @see PublicSuffixMatcher
  *
  * @since 4.4
  */

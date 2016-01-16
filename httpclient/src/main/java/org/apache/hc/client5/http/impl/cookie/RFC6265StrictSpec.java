@@ -27,9 +27,9 @@
 
 package org.apache.hc.client5.http.impl.cookie;
 
-import org.apache.hc.core5.annotation.ThreadSafe;
-import org.apache.hc.client5.http.client.utils.DateUtils;
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
+import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.annotation.ThreadSafe;
 
 /**
  * Standard {@link org.apache.hc.client5.http.cookie.CookieSpec} implementation that enforces syntax

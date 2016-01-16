@@ -37,6 +37,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
+import org.apache.hc.client5.http.cookie.Cookie;
+import org.apache.hc.client5.http.cookie.CookieAttributeHandler;
+import org.apache.hc.client5.http.cookie.CookieOrigin;
+import org.apache.hc.client5.http.cookie.CookiePriorityComparator;
+import org.apache.hc.client5.http.cookie.CookieSpec;
+import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.core5.annotation.ThreadSafe;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
@@ -46,13 +53,6 @@ import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.message.TokenParser;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
-import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
-import org.apache.hc.client5.http.cookie.Cookie;
-import org.apache.hc.client5.http.cookie.CookieAttributeHandler;
-import org.apache.hc.client5.http.cookie.CookieOrigin;
-import org.apache.hc.client5.http.cookie.CookiePriorityComparator;
-import org.apache.hc.client5.http.cookie.CookieSpec;
-import org.apache.hc.client5.http.cookie.MalformedCookieException;
 
 /**
  * Cookie management functions shared by RFC C6265 compliant specification.

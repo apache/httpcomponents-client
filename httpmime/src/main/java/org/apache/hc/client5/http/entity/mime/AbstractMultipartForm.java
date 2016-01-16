@@ -36,9 +36,9 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import org.apache.hc.client5.http.entity.mime.content.ContentBody;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.ByteArrayBuffer;
-import org.apache.hc.client5.http.entity.mime.content.ContentBody;
 
 /**
  * HttpMultipart represents a collection of MIME multipart encoded content bodies. This class is

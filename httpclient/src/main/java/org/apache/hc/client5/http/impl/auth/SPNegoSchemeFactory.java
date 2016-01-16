@@ -26,11 +26,11 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import org.apache.hc.core5.annotation.Immutable;
-import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
-import org.apache.hc.client5.http.conn.DnsResolver;
+import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * {@link AuthSchemeProvider} implementation that creates and initializes

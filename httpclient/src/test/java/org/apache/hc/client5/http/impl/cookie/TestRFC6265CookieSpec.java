@@ -30,13 +30,13 @@ package org.apache.hc.client5.http.impl.cookie;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.client5.http.cookie.SetCookie;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;

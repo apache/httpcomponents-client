@@ -28,12 +28,12 @@ package org.apache.hc.client5.http.impl.auth;
 
 import java.util.List;
 
+import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.util.CharArrayBuffer;
-import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

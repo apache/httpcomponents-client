@@ -36,9 +36,9 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.hc.client5.http.entity.mime.MIME;
 import org.apache.hc.core5.http.entity.ContentType;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.client5.http.entity.mime.MIME;
 
 /**
  * Text body part backed by a byte array.

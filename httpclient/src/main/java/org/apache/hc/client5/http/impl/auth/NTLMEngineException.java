@@ -26,8 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import org.apache.hc.core5.annotation.Immutable;
 import org.apache.hc.client5.http.auth.AuthenticationException;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * Signals NTLM protocol failure.

@@ -26,11 +26,11 @@
  */
 package org.apache.hc.client5.http.impl.cookie;
 
-import org.apache.hc.core5.annotation.Immutable;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
+import org.apache.hc.core5.annotation.Immutable;
 
 /**
  *

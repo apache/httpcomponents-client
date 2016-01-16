@@ -29,11 +29,11 @@ package org.apache.hc.client5.http.entity.mime;
 
 import java.util.List;
 
+import org.apache.hc.client5.http.entity.mime.content.AbstractContentBody;
+import org.apache.hc.client5.http.entity.mime.content.ContentBody;
 import org.apache.hc.core5.http.entity.ContentType;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
-import org.apache.hc.client5.http.entity.mime.content.AbstractContentBody;
-import org.apache.hc.client5.http.entity.mime.content.ContentBody;
 
 /**
  * Builder for individual {@link org.apache.hc.client5.http.entity.mime.FormBodyPart}s.

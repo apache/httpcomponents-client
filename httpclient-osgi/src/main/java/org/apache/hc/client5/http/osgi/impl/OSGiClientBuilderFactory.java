@@ -29,8 +29,8 @@ package org.apache.hc.client5.http.osgi.impl;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.hc.client5.http.impl.client.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.client5.http.osgi.services.HttpClientBuilderFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;

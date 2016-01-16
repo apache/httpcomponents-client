@@ -29,9 +29,9 @@ package org.apache.hc.client5.http.entity.mime.content;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.apache.hc.client5.http.entity.mime.MIME;
 import org.apache.hc.core5.http.entity.ContentType;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.client5.http.entity.mime.MIME;
 
 /**
  * Binary body part backed by a byte array.

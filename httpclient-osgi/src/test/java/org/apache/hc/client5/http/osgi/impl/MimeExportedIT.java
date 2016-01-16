@@ -38,12 +38,12 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.entity.ContentType;
-import org.apache.hc.client5.http.client.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.entity.mime.content.ByteArrayBody;
 import org.apache.hc.client5.http.entity.mime.content.StringBody;
+import org.apache.hc.client5.http.methods.HttpPost;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.entity.ContentType;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;

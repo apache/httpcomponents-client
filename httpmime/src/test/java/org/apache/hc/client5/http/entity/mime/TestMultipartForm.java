@@ -36,10 +36,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import org.apache.hc.core5.http.entity.ContentType;
 import org.apache.hc.client5.http.entity.mime.content.FileBody;
 import org.apache.hc.client5.http.entity.mime.content.InputStreamBody;
 import org.apache.hc.client5.http.entity.mime.content.StringBody;
+import org.apache.hc.core5.http.entity.ContentType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;

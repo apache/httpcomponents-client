@@ -30,9 +30,9 @@ package org.apache.hc.client5.http.entity.mime;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.hc.core5.http.entity.ContentType;
 import org.apache.hc.client5.http.entity.mime.content.InputStreamBody;
 import org.apache.hc.client5.http.entity.mime.content.StringBody;
+import org.apache.hc.core5.http.entity.ContentType;
 import org.junit.Assert;
 import org.junit.Test;
 

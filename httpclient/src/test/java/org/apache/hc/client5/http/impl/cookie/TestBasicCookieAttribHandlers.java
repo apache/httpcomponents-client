@@ -33,13 +33,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
-import org.apache.hc.client5.http.client.utils.DateUtils;
-import org.apache.hc.client5.http.conn.util.DomainType;
-import org.apache.hc.client5.http.conn.util.PublicSuffixMatcher;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
+import org.apache.hc.client5.http.psl.DomainType;
+import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
+import org.apache.hc.client5.http.utils.DateUtils;
 import org.junit.Assert;
 import org.junit.Test;
 

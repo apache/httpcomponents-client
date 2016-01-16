@@ -36,8 +36,8 @@ import java.net.InetAddress;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
+import org.apache.hc.core5.http.HttpHost;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;

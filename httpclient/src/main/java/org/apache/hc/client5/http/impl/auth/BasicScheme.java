@@ -40,13 +40,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.hc.core5.annotation.NotThreadSafe;
-import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.CharsetUtils;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
@@ -55,6 +48,13 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.util.ByteArrayBuilder;
+import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.CharsetUtils;
 
 /**
  * Basic authentication scheme as defined in RFC 2617.

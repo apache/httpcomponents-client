@@ -37,6 +37,17 @@ import java.util.Queue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hc.client5.http.auth.AuthCache;
+import org.apache.hc.client5.http.auth.AuthChallenge;
+import org.apache.hc.client5.http.auth.AuthExchange;
+import org.apache.hc.client5.http.auth.AuthScheme;
+import org.apache.hc.client5.http.auth.AuthenticationException;
+import org.apache.hc.client5.http.auth.ChallengeType;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.MalformedChallengeException;
+import org.apache.hc.client5.http.config.AuthSchemes;
+import org.apache.hc.client5.http.protocol.AuthenticationStrategy;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -51,18 +62,6 @@ import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.CharArrayBuffer;
-import org.apache.hc.client5.http.auth.AuthChallenge;
-import org.apache.hc.client5.http.auth.AuthExchange;
-import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.auth.AuthenticationException;
-import org.apache.hc.client5.http.auth.ChallengeType;
-import org.apache.hc.client5.http.auth.CredentialsProvider;
-import org.apache.hc.client5.http.auth.MalformedChallengeException;
-import org.apache.hc.client5.http.client.AuthCache;
-import org.apache.hc.client5.http.client.AuthenticationStrategy;
-import org.apache.hc.client5.http.client.config.AuthSchemes;
-import org.apache.hc.client5.http.client.protocol.HttpClientContext;
-import org.apache.hc.client5.http.impl.client.BasicAuthCache;
 
 /**
  * @since 4.3

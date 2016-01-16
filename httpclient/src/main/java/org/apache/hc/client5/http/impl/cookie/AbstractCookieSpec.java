@@ -32,11 +32,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.hc.core5.annotation.ThreadSafe;
-import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.CookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.CookieSpec;
+import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.util.Asserts;
 
 /**
  * Abstract cookie specification which can delegate the job of parsing,

@@ -30,8 +30,8 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.client.CredentialsStore;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;

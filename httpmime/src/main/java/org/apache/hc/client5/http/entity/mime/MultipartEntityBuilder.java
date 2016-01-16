@@ -35,16 +35,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.http.entity.ContentType;
-import org.apache.hc.core5.http.message.BasicNameValuePair;
-import org.apache.hc.core5.util.Args;
 import org.apache.hc.client5.http.entity.mime.content.ByteArrayBody;
 import org.apache.hc.client5.http.entity.mime.content.ContentBody;
 import org.apache.hc.client5.http.entity.mime.content.FileBody;
 import org.apache.hc.client5.http.entity.mime.content.InputStreamBody;
 import org.apache.hc.client5.http.entity.mime.content.StringBody;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Builder for multipart {@link HttpEntity}s.
