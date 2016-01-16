@@ -40,7 +40,7 @@
   <packaging>bundle</packaging>
 
   <properties>
-    <httpcore.osgi.import.version>"[4.4.0, 4.5.0)"</httpcore.osgi.import.version>
+    <httpcore.osgi.import.version>"5.0-alpha1"</httpcore.osgi.import.version>
     <commons-logging.osgi.import.version>"[1.1.0, 1.3.0)"</commons-logging.osgi.import.version>
     <pax.url.version>2.4.1</pax.url.version>
     <pax.exam.version>4.5.0</pax.exam.version>
@@ -70,11 +70,6 @@
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
       <version>${commons-codec.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpmime</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -185,17 +180,7 @@
             <Bundle-Name>Apache ${project.name}</Bundle-Name>
             <Bundle-SymbolicName>${project.groupId}.httpclient</Bundle-SymbolicName>
             <_exportcontents>
-                org.apache.hc.client5.http.auth.*;version=${project.version},
-                org.apache.hc.client5.http.cookie.*;version=${project.version},
-                org.apache.hc.client5.http.conn.*;version=${project.version},
-                org.apache.hc.client5.http.client.*;version=${project.version},
-                org.apache.hc.client5.http.entity.mime.*;version=${project.version},
-                org.apache.hc.client5.http.impl.auth.*;version=${project.version},
-                org.apache.hc.client5.http.impl.cookie.*;version=${project.version},
-                org.apache.hc.client5.http.impl.conn.*;version=${project.version},
-                org.apache.hc.client5.http.impl.execchain.*;version=${project.version},
-                org.apache.hc.client5.http.impl.client.*;version=${project.version},
-                org.apache.hc.client5.http.osgi.services.*;version=${project.version}
+                org.apache.hc.client5.*;version=${project.version}
             </_exportcontents>
             <Embed-Dependency>*;scope=compile|runtime;inline=true</Embed-Dependency>
             <Import-Package>
@@ -211,21 +196,17 @@
                 org.osgi.framework,
                 org.osgi.service.cm,
                 org.apache.commons.logging;version=${commons-logging.osgi.import.version},
-                org.apache.http;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.config;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.concurrent;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.entity;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.io;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.message;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.params;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.pool;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.protocol;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.ssl;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.util;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.impl;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.impl.entity;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.impl.io;version=${httpcore.osgi.import.version},
-                org.apache.hc.client5.http.impl.pool;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.concurrent;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.pool;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.ssl;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.util;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http.config;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http.entity;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http.message;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http.io;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http.protocol;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http.impl.io;version=${httpcore.osgi.import.version},
                 net.sf.ehcache.*;resolution:=optional,
                 net.spy.memcached.*;resolution:=optional
             </Import-Package>
