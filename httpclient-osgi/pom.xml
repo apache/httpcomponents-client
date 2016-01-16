@@ -26,11 +26,11 @@
  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>httpcomponents-client</artifactId>
-    <version>5.0-alpha1-SNAPSHOT</version>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5-parent</artifactId>
+      <version>5.0-alpha1-SNAPSHOT</version>
   </parent>
-  <artifactId>httpclient-osgi</artifactId>
+  <artifactId>httpclient5-osgi</artifactId>
   <name>Apache HttpClient OSGi bundle</name>
   <inceptionYear>1999</inceptionYear>
   <description>
@@ -50,8 +50,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
       <version>${project.version}</version>
     </dependency>
       <!-- Depend on the OSGi bundle - the bundle plugin knows what to do. -->
@@ -61,7 +61,7 @@
       <version>${httpcore.version}</version>
         <exclusions>
           <exclusion>
-              <groupId>org.apache.httpcomponents</groupId>
+              <groupId>org.apache.httpcomponents.client5</groupId>
               <artifactId>httpcore-nio</artifactId>
           </exclusion>
         </exclusions>
@@ -72,13 +72,13 @@
       <version>${commons-codec.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient-cache</artifactId>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5-cache</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>fluent-hc</artifactId>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5-fluent</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

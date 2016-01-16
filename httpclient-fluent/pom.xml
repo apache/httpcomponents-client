@@ -26,29 +26,27 @@
  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.apache.httpcomponents</groupId>
-    <artifactId>httpcomponents-client</artifactId>
+    <groupId>org.apache.httpcomponents.client5</groupId>
+    <artifactId>httpclient5-parent</artifactId>
     <version>5.0-alpha1-SNAPSHOT</version>
   </parent>
-  <artifactId>fluent-hc</artifactId>
-  <name>Apache HttpClient Fluent API</name>
+  <artifactId>httpclient5-fluent</artifactId>
+  <name>Apache HttpClient Fluent</name>
   <inceptionYear>2011</inceptionYear>
-  <description>
-   Apache HttpComponents Client fluent API
-  </description>
+  <description>Apache HttpComponents Client Fluent</description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
       <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
       <classifier>tests</classifier>

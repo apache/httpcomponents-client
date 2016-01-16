@@ -31,11 +31,12 @@
     <relativePath>../project/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>httpcomponents-client</artifactId>
-  <name>Apache HttpComponents Client</name>
+  <groupId>org.apache.httpcomponents.client5</groupId>
+  <artifactId>httpclient5-parent</artifactId>
+  <name>Apache HttpComponents Client Parent</name>
   <version>5.0-alpha1-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
-  <url>http://hc.apache.org/httpcomponents-client-dev/</url>
+  <url>http://hc.apache.org/httpcomponents-client</url>
   <inceptionYear>1999</inceptionYear>
   <packaging>pom</packaging>
 
@@ -151,7 +152,7 @@
 
   <modules>
     <module>httpclient</module>
-    <module>fluent-hc</module>
+    <module>httpclient-fluent</module>
     <module>httpclient-cache</module>
     <module>httpclient-win</module>
     <module>httpclient-osgi</module>
