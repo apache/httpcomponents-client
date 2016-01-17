@@ -1,8 +1,105 @@
-Release 5.0
+Release 5.0-ALPHA1
 -------------------
+
+This is a major release that renders HttpClient API incompatible with the stable 4.x branch
+and upgrades HTTP/1.1 protocol conformance to the requirements and recommendations of the latest
+protocol specification. This release lays the foundation for transition to HTTP/2 as the primary
+transport protocol in the future releases.
+
+Notable changes and features included in the 5.0 series are:
+
+* Improved conformance to requirements and recommendations of the latest HTTP/1.1 protocol
+  specification (RFC 7230, RFC 7231, RFC 7235)
+
+* Package name space changed to 'org.apache.hc.client5'
+
+* Maven group id changed to 'org.apache.httpcomponents.client5'
+
+* By default the maximum connections per route limit is set to 5
+
+* By default connection request timeout and connect timeout are set to 3 minutes.
+
+HttpClient 5.0 releases can be co-located with earlier versions.
+
+Please note that as of 5.0 HttpClient requires Java 1.7 or newer.
+
+Please note that at this point 5.0 APIs are considered API experimental and unstable and are
+expected to change in the coming releases without providing a migration path.
+
+
+
+
+Changelog:
+-------------------
+
+* [HTTPCLIENT-1575] route target port must be non negative
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1106] Use character arrays for passwords in Credentials objects
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* RFC 7235: redesign of HTTP authenticator and related classes
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* RFC 7231: parse capable of parsing multiple auth challenges
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* RFC 7231: DefaultServiceUnavailableRetryStrategy to take Retry-After header value into account if specified
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* RFC 7231: removed restriction on the use of relative URIs in Location header
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* RFC 7231: revised redirect handling
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* RFC 7231: do not generate header fields in TRACE requests containing sensitive data such as cookie and user
+  credentials
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* RFC 7231: automatic retrial of idempotent methods
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* RFC 7230: increased the default max number of concurrent connection for the same route from 2 to 5
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Cache request line in HttpRequestWrapper
+  Contributed by Dmitry Potapov <dpotapov at yandex-team.ru>
+
+* [HTTPCLIENT-1651] Add ability to disable content compression on a request basis
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 * [HTTPCLIENT-1696]: Add convenience methods to fluent API class Request.
   Contributed by Gary Gregory <ggregory @ apache.org>
+
+
+
+Release 4.5.1
+-------------------
+
+HttpClient 4.5.1 (GA) is a maintenance release that fixes a number of minor defects found since 4.5.
+
+Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+
+Changelog:
+-------------------
+
+* [HTTPCLIENT-1680] redirect of a POST request causes ClientProtocolException.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1673] org.apache.http.entity.mime.content.* missing from OSGi exports.
+  Contributed by Benson Margulies <benson at basistech.com>
+
+* [HTTPCLIENT-1668] Fluent request incorrectly handles connect timeout setting.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1667] RequestBuilder does not take charset into account when creating
+  UrlEncodedFormEntity.
+  Contributed by Sergey Smith <smithsv at bk.ru>
+
+* [HTTPCLIENT-1655] HttpClient sends RST instead of FIN ACK sequence when using non-persistant
+  connections.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
 
 
 Release 4.5
