@@ -46,8 +46,8 @@ public class TestRequestConfig {
     public void testDefaults() {
         final RequestConfig config = RequestConfig.DEFAULT;
         Assert.assertEquals(-1, config.getSocketTimeout());
-        Assert.assertEquals(-1, config.getConnectTimeout());
-        Assert.assertEquals(-1, config.getConnectionRequestTimeout());
+        Assert.assertEquals(180000, config.getConnectTimeout());
+        Assert.assertEquals(180000, config.getConnectionRequestTimeout());
         Assert.assertEquals(false, config.isExpectContinueEnabled());
         Assert.assertEquals(true, config.isAuthenticationEnabled());
         Assert.assertEquals(true, config.isRedirectsEnabled());

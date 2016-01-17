@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.config;
 
 import java.net.InetAddress;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.core5.annotation.Immutable;
 import org.apache.hc.core5.http.HttpHost;
@@ -38,6 +39,10 @@ import org.apache.hc.core5.http.HttpHost;
  */
 @Immutable
 public class RequestConfig implements Cloneable {
+
+    private static final int DEFAULT_CONNECTION_REQUEST_TIMEOUT = (int) TimeUnit.MILLISECONDS.convert(3, TimeUnit.MINUTES);
+    private static final int DEFAULT_CONNECT_TIMEOUT = (int) TimeUnit.MILLISECONDS.convert(3, TimeUnit.MINUTES);
+    private static final int DEFAULT_SOCKET_TIMEOUT = -1;
 
     public static final RequestConfig DEFAULT = new Builder().build();
 
@@ -60,7 +65,8 @@ public class RequestConfig implements Cloneable {
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
-        this(false, null, null, false, null, false, false, false, 0, false, null, null, 0, 0, 0, false);
+        this(false, null, null, false, null, false, false, false, 0, false, null, null,
+                DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, DEFAULT_SOCKET_TIMEOUT, false);
     }
 
     RequestConfig(
@@ -233,7 +239,7 @@ public class RequestConfig implements Cloneable {
      * A negative value is interpreted as undefined (system default).
      * </p>
      * <p>
-     * Default: {@code -1}
+     * Default: 2 minutes.
      * </p>
      */
     public int getConnectionRequestTimeout() {
@@ -248,7 +254,7 @@ public class RequestConfig implements Cloneable {
      * A negative value is interpreted as undefined (system default).
      * </p>
      * <p>
-     * Default: {@code -1}
+     * Default: no timeout
      * </p>
      */
     public int getConnectTimeout() {
@@ -264,7 +270,7 @@ public class RequestConfig implements Cloneable {
      * A negative value is interpreted as undefined (system default).
      * </p>
      * <p>
-     * Default: {@code -1}
+     * Default: 2 minutes.
      * </p>
      */
     public int getSocketTimeout() {
@@ -358,9 +364,9 @@ public class RequestConfig implements Cloneable {
             this.maxRedirects = 50;
             this.relativeRedirectsAllowed = true;
             this.authenticationEnabled = true;
-            this.connectionRequestTimeout = -1;
-            this.connectTimeout = -1;
-            this.socketTimeout = -1;
+            this.connectionRequestTimeout = DEFAULT_CONNECTION_REQUEST_TIMEOUT;
+            this.connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+            this.socketTimeout = DEFAULT_SOCKET_TIMEOUT;
             this.contentCompressionEnabled = true;
         }
 

@@ -135,6 +135,12 @@ public class TestMinimalClientExec {
     public void testExecRequestPersistentConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
+        final RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(123)
+                .setSocketTimeout(234)
+                .setConnectionRequestTimeout(345)
+                .build();
+        context.setRequestConfig(config);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
 
@@ -155,7 +161,7 @@ public class TestMinimalClientExec {
         final CloseableHttpResponse finalResponse = minimalClientExec.execute(
                 route, request, context, execAware);
         Mockito.verify(connManager).requestConnection(route, null);
-        Mockito.verify(connRequest).get(0, TimeUnit.MILLISECONDS);
+        Mockito.verify(connRequest).get(345, TimeUnit.MILLISECONDS);
         Mockito.verify(requestExecutor, Mockito.times(1)).execute(request, managedConn, context);
         Mockito.verify(connManager).releaseConnection(managedConn, null, 678L, TimeUnit.MILLISECONDS);
         Mockito.verify(managedConn, Mockito.never()).close();
@@ -168,6 +174,12 @@ public class TestMinimalClientExec {
     public void testExecRequestConnectionRelease() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
+        final RequestConfig config = RequestConfig.custom()
+                .setConnectTimeout(123)
+                .setSocketTimeout(234)
+                .setConnectionRequestTimeout(345)
+                .build();
+        context.setRequestConfig(config);
         final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
         final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
         // The entity is streaming
@@ -189,7 +201,7 @@ public class TestMinimalClientExec {
         final CloseableHttpResponse finalResponse = minimalClientExec.execute(
                 route, request, context, execAware);
         Mockito.verify(connManager).requestConnection(route, null);
-        Mockito.verify(connRequest).get(0, TimeUnit.MILLISECONDS);
+        Mockito.verify(connRequest).get(345, TimeUnit.MILLISECONDS);
         Mockito.verify(requestExecutor, Mockito.times(1)).execute(request, managedConn, context);
         Mockito.verify(connManager, Mockito.never()).releaseConnection(
                 Mockito.same(managedConn),
