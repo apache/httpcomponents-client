@@ -53,7 +53,7 @@ public class AuthChallengeParser {
     private static final BitSet TERMINATORS = TokenParser.INIT_BITSET(BLANK, EQUAL_CHAR, COMMA_CHAR);
     private static final BitSet DELIMITER = TokenParser.INIT_BITSET(COMMA_CHAR);
 
-    NameValuePair parseTokenOrParameter(final CharSequence buffer, final ParserCursor cursor) throws ParseException {
+    NameValuePair parseTokenOrParameter(final CharSequence buffer, final ParserCursor cursor) {
 
         tokenParser.skipWhiteSpace(buffer, cursor);
         final String token = tokenParser.parseToken(buffer, cursor, TERMINATORS);
