@@ -44,7 +44,7 @@ import org.apache.hc.core5.util.Args;
  * @since 4.0
  */
 @NotThreadSafe
-public class BasicClientCookie implements SetCookie, Cloneable, Serializable, Cookie {
+public class BasicClientCookie implements SetCookie, Cloneable, Serializable {
 
     private static final long serialVersionUID = -3869795591041535538L;
 
