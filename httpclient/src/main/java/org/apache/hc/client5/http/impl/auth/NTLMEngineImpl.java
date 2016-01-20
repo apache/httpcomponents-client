@@ -142,7 +142,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      *            The domain to authenticate with.
      * @return String the message to add to the HTTP request header.
      */
-    static String getType1Message(final String host, final String domain) throws NTLMEngineException {
+    static String getType1Message(final String host, final String domain) {
         // For compatibility reason do not include domain and host in type 1 message
         //return new Type1Message(domain, host).getResponse();
         return TYPE_1_MESSAGE.getResponse();
