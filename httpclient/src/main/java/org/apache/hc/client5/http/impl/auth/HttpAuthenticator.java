@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.impl.auth;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,7 +49,6 @@ import org.apache.hc.client5.http.protocol.AuthenticationStrategy;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -263,7 +261,7 @@ public class HttpAuthenticator {
             final ChallengeType challengeType,
             final HttpRequest request,
             final AuthExchange authExchange,
-            final HttpContext context) throws HttpException, IOException {
+            final HttpContext context) {
         AuthScheme authScheme = authExchange.getAuthScheme();
         switch (authExchange.getState()) {
         case FAILURE:
