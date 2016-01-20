@@ -19,7 +19,8 @@ Notable changes and features included in the 5.0 series are:
 
 * By default connection request timeout and connect timeout are set to 3 minutes.
 
-HttpClient 5.0 releases can be co-located with earlier versions.
+HttpClient 5.0 releases can be co-located with earlier versions, meaning you can have both 5.x and 
+4.x on the classpath without experiencing jar hell.
 
 Please note that as of 5.0 HttpClient requires Java 1.7 or newer.
 
