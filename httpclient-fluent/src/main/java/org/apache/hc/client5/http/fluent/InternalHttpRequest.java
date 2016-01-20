@@ -48,6 +48,7 @@ import org.apache.hc.core5.util.Args;
 class InternalHttpRequest extends AbstractHttpMessage
         implements HttpUriRequest, HttpExecutionAware, Configurable {
 
+    private static final long serialVersionUID = 1L;
     private final String method;
     private ProtocolVersion version;
     private URI uri;
