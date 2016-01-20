@@ -98,6 +98,7 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
             .register(AuthSchemes.SPNEGO, new AuthSchemeProvider() {
+                @Override
                 public AuthScheme create(final HttpContext context) {
                     return new WindowsNegotiateSchemeGetTokenFail(AuthSchemes.SPNEGO, "HTTP/example.com");
                 }
