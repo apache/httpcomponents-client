@@ -191,7 +191,7 @@ public class BasicScheme implements AuthScheme, Serializable {
         }
     }
 
-    private void readObjectNoData() throws ObjectStreamException {
+    private void readObjectNoData() {
     }
 
     @Override
