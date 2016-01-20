@@ -24,9 +24,8 @@ HttpClient 5.0 releases can be co-located with earlier versions, meaning you can
 
 Please note that as of 5.0 HttpClient requires Java 1.7 or newer.
 
-Please note that at this point 5.0 APIs are considered API experimental and unstable and are
-expected to change in the coming releases without providing a migration path.
-
+Please note that at this point we consider 5.0 APIs experimental and unstable and expect them to 
+change in the coming releases without providing a migration path.
 
 
 
