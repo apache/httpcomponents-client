@@ -64,7 +64,7 @@ import org.apache.hc.core5.annotation.Immutable;
 @Immutable
 public final class DefaultHostnameVerifier implements HostnameVerifier {
 
-    enum TYPE { IPv4, IPv6, DNS };
+    enum TYPE { IPv4, IPv6, DNS }
 
     final static int DNS_NAME_TYPE        = 2;
     final static int IP_ADDRESS_TYPE      = 7;
