@@ -35,6 +35,7 @@ import org.apache.hc.core5.http.message.AbstractHttpMessage;
 
 public abstract class AbstractExecutionAwareRequest extends AbstractHttpMessage implements HttpExecutionAware, HttpRequest {
 
+    private static final long serialVersionUID = 1L;
     private final AtomicBoolean aborted;
     private final AtomicReference<Cancellable> cancellableRef;
 

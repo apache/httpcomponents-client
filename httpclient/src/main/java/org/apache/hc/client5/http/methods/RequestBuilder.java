@@ -485,6 +485,7 @@ public class RequestBuilder {
 
     static class InternalRequest extends HttpRequestBase {
 
+        private static final long serialVersionUID = 1L;
         private final String method;
 
         InternalRequest(final String method) {

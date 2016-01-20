@@ -48,6 +48,7 @@ import org.apache.hc.core5.util.Args;
 @NotThreadSafe
 public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
 
+    private static final long serialVersionUID = 1L;
     private final HttpRequest original;
     private final HttpHost target;
     private final String method;

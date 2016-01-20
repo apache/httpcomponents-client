@@ -53,6 +53,7 @@ import org.apache.hc.core5.annotation.NotThreadSafe;
 @NotThreadSafe
 public class HttpPatch extends HttpRequestBase {
 
+    private static final long serialVersionUID = 1L;
     public final static String METHOD_NAME = "PATCH";
 
     public HttpPatch() {

@@ -45,6 +45,7 @@ import org.apache.hc.core5.http.message.BasicRequestLine;
 public abstract class HttpRequestBase extends AbstractExecutionAwareRequest
     implements HttpUriRequest, Configurable {
 
+    private static final long serialVersionUID = 1L;
     private ProtocolVersion version;
     private URI uri;
     private RequestConfig config;

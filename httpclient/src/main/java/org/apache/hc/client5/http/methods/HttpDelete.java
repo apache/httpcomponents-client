@@ -49,6 +49,7 @@ import org.apache.hc.core5.annotation.NotThreadSafe;
 @NotThreadSafe // HttpRequestBase is @NotThreadSafe
 public class HttpDelete extends HttpRequestBase {
 
+    private static final long serialVersionUID = 1L;
     public final static String METHOD_NAME = "DELETE";
 
 
