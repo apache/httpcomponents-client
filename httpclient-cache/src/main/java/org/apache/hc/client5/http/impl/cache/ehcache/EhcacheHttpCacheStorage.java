@@ -115,7 +115,7 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
             return null;
         }
 
-        final byte[] data = (byte[])e.getValue();
+        final byte[] data = (byte[])e.getObjectValue();
         return serializer.readFrom(new ByteArrayInputStream(data));
     }
 
@@ -133,7 +133,7 @@ public class EhcacheHttpCacheStorage implements HttpCacheStorage {
 
             HttpCacheEntry existingEntry = null;
             if(oldElement != null){
-                final byte[] data = (byte[])oldElement.getValue();
+                final byte[] data = (byte[])oldElement.getObjectValue();
                 existingEntry = serializer.readFrom(new ByteArrayInputStream(data));
             }
 
