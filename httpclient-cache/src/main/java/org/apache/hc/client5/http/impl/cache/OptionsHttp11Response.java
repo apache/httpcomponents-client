@@ -46,6 +46,7 @@ import org.apache.hc.core5.http.message.BasicStatusLine;
 @Immutable
 final class OptionsHttp11Response extends AbstractHttpMessage implements HttpResponse {
 
+    private static final long serialVersionUID = 1L;
     private final StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1,
             HttpStatus.SC_NOT_IMPLEMENTED, "");
     private final ProtocolVersion version = HttpVersion.HTTP_1_1;
