@@ -1,7 +1,7 @@
 Release 5.0-ALPHA1
 -------------------
 
-This is a major release that renders HttpClient API incompatible with the stable 4.x branch
+This major release renders HttpClient API incompatible with the stable 4.x branch
 and upgrades HTTP/1.1 protocol conformance to the requirements and recommendations of the latest
 protocol specification. This release lays the foundation for transition to HTTP/2 as the primary
 transport protocol in the future releases.
