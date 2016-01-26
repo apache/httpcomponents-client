@@ -1,3 +1,14 @@
+Release 5.0-ALPHA2
+-------------------
+
+Changelog:
+-------------------
+
+* [HTTPCLIENT-1714] Add HttpClientBuilder.setDnsResolver(DnsResolver).
+  Contributed by Alexis Thaveau <alexis.thaveau at gmail.com>
+
+
+
 Release 5.0-ALPHA1
 -------------------
 
