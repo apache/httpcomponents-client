@@ -504,6 +504,7 @@ public class TestAbortHandling extends LocalServerTestBase {
     }
 
     private static class CustomGet extends HttpGet {
+        private static final long serialVersionUID = 1L;
         private final CountDownLatch releaseTriggerLatch;
 
         public CustomGet(final String uri, final CountDownLatch releaseTriggerLatch) {
