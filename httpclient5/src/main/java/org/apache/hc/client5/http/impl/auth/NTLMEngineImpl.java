@@ -1382,7 +1382,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         protected int C = 0x98badcfe;
         protected int D = 0x10325476;
         protected long count = 0L;
-        protected byte[] dataBuffer = new byte[64];
+        protected final byte[] dataBuffer = new byte[64];
 
         MD4() {
         }
