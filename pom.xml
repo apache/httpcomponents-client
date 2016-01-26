@@ -151,11 +151,11 @@
   </dependencyManagement>
 
   <modules>
-    <module>httpclient</module>
-    <module>httpclient-fluent</module>
-    <module>httpclient-cache</module>
-    <module>httpclient-win</module>
-    <module>httpclient-osgi</module>
+    <module>httpclient5</module>
+    <module>httpclient5-fluent</module>
+    <module>httpclient5-cache</module>
+    <module>httpclient5-win</module>
+    <module>httpclient5-osgi</module>
   </modules>
 
   <build>
