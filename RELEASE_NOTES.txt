@@ -1,3 +1,18 @@
+Release 4.5.2
+-------------------
+
+HttpClient 4.5.2 (GA) is a maintenance release that fixes a number of minor defects found since 4.5.1.
+
+Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+
+Changelog:
+-------------------
+
+* [HTTPCLIENT-1714] Add HttpClientBuilder.setDnsResolver(DnsResolver).
+  Contributed by Alexis Thaveau <alexis.thaveau at gmail.com>
+
+
+
 Release 4.5.1
 -------------------
 

@@ -74,6 +74,7 @@ import org.apache.http.config.Lookup;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
+import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.routing.HttpRoutePlanner;
@@ -168,6 +169,7 @@ public class HttpClientBuilder {
     private AuthenticationStrategy proxyAuthStrategy;
     private UserTokenHandler userTokenHandler;
     private HttpProcessor httpprocessor;
+    private DnsResolver dnsResolver;
 
     private LinkedList<HttpRequestInterceptor> requestFirst;
     private LinkedList<HttpRequestInterceptor> requestLast;
@@ -611,6 +613,16 @@ public class HttpClientBuilder {
     }
 
     /**
+     * Assigns {@link DnsResolver} instance.
+     * <p/>
+     * Please note this value can be overridden by the {@link #setConnectionManager(HttpClientConnectionManager)} method.
+     */
+    public final HttpClientBuilder setDnsResolver(final DnsResolver dnsResolver) {
+        this.dnsResolver = dnsResolver;
+        return this;
+    }
+
+    /**
      * Assigns {@link HttpRequestRetryHandler} instance.
      * <p>
      * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
@@ -965,7 +977,7 @@ public class HttpClientBuilder {
                         .build(),
                     null,
                     null,
-                    null,
+                    dnsResolver,
                     connTimeToLive,
                     connTimeToLiveTimeUnit != null ? connTimeToLiveTimeUnit : TimeUnit.MILLISECONDS);
             if (defaultSocketConfig != null) {
