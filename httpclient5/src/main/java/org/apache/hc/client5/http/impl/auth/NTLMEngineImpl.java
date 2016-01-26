@@ -1048,10 +1048,10 @@ final class NTLMEngineImpl implements NTLMEngine {
 
     /** Type 2 message class */
     static class Type2Message extends NTLMMessage {
-        protected byte[] challenge;
+        protected final byte[] challenge;
         protected String target;
         protected byte[] targetInfo;
-        protected int flags;
+        protected final int flags;
 
         Type2Message(final String message) throws NTLMEngineException {
             super(message, 2);
@@ -1134,15 +1134,15 @@ final class NTLMEngineImpl implements NTLMEngine {
     /** Type 3 message assembly class */
     static class Type3Message extends NTLMMessage {
         // Response flags from the type2 message
-        protected int type2Flags;
+        protected final int type2Flags;
 
-        protected byte[] domainBytes;
-        protected byte[] hostBytes;
-        protected byte[] userBytes;
+        protected final byte[] domainBytes;
+        protected final byte[] hostBytes;
+        protected final byte[] userBytes;
 
         protected byte[] lmResp;
         protected byte[] ntResp;
-        protected byte[] sessionKey;
+        protected final byte[] sessionKey;
 
 
         /** Constructor. Pass the arguments we will need */
