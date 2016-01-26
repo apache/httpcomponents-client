@@ -1541,9 +1541,9 @@ final class NTLMEngineImpl implements NTLMEngine {
      * resources by Karl Wright
      */
     static class HMACMD5 {
-        protected byte[] ipad;
-        protected byte[] opad;
-        protected MessageDigest md5;
+        protected final byte[] ipad;
+        protected final byte[] opad;
+        protected final MessageDigest md5;
 
         HMACMD5(final byte[] input) throws NTLMEngineException {
             byte[] key = input;
