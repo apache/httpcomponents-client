@@ -98,7 +98,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         SIGNATURE[bytesWithoutNull.length] = (byte) 0x00;
     }
 
-    private static final Type1Message TYPE_1_MESSAGE = new Type1Message();
+    private static final String TYPE_1_MESSAGE = new Type1Message().getResponse();
 
     /**
      * Returns the response for the given message.
@@ -145,7 +145,7 @@ final class NTLMEngineImpl implements NTLMEngine {
     static String getType1Message(final String host, final String domain) throws NTLMEngineException {
         // For compatibility reason do not include domain and host in type 1 message
         //return new Type1Message(domain, host).getResponse();
-        return TYPE_1_MESSAGE.getResponse();
+        return TYPE_1_MESSAGE;
     }
 
     /**

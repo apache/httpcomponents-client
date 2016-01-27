@@ -11,6 +11,8 @@ Changelog:
 * [HTTPCLIENT-1714] Add HttpClientBuilder.setDnsResolver(DnsResolver).
   Contributed by Alexis Thaveau <alexis.thaveau at gmail.com>
 
+* [HTTPCLIENT-1715] NTLMEngineImpl.Type1Message not thread safe but declared as a constant.
+  Contributed by Olivier Lafontaine <olafontaine at gmail.com>, Gary Gregory <ggregory at apache.org>
 
 
 Release 4.5.1
