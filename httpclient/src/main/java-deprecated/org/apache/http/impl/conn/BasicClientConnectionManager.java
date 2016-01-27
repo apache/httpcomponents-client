@@ -121,6 +121,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
         }
     }
 
+    @Override
     public SchemeRegistry getSchemeRegistry() {
         return this.schemeRegistry;
     }
@@ -129,16 +130,19 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
         return new DefaultClientConnectionOperator(schreg);
     }
 
+    @Override
     public final ClientConnectionRequest requestConnection(
             final HttpRoute route,
             final Object state) {
 
         return new ClientConnectionRequest() {
 
+            @Override
             public void abortRequest() {
                 // Nothing to abort, since requests are immediate.
             }
 
+            @Override
             public ManagedClientConnection getConnection(
                     final long timeout, final TimeUnit tunit) {
                 return BasicClientConnectionManager.this.getConnection(
@@ -189,6 +193,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
         }
     }
 
+    @Override
     public void releaseConnection(final ManagedClientConnection conn, final long keepalive, final TimeUnit tunit) {
         Args.check(conn instanceof ManagedClientConnectionImpl, "Connection class mismatch, " +
             "connection not obtained from this manager");
@@ -234,6 +239,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
         }
     }
 
+    @Override
     public void closeExpiredConnections() {
         synchronized (this) {
             assertNotShutdown();
@@ -245,6 +251,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
         }
     }
 
+    @Override
     public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
         Args.notNull(tunit, "Time unit");
         synchronized (this) {
@@ -261,6 +268,7 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
         }
     }
 
+    @Override
     public void shutdown() {
         synchronized (this) {
             this.shutdown = true;

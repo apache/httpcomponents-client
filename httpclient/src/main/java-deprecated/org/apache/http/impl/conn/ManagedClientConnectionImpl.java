@@ -83,6 +83,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         this.duration = Long.MAX_VALUE;
     }
 
+    @Override
     public String getId() {
         return null;
     }
@@ -125,6 +126,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         return local;
     }
 
+    @Override
     public void close() throws IOException {
         final HttpPoolEntry local = this.poolEntry;
         if (local != null) {
@@ -134,6 +136,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
     }
 
+    @Override
     public void shutdown() throws IOException {
         final HttpPoolEntry local = this.poolEntry;
         if (local != null) {
@@ -143,6 +146,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
     }
 
+    @Override
     public boolean isOpen() {
         final OperatedClientConnection conn = getConnection();
         if (conn != null) {
@@ -152,6 +156,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
     }
 
+    @Override
     public boolean isStale() {
         final OperatedClientConnection conn = getConnection();
         if (conn != null) {
@@ -161,88 +166,105 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
     }
 
+    @Override
     public void setSocketTimeout(final int timeout) {
         final OperatedClientConnection conn = ensureConnection();
         conn.setSocketTimeout(timeout);
     }
 
+    @Override
     public int getSocketTimeout() {
         final OperatedClientConnection conn = ensureConnection();
         return conn.getSocketTimeout();
     }
 
+    @Override
     public HttpConnectionMetrics getMetrics() {
         final OperatedClientConnection conn = ensureConnection();
         return conn.getMetrics();
     }
 
+    @Override
     public void flush() throws IOException {
         final OperatedClientConnection conn = ensureConnection();
         conn.flush();
     }
 
+    @Override
     public boolean isResponseAvailable(final int timeout) throws IOException {
         final OperatedClientConnection conn = ensureConnection();
         return conn.isResponseAvailable(timeout);
     }
 
+    @Override
     public void receiveResponseEntity(
             final HttpResponse response) throws HttpException, IOException {
         final OperatedClientConnection conn = ensureConnection();
         conn.receiveResponseEntity(response);
     }
 
+    @Override
     public HttpResponse receiveResponseHeader() throws HttpException, IOException {
         final OperatedClientConnection conn = ensureConnection();
         return conn.receiveResponseHeader();
     }
 
+    @Override
     public void sendRequestEntity(
             final HttpEntityEnclosingRequest request) throws HttpException, IOException {
         final OperatedClientConnection conn = ensureConnection();
         conn.sendRequestEntity(request);
     }
 
+    @Override
     public void sendRequestHeader(
             final HttpRequest request) throws HttpException, IOException {
         final OperatedClientConnection conn = ensureConnection();
         conn.sendRequestHeader(request);
     }
 
+    @Override
     public InetAddress getLocalAddress() {
         final OperatedClientConnection conn = ensureConnection();
         return conn.getLocalAddress();
     }
 
+    @Override
     public int getLocalPort() {
         final OperatedClientConnection conn = ensureConnection();
         return conn.getLocalPort();
     }
 
+    @Override
     public InetAddress getRemoteAddress() {
         final OperatedClientConnection conn = ensureConnection();
         return conn.getRemoteAddress();
     }
 
+    @Override
     public int getRemotePort() {
         final OperatedClientConnection conn = ensureConnection();
         return conn.getRemotePort();
     }
 
+    @Override
     public boolean isSecure() {
         final OperatedClientConnection conn = ensureConnection();
         return conn.isSecure();
     }
 
+    @Override
     public void bind(final Socket socket) throws IOException {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public Socket getSocket() {
         final OperatedClientConnection conn = ensureConnection();
         return conn.getSocket();
     }
 
+    @Override
     public SSLSession getSSLSession() {
         final OperatedClientConnection conn = ensureConnection();
         SSLSession result = null;
@@ -278,11 +300,13 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
     }
 
+    @Override
     public HttpRoute getRoute() {
         final HttpPoolEntry local = ensurePoolEntry();
         return local.getEffectiveRoute();
     }
 
+    @Override
     public void open(
             final HttpRoute route,
             final HttpContext context,
@@ -320,6 +344,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
     }
 
+    @Override
     public void tunnelTarget(
             final boolean secure, final HttpParams params) throws IOException {
         Args.notNull(params, "HTTP parameters");
@@ -348,6 +373,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
     }
 
+    @Override
     public void tunnelProxy(
             final HttpHost next, final boolean secure, final HttpParams params) throws IOException {
         Args.notNull(next, "Next proxy");
@@ -374,6 +400,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
     }
 
+    @Override
     public void layerProtocol(
             final HttpContext context, final HttpParams params) throws IOException {
         Args.notNull(params, "HTTP parameters");
@@ -402,28 +429,34 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
     }
 
+    @Override
     public Object getState() {
         final HttpPoolEntry local = ensurePoolEntry();
         return local.getState();
     }
 
+    @Override
     public void setState(final Object state) {
         final HttpPoolEntry local = ensurePoolEntry();
         local.setState(state);
     }
 
+    @Override
     public void markReusable() {
         this.reusable = true;
     }
 
+    @Override
     public void unmarkReusable() {
         this.reusable = false;
     }
 
+    @Override
     public boolean isMarkedReusable() {
         return this.reusable;
     }
 
+    @Override
     public void setIdleDuration(final long duration, final TimeUnit unit) {
         if(duration > 0) {
             this.duration = unit.toMillis(duration);
@@ -432,6 +465,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
     }
 
+    @Override
     public void releaseConnection() {
         synchronized (this) {
             if (this.poolEntry == null) {
@@ -442,6 +476,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         }
     }
 
+    @Override
     public void abortConnection() {
         synchronized (this) {
             if (this.poolEntry == null) {

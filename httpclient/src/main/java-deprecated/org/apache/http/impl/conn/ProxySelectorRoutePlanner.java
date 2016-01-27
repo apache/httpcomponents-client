@@ -114,6 +114,7 @@ public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
         this.proxySelector = prosel;
     }
 
+    @Override
     public HttpRoute determineRoute(final HttpHost target,
                                     final HttpRequest request,
                                     final HttpContext context)

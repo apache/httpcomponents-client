@@ -58,6 +58,7 @@ public class NegotiateSchemeFactory implements AuthSchemeFactory {
         this(null, false);
     }
 
+    @Override
     public AuthScheme newInstance(final HttpParams params) {
         return new NegotiateScheme(this.spengoGenerator, this.stripPort);
     }

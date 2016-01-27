@@ -83,6 +83,7 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
 
 
     // non-javadoc, see interface org.apache.http.conn.SocketFactory
+    @Override
     public Socket createSocket() {
         return new Socket();
     }
@@ -102,6 +103,7 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
      * @throws  IOException if an error occurs during the connection
      * @throws  SocketTimeoutException if timeout expires before connecting
      */
+    @Override
     public Socket connectSocket(final Socket socket, final String host, final int port,
                                 final InetAddress localAddress, final int localPort,
                                 final HttpParams params)
@@ -159,6 +161,7 @@ public final class MultihomePlainSocketFactory implements SocketFactory {
      *
      * @throws IllegalArgumentException if the argument is invalid
      */
+    @Override
     public final boolean isSecure(final Socket sock)
         throws IllegalArgumentException {
 

@@ -138,6 +138,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
             return new DefaultClientConnectionOperator(schreg, this.dnsResolver);
     }
 
+    @Override
     public SchemeRegistry getSchemeRegistry() {
         return this.schemeRegistry;
     }
@@ -174,6 +175,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         return buf.toString();
     }
 
+    @Override
     public ClientConnectionRequest requestConnection(
             final HttpRoute route,
             final Object state) {
@@ -185,10 +187,12 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
 
         return new ClientConnectionRequest() {
 
+            @Override
             public void abortRequest() {
                 future.cancel(true);
             }
 
+            @Override
             public ManagedClientConnection getConnection(
                     final long timeout,
                     final TimeUnit tunit) throws InterruptedException, ConnectionPoolTimeoutException {
@@ -227,6 +231,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         }
     }
 
+    @Override
     public void releaseConnection(
             final ManagedClientConnection conn, final long keepalive, final TimeUnit tunit) {
 
@@ -271,6 +276,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         }
     }
 
+    @Override
     public void shutdown() {
         this.log.debug("Connection manager is shutting down");
         try {
@@ -281,6 +287,7 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         this.log.debug("Connection manager shut down");
     }
 
+    @Override
     public void closeIdleConnections(final long idleTimeout, final TimeUnit tunit) {
         if (this.log.isDebugEnabled()) {
             this.log.debug("Closing connections idle longer than " + idleTimeout + " " + tunit);
@@ -288,39 +295,48 @@ public class PoolingClientConnectionManager implements ClientConnectionManager, 
         this.pool.closeIdle(idleTimeout, tunit);
     }
 
+    @Override
     public void closeExpiredConnections() {
         this.log.debug("Closing expired connections");
         this.pool.closeExpired();
     }
 
+    @Override
     public int getMaxTotal() {
         return this.pool.getMaxTotal();
     }
 
+    @Override
     public void setMaxTotal(final int max) {
         this.pool.setMaxTotal(max);
     }
 
+    @Override
     public int getDefaultMaxPerRoute() {
         return this.pool.getDefaultMaxPerRoute();
     }
 
+    @Override
     public void setDefaultMaxPerRoute(final int max) {
         this.pool.setDefaultMaxPerRoute(max);
     }
 
+    @Override
     public int getMaxPerRoute(final HttpRoute route) {
         return this.pool.getMaxPerRoute(route);
     }
 
+    @Override
     public void setMaxPerRoute(final HttpRoute route, final int max) {
         this.pool.setMaxPerRoute(route, max);
     }
 
+    @Override
     public PoolStats getTotalStats() {
         return this.pool.getTotalStats();
     }
 
+    @Override
     public PoolStats getStats(final HttpRoute route) {
         return this.pool.getStats(route);
     }

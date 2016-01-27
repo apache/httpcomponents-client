@@ -145,6 +145,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
     }
 
+    @Override
     public SchemeRegistry getSchemeRegistry() {
         return this.schemeRegistry;
     }
@@ -175,16 +176,19 @@ public class SingleClientConnManager implements ClientConnectionManager {
         Asserts.check(!this.isShutDown, "Manager is shut down");
     }
 
+    @Override
     public final ClientConnectionRequest requestConnection(
             final HttpRoute route,
             final Object state) {
 
         return new ClientConnectionRequest() {
 
+            @Override
             public void abortRequest() {
                 // Nothing to abort, since requests are immediate.
             }
 
+            @Override
             public ManagedClientConnection getConnection(
                     final long timeout, final TimeUnit tunit) {
                 return SingleClientConnManager.this.getConnection(
@@ -253,6 +257,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
     }
 
+    @Override
     public void releaseConnection(
             final ManagedClientConnection conn,
             final long validDuration, final TimeUnit timeUnit) {
@@ -307,6 +312,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
     }
 
+    @Override
     public void closeExpiredConnections() {
         final long time = connectionExpiresTime;
         if (System.currentTimeMillis() >= time) {
@@ -314,6 +320,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
     }
 
+    @Override
     public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
         assertStillUp();
 
@@ -336,6 +343,7 @@ public class SingleClientConnManager implements ClientConnectionManager {
         }
     }
 
+    @Override
     public void shutdown() {
         this.isShutDown = true;
         synchronized (this) {

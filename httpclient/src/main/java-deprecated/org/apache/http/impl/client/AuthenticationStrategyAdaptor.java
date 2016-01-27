@@ -69,6 +69,7 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
         this.handler = handler;
     }
 
+    @Override
     public boolean isAuthenticationRequested(
             final HttpHost authhost,
             final HttpResponse response,
@@ -76,6 +77,7 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
         return this.handler.isAuthenticationRequested(response, context);
     }
 
+    @Override
     public Map<String, Header> getChallenges(
             final HttpHost authhost,
             final HttpResponse response,
@@ -83,6 +85,7 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
         return this.handler.getChallenges(response, context);
     }
 
+    @Override
     public Queue<AuthOption> select(
             final Map<String, Header> challenges,
             final HttpHost authhost,
@@ -127,6 +130,7 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
         return options;
     }
 
+    @Override
     public void authSucceeded(
             final HttpHost authhost, final AuthScheme authScheme, final HttpContext context) {
         AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);
@@ -143,6 +147,7 @@ class AuthenticationStrategyAdaptor implements AuthenticationStrategy {
         }
     }
 
+    @Override
     public void authFailed(
             final HttpHost authhost, final AuthScheme authScheme, final HttpContext context) {
         final AuthCache authCache = (AuthCache) context.getAttribute(ClientContext.AUTH_CACHE);

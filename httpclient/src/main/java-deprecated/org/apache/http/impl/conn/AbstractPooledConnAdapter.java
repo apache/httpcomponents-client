@@ -67,6 +67,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         this.poolEntry = entry;
     }
 
+    @Override
     public String getId() {
         return null;
     }
@@ -117,12 +118,14 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         super.detach();
     }
 
+    @Override
     public HttpRoute getRoute() {
         final AbstractPoolEntry entry = getPoolEntry();
         assertValid(entry);
         return (entry.tracker == null) ? null : entry.tracker.toRoute();
     }
 
+    @Override
     public void open(final HttpRoute route,
                      final HttpContext context, final HttpParams params)
         throws IOException {
@@ -131,6 +134,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         entry.open(route, context, params);
     }
 
+    @Override
     public void tunnelTarget(final boolean secure, final HttpParams params)
         throws IOException {
         final AbstractPoolEntry entry = getPoolEntry();
@@ -138,6 +142,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         entry.tunnelTarget(secure, params);
     }
 
+    @Override
     public void tunnelProxy(final HttpHost next, final boolean secure, final HttpParams params)
         throws IOException {
         final AbstractPoolEntry entry = getPoolEntry();
@@ -145,6 +150,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         entry.tunnelProxy(next, secure, params);
     }
 
+    @Override
     public void layerProtocol(final HttpContext context, final HttpParams params)
         throws IOException {
         final AbstractPoolEntry entry = getPoolEntry();
@@ -152,6 +158,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         entry.layerProtocol(context, params);
     }
 
+    @Override
     public void close() throws IOException {
         final AbstractPoolEntry entry = getPoolEntry();
         if (entry != null) {
@@ -164,6 +171,7 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         }
     }
 
+    @Override
     public void shutdown() throws IOException {
         final AbstractPoolEntry entry = getPoolEntry();
         if (entry != null) {
@@ -176,12 +184,14 @@ public abstract class AbstractPooledConnAdapter extends AbstractClientConnAdapte
         }
     }
 
+    @Override
     public Object getState() {
         final AbstractPoolEntry entry = getPoolEntry();
         assertValid(entry);
         return entry.getState();
     }
 
+    @Override
     public void setState(final Object state) {
         final AbstractPoolEntry entry = getPoolEntry();
         assertValid(entry);

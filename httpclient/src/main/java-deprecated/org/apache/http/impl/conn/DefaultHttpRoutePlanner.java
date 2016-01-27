@@ -78,6 +78,7 @@ public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
         schemeRegistry = schreg;
     }
 
+    @Override
     public HttpRoute determineRoute(final HttpHost target,
                                     final HttpRequest request,
                                     final HttpContext context)

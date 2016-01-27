@@ -58,10 +58,12 @@ public class KerberosCredentials implements Credentials, Serializable {
         return gssCredential;
     }
 
+    @Override
     public Principal getUserPrincipal() {
         return null;
     }
 
+    @Override
     public String getPassword() {
         return null;
     }

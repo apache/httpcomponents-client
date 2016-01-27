@@ -107,14 +107,17 @@ public class DecompressingHttpClient implements HttpClient {
         this.contentEncodingInterceptor = responseInterceptor;
     }
 
+    @Override
     public HttpParams getParams() {
         return backend.getParams();
     }
 
+    @Override
     public ClientConnectionManager getConnectionManager() {
         return backend.getConnectionManager();
     }
 
+    @Override
     public HttpResponse execute(final HttpUriRequest request) throws IOException,
             ClientProtocolException {
         return execute(getHttpHost(request), request, (HttpContext)null);
@@ -134,16 +137,19 @@ public class DecompressingHttpClient implements HttpClient {
         return URIUtils.extractHost(uri);
     }
 
+    @Override
     public HttpResponse execute(final HttpUriRequest request, final HttpContext context)
             throws IOException, ClientProtocolException {
         return execute(getHttpHost(request), request, context);
     }
 
+    @Override
     public HttpResponse execute(final HttpHost target, final HttpRequest request)
             throws IOException, ClientProtocolException {
         return execute(target, request, (HttpContext)null);
     }
 
+    @Override
     public HttpResponse execute(final HttpHost target, final HttpRequest request,
             final HttpContext context) throws IOException, ClientProtocolException {
         try {
@@ -179,24 +185,28 @@ public class DecompressingHttpClient implements HttpClient {
         }
     }
 
+    @Override
     public <T> T execute(final HttpUriRequest request,
             final ResponseHandler<? extends T> responseHandler) throws IOException,
             ClientProtocolException {
         return execute(getHttpHost(request), request, responseHandler);
     }
 
+    @Override
     public <T> T execute(final HttpUriRequest request,
             final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException, ClientProtocolException {
         return execute(getHttpHost(request), request, responseHandler, context);
     }
 
+    @Override
     public <T> T execute(final HttpHost target, final HttpRequest request,
             final ResponseHandler<? extends T> responseHandler) throws IOException,
             ClientProtocolException {
         return execute(target, request, responseHandler, null);
     }
 
+    @Override
     public <T> T execute(final HttpHost target, final HttpRequest request,
             final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException, ClientProtocolException {

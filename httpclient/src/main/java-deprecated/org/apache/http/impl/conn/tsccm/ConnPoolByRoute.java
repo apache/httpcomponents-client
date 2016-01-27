@@ -282,6 +282,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
 
         return new PoolEntryRequest() {
 
+            @Override
             public void abortRequest() {
                 poolLock.lock();
                 try {
@@ -291,6 +292,7 @@ public class ConnPoolByRoute extends AbstractConnPool {
                 }
             }
 
+            @Override
             public BasicPoolEntry getPoolEntry(
                     final long timeout,
                     final TimeUnit tunit)

@@ -379,10 +379,12 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      *               This method will create a unconnected instance of {@link Socket} class.
      * @since 4.1
      */
+    @Override
     public Socket createSocket(final HttpParams params) throws IOException {
         return createSocket((HttpContext) null);
     }
 
+    @Override
     public Socket createSocket() throws IOException {
         return createSocket((HttpContext) null);
     }
@@ -390,6 +392,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     /**
      * @since 4.1
      */
+    @Override
     public Socket connectSocket(
             final Socket socket,
             final InetSocketAddress remoteAddress,
@@ -424,6 +427,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
      *
      * @throws IllegalArgumentException if the argument is invalid
      */
+    @Override
     public boolean isSecure(final Socket sock) throws IllegalArgumentException {
         Args.notNull(sock, "Socket");
         Asserts.check(sock instanceof SSLSocket, "Socket not created by this factory");
@@ -434,6 +438,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
     /**
      * @since 4.2
      */
+    @Override
     public Socket createLayeredSocket(
         final Socket socket,
         final String host,
@@ -442,6 +447,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         return createLayeredSocket(socket, host, port, (HttpContext) null);
     }
 
+    @Override
     public Socket createLayeredSocket(
         final Socket socket,
         final String host,
@@ -459,6 +465,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         return this.hostnameVerifier;
     }
 
+    @Override
     public Socket connectSocket(
             final Socket socket,
             final String host, final int port,
@@ -479,6 +486,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         return connectSocket(socket, remoteAddress, localAddress, params);
     }
 
+    @Override
     public Socket createSocket(
             final Socket socket,
             final String host, final int port,
@@ -509,12 +517,14 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         prepareSocket(socket);
     }
 
+    @Override
     public Socket createSocket(final HttpContext context) throws IOException {
         final SSLSocket sock = (SSLSocket) this.socketfactory.createSocket();
         internalPrepareSocket(sock);
         return sock;
     }
 
+    @Override
     public Socket connectSocket(
             final int connectTimeout,
             final Socket socket,
@@ -548,6 +558,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
         }
     }
 
+    @Override
     public Socket createLayeredSocket(
             final Socket socket,
             final String target,

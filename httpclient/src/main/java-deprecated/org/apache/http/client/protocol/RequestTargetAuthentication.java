@@ -53,6 +53,7 @@ public class RequestTargetAuthentication extends RequestAuthenticationBase {
         super();
     }
 
+    @Override
     public void process(final HttpRequest request, final HttpContext context)
             throws HttpException, IOException {
         Args.notNull(request, "HTTP request");

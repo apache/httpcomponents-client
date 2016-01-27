@@ -156,6 +156,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         }
     }
 
+    @Override
     public boolean isOpen() {
         final OperatedClientConnection conn = getWrappedConnection();
         if (conn == null) {
@@ -165,6 +166,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return conn.isOpen();
     }
 
+    @Override
     public boolean isStale() {
         if (isReleased()) {
             return true;
@@ -177,36 +179,42 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return conn.isStale();
     }
 
+    @Override
     public void setSocketTimeout(final int timeout) {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         conn.setSocketTimeout(timeout);
     }
 
+    @Override
     public int getSocketTimeout() {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getSocketTimeout();
     }
 
+    @Override
     public HttpConnectionMetrics getMetrics() {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getMetrics();
     }
 
+    @Override
     public void flush() throws IOException {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         conn.flush();
     }
 
+    @Override
     public boolean isResponseAvailable(final int timeout) throws IOException {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.isResponseAvailable(timeout);
     }
 
+    @Override
     public void receiveResponseEntity(final HttpResponse response)
         throws HttpException, IOException {
         final OperatedClientConnection conn = getWrappedConnection();
@@ -215,6 +223,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         conn.receiveResponseEntity(response);
     }
 
+    @Override
     public HttpResponse receiveResponseHeader()
         throws HttpException, IOException {
         final OperatedClientConnection conn = getWrappedConnection();
@@ -223,6 +232,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return conn.receiveResponseHeader();
     }
 
+    @Override
     public void sendRequestEntity(final HttpEntityEnclosingRequest request)
         throws HttpException, IOException {
         final OperatedClientConnection conn = getWrappedConnection();
@@ -231,6 +241,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         conn.sendRequestEntity(request);
     }
 
+    @Override
     public void sendRequestHeader(final HttpRequest request)
         throws HttpException, IOException {
         final OperatedClientConnection conn = getWrappedConnection();
@@ -239,40 +250,47 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         conn.sendRequestHeader(request);
     }
 
+    @Override
     public InetAddress getLocalAddress() {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getLocalAddress();
     }
 
+    @Override
     public int getLocalPort() {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getLocalPort();
     }
 
+    @Override
     public InetAddress getRemoteAddress() {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getRemoteAddress();
     }
 
+    @Override
     public int getRemotePort() {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.getRemotePort();
     }
 
+    @Override
     public boolean isSecure() {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
         return conn.isSecure();
     }
 
+    @Override
     public void bind(final Socket socket) throws IOException {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public Socket getSocket() {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
@@ -282,6 +300,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return conn.getSocket();
     }
 
+    @Override
     public SSLSession getSSLSession() {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
@@ -297,18 +316,22 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         return result;
     }
 
+    @Override
     public void markReusable() {
         markedReusable = true;
     }
 
+    @Override
     public void unmarkReusable() {
         markedReusable = false;
     }
 
+    @Override
     public boolean isMarkedReusable() {
         return markedReusable;
     }
 
+    @Override
     public void setIdleDuration(final long duration, final TimeUnit unit) {
         if(duration > 0) {
             this.duration = unit.toMillis(duration);
@@ -317,6 +340,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         }
     }
 
+    @Override
     public synchronized void releaseConnection() {
         if (released) {
             return;
@@ -325,6 +349,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
     }
 
+    @Override
     public synchronized void abortConnection() {
         if (released) {
             return;
@@ -338,6 +363,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         connManager.releaseConnection(this, duration, TimeUnit.MILLISECONDS);
     }
 
+    @Override
     public Object getAttribute(final String id) {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
@@ -348,6 +374,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         }
     }
 
+    @Override
     public Object removeAttribute(final String id) {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);
@@ -358,6 +385,7 @@ public abstract class AbstractClientConnAdapter implements ManagedClientConnecti
         }
     }
 
+    @Override
     public void setAttribute(final String id, final Object obj) {
         final OperatedClientConnection conn = getWrappedConnection();
         assertValid(conn);

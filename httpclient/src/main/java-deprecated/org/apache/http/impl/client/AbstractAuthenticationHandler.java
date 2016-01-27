@@ -135,6 +135,7 @@ public abstract class AbstractAuthenticationHandler implements AuthenticationHan
         return getAuthPreferences();
     }
 
+    @Override
     public AuthScheme selectScheme(
             final Map<String, Header> challenges,
             final HttpResponse response,

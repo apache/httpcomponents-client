@@ -79,6 +79,7 @@ public class NegotiateScheme extends GGSSchemeBase {
      *
      * @return {@code Negotiate}
      */
+    @Override
     public String getSchemeName() {
         return "Negotiate";
     }
@@ -181,6 +182,7 @@ public class NegotiateScheme extends GGSSchemeBase {
      *
      * @return the parameter with the given name
      */
+    @Override
     public String getParameter(final String name) {
         Args.notNull(name, "Parameter name");
         return null;
@@ -192,6 +194,7 @@ public class NegotiateScheme extends GGSSchemeBase {
      *
      * @return {@code null}
      */
+    @Override
     public String getRealm() {
         return null;
     }
@@ -202,6 +205,7 @@ public class NegotiateScheme extends GGSSchemeBase {
      *
      * @return {@code true}.
      */
+    @Override
     public boolean isConnectionBased() {
         return true;
     }

@@ -120,10 +120,12 @@ public class BasicManagedEntity extends HttpEntityWrapper
         ensureConsumed();
     }
 
+    @Override
     public void releaseConnection() throws IOException {
         ensureConsumed();
     }
 
+    @Override
     public void abortConnection() throws IOException {
 
         if (managedConn != null) {
@@ -135,6 +137,7 @@ public class BasicManagedEntity extends HttpEntityWrapper
         }
     }
 
+    @Override
     public boolean eofDetected(final InputStream wrapped) throws IOException {
         try {
             if (managedConn != null) {
@@ -153,6 +156,7 @@ public class BasicManagedEntity extends HttpEntityWrapper
         return false;
     }
 
+    @Override
     public boolean streamClosed(final InputStream wrapped) throws IOException {
         try {
             if (managedConn != null) {
@@ -178,6 +182,7 @@ public class BasicManagedEntity extends HttpEntityWrapper
         return false;
     }
 
+    @Override
     public boolean streamAbort(final InputStream wrapped) throws IOException {
         if (managedConn != null) {
             managedConn.abortConnection();

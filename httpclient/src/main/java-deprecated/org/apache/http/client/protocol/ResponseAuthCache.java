@@ -67,6 +67,7 @@ public class ResponseAuthCache implements HttpResponseInterceptor {
         super();
     }
 
+    @Override
     public void process(final HttpResponse response, final HttpContext context)
             throws HttpException, IOException {
         Args.notNull(response, "HTTP request");

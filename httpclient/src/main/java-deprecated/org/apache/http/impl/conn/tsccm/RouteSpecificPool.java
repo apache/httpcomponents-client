@@ -84,6 +84,7 @@ public class RouteSpecificPool {
         this.route = route;
         this.maxEntries = maxEntries;
         this.connPerRoute = new ConnPerRoute() {
+            @Override
             public int getMaxForRoute(final HttpRoute unused) {
                 return RouteSpecificPool.this.maxEntries;
             }

@@ -83,10 +83,12 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
      *
      * @since 4.1
      */
+    @Override
     public Socket createSocket(final HttpParams params) {
         return new Socket();
     }
 
+    @Override
     public Socket createSocket() {
         return new Socket();
     }
@@ -94,6 +96,7 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
     /**
      * @since 4.1
      */
+    @Override
     public Socket connectSocket(
             final Socket socket,
             final InetSocketAddress remoteAddress,
@@ -130,6 +133,7 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
      *
      * @return  {@code false}
      */
+    @Override
     public final boolean isSecure(final Socket sock) {
         return false;
     }
@@ -137,6 +141,7 @@ public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
     /**
      * @deprecated (4.1)  Use {@link #connectSocket(Socket, InetSocketAddress, InetSocketAddress, HttpParams)}
      */
+    @Override
     @Deprecated
     public Socket connectSocket(
             final Socket socket,

@@ -69,6 +69,7 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
         this(out, wire, null);
     }
 
+    @Override
     public void write(final byte[] b, final int off, final int len) throws IOException {
         this.out.write(b,  off,  len);
         if (this.wire.enabled()) {
@@ -76,6 +77,7 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
         }
     }
 
+    @Override
     public void write(final int b) throws IOException {
         this.out.write(b);
         if (this.wire.enabled()) {
@@ -83,6 +85,7 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
         }
     }
 
+    @Override
     public void write(final byte[] b) throws IOException {
         this.out.write(b);
         if (this.wire.enabled()) {
@@ -90,10 +93,12 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
         }
     }
 
+    @Override
     public void flush() throws IOException {
         this.out.flush();
     }
 
+    @Override
     public void writeLine(final CharArrayBuffer buffer) throws IOException {
         this.out.writeLine(buffer);
         if (this.wire.enabled()) {
@@ -103,6 +108,7 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
         }
     }
 
+    @Override
     public void writeLine(final String s) throws IOException {
         this.out.writeLine(s);
         if (this.wire.enabled()) {
@@ -111,6 +117,7 @@ public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
         }
     }
 
+    @Override
     public HttpTransportMetrics getMetrics() {
         return this.out.getMetrics();
     }

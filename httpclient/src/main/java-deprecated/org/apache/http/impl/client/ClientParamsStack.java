@@ -189,6 +189,7 @@ public class ClientParamsStack extends AbstractHttpParams {
      * @return  the highest-priority value for that parameter, or
      *          {@code null} if it is not set anywhere in this stack
      */
+    @Override
     public Object getParameter(final String name) {
         Args.notNull(name, "Parameter name");
 
@@ -222,6 +223,7 @@ public class ClientParamsStack extends AbstractHttpParams {
      *
      * @throws UnsupportedOperationException    always
      */
+    @Override
     public HttpParams setParameter(final String name, final Object value)
         throws UnsupportedOperationException {
 
@@ -242,6 +244,7 @@ public class ClientParamsStack extends AbstractHttpParams {
      *
      * @throws UnsupportedOperationException    always
      */
+    @Override
     public boolean removeParameter(final String name) {
         throw new UnsupportedOperationException
         ("Removing parameters in a stack is not supported.");
@@ -262,6 +265,7 @@ public class ClientParamsStack extends AbstractHttpParams {
      *
      * @return {@code this} parameter stack
      */
+    @Override
     public HttpParams copy() {
         return this;
     }

@@ -75,10 +75,12 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
         this(in, wire, null);
     }
 
+    @Override
     public boolean isDataAvailable(final int timeout) throws IOException {
         return this.in.isDataAvailable(timeout);
     }
 
+    @Override
     public int read(final byte[] b, final int off, final int len) throws IOException {
         final int l = this.in.read(b,  off,  len);
         if (this.wire.enabled() && l > 0) {
@@ -87,6 +89,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
         return l;
     }
 
+    @Override
     public int read() throws IOException {
         final int l = this.in.read();
         if (this.wire.enabled() && l != -1) {
@@ -95,6 +98,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
         return l;
     }
 
+    @Override
     public int read(final byte[] b) throws IOException {
         final int l = this.in.read(b);
         if (this.wire.enabled() && l > 0) {
@@ -103,6 +107,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
         return l;
     }
 
+    @Override
     public String readLine() throws IOException {
         final String s = this.in.readLine();
         if (this.wire.enabled() && s != null) {
@@ -112,6 +117,7 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
         return s;
     }
 
+    @Override
     public int readLine(final CharArrayBuffer buffer) throws IOException {
         final int l = this.in.readLine(buffer);
         if (this.wire.enabled() && l >= 0) {
@@ -123,10 +129,12 @@ public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor 
         return l;
     }
 
+    @Override
     public HttpTransportMetrics getMetrics() {
         return this.in.getMetrics();
     }
 
+    @Override
     public boolean isEof() {
         if (this.eofSensor != null) {
             return this.eofSensor.isEof();

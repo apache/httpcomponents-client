@@ -128,6 +128,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         this.dnsResolver = dnsResolver;
     }
 
+    @Override
     public OperatedClientConnection createConnection() {
         return new DefaultClientConnection();
     }
@@ -141,6 +142,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         return reg;
     }
 
+    @Override
     public void openConnection(
             final OperatedClientConnection conn,
             final HttpHost target,
@@ -198,6 +200,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
         }
     }
 
+    @Override
     public void updateSecureConnection(
             final OperatedClientConnection conn,
             final HttpHost target,

@@ -366,6 +366,7 @@ public class DefaultRequestDirector implements RequestDirector {
 
 
     // non-javadoc, see interface ClientRequestDirector
+    @Override
     public HttpResponse execute(final HttpHost targetHost, final HttpRequest request,
                                 final HttpContext context)
         throws HttpException, IOException {

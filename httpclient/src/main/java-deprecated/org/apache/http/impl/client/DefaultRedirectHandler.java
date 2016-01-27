@@ -70,6 +70,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
         super();
     }
 
+    @Override
     public boolean isRedirectRequested(
             final HttpResponse response,
             final HttpContext context) {
@@ -92,6 +93,7 @@ public class DefaultRedirectHandler implements RedirectHandler {
         } //end of switch
     }
 
+    @Override
     public URI getLocationURI(
             final HttpResponse response,
             final HttpContext context) throws ProtocolException {

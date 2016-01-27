@@ -56,6 +56,7 @@ public class DefaultTargetAuthenticationHandler extends AbstractAuthenticationHa
         super();
     }
 
+    @Override
     public boolean isAuthenticationRequested(
             final HttpResponse response,
             final HttpContext context) {
@@ -64,6 +65,7 @@ public class DefaultTargetAuthenticationHandler extends AbstractAuthenticationHa
         return status == HttpStatus.SC_UNAUTHORIZED;
     }
 
+    @Override
     public Map<String, Header> getChallenges(
             final HttpResponse response,
             final HttpContext context) throws MalformedChallengeException {

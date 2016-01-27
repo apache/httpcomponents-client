@@ -129,6 +129,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         }
     }
 
+    @Override
     public final void verify(
             final String host, final X509Certificate cert) throws SSLException {
         final boolean ipv4 = InetAddressUtils.isIPv4Address(host);

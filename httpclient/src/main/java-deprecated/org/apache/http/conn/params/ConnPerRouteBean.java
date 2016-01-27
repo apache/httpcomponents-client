@@ -86,6 +86,7 @@ public final class ConnPerRouteBean implements ConnPerRoute {
         this.maxPerHostMap.put(route, Integer.valueOf(max));
     }
 
+    @Override
     public int getMaxForRoute(final HttpRoute route) {
         Args.notNull(route, "HTTP route");
         final Integer max = this.maxPerHostMap.get(route);

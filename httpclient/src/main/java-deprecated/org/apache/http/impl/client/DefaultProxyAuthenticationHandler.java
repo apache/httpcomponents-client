@@ -56,6 +56,7 @@ public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHan
         super();
     }
 
+    @Override
     public boolean isAuthenticationRequested(
             final HttpResponse response,
             final HttpContext context) {
@@ -64,6 +65,7 @@ public class DefaultProxyAuthenticationHandler extends AbstractAuthenticationHan
         return status == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED;
     }
 
+    @Override
     public Map<String, Header> getChallenges(
             final HttpResponse response,
             final HttpContext context) throws MalformedChallengeException {

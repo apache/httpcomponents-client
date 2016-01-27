@@ -63,6 +63,7 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
         attemptReuse = reuse;
     }
 
+    @Override
     public boolean eofDetected(final InputStream wrapped)
         throws IOException {
 
@@ -79,6 +80,7 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
         return false;
     }
 
+    @Override
     public boolean streamClosed(final InputStream wrapped)
         throws IOException {
 
@@ -95,6 +97,7 @@ public class BasicEofSensorWatcher implements EofSensorWatcher {
         return false;
     }
 
+    @Override
     public boolean streamAbort(final InputStream wrapped)
         throws IOException {
 

@@ -209,10 +209,12 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         return new DefaultClientConnectionOperator(schreg);// @ThreadSafe
     }
 
+    @Override
     public SchemeRegistry getSchemeRegistry() {
         return this.schemeRegistry;
     }
 
+    @Override
     public ClientConnectionRequest requestConnection(
             final HttpRoute route,
             final Object state) {
@@ -222,10 +224,12 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
         return new ClientConnectionRequest() {
 
+            @Override
             public void abortRequest() {
                 poolRequest.abortRequest();
             }
 
+            @Override
             public ManagedClientConnection getConnection(
                     final long timeout, final TimeUnit tunit) throws InterruptedException,
                     ConnectionPoolTimeoutException {
@@ -243,6 +247,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
     }
 
+    @Override
     public void releaseConnection(final ManagedClientConnection conn, final long validDuration, final TimeUnit timeUnit) {
         Args.check(conn instanceof BasicPooledConnAdapter, "Connection class mismatch, " +
                 "connection not obtained from this manager");
@@ -288,6 +293,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         }
     }
 
+    @Override
     public void shutdown() {
         log.debug("Shutting down");
         pool.shutdown();
@@ -319,6 +325,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         return pool.getConnectionsInPool();
     }
 
+    @Override
     public void closeIdleConnections(final long idleTimeout, final TimeUnit tunit) {
         if (log.isDebugEnabled()) {
             log.debug("Closing connections idle longer than " + idleTimeout + " " + tunit);
@@ -326,6 +333,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
         pool.closeIdleConnections(idleTimeout, tunit);
     }
 
+    @Override
     public void closeExpiredConnections() {
         log.debug("Closing expired connections");
         pool.closeExpiredConnections();

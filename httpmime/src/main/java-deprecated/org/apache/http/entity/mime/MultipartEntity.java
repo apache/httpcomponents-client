@@ -130,30 +130,37 @@ public class MultipartEntity implements HttpEntity {
         addPart(new FormBodyPart(name, contentBody));
     }
 
+    @Override
     public boolean isRepeatable() {
         return getEntity().isRepeatable();
     }
 
+    @Override
     public boolean isChunked() {
         return getEntity().isChunked();
     }
 
+    @Override
     public boolean isStreaming() {
         return getEntity().isStreaming();
     }
 
+    @Override
     public long getContentLength() {
         return getEntity().getContentLength();
     }
 
+    @Override
     public Header getContentType() {
         return getEntity().getContentType();
     }
 
+    @Override
     public Header getContentEncoding() {
         return getEntity().getContentEncoding();
     }
 
+    @Override
     public void consumeContent()
         throws IOException, UnsupportedOperationException{
         if (isStreaming()) {
@@ -162,11 +169,13 @@ public class MultipartEntity implements HttpEntity {
         }
     }
 
+    @Override
     public InputStream getContent() throws IOException, UnsupportedOperationException {
         throw new UnsupportedOperationException(
                     "Multipart form entity does not implement #getContent()");
     }
 
+    @Override
     public void writeTo(final OutputStream outstream) throws IOException {
         getEntity().writeTo(outstream);
     }

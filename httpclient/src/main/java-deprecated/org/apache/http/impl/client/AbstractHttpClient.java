@@ -461,6 +461,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     }
 
     // non-javadoc, see interface HttpClient
+    @Override
     public synchronized final HttpParams getParams() {
         if (defaultParams == null) {
             defaultParams = createHttpParams();
@@ -479,6 +480,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     }
 
 
+    @Override
     public synchronized final ClientConnectionManager getConnectionManager() {
         if (connManager == null) {
             connManager = createClientConnectionManager();
@@ -1007,6 +1009,7 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
     }
 
 
+    @Override
     public void close() {
         getConnectionManager().shutdown();
     }

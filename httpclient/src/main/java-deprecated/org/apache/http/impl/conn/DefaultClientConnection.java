@@ -93,14 +93,17 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         this.attributes = new HashMap<String, Object>();
     }
 
+    @Override
     public String getId() {
         return null;
     }
 
+    @Override
     public final HttpHost getTargetHost() {
         return this.targetHost;
     }
 
+    @Override
     public final boolean isSecure() {
         return this.connSecure;
     }
@@ -110,6 +113,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         return this.socket;
     }
 
+    @Override
     public SSLSession getSSLSession() {
         if (this.socket instanceof SSLSocket) {
             return ((SSLSocket) this.socket).getSession();
@@ -118,6 +122,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         }
     }
 
+    @Override
     public void opening(final Socket sock, final HttpHost target) throws IOException {
         assertNotOpen();
         this.socket = sock;
@@ -131,6 +136,7 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         }
     }
 
+    @Override
     public void openCompleted(final boolean secure, final HttpParams params) throws IOException {
         Args.notNull(params, "Parameters");
         assertNotOpen();
@@ -226,10 +232,12 @@ public class DefaultClientConnection extends SocketHttpClientConnection
             (buffer, null, responseFactory, params);
     }
 
+    @Override
     public void bind(final Socket socket) throws IOException {
         bind(socket, new BasicHttpParams());
     }
 
+    @Override
     public void update(final Socket sock, final HttpHost target,
                        final boolean secure, final HttpParams params)
         throws IOException {
@@ -277,14 +285,17 @@ public class DefaultClientConnection extends SocketHttpClientConnection
         }
     }
 
+    @Override
     public Object getAttribute(final String id) {
         return this.attributes.get(id);
     }
 
+    @Override
     public Object removeAttribute(final String id) {
         return this.attributes.remove(id);
     }
 
+    @Override
     public void setAttribute(final String id, final Object obj) {
         this.attributes.put(id, obj);
     }

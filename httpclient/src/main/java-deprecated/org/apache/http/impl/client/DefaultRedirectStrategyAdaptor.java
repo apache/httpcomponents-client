@@ -54,6 +54,7 @@ class DefaultRedirectStrategyAdaptor implements RedirectStrategy {
         this.handler = handler;
     }
 
+    @Override
     public boolean isRedirected(
             final HttpRequest request,
             final HttpResponse response,
@@ -61,6 +62,7 @@ class DefaultRedirectStrategyAdaptor implements RedirectStrategy {
         return this.handler.isRedirectRequested(response, context);
     }
 
+    @Override
     public HttpUriRequest getRedirect(
             final HttpRequest request,
             final HttpResponse response,
