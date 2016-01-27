@@ -133,9 +133,8 @@ public class NTLMScheme implements AuthScheme {
         if (credentials instanceof NTCredentials) {
             this.credentials = (NTCredentials) credentials;
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     @Override

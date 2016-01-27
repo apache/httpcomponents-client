@@ -145,11 +145,10 @@ public class BasicScheme implements AuthScheme, Serializable {
             this.username = credentials.getUserPrincipal().getName();
             this.password = credentials.getPassword();
             return true;
-        } else {
-            this.username = null;
-            this.password = null;
-            return false;
         }
+        this.username = null;
+        this.password = null;
+        return false;
     }
 
     @Override

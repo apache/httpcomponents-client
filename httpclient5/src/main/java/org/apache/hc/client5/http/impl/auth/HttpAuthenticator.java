@@ -105,21 +105,20 @@ public class HttpAuthenticator {
                 clearCache(host, clientContext);
             }
             return true;
-        } else {
-            switch (authExchange.getState()) {
-            case CHALLENGED:
-            case HANDSHAKE:
-                this.log.debug("Authentication succeeded");
-                authExchange.setState(AuthExchange.State.SUCCESS);
-                updateCache(host, authExchange.getAuthScheme(), clientContext);
-                break;
-            case SUCCESS:
-                break;
-            default:
-                authExchange.setState(AuthExchange.State.UNCHALLENGED);
-            }
-            return false;
         }
+        switch (authExchange.getState()) {
+        case CHALLENGED:
+        case HANDSHAKE:
+            this.log.debug("Authentication succeeded");
+            authExchange.setState(AuthExchange.State.SUCCESS);
+            updateCache(host, authExchange.getAuthScheme(), clientContext);
+            break;
+        case SUCCESS:
+            break;
+        default:
+            authExchange.setState(AuthExchange.State.UNCHALLENGED);
+        }
+        return false;
     }
 
     public boolean prepareAuthResponse(
@@ -210,14 +209,12 @@ public class HttpAuthenticator {
                             authExchange.reset();
                             authExchange.setState(AuthExchange.State.FAILURE);
                             return false;
-                        } else {
-                            authExchange.setState(AuthExchange.State.HANDSHAKE);
-                            return true;
                         }
-                    } else {
-                        authExchange.reset();
-                        // Retry authentication with a different scheme
+                        authExchange.setState(AuthExchange.State.HANDSHAKE);
+                        return true;
                     }
+                    authExchange.reset();
+                    // Retry authentication with a different scheme
                 }
         }
 
@@ -251,9 +248,8 @@ public class HttpAuthenticator {
             authExchange.setState(AuthExchange.State.CHALLENGED);
             authExchange.setOptions(authOptions);
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public void addAuthResponse(
@@ -299,9 +295,8 @@ public class HttpAuthenticator {
                     }
                 }
                 return;
-            } else {
-                Asserts.notNull(authScheme, "AuthScheme");
             }
+            Asserts.notNull(authScheme, "AuthScheme");
         default:
         }
         if (authScheme != null) {

@@ -160,11 +160,7 @@ public class DigestScheme implements AuthScheme, Serializable {
     @Override
     public boolean isChallengeComplete() {
         final String s = this.paramMap.get("stale");
-        if ("true".equalsIgnoreCase(s)) {
-            return false;
-        } else {
-            return this.complete;
-        }
+        return "true".equalsIgnoreCase(s) ? false : this.complete;
     }
 
     @Override
@@ -181,11 +177,10 @@ public class DigestScheme implements AuthScheme, Serializable {
             this.username = credentials.getUserPrincipal().getName();
             this.password = credentials.getPassword();
             return true;
-        } else {
-            this.username = null;
-            this.password = null;
-            return false;
         }
+        this.username = null;
+        this.password = null;
+        return false;
     }
 
     @Override

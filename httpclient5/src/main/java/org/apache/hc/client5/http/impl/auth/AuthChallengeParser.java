@@ -109,15 +109,14 @@ public class AuthChallengeParser {
                 }
             }
             return new AuthChallenge(scheme, null, params.size() > 0 ? params : null);
-        } else {
-            if (params.size() == 1) {
-                final NameValuePair nvp = params.get(0);
-                if (nvp.getValue() == null) {
-                    return new AuthChallenge(nvp.getName(), null, null);
-                }
-            }
-            throw new ParseException("Malformed auth challenge");
         }
+        if (params.size() == 1) {
+            final NameValuePair nvp = params.get(0);
+            if (nvp.getValue() == null) {
+                return new AuthChallenge(nvp.getName(), null, null);
+            }
+        }
+        throw new ParseException("Malformed auth challenge");
     }
 
 }

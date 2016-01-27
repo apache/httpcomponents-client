@@ -89,9 +89,8 @@ public class BasicAuthCache implements AuthCache {
                 return host;
             }
             return new HttpHost(host.getHostName(), port, host.getSchemeName());
-        } else {
-            return host;
         }
+        return host;
     }
 
     @Override
@@ -141,9 +140,8 @@ public class BasicAuthCache implements AuthCache {
                 }
                 return null;
             }
-        } else {
-            return null;
         }
+        return null;
     }
 
     @Override
