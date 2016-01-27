@@ -138,7 +138,7 @@ public class HttpAuthenticator {
         final Header[] headers = response.getHeaders(
                 challengeType == ChallengeType.PROXY ? HttpHeaders.PROXY_AUTHENTICATE : HttpHeaders.WWW_AUTHENTICATE);
         final Map<String, AuthChallenge> challengeMap = new HashMap<>();
-        for (Header header: headers) {
+        for (final Header header: headers) {
             final CharArrayBuffer buffer;
             final int pos;
             if (header instanceof FormattedHeader) {
@@ -157,13 +157,13 @@ public class HttpAuthenticator {
             final List<AuthChallenge> authChallenges;
             try {
                 authChallenges = parser.parse(buffer, cursor);
-            } catch (ParseException ex) {
+            } catch (final ParseException ex) {
                 if (this.log.isWarnEnabled()) {
                     this.log.warn("Malformed challenge: " + header.getValue());
                 }
                 continue;
             }
-            for (AuthChallenge authChallenge: authChallenges) {
+            for (final AuthChallenge authChallenge: authChallenges) {
                 final String scheme = authChallenge.getScheme().toLowerCase(Locale.ROOT);
                 if (!challengeMap.containsKey(scheme)) {
                     challengeMap.put(scheme, authChallenge);
@@ -195,7 +195,7 @@ public class HttpAuthenticator {
                         this.log.debug("Authorization challenge processed");
                         try {
                             authScheme.processChallenge(challenge, context);
-                        } catch (MalformedChallengeException ex) {
+                        } catch (final MalformedChallengeException ex) {
                             if (this.log.isWarnEnabled()) {
                                 this.log.warn(ex.getMessage());
                             }
@@ -226,7 +226,7 @@ public class HttpAuthenticator {
         }
 
         final Queue<AuthScheme> authOptions = new LinkedList<>();
-        for (AuthScheme authScheme: preferredSchemes) {
+        for (final AuthScheme authScheme: preferredSchemes) {
             try {
                 final String id = authScheme.getName();
                 final AuthChallenge challenge = challengeMap.get(id.toLowerCase(Locale.ROOT));

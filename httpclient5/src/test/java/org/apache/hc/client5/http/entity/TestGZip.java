@@ -74,7 +74,7 @@ public class TestGZip {
         final OutputStream out = Mockito.mock(OutputStream.class);
         try {
             gzipe.writeTo(out);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             Mockito.verify(out, Mockito.never()).close();
         }
     }

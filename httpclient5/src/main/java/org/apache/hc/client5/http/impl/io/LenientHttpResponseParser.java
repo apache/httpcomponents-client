@@ -84,7 +84,7 @@ public class LenientHttpResponseParser extends DefaultHttpResponseParser {
     protected HttpResponse createMessage(final CharArrayBuffer buffer) throws IOException {
         try {
             return super.createMessage(buffer);
-        } catch (HttpException ex) {
+        } catch (final HttpException ex) {
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Garbage in response: " + buffer.toString());
             }

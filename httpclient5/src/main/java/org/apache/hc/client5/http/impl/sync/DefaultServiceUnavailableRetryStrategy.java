@@ -86,7 +86,7 @@ public class DefaultServiceUnavailableRetryStrategy implements ServiceUnavailabl
             final String value = header.getValue();
             try {
                 return Long.parseLong(value) * 1000;
-            } catch (NumberFormatException ignore) {
+            } catch (final NumberFormatException ignore) {
                 final Date date = DateUtils.parseDate(value);
                 if (date != null) {
                     final long n = date.getTime() - System.currentTimeMillis();

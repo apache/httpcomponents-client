@@ -198,7 +198,7 @@ public abstract class GGSSchemeBase implements AuthScheme {
                 if (this.useCanonicalHostname){
                     try {
                          hostname = dnsResolver.resolveCanonicalHostname(host.getHostName());
-                    } catch (UnknownHostException ignore){
+                    } catch (final UnknownHostException ignore){
                     }
                 }
                 if (this.stripPort) {

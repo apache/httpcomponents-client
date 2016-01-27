@@ -72,10 +72,10 @@ public class MimeExportedIT {
                 return name.endsWith(".jar");
             }
         });
-        for (File bundleFile : bundleFiles) {
+        for (final File bundleFile : bundleFiles) {
             try {
                 bundleUrls.add(bundleFile.toURI().toURL().toExternalForm());
-            } catch (MalformedURLException e) {
+            } catch (final MalformedURLException e) {
                 throw new RuntimeException(e);
             }
         }

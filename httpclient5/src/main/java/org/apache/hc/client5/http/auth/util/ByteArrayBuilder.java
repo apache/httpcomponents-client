@@ -109,7 +109,7 @@ public class ByteArrayBuilder {
         this.charsetEncoder.reset();
         try {
             this.buffer = encode(this.buffer, charBuffer, this.charsetEncoder);
-        } catch (CharacterCodingException ex) {
+        } catch (final CharacterCodingException ex) {
             // Should never happen
             throw new IllegalStateException("Unexpected character coding error", ex);
         }

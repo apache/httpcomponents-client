@@ -267,7 +267,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                 }
             }
             return null;
-        } catch (InvalidNameException e) {
+        } catch (final InvalidNameException e) {
             throw new SSLException(subjectPrincipal + " is not a valid X500 distinguished name");
         }
     }

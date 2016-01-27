@@ -282,7 +282,7 @@ public class RequestBuilder {
                 if (!formParams.isEmpty()) {
                     parameters = formParams;
                 }
-            } catch (IOException ignore) {
+            } catch (final IOException ignore) {
             }
         } else {
             entity = originalEntity;

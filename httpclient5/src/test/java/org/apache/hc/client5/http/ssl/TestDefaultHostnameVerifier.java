@@ -264,7 +264,7 @@ public class TestDefaultHostnameVerifier {
         try {
             DefaultHostnameVerifier.matchIPv6Address(host1, Arrays.asList("2001:0db8:aaaa:bbbb:cccc::10"));
             Assert.fail("SSLException expected");
-        } catch (SSLException expected) {
+        } catch (final SSLException expected) {
         }
         final String host2 = "2001:0db8:aaaa:bbbb:cccc::1";
         DefaultHostnameVerifier.matchIPv6Address(host2, Arrays.asList("2001:0db8:aaaa:bbbb:cccc:0:0:0001"));
@@ -272,7 +272,7 @@ public class TestDefaultHostnameVerifier {
         try {
             DefaultHostnameVerifier.matchIPv6Address(host2, Arrays.asList("2001:0db8:aaaa:bbbb:cccc::10"));
             Assert.fail("SSLException expected");
-        } catch (SSLException expected) {
+        } catch (final SSLException expected) {
         }
     }
 
@@ -289,12 +289,12 @@ public class TestDefaultHostnameVerifier {
         try {
             DefaultHostnameVerifier.extractCN("blah,blah");
             Assert.fail("SSLException expected");
-        } catch (SSLException expected) {
+        } catch (final SSLException expected) {
         }
         try {
             DefaultHostnameVerifier.extractCN("cn,o=blah");
             Assert.fail("SSLException expected");
-        } catch (SSLException expected) {
+        } catch (final SSLException expected) {
         }
     }
 

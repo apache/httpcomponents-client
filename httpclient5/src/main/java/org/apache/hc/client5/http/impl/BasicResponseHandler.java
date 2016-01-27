@@ -60,7 +60,7 @@ public class BasicResponseHandler extends AbstractResponseHandler<String> {
     public String handleEntity(final HttpEntity entity) throws IOException {
         try {
             return EntityUtils.toString(entity);
-        } catch (ParseException ex) {
+        } catch (final ParseException ex) {
             throw new ClientProtocolException(ex);
         }
     }

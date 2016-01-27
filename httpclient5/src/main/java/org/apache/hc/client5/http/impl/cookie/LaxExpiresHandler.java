@@ -153,7 +153,7 @@ public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements
                     }
                 }
             }
-        } catch (NumberFormatException ignore) {
+        } catch (final NumberFormatException ignore) {
             throw new MalformedCookieException("Invalid 'expires' attribute: " + value);
         }
         if (!foundTime || !foundDayOfMonth || !foundMonth || !foundYear) {

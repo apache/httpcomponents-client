@@ -69,7 +69,7 @@ public final class IdleConnectionEvictor {
                             connectionManager.closeIdleConnections(maxIdleTimeMs, TimeUnit.MILLISECONDS);
                         }
                     }
-                } catch (Exception ex) {
+                } catch (final Exception ex) {
                     exception = ex;
                 }
 

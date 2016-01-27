@@ -311,7 +311,7 @@ public class Request {
 
     public Request bodyForm(final Iterable <? extends NameValuePair> formParams, final Charset charset) {
         final List<NameValuePair> paramList = new ArrayList<>();
-        for (NameValuePair param : formParams) {
+        for (final NameValuePair param : formParams) {
             paramList.add(param);
         }
         final ContentType contentType = ContentType.create(URLEncodedUtils.CONTENT_TYPE, charset);
