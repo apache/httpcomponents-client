@@ -262,13 +262,13 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                         if (value != null) {
                             return value.toString();
                         }
-                    } catch (NoSuchElementException ignore) {
-                    } catch (NamingException ignore) {
+                    } catch (final NoSuchElementException ignore) {
+                    } catch (final NamingException ignore) {
                     }
                 }
             }
             return null;
-        } catch (InvalidNameException e) {
+        } catch (final InvalidNameException e) {
             throw new SSLException(subjectPrincipal + " is not a valid X500 distinguished name");
         }
     }

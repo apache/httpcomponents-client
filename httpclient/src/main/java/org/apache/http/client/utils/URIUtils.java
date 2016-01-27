@@ -270,7 +270,7 @@ public class URIUtils {
         }
         try {
             return normalizeSyntax(resolved);
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new IllegalArgumentException(ex);
         }
     }
@@ -381,7 +381,7 @@ public class URIUtils {
             if (!TextUtils.isBlank(host)) {
                 try {
                     target = new HttpHost(host, port, scheme);
-                } catch (IllegalArgumentException ignore) {
+                } catch (final IllegalArgumentException ignore) {
                 }
             }
         }

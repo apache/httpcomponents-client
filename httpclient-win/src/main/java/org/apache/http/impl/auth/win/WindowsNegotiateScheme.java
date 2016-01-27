@@ -188,7 +188,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
 
                 final String targetName = getServicePrincipalName(context);
                 response = getToken(null, null, targetName);
-            } catch (RuntimeException ex) {
+            } catch (final RuntimeException ex) {
                 failAuthCleanup();
                 if (ex instanceof Win32Exception) {
                     throw new AuthenticationException("Authentication Failed", ex);
@@ -206,7 +206,7 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
                         Sspi.SECBUFFER_TOKEN, continueTokenBytes);
                 final String targetName = getServicePrincipalName(context);
                 response = getToken(this.sspiContext, continueTokenBuffer, targetName);
-            } catch (RuntimeException ex) {
+            } catch (final RuntimeException ex) {
                 failAuthCleanup();
                 if (ex instanceof Win32Exception) {
                     throw new AuthenticationException("Authentication Failed", ex);

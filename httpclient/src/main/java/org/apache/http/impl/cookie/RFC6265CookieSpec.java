@@ -84,7 +84,7 @@ public class RFC6265CookieSpec implements CookieSpec {
         super();
         this.attribHandlers = handlers.clone();
         this.attribHandlerMap = new ConcurrentHashMap<String, CookieAttributeHandler>(handlers.length);
-        for (CommonCookieAttributeHandler handler: handlers) {
+        for (final CommonCookieAttributeHandler handler: handlers) {
             this.attribHandlerMap.put(handler.getAttributeName().toLowerCase(Locale.ROOT), handler);
         }
         this.tokenParser = TokenParser.INSTANCE;
@@ -172,7 +172,7 @@ public class RFC6265CookieSpec implements CookieSpec {
             attribMap.remove(ClientCookie.EXPIRES_ATTR);
         }
 
-        for (Map.Entry<String, String> entry: attribMap.entrySet()) {
+        for (final Map.Entry<String, String> entry: attribMap.entrySet()) {
             final String paramName = entry.getKey();
             final String paramValue = entry.getValue();
             final CookieAttributeHandler handler = this.attribHandlerMap.get(paramName);

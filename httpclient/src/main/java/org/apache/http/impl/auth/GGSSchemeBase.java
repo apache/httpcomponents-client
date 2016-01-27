@@ -205,7 +205,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                          //final DnsResolver dnsResolver = SystemDefaultDnsResolver.INSTANCE;
                          //hostname = dnsResolver.resolveCanonicalHostname(host.getHostName());
                          hostname = resolveCanonicalHostname(hostname);
-                    } catch (UnknownHostException ignore){
+                    } catch (final UnknownHostException ignore){
                     }
                 }
                 if (this.stripPort) { // || host.getPort()==80 || host.getPort()==443) {

@@ -279,7 +279,7 @@ public class URLEncodedUtils {
         Args.notNull(buf, "Char array buffer");
         final TokenParser tokenParser = TokenParser.INSTANCE;
         final BitSet delimSet = new BitSet();
-        for (char separator: separators) {
+        for (final char separator: separators) {
             delimSet.set(separator);
         }
         final ParserCursor cursor = new ParserCursor(0, buf.length());

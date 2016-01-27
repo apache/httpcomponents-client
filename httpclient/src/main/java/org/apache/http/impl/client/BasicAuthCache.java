@@ -107,7 +107,7 @@ public class BasicAuthCache implements AuthCache {
                 out.writeObject(authScheme);
                 out.close();
                 this.map.put(getKey(host), buf.toByteArray());
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 if (log.isWarnEnabled()) {
                     log.warn("Unexpected I/O error while serializing auth scheme", ex);
                 }
@@ -130,12 +130,12 @@ public class BasicAuthCache implements AuthCache {
                 final AuthScheme authScheme = (AuthScheme) in.readObject();
                 in.close();
                 return authScheme;
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 if (log.isWarnEnabled()) {
                     log.warn("Unexpected I/O error while de-serializing auth scheme", ex);
                 }
                 return null;
-            } catch (ClassNotFoundException ex) {
+            } catch (final ClassNotFoundException ex) {
                 if (log.isWarnEnabled()) {
                     log.warn("Unexpected error while de-serializing auth scheme", ex);
                 }

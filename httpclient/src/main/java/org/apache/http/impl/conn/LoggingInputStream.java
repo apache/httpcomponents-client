@@ -59,7 +59,7 @@ class LoggingInputStream extends InputStream {
                 wire.input(b);
             }
             return b;
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             wire.input("[read] I/O error: " + ex.getMessage());
             throw ex;
         }
@@ -75,7 +75,7 @@ class LoggingInputStream extends InputStream {
                 wire.input(b, 0, bytesRead);
             }
             return bytesRead;
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             wire.input("[read] I/O error: " + ex.getMessage());
             throw ex;
         }
@@ -91,7 +91,7 @@ class LoggingInputStream extends InputStream {
                 wire.input(b, off, bytesRead);
             }
             return bytesRead;
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             wire.input("[read] I/O error: " + ex.getMessage());
             throw ex;
         }
@@ -101,7 +101,7 @@ class LoggingInputStream extends InputStream {
     public long skip(final long n) throws IOException {
         try {
             return super.skip(n);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             wire.input("[skip] I/O error: " + ex.getMessage());
             throw ex;
         }
@@ -111,7 +111,7 @@ class LoggingInputStream extends InputStream {
     public int available() throws IOException {
         try {
             return in.available();
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             wire.input("[available] I/O error : " + ex.getMessage());
             throw ex;
         }
@@ -136,7 +136,7 @@ class LoggingInputStream extends InputStream {
     public void close() throws IOException {
         try {
             in.close();
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             wire.input("[close] I/O error: " + ex.getMessage());
             throw ex;
         }

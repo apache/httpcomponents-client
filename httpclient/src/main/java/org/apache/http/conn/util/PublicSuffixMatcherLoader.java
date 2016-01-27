@@ -86,7 +86,7 @@ public final class PublicSuffixMatcherLoader {
                     if (url != null) {
                         try {
                             DEFAULT_INSTANCE = load(url);
-                        } catch (IOException ex) {
+                        } catch (final IOException ex) {
                             // Should never happen
                             final Log log = LogFactory.getLog(PublicSuffixMatcherLoader.class);
                             if (log.isWarnEnabled()) {

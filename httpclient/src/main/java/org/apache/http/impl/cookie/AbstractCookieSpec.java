@@ -78,7 +78,7 @@ public abstract class AbstractCookieSpec implements CookieSpec {
     protected AbstractCookieSpec(final CommonCookieAttributeHandler... handlers) {
         super();
         this.attribHandlerMap = new ConcurrentHashMap<String, CookieAttributeHandler>(handlers.length);
-        for (CommonCookieAttributeHandler handler: handlers) {
+        for (final CommonCookieAttributeHandler handler: handlers) {
             this.attribHandlerMap.put(handler.getAttributeName(), handler);
         }
     }

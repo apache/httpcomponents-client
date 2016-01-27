@@ -100,10 +100,10 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
         try {
             this.wrappedEntity.writeTo(outstream);
             releaseConnection();
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             abortConnection();
             throw ex;
-        } catch (RuntimeException ex) {
+        } catch (final RuntimeException ex) {
             abortConnection();
             throw ex;
         } finally {
@@ -118,10 +118,10 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
             // reading trailers after the response body:
             wrapped.close();
             releaseConnection();
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             abortConnection();
             throw ex;
-        } catch (RuntimeException ex) {
+        } catch (final RuntimeException ex) {
             abortConnection();
             throw ex;
         } finally {
@@ -144,10 +144,10 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
                     throw ex;
                 }
             }
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             abortConnection();
             throw ex;
-        } catch (RuntimeException ex) {
+        } catch (final RuntimeException ex) {
             abortConnection();
             throw ex;
         } finally {

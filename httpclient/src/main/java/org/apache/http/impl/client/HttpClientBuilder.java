@@ -1102,7 +1102,7 @@ public class HttpClientBuilder {
             if (!contentCompressionDisabled) {
                 if (contentDecoderMap != null) {
                     final RegistryBuilder<InputStreamFactory> b2 = RegistryBuilder.create();
-                    for (Map.Entry<String, InputStreamFactory> entry: contentDecoderMap.entrySet()) {
+                    for (final Map.Entry<String, InputStreamFactory> entry: contentDecoderMap.entrySet()) {
                         b2.register(entry.getKey(), entry.getValue());
                     }
                     b.add(new ResponseContentEncoding(b2.build()));

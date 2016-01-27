@@ -64,12 +64,12 @@ public final class PublicSuffixMatcher {
         Args.notNull(domainType,  "Domain type");
         Args.notNull(rules,  "Domain suffix rules");
         this.rules = new ConcurrentHashMap<String, DomainType>(rules.size());
-        for (String rule: rules) {
+        for (final String rule: rules) {
             this.rules.put(rule, domainType);
         }
         this.exceptions = new ConcurrentHashMap<String, DomainType>();
         if (exceptions != null) {
-            for (String exception: exceptions) {
+            for (final String exception: exceptions) {
                 this.exceptions.put(exception, domainType);
             }
         }
@@ -82,15 +82,15 @@ public final class PublicSuffixMatcher {
         Args.notNull(lists,  "Domain suffix lists");
         this.rules = new ConcurrentHashMap<String, DomainType>();
         this.exceptions = new ConcurrentHashMap<String, DomainType>();
-        for (PublicSuffixList list: lists) {
+        for (final PublicSuffixList list: lists) {
             final DomainType domainType = list.getType();
             final List<String> rules = list.getRules();
-            for (String rule: rules) {
+            for (final String rule: rules) {
                 this.rules.put(rule, domainType);
             }
             final List<String> exceptions = list.getExceptions();
             if (exceptions != null) {
-                for (String exception: exceptions) {
+                for (final String exception: exceptions) {
                     this.exceptions.put(exception, domainType);
                 }
             }

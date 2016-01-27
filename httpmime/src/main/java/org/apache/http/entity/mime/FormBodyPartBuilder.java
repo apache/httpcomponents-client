@@ -97,7 +97,7 @@ public class FormBodyPartBuilder {
         Asserts.notNull(this.body, "Content body");
         final Header headerCopy = new Header();
         final List<MinimalField> fields = this.header.getFields();
-        for (MinimalField field: fields) {
+        for (final MinimalField field: fields) {
             headerCopy.addField(field);
         }
         if (headerCopy.getField(MIME.CONTENT_DISPOSITION) == null) {
