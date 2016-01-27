@@ -102,9 +102,9 @@ public class BasicAuthCache implements AuthCache {
         if (authScheme instanceof Serializable) {
             try {
                 final ByteArrayOutputStream buf = new ByteArrayOutputStream();
-                final ObjectOutputStream out = new ObjectOutputStream(buf);
-                out.writeObject(authScheme);
-                out.close();
+                try (final ObjectOutputStream out = new ObjectOutputStream(buf)) {
+                    out.writeObject(authScheme);
+                }
                 this.map.put(getKey(host), buf.toByteArray());
             } catch (IOException ex) {
                 if (log.isWarnEnabled()) {
@@ -125,10 +125,9 @@ public class BasicAuthCache implements AuthCache {
         if (bytes != null) {
             try {
                 final ByteArrayInputStream buf = new ByteArrayInputStream(bytes);
-                final ObjectInputStream in = new ObjectInputStream(buf);
-                final AuthScheme authScheme = (AuthScheme) in.readObject();
-                in.close();
-                return authScheme;
+                try (final ObjectInputStream in = new ObjectInputStream(buf)) {
+                    return (AuthScheme) in.readObject();
+                }
             } catch (IOException ex) {
                 if (log.isWarnEnabled()) {
                     log.warn("Unexpected I/O error while de-serializing auth scheme", ex);

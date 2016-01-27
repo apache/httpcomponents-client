@@ -211,29 +211,27 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
      */
     @Override
     public <T> T execute(final HttpHost target, final HttpRequest request,
-            final ResponseHandler<? extends T> responseHandler, final HttpContext context)
-            throws IOException {
+            final ResponseHandler<? extends T> responseHandler, final HttpContext context) throws IOException {
         Args.notNull(responseHandler, "Response handler");
 
-        final CloseableHttpResponse response = execute(target, request, context);
-        try {
-            final T result = responseHandler.handleResponse(response);
-            final HttpEntity entity = response.getEntity();
-            EntityUtils.consume(entity);
-            return result;
-        } catch (final ClientProtocolException t) {
-            // Try to salvage the underlying connection in case of a protocol exception
-            final HttpEntity entity = response.getEntity();
+        try (final CloseableHttpResponse response = execute(target, request, context)) {
             try {
+                final T result = responseHandler.handleResponse(response);
+                final HttpEntity entity = response.getEntity();
                 EntityUtils.consume(entity);
-            } catch (final Exception t2) {
-                // Log this exception. The original exception is more
-                // important and will be thrown to the caller.
-                this.log.warn("Error consuming content after an exception.", t2);
+                return result;
+            } catch (final ClientProtocolException t) {
+                // Try to salvage the underlying connection in case of a protocol exception
+                final HttpEntity entity = response.getEntity();
+                try {
+                    EntityUtils.consume(entity);
+                } catch (final Exception t2) {
+                    // Log this exception. The original exception is more
+                    // important and will be thrown to the caller.
+                    this.log.warn("Error consuming content after an exception.", t2);
+                }
+                throw t;
             }
-            throw t;
-        } finally {
-            response.close();
         }
     }
 
