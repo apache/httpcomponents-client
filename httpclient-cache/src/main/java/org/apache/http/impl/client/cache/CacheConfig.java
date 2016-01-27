@@ -164,8 +164,8 @@ public class CacheConfig implements Cloneable {
     private long maxObjectSize;
     private int maxCacheEntries;
     private int maxUpdateRetries;
-    private boolean allow303Caching;
-    private boolean weakETagOnPutDeleteAllowed;
+    private final boolean allow303Caching;
+    private final boolean weakETagOnPutDeleteAllowed;
     private boolean heuristicCachingEnabled;
     private float heuristicCoefficient;
     private long heuristicDefaultLifetime;

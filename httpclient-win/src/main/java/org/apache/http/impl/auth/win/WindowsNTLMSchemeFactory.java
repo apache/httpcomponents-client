@@ -45,7 +45,7 @@ import org.apache.http.protocol.HttpContext;
 @Immutable
 public class WindowsNTLMSchemeFactory implements AuthSchemeProvider {
 
-    private String servicePrincipalName;
+    private final String servicePrincipalName;
 
     public WindowsNTLMSchemeFactory(final String servicePrincipalName) {
         super();
