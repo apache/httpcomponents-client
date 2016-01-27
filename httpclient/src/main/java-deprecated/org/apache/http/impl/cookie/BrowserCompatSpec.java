@@ -60,6 +60,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
+@Deprecated
 @ThreadSafe
 public class BrowserCompatSpec extends CookieSpecBase {
 

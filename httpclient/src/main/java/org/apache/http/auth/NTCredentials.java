@@ -61,6 +61,7 @@ public class NTCredentials implements Credentials, Serializable {
      * @param usernamePassword the domain/username:password formed string
      * @deprecated (4.5) will be replaced with {@code String}, {@code char[]} in 5.0
      */
+    @Deprecated
     public NTCredentials(final String usernamePassword) {
         super();
         Args.notNull(usernamePassword, "Username:password string");

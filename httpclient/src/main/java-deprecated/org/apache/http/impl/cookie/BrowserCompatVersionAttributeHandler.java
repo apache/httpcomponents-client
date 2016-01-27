@@ -41,6 +41,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.3
  */
+@Deprecated
 @Immutable
 public class BrowserCompatVersionAttributeHandler extends
         AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
