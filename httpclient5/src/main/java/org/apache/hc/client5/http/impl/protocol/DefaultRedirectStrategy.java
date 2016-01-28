@@ -30,6 +30,8 @@ package org.apache.hc.client5.http.impl.protocol;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -59,11 +61,10 @@ import org.apache.hc.core5.util.TextUtils;
 
 /**
  * Default implementation of {@link RedirectStrategy}. This strategy honors the restrictions
- * on automatic redirection of entity enclosing methods such as POST and PUT imposed by the
- * HTTP specification. {@code 302 Moved Temporarily}, {@code 301 Moved Permanently} and
- * {@code 307 Temporary Redirect} status codes will result in an automatic redirect of
- * HEAD and GET methods only. POST and PUT methods will not be automatically redirected
- * as requiring user confirmation.
+ * on automatic redirection of unsafe methods such as POST, PUT and DELETE imposed by
+ * the HTTP specification. Non safe methods will be redirected as GET in response to
+ * status code {@link HttpStatus#SC_MOVED_PERMANENTLY}, {@link HttpStatus#SC_MOVED_TEMPORARILY}
+ * and {@link HttpStatus#SC_SEE_OTHER}.
  *
  * @since 4.1
  */
@@ -74,8 +75,18 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
 
     public static final DefaultRedirectStrategy INSTANCE = new DefaultRedirectStrategy();
 
-    public DefaultRedirectStrategy() {
+    private final ConcurrentMap<String, Boolean> safeMethods;
+
+    public DefaultRedirectStrategy(final String... safeMethods) {
         super();
+        this.safeMethods = new ConcurrentHashMap<>();
+        for (String safeMethod: safeMethods) {
+            this.safeMethods.put(safeMethod.toUpperCase(Locale.ROOT), Boolean.TRUE);
+        }
+    }
+
+    public DefaultRedirectStrategy() {
+        this("GET", "HEAD", "OPTIONS", "TRACE");
     }
 
     @Override
@@ -183,8 +194,8 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             case HttpStatus.SC_MOVED_PERMANENTLY:
             case HttpStatus.SC_MOVED_TEMPORARILY:
             case HttpStatus.SC_SEE_OTHER:
-                final String method = request.getRequestLine().getMethod();
-                if (method.equalsIgnoreCase("POST")) {
+                final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
+                if (!this.safeMethods.containsKey(method)) {
                     return new HttpGet(uri);
                 }
             case HttpStatus.SC_TEMPORARY_REDIRECT:
