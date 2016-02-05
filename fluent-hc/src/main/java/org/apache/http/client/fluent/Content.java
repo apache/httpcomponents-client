@@ -34,7 +34,7 @@ import org.apache.http.Consts;
 import org.apache.http.entity.ContentType;
 
 /**
- * This class represents arbitrary content of a specfic type that can be consumed
+ * This class represents arbitrary content of a specific type that can be consumed
  * multiple times and requires no explicit deallocation.
  */
 public class Content {
