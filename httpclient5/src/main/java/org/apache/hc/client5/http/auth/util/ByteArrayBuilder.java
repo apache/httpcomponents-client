@@ -68,9 +68,8 @@ public class ByteArrayBuilder {
             buffer.flip();
             newBuffer.put(buffer);
             return newBuffer;
-        } else {
-            return buffer;
         }
+        return buffer;
     }
 
     static ByteBuffer encode(
@@ -186,13 +185,12 @@ public class ByteArrayBuilder {
     public byte[] toByteArray() {
         if (this.buffer == null) {
             return new byte[] {};
-        } else {
-            this.buffer.flip();
-            final byte[] b = new byte[this.buffer.remaining()];
-            this.buffer.get(b);
-            this.buffer.clear();
-            return b;
         }
+        this.buffer.flip();
+        final byte[] b = new byte[this.buffer.remaining()];
+        this.buffer.get(b);
+        this.buffer.clear();
+        return b;
     }
 
     public void reset() {
