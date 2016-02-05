@@ -34,7 +34,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.hc.core5.http.entity.ContentType;
 
 /**
- * This class represents arbitrary content of a specfic type that can be consumed
+ * This class represents arbitrary content of a specific type that can be consumed
  * multiple times and requires no explicit deallocation.
  */
 public class Content {
