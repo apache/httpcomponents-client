@@ -44,7 +44,7 @@ public class Content {
     private final byte[] raw;
     private final ContentType type;
 
-    Content(final byte[] raw, final ContentType type) {
+    public Content(final byte[] raw, final ContentType type) {
         super();
         this.raw = raw;
         this.type = type;
