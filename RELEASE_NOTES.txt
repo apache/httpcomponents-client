@@ -10,6 +10,8 @@ Changelog:
 * [HTTPCLIENT-1715] NTLMEngineImpl.Type1Message not thread safe but declared as a constant.
   Contributed by Olivier Lafontaine <olafontaine at gmail.com>, Gary Gregory <ggregory at apache.org>
 
+* [HTTPCLIENT-1717] Make fluent API .Content.Content(byte[], ContentType) public.
+  Contributed by Cash Costello <cash.costello at gmail.com>
 
 
 Release 5.0-ALPHA1
