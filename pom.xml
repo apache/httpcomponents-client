@@ -31,11 +31,12 @@
     <relativePath>../project/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>httpcomponents-client</artifactId>
-  <name>Apache HttpComponents Client</name>
-  <version>5.0-alpha1-SNAPSHOT</version>
+  <groupId>org.apache.httpcomponents.client5</groupId>
+  <artifactId>httpclient5-parent</artifactId>
+  <name>Apache HttpComponents Client Parent</name>
+  <version>5.0-alpha2-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
-  <url>http://hc.apache.org/httpcomponents-client-dev/</url>
+  <url>http://hc.apache.org/httpcomponents-client</url>
   <inceptionYear>1999</inceptionYear>
   <packaging>pom</packaging>
 
@@ -66,16 +67,16 @@
   <properties>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
-    <httpcore.version>4.4.1</httpcore.version>
+    <httpcore.version>5.0-alpha1</httpcore.version>
     <commons-logging.version>1.2</commons-logging.version>
     <commons-codec.version>1.10</commons-codec.version>
     <ehcache.version>2.6.11</ehcache.version>
     <memcached.version>2.12.0</memcached.version>
-    <slf4j.version>1.7.7</slf4j.version>
+    <slf4j.version>1.7.13</slf4j.version>
     <junit.version>4.12</junit.version>
     <easymock.version>2.5.2</easymock.version>
     <mockito.version>1.8.5</mockito.version>
-    <jna.version>4.1.0</jna.version>
+    <jna.version>4.2.1</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <hc.rat.version>0.11</hc.rat.version>
   </properties>
@@ -83,8 +84,8 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpcore</artifactId>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5</artifactId>
         <version>${httpcore.version}</version>
       </dependency>
       <dependency>
@@ -150,12 +151,11 @@
   </dependencyManagement>
 
   <modules>
-    <module>httpclient</module>
-    <module>httpmime</module>
-    <module>fluent-hc</module>
-    <module>httpclient-cache</module>
-    <module>httpclient-win</module>
-    <module>httpclient-osgi</module>
+    <module>httpclient5</module>
+    <module>httpclient5-fluent</module>
+    <module>httpclient5-cache</module>
+    <module>httpclient5-win</module>
+    <module>httpclient5-osgi</module>
   </modules>
 
   <build>
@@ -222,6 +222,8 @@
           </links>
         </configuration>
       </plugin>
+
+      <!--
       <plugin>
         <groupId>com.agilejava.docbkx</groupId>
         <artifactId>docbkx-maven-plugin</artifactId>
@@ -274,6 +276,7 @@
           </postProcess>
         </configuration>
       </plugin>
+      -->
         <plugin>
           <artifactId>maven-resources-plugin</artifactId>
           <executions>
