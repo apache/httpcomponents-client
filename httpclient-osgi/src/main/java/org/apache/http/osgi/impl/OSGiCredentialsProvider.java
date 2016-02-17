@@ -72,11 +72,9 @@ final class OSGiCredentialsProvider implements CredentialsProvider {
                 final ProxyConfiguration proxyConfiguration = (ProxyConfiguration) proxyConfigurationObject;
                 if (proxyConfiguration.isEnabled()) {
                     final AuthScope actual = new AuthScope(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
-                    if (authscope.equals(actual)) {
-                        return new UsernamePasswordCredentials(proxyConfiguration.getUsername(),
-                                                               proxyConfiguration.getPassword());
+                    if (authscope.match(actual) >= 12) {
+                        return new UsernamePasswordCredentials(proxyConfiguration.getUsername(), proxyConfiguration.getPassword());
                     }
-
                 }
             }
         }

@@ -43,7 +43,7 @@ public class OSGiProxyConfigurationTest {
         config.put("proxy.enabled", false);
         config.put("proxy.host", "h");
         config.put("proxy.port", 1);
-        config.put("proxy.username", "u");
+        config.put("proxy.user", "u");
         config.put("proxy.password", "p");
         config.put("proxy.exceptions", new String[]{"e"});
 
