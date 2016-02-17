@@ -63,7 +63,7 @@ public final class OSGiProxyConfiguration implements ProxyConfiguration {
     /**
      * Property representing the username to authenticate with towards the proxy. Defaults to empty.
      */
-    private static final String PROPERTYNAME_PROXY_USERNAME = "proxy.username";
+    private static final String PROPERTYNAME_PROXY_USERNAME = "proxy.user";
 
     private static final String PROPERTYDEFAULT_PROXY_USERNAME = "";
 

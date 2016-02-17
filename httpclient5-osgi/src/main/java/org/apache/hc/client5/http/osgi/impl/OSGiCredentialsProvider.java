@@ -72,12 +72,11 @@ final class OSGiCredentialsProvider implements CredentialsStore {
                 final ProxyConfiguration proxyConfiguration = (ProxyConfiguration) proxyConfigurationObject;
                 if (proxyConfiguration.isEnabled()) {
                     final AuthScope actual = new AuthScope(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
-                    if (authscope.equals(actual)) {
+                    if (authscope.match(actual) >= 12) {
                         final String username = proxyConfiguration.getUsername();
                         final String password = proxyConfiguration.getPassword();
                         return new UsernamePasswordCredentials(username, password != null ? password.toCharArray() : null);
                     }
-
                 }
             }
         }
