@@ -614,7 +614,7 @@ public class HttpClientBuilder {
 
     /**
      * Assigns {@link DnsResolver} instance.
-     * <p/>
+     * <p>
      * Please note this value can be overridden by the {@link #setConnectionManager(HttpClientConnectionManager)} method.
      */
     public final HttpClientBuilder setDnsResolver(final DnsResolver dnsResolver) {
