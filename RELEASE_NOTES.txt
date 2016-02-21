@@ -8,14 +8,45 @@ Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
 Changelog:
 -------------------
 
-* [HTTPCLIENT-1714] Add HttpClientBuilder.setDnsResolver(DnsResolver).
-  Contributed by Alexis Thaveau <alexis.thaveau at gmail.com>
+* [HTTPCLIENT-1710, HTTPCLIENT-1718, HTTPCLEINT-1719] OSGi container compatibility improvements.
+  Contributed by 212427891 <munene.kiruja at ge.com>
 
-* [HTTPCLIENT-1715] NTLMEngineImpl.Type1Message not thread safe but declared as a constant.
+* [HTTPCLIENT-1717] Make fluent API Content#Content(byte[], ContentType) public.
+  Contributed by Cash Costello <cash.costello at gmail.com>
+
+* [HTTPCLIENT-1715] NTLMEngineImpl#Type1Message not thread safe but declared as a constant.
   Contributed by Olivier Lafontaine <olafontaine at gmail.com>, Gary Gregory <ggregory at apache.org>
 
-* [HTTPCLIENT-1717] Make fluent API .Content.Content(byte[], ContentType) public.
-  Contributed by Cash Costello <cash.costello at gmail.com>
+* [HTTPCLIENT-1714] Add HttpClientBuilder#setDnsResolver(DnsResolver).
+  Contributed by Alexis Thaveau <alexis.thaveau at gmail.com>
+
+* [HTTPCLIENT-1712] SPNego schemes to take service scheme into account when generating auth token. 
+   Contributed by Georg Romstorfer <georg.romstorfer at gmail.com>
+
+* [HTTPCLIENT-1700] Netscape draft, browser compatibility, RFC 2109, RFC 2965 and default cookie 
+  specs to ignore cookies with empty name for consistency with RFC 6265 specs.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1704] IgnoreSpec#match to always return false.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1550] Fixed 'deflate' zlib header check.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1698] Fixed matching of IPv6 addresses by DefaultHostnameVerifier
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1695] RFC 6265 compliant cookie spec to ignore cookies with empty name / missing 
+  value.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1216] Removed ThreadLocal subclass from DateUtils.
+  Contributed by Jochen Kemnade <jochen.kemnade at eddyson.de>
+
+* [HTTPCLIENT-1685] PublicSuffixDomainFilter to ignore local hosts and local domains.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
 
 Release 4.5.1
 -------------------
