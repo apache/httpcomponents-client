@@ -263,6 +263,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                             return value.toString();
                         }
                     } catch (NoSuchElementException | NamingException ignore) {
+                        // ignore exception, why?
                     }
                 }
             }
@@ -277,6 +278,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
         try {
             c = cert.getSubjectAlternativeNames();
         } catch(final CertificateParsingException ignore) {
+            // ignore exception, why?
         }
         List<String> subjectAltList = null;
         if (c != null) {
