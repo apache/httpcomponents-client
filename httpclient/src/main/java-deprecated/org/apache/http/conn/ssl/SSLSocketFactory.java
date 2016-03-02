@@ -39,6 +39,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 
+import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 
@@ -519,9 +520,7 @@ public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeL
 
     @Override
     public Socket createSocket(final HttpContext context) throws IOException {
-        final SSLSocket sock = (SSLSocket) this.socketfactory.createSocket();
-        internalPrepareSocket(sock);
-        return sock;
+        return SocketFactory.getDefault().createSocket();
     }
 
     @Override
