@@ -327,9 +327,15 @@ public abstract class AbstractHttpClient extends CloseableHttpClient {
 
         final String className = (String) params.getParameter(
                 ClientPNames.CONNECTION_MANAGER_FACTORY_CLASS_NAME);
+        final ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
         if (className != null) {
             try {
-                final Class<?> clazz = Class.forName(className);
+                final Class<?> clazz;
+                if (contextLoader != null) {
+                    clazz = Class.forName(className, true, contextLoader);
+                } else {
+                    clazz = Class.forName(className);
+                }
                 factory = (ClientConnectionManagerFactory) clazz.newInstance();
             } catch (final ClassNotFoundException ex) {
                 throw new IllegalStateException("Invalid class name: " + className);

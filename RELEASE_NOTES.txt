@@ -1,3 +1,17 @@
+Release 4.5.3
+-------------------
+
+HttpClient 4.5.3 (GA) is a maintenance release that fixes a number of minor defects found since 4.5.2.
+
+Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
+
+Changelog:
+-------------------
+
+* [HTTPCLIENT-1727] org.apache.http.impl.client.AbstractHttpClient#createClientConnectionManager Does not account for context class loader.
+  Contributed by Charles Allen <charles dot allen at metamarkets dot com>
+
+
 Release 4.5.2
 -------------------
 
