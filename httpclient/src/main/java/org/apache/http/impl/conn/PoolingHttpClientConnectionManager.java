@@ -54,8 +54,8 @@ import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.HttpClientConnectionOperator;
 import org.apache.http.conn.HttpConnectionFactory;
-import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.ManagedHttpClientConnection;
+import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
@@ -88,8 +88,7 @@ import org.apache.http.util.Asserts;
  * Previously, the code would check every connection by default before re-using it.
  * The code now only checks the connection if the elapsed time since
  * the last use of the connection exceeds the timeout that has been set.
- * The default timeout is set to 5000ms - see
- * {@link #PoolingHttpClientConnectionManager(HttpClientConnectionOperator, HttpConnectionFactory, long, TimeUnit)}
+ * The default timeout is set to 2000ms
  * </p>
  *
  * @since 4.3
