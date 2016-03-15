@@ -28,7 +28,6 @@ package org.apache.http.impl.auth;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Locale;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -80,7 +79,6 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
 
     /** base64 decoded challenge **/
     private byte[] token;
-    private String service;
 
     GGSSchemeBase(final boolean stripPort, final boolean useCanonicalHostname) {
         super();
@@ -118,7 +116,7 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
             inputBuff = new byte[0];
         }
         final GSSManager manager = getManager();
-        final GSSName serverName = manager.createName(service + "@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
+        final GSSName serverName = manager.createName("HTTP@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
 
         final GSSCredential gssCredential;
         if (credentials instanceof KerberosCredentials) {
@@ -213,8 +211,6 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
                 } else {
                     authServer = hostname + ":" + host.getPort();
                 }
-
-                service = host.getSchemeName().toUpperCase(Locale.ROOT);
 
                 if (log.isDebugEnabled()) {
                     log.debug("init " + authServer);
