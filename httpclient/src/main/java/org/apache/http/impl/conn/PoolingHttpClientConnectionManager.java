@@ -84,6 +84,11 @@ import org.apache.http.util.Asserts;
  * can be adjusted using {@link ConnPoolControl} methods.
  * </p>
  * <p>
+ * Total time to live (TTL) set at construction time defines maximum life span
+ * of persistent connections regardless of their expiration setting. No persistent
+ * connection will be re-used past its TTL value.
+ * </p>
+ * <p>
  * The handling of stale connections was changed in version 4.4.
  * Previously, the code would check every connection by default before re-using it.
  * The code now only checks the connection if the elapsed time since
