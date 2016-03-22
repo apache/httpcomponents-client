@@ -213,6 +213,7 @@ public class HttpClientBuilder {
 
     private long connTimeToLive = -1;
     private TimeUnit connTimeToLiveTimeUnit = TimeUnit.MILLISECONDS;
+    private int validateAfterInactivity = 2000;
 
     private List<Closeable> closeables;
 
@@ -349,6 +350,23 @@ public class HttpClientBuilder {
     public final HttpClientBuilder setConnectionTimeToLive(final long connTimeToLive, final TimeUnit connTimeToLiveTimeUnit) {
         this.connTimeToLive = connTimeToLive;
         this.connTimeToLiveTimeUnit = connTimeToLiveTimeUnit;
+        return this;
+    }
+
+    /**
+     * Sets period after inactivity in milliseconds after which persistent
+     * connections must be checked to ensure they are still valid.
+     * <p>
+     * Please note this value can be overridden by the {@link #setConnectionManager(
+     *HttpClientConnectionManager)} method.
+     * </p>
+     *
+     * @see org.apache.hc.core5.http.io.HttpClientConnection#isStale()
+     *
+     * @since 5.0
+     */
+    public final HttpClientBuilder setValidateAfterInactivity(final int validateAfterInactivity) {
+        this.validateAfterInactivity = validateAfterInactivity;
         return this;
     }
 
@@ -923,6 +941,7 @@ public class HttpClientBuilder {
                     dnsResolver,
                     connTimeToLive,
                     connTimeToLiveTimeUnit != null ? connTimeToLiveTimeUnit : TimeUnit.MILLISECONDS);
+            poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);
             if (defaultSocketConfig != null) {
                 poolingmgr.setDefaultSocketConfig(defaultSocketConfig);
             }
