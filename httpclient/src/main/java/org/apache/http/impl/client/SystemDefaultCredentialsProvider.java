@@ -111,12 +111,30 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
         if (localcreds != null) {
             return localcreds;
         }
-        if (authscope.getHost() != null) {
-            PasswordAuthentication systemcreds = getSystemCreds(
-                    authscope, Authenticator.RequestorType.SERVER);
+        final String host = authscope.getHost();
+        if (host != null) {
+            PasswordAuthentication systemcreds = getSystemCreds(authscope, Authenticator.RequestorType.SERVER);
             if (systemcreds == null) {
-                systemcreds = getSystemCreds(
-                        authscope, Authenticator.RequestorType.PROXY);
+                systemcreds = getSystemCreds(authscope, Authenticator.RequestorType.PROXY);
+            }
+            if (systemcreds == null) {
+                final String proxyHost = System.getProperty("http.proxyHost");
+                if (proxyHost != null) {
+                    final String proxyPort = System.getProperty("http.proxyPort");
+                    if (proxyPort != null) {
+                        try {
+                            final AuthScope systemScope = new AuthScope(proxyHost, Integer.parseInt(proxyPort));
+                            if (authscope.match(systemScope) >= 0) {
+                                final String proxyUser = System.getProperty("http.proxyUser");
+                                if (proxyUser != null) {
+                                    final String proxyPassword = System.getProperty("http.proxyPassword");
+                                    systemcreds = new PasswordAuthentication(proxyUser, proxyPassword != null ? proxyPassword.toCharArray() : new char[] {});
+                                }
+                            }
+                        } catch (NumberFormatException ex) {
+                        }
+                    }
+                }
             }
             if (systemcreds != null) {
                 final String domain = System.getProperty("http.auth.ntlm.domain");
