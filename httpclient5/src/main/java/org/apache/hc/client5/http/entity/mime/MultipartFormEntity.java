@@ -93,8 +93,6 @@ class MultipartFormEntity implements HttpEntity {
     public InputStream getContent() throws IOException {
         if (this.contentLength < 0) {
             throw new ContentTooLongException("Content length is unknown");
-        } else if (this.contentLength > 25 * 1024) {
-            throw new ContentTooLongException("Content length is too long: " + this.contentLength);
         }
         final ByteArrayOutputStream outstream = new ByteArrayOutputStream();
         writeTo(outstream);
