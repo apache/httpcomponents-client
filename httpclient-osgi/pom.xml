@@ -173,6 +173,31 @@
           <skip>true</skip>
         </configuration>
       </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Bundle-ManifestVersion>2</Bundle-ManifestVersion>
+							<Bundle-Name>${name}</Bundle-Name>
+							<Bundle-SymbolicName>${project.groupId}.httpclient.source</Bundle-SymbolicName>
+							<Bundle-Vendor>${organization.name}</Bundle-Vendor>
+							<Bundle-Version>${project.version}</Bundle-Version>
+							<Eclipse-SourceBundle>${project.groupId}.httpclient;version="${project.version}";roots:="."</Eclipse-SourceBundle>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
     </plugins>
     <finalName>org.apache.httpcomponents.httpclient_${project.version}</finalName>
   </build>
