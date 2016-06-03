@@ -24,46 +24,33 @@
  * <http://www.apache.org/>.
  *
  */
-
 package org.apache.http.impl.client;
 
-import org.apache.http.annotation.Immutable;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.junit.Assert;
+import org.junit.Test;
 
-/**
- * Lax {@link org.apache.http.client.RedirectStrategy} implementation
- * that automatically redirects all HEAD, GET, POST, and DELETE requests.
- * This strategy relaxes restrictions on automatic redirection of
- * POST methods imposed by the HTTP specification.
- *
- * @since 4.2
- */
-@Immutable
-public class LaxRedirectStrategy extends DefaultRedirectStrategy {
+public class TestLaxRedirectStrategy {
 
-    public static final LaxRedirectStrategy INSTANCE = new LaxRedirectStrategy();
-
-    /**
-     * Redirectable methods.
-     */
-    private static final String[] REDIRECT_METHODS = new String[] {
-        HttpGet.METHOD_NAME,
-        HttpPost.METHOD_NAME,
-        HttpHead.METHOD_NAME,
-        HttpDelete.METHOD_NAME
-    };
-
-    @Override
-    protected boolean isRedirectable(final String method) {
-        for (final String m: REDIRECT_METHODS) {
-            if (m.equalsIgnoreCase(method)) {
-                return true;
-            }
-        }
-        return false;
+    @Test
+    public void testIsRedirectable() {
+        assertLaxRedirectable(new LaxRedirectStrategy());
     }
 
+    @Test
+    public void testInstance() {
+        assertLaxRedirectable(LaxRedirectStrategy.INSTANCE);
+    }
+
+    private void assertLaxRedirectable(final LaxRedirectStrategy redirectStrategy) {
+        Assert.assertTrue(redirectStrategy.isRedirectable(HttpGet.METHOD_NAME));
+        Assert.assertTrue(redirectStrategy.isRedirectable(HttpHead.METHOD_NAME));
+        Assert.assertFalse(redirectStrategy.isRedirectable(HttpPut.METHOD_NAME));
+        Assert.assertTrue(redirectStrategy.isRedirectable(HttpPost.METHOD_NAME));
+        Assert.assertTrue(redirectStrategy.isRedirectable(HttpDelete.METHOD_NAME));
+    }
 }
