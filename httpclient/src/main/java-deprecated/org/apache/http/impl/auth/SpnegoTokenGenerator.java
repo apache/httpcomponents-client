@@ -37,7 +37,7 @@ import java.io.IOException;
  * @since 4.1
  *
  * @deprecated (4.2)  subclass {@link KerberosScheme} and override
- *   {@link KerberosScheme#generateGSSToken(byte[], org.ietf.jgss.Oid, String)}
+ *   {@link KerberosScheme#generateGSSToken(byte[], org.ietf.jgss.Oid, String, org.apache.http.auth.Credentials)}
  */
 @Deprecated
 public interface SpnegoTokenGenerator {

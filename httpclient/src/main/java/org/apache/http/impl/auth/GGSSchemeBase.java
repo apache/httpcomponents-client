@@ -111,10 +111,6 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
     protected byte[] generateGSSToken(
             final byte[] input, final Oid oid, final String authServer,
             final Credentials credentials) throws GSSException {
-        byte[] inputBuff = input;
-        if (inputBuff == null) {
-            inputBuff = new byte[0];
-        }
         final GSSManager manager = getManager();
         final GSSName serverName = manager.createName("HTTP@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
 
@@ -125,13 +121,24 @@ public abstract class GGSSchemeBase extends AuthSchemeBase {
             gssCredential = null;
         }
 
-        final GSSContext gssContext = manager.createContext(
-                serverName.canonicalize(oid), oid, gssCredential, GSSContext.DEFAULT_LIFETIME);
-        gssContext.requestMutualAuth(true);
-        gssContext.requestCredDeleg(true);
-        return gssContext.initSecContext(inputBuff, 0, inputBuff.length);
+        final GSSContext gssContext = createGSSContext(manager, oid, serverName, gssCredential);
+        if (input != null) {
+            return gssContext.initSecContext(input, 0, input.length);
+        } else {
+            return gssContext.initSecContext(new byte[] {}, 0, 0);
+        }
     }
 
+    GSSContext createGSSContext(
+            final GSSManager manager,
+            final Oid oid,
+            final GSSName serverName,
+            final GSSCredential gssCredential) throws GSSException {
+        final GSSContext gssContext = manager.createContext(serverName.canonicalize(oid), oid, gssCredential,
+                GSSContext.DEFAULT_LIFETIME);
+        gssContext.requestMutualAuth(true);
+        return gssContext;
+    }
     /**
      * @deprecated (4.4) Use {@link #generateToken(byte[], String, org.apache.http.auth.Credentials)}.
      */
