@@ -357,7 +357,7 @@ public class Request {
             paramList.add(param);
         }
         final ContentType contentType = ContentType.create(URLEncodedUtils.CONTENT_TYPE, charset);
-        final String s = URLEncodedUtils.format(paramList, charset != null ? charset.name() : null);
+        final String s = URLEncodedUtils.format(paramList, charset);
         return bodyString(s, contentType);
     }
 
