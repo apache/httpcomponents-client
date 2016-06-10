@@ -51,38 +51,54 @@ public final class HttpClientParamConfig {
 
     @SuppressWarnings("unchecked")
     public static RequestConfig getRequestConfig(final HttpParams params) {
-        return RequestConfig.custom()
+        return getRequestConfig(params, RequestConfig.DEFAULT);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static RequestConfig getRequestConfig(final HttpParams params, final RequestConfig defaultConfig) {
+        final RequestConfig.Builder builder = RequestConfig.copy(defaultConfig)
                 .setSocketTimeout(params.getIntParameter(
-                        CoreConnectionPNames.SO_TIMEOUT, 0))
+                        CoreConnectionPNames.SO_TIMEOUT, defaultConfig.getSocketTimeout()))
                 .setStaleConnectionCheckEnabled(params.getBooleanParameter(
-                        CoreConnectionPNames.STALE_CONNECTION_CHECK, true))
+                        CoreConnectionPNames.STALE_CONNECTION_CHECK, defaultConfig.isStaleConnectionCheckEnabled()))
                 .setConnectTimeout(params.getIntParameter(
-                        CoreConnectionPNames.CONNECTION_TIMEOUT, 0))
+                        CoreConnectionPNames.CONNECTION_TIMEOUT, defaultConfig.getConnectTimeout()))
                 .setExpectContinueEnabled(params.getBooleanParameter(
-                        CoreProtocolPNames.USE_EXPECT_CONTINUE, false))
-                .setProxy((HttpHost) params.getParameter(
-                        ConnRoutePNames.DEFAULT_PROXY))
-                .setLocalAddress((InetAddress) params.getParameter(
-                        ConnRoutePNames.LOCAL_ADDRESS))
-                .setProxyPreferredAuthSchemes((Collection<String>) params.getParameter(
-                        AuthPNames.PROXY_AUTH_PREF))
-                .setTargetPreferredAuthSchemes((Collection<String>) params.getParameter(
-                        AuthPNames.TARGET_AUTH_PREF))
+                        CoreProtocolPNames.USE_EXPECT_CONTINUE, defaultConfig.isExpectContinueEnabled()))
                 .setAuthenticationEnabled(params.getBooleanParameter(
-                        ClientPNames.HANDLE_AUTHENTICATION, true))
+                        ClientPNames.HANDLE_AUTHENTICATION, defaultConfig.isAuthenticationEnabled()))
                 .setCircularRedirectsAllowed(params.getBooleanParameter(
-                        ClientPNames.ALLOW_CIRCULAR_REDIRECTS, false))
+                        ClientPNames.ALLOW_CIRCULAR_REDIRECTS, defaultConfig.isCircularRedirectsAllowed()))
                 .setConnectionRequestTimeout((int) params.getLongParameter(
-                        ClientPNames.CONN_MANAGER_TIMEOUT, 0))
-                .setCookieSpec((String) params.getParameter(
-                        ClientPNames.COOKIE_POLICY))
+                        ClientPNames.CONN_MANAGER_TIMEOUT, defaultConfig.getConnectionRequestTimeout()))
                 .setMaxRedirects(params.getIntParameter(
-                        ClientPNames.MAX_REDIRECTS, 50))
+                        ClientPNames.MAX_REDIRECTS, defaultConfig.getMaxRedirects()))
                 .setRedirectsEnabled(params.getBooleanParameter(
-                        ClientPNames.HANDLE_REDIRECTS, true))
+                        ClientPNames.HANDLE_REDIRECTS, defaultConfig.isRedirectsEnabled()))
                 .setRelativeRedirectsAllowed(!params.getBooleanParameter(
-                        ClientPNames.REJECT_RELATIVE_REDIRECT, false))
-                .build();
+                        ClientPNames.REJECT_RELATIVE_REDIRECT, !defaultConfig.isRelativeRedirectsAllowed()));
+
+        final HttpHost proxy = (HttpHost) params.getParameter(ConnRoutePNames.DEFAULT_PROXY);
+        if (proxy != null) {
+            builder.setProxy(proxy);
+        }
+        final InetAddress localAddress = (InetAddress) params.getParameter(ConnRoutePNames.LOCAL_ADDRESS);
+        if (localAddress != null) {
+            builder.setLocalAddress(localAddress);
+        }
+        final Collection<String> targetAuthPrefs = (Collection<String>) params.getParameter(AuthPNames.TARGET_AUTH_PREF);
+        if (targetAuthPrefs != null) {
+            builder.setTargetPreferredAuthSchemes(targetAuthPrefs);
+        }
+        final Collection<String> proxySuthPrefs = (Collection<String>) params.getParameter(AuthPNames.PROXY_AUTH_PREF);
+        if (proxySuthPrefs != null) {
+            builder.setProxyPreferredAuthSchemes(proxySuthPrefs);
+        }
+        final String cookiePolicy = (String) params.getParameter(ClientPNames.COOKIE_POLICY);
+        if (cookiePolicy != null) {
+            builder.setCookieSpec(cookiePolicy);
+        }
+        return builder.build();
     }
 
 }

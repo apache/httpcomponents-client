@@ -170,10 +170,10 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                 final HttpParams params = request.getParams();
                 if (params instanceof HttpParamsNames) {
                     if (!((HttpParamsNames) params).getNames().isEmpty()) {
-                        config = HttpClientParamConfig.getRequestConfig(params);
+                        config = HttpClientParamConfig.getRequestConfig(params, this.defaultConfig);
                     }
                 } else {
-                    config = HttpClientParamConfig.getRequestConfig(params);
+                    config = HttpClientParamConfig.getRequestConfig(params, this.defaultConfig);
                 }
             }
             if (config != null) {
