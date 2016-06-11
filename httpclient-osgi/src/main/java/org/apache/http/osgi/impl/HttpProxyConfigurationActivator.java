@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.osgi.services.CachingHttpClientBuilderFactory;
 import org.apache.http.osgi.services.HttpClientBuilderFactory;
 import org.apache.http.osgi.services.ProxyConfiguration;
 import org.osgi.framework.BundleActivator;
@@ -49,9 +50,17 @@ import org.osgi.service.cm.ManagedServiceFactory;
  */
 public final class HttpProxyConfigurationActivator implements BundleActivator, ManagedServiceFactory {
 
-    private static final String SERVICE_FACTORY_NAME = "Apache HTTP Client Proxy Configuration Factory";
+    private static final String PROXY_SERVICE_FACTORY_NAME = "Apache HTTP Client Proxy Configuration Factory";
 
-    private static final String SERVICE_PID = "org.apache.http.proxyconfigurator";
+    private static final String PROXY_SERVICE_PID = "org.apache.http.proxyconfigurator";
+
+    private static final String BUILDER_FACTORY_SERVICE_NAME = "Apache HTTP Client Client Factory";
+
+    private static final String BUILDER_FACTORY_SERVICE_PID = "org.apache.http.httpclientfactory";
+
+    private static final String CACHEABLE_BUILDER_FACTORY_SERVICE_NAME = "Apache HTTP Client Caching Client Factory";
+
+    private static final String CACHEABLE_BUILDER_FACTORY_SERVICE_PID = "org.apache.http.cachinghttpclientfactory";
 
     private ServiceRegistration configurator;
 
@@ -78,12 +87,25 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         final Hashtable<String, Object> props = new Hashtable<String, Object>();
         props.put(Constants.SERVICE_PID, getName());
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders(Constants.BUNDLE_VENDOR));
-        props.put(Constants.SERVICE_DESCRIPTION, SERVICE_FACTORY_NAME);
+        props.put(Constants.SERVICE_DESCRIPTION, PROXY_SERVICE_FACTORY_NAME);
 
         configurator = context.registerService(ManagedServiceFactory.class.getName(), this, props);
+
+        props.clear();
+        props.put(Constants.SERVICE_PID, BUILDER_FACTORY_SERVICE_PID);
+        props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders(Constants.BUNDLE_VENDOR));
+        props.put(Constants.SERVICE_DESCRIPTION, BUILDER_FACTORY_SERVICE_NAME);
         clientFactory = context.registerService(HttpClientBuilderFactory.class.getName(),
                                                 new OSGiClientBuilderFactory(context, registeredConfigurations, trackedHttpClients),
                                                 props);
+
+        props.clear();
+        props.put(Constants.SERVICE_PID, CACHEABLE_BUILDER_FACTORY_SERVICE_PID);
+        props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders(Constants.BUNDLE_VENDOR));
+        props.put(Constants.SERVICE_DESCRIPTION, CACHEABLE_BUILDER_FACTORY_SERVICE_NAME);
+        clientFactory = context.registerService(CachingHttpClientBuilderFactory.class.getName(),
+                new OSGiCachingClientBuilderFactory(context, registeredConfigurations, trackedHttpClients),
+                props);
     }
 
     /**
@@ -123,7 +145,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
      */
     @Override
     public String getName() {
-        return SERVICE_PID;
+        return PROXY_SERVICE_PID;
     }
 
     /**
