@@ -26,40 +26,37 @@
  */
 package org.apache.http.osgi.impl;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import org.junit.Test;
 
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-/**
- * @since 4.3
- */
-final class OSGiHttpClientBuilder extends HttpClientBuilder {
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 
-    private final Collection<CloseableHttpClient> trackedHttpClients;
+public class WeakListTest {
 
-    public OSGiHttpClientBuilder(
-            final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations,
-            final List<CloseableHttpClient> trackedHttpClients) {
-        this.trackedHttpClients = trackedHttpClients;
-        setDefaultCredentialsProvider(
-                new OSGiCredentialsProvider(bundleContext, registeredConfigurations));
-        setRoutePlanner(
-                new OSGiHttpRoutePlanner(bundleContext, registeredConfigurations));
-    }
+    @Test
+    public void testWeakList() {
+        final WeakList<Object> list = new WeakList<Object>();
+        list.add("hello");
+        list.add(null);
 
-    @Override
-    public CloseableHttpClient build() {
-        final CloseableHttpClient httpClient = super.build();
-        synchronized (trackedHttpClients) {
-            trackedHttpClients.add(httpClient);
+        // null objects are seen as GC'd, so we only expect a size of 1
+        assertEquals(1, list.size());
+
+        final Iterator<Object> it = list.iterator();
+        assertTrue(it.hasNext());
+        assertEquals("hello", it.next());
+        assertFalse(it.hasNext());
+        boolean thrown = false;
+        try {
+            it.next();
+        } catch (NoSuchElementException e) {
+            thrown = true;
         }
-        return httpClient;
+        assertTrue(thrown);
     }
 
 }

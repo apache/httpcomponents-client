@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -62,7 +61,11 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
     private final Map<String, ServiceRegistration> registeredConfigurations = new LinkedHashMap<String, ServiceRegistration>();
 
-    private final List<CloseableHttpClient> trackedHttpClients = new LinkedList<CloseableHttpClient>();
+    private final List<CloseableHttpClient> trackedHttpClients;
+
+    public HttpProxyConfigurationActivator() {
+        trackedHttpClients = new WeakList<CloseableHttpClient>();
+    }
 
     /**
      * {@inheritDoc}

@@ -176,7 +176,9 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>clirr-maven-plugin</artifactId>
         <configuration>
-          <skip>true</skip>
+          <includes>
+            <include>org/apache/http/osgi/**</include>
+          </includes>
         </configuration>
       </plugin>
     </plugins>
