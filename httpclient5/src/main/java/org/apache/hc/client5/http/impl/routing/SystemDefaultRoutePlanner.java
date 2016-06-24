@@ -86,22 +86,10 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
             }
             final InetSocketAddress isa = (InetSocketAddress) p.address();
             // assume default scheme (http)
-            result = new HttpHost(getHost(isa), isa.getPort());
+            result = new HttpHost(isa.getAddress(), isa.getHostString(), isa.getPort(), null);
         }
 
         return result;
-    }
-
-    private String getHost(final InetSocketAddress isa) {
-
-        //@@@ Will this work with literal IPv6 addresses, or do we
-        //@@@ need to wrap these in [] for the string representation?
-        //@@@ Having it in this method at least allows for easy workarounds.
-
-        //@@@ Maybe use HttpHost(isa.getAddress(), isa.getHostString(), isa.getPort(), null) to avoid
-        //@@@ resolving the address too many time
-       return isa.getHostString();
-
     }
 
     private Proxy chooseProxy(final List<Proxy> proxies) {
