@@ -67,6 +67,11 @@ public class AuthScope {
     public static final String ANY_SCHEME = null;
 
     /**
+     * The {@code null} value represents any target host.
+     */
+    public static final String ANY_TARGET_HOST_URL = null;
+
+    /**
      * Default scope matching any host, port, realm and authentication scheme.
      * In the future versions of HttpClient the use of this parameter will be
      * discontinued.
@@ -88,6 +93,9 @@ public class AuthScope {
     /** The original host, if known */
     private final HttpHost origin;
 
+    /** The target host, as advertised to the user */
+    private final String targetHostUrl;
+
     /**
      * Defines auth scope with the given {@code host}, {@code port}, {@code realm}, and
      * {@code schemeName}.
@@ -100,17 +108,30 @@ public class AuthScope {
      *   to any realm on the host.
      * @param schemeName authentication scheme. May be {@link #ANY_SCHEME} if applies
      *   to any scheme supported by the host.
+     * @param targetHostUrl target host advertised to the user. May be {@link #ANY_TARGET_HOST_URL}.
+     *
+     * @since 4.5.3
      */
     public AuthScope(
             final String host,
             final int port,
             final String realm,
-            final String schemeName) {
+            final String schemeName,
+            final String targetHostUrl) {
         this.host = host == null ? ANY_HOST: host.toLowerCase(Locale.ROOT);
         this.port = port < 0 ? ANY_PORT : port;
         this.realm = realm == null ? ANY_REALM : realm;
         this.scheme = schemeName == null ? ANY_SCHEME : schemeName.toUpperCase(Locale.ROOT);
         this.origin = null;
+        this.targetHostUrl = targetHostUrl;
+    }
+
+    /**
+     * Defines auth scope with the given {@code host}, {@code port}, {@code realm}, and
+     * {@code schemeName}.
+     */
+    public AuthScope(final String host, final int port, final String realm, final String schemeName) {
+        this(host, port, realm, schemeName, ANY_TARGET_HOST_URL);
     }
 
     /**
@@ -121,19 +142,33 @@ public class AuthScope {
      *   to any realm on the host.
      * @param schemeName authentication scheme. May be {@link #ANY_SCHEME} if applies
      *   to any scheme supported by the host.
+     * @param targetHostUrl target host advertised to the user. May be {@link #ANY_TARGET_HOST_URL}.
      *
-     * @since 4.2
+     * @since 4.5.3
      */
     public AuthScope(
             final HttpHost origin,
             final String realm,
-            final String schemeName) {
+            final String schemeName,
+            final String targetHostUrl) {
         Args.notNull(origin, "Host");
         this.host = origin.getHostName().toLowerCase(Locale.ROOT);
         this.port = origin.getPort() < 0 ? ANY_PORT : origin.getPort();
         this.realm = realm == null ? ANY_REALM : realm;
         this.scheme = schemeName == null ? ANY_SCHEME : schemeName.toUpperCase(Locale.ROOT);
         this.origin = origin;
+        this.targetHostUrl = targetHostUrl;
+    }
+
+    /**
+     * Defines auth scope for a specific host of origin.
+     *
+     * @param origin host of origin
+     *
+     * @since 4.2
+     */
+    public AuthScope(final HttpHost origin, final String realm, final String schemeName) {
+        this(origin, realm, schemeName, ANY_TARGET_HOST_URL);
     }
 
     /**
@@ -184,6 +219,7 @@ public class AuthScope {
         this.realm = authscope.getRealm();
         this.scheme = authscope.getScheme();
         this.origin = authscope.getOrigin();
+        this.targetHostUrl = authscope.getTargetHostUrl();
     }
 
     /**
@@ -221,6 +257,13 @@ public class AuthScope {
      */
     public String getScheme() {
         return this.scheme;
+    }
+
+    /**
+     * @return the target host
+     */
+    public String getTargetHostUrl() {
+        return targetHostUrl;
     }
 
     /**

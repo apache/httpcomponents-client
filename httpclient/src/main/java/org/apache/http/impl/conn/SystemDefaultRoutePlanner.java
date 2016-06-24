@@ -97,9 +97,11 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
         //@@@ Will this work with literal IPv6 addresses, or do we
         //@@@ need to wrap these in [] for the string representation?
         //@@@ Having it in this method at least allows for easy workarounds.
-       return isa.isUnresolved() ?
-            isa.getHostName() : isa.getAddress().getHostAddress();
 
+        //@@@ External credential providers need the name of the proxy as it was provided to the jvm.
+        //@@@ Maybe use HttpHost(isa.getAddress(), isa.getHostString(), isa.getPort(), null) to avoid
+        //@@@ resolving the address too many time
+        return isa.getHostString();
     }
 
     private Proxy chooseProxy(final List<Proxy> proxies) {

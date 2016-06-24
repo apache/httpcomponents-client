@@ -27,7 +27,9 @@
 package org.apache.http.impl.client;
 
 import java.net.Authenticator;
+import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
+import java.net.URL;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -93,14 +95,21 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
         final HttpHost origin = authscope.getOrigin();
         final String protocol = origin != null ? origin.getSchemeName() :
                 (port == 443 ? "https" : "http");
+        final URL targetHostUrl;
+        try {
+            targetHostUrl= authscope.getTargetHostUrl() != null ? new URL(authscope.getTargetHostUrl()) : null;
+        } catch (final MalformedURLException ex) {
+            // should never happen
+            throw new IllegalStateException("Malformed target host", ex);
+        }
         return Authenticator.requestPasswordAuthentication(
                 hostname,
                 null,
                 port,
                 protocol,
-                null,
+                authscope.getRealm(),
                 translateScheme(authscope.getScheme()),
-                null,
+                targetHostUrl,
                 requestorType);
     }
 
@@ -131,7 +140,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
                                     systemcreds = new PasswordAuthentication(proxyUser, proxyPassword != null ? proxyPassword.toCharArray() : new char[] {});
                                 }
                             }
-                        } catch (NumberFormatException ex) {
+                        } catch (final NumberFormatException ex) {
                         }
                     }
                 }
