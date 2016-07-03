@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.http.auth;
 
+import org.apache.hc.core5.http.protocol.HttpContext;
+
 /**
  * Provider of authentication credentials.
  * <p>
@@ -42,8 +44,10 @@ public interface CredentialsProvider {
      * if available.
      *
      * @param authscope the {@link AuthScope authentication scope}
+     * @param context the {@link HttpContext http context}
      * @return the credentials
+     * @since 5.0
      */
-    Credentials getCredentials(AuthScope authscope);
+    Credentials getCredentials(AuthScope authscope, HttpContext context);
 
 }

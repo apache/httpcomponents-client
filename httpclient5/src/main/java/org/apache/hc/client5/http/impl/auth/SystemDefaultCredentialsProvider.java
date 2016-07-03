@@ -27,7 +27,9 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import java.net.Authenticator;
+import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
+import java.net.URL;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,8 +41,11 @@ import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
+import org.apache.hc.client5.http.methods.HttpUriRequest;
 import org.apache.hc.core5.annotation.ThreadSafe;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -88,35 +93,51 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
 
     private static PasswordAuthentication getSystemCreds(
             final AuthScope authscope,
-            final Authenticator.RequestorType requestorType) {
+            final Authenticator.RequestorType requestorType,
+            final HttpContext context) {
         final String hostname = authscope.getHost();
         final int port = authscope.getPort();
         final HttpHost origin = authscope.getOrigin();
         final String protocol = origin != null ? origin.getSchemeName() :
                 (port == 443 ? "https" : "http");
+
+        final URL targetHostURL;
+        if (context != null) {
+            final HttpUriRequest httpUriRequest = (HttpUriRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
+            try {
+                targetHostURL = httpUriRequest.getURI().toURL();
+            } catch (final MalformedURLException e) {
+                throw new IllegalStateException("Unexpected request url format: " + httpUriRequest, e);
+            }
+        } else {
+            // Fluent case.
+            targetHostURL = null;
+        }
+        // use null addr, because the authentication fails if it does not exactly match the expected realm's host
         return Authenticator.requestPasswordAuthentication(
                 hostname,
                 null,
                 port,
                 protocol,
-                null,
+                authscope.getRealm(),
                 translateScheme(authscope.getScheme()),
-                null,
+                targetHostURL,
                 requestorType);
     }
 
     @Override
-    public Credentials getCredentials(final AuthScope authscope) {
+    public Credentials getCredentials(final AuthScope authscope, final HttpContext context) {
         Args.notNull(authscope, "Auth scope");
-        final Credentials localcreds = internal.getCredentials(authscope);
+        final Credentials localcreds = internal.getCredentials(authscope, context);
         if (localcreds != null) {
             return localcreds;
         }
         final String host = authscope.getHost();
         if (host != null) {
-            PasswordAuthentication systemcreds = getSystemCreds(authscope, Authenticator.RequestorType.SERVER);
+            PasswordAuthentication systemcreds =
+                            getSystemCreds(authscope, Authenticator.RequestorType.SERVER, context);
             if (systemcreds == null) {
-                systemcreds = getSystemCreds(authscope, Authenticator.RequestorType.PROXY);
+                systemcreds = getSystemCreds(authscope, Authenticator.RequestorType.PROXY, context);
             }
             if (systemcreds == null) {
                 final String proxyHost = System.getProperty("http.proxyHost");

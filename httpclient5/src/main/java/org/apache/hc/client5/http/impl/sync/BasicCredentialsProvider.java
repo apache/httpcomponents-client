@@ -33,6 +33,7 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -94,7 +95,8 @@ public class BasicCredentialsProvider implements CredentialsStore {
     }
 
     @Override
-    public Credentials getCredentials(final AuthScope authscope) {
+    public Credentials getCredentials(final AuthScope authscope,
+                                      final HttpContext httpContext) {
         Args.notNull(authscope, "Authentication scope");
         return matchCredentials(this.credMap, authscope);
     }

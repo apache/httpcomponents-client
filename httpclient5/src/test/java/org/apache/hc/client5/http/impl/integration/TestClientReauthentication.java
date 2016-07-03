@@ -134,7 +134,7 @@ public class TestClientReauthentication extends LocalServerTestBase {
         }
 
         @Override
-        public Credentials getCredentials(final AuthScope authscope) {
+        public Credentials getCredentials(final AuthScope authscope, final HttpContext context) {
             this.authscope = authscope;
             return this.creds;
         }

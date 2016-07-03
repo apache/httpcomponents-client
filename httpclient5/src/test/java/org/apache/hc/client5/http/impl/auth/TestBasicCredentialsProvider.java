@@ -58,14 +58,14 @@ public class TestBasicCredentialsProvider {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         state.setCredentials(SCOPE1, CREDS1);
         state.setCredentials(SCOPE2, CREDS2);
-        Assert.assertEquals(CREDS1, state.getCredentials(SCOPE1));
-        Assert.assertEquals(CREDS2, state.getCredentials(SCOPE2));
+        Assert.assertEquals(CREDS1, state.getCredentials(SCOPE1, null));
+        Assert.assertEquals(CREDS2, state.getCredentials(SCOPE2, null));
     }
 
     @Test
     public void testBasicCredentialsProviderNoCredentials() {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
-        Assert.assertEquals(null, state.getCredentials(BOGUS));
+        Assert.assertEquals(null, state.getCredentials(BOGUS, null));
     }
 
     @Test
@@ -73,7 +73,7 @@ public class TestBasicCredentialsProvider {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         state.setCredentials(AuthScope.ANY, CREDS1);
         state.setCredentials(SCOPE2, CREDS2);
-        Assert.assertEquals(CREDS1, state.getCredentials(BOGUS));
+        Assert.assertEquals(CREDS1, state.getCredentials(BOGUS, null));
     }
 
     @Test
@@ -81,7 +81,7 @@ public class TestBasicCredentialsProvider {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(AuthScope.ANY, expected);
-        final Credentials got = state.getCredentials(DEFSCOPE);
+        final Credentials got = state.getCredentials(DEFSCOPE, null);
         Assert.assertEquals(got, expected);
     }
 
@@ -90,7 +90,7 @@ public class TestBasicCredentialsProvider {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(DEFSCOPE, expected);
-        final Credentials got = state.getCredentials(DEFSCOPE);
+        final Credentials got = state.getCredentials(DEFSCOPE, null);
         Assert.assertEquals(expected, got);
     }
 
@@ -100,7 +100,7 @@ public class TestBasicCredentialsProvider {
         final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(
             new AuthScope("host", AuthScope.ANY_PORT, AuthScope.ANY_REALM), expected);
-        final Credentials got = state.getCredentials(DEFSCOPE);
+        final Credentials got = state.getCredentials(DEFSCOPE, null);
         Assert.assertEquals(expected, got);
     }
 
@@ -111,7 +111,7 @@ public class TestBasicCredentialsProvider {
         state.setCredentials(
             new AuthScope("host1", AuthScope.ANY_PORT, "realm"), expected);
         final Credentials got = state.getCredentials(
-            new AuthScope("host2", AuthScope.ANY_PORT, "realm"));
+            new AuthScope("host2", AuthScope.ANY_PORT, "realm"), null);
         Assert.assertNotSame(expected, got);
     }
 
@@ -122,7 +122,7 @@ public class TestBasicCredentialsProvider {
         state.setCredentials(
             new AuthScope("host", AuthScope.ANY_PORT, "realm1"), cred);
         final Credentials got = state.getCredentials(
-            new AuthScope("host", AuthScope.ANY_PORT, "realm2"));
+            new AuthScope("host", AuthScope.ANY_PORT, "realm2"), null);
         Assert.assertNotSame(cred, got);
     }
 
@@ -132,7 +132,7 @@ public class TestBasicCredentialsProvider {
         final BasicCredentialsProvider state = new BasicCredentialsProvider();
         final Credentials expected = new UsernamePasswordCredentials("name", "pass".toCharArray());
         state.setCredentials(new AuthScope(httpHost), expected);
-        final Credentials got = state.getCredentials(DEFSCOPE);
+        final Credentials got = state.getCredentials(DEFSCOPE, null);
         Assert.assertEquals(expected, got);
     }
 
@@ -152,17 +152,17 @@ public class TestBasicCredentialsProvider {
         state.setCredentials(scope3, creds3);
 
         Credentials got = state.getCredentials(
-            new AuthScope("someotherhost", 80, "someotherrealm", "basic"));
+            new AuthScope("someotherhost", 80, "someotherrealm", "basic"), null);
         Credentials expected = creds1;
         Assert.assertEquals(expected, got);
 
         got = state.getCredentials(
-            new AuthScope("someotherhost", 80, "somerealm", "basic"));
+            new AuthScope("someotherhost", 80, "somerealm", "basic"), null);
         expected = creds2;
         Assert.assertEquals(expected, got);
 
         got = state.getCredentials(
-            new AuthScope("somehost", 80, "someotherrealm", "basic"));
+            new AuthScope("somehost", 80, "someotherrealm", "basic"), null);
         expected = creds3;
         Assert.assertEquals(expected, got);
     }

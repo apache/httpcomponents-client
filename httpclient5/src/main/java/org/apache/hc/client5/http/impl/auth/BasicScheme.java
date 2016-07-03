@@ -140,7 +140,8 @@ public class BasicScheme implements AuthScheme, Serializable {
         Args.notNull(host, "Auth host");
         Args.notNull(credentialsProvider, "CredentialsProvider");
 
-        final Credentials credentials = credentialsProvider.getCredentials(new AuthScope(host, getRealm(), getName()));
+        final Credentials credentials =
+            credentialsProvider.getCredentials(new AuthScope(host, getRealm(), getName()), context);
         if (credentials != null) {
             this.username = credentials.getUserPrincipal().getName();
             this.password = credentials.getPassword();
