@@ -176,7 +176,9 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
 
     static void matchCN(final String host, final String cn,
                  final PublicSuffixMatcher publicSuffixMatcher) throws SSLException {
-        if (!matchIdentityStrict(host, cn, publicSuffixMatcher)) {
+        final String normalizedHost = host.toLowerCase(Locale.ROOT);
+        final String normalizedCn = cn.toLowerCase(Locale.ROOT);
+        if (!matchIdentityStrict(normalizedHost, normalizedCn, publicSuffixMatcher)) {
             throw new SSLException("Certificate for <" + host + "> doesn't match " +
                     "common name of the certificate subject: " + cn);
         }
@@ -263,7 +265,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                             return value.toString();
                         }
                     } catch (NoSuchElementException | NamingException ignore) {
-                        // ignore exception, why?
+                        // ignore exception
                     }
                 }
             }
@@ -278,7 +280,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
         try {
             c = cert.getSubjectAlternativeNames();
         } catch(final CertificateParsingException ignore) {
-            // ignore exception, why?
+            return null;
         }
         List<String> subjectAltList = null;
         if (c != null) {

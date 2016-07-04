@@ -132,20 +132,30 @@ public abstract class GGSSchemeBase implements AuthScheme {
      */
     protected byte[] generateGSSToken(
             final byte[] input, final Oid oid, final String serviceName, final String authServer) throws GSSException {
-        byte[] inputBuff = input;
-        if (inputBuff == null) {
-            inputBuff = new byte[0];
-        }
         final GSSManager manager = getManager();
         final GSSName serverName = manager.createName(serviceName + "@" + authServer, GSSName.NT_HOSTBASED_SERVICE);
 
-        final GSSContext gssContext = manager.createContext(
-                serverName.canonicalize(oid), oid, gssCredential, GSSContext.DEFAULT_LIFETIME);
-        gssContext.requestMutualAuth(true);
-        gssContext.requestCredDeleg(true);
-        return gssContext.initSecContext(inputBuff, 0, inputBuff.length);
+        final GSSContext gssContext = createGSSContext(manager, oid, serverName, gssCredential);
+        if (input != null) {
+            return gssContext.initSecContext(input, 0, input.length);
+        } else {
+            return gssContext.initSecContext(new byte[] {}, 0, 0);
+        }
     }
 
+    /**
+     * @since 5.0
+     */
+    protected GSSContext createGSSContext(
+            final GSSManager manager,
+            final Oid oid,
+            final GSSName serverName,
+            final GSSCredential gssCredential) throws GSSException {
+        final GSSContext gssContext = manager.createContext(serverName.canonicalize(oid), oid, gssCredential,
+                GSSContext.DEFAULT_LIFETIME);
+        gssContext.requestMutualAuth(true);
+        return gssContext;
+    }
     /**
      * @since 4.4
      */

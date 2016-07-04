@@ -80,13 +80,16 @@ public class URLEncodedUtils {
      * @param uri
      *        URI to parse
      * @param charset
-     *        Charset name to use while parsing the query
+     *        Charset to use while parsing the query
      * @return a list of {@link NameValuePair} as built from the URI's query portion.
+     *
+     * @since 4.5
      */
-    public static List <NameValuePair> parse(final URI uri, final String charset) {
+    public static List <NameValuePair> parse(final URI uri, final Charset charset) {
+        Args.notNull(uri, "URI");
         final String query = uri.getRawQuery();
         if (query != null && !query.isEmpty()) {
-            return parse(query, Charset.forName(charset));
+            return parse(query, charset);
         }
         return Collections.emptyList();
     }
@@ -105,6 +108,7 @@ public class URLEncodedUtils {
      */
     public static List <NameValuePair> parse(
             final HttpEntity entity) throws IOException {
+        Args.notNull(entity, "HTTP entity");
         final ContentType contentType = ContentType.get(entity);
         if (contentType == null || !contentType.getMimeType().equalsIgnoreCase(CONTENT_TYPE)) {
             return Collections.emptyList();
@@ -140,6 +144,7 @@ public class URLEncodedUtils {
      * {@code application/x-www-form-urlencoded}.
      */
     public static boolean isEncoded(final HttpEntity entity) {
+        Args.notNull(entity, "HTTP entity");
         final ContentType contentType = ContentType.parse(entity.getContentType());
         return contentType != null && CONTENT_TYPE.equalsIgnoreCase(contentType.getMimeType());
     }
@@ -157,6 +162,9 @@ public class URLEncodedUtils {
      * @since 4.2
      */
     public static List<NameValuePair> parse(final String s, final Charset charset) {
+        if (s == null) {
+            return Collections.emptyList();
+        }
         final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
         buffer.append(s);
         return parse(buffer, charset, QP_SEP_A, QP_SEP_S);
@@ -240,51 +248,6 @@ public class URLEncodedUtils {
      * @param parameters  The parameters to include.
      * @param charset The encoding to use.
      * @return An {@code application/x-www-form-urlencoded} string
-     */
-    public static String format(
-            final List <? extends NameValuePair> parameters,
-            final String charset) {
-        return format(parameters, QP_SEP_A, charset);
-    }
-
-    /**
-     * Returns a String that is suitable for use as an {@code application/x-www-form-urlencoded}
-     * list of parameters in an HTTP PUT or HTTP POST.
-     *
-     * @param parameters  The parameters to include.
-     * @param parameterSeparator The parameter separator, by convention, {@code '&'} or {@code ';'}.
-     * @param charset The encoding to use.
-     * @return An {@code application/x-www-form-urlencoded} string
-     *
-     * @since 4.3
-     */
-    public static String format(
-            final List <? extends NameValuePair> parameters,
-            final char parameterSeparator,
-            final String charset) {
-        final StringBuilder result = new StringBuilder();
-        for (final NameValuePair parameter : parameters) {
-            final String encodedName = encodeFormFields(parameter.getName(), charset);
-            final String encodedValue = encodeFormFields(parameter.getValue(), charset);
-            if (result.length() > 0) {
-                result.append(parameterSeparator);
-            }
-            result.append(encodedName);
-            if (encodedValue != null) {
-                result.append(NAME_VALUE_SEPARATOR);
-                result.append(encodedValue);
-            }
-        }
-        return result.toString();
-    }
-
-    /**
-     * Returns a String that is suitable for use as an {@code application/x-www-form-urlencoded}
-     * list of parameters in an HTTP PUT or HTTP POST.
-     *
-     * @param parameters  The parameters to include.
-     * @param charset The encoding to use.
-     * @return An {@code application/x-www-form-urlencoded} string
      *
      * @since 4.2
      */
@@ -309,6 +272,7 @@ public class URLEncodedUtils {
             final Iterable<? extends NameValuePair> parameters,
             final char parameterSeparator,
             final Charset charset) {
+        Args.notNull(parameters, "Parameters");
         final StringBuilder result = new StringBuilder();
         for (final NameValuePair parameter : parameters) {
             final String encodedName = encodeFormFields(parameter.getName(), charset);
@@ -506,43 +470,11 @@ public class URLEncodedUtils {
      * @param charset the charset to use
      * @return encoded string
      */
-    private static String decodeFormFields (final String content, final String charset) {
-        if (content == null) {
-            return null;
-        }
-        return urlDecode(content, charset != null ? Charset.forName(charset) : StandardCharsets.UTF_8, true);
-    }
-
-    /**
-     * Decode/unescape www-url-form-encoded content.
-     *
-     * @param content the content to decode, will decode '+' as space
-     * @param charset the charset to use
-     * @return encoded string
-     */
     private static String decodeFormFields (final String content, final Charset charset) {
         if (content == null) {
             return null;
         }
         return urlDecode(content, charset != null ? charset : StandardCharsets.UTF_8, true);
-    }
-
-    /**
-     * Encode/escape www-url-form-encoded content.
-     * <p>
-     * Uses the {@link #URLENCODER} set of characters, rather than
-     * the {@link #UNRESERVED} set; this is for compatibilty with previous
-     * releases, URLEncoder.encode() and most browsers.
-     *
-     * @param content the content to encode, will convert space to '+'
-     * @param charset the charset to use
-     * @return encoded string
-     */
-    private static String encodeFormFields(final String content, final String charset) {
-        if (content == null) {
-            return null;
-        }
-        return urlEncode(content, charset != null ? Charset.forName(charset) : StandardCharsets.UTF_8, URLENCODER, true);
     }
 
     /**

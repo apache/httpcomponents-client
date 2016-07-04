@@ -26,23 +26,19 @@
  */
 package org.apache.hc.client5.http.osgi.impl;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hc.client5.http.impl.cache.CachingHttpClientBuilder;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
-/**
- * @since 4.3
- */
-final class OSGiHttpClientBuilder extends HttpClientBuilder {
+final class OSGiCachingHttpClientBuilder extends CachingHttpClientBuilder {
 
-    private final Collection<CloseableHttpClient> trackedHttpClients;
+    private final List<CloseableHttpClient> trackedHttpClients;
 
-    public OSGiHttpClientBuilder(
+    public OSGiCachingHttpClientBuilder(
             final BundleContext bundleContext,
             final Map<String, ServiceRegistration> registeredConfigurations,
             final List<CloseableHttpClient> trackedHttpClients) {

@@ -26,40 +26,34 @@
  */
 package org.apache.hc.client5.http.osgi.impl;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hc.client5.http.impl.cache.CachingHttpClientBuilder;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
+import org.apache.hc.client5.http.osgi.services.CachingHttpClientBuilderFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
-/**
- * @since 4.3
- */
-final class OSGiHttpClientBuilder extends HttpClientBuilder {
+class OSGiCachingClientBuilderFactory implements CachingHttpClientBuilderFactory {
 
-    private final Collection<CloseableHttpClient> trackedHttpClients;
+    private final BundleContext bundleContext;
 
-    public OSGiHttpClientBuilder(
+    private final Map<String, ServiceRegistration> registeredConfigurations;
+
+    private final List<CloseableHttpClient> trackedHttpClients;
+
+    public OSGiCachingClientBuilderFactory(
             final BundleContext bundleContext,
             final Map<String, ServiceRegistration> registeredConfigurations,
             final List<CloseableHttpClient> trackedHttpClients) {
+        this.bundleContext = bundleContext;
+        this.registeredConfigurations = registeredConfigurations;
         this.trackedHttpClients = trackedHttpClients;
-        setDefaultCredentialsProvider(
-                new OSGiCredentialsProvider(bundleContext, registeredConfigurations));
-        setRoutePlanner(
-                new OSGiHttpRoutePlanner(bundleContext, registeredConfigurations));
     }
 
     @Override
-    public CloseableHttpClient build() {
-        final CloseableHttpClient httpClient = super.build();
-        synchronized (trackedHttpClients) {
-            trackedHttpClients.add(httpClient);
-        }
-        return httpClient;
+    public CachingHttpClientBuilder newBuilder() {
+        return new OSGiCachingHttpClientBuilder(bundleContext, registeredConfigurations, trackedHttpClients);
     }
-
 }
