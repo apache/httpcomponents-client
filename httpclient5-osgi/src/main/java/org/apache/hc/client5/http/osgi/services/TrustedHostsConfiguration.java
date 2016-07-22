@@ -32,12 +32,24 @@ package org.apache.hc.client5.http.osgi.services;
 public interface TrustedHostsConfiguration {
 
     /**
+     * Flag to mark if current configuration has to be processed when creating SSL sessions..
+     *
+     * @return true if current configuration has to be processed when creating an SSL session, false otherwise.
+     */
+    boolean isEnabled();
+
+    /**
      * Pay attention on no enabling this feature in production environment as it is totally insecure.
      *
      * @return
      */
     boolean trustAll();
 
+    /**
+     * The list of trusted hosts for which self-signed certificate is acceptable.
+     *
+     * @return an array representing the list of trusted hosts for which self-signed certificate is acceptable.
+     */
     String[] getTrustedHosts();
 
 }

@@ -40,6 +40,13 @@ import org.apache.hc.client5.http.osgi.services.TrustedHostsConfiguration;
 final class OSGiTrustedHostsConfiguration implements TrustedHostsConfiguration {
 
     /**
+     * Property indicating whether this particular configuration is enabled (shall be used or not). Defaults to true.
+     */
+    private static final String PROPERTYNAME_TRUSTEDHOSTS_ENABLED = "trustedHosts.enabled";
+
+    private static final Boolean PROPERTYDEFAULT_TRUSTEDHOSTS_ENABLED = Boolean.TRUE;
+
+    /**
      * Property indicating whether this particular configuration . Defaults to false.
      */
     private static final String PROPERTYNAME_TRUST_ALL = "trustedHosts.trustAll";
@@ -54,9 +61,16 @@ final class OSGiTrustedHostsConfiguration implements TrustedHostsConfiguration {
 
     private static final String[] PROPERTYDEFAULT_TRUSTED_HOSTS = new String[]{ "localhost", "127.0.0.1" };
 
-    private Boolean trustAll = Boolean.FALSE; // fewer boxing conversions needed when stored as an object
+    private Boolean enabled = PROPERTYDEFAULT_TRUSTEDHOSTS_ENABLED; // fewer boxing conversions needed when stored as an object
+
+    private Boolean trustAll = PROPERTYDEFAULT_TRUST_ALL; // fewer boxing conversions needed when stored as an object
 
     private String[] trustedHosts;
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
 
     @Override
     public boolean trustAll() {
@@ -69,6 +83,7 @@ final class OSGiTrustedHostsConfiguration implements TrustedHostsConfiguration {
     }
 
     public void update(final Dictionary<String, Object> config) {
+        enabled = to(config.get(PROPERTYNAME_TRUSTEDHOSTS_ENABLED), boolean.class, PROPERTYDEFAULT_TRUSTEDHOSTS_ENABLED);
         trustAll = to(config.get(PROPERTYNAME_TRUST_ALL), boolean.class, PROPERTYDEFAULT_TRUST_ALL);
         trustedHosts = to(config.get(PROPERTYNAME_TRUSTED_HOSTS), String[].class, PROPERTYDEFAULT_TRUSTED_HOSTS);
     }
