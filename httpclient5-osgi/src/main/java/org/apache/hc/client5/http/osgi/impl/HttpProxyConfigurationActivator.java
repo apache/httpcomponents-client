@@ -57,7 +57,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
     private static final String TRUSTED_HOSTS_SERVICE_NAME = "Apache HTTP Client Trusted Hosts Configuration";
 
-    private static final String TRUSTED_HOSTS_PID = "org.apache.http.trustedhosts";
+    private static final String TRUSTED_HOSTS_PID = "org.apache.hc.client5.http.trustedhosts";
 
     private static final String BUILDER_FACTORY_SERVICE_NAME = "Apache HTTP Client Client Factory";
 
