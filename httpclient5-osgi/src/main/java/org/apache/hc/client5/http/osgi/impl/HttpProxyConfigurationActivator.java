@@ -53,7 +53,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
     private static final String PROXY_SERVICE_FACTORY_NAME = "Apache HTTP Client Proxy Configuration Factory";
 
-    private static final String PROXY_SERVICE_PID = "org.apache.http.proxyconfigurator";
+    private static final String PROXY_SERVICE_PID = "org.apache.hc.client5.http.proxyconfigurator";
 
     private static final String TRUSTED_HOSTS_SERVICE_NAME = "Apache HTTP Client Trusted Hosts Configuration";
 
@@ -61,11 +61,11 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
     private static final String BUILDER_FACTORY_SERVICE_NAME = "Apache HTTP Client Client Factory";
 
-    private static final String BUILDER_FACTORY_SERVICE_PID = "org.apache.http.httpclientfactory";
+    private static final String BUILDER_FACTORY_SERVICE_PID = "org.apache.hc.client5.http.httpclientfactory";
 
     private static final String CACHEABLE_BUILDER_FACTORY_SERVICE_NAME = "Apache HTTP Client Caching Client Factory";
 
-    private static final String CACHEABLE_BUILDER_FACTORY_SERVICE_PID = "org.apache.http.cachinghttpclientfactory";
+    private static final String CACHEABLE_BUILDER_FACTORY_SERVICE_PID = "org.apache.hc.client5.http.cachinghttpclientfactory";
 
     private ServiceRegistration configurator;
 
