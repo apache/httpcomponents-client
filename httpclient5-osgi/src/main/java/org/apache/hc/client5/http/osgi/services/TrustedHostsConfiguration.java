@@ -39,9 +39,11 @@ public interface TrustedHostsConfiguration {
     boolean isEnabled();
 
     /**
+     * Flag to mark all SSL certificates are blindly trusted by the client.
+     *
      * Pay attention on no enabling this feature in production environment as it is totally insecure.
      *
-     * @return
+     * @return true if all SSL certificates are blindly trusted by the client, false otherwise.
      */
     boolean trustAll();
 

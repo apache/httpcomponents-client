@@ -41,19 +41,26 @@ class OSGiCachingClientBuilderFactory implements CachingHttpClientBuilderFactory
 
     private final Map<String, ServiceRegistration> registeredConfigurations;
 
+    private final ServiceRegistration trustedHostConfiguration;
+
     private final List<CloseableHttpClient> trackedHttpClients;
 
     public OSGiCachingClientBuilderFactory(
             final BundleContext bundleContext,
             final Map<String, ServiceRegistration> registeredConfigurations,
+            final ServiceRegistration trustedHostConfiguration,
             final List<CloseableHttpClient> trackedHttpClients) {
         this.bundleContext = bundleContext;
         this.registeredConfigurations = registeredConfigurations;
+        this.trustedHostConfiguration = trustedHostConfiguration;
         this.trackedHttpClients = trackedHttpClients;
     }
 
     @Override
     public CachingHttpClientBuilder newBuilder() {
-        return new OSGiCachingHttpClientBuilder(bundleContext, registeredConfigurations, trackedHttpClients);
+        return new OSGiCachingHttpClientBuilder(bundleContext,
+                                                registeredConfigurations,
+                                                trustedHostConfiguration,
+                                                trackedHttpClients);
     }
 }

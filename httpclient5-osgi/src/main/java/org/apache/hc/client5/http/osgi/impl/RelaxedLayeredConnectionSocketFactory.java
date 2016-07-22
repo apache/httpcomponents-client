@@ -38,15 +38,21 @@ import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 final class RelaxedLayeredConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
     private final SSLConnectionSocketFactory defaultSocketFactory = getSocketFactory();
 
-    private final TrustedHostsConfiguration configuration;
+    private final BundleContext bundleContext;
 
-    public RelaxedLayeredConnectionSocketFactory(final TrustedHostsConfiguration configuration) {
-        this.configuration = configuration;
+    private final ServiceRegistration trustedHostConfiguration;
+
+    public RelaxedLayeredConnectionSocketFactory(final BundleContext bundleContext,
+                                                 final ServiceRegistration trustedHostConfiguration) {
+        this.bundleContext = bundleContext;
+        this.trustedHostConfiguration = trustedHostConfiguration;
     }
 
     @Override
@@ -54,19 +60,26 @@ final class RelaxedLayeredConnectionSocketFactory implements LayeredConnectionSo
                                       final String target,
                                       final int port,
                                       final HttpContext context) throws IOException {
-        // if trust all there is no check to perform
-        if (configuration.trustAll()) {
-            return socket;
-        }
+        final Object trustedHostsConfigurationObject = bundleContext.getService(trustedHostConfiguration.getReference());
+        if (trustedHostsConfigurationObject != null) {
+            final TrustedHostsConfiguration configuration = (TrustedHostsConfiguration) trustedHostsConfigurationObject;
 
-        // blindly verify the host if in the trust list
-        for (String trustedHost : configuration.getTrustedHosts()) {
-            if (createMatcher(trustedHost).matches(target)) {
-                return socket;
+            if (configuration.isEnabled()) {
+                // if trust all there is no check to perform
+                if (configuration.trustAll()) {
+                    return socket;
+                }
+
+                // blindly verify the host if in the trust list
+                for (String trustedHost : configuration.getTrustedHosts()) {
+                    if (createMatcher(trustedHost).matches(target)) {
+                        return socket;
+                    }
+                }
             }
         }
 
-        // follow back to the default behaviour
+        // follow back to the default behavior
         return defaultSocketFactory.createLayeredSocket(socket, target, port, context);
     }
 

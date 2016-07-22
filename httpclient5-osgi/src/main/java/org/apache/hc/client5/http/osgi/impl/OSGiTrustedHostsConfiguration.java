@@ -33,23 +33,25 @@ import static org.apache.hc.client5.http.osgi.impl.PropertiesUtils.to;
 import java.util.Dictionary;
 
 import org.apache.hc.client5.http.osgi.services.TrustedHostsConfiguration;
+import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.cm.ManagedService;
 
 /**
  * @since 5.0-alpha2
  */
-final class OSGiTrustedHostsConfiguration implements TrustedHostsConfiguration {
+final class OSGiTrustedHostsConfiguration implements ManagedService, TrustedHostsConfiguration {
 
     /**
      * Property indicating whether this particular configuration is enabled (shall be used or not). Defaults to true.
      */
-    private static final String PROPERTYNAME_TRUSTEDHOSTS_ENABLED = "trustedHosts.enabled";
+    private static final String PROPERTYNAME_TRUSTEDHOSTS_ENABLED = "trustedhosts.enabled";
 
     private static final Boolean PROPERTYDEFAULT_TRUSTEDHOSTS_ENABLED = Boolean.TRUE;
 
     /**
      * Property indicating whether this particular configuration . Defaults to false.
      */
-    private static final String PROPERTYNAME_TRUST_ALL = "trustedHosts.trustAll";
+    private static final String PROPERTYNAME_TRUST_ALL = "trustedhosts.trustAll";
 
     private static final Boolean PROPERTYDEFAULT_TRUST_ALL = Boolean.FALSE;
 
@@ -57,7 +59,7 @@ final class OSGiTrustedHostsConfiguration implements TrustedHostsConfiguration {
      * A multivalue property representing host patterns which is an acceptable match with the server's authentication scheme.
      * By default <code>localhost</code> (<code>127.0.0.1</code>) is trusted.
      */
-    private static final String PROPERTYNAME_TRUSTED_HOSTS = "trustedHosts.hosts";
+    private static final String PROPERTYNAME_TRUSTED_HOSTS = "trustedhosts.hosts";
 
     private static final String[] PROPERTYDEFAULT_TRUSTED_HOSTS = new String[]{ "localhost", "127.0.0.1" };
 
@@ -82,7 +84,12 @@ final class OSGiTrustedHostsConfiguration implements TrustedHostsConfiguration {
         return trustedHosts;
     }
 
-    public void update(final Dictionary<String, Object> config) {
+    @Override
+    public void updated(final Dictionary<String, ?> config) throws ConfigurationException {
+        if (config == null) {
+            return;
+        }
+
         enabled = to(config.get(PROPERTYNAME_TRUSTEDHOSTS_ENABLED), boolean.class, PROPERTYDEFAULT_TRUSTEDHOSTS_ENABLED);
         trustAll = to(config.get(PROPERTYNAME_TRUST_ALL), boolean.class, PROPERTYDEFAULT_TRUST_ALL);
         trustedHosts = to(config.get(PROPERTYNAME_TRUSTED_HOSTS), String[].class, PROPERTYDEFAULT_TRUSTED_HOSTS);
