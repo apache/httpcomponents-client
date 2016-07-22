@@ -197,6 +197,18 @@
                 org.ietf.jgss,,
                 org.osgi.framework,
                 org.osgi.service.cm,
+                org.apache.commons.logging;version=${commons-logging.osgi.import.version},
+                org.apache.hc.core5.concurrent;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.pool;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.ssl;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.util;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http.config;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http.entity;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http.message;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http.io;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http.protocol;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.http.impl.io;version=${httpcore.osgi.import.version},
                 net.sf.ehcache.*;resolution:=optional,
                 net.spy.memcached.*;resolution:=optional
             </Import-Package>
