@@ -97,7 +97,8 @@ final class OSGiTrustedHostsConfiguration implements ManagedService, TrustedHost
 
     @Override
     public String toString() {
-        return format("ProxyConfiguration [trustAll=%s, trustedHosts=%s]", trustAll, asList(trustedHosts));
+        return format("ProxyConfiguration [enabled=%s, trustAll=%s, trustedHosts=%s]",
+                      enabled, trustAll, asList(trustedHosts));
     }
 
 }
