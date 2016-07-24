@@ -100,7 +100,7 @@ interface HostMatcher {
         @Override
         public boolean matches(final String host) {
             final NetworkAddress hostAddress = NetworkAddress.parse(host);
-            return hostAddress != null && address.address == (hostAddress.address & address.mask);
+            return hostAddress != null && ((address.address & address.mask) == (hostAddress.address & hostAddress.mask));
         }
 
     }
