@@ -175,7 +175,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
     @Override
     public void updated(final String pid, @SuppressWarnings("rawtypes") final Dictionary config) throws ConfigurationException {
         final ServiceRegistration registration = registeredConfigurations.get(pid);
-        OSGiProxyConfiguration proxyConfiguration;
+        final OSGiProxyConfiguration proxyConfiguration;
 
         if (registration == null) {
             proxyConfiguration = new OSGiProxyConfiguration();
