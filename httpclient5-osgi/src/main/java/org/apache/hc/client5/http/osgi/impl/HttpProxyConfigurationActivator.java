@@ -138,25 +138,13 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
     public void stop(final BundleContext context) throws Exception {
         // unregister services
         for (final ServiceRegistration<ProxyConfiguration> registeredConfiguration : registeredConfigurations.values()) {
-            registeredConfiguration.unregister();
+            safeUnregister(registeredConfiguration);
         }
 
-        // unregister service factory
-        if (configurator != null) {
-            configurator.unregister();
-        }
-
-        if (clientFactory != null) {
-            clientFactory.unregister();
-        }
-
-        if (cachingClientFactory != null) {
-            cachingClientFactory.unregister();
-        }
-
-        if (trustedHostConfiguration != null) {
-            trustedHostConfiguration.unregister();
-        }
+        safeUnregister(configurator);
+        safeUnregister(clientFactory);
+        safeUnregister(cachingClientFactory);
+        safeUnregister(trustedHostConfiguration);
 
         // ensure all http clients - generated with the - are terminated
         for (final CloseableHttpClient client : trackedHttpClients) {
@@ -207,10 +195,17 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
     @Override
     public void deleted(final String pid) {
         final ServiceRegistration<ProxyConfiguration> registeredConfiguration = registeredConfigurations.get(pid);
-        if (null != registeredConfiguration) {
-            registeredConfiguration.unregister();
+        if (safeUnregister(registeredConfiguration)) {
             registeredConfigurations.remove(pid);
         }
+    }
+
+    private static <S> boolean safeUnregister(final ServiceRegistration<S> serviceRegistration) {
+        if (serviceRegistration != null) {
+            serviceRegistration.unregister();
+            return true;
+        }
+        return false;
     }
 
     private static void closeQuietly(final Closeable closeable) {
