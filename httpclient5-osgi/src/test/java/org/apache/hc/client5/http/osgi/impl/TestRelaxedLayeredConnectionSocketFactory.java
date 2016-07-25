@@ -32,8 +32,9 @@ import static org.mockito.Mockito.when;
 
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
-import org.apache.hc.client5.http.osgi.services.TrustedHostsConfiguration;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -41,30 +42,20 @@ import org.junit.Test;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.cm.ManagedService;
 
 public class TestRelaxedLayeredConnectionSocketFactory {
 
     @Test
     public void testTrustedAllConnections() throws Exception {
         final HttpContext context = new BasicHttpContext();
-        final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(new TrustedHostsConfiguration() {
 
-            @Override
-            public boolean trustAll() {
-                return true;
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return true;
-            }
-
-            @Override
-            public String[] getTrustedHosts() {
-                return new String[]{};
-            }
-
-        });
+        final Dictionary<String, Object> config = new Hashtable<>();
+        config.put("trustedhosts.enabled", Boolean.TRUE);
+        config.put("trustedhosts.trustAll", Boolean.TRUE);
+        config.put("trustedhosts.hosts", new String[]{});
+        final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(config);
         final Socket socket = socketFactory.createSocket(context);
         final Socket secureSocket = socketFactory.createLayeredSocket(socket, "localhost", 9999, context);
         assertSame(socket, secureSocket);
@@ -73,24 +64,11 @@ public class TestRelaxedLayeredConnectionSocketFactory {
     @Test
     public void testTrustedLocalhostConnections() throws Exception {
         final HttpContext context = new BasicHttpContext();
-        final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(new TrustedHostsConfiguration() {
-
-            @Override
-            public boolean trustAll() {
-                return false;
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return true;
-            }
-
-            @Override
-            public String[] getTrustedHosts() {
-                return new String[]{ "localhost" };
-            }
-
-        });
+        final Dictionary<String, Object> config = new Hashtable<>();
+        config.put("trustedhosts.enabled", Boolean.TRUE);
+        config.put("trustedhosts.trustAll", Boolean.FALSE);
+        config.put("trustedhosts.hosts", new String[]{ "localhost" });
+        final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(config);
         final Socket socket = socketFactory.createSocket(context);
         final Socket secureSocket = socketFactory.createLayeredSocket(socket, "localhost", 9999, context);
         assertSame(socket, secureSocket);
@@ -99,34 +77,27 @@ public class TestRelaxedLayeredConnectionSocketFactory {
     @Test(expected = SocketException.class)
     public void testNotEabledConfiguration() throws Exception {
         final HttpContext context = new BasicHttpContext();
-        final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(new TrustedHostsConfiguration() {
 
-            @Override
-            public boolean trustAll() {
-                return false;
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-
-            @Override
-            public String[] getTrustedHosts() {
-                return new String[]{};
-            }
-
-        });
+        final Dictionary<String, Object> config = new Hashtable<>();
+        config.put("trustedhosts.enabled", Boolean.TRUE);
+        config.put("trustedhosts.trustAll", Boolean.FALSE);
+        config.put("trustedhosts.hosts", new String[]{});
+        final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(config);
         final Socket socket = socketFactory.createSocket(context);
         socketFactory.createLayeredSocket(socket, "localhost", 9999, context);
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private LayeredConnectionSocketFactory getLayeredConnectionSocketFactory(final TrustedHostsConfiguration configuration) {
-        final ServiceReference reference = mock(ServiceReference.class);
-        final ServiceRegistration registration = mock(ServiceRegistration.class);
+    private LayeredConnectionSocketFactory getLayeredConnectionSocketFactory(final Dictionary<String, ?> config) {
+        final ServiceReference<ManagedService> reference = mock(ServiceReference.class);
+        final ServiceRegistration<ManagedService> registration = mock(ServiceRegistration.class);
         when(registration.getReference()).thenReturn(reference);
         final BundleContext bundleContext = mock(BundleContext.class);
+        final OSGiTrustedHostsConfiguration configuration = new OSGiTrustedHostsConfiguration();
+        try {
+            configuration.updated(config);
+        } catch (ConfigurationException e) {
+            // it doesn't happen in tests
+        }
         when(bundleContext.getService(reference)).thenReturn(configuration);
         return new RelaxedLayeredConnectionSocketFactory(bundleContext, registration);
     }

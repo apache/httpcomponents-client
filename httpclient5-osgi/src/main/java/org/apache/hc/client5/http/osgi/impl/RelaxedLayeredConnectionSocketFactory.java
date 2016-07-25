@@ -40,6 +40,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ManagedService;
 
 final class RelaxedLayeredConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
@@ -47,10 +48,10 @@ final class RelaxedLayeredConnectionSocketFactory implements LayeredConnectionSo
 
     private final BundleContext bundleContext;
 
-    private final ServiceRegistration trustedHostConfiguration;
+    private final ServiceRegistration<ManagedService> trustedHostConfiguration;
 
     public RelaxedLayeredConnectionSocketFactory(final BundleContext bundleContext,
-                                                 final ServiceRegistration trustedHostConfiguration) {
+                                                 final ServiceRegistration<ManagedService> trustedHostConfiguration) {
         this.bundleContext = bundleContext;
         this.trustedHostConfiguration = trustedHostConfiguration;
     }
@@ -60,7 +61,7 @@ final class RelaxedLayeredConnectionSocketFactory implements LayeredConnectionSo
                                       final String target,
                                       final int port,
                                       final HttpContext context) throws IOException {
-        final Object trustedHostsConfigurationObject = bundleContext.getService(trustedHostConfiguration.getReference());
+        final ManagedService trustedHostsConfigurationObject = bundleContext.getService(trustedHostConfiguration.getReference());
         if (trustedHostsConfigurationObject != null) {
             final TrustedHostsConfiguration configuration = (TrustedHostsConfiguration) trustedHostsConfigurationObject;
 

@@ -46,11 +46,11 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
 
     private final BundleContext bundleContext;
 
-    private final Map<String, ServiceRegistration> registeredConfigurations;
+    private final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations;
 
     public OSGiHttpRoutePlanner(
             final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations) {
+            final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations) {
         super(null);
         this.bundleContext = bundleContext;
         this.registeredConfigurations = registeredConfigurations;
@@ -63,10 +63,9 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
     protected HttpHost determineProxy(final HttpHost target, final HttpRequest request, final HttpContext context) throws HttpException {
         ProxyConfiguration proxyConfiguration = null;
         HttpHost proxyHost = null;
-        for (final ServiceRegistration registration : registeredConfigurations.values()) {
-            final Object proxyConfigurationObject = bundleContext.getService(registration.getReference());
-            if (proxyConfigurationObject != null) {
-                proxyConfiguration = (ProxyConfiguration) proxyConfigurationObject;
+        for (final ServiceRegistration<ProxyConfiguration> registration : registeredConfigurations.values()) {
+            proxyConfiguration = bundleContext.getService(registration.getReference());
+            if (proxyConfiguration != null) {
                 if (proxyConfiguration.isEnabled()) {
                     for (final String exception : proxyConfiguration.getProxyExceptions()) {
                         if (createMatcher(exception).matches(target.getHostName())) {

@@ -32,11 +32,13 @@ import java.util.Map;
 import org.apache.hc.client5.http.impl.cache.CachingHttpClientBuilder;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
+import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ManagedService;
 
 final class OSGiCachingHttpClientBuilder extends CachingHttpClientBuilder {
 
@@ -44,8 +46,8 @@ final class OSGiCachingHttpClientBuilder extends CachingHttpClientBuilder {
 
     public OSGiCachingHttpClientBuilder(
             final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations,
-            final ServiceRegistration trustedHostConfiguration,
+            final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations,
+            final ServiceRegistration<ManagedService> trustedHostConfiguration,
             final List<CloseableHttpClient> trackedHttpClients) {
         this.trackedHttpClients = trackedHttpClients;
         setDefaultCredentialsProvider(

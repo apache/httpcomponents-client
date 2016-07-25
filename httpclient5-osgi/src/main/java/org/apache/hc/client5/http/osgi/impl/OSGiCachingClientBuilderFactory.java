@@ -32,23 +32,25 @@ import java.util.Map;
 import org.apache.hc.client5.http.impl.cache.CachingHttpClientBuilder;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.osgi.services.CachingHttpClientBuilderFactory;
+import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ManagedService;
 
 class OSGiCachingClientBuilderFactory implements CachingHttpClientBuilderFactory {
 
     private final BundleContext bundleContext;
 
-    private final Map<String, ServiceRegistration> registeredConfigurations;
+    private final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations;
 
-    private final ServiceRegistration trustedHostConfiguration;
+    private final ServiceRegistration<ManagedService> trustedHostConfiguration;
 
     private final List<CloseableHttpClient> trackedHttpClients;
 
     public OSGiCachingClientBuilderFactory(
             final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations,
-            final ServiceRegistration trustedHostConfiguration,
+            final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations,
+            final ServiceRegistration<ManagedService> trustedHostConfiguration,
             final List<CloseableHttpClient> trackedHttpClients) {
         this.bundleContext = bundleContext;
         this.registeredConfigurations = registeredConfigurations;

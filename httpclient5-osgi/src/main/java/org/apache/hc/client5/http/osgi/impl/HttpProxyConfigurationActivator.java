@@ -67,15 +67,17 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
     private static final String CACHEABLE_BUILDER_FACTORY_SERVICE_PID = "org.apache.hc.client5.http.cachinghttpclientfactory";
 
-    private ServiceRegistration configurator;
+    private ServiceRegistration<ManagedServiceFactory> configurator;
 
-    private ServiceRegistration trustedHostConfiguration;
+    private ServiceRegistration<ManagedService> trustedHostConfiguration;
 
-    private ServiceRegistration clientFactory;
+    private ServiceRegistration<HttpClientBuilderFactory> clientFactory;
+
+    private ServiceRegistration<CachingHttpClientBuilderFactory> cachingClientFactory;
 
     private BundleContext context;
 
-    private final Map<String, ServiceRegistration> registeredConfigurations = new LinkedHashMap<>();
+    private final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations = new LinkedHashMap<>();
 
     private final List<CloseableHttpClient> trackedHttpClients;
 
@@ -96,13 +98,13 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, PROXY_SERVICE_FACTORY_NAME);
 
-        configurator = context.registerService(ManagedServiceFactory.class.getName(), this, props);
+        configurator = context.registerService(ManagedServiceFactory.class, this, props);
 
         props.clear();
         props.put(Constants.SERVICE_PID, TRUSTED_HOSTS_PID);
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, TRUSTED_HOSTS_SERVICE_NAME);
-        trustedHostConfiguration = context.registerService(ManagedService.class.getName(),
+        trustedHostConfiguration = context.registerService(ManagedService.class,
                                                            new OSGiTrustedHostsConfiguration(),
                                                            props);
 
@@ -110,7 +112,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         props.put(Constants.SERVICE_PID, BUILDER_FACTORY_SERVICE_PID);
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, BUILDER_FACTORY_SERVICE_NAME);
-        clientFactory = context.registerService(HttpClientBuilderFactory.class.getName(),
+        clientFactory = context.registerService(HttpClientBuilderFactory.class,
                                                 new OSGiClientBuilderFactory(context,
                                                                              registeredConfigurations,
                                                                              trustedHostConfiguration,
@@ -121,12 +123,12 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         props.put(Constants.SERVICE_PID, CACHEABLE_BUILDER_FACTORY_SERVICE_PID);
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, CACHEABLE_BUILDER_FACTORY_SERVICE_NAME);
-        clientFactory = context.registerService(CachingHttpClientBuilderFactory.class.getName(),
-                new OSGiCachingClientBuilderFactory(context,
-                                                    registeredConfigurations,
-                                                    trustedHostConfiguration,
-                                                    trackedHttpClients),
-                props);
+        cachingClientFactory = context.registerService(CachingHttpClientBuilderFactory.class,
+                                                       new OSGiCachingClientBuilderFactory(context,
+                                                                                           registeredConfigurations,
+                                                                                           trustedHostConfiguration,
+                                                                                           trackedHttpClients),
+                                                       props);
     }
 
     /**
@@ -135,7 +137,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
     @Override
     public void stop(final BundleContext context) throws Exception {
         // unregister services
-        for (final ServiceRegistration registeredConfiguration : registeredConfigurations.values()) {
+        for (final ServiceRegistration<ProxyConfiguration> registeredConfiguration : registeredConfigurations.values()) {
             registeredConfiguration.unregister();
         }
 
@@ -146,6 +148,14 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
         if (clientFactory != null) {
             clientFactory.unregister();
+        }
+
+        if (cachingClientFactory != null) {
+            cachingClientFactory.unregister();
+        }
+
+        if (trustedHostConfiguration != null) {
+            trustedHostConfiguration.unregister();
         }
 
         // ensure all http clients - generated with the - are terminated
@@ -173,24 +183,22 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
      * {@inheritDoc}
      */
     @Override
-    public void updated(final String pid, @SuppressWarnings("rawtypes") final Dictionary config) throws ConfigurationException {
-        final ServiceRegistration registration = registeredConfigurations.get(pid);
+    public void updated(final String pid, final Dictionary<String, ?> config) throws ConfigurationException {
+        final ServiceRegistration<ProxyConfiguration> registration = registeredConfigurations.get(pid);
         final OSGiProxyConfiguration proxyConfiguration;
 
         if (registration == null) {
             proxyConfiguration = new OSGiProxyConfiguration();
-            final ServiceRegistration configurationRegistration = context.registerService(ProxyConfiguration.class.getName(),
-                                                                                    proxyConfiguration,
-                                                                                    config);
+            final ServiceRegistration<ProxyConfiguration> configurationRegistration =
+                            context.registerService(ProxyConfiguration.class,
+                                                    proxyConfiguration,
+                                                    config);
             registeredConfigurations.put(pid, configurationRegistration);
         } else {
             proxyConfiguration = (OSGiProxyConfiguration) context.getService(registration.getReference());
         }
 
-        @SuppressWarnings("unchecked") // data type is known
-        final
-        Dictionary<String, Object> properties = config;
-        proxyConfiguration.update(properties);
+        proxyConfiguration.update(config);
     }
 
     /**
@@ -198,7 +206,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
      */
     @Override
     public void deleted(final String pid) {
-        final ServiceRegistration registeredConfiguration = registeredConfigurations.get(pid);
+        final ServiceRegistration<ProxyConfiguration> registeredConfiguration = registeredConfigurations.get(pid);
         if (null != registeredConfiguration) {
             registeredConfiguration.unregister();
             registeredConfigurations.remove(pid);
