@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.osgi.impl;
 
 import static org.apache.hc.client5.http.osgi.impl.HostMatcher.HostMatcherFactory.createMatcher;
-import static org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory.getSocketFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -35,7 +34,6 @@ import java.net.Socket;
 
 import org.apache.hc.client5.http.osgi.services.TrustedHostsConfiguration;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.osgi.framework.BundleContext;
@@ -44,16 +42,18 @@ import org.osgi.service.cm.ManagedService;
 
 final class RelaxedLayeredConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
-    private final SSLConnectionSocketFactory defaultSocketFactory = getSocketFactory();
+    private final LayeredConnectionSocketFactory defaultSocketFactory;
 
     private final BundleContext bundleContext;
 
     private final ServiceRegistration<ManagedService> trustedHostConfiguration;
 
     public RelaxedLayeredConnectionSocketFactory(final BundleContext bundleContext,
-                                                 final ServiceRegistration<ManagedService> trustedHostConfiguration) {
+                                                 final ServiceRegistration<ManagedService> trustedHostConfiguration,
+                                                 final LayeredConnectionSocketFactory defaultSocketFactory) {
         this.bundleContext = bundleContext;
         this.trustedHostConfiguration = trustedHostConfiguration;
+        this.defaultSocketFactory = defaultSocketFactory;
     }
 
     @Override

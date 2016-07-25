@@ -26,16 +26,19 @@
  */
 package org.apache.hc.client5.http.osgi.impl;
 
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Test;
@@ -62,19 +65,23 @@ public class TestRelaxedLayeredConnectionSocketFactory {
     }
 
     @Test
-    public void testTrustedLocalhostConnections() throws Exception {
+    public void testTrustedConnections() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final Dictionary<String, Object> config = new Hashtable<>();
         config.put("trustedhosts.enabled", Boolean.TRUE);
         config.put("trustedhosts.trustAll", Boolean.FALSE);
         config.put("trustedhosts.hosts", new String[]{ "localhost" });
         final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(config);
+
         final Socket socket = socketFactory.createSocket(context);
-        final Socket secureSocket = socketFactory.createLayeredSocket(socket, "localhost", 9999, context);
-        assertSame(socket, secureSocket);
+        final Socket localSecureSocket = socketFactory.createLayeredSocket(socket, "localhost", 9999, context);
+        assertSame(socket, localSecureSocket);
+
+        final Socket apacheSecureSocket = socketFactory.createLayeredSocket(socket, "www.apache.org", 9999, context);
+        assertNotSame(socket, apacheSecureSocket);
     }
 
-    @Test(expected = SocketException.class)
+    @Test
     public void testNotEabledConfiguration() throws Exception {
         final HttpContext context = new BasicHttpContext();
 
@@ -84,7 +91,8 @@ public class TestRelaxedLayeredConnectionSocketFactory {
         config.put("trustedhosts.hosts", new String[]{});
         final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(config);
         final Socket socket = socketFactory.createSocket(context);
-        socketFactory.createLayeredSocket(socket, "localhost", 9999, context);
+        final Socket secureSocket = socketFactory.createLayeredSocket(socket, "localhost", 9999, context);
+        assertNotSame(socket, secureSocket);
     }
 
     private LayeredConnectionSocketFactory getLayeredConnectionSocketFactory(final Dictionary<String, ?> config) {
@@ -99,7 +107,38 @@ public class TestRelaxedLayeredConnectionSocketFactory {
             // it doesn't happen in tests
         }
         when(bundleContext.getService(reference)).thenReturn(configuration);
-        return new RelaxedLayeredConnectionSocketFactory(bundleContext, registration);
+
+        final Socket socket = mock(Socket.class);
+        final Socket secureSocket = mock(Socket.class);
+        final LayeredConnectionSocketFactory defaultSocketFactory = new LayeredConnectionSocketFactory() {
+
+            @Override
+            public Socket createSocket(final HttpContext context) throws IOException {
+                return socket;
+            }
+
+            @Override
+            public Socket connectSocket(final int connectTimeout,
+                                        final Socket sock,
+                                        final HttpHost host,
+                                        final InetSocketAddress remoteAddress,
+                                        final InetSocketAddress localAddress,
+                                        final HttpContext context ) throws IOException {
+                // not needed in this version
+                return socket;
+            }
+
+            @Override
+            public Socket createLayeredSocket(final Socket socket,
+                                              final String target,
+                                              final int port,
+                                              final HttpContext context) throws IOException {
+                return secureSocket;
+            }
+
+        };
+
+        return new RelaxedLayeredConnectionSocketFactory(bundleContext, registration, defaultSocketFactory);
     }
 
 }

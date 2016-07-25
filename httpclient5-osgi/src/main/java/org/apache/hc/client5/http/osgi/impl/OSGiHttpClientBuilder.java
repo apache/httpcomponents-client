@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.http.osgi.impl;
 
+import static org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory.getSocketFactory;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,7 @@ import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.osgi.framework.BundleContext;
@@ -58,9 +61,10 @@ final class OSGiHttpClientBuilder extends HttpClientBuilder {
                 new OSGiCredentialsProvider(bundleContext, registeredConfigurations));
         setRoutePlanner(
                 new OSGiHttpRoutePlanner(bundleContext, registeredConfigurations));
+        final LayeredConnectionSocketFactory defaultSocketFactory = getSocketFactory();
         setConnectionManager(new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
                                                                     .register("http", PlainConnectionSocketFactory.INSTANCE)
-                                                                    .register("https", new RelaxedLayeredConnectionSocketFactory(bundleContext, trustedHostConfiguration))
+                                                                    .register("https", new RelaxedLayeredConnectionSocketFactory(bundleContext, trustedHostConfiguration, defaultSocketFactory))
                                                                     .build()));
     }
 
