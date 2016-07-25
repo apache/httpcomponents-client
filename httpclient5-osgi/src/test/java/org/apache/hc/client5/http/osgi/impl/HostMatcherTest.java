@@ -54,7 +54,6 @@ public final class HostMatcherTest {
     public void testIPAddressMatcher() {
         final NetworkAddress na = NetworkAddress.parse("127.0.0.1");
         final IPAddressMatcher ipam = new IPAddressMatcher(na);
-        assertTrue(ipam.matches("127.0.0.1"));
         assertFalse(ipam.matches("127.0.0.255"));
     }
 
