@@ -43,11 +43,11 @@ final class OSGiCredentialsProvider implements CredentialsStore {
 
     private final BundleContext bundleContext;
 
-    private final Map<String, ServiceRegistration> registeredConfigurations;
+    private final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations;
 
     public OSGiCredentialsProvider(
             final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations) {
+            final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations) {
         this.bundleContext = bundleContext;
         this.registeredConfigurations = registeredConfigurations;
     }
@@ -66,10 +66,9 @@ final class OSGiCredentialsProvider implements CredentialsStore {
     @Override
     public Credentials getCredentials(final AuthScope authscope) {
         // iterate over all active proxy configurations at the moment of getting the credential
-        for (final ServiceRegistration registration : registeredConfigurations.values()) {
-            final Object proxyConfigurationObject = bundleContext.getService(registration.getReference());
-            if (proxyConfigurationObject != null) {
-                final ProxyConfiguration proxyConfiguration = (ProxyConfiguration) proxyConfigurationObject;
+        for (final ServiceRegistration<ProxyConfiguration> registration : registeredConfigurations.values()) {
+            final ProxyConfiguration proxyConfiguration = bundleContext.getService(registration.getReference());
+            if (proxyConfiguration != null) {
                 if (proxyConfiguration.isEnabled()) {
                     final AuthScope actual = new AuthScope(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
                     if (authscope.match(actual) >= 12) {

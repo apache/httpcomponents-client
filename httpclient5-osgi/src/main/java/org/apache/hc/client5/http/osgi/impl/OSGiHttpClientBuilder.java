@@ -26,14 +26,23 @@
  */
 package org.apache.hc.client5.http.osgi.impl;
 
+import static org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory.getSocketFactory;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
+import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ManagedService;
 
 /**
  * @since 4.3
@@ -44,13 +53,19 @@ final class OSGiHttpClientBuilder extends HttpClientBuilder {
 
     public OSGiHttpClientBuilder(
             final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations,
+            final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations,
+            final ServiceRegistration<ManagedService> trustedHostConfiguration,
             final List<CloseableHttpClient> trackedHttpClients) {
         this.trackedHttpClients = trackedHttpClients;
         setDefaultCredentialsProvider(
                 new OSGiCredentialsProvider(bundleContext, registeredConfigurations));
         setRoutePlanner(
                 new OSGiHttpRoutePlanner(bundleContext, registeredConfigurations));
+        final LayeredConnectionSocketFactory defaultSocketFactory = getSocketFactory();
+        setConnectionManager(new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+                                                                    .register("http", PlainConnectionSocketFactory.INSTANCE)
+                                                                    .register("https", new RelaxedLayeredConnectionSocketFactory(bundleContext, trustedHostConfiguration, defaultSocketFactory))
+                                                                    .build()));
     }
 
     @Override

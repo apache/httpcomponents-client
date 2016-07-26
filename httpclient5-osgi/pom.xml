@@ -59,12 +59,13 @@
       <groupId>org.apache.httpcomponents.core5</groupId>
       <artifactId>httpcore5-osgi</artifactId>
       <version>${httpcore.version}</version>
-        <exclusions>
-          <exclusion>
-              <groupId>org.apache.httpcomponents.client5</groupId>
-              <artifactId>httpcore-nio</artifactId>
-          </exclusion>
-        </exclusions>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpcore-nio</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -91,6 +92,7 @@
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.compendium</artifactId>
       <version>${osgi.framework.version}</version>
+      <scope>provided</scope>
     </dependency>
     <!-- test dependencies, mainly OSGi runtime environment -->
     <dependency>

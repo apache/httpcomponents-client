@@ -114,13 +114,13 @@ public class TestOSGiHttpRoutePlanner {
 
     @Test
     public void testDeterminProxy() throws Exception {
-        final ServiceReference sRef1 = mock(ServiceReference.class);
-        final ServiceRegistration sReg1 = mock(ServiceRegistration.class);
+        final ServiceReference<ProxyConfiguration> sRef1 = mock(ServiceReference.class);
+        final ServiceRegistration<ProxyConfiguration> sReg1 = mock(ServiceRegistration.class);
         when(sReg1.getReference()).thenReturn(sRef1);
         final BundleContext bc = mock(BundleContext.class);
         when(bc.getService(sRef1)).thenReturn(this.pc1);
 
-        final Map<String, ServiceRegistration> registrations = new TreeMap<>(); // TreeMap for order
+        final Map<String, ServiceRegistration<ProxyConfiguration>> registrations = new TreeMap<>(); // TreeMap for order
         registrations.put("foo1", sReg1);
 
         OSGiHttpRoutePlanner planner = new OSGiHttpRoutePlanner(bc, registrations);
@@ -145,8 +145,8 @@ public class TestOSGiHttpRoutePlanner {
 
 
         // test with more than one registration of proxyConfiguration
-        final ServiceReference sRef2 = mock(ServiceReference.class);
-        final ServiceRegistration sReg2 = mock(ServiceRegistration.class);
+        final ServiceReference<ProxyConfiguration> sRef2 = mock(ServiceReference.class);
+        final ServiceRegistration<ProxyConfiguration> sReg2 = mock(ServiceRegistration.class);
         when(sReg2.getReference()).thenReturn(sRef2);
         when(bc.getService(sRef2)).thenReturn(this.pc2);
         registrations.put("foo2", sReg2);
@@ -171,12 +171,12 @@ public class TestOSGiHttpRoutePlanner {
 
     @Test
     public void testMasking() throws Exception {
-        final ServiceReference sRef2 = mock(ServiceReference.class);
-        final ServiceRegistration sReg2 = mock(ServiceRegistration.class);
+        final ServiceReference<ProxyConfiguration> sRef2 = mock(ServiceReference.class);
+        final ServiceRegistration<ProxyConfiguration> sReg2 = mock(ServiceRegistration.class);
         when(sReg2.getReference()).thenReturn(sRef2);
         final BundleContext bc = mock(BundleContext.class);
         when(bc.getService(sRef2)).thenReturn(this.pc2);
-        final Map<String, ServiceRegistration> registrations = new TreeMap<>();
+        final Map<String, ServiceRegistration<ProxyConfiguration>> registrations = new TreeMap<>();
         registrations.put("foo2", sReg2);
 
         final OSGiHttpRoutePlanner planner = new OSGiHttpRoutePlanner(bc, registrations);
