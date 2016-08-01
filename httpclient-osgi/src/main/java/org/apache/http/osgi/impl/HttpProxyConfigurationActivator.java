@@ -86,14 +86,14 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         // ensure we receive configurations for the proxy selector
         final Hashtable<String, Object> props = new Hashtable<String, Object>();
         props.put(Constants.SERVICE_PID, getName());
-        props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders(Constants.BUNDLE_VENDOR));
+        props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, PROXY_SERVICE_FACTORY_NAME);
 
         configurator = context.registerService(ManagedServiceFactory.class.getName(), this, props);
 
         props.clear();
         props.put(Constants.SERVICE_PID, BUILDER_FACTORY_SERVICE_PID);
-        props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders(Constants.BUNDLE_VENDOR));
+        props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, BUILDER_FACTORY_SERVICE_NAME);
         clientFactory = context.registerService(HttpClientBuilderFactory.class.getName(),
                                                 new OSGiClientBuilderFactory(context, registeredConfigurations, trackedHttpClients),
@@ -101,7 +101,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
         props.clear();
         props.put(Constants.SERVICE_PID, CACHEABLE_BUILDER_FACTORY_SERVICE_PID);
-        props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders(Constants.BUNDLE_VENDOR));
+        props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, CACHEABLE_BUILDER_FACTORY_SERVICE_NAME);
         clientFactory = context.registerService(CachingHttpClientBuilderFactory.class.getName(),
                 new OSGiCachingClientBuilderFactory(context, registeredConfigurations, trackedHttpClients),
