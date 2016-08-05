@@ -32,8 +32,10 @@ import java.util.Map;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.client5.http.osgi.services.HttpClientBuilderFactory;
+import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ManagedService;
 
 /**
  * @since 4.3
@@ -42,22 +44,26 @@ public final class OSGiClientBuilderFactory implements HttpClientBuilderFactory 
 
     private final BundleContext bundleContext;
 
-    private final Map<String, ServiceRegistration> registeredConfigurations;
+    private final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations;
+
+    private final ServiceRegistration<ManagedService> trustedHostConfiguration;
 
     private final List<CloseableHttpClient> trackedHttpClients;
 
     public OSGiClientBuilderFactory(
             final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations,
+            final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations,
+            final ServiceRegistration<ManagedService> trustedHostConfiguration,
             final List<CloseableHttpClient> trackedHttpClients) {
         this.bundleContext = bundleContext;
         this.registeredConfigurations = registeredConfigurations;
+        this.trustedHostConfiguration = trustedHostConfiguration;
         this.trackedHttpClients = trackedHttpClients;
     }
 
     @Override
     public HttpClientBuilder newBuilder() {
-        return new OSGiHttpClientBuilder(bundleContext, registeredConfigurations, trackedHttpClients);
+        return new OSGiHttpClientBuilder(bundleContext, registeredConfigurations, trustedHostConfiguration, trackedHttpClients);
     }
 
 }

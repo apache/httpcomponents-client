@@ -124,7 +124,7 @@ public final class OSGiProxyConfiguration implements ProxyConfiguration {
         return proxyExceptions;
     }
 
-    public void update(final Dictionary<String, Object> config) {
+    public void update(final Dictionary<String, ?> config) {
         enabled = to(config.get(PROPERTYNAME_PROXY_ENABLED), boolean.class, PROPERTYDEFAULT_PROXY_ENABLED);
         hostname = to(config.get(PROPERTYNAME_PROXY_HOSTNAME), String.class, PROPERTYDEFAULT_PROXY_HOSTNAME);
         port = to(config.get(PROPERTYNAME_PROXY_PORT), int.class, PROPERTYDEFAULT_PROXY_PORT);

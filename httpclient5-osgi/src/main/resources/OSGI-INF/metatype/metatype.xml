@@ -69,8 +69,36 @@
 
   </OCD>
 
+  <OCD id="org.apache.hc.client5.http.trustedhosts"
+     name="%trustedhosts.name"
+     description="%trustedhosts.description">
+
+    <AD id="trustedhosts.enabled"
+      type="Boolean"
+      default="true"
+      name="%trustedhosts.enabled.name"
+      description="%trustedhosts.enabled.description" />
+
+    <AD id="trustedhosts.trustAll"
+      type="Boolean"
+      default="false"
+      name="%trustedhosts.trustAll.name"
+      description="%trustedhosts.trustAll.description" />
+
+    <AD id="trustedhosts.hosts"
+      type="String"
+      default="localhost,127.0.0.1"
+      cardinality="2147483647"
+      name="%trustedhosts.hosts.name"
+      description="%trustedhosts.hosts.description" />
+
+  </OCD>
+
   <Designate pid="org.apache.hc.client5.http.proxyconfigurator">
     <Object ocdref="org.apache.hc.client5.http.proxyconfigurator" />
+  </Designate>
+  <Designate pid="org.apache.hc.client5.http.trustedhosts">
+    <Object ocdref="org.apache.hc.client5.http.trustedhosts" />
   </Designate>
 
 </metatype:MetaData>
