@@ -41,9 +41,9 @@ import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
-import org.apache.hc.client5.http.methods.HttpUriRequest;
 import org.apache.hc.core5.annotation.ThreadSafe;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.util.Args;
@@ -101,18 +101,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
         final String protocol = origin != null ? origin.getSchemeName() :
                 (port == 443 ? "https" : "http");
 
-        final URL targetHostURL;
-        if (context != null) {
-            final HttpUriRequest httpUriRequest = (HttpUriRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
-            try {
-                targetHostURL = httpUriRequest.getURI().toURL();
-            } catch (final MalformedURLException e) {
-                throw new IllegalStateException("Unexpected request url format: " + httpUriRequest, e);
-            }
-        } else {
-            // Fluent case.
-            targetHostURL = null;
-        }
+        final URL targetHostURL = getTargetHostURL(context);
         // use null addr, because the authentication fails if it does not exactly match the expected realm's host
         return Authenticator.requestPasswordAuthentication(
                 hostname,
@@ -123,6 +112,21 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 translateScheme(authscope.getScheme()),
                 targetHostURL,
                 requestorType);
+    }
+
+    private static URL getTargetHostURL(final HttpContext context) {
+        if (context == null) {
+            // Fluent case.
+            return null;
+        }
+
+        final HttpRequest httpRequest = (HttpRequest)context.getAttribute(HttpCoreContext.HTTP_REQUEST);
+        final String uri = httpRequest.getRequestLine().getUri();
+        try {
+            return new URL(uri);
+        } catch (final MalformedURLException e) {
+            throw new IllegalStateException("Unexpected request url format: " + uri, e);
+        }
     }
 
     @Override
