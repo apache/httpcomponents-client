@@ -62,6 +62,7 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.pool.ConnFactory;
 import org.apache.http.pool.ConnPoolControl;
+import org.apache.http.pool.PoolEntryCallback;
 import org.apache.http.pool.PoolStats;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
@@ -411,6 +412,14 @@ public class PoolingHttpClientConnectionManager
     public void closeExpiredConnections() {
         this.log.debug("Closing expired connections");
         this.pool.closeExpired();
+    }
+
+    protected void enumAvailable(final PoolEntryCallback<HttpRoute, ManagedHttpClientConnection> callback) {
+        this.pool.enumAvailable(callback);
+    }
+
+    protected void enumLeased(final PoolEntryCallback<HttpRoute, ManagedHttpClientConnection> callback) {
+        this.pool.enumLeased(callback);
     }
 
     @Override

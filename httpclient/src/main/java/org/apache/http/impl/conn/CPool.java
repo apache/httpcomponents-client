@@ -36,6 +36,7 @@ import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.pool.AbstractConnPool;
 import org.apache.http.pool.ConnFactory;
+import org.apache.http.pool.PoolEntryCallback;
 
 /**
  * @since 4.3
@@ -67,6 +68,16 @@ class CPool extends AbstractConnPool<HttpRoute, ManagedHttpClientConnection, CPo
     @Override
     protected boolean validate(final CPoolEntry entry) {
         return !entry.getConnection().isStale();
+    }
+
+    @Override
+    protected void enumAvailable(final PoolEntryCallback<HttpRoute, ManagedHttpClientConnection> callback) {
+        super.enumAvailable(callback);
+    }
+
+    @Override
+    protected void enumLeased(final PoolEntryCallback<HttpRoute, ManagedHttpClientConnection> callback) {
+        super.enumLeased(callback);
     }
 
 }
