@@ -160,12 +160,13 @@ public class TestHttpAuthenticator {
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
         final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
-        Mockito.when(this.credentialsProvider.getCredentials(Mockito.<AuthScope>any())).thenReturn(credentials);
+        Mockito.when(this.credentialsProvider.getCredentials(Mockito.<AuthScope>any(),
+                                                             Mockito.<HttpContext>any())).thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertTrue(this.httpAuthenticator.prepareAuthResponse(
-                host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
+        Assert.assertTrue(this.httpAuthenticator.prepareAuthResponse(host, ChallengeType.TARGET, response, authStrategy,
+                                                                     this.authExchange, this.context));
         Assert.assertEquals(AuthExchange.State.CHALLENGED, this.authExchange.getState());
 
         final Queue<AuthScheme> options = this.authExchange.getAuthOptions();
@@ -182,17 +183,19 @@ public class TestHttpAuthenticator {
     @Test
     public void testAuthenticationCredentialsForBasic() throws Exception {
         final HttpHost host = new HttpHost("somehost", 80);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
+        final HttpResponse response =
+            new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_UNAUTHORIZED, "UNAUTHORIZED");
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test\""));
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"realm1\", nonce=\"1234\""));
 
         final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
-        Mockito.when(this.credentialsProvider.getCredentials(new AuthScope(host, "test", "basic"))).thenReturn(credentials);
+        Mockito.when(this.credentialsProvider.getCredentials(Mockito.eq(new AuthScope(host, "test", "basic")),
+                                                             Mockito.<HttpContext>any())).thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 
-        Assert.assertTrue(this.httpAuthenticator.prepareAuthResponse(
-                host, ChallengeType.TARGET, response, authStrategy, this.authExchange, this.context));
+        Assert.assertTrue(this.httpAuthenticator.prepareAuthResponse(host, ChallengeType.TARGET, response, authStrategy,
+                                                                     this.authExchange, this.context));
         Assert.assertEquals(AuthExchange.State.CHALLENGED, this.authExchange.getState());
 
         final Queue<AuthScheme> options = this.authExchange.getAuthOptions();
@@ -322,7 +325,8 @@ public class TestHttpAuthenticator {
         response.addHeader(new BasicHeader(HttpHeaders.WWW_AUTHENTICATE, "whatever realm=\"realm1\", stuff=\"1234\""));
 
         final Credentials credentials = new UsernamePasswordCredentials("user", "pass".toCharArray());
-        Mockito.when(this.credentialsProvider.getCredentials(new AuthScope(host, "realm1", "digest"))).thenReturn(credentials);
+        Mockito.when(this.credentialsProvider.getCredentials(Mockito.eq(new AuthScope(host, "realm1", "digest")),
+                                                             Mockito.<HttpContext>any())).thenReturn(credentials);
 
         final DefaultAuthenticationStrategy authStrategy = new DefaultAuthenticationStrategy();
 

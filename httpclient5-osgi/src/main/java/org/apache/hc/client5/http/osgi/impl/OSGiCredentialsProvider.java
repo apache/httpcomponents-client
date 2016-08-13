@@ -33,6 +33,7 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -64,7 +65,7 @@ final class OSGiCredentialsProvider implements CredentialsStore {
      * {@inheritDoc}
      */
     @Override
-    public Credentials getCredentials(final AuthScope authscope) {
+    public Credentials getCredentials(final AuthScope authscope, final HttpContext context) {
         // iterate over all active proxy configurations at the moment of getting the credential
         for (final ServiceRegistration<ProxyConfiguration> registration : registeredConfigurations.values()) {
             final ProxyConfiguration proxyConfiguration = bundleContext.getService(registration.getReference());

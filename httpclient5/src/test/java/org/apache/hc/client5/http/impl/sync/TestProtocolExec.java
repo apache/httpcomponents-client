@@ -190,7 +190,7 @@ public class TestProtocolExec {
         Assert.assertEquals(new URI("/test"), request.getURI());
         Assert.assertEquals(new HttpHost("bar", -1), context.getTargetHost());
         final CredentialsProvider credentialsProvider = context.getCredentialsProvider();
-        final Credentials creds = credentialsProvider.getCredentials(new AuthScope("bar", -1, null));
+        final Credentials creds = credentialsProvider.getCredentials(new AuthScope("bar", -1, null), null);
         Assert.assertNotNull(creds);
         Assert.assertEquals("somefella", creds.getUserPrincipal().getName());
     }

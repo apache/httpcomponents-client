@@ -146,7 +146,7 @@ public class Executor {
 
     public Executor authPreemptive(final HttpHost host) {
         if (this.credentialsStore != null) {
-            final Credentials credentials = this.credentialsStore.getCredentials(new AuthScope(host));
+            final Credentials credentials = this.credentialsStore.getCredentials(new AuthScope(host), null);
             if (credentials == null) {
                 final BasicScheme basicScheme = new BasicScheme();
                 basicScheme.initPreemptive(credentials);
@@ -165,7 +165,7 @@ public class Executor {
 
     public Executor authPreemptiveProxy(final HttpHost proxy) {
         if (this.credentialsStore != null) {
-            final Credentials credentials = this.credentialsStore.getCredentials(new AuthScope(proxy));
+            final Credentials credentials = this.credentialsStore.getCredentials(new AuthScope(proxy), null);
             if (credentials == null) {
                 final BasicScheme basicScheme = new BasicScheme();
                 basicScheme.initPreemptive(credentials);
