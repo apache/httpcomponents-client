@@ -62,6 +62,7 @@ import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.pool.ConnPoolControl;
+import org.apache.hc.core5.pool.PoolEntryCallback;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.pool.io.ConnFactory;
 import org.apache.hc.core5.util.Args;
@@ -417,6 +418,14 @@ public class PoolingHttpClientConnectionManager
     public void closeExpiredConnections() {
         this.log.debug("Closing expired connections");
         this.pool.closeExpired();
+    }
+
+    protected void enumAvailable(final PoolEntryCallback<HttpRoute, ManagedHttpClientConnection> callback) {
+        this.pool.enumAvailable(callback);
+    }
+
+    protected void enumLeased(final PoolEntryCallback<HttpRoute, ManagedHttpClientConnection> callback) {
+        this.pool.enumLeased(callback);
     }
 
     @Override

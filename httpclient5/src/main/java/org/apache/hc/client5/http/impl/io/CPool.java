@@ -34,6 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.pool.PoolEntryCallback;
 import org.apache.hc.core5.pool.io.AbstractConnPool;
 import org.apache.hc.core5.pool.io.ConnFactory;
 
@@ -67,6 +68,16 @@ class CPool extends AbstractConnPool<HttpRoute, ManagedHttpClientConnection, CPo
     @Override
     protected boolean validate(final CPoolEntry entry) {
         return !entry.getConnection().isStale();
+    }
+
+    @Override
+    protected void enumAvailable(final PoolEntryCallback<HttpRoute, ManagedHttpClientConnection> callback) {
+        super.enumAvailable(callback);
+    }
+
+    @Override
+    protected void enumLeased(final PoolEntryCallback<HttpRoute, ManagedHttpClientConnection> callback) {
+        super.enumLeased(callback);
     }
 
 }
