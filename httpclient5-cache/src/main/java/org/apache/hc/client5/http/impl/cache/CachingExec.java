@@ -526,7 +526,7 @@ public class CachingExec implements ClientExecChain {
         final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.hc.client5", getClass().getClassLoader());
         final String release = (vi != null) ? vi.getRelease() : VersionInfo.UNAVAILABLE;
 
-        String value;
+        final String value;
         final int major = pv.getMajor();
         final int minor = pv.getMinor();
         if ("http".equalsIgnoreCase(pv.getProtocol())) {

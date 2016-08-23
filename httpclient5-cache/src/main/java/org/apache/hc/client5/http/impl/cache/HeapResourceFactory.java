@@ -67,7 +67,7 @@ public class HeapResourceFactory implements ResourceFactory {
     public Resource copy(
             final String requestId,
             final Resource resource) throws IOException {
-        byte[] body;
+        final byte[] body;
         if (resource instanceof HeapResource) {
             body = ((HeapResource) resource).getByteArray();
         } else {
