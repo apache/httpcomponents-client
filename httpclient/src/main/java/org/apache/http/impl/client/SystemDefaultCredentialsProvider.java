@@ -145,7 +145,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
                             null, domain);
                 } else {
                     if (AuthSchemes.NTLM.equalsIgnoreCase(authscope.getScheme())) {
-                        // Domian may be specified in a fully qualified user name
+                        // Domain may be specified in a fully qualified user name
                         return new NTCredentials(
                                 systemcreds.getUserName(),
                                 new String(systemcreds.getPassword()),
