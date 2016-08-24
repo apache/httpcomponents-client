@@ -53,14 +53,20 @@ import org.apache.http.protocol.HttpContext;
 public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
 
     private final ProxySelector proxySelector;
-
+    
+    /**
+     * @param proxySelector the proxy selector, or {@code null} for the system default
+     */
     public SystemDefaultRoutePlanner(
             final SchemePortResolver schemePortResolver,
             final ProxySelector proxySelector) {
         super(schemePortResolver);
-        this.proxySelector = proxySelector != null ? proxySelector : ProxySelector.getDefault();
+        this.proxySelector = proxySelector;
     }
-
+    
+    /**
+     * @param proxySelector the proxy selector, or {@code null} for the system default
+     */
     public SystemDefaultRoutePlanner(final ProxySelector proxySelector) {
         this(null, proxySelector);
     }
@@ -76,7 +82,15 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
         } catch (final URISyntaxException ex) {
             throw new HttpException("Cannot convert host to URI: " + target, ex);
         }
-        final List<Proxy> proxies = this.proxySelector.select(targetURI);
+        ProxySelector proxySelectorInstance = this.proxySelector;
+        if (proxySelectorInstance == null){
+            proxySelectorInstance = ProxySelector.getDefault();
+        }
+        if (proxySelectorInstance == null){
+            //The proxy selector can be "unset", so we must be able to deal with a null selector
+            return null;
+        }
+        final List<Proxy> proxies = proxySelectorInstance.select(targetURI);
         final Proxy p = chooseProxy(proxies);
         HttpHost result = null;
         if (p.type() == Proxy.Type.HTTP) {
