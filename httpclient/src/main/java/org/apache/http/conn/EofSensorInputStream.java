@@ -193,14 +193,16 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
      */
     protected void checkEOF(final int eof) throws IOException {
 
-        if ((wrappedStream != null) && (eof < 0)) {
+        final InputStream toCheckStream = wrappedStream;
+        if ((toCheckStream != null) && (eof < 0)) {
             try {
                 boolean scws = true; // should close wrapped stream?
-                if (eofWatcher != null) {
-                    scws = eofWatcher.eofDetected(wrappedStream);
+                final EofSensorWatcher toCheckWatcher = eofWatcher;
+                if (toCheckWatcher != null) {
+                    scws = toCheckWatcher.eofDetected(toCheckStream);
                 }
                 if (scws) {
-                    wrappedStream.close();
+                    toCheckStream.close();
                 }
             } finally {
                 wrappedStream = null;
@@ -221,14 +223,16 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
      */
     protected void checkClose() throws IOException {
 
-        if (wrappedStream != null) {
+        final InputStream toCloseStream = wrappedStream;
+        if (toCloseStream != null) {
             try {
                 boolean scws = true; // should close wrapped stream?
-                if (eofWatcher != null) {
-                    scws = eofWatcher.streamClosed(wrappedStream);
+                final EofSensorWatcher toCloseWatcher = eofWatcher;
+                if (toCloseWatcher != null) {
+                    scws = toCloseWatcher.streamClosed(toCloseStream);
                 }
                 if (scws) {
-                    wrappedStream.close();
+                    toCloseStream.close();
                 }
             } finally {
                 wrappedStream = null;
@@ -251,14 +255,16 @@ public class EofSensorInputStream extends InputStream implements ConnectionRelea
      */
     protected void checkAbort() throws IOException {
 
-        if (wrappedStream != null) {
+        final InputStream toAbortStream = wrappedStream;
+        if (toAbortStream != null) {
             try {
                 boolean scws = true; // should close wrapped stream?
-                if (eofWatcher != null) {
-                    scws = eofWatcher.streamAbort(wrappedStream);
+                final EofSensorWatcher toAbortWatcher = eofWatcher;
+                if (toAbortWatcher != null) {
+                    scws = toAbortWatcher.streamAbort(toAbortStream);
                 }
                 if (scws) {
-                    wrappedStream.close();
+                    toAbortStream.close();
                 }
             } finally {
                 wrappedStream = null;
