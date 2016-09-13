@@ -141,7 +141,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
             // this assumes that closing the stream will
             // consume the remainder of the response body:
             try {
-                if(wrapped != null) {
+                if (wrapped != null) {
                     wrapped.close();
                 }
                 releaseConnection();
