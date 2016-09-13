@@ -98,7 +98,9 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
     @Override
     public void writeTo(final OutputStream outstream) throws IOException {
         try {
-            this.wrappedEntity.writeTo(outstream);
+            if (outstream != null) {
+                this.wrappedEntity.writeTo(outstream);
+            }
             releaseConnection();
         } catch (final IOException ex) {
             abortConnection();
@@ -116,7 +118,9 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
         try {
             // there may be some cleanup required, such as
             // reading trailers after the response body:
-            wrapped.close();
+            if (wrapped != null) {
+                wrapped.close();
+            }
             releaseConnection();
         } catch (final IOException ex) {
             abortConnection();
@@ -137,7 +141,9 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
             // this assumes that closing the stream will
             // consume the remainder of the response body:
             try {
-                wrapped.close();
+                if(wrapped != null) {
+                    wrapped.close();
+                }
                 releaseConnection();
             } catch (final SocketException ex) {
                 if (open) {
