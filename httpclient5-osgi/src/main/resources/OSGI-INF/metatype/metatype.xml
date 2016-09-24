@@ -94,7 +94,7 @@
 
   </OCD>
 
-  <Designate pid="org.apache.hc.client5.http.proxyconfigurator">
+  <Designate pid="org.apache.hc.client5.http.proxyconfigurator" factoryPid="org.apache.hc.client5.http.proxyconfigurator">
     <Object ocdref="org.apache.hc.client5.http.proxyconfigurator" />
   </Designate>
   <Designate pid="org.apache.hc.client5.http.trustedhosts">
