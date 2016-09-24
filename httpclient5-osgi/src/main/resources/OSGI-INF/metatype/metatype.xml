@@ -67,6 +67,10 @@
       name="%proxy.exceptions.name"
       description="%proxy.exceptions.description" />
 
+    <AD id="webconsole.configurationFactory.nameHint"
+      type="String"
+      default="{proxy.host}:{proxy.port} (enabled = {proxy.enabled})"/>
+
   </OCD>
 
   <OCD id="org.apache.hc.client5.http.trustedhosts"
