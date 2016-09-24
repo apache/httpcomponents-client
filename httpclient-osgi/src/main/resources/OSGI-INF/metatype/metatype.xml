@@ -69,7 +69,7 @@
 
   </OCD>
 
-  <Designate pid="org.apache.http.proxyconfigurator">
+  <Designate pid="org.apache.http.proxyconfigurator" factoryPid="org.apache.http.proxyconfigurator">
     <Object ocdref="org.apache.http.proxyconfigurator" />
   </Designate>
 
