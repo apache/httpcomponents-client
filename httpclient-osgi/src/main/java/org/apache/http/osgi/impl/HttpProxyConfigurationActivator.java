@@ -66,6 +66,8 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
     private ServiceRegistration clientFactory;
 
+    private ServiceRegistration cachingClientFactory;
+
     private BundleContext context;
 
     private final Map<String, ServiceRegistration> registeredConfigurations = new LinkedHashMap<String, ServiceRegistration>();
@@ -103,7 +105,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         props.put(Constants.SERVICE_PID, CACHEABLE_BUILDER_FACTORY_SERVICE_PID);
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, CACHEABLE_BUILDER_FACTORY_SERVICE_NAME);
-        clientFactory = context.registerService(CachingHttpClientBuilderFactory.class.getName(),
+        cachingClientFactory = context.registerService(CachingHttpClientBuilderFactory.class.getName(),
                 new OSGiCachingClientBuilderFactory(context, registeredConfigurations, trackedHttpClients),
                 props);
     }
@@ -125,6 +127,10 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
         if (clientFactory != null) {
             clientFactory.unregister();
+        }
+
+        if (cachingClientFactory != null) {
+            cachingClientFactory.unregister();
         }
 
         // ensure all http clients - generated with the - are terminated
