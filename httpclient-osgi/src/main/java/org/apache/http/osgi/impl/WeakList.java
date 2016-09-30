@@ -62,6 +62,11 @@ class WeakList<T> extends AbstractList<T> {
         return innerList.add(new WeakReference<T>(t));
     }
 
+    @Override
+    public void clear() {
+        innerList.clear();
+    }
+
     private void checkReferences() {
         final ListIterator<WeakReference<T>> references = innerList.listIterator();
         while (references.hasNext()) {
