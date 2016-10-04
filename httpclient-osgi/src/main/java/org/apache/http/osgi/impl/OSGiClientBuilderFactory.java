@@ -26,11 +26,10 @@
  */
 package org.apache.http.osgi.impl;
 
-import java.util.List;
-
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.osgi.services.HttpClientBuilderFactory;
+
 /**
  * @since 4.3
  */
@@ -38,13 +37,13 @@ final class OSGiClientBuilderFactory implements HttpClientBuilderFactory {
 
     private final HttpClientBuilderConfigurator configurator;
 
-    private final List<CloseableHttpClient> trackedHttpClients;
+    private final HttpProxyConfigurationActivator.HttpClientTracker httpClientTracker;
 
     OSGiClientBuilderFactory(
             final HttpClientBuilderConfigurator configurator,
-            final List<CloseableHttpClient> trackedHttpClients) {
+            final HttpProxyConfigurationActivator.HttpClientTracker httpClientTracker) {
         this.configurator = configurator;
-        this.trackedHttpClients = trackedHttpClients;
+        this.httpClientTracker = httpClientTracker;
     }
 
     @Override
@@ -53,7 +52,7 @@ final class OSGiClientBuilderFactory implements HttpClientBuilderFactory {
             @Override
             public CloseableHttpClient build() {
                 final CloseableHttpClient client = super.build();
-                trackedHttpClients.add(client);
+                httpClientTracker.track(client);
                 return client;
             }
         });

@@ -76,11 +76,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
     private final List<ProxyConfiguration> proxyConfigurations = new CopyOnWriteArrayList<ProxyConfiguration>();
 
-    private final List<CloseableHttpClient> trackedHttpClients;
-
-    public HttpProxyConfigurationActivator() {
-        trackedHttpClients = new WeakList<CloseableHttpClient>();
-    }
+    private final HttpClientTracker httpClientTracker = new HttpClientTracker();
 
     /**
      * {@inheritDoc}
@@ -104,7 +100,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, BUILDER_FACTORY_SERVICE_NAME);
         clientFactory = context.registerService(HttpClientBuilderFactory.class.getName(),
-                                                new OSGiClientBuilderFactory(configurator, trackedHttpClients),
+                                                new OSGiClientBuilderFactory(configurator, httpClientTracker),
                                                 props);
 
         props.clear();
@@ -112,7 +108,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, CACHEABLE_BUILDER_FACTORY_SERVICE_NAME);
         cachingClientFactory = context.registerService(CachingHttpClientBuilderFactory.class.getName(),
-                                                       new OSGiCachingClientBuilderFactory(configurator, trackedHttpClients),
+                                                       new OSGiCachingClientBuilderFactory(configurator, httpClientTracker),
                                                        props);
     }
 
@@ -125,6 +121,8 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         for (final ServiceRegistration registeredConfiguration : registeredConfigurations.values()) {
             registeredConfiguration.unregister();
         }
+        // remove all tracked services
+        registeredConfigurations.clear();
 
         // unregister service factory
         if (configurator != null) {
@@ -139,17 +137,8 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
             cachingClientFactory.unregister();
         }
 
-        // ensure all http clients - generated with the - are terminated
-        for (final CloseableHttpClient client : trackedHttpClients) {
-            if (null != client) {
-                closeQuietly(client);
-            }
-        }
-
-        // remove all tracked services
-        registeredConfigurations.clear();
-        // remove all tracked created clients
-        trackedHttpClients.clear();
+        // ensure all http clients are closed
+        httpClientTracker.closeAll();
     }
 
     /**
@@ -201,11 +190,28 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
     }
 
     private static void closeQuietly(final Closeable closeable) {
-        try {
-            closeable.close();
-        } catch (final IOException e) {
-            // do nothing
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (final IOException e) {
+                // do nothing
+            }
         }
     }
 
+    static class HttpClientTracker {
+
+        private final List<CloseableHttpClient> trackedHttpClients = new WeakList<CloseableHttpClient>();
+
+        synchronized void track(final CloseableHttpClient client) {
+            trackedHttpClients.add(client);
+        }
+
+        synchronized void closeAll() {
+            for (final CloseableHttpClient client : trackedHttpClients) {
+                closeQuietly(client);
+            }
+            trackedHttpClients.clear();
+        }
+    }
 }

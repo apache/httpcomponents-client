@@ -26,8 +26,6 @@
  */
 package org.apache.http.osgi.impl;
 
-import java.util.List;
-
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
 import org.apache.http.osgi.services.CachingHttpClientBuilderFactory;
@@ -39,13 +37,13 @@ final class OSGiCachingClientBuilderFactory implements CachingHttpClientBuilderF
 
     private final HttpClientBuilderConfigurator configurator;
 
-    private List<CloseableHttpClient> trackedHttpClients;
+    private final HttpProxyConfigurationActivator.HttpClientTracker httpClientTracker;
 
     OSGiCachingClientBuilderFactory(
             final HttpClientBuilderConfigurator configurator,
-            final List<CloseableHttpClient> trackedHttpClients) {
+            final HttpProxyConfigurationActivator.HttpClientTracker httpClientTracker) {
         this.configurator = configurator;
-        this.trackedHttpClients = trackedHttpClients;
+        this.httpClientTracker = httpClientTracker;
     }
 
     @Override
@@ -54,7 +52,7 @@ final class OSGiCachingClientBuilderFactory implements CachingHttpClientBuilderF
             @Override
             public CloseableHttpClient build() {
                 final CloseableHttpClient client = super.build();
-                trackedHttpClients.add(client);
+                httpClientTracker.track(client);
                 return client;
             }
         });
