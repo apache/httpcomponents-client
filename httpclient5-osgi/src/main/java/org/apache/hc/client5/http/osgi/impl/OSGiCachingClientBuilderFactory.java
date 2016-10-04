@@ -27,42 +27,36 @@
 package org.apache.hc.client5.http.osgi.impl;
 
 import java.util.List;
-import java.util.Map;
 
 import org.apache.hc.client5.http.impl.cache.CachingHttpClientBuilder;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.osgi.services.CachingHttpClientBuilderFactory;
-import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.cm.ManagedService;
 
-class OSGiCachingClientBuilderFactory implements CachingHttpClientBuilderFactory {
+/**
+ * @since 4.3
+ */
+final class OSGiCachingClientBuilderFactory implements CachingHttpClientBuilderFactory {
 
-    private final BundleContext bundleContext;
+    private final HttpClientBuilderConfigurator configurator;
 
-    private final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations;
+    private List<CloseableHttpClient> trackedHttpClients;
 
-    private final ServiceRegistration<ManagedService> trustedHostConfiguration;
-
-    private final List<CloseableHttpClient> trackedHttpClients;
-
-    public OSGiCachingClientBuilderFactory(
-            final BundleContext bundleContext,
-            final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations,
-            final ServiceRegistration<ManagedService> trustedHostConfiguration,
+    OSGiCachingClientBuilderFactory(
+            final HttpClientBuilderConfigurator configurator,
             final List<CloseableHttpClient> trackedHttpClients) {
-        this.bundleContext = bundleContext;
-        this.registeredConfigurations = registeredConfigurations;
-        this.trustedHostConfiguration = trustedHostConfiguration;
+        this.configurator = configurator;
         this.trackedHttpClients = trackedHttpClients;
     }
 
     @Override
     public CachingHttpClientBuilder newBuilder() {
-        return new OSGiCachingHttpClientBuilder(bundleContext,
-                                                registeredConfigurations,
-                                                trustedHostConfiguration,
-                                                trackedHttpClients);
+        return configurator.configure(new CachingHttpClientBuilder() {
+            @Override
+            public CloseableHttpClient build() {
+                final CloseableHttpClient client = super.build();
+                trackedHttpClients.add(client);
+                return client;
+            }
+        });
     }
 }

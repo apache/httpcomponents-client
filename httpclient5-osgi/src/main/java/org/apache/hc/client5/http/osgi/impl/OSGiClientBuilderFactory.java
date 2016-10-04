@@ -27,43 +27,36 @@
 package org.apache.hc.client5.http.osgi.impl;
 
 import java.util.List;
-import java.util.Map;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.client5.http.osgi.services.HttpClientBuilderFactory;
-import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.cm.ManagedService;
 
 /**
  * @since 4.3
  */
-public final class OSGiClientBuilderFactory implements HttpClientBuilderFactory {
+final class OSGiClientBuilderFactory implements HttpClientBuilderFactory {
 
-    private final BundleContext bundleContext;
-
-    private final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations;
-
-    private final ServiceRegistration<ManagedService> trustedHostConfiguration;
+    private final HttpClientBuilderConfigurator configurator;
 
     private final List<CloseableHttpClient> trackedHttpClients;
 
-    public OSGiClientBuilderFactory(
-            final BundleContext bundleContext,
-            final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations,
-            final ServiceRegistration<ManagedService> trustedHostConfiguration,
+    OSGiClientBuilderFactory(
+            final HttpClientBuilderConfigurator configurator,
             final List<CloseableHttpClient> trackedHttpClients) {
-        this.bundleContext = bundleContext;
-        this.registeredConfigurations = registeredConfigurations;
-        this.trustedHostConfiguration = trustedHostConfiguration;
+        this.configurator = configurator;
         this.trackedHttpClients = trackedHttpClients;
     }
 
     @Override
     public HttpClientBuilder newBuilder() {
-        return new OSGiHttpClientBuilder(bundleContext, registeredConfigurations, trustedHostConfiguration, trackedHttpClients);
+        return configurator.configure(new HttpClientBuilder() {
+            @Override
+            public CloseableHttpClient build() {
+                final CloseableHttpClient client = super.build();
+                trackedHttpClients.add(client);
+                return client;
+            }
+        });
     }
-
 }

@@ -108,15 +108,15 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
                                                            new OSGiTrustedHostsConfiguration(),
                                                            props);
 
+        final HttpClientBuilderConfigurator configurator =
+                new HttpClientBuilderConfigurator(context, registeredConfigurations, trustedHostConfiguration);
+
         props.clear();
         props.put(Constants.SERVICE_PID, BUILDER_FACTORY_SERVICE_PID);
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, BUILDER_FACTORY_SERVICE_NAME);
         clientFactory = context.registerService(HttpClientBuilderFactory.class,
-                                                new OSGiClientBuilderFactory(context,
-                                                                             registeredConfigurations,
-                                                                             trustedHostConfiguration,
-                                                                             trackedHttpClients),
+                                                new OSGiClientBuilderFactory(configurator, trackedHttpClients),
                                                 props);
 
         props.clear();
@@ -124,10 +124,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, CACHEABLE_BUILDER_FACTORY_SERVICE_NAME);
         cachingClientFactory = context.registerService(CachingHttpClientBuilderFactory.class,
-                                                       new OSGiCachingClientBuilderFactory(context,
-                                                                                           registeredConfigurations,
-                                                                                           trustedHostConfiguration,
-                                                                                           trackedHttpClients),
+                                                       new OSGiCachingClientBuilderFactory(configurator, trackedHttpClients),
                                                        props);
     }
 
