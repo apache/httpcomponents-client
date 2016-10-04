@@ -26,22 +26,18 @@
  */
 package org.apache.http.osgi.impl;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.net.InetAddress;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Hashtable;
 
 import org.apache.http.HttpHost;
 import org.apache.http.osgi.services.ProxyConfiguration;
 import org.junit.Test;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
 
 
 /**
@@ -50,48 +46,12 @@ import org.osgi.framework.ServiceRegistration;
 
 public class TestOSGiHttpRoutePlanner  {
 
-    final ProxyConfiguration pc1 = new ProxyConfiguration() {
-        @Override
-        public boolean isEnabled() {return true; }
-        @Override
-        public String getHostname() {return "proxy1"; }
-        @Override
-        public int getPort() { return 8080; }
-        @Override
-        public String getUsername() { return ""; }
-        @Override
-        public String getPassword() {return ""; }
-        @Override
-        public String[] getProxyExceptions() { return new String[]{"localhost", "127.0.0.1", ".apache.org"}; }
-    };
-
-    final ProxyConfiguration pc2 = new ProxyConfiguration() {
-        @Override
-        public boolean isEnabled() {return true; }
-        @Override
-        public String getHostname() {return "proxy2"; }
-        @Override
-        public int getPort() { return 9090; }
-        @Override
-        public String getUsername() { return ""; }
-        @Override
-        public String getPassword() {return ""; }
-        @Override
-        public String[] getProxyExceptions() { return new String[]{"localhost", "127.0.0.1", ".oracle.com", "12.34.34.8"}; }
-    };
+    private final ProxyConfiguration pc1 = proxy("proxy1", 8080, "localhost", "127.0.0.1", ".apache.org");
+    private final ProxyConfiguration pc2 = proxy("proxy2", 9090, "localhost", "127.0.0.1", ".oracle.com", "12.34.34.8");
 
     @Test
     public void testDeterminProxy() throws Exception {
-        final ServiceReference sRef1 = mock(ServiceReference.class);
-        final ServiceRegistration sReg1 = mock(ServiceRegistration.class);
-        when(sReg1.getReference()).thenReturn(sRef1);
-        final BundleContext bc = mock(BundleContext.class);
-        when(bc.getService(sRef1)).thenReturn(this.pc1);
-
-        final Map<String, ServiceRegistration> registrations = new TreeMap<String, ServiceRegistration>(); // TreeMap for order
-        registrations.put("foo1", sReg1);
-
-        OSGiHttpRoutePlanner planner = new OSGiHttpRoutePlanner(bc, registrations);
+        OSGiHttpRoutePlanner planner = new OSGiHttpRoutePlanner(singletonList(pc1));
 
         HttpHost proxy = planner.determineProxy(new HttpHost("localhost", 8090), null, null);
         assertNull(proxy);
@@ -113,13 +73,7 @@ public class TestOSGiHttpRoutePlanner  {
 
 
         // test with more than one registration of proxyConfiguration
-        final ServiceReference sRef2 = mock(ServiceReference.class);
-        final ServiceRegistration sReg2 = mock(ServiceRegistration.class);
-        when(sReg2.getReference()).thenReturn(sRef2);
-        when(bc.getService(sRef2)).thenReturn(this.pc2);
-        registrations.put("foo2", sReg2);
-
-        planner = new OSGiHttpRoutePlanner(bc, registrations);
+        planner = new OSGiHttpRoutePlanner(asList(pc1, pc2));
         proxy = planner.determineProxy(new HttpHost("localhost", 8090), null, null);
         assertNull(proxy);
 
@@ -139,15 +93,7 @@ public class TestOSGiHttpRoutePlanner  {
 
     @Test
     public void testMasking() throws Exception {
-        final ServiceReference sRef2 = mock(ServiceReference.class);
-        final ServiceRegistration sReg2 = mock(ServiceRegistration.class);
-        when(sReg2.getReference()).thenReturn(sRef2);
-        final BundleContext bc = mock(BundleContext.class);
-        when(bc.getService(sRef2)).thenReturn(this.pc2);
-        final Map<String, ServiceRegistration> registrations = new TreeMap<String, ServiceRegistration>();
-        registrations.put("foo2", sReg2);
-
-        final OSGiHttpRoutePlanner planner = new OSGiHttpRoutePlanner(bc, registrations);
+        final OSGiHttpRoutePlanner planner = new OSGiHttpRoutePlanner(singletonList(pc2));
 
         HttpHost proxy = planner.determineProxy(new HttpHost("12.34.34.2", 4554), null, null);
         assertNotNull(proxy);
@@ -155,6 +101,19 @@ public class TestOSGiHttpRoutePlanner  {
 
         proxy = planner.determineProxy(new HttpHost("12.34.34.8", 4554), null, null);
         assertNotNull(proxy);
+    }
+
+    private ProxyConfiguration proxy(final String host, final int port, final String... exceptions) {
+        final OSGiProxyConfiguration proxyConfiguration = new OSGiProxyConfiguration();
+        final Hashtable<String, Object> config = new Hashtable<String, Object>();
+        config.put("proxy.enabled", true);
+        config.put("proxy.host", host);
+        config.put("proxy.port", port);
+        config.put("proxy.user", "");
+        config.put("proxy.password", "");
+        config.put("proxy.exceptions", exceptions);
+        proxyConfiguration.update(config);
+        return proxyConfiguration;
     }
 
 }

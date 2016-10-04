@@ -27,10 +27,9 @@
 package org.apache.http.osgi.impl;
 
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
+import org.apache.http.osgi.services.ProxyConfiguration;
 
-import java.util.Map;
+import java.util.List;
 
 final class HttpClientBuilderConfigurator {
 
@@ -38,11 +37,9 @@ final class HttpClientBuilderConfigurator {
 
     private final OSGiHttpRoutePlanner routePlanner;
 
-    HttpClientBuilderConfigurator(
-            final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations) {
-        credentialsProvider = new OSGiCredentialsProvider(bundleContext, registeredConfigurations);
-        routePlanner = new OSGiHttpRoutePlanner(bundleContext, registeredConfigurations);
+    HttpClientBuilderConfigurator(final List<ProxyConfiguration> proxyConfigurations) {
+        credentialsProvider = new OSGiCredentialsProvider(proxyConfigurations);
+        routePlanner = new OSGiHttpRoutePlanner(proxyConfigurations);
     }
 
     <T extends HttpClientBuilder> T configure(final T clientBuilder) {

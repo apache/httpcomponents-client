@@ -26,30 +26,23 @@
  */
 package org.apache.http.osgi.impl;
 
-import java.util.Map;
+import java.util.List;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.osgi.services.ProxyConfiguration;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * @since 4.3
  */
 final class OSGiCredentialsProvider implements CredentialsProvider {
 
-    private final BundleContext bundleContext;
+    private List<ProxyConfiguration> proxyConfigurations;
 
-    private final Map<String, ServiceRegistration> registeredConfigurations;
-
-    public OSGiCredentialsProvider(
-            final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations) {
-        this.bundleContext = bundleContext;
-        this.registeredConfigurations = registeredConfigurations;
+    public OSGiCredentialsProvider(final List<ProxyConfiguration> proxyConfigurations) {
+        this.proxyConfigurations = proxyConfigurations;
     }
 
     /**
@@ -66,15 +59,13 @@ final class OSGiCredentialsProvider implements CredentialsProvider {
     @Override
     public Credentials getCredentials(final AuthScope authscope) {
         // iterate over all active proxy configurations at the moment of getting the credential
-        for (final ServiceRegistration registration : registeredConfigurations.values()) {
-            final Object proxyConfigurationObject = bundleContext.getService(registration.getReference());
-            if (proxyConfigurationObject != null) {
-                final ProxyConfiguration proxyConfiguration = (ProxyConfiguration) proxyConfigurationObject;
-                if (proxyConfiguration.isEnabled()) {
-                    final AuthScope actual = new AuthScope(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
-                    if (authscope.match(actual) >= 12) {
-                        return new UsernamePasswordCredentials(proxyConfiguration.getUsername(), proxyConfiguration.getPassword());
-                    }
+        for (final ProxyConfiguration proxyConfiguration : proxyConfigurations) {
+            if (proxyConfiguration.isEnabled()) {
+                final AuthScope actual = new AuthScope(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
+                if (authscope.match(actual) >= 12) {
+                    final String username = proxyConfiguration.getUsername();
+                    final String password = proxyConfiguration.getPassword();
+                    return new UsernamePasswordCredentials(username, password != null ? password : null);
                 }
             }
         }
