@@ -28,7 +28,7 @@ package org.apache.hc.client5.http.osgi.impl;
 
 import static org.apache.hc.client5.http.osgi.impl.HostMatcher.HostMatcherFactory.createMatcher;
 
-import java.util.Map;
+import java.util.List;
 
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
@@ -36,24 +36,17 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * @since 4.3
  */
 final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
 
-    private final BundleContext bundleContext;
+    private List<ProxyConfiguration> proxyConfigurations;
 
-    private final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations;
-
-    public OSGiHttpRoutePlanner(
-            final BundleContext bundleContext,
-            final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations) {
+    public OSGiHttpRoutePlanner(final List<ProxyConfiguration> proxyConfigurations) {
         super(null);
-        this.bundleContext = bundleContext;
-        this.registeredConfigurations = registeredConfigurations;
+        this.proxyConfigurations = proxyConfigurations;
     }
 
     /**
@@ -61,21 +54,16 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
      */
     @Override
     protected HttpHost determineProxy(final HttpHost target, final HttpRequest request, final HttpContext context) throws HttpException {
-        ProxyConfiguration proxyConfiguration = null;
         HttpHost proxyHost = null;
-        for (final ServiceRegistration<ProxyConfiguration> registration : registeredConfigurations.values()) {
-            proxyConfiguration = bundleContext.getService(registration.getReference());
-            if (proxyConfiguration != null) {
-                if (proxyConfiguration.isEnabled()) {
-                    for (final String exception : proxyConfiguration.getProxyExceptions()) {
-                        if (createMatcher(exception).matches(target.getHostName())) {
-                            return null;
-                        }
+        for (final ProxyConfiguration proxyConfiguration : proxyConfigurations) {
+            if (proxyConfiguration.isEnabled()) {
+                for (final String exception : proxyConfiguration.getProxyExceptions()) {
+                    if (createMatcher(exception).matches(target.getHostName())) {
+                        return null;
                     }
-                    if (null == proxyHost)
-                    {
-                        proxyHost = new HttpHost(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
-                    }
+                }
+                if (null == proxyHost) {
+                    proxyHost = new HttpHost(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
                 }
             }
         }

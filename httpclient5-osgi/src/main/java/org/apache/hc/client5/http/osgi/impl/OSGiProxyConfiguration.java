@@ -125,12 +125,12 @@ public final class OSGiProxyConfiguration implements ProxyConfiguration {
     }
 
     public void update(final Dictionary<String, ?> config) {
-        enabled = to(config.get(PROPERTYNAME_PROXY_ENABLED), boolean.class, PROPERTYDEFAULT_PROXY_ENABLED);
-        hostname = to(config.get(PROPERTYNAME_PROXY_HOSTNAME), String.class, PROPERTYDEFAULT_PROXY_HOSTNAME);
-        port = to(config.get(PROPERTYNAME_PROXY_PORT), int.class, PROPERTYDEFAULT_PROXY_PORT);
-        username = to(config.get(PROPERTYNAME_PROXY_USERNAME), String.class, PROPERTYDEFAULT_PROXY_USERNAME);
-        password = to(config.get(PROPERTYNAME_PROXY_PASSWORD), String.class, PROPERTYDEFAULT_PROXY_PASSWORD);
-        proxyExceptions = to(config.get(PROPERTYNAME_PROXY_EXCEPTIONS), String[].class, PROPERTYDEFAULT_PROXY_EXCEPTIONS);
+            enabled = to(config.get(PROPERTYNAME_PROXY_ENABLED), boolean.class, PROPERTYDEFAULT_PROXY_ENABLED);
+            hostname = to(config.get(PROPERTYNAME_PROXY_HOSTNAME), String.class, PROPERTYDEFAULT_PROXY_HOSTNAME);
+            port = to(config.get(PROPERTYNAME_PROXY_PORT), int.class, PROPERTYDEFAULT_PROXY_PORT);
+            username = to(config.get(PROPERTYNAME_PROXY_USERNAME), String.class, PROPERTYDEFAULT_PROXY_USERNAME);
+            password = to(config.get(PROPERTYNAME_PROXY_PASSWORD), String.class, PROPERTYDEFAULT_PROXY_PASSWORD);
+            proxyExceptions = to(config.get(PROPERTYNAME_PROXY_EXCEPTIONS), String[].class, PROPERTYDEFAULT_PROXY_EXCEPTIONS);
     }
 
     @Override

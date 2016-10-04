@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.http.osgi.impl;
 
+import java.util.List;
+
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
@@ -36,8 +38,6 @@ import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ManagedService;
-
-import java.util.Map;
 
 import static org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory.getSocketFactory;
 
@@ -51,10 +51,10 @@ final class HttpClientBuilderConfigurator {
 
     HttpClientBuilderConfigurator(
             final BundleContext bundleContext,
-            final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations,
+            final List<ProxyConfiguration> proxyConfigurations,
             final ServiceRegistration<ManagedService> trustedHostsConfiguration) {
-        credentialsProvider = new OSGiCredentialsProvider(bundleContext, registeredConfigurations);
-        routePlanner = new OSGiHttpRoutePlanner(bundleContext, registeredConfigurations);
+        credentialsProvider = new OSGiCredentialsProvider(proxyConfigurations);
+        routePlanner = new OSGiHttpRoutePlanner(proxyConfigurations);
         socketFactoryRegistry = createSocketFactoryRegistry(bundleContext, trustedHostsConfiguration);
     }
 

@@ -33,6 +33,7 @@ import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.osgi.services.CachingHttpClientBuilderFactory;
@@ -41,6 +42,7 @@ import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
@@ -79,6 +81,8 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
 
     private final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations = new LinkedHashMap<>();
 
+    private final List<ProxyConfiguration> proxyConfigurations = new CopyOnWriteArrayList<>();
+
     private final List<CloseableHttpClient> trackedHttpClients;
 
     public HttpProxyConfigurationActivator() {
@@ -109,7 +113,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
                                                            props);
 
         final HttpClientBuilderConfigurator configurator =
-                new HttpClientBuilderConfigurator(context, registeredConfigurations, trustedHostConfiguration);
+                new HttpClientBuilderConfigurator(context, proxyConfigurations, trustedHostConfiguration);
 
         props.clear();
         props.put(Constants.SERVICE_PID, BUILDER_FACTORY_SERVICE_PID);
@@ -179,6 +183,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
                                                     proxyConfiguration,
                                                     config);
             registeredConfigurations.put(pid, configurationRegistration);
+            proxyConfigurations.add(proxyConfiguration);
         } else {
             proxyConfiguration = (OSGiProxyConfiguration) context.getService(registration.getReference());
         }
@@ -191,9 +196,13 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
      */
     @Override
     public void deleted(final String pid) {
-        final ServiceRegistration<ProxyConfiguration> registeredConfiguration = registeredConfigurations.get(pid);
-        if (safeUnregister(registeredConfiguration)) {
-            registeredConfigurations.remove(pid);
+        final ServiceRegistration<ProxyConfiguration> registration = registeredConfigurations.remove(pid);
+        if (registration != null) {
+            final ServiceReference<ProxyConfiguration> ref = registration.getReference();
+            final ProxyConfiguration config = context.getService(ref);
+            proxyConfigurations.remove(config);
+            context.ungetService(ref);
+            safeUnregister(registration);
         }
     }
 

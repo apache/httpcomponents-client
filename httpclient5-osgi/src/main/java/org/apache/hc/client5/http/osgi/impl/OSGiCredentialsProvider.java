@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.osgi.impl;
 
-import java.util.Map;
+import java.util.List;
 
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
@@ -34,23 +34,16 @@ import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * @since 4.3
  */
 final class OSGiCredentialsProvider implements CredentialsStore {
 
-    private final BundleContext bundleContext;
+    private List<ProxyConfiguration> proxyConfigurations;
 
-    private final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations;
-
-    public OSGiCredentialsProvider(
-            final BundleContext bundleContext,
-            final Map<String, ServiceRegistration<ProxyConfiguration>> registeredConfigurations) {
-        this.bundleContext = bundleContext;
-        this.registeredConfigurations = registeredConfigurations;
+    public OSGiCredentialsProvider(final List<ProxyConfiguration> proxyConfigurations) {
+        this.proxyConfigurations = proxyConfigurations;
     }
 
     /**
@@ -67,16 +60,13 @@ final class OSGiCredentialsProvider implements CredentialsStore {
     @Override
     public Credentials getCredentials(final AuthScope authscope, final HttpContext context) {
         // iterate over all active proxy configurations at the moment of getting the credential
-        for (final ServiceRegistration<ProxyConfiguration> registration : registeredConfigurations.values()) {
-            final ProxyConfiguration proxyConfiguration = bundleContext.getService(registration.getReference());
-            if (proxyConfiguration != null) {
-                if (proxyConfiguration.isEnabled()) {
-                    final AuthScope actual = new AuthScope(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
-                    if (authscope.match(actual) >= 12) {
-                        final String username = proxyConfiguration.getUsername();
-                        final String password = proxyConfiguration.getPassword();
-                        return new UsernamePasswordCredentials(username, password != null ? password.toCharArray() : null);
-                    }
+        for (final ProxyConfiguration proxyConfiguration : proxyConfigurations) {
+            if (proxyConfiguration.isEnabled()) {
+                final AuthScope actual = new AuthScope(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
+                if (authscope.match(actual) >= 12) {
+                    final String username = proxyConfiguration.getUsername();
+                    final String password = proxyConfiguration.getPassword();
+                    return new UsernamePasswordCredentials(username, password != null ? password.toCharArray() : null);
                 }
             }
         }
