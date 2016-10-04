@@ -27,37 +27,35 @@
 package org.apache.http.osgi.impl;
 
 import java.util.List;
-import java.util.Map;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.osgi.services.HttpClientBuilderFactory;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
-
 /**
  * @since 4.3
  */
-public final class OSGiClientBuilderFactory implements HttpClientBuilderFactory {
+final class OSGiClientBuilderFactory implements HttpClientBuilderFactory {
 
-    private final BundleContext bundleContext;
-
-    private final Map<String, ServiceRegistration> registeredConfigurations;
+    private final HttpClientBuilderConfigurator configurator;
 
     private final List<CloseableHttpClient> trackedHttpClients;
 
-    public OSGiClientBuilderFactory(
-            final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations,
+    OSGiClientBuilderFactory(
+            final HttpClientBuilderConfigurator configurator,
             final List<CloseableHttpClient> trackedHttpClients) {
-        this.bundleContext = bundleContext;
-        this.registeredConfigurations = registeredConfigurations;
+        this.configurator = configurator;
         this.trackedHttpClients = trackedHttpClients;
     }
 
     @Override
     public HttpClientBuilder newBuilder() {
-        return new OSGiHttpClientBuilder(bundleContext, registeredConfigurations, trackedHttpClients);
+        return configurator.configure(new HttpClientBuilder() {
+            @Override
+            public CloseableHttpClient build() {
+                final CloseableHttpClient client = super.build();
+                trackedHttpClients.add(client);
+                return client;
+            }
+        });
     }
-
 }

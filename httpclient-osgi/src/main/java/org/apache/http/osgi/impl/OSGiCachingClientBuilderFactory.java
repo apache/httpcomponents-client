@@ -26,34 +26,37 @@
  */
 package org.apache.http.osgi.impl;
 
+import java.util.List;
+
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
 import org.apache.http.osgi.services.CachingHttpClientBuilderFactory;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 
-import java.util.List;
-import java.util.Map;
+/**
+ * @since 4.3
+ */
+final class OSGiCachingClientBuilderFactory implements CachingHttpClientBuilderFactory {
 
-class OSGiCachingClientBuilderFactory implements CachingHttpClientBuilderFactory {
+    private final HttpClientBuilderConfigurator configurator;
 
-    private final BundleContext bundleContext;
+    private List<CloseableHttpClient> trackedHttpClients;
 
-    private final Map<String, ServiceRegistration> registeredConfigurations;
-
-    private final List<CloseableHttpClient> trackedHttpClients;
-
-    public OSGiCachingClientBuilderFactory(
-            final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations,
+    OSGiCachingClientBuilderFactory(
+            final HttpClientBuilderConfigurator configurator,
             final List<CloseableHttpClient> trackedHttpClients) {
-        this.bundleContext = bundleContext;
-        this.registeredConfigurations = registeredConfigurations;
+        this.configurator = configurator;
         this.trackedHttpClients = trackedHttpClients;
     }
 
     @Override
     public CachingHttpClientBuilder newBuilder() {
-        return new OSGiCachingHttpClientBuilder(bundleContext, registeredConfigurations, trackedHttpClients);
+        return configurator.configure(new CachingHttpClientBuilder() {
+            @Override
+            public CloseableHttpClient build() {
+                final CloseableHttpClient client = super.build();
+                trackedHttpClients.add(client);
+                return client;
+            }
+        });
     }
 }

@@ -26,36 +26,29 @@
  */
 package org.apache.http.osgi.impl;
 
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
-import java.util.List;
 import java.util.Map;
 
-final class OSGiCachingHttpClientBuilder extends CachingHttpClientBuilder {
+final class HttpClientBuilderConfigurator {
 
-    private final List<CloseableHttpClient> trackedHttpClients;
+    private final OSGiCredentialsProvider credentialsProvider;
 
-    public OSGiCachingHttpClientBuilder(
+    private final OSGiHttpRoutePlanner routePlanner;
+
+    HttpClientBuilderConfigurator(
             final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations,
-            final List<CloseableHttpClient> trackedHttpClients) {
-        this.trackedHttpClients = trackedHttpClients;
-        setDefaultCredentialsProvider(
-                new OSGiCredentialsProvider(bundleContext, registeredConfigurations));
-        setRoutePlanner(
-                new OSGiHttpRoutePlanner(bundleContext, registeredConfigurations));
+            final Map<String, ServiceRegistration> registeredConfigurations) {
+        credentialsProvider = new OSGiCredentialsProvider(bundleContext, registeredConfigurations);
+        routePlanner = new OSGiHttpRoutePlanner(bundleContext, registeredConfigurations);
     }
 
-    @Override
-    public CloseableHttpClient build() {
-        final CloseableHttpClient httpClient = super.build();
-        synchronized (trackedHttpClients) {
-            trackedHttpClients.add(httpClient);
-        }
-        return httpClient;
+    <T extends HttpClientBuilder> T configure(final T clientBuilder) {
+        clientBuilder
+                .setDefaultCredentialsProvider(credentialsProvider)
+                .setRoutePlanner(routePlanner);
+        return clientBuilder;
     }
-
 }
