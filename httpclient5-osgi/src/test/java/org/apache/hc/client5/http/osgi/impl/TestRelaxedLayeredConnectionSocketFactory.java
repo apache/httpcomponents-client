@@ -26,10 +26,7 @@
  */
 package org.apache.hc.client5.http.osgi.impl;
 
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -42,79 +39,56 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Test;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
+import org.mockito.Mock;
 import org.osgi.service.cm.ConfigurationException;
-import org.osgi.service.cm.ManagedService;
 
 public class TestRelaxedLayeredConnectionSocketFactory {
 
+    @Mock
+    Socket insecureSocket;
+
+    @Mock
+    Socket secureSocket;
+
+    private final HttpContext context = new BasicHttpContext();
+
     @Test
     public void testTrustedAllConnections() throws Exception {
-        final HttpContext context = new BasicHttpContext();
-
-        final Dictionary<String, Object> config = new Hashtable<>();
-        config.put("trustedhosts.enabled", Boolean.TRUE);
-        config.put("trustedhosts.trustAll", Boolean.TRUE);
-        config.put("trustedhosts.hosts", new String[]{});
-        final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(config);
+        final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(true, true);
         final Socket socket = socketFactory.createSocket(context);
         final Socket secureSocket = socketFactory.createLayeredSocket(socket, "localhost", 9999, context);
-        assertSame(socket, secureSocket);
+        assertSame(this.secureSocket, secureSocket);
     }
 
     @Test
     public void testTrustedConnections() throws Exception {
-        final HttpContext context = new BasicHttpContext();
-        final Dictionary<String, Object> config = new Hashtable<>();
-        config.put("trustedhosts.enabled", Boolean.TRUE);
-        config.put("trustedhosts.trustAll", Boolean.FALSE);
-        config.put("trustedhosts.hosts", new String[]{ "localhost" });
-        final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(config);
-
+        final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(true, false, "localhost");
         final Socket socket = socketFactory.createSocket(context);
         final Socket localSecureSocket = socketFactory.createLayeredSocket(socket, "localhost", 9999, context);
-        assertSame(socket, localSecureSocket);
+        assertSame(this.insecureSocket, localSecureSocket);
 
         final Socket apacheSecureSocket = socketFactory.createLayeredSocket(socket, "www.apache.org", 9999, context);
-        assertNotSame(socket, apacheSecureSocket);
+        assertSame(this.secureSocket, apacheSecureSocket);
     }
 
     @Test
     public void testNotEabledConfiguration() throws Exception {
-        final HttpContext context = new BasicHttpContext();
-
-        final Dictionary<String, Object> config = new Hashtable<>();
-        config.put("trustedhosts.enabled", Boolean.TRUE);
-        config.put("trustedhosts.trustAll", Boolean.FALSE);
-        config.put("trustedhosts.hosts", new String[]{});
-        final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(config);
+        final LayeredConnectionSocketFactory socketFactory = getLayeredConnectionSocketFactory(false, true);
         final Socket socket = socketFactory.createSocket(context);
         final Socket secureSocket = socketFactory.createLayeredSocket(socket, "localhost", 9999, context);
-        assertNotSame(socket, secureSocket);
+        assertSame(this.secureSocket, secureSocket);
     }
 
-    private LayeredConnectionSocketFactory getLayeredConnectionSocketFactory(final Dictionary<String, ?> config) {
-        final ServiceReference<ManagedService> reference = mock(ServiceReference.class);
-        final ServiceRegistration<ManagedService> registration = mock(ServiceRegistration.class);
-        when(registration.getReference()).thenReturn(reference);
-        final BundleContext bundleContext = mock(BundleContext.class);
+    private LayeredConnectionSocketFactory getLayeredConnectionSocketFactory(
+            final boolean enabled, final boolean trustAll, final String... trustedHosts) throws ConfigurationException {
         final OSGiTrustedHostsConfiguration configuration = new OSGiTrustedHostsConfiguration();
-        try {
-            configuration.updated(config);
-        } catch (ConfigurationException e) {
-            // it doesn't happen in tests
-        }
-        when(bundleContext.getService(reference)).thenReturn(configuration);
+        configuration.updated(createConfig(enabled, trustAll, trustedHosts));
 
-        final Socket socket = mock(Socket.class);
-        final Socket secureSocket = mock(Socket.class);
         final LayeredConnectionSocketFactory defaultSocketFactory = new LayeredConnectionSocketFactory() {
 
             @Override
             public Socket createSocket(final HttpContext context) throws IOException {
-                return socket;
+                return insecureSocket;
             }
 
             @Override
@@ -125,7 +99,7 @@ public class TestRelaxedLayeredConnectionSocketFactory {
                                         final InetSocketAddress localAddress,
                                         final HttpContext context ) throws IOException {
                 // not needed in this version
-                return socket;
+                return insecureSocket;
             }
 
             @Override
@@ -138,7 +112,15 @@ public class TestRelaxedLayeredConnectionSocketFactory {
 
         };
 
-        return new RelaxedLayeredConnectionSocketFactory(bundleContext, registration, defaultSocketFactory);
+        return new RelaxedLayeredConnectionSocketFactory(configuration, defaultSocketFactory);
+    }
+
+    private Dictionary<String, Object> createConfig(final boolean enabled, final boolean trustAll, final String... trustedHosts) {
+        final Dictionary<String, Object> config = new Hashtable<>();
+        config.put("trustedhosts.enabled", enabled);
+        config.put("trustedhosts.trustAll", trustAll);
+        config.put("trustedhosts.hosts", trustedHosts);
+        return config;
     }
 
 }

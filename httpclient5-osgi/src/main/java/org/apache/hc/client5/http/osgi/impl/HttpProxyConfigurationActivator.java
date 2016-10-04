@@ -108,12 +108,11 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         props.put(Constants.SERVICE_PID, TRUSTED_HOSTS_PID);
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, TRUSTED_HOSTS_SERVICE_NAME);
-        trustedHostConfiguration = context.registerService(ManagedService.class,
-                                                           new OSGiTrustedHostsConfiguration(),
-                                                           props);
+        final OSGiTrustedHostsConfiguration trustedHosts = new OSGiTrustedHostsConfiguration();
+        trustedHostConfiguration = context.registerService(ManagedService.class, trustedHosts, props);
 
         final HttpClientBuilderConfigurator configurator =
-                new HttpClientBuilderConfigurator(context, proxyConfigurations, trustedHostConfiguration);
+                new HttpClientBuilderConfigurator(proxyConfigurations, trustedHosts);
 
         props.clear();
         props.put(Constants.SERVICE_PID, BUILDER_FACTORY_SERVICE_PID);

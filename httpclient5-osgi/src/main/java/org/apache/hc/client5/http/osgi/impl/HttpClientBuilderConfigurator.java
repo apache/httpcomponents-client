@@ -31,13 +31,11 @@ import java.util.List;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
+import org.apache.hc.client5.http.osgi.services.TrustedHostsConfiguration;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.cm.ManagedService;
 
 import static org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory.getSocketFactory;
 
@@ -50,12 +48,11 @@ final class HttpClientBuilderConfigurator {
     private final Registry<ConnectionSocketFactory> socketFactoryRegistry;
 
     HttpClientBuilderConfigurator(
-            final BundleContext bundleContext,
             final List<ProxyConfiguration> proxyConfigurations,
-            final ServiceRegistration<ManagedService> trustedHostsConfiguration) {
+            final TrustedHostsConfiguration trustedHostsConfiguration) {
         credentialsProvider = new OSGiCredentialsProvider(proxyConfigurations);
         routePlanner = new OSGiHttpRoutePlanner(proxyConfigurations);
-        socketFactoryRegistry = createSocketFactoryRegistry(bundleContext, trustedHostsConfiguration);
+        socketFactoryRegistry = createSocketFactoryRegistry(trustedHostsConfiguration);
     }
 
     <T extends HttpClientBuilder> T configure(final T clientBuilder) {
@@ -67,17 +64,15 @@ final class HttpClientBuilderConfigurator {
     }
 
     private Registry<ConnectionSocketFactory> createSocketFactoryRegistry(
-            final BundleContext bundleContext,
-            final ServiceRegistration<ManagedService> trustedHostsConfiguration) {
+            final TrustedHostsConfiguration trustedHostsConfiguration) {
         return RegistryBuilder.<ConnectionSocketFactory>create()
                 .register("http", PlainConnectionSocketFactory.INSTANCE)
-                .register("https", createSocketFactory(bundleContext, trustedHostsConfiguration))
+                .register("https", createSocketFactory(trustedHostsConfiguration))
                 .build();
     }
 
     private ConnectionSocketFactory createSocketFactory(
-            final BundleContext bundleContext,
-            final ServiceRegistration<ManagedService> trustedHostsConfiguration) {
-        return new RelaxedLayeredConnectionSocketFactory(bundleContext, trustedHostsConfiguration, getSocketFactory());
+            final TrustedHostsConfiguration trustedHostsConfiguration) {
+        return new RelaxedLayeredConnectionSocketFactory(trustedHostsConfiguration, getSocketFactory());
     }
 }
