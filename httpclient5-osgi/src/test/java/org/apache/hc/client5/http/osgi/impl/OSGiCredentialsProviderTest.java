@@ -43,16 +43,13 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
 
-public class OsgiCredentialsProviderTest {
+public class OSGiCredentialsProviderTest {
 
     private static final String HOST = "proxy.example.org";
 
     private static final int PORT = 8080;
 
     private static final HttpContext HTTP_CONTEXT = new BasicHttpContext();
-
-
-    private final ProxyConfiguration proxyConfigWithDomain = proxy("DOMAIN\\user", "secret");
 
     @Test
     public void basicAuthentication() {
