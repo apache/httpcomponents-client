@@ -28,9 +28,12 @@ package org.apache.hc.client5.http.osgi.impl;
 
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
+import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -40,9 +43,17 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  */
 final class OSGiCredentialsProvider implements CredentialsStore {
 
-    private List<ProxyConfiguration> proxyConfigurations;
+    private static final Log log = LogFactory.getLog(OSGiCredentialsProvider.class);
 
-    public OSGiCredentialsProvider(final List<ProxyConfiguration> proxyConfigurations) {
+    private static final int HOST_AND_PORT_MATCH = 12;
+
+    private static final String BASIC_SCHEME_NAME = "BASIC";
+
+    private static final String NTLM_SCHEME_NAME = "NTLM";
+
+    private final List<ProxyConfiguration> proxyConfigurations;
+
+    OSGiCredentialsProvider(final List<ProxyConfiguration> proxyConfigurations) {
         this.proxyConfigurations = proxyConfigurations;
     }
 
@@ -58,15 +69,17 @@ final class OSGiCredentialsProvider implements CredentialsStore {
      * {@inheritDoc}
      */
     @Override
-    public Credentials getCredentials(final AuthScope authscope, final HttpContext context) {
+    public Credentials getCredentials(final AuthScope authScope, final HttpContext context) {
         // iterate over all active proxy configurations at the moment of getting the credential
-        for (final ProxyConfiguration proxyConfiguration : proxyConfigurations) {
-            if (proxyConfiguration.isEnabled()) {
-                final AuthScope actual = new AuthScope(proxyConfiguration.getHostname(), proxyConfiguration.getPort());
-                if (authscope.match(actual) >= 12) {
-                    final String username = proxyConfiguration.getUsername();
-                    final String password = proxyConfiguration.getPassword();
-                    return new UsernamePasswordCredentials(username, password != null ? password.toCharArray() : null);
+        for (final ProxyConfiguration config : proxyConfigurations) {
+            if (config.isEnabled() && isSuitable(config, authScope)) {
+                final String scheme = authScope.getScheme();
+                if (BASIC_SCHEME_NAME.equals(scheme)) {
+                    return new UsernamePasswordCredentials(config.getUsername(), config.getPassword().toCharArray());
+                } else if (NTLM_SCHEME_NAME.equals(scheme)) {
+                    return createNTCredentials(config);
+                } else {
+                    log.debug("credentials requested for unsupported authentication scheme " + scheme);
                 }
             }
         }
@@ -80,6 +93,26 @@ final class OSGiCredentialsProvider implements CredentialsStore {
     @Override
     public void clear() {
         // do nothing, not used in this version
+    }
+
+    // suitable configurations match at least the host and port of the AuthScope
+    private boolean isSuitable(final ProxyConfiguration config, final AuthScope authScope) {
+        return authScope.match(new AuthScope(config.getHostname(), config.getPort())) >= HOST_AND_PORT_MATCH;
+    }
+
+    private static Credentials createNTCredentials(final ProxyConfiguration config) {
+        final String domainAndUsername = config.getUsername();
+        final String username;
+        final String domain;
+        final int index = domainAndUsername.indexOf("\\");
+        if (index > -1) {
+            username = domainAndUsername.substring(index + 1);
+            domain = domainAndUsername.substring(0, index);
+        } else {
+            username = domainAndUsername;
+            domain = null;
+        }
+        return new NTCredentials(username, config.getPassword().toCharArray(), null, domain);
     }
 
 }
