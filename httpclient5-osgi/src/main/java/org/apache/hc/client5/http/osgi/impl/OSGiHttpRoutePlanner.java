@@ -42,7 +42,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  */
 final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
 
-    private List<ProxyConfiguration> proxyConfigurations;
+    private final List<ProxyConfiguration> proxyConfigurations;
 
     public OSGiHttpRoutePlanner(final List<ProxyConfiguration> proxyConfigurations) {
         super(null);

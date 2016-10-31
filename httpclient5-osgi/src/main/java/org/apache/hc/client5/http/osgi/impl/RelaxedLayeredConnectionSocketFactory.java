@@ -39,7 +39,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 
 final class RelaxedLayeredConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
-    private TrustedHostsConfiguration trustedHostsConfiguration;
+    private final TrustedHostsConfiguration trustedHostsConfiguration;
 
     private final LayeredConnectionSocketFactory defaultSocketFactory;
 
