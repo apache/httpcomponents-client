@@ -49,12 +49,12 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.security.auth.x500.X500Principal;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.psl.DomainType;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
 import org.apache.hc.client5.http.utils.InetAddressUtils;
 import org.apache.hc.core5.annotation.Immutable;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Default {@link javax.net.ssl.HostnameVerifier} implementation.
@@ -69,7 +69,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
     final static int DNS_NAME_TYPE        = 2;
     final static int IP_ADDRESS_TYPE      = 7;
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     private final PublicSuffixMatcher publicSuffixMatcher;
 

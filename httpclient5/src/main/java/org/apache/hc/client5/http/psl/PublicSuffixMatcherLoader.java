@@ -36,10 +36,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.core5.annotation.ThreadSafe;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * {@link PublicSuffixMatcher} loader.
@@ -82,7 +82,7 @@ public final class PublicSuffixMatcherLoader {
                             DEFAULT_INSTANCE = load(url);
                         } catch (final IOException ex) {
                             // Should never happen
-                            final Log log = LogFactory.getLog(PublicSuffixMatcherLoader.class);
+                            final Logger log = LogManager.getLogger(PublicSuffixMatcherLoader.class);
                             if (log.isWarnEnabled()) {
                                 log.warn("Failure loading public suffix list from default resource", ex);
                             }

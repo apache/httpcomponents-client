@@ -29,8 +29,6 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
@@ -43,6 +41,8 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.NoHttpResponseException;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Request executor in the request execution chain that is responsible
@@ -59,7 +59,7 @@ import org.apache.hc.core5.util.Args;
 @Immutable
 public class RetryExec implements ClientExecChain {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     private final ClientExecChain requestExecutor;
     private final HttpRequestRetryHandler retryHandler;

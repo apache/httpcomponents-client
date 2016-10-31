@@ -30,9 +30,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.commons.logging.Log;
 import org.apache.hc.core5.annotation.Immutable;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Logs data to the wire LOG.
@@ -42,18 +42,18 @@ import org.apache.hc.core5.util.Args;
 @Immutable
 class Wire {
 
-    private final Log log;
+    private final Logger log;
     private final String id;
 
     /**
      * @since 4.3
      */
-    public Wire(final Log log, final String id) {
+    public Wire(final Logger log, final String id) {
         this.log = log;
         this.id = id;
     }
 
-    public Wire(final Log log) {
+    public Wire(final Logger log) {
         this(log, "");
     }
 

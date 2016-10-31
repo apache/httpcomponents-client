@@ -34,8 +34,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthExchange;
@@ -60,18 +58,20 @@ import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @since 4.3
  */
 public class HttpAuthenticator {
 
-    private final Log log;
+    private final Logger log;
     private final AuthChallengeParser parser;
 
-    public HttpAuthenticator(final Log log) {
+    public HttpAuthenticator(final Logger log) {
         super();
-        this.log = log != null ? log : LogFactory.getLog(getClass());
+        this.log = log != null ? log : LogManager.getLogger(getClass());
         this.parser = new AuthChallengeParser();
     }
 

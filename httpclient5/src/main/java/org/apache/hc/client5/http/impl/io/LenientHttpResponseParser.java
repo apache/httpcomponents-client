@@ -29,8 +29,6 @@ package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
@@ -39,6 +37,8 @@ import org.apache.hc.core5.http.config.MessageConstraints;
 import org.apache.hc.core5.http.impl.io.DefaultHttpResponseParser;
 import org.apache.hc.core5.http.message.LineParser;
 import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Lenient HTTP response parser implementation that can skip malformed data until
@@ -49,7 +49,7 @@ import org.apache.hc.core5.util.CharArrayBuffer;
 @NotThreadSafe
 public class LenientHttpResponseParser extends DefaultHttpResponseParser {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     /**
      * Creates new instance of DefaultHttpResponseParser.

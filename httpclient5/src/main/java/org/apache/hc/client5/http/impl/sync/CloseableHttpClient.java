@@ -31,8 +31,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpUriRequest;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
@@ -46,6 +44,8 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Base implementation of {@link HttpClient} that also implements {@link Closeable}.
@@ -55,7 +55,7 @@ import org.apache.hc.core5.util.Args;
 @ThreadSafe
 public abstract class CloseableHttpClient implements HttpClient, Closeable {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     protected abstract CloseableHttpResponse doExecute(HttpHost target, HttpRequest request,
             HttpContext context) throws IOException;

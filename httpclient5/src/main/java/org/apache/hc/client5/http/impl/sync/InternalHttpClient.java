@@ -31,8 +31,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -55,6 +53,8 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Internal class.
@@ -64,7 +64,7 @@ import org.apache.hc.core5.util.Args;
 @ThreadSafe
 class InternalHttpClient extends CloseableHttpClient implements Configurable {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     private final ClientExecChain execChain;
     private final HttpClientConnectionManager connManager;

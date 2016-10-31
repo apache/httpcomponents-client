@@ -30,12 +30,12 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.core5.annotation.ThreadSafe;
 import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.pool.PoolEntry;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @since 4.3
@@ -43,11 +43,11 @@ import org.apache.hc.core5.pool.PoolEntry;
 @ThreadSafe
 class CPoolEntry extends PoolEntry<HttpRoute, ManagedHttpClientConnection> {
 
-    private final Log log;
+    private final Logger log;
     private volatile boolean routeComplete;
 
     public CPoolEntry(
-            final Log log,
+            final Logger log,
             final String id,
             final HttpRoute route,
             final ManagedHttpClientConnection conn,

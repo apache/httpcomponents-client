@@ -31,8 +31,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
@@ -45,6 +43,8 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Response interceptor that populates the current {@link CookieStore} with data
@@ -55,7 +55,7 @@ import org.apache.hc.core5.util.Args;
 @Immutable
 public class ResponseProcessCookies implements HttpResponseInterceptor {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     public ResponseProcessCookies() {
         super();

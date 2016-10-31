@@ -34,8 +34,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.config.CookieSpecs;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -55,6 +53,8 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Request interceptor that matches cookies available in the current
@@ -66,7 +66,7 @@ import org.apache.hc.core5.util.TextUtils;
 @Immutable
 public class RequestAddCookies implements HttpRequestInterceptor {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     public RequestAddCookies() {
         super();

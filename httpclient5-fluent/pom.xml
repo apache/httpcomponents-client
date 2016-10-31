@@ -53,8 +53,15 @@
     </dependency>
     <!-- direct dependency on logging -->
     <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>${log4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${log4j.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -87,6 +94,7 @@
           <excludes>
             <exclude>.externalToolBuilders/**</exclude>			
             <exclude>maven-eclipse.xml</exclude>
+            <exclude>.checkstyle</exclude>
           </excludes>
         </configuration>
       </plugin>

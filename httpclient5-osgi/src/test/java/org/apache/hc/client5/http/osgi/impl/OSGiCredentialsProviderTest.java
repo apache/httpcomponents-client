@@ -26,6 +26,13 @@
  */
 package org.apache.hc.client5.http.osgi.impl;
 
+import static java.util.Arrays.asList;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertThat;
+
+import java.util.Hashtable;
+
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -35,13 +42,6 @@ import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Test;
-
-import java.util.Hashtable;
-
-import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertThat;
 
 public class OSGiCredentialsProviderTest {
 

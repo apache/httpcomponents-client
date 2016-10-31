@@ -31,8 +31,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
@@ -52,6 +50,8 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.entity.EntityUtils;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Request executor in the request execution chain that is responsible
@@ -67,7 +67,7 @@ import org.apache.hc.core5.util.Args;
 @ThreadSafe
 public class RedirectExec implements ClientExecChain {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     private final ClientExecChain requestExecutor;
     private final RedirectStrategy redirectStrategy;

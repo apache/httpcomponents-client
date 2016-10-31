@@ -34,8 +34,6 @@ import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.config.RequestConfig;
@@ -67,6 +65,8 @@ import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.VersionInfo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Request executor that implements the most fundamental aspects of
@@ -80,7 +80,7 @@ import org.apache.hc.core5.util.VersionInfo;
 @Immutable
 public class MinimalClientExec implements ClientExecChain {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     private final HttpRequestExecutor requestExecutor;
     private final HttpClientConnectionManager connManager;

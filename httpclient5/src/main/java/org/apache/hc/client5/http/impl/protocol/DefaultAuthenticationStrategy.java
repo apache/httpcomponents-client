@@ -35,8 +35,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
@@ -49,6 +47,8 @@ import org.apache.hc.core5.annotation.Immutable;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Default implementation of {@link AuthenticationStrategy}
@@ -58,7 +58,7 @@ import org.apache.hc.core5.util.Args;
 @Immutable
 public class DefaultAuthenticationStrategy implements AuthenticationStrategy {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     public static final DefaultAuthenticationStrategy INSTANCE = new DefaultAuthenticationStrategy();
 

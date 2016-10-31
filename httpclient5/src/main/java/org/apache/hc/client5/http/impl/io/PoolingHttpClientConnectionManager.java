@@ -38,8 +38,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.ConnectionPoolTimeoutException;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpConnectionFactory;
@@ -67,6 +65,8 @@ import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.pool.io.ConnFactory;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * {@code ClientConnectionPoolManager} maintains a pool of
@@ -104,7 +104,7 @@ import org.apache.hc.core5.util.Asserts;
 public class PoolingHttpClientConnectionManager
     implements HttpClientConnectionManager, ConnPoolControl<HttpRoute>, Closeable {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     public static final int DEFAULT_MAX_TOTAL_CONNECTIONS = 25;
     public static final int DEFAULT_MAX_CONNECTIONS_PER_ROUTE = 5;

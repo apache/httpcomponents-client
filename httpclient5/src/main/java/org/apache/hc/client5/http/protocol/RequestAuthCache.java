@@ -29,8 +29,6 @@ package org.apache.hc.client5.http.protocol;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthExchange;
@@ -43,6 +41,8 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Request interceptor that can preemptively authenticate against known hosts,
@@ -54,7 +54,7 @@ import org.apache.hc.core5.util.Args;
 @Immutable
 public class RequestAuthCache implements HttpRequestInterceptor {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     public RequestAuthCache() {
         super();

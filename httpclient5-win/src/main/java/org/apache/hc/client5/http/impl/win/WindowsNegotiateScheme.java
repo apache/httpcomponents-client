@@ -29,8 +29,6 @@ package org.apache.hc.client5.http.impl.win;
 import java.security.Principal;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
@@ -45,6 +43,8 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.sun.jna.platform.win32.Secur32;
 import com.sun.jna.platform.win32.Secur32Util;
@@ -71,7 +71,7 @@ import com.sun.jna.ptr.IntByReference;
 @NotThreadSafe
 public class WindowsNegotiateScheme implements AuthScheme {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     // NTLM or Negotiate
     private final String scheme;

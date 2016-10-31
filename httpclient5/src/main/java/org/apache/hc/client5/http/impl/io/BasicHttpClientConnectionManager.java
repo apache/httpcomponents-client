@@ -34,8 +34,6 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpConnectionFactory;
 import org.apache.hc.client5.http.HttpRoute;
@@ -60,6 +58,8 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.LangUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * A connection manager for a single connection. This connection manager maintains only one active
@@ -82,7 +82,7 @@ import org.apache.hc.core5.util.LangUtils;
 @ThreadSafe
 public class BasicHttpClientConnectionManager implements HttpClientConnectionManager, Closeable {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     private final HttpClientConnectionOperator connectionOperator;
     private final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory;

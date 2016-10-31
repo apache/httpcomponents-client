@@ -27,9 +27,9 @@
 package org.apache.hc.client5.http.osgi.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 
 import org.apache.hc.client5.http.osgi.impl.HostMatcher.DomainNameMatcher;
 import org.apache.hc.client5.http.osgi.impl.HostMatcher.HostMatcherFactory;

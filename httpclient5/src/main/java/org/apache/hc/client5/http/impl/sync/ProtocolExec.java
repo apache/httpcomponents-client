@@ -31,8 +31,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -52,6 +50,8 @@ import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Request executor in the request execution chain that is responsible
@@ -70,7 +70,7 @@ import org.apache.hc.core5.util.Args;
 @Immutable
 public class ProtocolExec implements ClientExecChain {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     private final ClientExecChain requestExecutor;
     private final HttpProcessor httpProcessor;

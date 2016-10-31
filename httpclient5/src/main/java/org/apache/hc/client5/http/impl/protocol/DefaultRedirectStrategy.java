@@ -33,8 +33,6 @@ import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.methods.HttpUriRequest;
@@ -58,6 +56,8 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TextUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Default implementation of {@link RedirectStrategy}. This strategy honors the restrictions
@@ -71,7 +71,7 @@ import org.apache.hc.core5.util.TextUtils;
 @Immutable
 public class DefaultRedirectStrategy implements RedirectStrategy {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     public static final DefaultRedirectStrategy INSTANCE = new DefaultRedirectStrategy();
 

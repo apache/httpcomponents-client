@@ -26,6 +26,8 @@
  */
 package org.apache.hc.client5.http.osgi.impl;
 
+import static org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory.getSocketFactory;
+
 import java.util.List;
 
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
@@ -36,8 +38,6 @@ import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-
-import static org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory.getSocketFactory;
 
 final class HttpClientBuilderConfigurator {
 

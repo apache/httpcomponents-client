@@ -29,14 +29,14 @@ package org.apache.hc.client5.http.impl.io;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.core5.annotation.ThreadSafe;
 import org.apache.hc.core5.pool.PoolEntryCallback;
 import org.apache.hc.core5.pool.io.AbstractConnPool;
 import org.apache.hc.core5.pool.io.ConnFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @since 4.3
@@ -46,7 +46,7 @@ class CPool extends AbstractConnPool<HttpRoute, ManagedHttpClientConnection, CPo
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
-    private final Log log = LogFactory.getLog(CPool.class);
+    private final Logger log = LogManager.getLogger(CPool.class);
     private final long timeToLive;
     private final TimeUnit tunit;
 

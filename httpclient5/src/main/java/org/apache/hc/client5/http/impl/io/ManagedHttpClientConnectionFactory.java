@@ -33,8 +33,6 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.HttpConnectionFactory;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
@@ -47,6 +45,8 @@ import org.apache.hc.core5.http.impl.DefaultContentLengthStrategy;
 import org.apache.hc.core5.http.impl.io.DefaultHttpRequestWriterFactory;
 import org.apache.hc.core5.http.io.HttpMessageParserFactory;
 import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Factory for {@link ManagedHttpClientConnection} instances.
@@ -60,9 +60,9 @@ public class ManagedHttpClientConnectionFactory
 
     public static final ManagedHttpClientConnectionFactory INSTANCE = new ManagedHttpClientConnectionFactory();
 
-    private final Log log = LogFactory.getLog(DefaultManagedHttpClientConnection.class);
-    private final Log headerlog = LogFactory.getLog("org.apache.http.headers");
-    private final Log wirelog = LogFactory.getLog("org.apache.http.wire");
+    private final Logger log = LogManager.getLogger(DefaultManagedHttpClientConnection.class);
+    private final Logger headerlog = LogManager.getLogger("org.apache.http.headers");
+    private final Logger wirelog = LogManager.getLogger("org.apache.http.wire");
 
     private final HttpMessageWriterFactory<HttpRequest> requestWriterFactory;
     private final HttpMessageParserFactory<HttpResponse> responseParserFactory;

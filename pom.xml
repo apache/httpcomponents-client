@@ -68,7 +68,7 @@
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
     <httpcore.version>5.0-alpha1</httpcore.version>
-    <commons-logging.version>1.2</commons-logging.version>
+    <log4j.version>2.7</log4j.version>
     <commons-codec.version>1.10</commons-codec.version>
     <ehcache.version>2.6.11</ehcache.version>
     <memcached.version>2.12.0</memcached.version>
@@ -89,9 +89,15 @@
         <version>${httpcore.version}</version>
       </dependency>
       <dependency>
-        <groupId>commons-logging</groupId>
-        <artifactId>commons-logging</artifactId>
-        <version>${commons-logging.version}</version>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${log4j.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>commons-codec</groupId>

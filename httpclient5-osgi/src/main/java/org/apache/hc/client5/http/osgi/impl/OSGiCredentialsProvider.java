@@ -28,8 +28,6 @@ package org.apache.hc.client5.http.osgi.impl;
 
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsStore;
@@ -37,13 +35,15 @@ import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * @since 4.3
  */
 final class OSGiCredentialsProvider implements CredentialsStore {
 
-    private static final Log log = LogFactory.getLog(OSGiCredentialsProvider.class);
+    private static final Logger log = LogManager.getLogger(OSGiCredentialsProvider.class);
 
     private static final int HOST_AND_PORT_MATCH = 12;
 

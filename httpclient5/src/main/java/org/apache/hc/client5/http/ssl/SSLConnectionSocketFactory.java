@@ -47,8 +47,6 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.security.auth.x500.X500Principal;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.annotation.ThreadSafe;
@@ -57,6 +55,8 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Layered socket factory for TLS/SSL connections.
@@ -139,7 +139,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
     public static final String TLS   = "TLS";
     public static final String SSL   = "SSL";
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     /**
      * @since 4.4

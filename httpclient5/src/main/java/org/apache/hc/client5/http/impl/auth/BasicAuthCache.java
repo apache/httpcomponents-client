@@ -35,8 +35,6 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.auth.AuthCache;
@@ -45,6 +43,8 @@ import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.core5.annotation.ThreadSafe;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Default implementation of {@link AuthCache}. This implements
@@ -59,7 +59,7 @@ import org.apache.hc.core5.util.Args;
 @ThreadSafe
 public class BasicAuthCache implements AuthCache {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     private final Map<HttpHost, byte[]> map;
     private final SchemePortResolver schemePortResolver;
