@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.http.auth;
 
-import org.apache.hc.core5.http.protocol.HttpContext;
-
 /**
  * Abstract store of authentication credentials.
  * <p>
