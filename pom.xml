@@ -78,7 +78,7 @@
     <mockito.version>1.8.5</mockito.version>
     <jna.version>4.2.1</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
-    <hc.rat.version>0.11</hc.rat.version>
+    <hc.rat.version>0.12</hc.rat.version>
   </properties>
 
   <dependencyManagement>
