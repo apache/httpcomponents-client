@@ -36,7 +36,8 @@ import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.params.BasicHttpParams;
@@ -46,7 +47,7 @@ import org.apache.http.params.HttpParams;
  * @since 4.1
  */
 @SuppressWarnings("deprecation")
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 final class OptionsHttp11Response extends AbstractHttpMessage implements HttpResponse {
 
     private final StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1,

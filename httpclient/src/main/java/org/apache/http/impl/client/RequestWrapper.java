@@ -34,7 +34,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
@@ -54,7 +53,6 @@ import org.apache.http.util.Args;
  *
  * @deprecated (4.3) do not use.
  */
-@NotThreadSafe
 @Deprecated
 public class RequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
 

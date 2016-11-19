@@ -35,7 +35,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
@@ -58,7 +57,6 @@ import org.ietf.jgss.Oid;
 /**
  * @since 4.2
  */
-@NotThreadSafe
 public abstract class GGSSchemeBase extends AuthSchemeBase {
 
     enum State {

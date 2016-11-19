@@ -26,7 +26,8 @@
  */
 package org.apache.http.impl.conn;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
@@ -37,7 +38,7 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
  *
  * @deprecated (4.3) use {@link org.apache.http.impl.client.HttpClientBuilder}.
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 @Deprecated
 public final class SchemeRegistryFactory {
 

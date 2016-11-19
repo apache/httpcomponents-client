@@ -36,7 +36,6 @@ import java.lang.reflect.Proxy;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 
@@ -44,7 +43,6 @@ import org.apache.http.util.EntityUtils;
  * @since 4.3
  */
 @Deprecated
-@NotThreadSafe
 class CloseableHttpResponseProxy implements InvocationHandler {
 
     private final static Constructor<?> CONSTRUCTOR;

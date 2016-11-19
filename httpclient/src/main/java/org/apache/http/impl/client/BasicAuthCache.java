@@ -38,7 +38,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.client.AuthCache;
 import org.apache.http.conn.SchemePortResolver;
@@ -56,7 +57,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.1
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class BasicAuthCache implements AuthCache {
 
     private final Log log = LogFactory.getLog(getClass());

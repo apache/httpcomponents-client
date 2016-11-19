@@ -41,7 +41,6 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ManagedClientConnection;
@@ -59,7 +58,6 @@ import org.apache.http.util.Asserts;
  * @deprecated (4.3) use {@link ManagedHttpClientConnectionFactory}.
  */
 @Deprecated
-@NotThreadSafe
 class ManagedClientConnectionImpl implements ManagedClientConnection {
 
     private final ClientConnectionManager manager;

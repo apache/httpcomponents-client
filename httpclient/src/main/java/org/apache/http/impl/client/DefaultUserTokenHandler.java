@@ -31,7 +31,8 @@ import java.security.Principal;
 import javax.net.ssl.SSLSession;
 
 import org.apache.http.HttpConnection;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.auth.Credentials;
@@ -54,7 +55,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class DefaultUserTokenHandler implements UserTokenHandler {
 
     public static final DefaultUserTokenHandler INSTANCE = new DefaultUserTokenHandler();

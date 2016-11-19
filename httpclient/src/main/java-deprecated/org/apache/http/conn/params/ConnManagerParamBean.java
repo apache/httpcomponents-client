@@ -27,7 +27,6 @@
 
 package org.apache.http.conn.params;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
@@ -40,7 +39,6 @@ import org.apache.http.params.HttpParams;
  *
  * @deprecated (4.1) use configuration methods of the specific connection manager implementation.
  */
-@NotThreadSafe
 @Deprecated
 public class ConnManagerParamBean extends HttpAbstractParamBean {
 

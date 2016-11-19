@@ -27,8 +27,6 @@
 
 package org.apache.http.client.params;
 
-import org.apache.http.annotation.Immutable;
-
 /**
  * Standard authentication schemes supported by HttpClient.
  *
@@ -37,7 +35,6 @@ import org.apache.http.annotation.Immutable;
  * @deprecated (4.3) use {@link org.apache.http.client.config.AuthSchemes}.
  */
 @Deprecated
-@Immutable
 public final class AuthPolicy {
 
     private AuthPolicy() {

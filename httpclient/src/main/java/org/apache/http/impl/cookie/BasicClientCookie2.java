@@ -29,7 +29,6 @@ package org.apache.http.impl.cookie;
 
 import java.util.Date;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.cookie.SetCookie2;
 
 /**
@@ -37,7 +36,6 @@ import org.apache.http.cookie.SetCookie2;
  *
  * @since 4.0
  */
-@NotThreadSafe
 public class BasicClientCookie2 extends BasicClientCookie implements SetCookie2 {
 
     private static final long serialVersionUID = -7744598295706617057L;

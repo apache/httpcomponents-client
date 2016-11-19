@@ -29,7 +29,6 @@ package org.apache.http.conn;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.util.Args;
 
 /**
@@ -41,7 +40,6 @@ import org.apache.http.util.Args;
  * @deprecated (4.3) do not use.
  */
 @Deprecated
-@NotThreadSafe
 public class BasicEofSensorWatcher implements EofSensorWatcher {
 
     /** The connection to auto-release. */

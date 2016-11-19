@@ -27,7 +27,8 @@
 
 package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecFactory;
 import org.apache.http.cookie.CookieSpecProvider;
@@ -41,7 +42,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class IgnoreSpecFactory implements CookieSpecFactory, CookieSpecProvider {
 

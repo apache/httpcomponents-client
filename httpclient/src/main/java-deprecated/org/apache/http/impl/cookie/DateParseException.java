@@ -27,8 +27,6 @@
 
 package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.Immutable;
-
 /**
  * An exception to indicate an error parsing a date string.
  *
@@ -40,7 +38,6 @@ import org.apache.http.annotation.Immutable;
  * @deprecated (4.3) no longer used.
  */
 @Deprecated
-@Immutable
 public class DateParseException extends Exception {
 
     private static final long serialVersionUID = 4417696455000643370L;

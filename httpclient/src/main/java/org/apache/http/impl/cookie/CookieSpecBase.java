@@ -34,7 +34,8 @@ import java.util.Locale;
 
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
@@ -47,7 +48,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public abstract class CookieSpecBase extends AbstractCookieSpec {
 
     public CookieSpecBase() {

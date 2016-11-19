@@ -35,7 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.MalformedCookieException;
@@ -47,7 +48,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class LaxExpiresHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     static final TimeZone UTC = TimeZone.getTimeZone("UTC");

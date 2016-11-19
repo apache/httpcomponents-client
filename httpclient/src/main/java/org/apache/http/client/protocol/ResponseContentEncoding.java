@@ -37,7 +37,8 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.DecompressingEntity;
 import org.apache.http.client.entity.DeflateInputStream;
@@ -55,7 +56,7 @@ import org.apache.http.protocol.HttpContext;
  * @since 4.1
  *
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class ResponseContentEncoding implements HttpResponseInterceptor {
 
     public static final String UNCOMPRESSED = "http.client.response.uncompressed";

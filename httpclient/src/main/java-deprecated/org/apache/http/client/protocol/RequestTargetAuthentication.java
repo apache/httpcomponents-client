@@ -31,7 +31,8 @@ import java.io.IOException;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthState;
 import org.apache.http.protocol.HttpContext;
@@ -46,7 +47,7 @@ import org.apache.http.util.Args;
  * @deprecated (4.3) use {@link org.apache.http.impl.auth.HttpAuthenticator}.
  */
 @Deprecated
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class RequestTargetAuthentication extends RequestAuthenticationBase {
 
     public RequestTargetAuthentication() {

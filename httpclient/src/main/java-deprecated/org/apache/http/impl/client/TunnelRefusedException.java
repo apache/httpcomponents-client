@@ -29,7 +29,6 @@ package org.apache.http.impl.client;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.Immutable;
 
 /**
  * Signals that the tunnel request was rejected by the proxy host.
@@ -39,7 +38,6 @@ import org.apache.http.annotation.Immutable;
  * @deprecated (4.3) reserved for internal use.
  */
 @Deprecated
-@Immutable
 public class TunnelRefusedException extends HttpException {
 
     private static final long serialVersionUID = -8646722842745617323L;

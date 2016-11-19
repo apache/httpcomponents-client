@@ -27,7 +27,8 @@
 
 package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.MalformedCookieException;
@@ -42,7 +43,7 @@ import org.apache.http.util.Args;
  * @since 4.3
  */
 @Deprecated
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class BrowserCompatVersionAttributeHandler extends
         AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 

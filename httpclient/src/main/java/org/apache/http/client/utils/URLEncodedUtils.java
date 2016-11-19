@@ -46,7 +46,6 @@ import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
-import org.apache.http.annotation.Immutable;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.message.ParserCursor;
@@ -60,7 +59,6 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-@Immutable
 public class URLEncodedUtils {
 
     /**

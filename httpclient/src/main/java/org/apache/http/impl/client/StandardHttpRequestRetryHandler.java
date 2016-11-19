@@ -32,7 +32,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 
 /**
  * {@link org.apache.http.client.HttpRequestRetryHandler} which assumes
@@ -45,7 +46,7 @@ import org.apache.http.annotation.Immutable;
  *
  * @since 4.2
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class StandardHttpRequestRetryHandler extends DefaultHttpRequestRetryHandler {
 
     private final Map<String, Boolean> idempotentMethods;

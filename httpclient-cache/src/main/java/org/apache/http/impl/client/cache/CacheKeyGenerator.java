@@ -40,7 +40,8 @@ import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.utils.URIUtils;
@@ -48,7 +49,7 @@ import org.apache.http.client.utils.URIUtils;
 /**
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheKeyGenerator {
 
     private static final URI BASE_URI = URI.create("http://example.com/");

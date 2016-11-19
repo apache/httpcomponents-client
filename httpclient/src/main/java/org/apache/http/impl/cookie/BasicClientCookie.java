@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.SetCookie;
 import org.apache.http.util.Args;
@@ -43,7 +42,6 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  */
-@NotThreadSafe
 public class BasicClientCookie implements SetCookie, ClientCookie, Cloneable, Serializable {
 
     private static final long serialVersionUID = -3869795591041535538L;

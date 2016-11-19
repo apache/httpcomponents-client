@@ -26,7 +26,8 @@
  */
 package org.apache.http.impl.client;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.protocol.RequestAcceptEncoding;
 import org.apache.http.client.protocol.ResponseContentEncoding;
 import org.apache.http.conn.ClientConnectionManager;
@@ -50,7 +51,7 @@ import org.apache.http.protocol.BasicHttpProcessor;
  * @deprecated (4.2) use {@link HttpClientBuilder}
  */
 @Deprecated
-@ThreadSafe // since DefaultHttpClient is
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL) // since DefaultHttpClient is
 public class ContentEncodingHttpClient extends DefaultHttpClient {
 
     /**

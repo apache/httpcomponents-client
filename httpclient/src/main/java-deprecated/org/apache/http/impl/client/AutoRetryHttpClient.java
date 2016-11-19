@@ -36,7 +36,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
@@ -56,7 +57,7 @@ import org.apache.http.util.EntityUtils;
  * @deprecated (4.3) use {@link HttpClientBuilder}.
  */
 @Deprecated
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class AutoRetryHttpClient implements HttpClient {
 
     private final HttpClient backend;

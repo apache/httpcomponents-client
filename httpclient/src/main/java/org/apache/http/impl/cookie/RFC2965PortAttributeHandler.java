@@ -29,7 +29,8 @@ package org.apache.http.impl.cookie;
 
 import java.util.StringTokenizer;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
@@ -45,7 +46,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class RFC2965PortAttributeHandler implements CommonCookieAttributeHandler {
 
     public RFC2965PortAttributeHandler() {

@@ -32,7 +32,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
@@ -67,7 +66,6 @@ import com.sun.jna.ptr.IntByReference;
  *
  * @since 4.4
  */
-@NotThreadSafe
 public class WindowsNegotiateScheme extends AuthSchemeBase {
 
     private final Log log = LogFactory.getLog(getClass());

@@ -35,7 +35,8 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthCache;
@@ -57,7 +58,7 @@ import org.apache.http.util.Args;
  *
  * @deprecated (4.2)  use {@link org.apache.http.client.AuthenticationStrategy}
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class ResponseAuthCache implements HttpResponseInterceptor {
 

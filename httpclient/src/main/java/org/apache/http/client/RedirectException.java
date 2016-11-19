@@ -27,7 +27,6 @@
 package org.apache.http.client;
 
 import org.apache.http.ProtocolException;
-import org.apache.http.annotation.Immutable;
 
 /**
  * Signals violation of HTTP specification caused by an invalid redirect
@@ -35,7 +34,6 @@ import org.apache.http.annotation.Immutable;
  *
  * @since 4.0
  */
-@Immutable
 public class RedirectException extends ProtocolException {
 
     private static final long serialVersionUID = 4418824536372559326L;

@@ -31,7 +31,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
@@ -66,14 +67,14 @@ import org.apache.http.util.Asserts;
  *
  * @deprecated (4.2)  use {@link org.apache.http.impl.conn.PoolingHttpClientConnectionManager}
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 @Deprecated
 public class ThreadSafeClientConnManager implements ClientConnectionManager {
 
     private final Log log;
 
     /** The schemes supported by this connection manager. */
-    protected final SchemeRegistry schemeRegistry; // @ThreadSafe
+    protected final SchemeRegistry schemeRegistry; // @Contract(threading = ThreadingBehavior.SAFE)
 
     protected final AbstractConnPool connectionPool;
 
@@ -81,7 +82,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     protected final ConnPoolByRoute pool;
 
     /** The operator for opening and updating connections. */
-    protected final ClientConnectionOperator connOperator; // DefaultClientConnectionOperator is @ThreadSafe
+    protected final ClientConnectionOperator connOperator; // DefaultClientConnectionOperator is @Contract(threading = ThreadingBehavior.SAFE)
 
     protected final ConnPerRouteBean connPerRoute;
 
@@ -206,7 +207,7 @@ public class ThreadSafeClientConnManager implements ClientConnectionManager {
     protected ClientConnectionOperator
         createConnectionOperator(final SchemeRegistry schreg) {
 
-        return new DefaultClientConnectionOperator(schreg);// @ThreadSafe
+        return new DefaultClientConnectionOperator(schreg);// @Contract(threading = ThreadingBehavior.SAFE)
     }
 
     @Override

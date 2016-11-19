@@ -29,7 +29,6 @@ package org.apache.http.conn;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.util.Args;
 
 /**
@@ -43,7 +42,6 @@ import org.apache.http.util.Args;
  */
 // don't use FilterInputStream as the base class, we'd have to
 // override markSupported(), mark(), and reset() to disable them
-@NotThreadSafe
 public class EofSensorInputStream extends InputStream implements ConnectionReleaseTrigger {
 
     /**

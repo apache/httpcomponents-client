@@ -32,7 +32,6 @@ import java.net.InetAddress;
 import java.util.Arrays;
 
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.Immutable;
 
 /**
  * A {@link ConnectException} that specifies the {@link HttpHost} that was
@@ -40,7 +39,6 @@ import org.apache.http.annotation.Immutable;
  *
  * @since 4.0
  */
-@Immutable
 public class HttpHostConnectException extends ConnectException {
 
     private static final long serialVersionUID = -3194482710275220224L;

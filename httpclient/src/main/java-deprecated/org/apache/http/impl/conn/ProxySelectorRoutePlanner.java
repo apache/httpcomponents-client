@@ -39,7 +39,6 @@ import java.util.List;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.params.ConnRouteParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
@@ -71,12 +70,11 @@ import org.apache.http.util.Asserts;
  *
  * @deprecated (4.3) use {@link SystemDefaultRoutePlanner}
  */
-@NotThreadSafe // e.g [gs]etProxySelector()
 @Deprecated
 public class ProxySelectorRoutePlanner implements HttpRoutePlanner {
 
     /** The scheme registry. */
-    protected final SchemeRegistry schemeRegistry; // @ThreadSafe
+    protected final SchemeRegistry schemeRegistry; // @Contract(threading = ThreadingBehavior.SAFE)
 
     /** The proxy selector to use, or {@code null} for system default. */
     protected ProxySelector proxySelector;

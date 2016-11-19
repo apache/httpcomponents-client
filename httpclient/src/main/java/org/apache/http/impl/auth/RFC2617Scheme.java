@@ -39,7 +39,6 @@ import java.util.Map;
 import org.apache.http.Consts;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.params.AuthPNames;
@@ -57,7 +56,6 @@ import org.apache.http.util.CharsetUtils;
  * @since 4.0
  */
 @SuppressWarnings("deprecation")
-@NotThreadSafe // AuthSchemeBase, params
 public abstract class RFC2617Scheme extends AuthSchemeBase implements Serializable {
 
     private static final long serialVersionUID = -2845454858205884623L;

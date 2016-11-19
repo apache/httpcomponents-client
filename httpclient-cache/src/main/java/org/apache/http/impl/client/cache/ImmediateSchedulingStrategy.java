@@ -26,13 +26,14 @@
  */
 package org.apache.http.impl.client.cache;
 
-import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.util.Args;
-
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
+import org.apache.http.util.Args;
 
 /**
  * Immediately schedules any incoming validation request. Relies on
@@ -40,7 +41,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class ImmediateSchedulingStrategy implements SchedulingStrategy {
 
     private final ExecutorService executor;

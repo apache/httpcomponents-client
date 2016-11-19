@@ -29,14 +29,11 @@ package org.apache.http.conn;
 
 import java.io.IOException;
 
-import org.apache.http.annotation.Immutable;
-
 /**
  * Signals failure to establish connection using an unknown protocol scheme.
  *
  * @since 4.3
  */
-@Immutable
 public class UnsupportedSchemeException extends IOException {
 
     private static final long serialVersionUID = 3597127619218687636L;

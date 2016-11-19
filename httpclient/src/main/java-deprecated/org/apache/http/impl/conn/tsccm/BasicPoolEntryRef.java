@@ -45,7 +45,7 @@ import org.apache.http.util.Args;
 public class BasicPoolEntryRef extends WeakReference<BasicPoolEntry> {
 
     /** The planned route of the entry. */
-    private final HttpRoute route; // HttpRoute is @Immutable
+    private final HttpRoute route; // HttpRoute is @Contract(threading = ThreadingBehavior.IMMUTABLE)
 
 
     /**

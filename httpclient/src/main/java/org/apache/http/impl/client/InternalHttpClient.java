@@ -37,7 +37,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.ClientProtocolException;
@@ -72,7 +73,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 @SuppressWarnings("deprecation")
 class InternalHttpClient extends CloseableHttpClient implements Configurable {
 

@@ -34,7 +34,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.config.Lookup;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.ExecutionContext;
@@ -50,7 +51,7 @@ import org.apache.http.util.Args;
  *
  * @deprecated (4.3) use {@link org.apache.http.config.Registry}.
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 @Deprecated
 public final class CookieSpecRegistry implements Lookup<CookieSpecProvider> {
 

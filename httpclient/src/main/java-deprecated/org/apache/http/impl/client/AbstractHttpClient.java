@@ -38,8 +38,8 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.annotation.GuardedBy;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.AuthenticationHandler;
 import org.apache.http.client.AuthenticationStrategy;
@@ -194,85 +194,30 @@ import org.apache.http.util.Args;
  *
  * @deprecated (4.3) use {@link HttpClientBuilder}.
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 @Deprecated
 public abstract class AbstractHttpClient extends CloseableHttpClient {
 
     private final Log log = LogFactory.getLog(getClass());
 
-    /** The parameters. */
-    @GuardedBy("this")
     private HttpParams defaultParams;
-
-    /** The request executor. */
-    @GuardedBy("this")
     private HttpRequestExecutor requestExec;
-
-    /** The connection manager. */
-    @GuardedBy("this")
     private ClientConnectionManager connManager;
-
-    /** The connection re-use strategy. */
-    @GuardedBy("this")
     private ConnectionReuseStrategy reuseStrategy;
-
-    /** The connection keep-alive strategy. */
-    @GuardedBy("this")
     private ConnectionKeepAliveStrategy keepAliveStrategy;
-
-    /** The cookie spec registry. */
-    @GuardedBy("this")
     private CookieSpecRegistry supportedCookieSpecs;
-
-    /** The authentication scheme registry. */
-    @GuardedBy("this")
     private AuthSchemeRegistry supportedAuthSchemes;
-
-    /** The HTTP protocol processor and its immutable copy. */
-    @GuardedBy("this")
     private BasicHttpProcessor mutableProcessor;
-
-    @GuardedBy("this")
     private ImmutableHttpProcessor protocolProcessor;
-
-    /** The request retry handler. */
-    @GuardedBy("this")
     private HttpRequestRetryHandler retryHandler;
-
-    /** The redirect handler. */
-    @GuardedBy("this")
     private RedirectStrategy redirectStrategy;
-
-    /** The target authentication handler. */
-    @GuardedBy("this")
     private AuthenticationStrategy targetAuthStrategy;
-
-    /** The proxy authentication handler. */
-    @GuardedBy("this")
     private AuthenticationStrategy proxyAuthStrategy;
-
-    /** The cookie store. */
-    @GuardedBy("this")
     private CookieStore cookieStore;
-
-    /** The credentials provider. */
-    @GuardedBy("this")
     private CredentialsProvider credsProvider;
-
-    /** The route planner. */
-    @GuardedBy("this")
     private HttpRoutePlanner routePlanner;
-
-    /** The user token handler. */
-    @GuardedBy("this")
     private UserTokenHandler userTokenHandler;
-
-    /** The connection backoff strategy. */
-    @GuardedBy("this")
     private ConnectionBackoffStrategy connectionBackoffStrategy;
-
-    /** The backoff manager. */
-    @GuardedBy("this")
     private BackoffManager backoffManager;
 
     /**

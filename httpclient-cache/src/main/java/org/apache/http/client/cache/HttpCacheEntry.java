@@ -36,7 +36,8 @@ import org.apache.http.Header;
 import org.apache.http.HeaderIterator;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.message.HeaderGroup;
 import org.apache.http.protocol.HTTP;
@@ -51,7 +52,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class HttpCacheEntry implements Serializable {
 
     private static final long serialVersionUID = -6300496422359477413L;

@@ -38,7 +38,8 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolException;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.CircularRedirectException;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -58,7 +59,7 @@ import org.apache.http.util.Asserts;
  *
  * @deprecated (4.1)  use {@link DefaultRedirectStrategy}.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class DefaultRedirectHandler implements RedirectHandler {
 

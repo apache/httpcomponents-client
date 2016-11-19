@@ -29,7 +29,8 @@ package org.apache.http.impl.cookie;
 import java.io.IOException;
 import java.io.Reader;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.util.PublicSuffixList;
 
 /**
@@ -40,7 +41,7 @@ import org.apache.http.conn.util.PublicSuffixList;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class PublicSuffixListParser {
 

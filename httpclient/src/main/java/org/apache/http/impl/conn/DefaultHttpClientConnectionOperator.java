@@ -37,7 +37,8 @@ import java.net.SocketTimeoutException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Lookup;
 import org.apache.http.config.SocketConfig;
@@ -60,7 +61,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class DefaultHttpClientConnectionOperator implements HttpClientConnectionOperator {
 
     static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";

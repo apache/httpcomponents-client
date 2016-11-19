@@ -35,9 +35,7 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.annotation.Immutable;
 
-@Immutable
 class IOUtils {
 
     static void consume(final HttpEntity entity) throws IOException {

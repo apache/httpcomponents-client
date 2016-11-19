@@ -27,7 +27,8 @@
 
 package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 
 /**
@@ -38,7 +39,7 @@ import org.apache.http.cookie.CommonCookieAttributeHandler;
  *
  * @since 4.4
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class RFC6265LaxSpec extends RFC6265CookieSpecBase {
 
     public RFC6265LaxSpec() {

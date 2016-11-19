@@ -33,7 +33,8 @@ import java.util.Map;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.params.AuthPNames;
@@ -49,7 +50,7 @@ import org.apache.http.util.Args;
  * @deprecated (4.2)  use {@link TargetAuthenticationStrategy}
  */
 @Deprecated
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class DefaultTargetAuthenticationHandler extends AbstractAuthenticationHandler {
 
     public DefaultTargetAuthenticationHandler() {

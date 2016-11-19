@@ -40,7 +40,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.auth.AuthenticationException;
@@ -61,7 +62,7 @@ import org.apache.http.util.CharArrayBuffer;
  * @deprecated (4.2)  use {@link org.apache.http.client.AuthenticationStrategy}
  */
 @Deprecated
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public abstract class AbstractAuthenticationHandler implements AuthenticationHandler {
 
     private final Log log = LogFactory.getLog(getClass());

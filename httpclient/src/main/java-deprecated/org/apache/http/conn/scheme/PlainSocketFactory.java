@@ -34,7 +34,8 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -47,7 +48,7 @@ import org.apache.http.util.Args;
  *
  * @deprecated (4.3) use {@link org.apache.http.conn.socket.PlainConnectionSocketFactory}
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class PlainSocketFactory implements SocketFactory, SchemeSocketFactory {
 

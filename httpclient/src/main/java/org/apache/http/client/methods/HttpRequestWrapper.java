@@ -36,7 +36,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.params.HttpParams;
@@ -50,7 +49,6 @@ import org.apache.http.util.Args;
  * @since 4.3
  */
 @SuppressWarnings("deprecation")
-@NotThreadSafe
 public class HttpRequestWrapper extends AbstractHttpMessage implements HttpUriRequest {
 
     private final HttpRequest original;

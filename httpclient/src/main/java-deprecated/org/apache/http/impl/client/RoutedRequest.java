@@ -27,7 +27,6 @@
 
 package org.apache.http.impl.client;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.routing.HttpRoute;
 
 /**
@@ -38,11 +37,10 @@ import org.apache.http.conn.routing.HttpRoute;
  * @deprecated (4.3) do not use.
  */
 @Deprecated
-@NotThreadSafe // RequestWrapper is @NotThreadSafe
 public class RoutedRequest {
 
     protected final RequestWrapper request; // @NotThreadSafe
-    protected final HttpRoute route; // @Immutable
+    protected final HttpRoute route; // @Contract(threading = ThreadingBehavior.IMMUTABLE)
 
     /**
      * Creates a new routed request.

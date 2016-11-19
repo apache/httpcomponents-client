@@ -27,7 +27,8 @@
 
 package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
@@ -43,7 +44,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class DefaultCookieSpecProvider implements CookieSpecProvider {
 
     public enum CompatibilityLevel {

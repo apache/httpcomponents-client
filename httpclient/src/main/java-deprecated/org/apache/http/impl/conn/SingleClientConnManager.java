@@ -32,8 +32,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.annotation.GuardedBy;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
@@ -61,7 +61,7 @@ import org.apache.http.util.Asserts;
  *
  * @deprecated (4.2)  use {@link BasicClientConnectionManager}
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 @Deprecated
 public class SingleClientConnManager implements ClientConnectionManager {
 
@@ -82,19 +82,15 @@ public class SingleClientConnManager implements ClientConnectionManager {
     protected final boolean alwaysShutDown;
 
     /** The one and only entry in this pool. */
-    @GuardedBy("this")
     protected volatile PoolEntry uniquePoolEntry;
 
     /** The currently issued managed connection, if any. */
-    @GuardedBy("this")
     protected volatile ConnAdapter managedConn;
 
     /** The time of the last connection release, or -1. */
-    @GuardedBy("this")
     protected volatile long lastReleaseTime;
 
     /** The time the last released connection expires and shouldn't be reused. */
-    @GuardedBy("this")
     protected volatile long connectionExpiresTime;
 
     /** Indicates whether this connection manager is shut down. */

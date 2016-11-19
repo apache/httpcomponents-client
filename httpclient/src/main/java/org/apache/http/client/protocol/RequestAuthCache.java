@@ -35,7 +35,8 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthScope;
@@ -54,7 +55,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class RequestAuthCache implements HttpRequestInterceptor {
 
     private final Log log = LogFactory.getLog(getClass());

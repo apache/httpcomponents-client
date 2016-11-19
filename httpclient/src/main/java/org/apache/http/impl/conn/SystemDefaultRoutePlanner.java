@@ -37,7 +37,8 @@ import java.util.List;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.SchemePortResolver;
 import org.apache.http.protocol.HttpContext;
 
@@ -49,7 +50,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.3
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
 
     private final ProxySelector proxySelector;

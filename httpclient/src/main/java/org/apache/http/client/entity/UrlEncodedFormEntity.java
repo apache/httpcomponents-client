@@ -31,7 +31,6 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -43,7 +42,6 @@ import org.apache.http.protocol.HTTP;
  *
  * @since 4.0
  */
-@NotThreadSafe // AbstractHttpEntity is not thread-safe
 public class UrlEncodedFormEntity extends StringEntity {
 
     /**

@@ -27,14 +27,11 @@
 
 package org.apache.http.client.config;
 
-import org.apache.http.annotation.Immutable;
-
 /**
  * Standard cookie specifications supported by HttpClient.
  *
  * @since 4.3
  */
-@Immutable
 public final class CookieSpecs {
 
     /**

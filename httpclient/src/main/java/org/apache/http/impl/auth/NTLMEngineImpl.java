@@ -38,7 +38,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Consts;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.util.CharsetUtils;
 import org.apache.http.util.EncodingUtils;
 
@@ -48,7 +47,6 @@ import org.apache.http.util.EncodingUtils;
  *
  * @since 4.1
  */
-@NotThreadSafe
 final class NTLMEngineImpl implements NTLMEngine {
 
     /** Unicode encoding */

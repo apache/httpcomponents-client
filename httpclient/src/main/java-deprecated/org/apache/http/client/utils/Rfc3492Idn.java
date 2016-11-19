@@ -28,7 +28,8 @@ package org.apache.http.client.utils;
 
 import java.util.StringTokenizer;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 
 /**
  * Implementation from pseudo code in RFC 3492.
@@ -37,7 +38,7 @@ import org.apache.http.annotation.Immutable;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class Rfc3492Idn implements Idn {
     private static final int base = 36;

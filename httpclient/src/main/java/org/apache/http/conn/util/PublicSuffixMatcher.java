@@ -33,7 +33,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.util.Args;
 
 /**
@@ -46,7 +47,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.4
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public final class PublicSuffixMatcher {
 
     private final Map<String, DomainType> rules;

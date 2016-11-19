@@ -34,8 +34,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpClientConnection;
-import org.apache.http.annotation.GuardedBy;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ClientConnectionRequest;
@@ -66,7 +66,7 @@ import org.apache.http.util.Asserts;
  *
  * @deprecated (4.3) use {@link BasicHttpClientConnectionManager}.
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 @Deprecated
 public class BasicClientConnectionManager implements ClientConnectionManager {
 
@@ -86,15 +86,12 @@ public class BasicClientConnectionManager implements ClientConnectionManager {
     private final ClientConnectionOperator connOperator;
 
     /** The one and only entry in this pool. */
-    @GuardedBy("this")
     private HttpPoolEntry poolEntry;
 
     /** The currently issued managed connection, if any. */
-    @GuardedBy("this")
     private ManagedClientConnectionImpl conn;
 
     /** Indicates whether this connection manager is shut down. */
-    @GuardedBy("this")
     private volatile boolean shutdown;
 
     /**

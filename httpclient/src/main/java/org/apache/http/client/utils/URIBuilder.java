@@ -35,7 +35,6 @@ import java.util.List;
 
 import org.apache.http.Consts;
 import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.apache.http.message.BasicNameValuePair;
 
@@ -44,7 +43,6 @@ import org.apache.http.message.BasicNameValuePair;
  *
  * @since 4.2
  */
-@NotThreadSafe
 public class URIBuilder {
 
     private String scheme;

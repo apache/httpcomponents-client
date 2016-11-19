@@ -40,7 +40,6 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.ManagedClientConnection;
 import org.apache.http.conn.OperatedClientConnection;
@@ -70,7 +69,6 @@ import org.apache.http.protocol.HttpContext;
  * @deprecated (4.2)  do not use
  */
 @Deprecated
-@NotThreadSafe
 public abstract class AbstractClientConnAdapter implements ManagedClientConnection, HttpContext {
 
     /**

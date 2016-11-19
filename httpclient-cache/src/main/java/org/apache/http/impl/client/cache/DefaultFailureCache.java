@@ -26,11 +26,12 @@
  */
 package org.apache.http.impl.client.cache;
 
-import org.apache.http.annotation.ThreadSafe;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 
 /**
  * Implements a bounded failure cache. The oldest entries are discarded when
@@ -38,7 +39,7 @@ import java.util.concurrent.ConcurrentMap;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class DefaultFailureCache implements FailureCache {
 
     static final int DEFAULT_MAX_SIZE = 1000;

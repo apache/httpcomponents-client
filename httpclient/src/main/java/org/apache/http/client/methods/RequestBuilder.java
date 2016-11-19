@@ -43,7 +43,6 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
 import org.apache.http.NameValuePair;
 import org.apache.http.ProtocolVersion;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.utils.URIBuilder;
@@ -67,7 +66,6 @@ import org.apache.http.util.Args;
  *
  * @since 4.3
  */
-@NotThreadSafe
 public class RequestBuilder {
 
     private String method;

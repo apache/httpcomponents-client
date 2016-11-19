@@ -30,7 +30,8 @@ package org.apache.http.impl.auth.win;
 import java.io.Serializable;
 import java.security.Principal;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.Credentials;
 
 import com.sun.jna.platform.win32.Secur32.EXTENDED_NAME_FORMAT;
@@ -44,7 +45,7 @@ import com.sun.jna.platform.win32.Secur32Util;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class CurrentWindowsCredentials implements Credentials, Serializable, Principal {
 
     private static final long serialVersionUID = 4361166468529298169L;

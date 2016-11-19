@@ -37,7 +37,8 @@ import org.apache.http.HttpResponseFactory;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.ProtocolException;
 import org.apache.http.StatusLine;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.impl.io.AbstractMessageParser;
 import org.apache.http.io.SessionInputBuffer;
 import org.apache.http.message.LineParser;
@@ -62,7 +63,7 @@ import org.apache.http.util.CharArrayBuffer;
  * @deprecated (4.2) use {@link DefaultHttpResponseParser}
  */
 @Deprecated
-@ThreadSafe // no public methods
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class DefaultResponseParser extends AbstractMessageParser<HttpMessage> {
 
     private final Log log = LogFactory.getLog(getClass());

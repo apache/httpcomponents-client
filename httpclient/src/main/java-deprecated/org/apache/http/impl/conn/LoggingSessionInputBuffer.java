@@ -29,7 +29,8 @@ package org.apache.http.impl.conn;
 import java.io.IOException;
 
 import org.apache.http.Consts;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.io.EofSensor;
 import org.apache.http.io.HttpTransportMetrics;
 import org.apache.http.io.SessionInputBuffer;
@@ -42,7 +43,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @deprecated (4.3) no longer used.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class LoggingSessionInputBuffer implements SessionInputBuffer, EofSensor {
 

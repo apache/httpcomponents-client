@@ -27,7 +27,8 @@
 
 package org.apache.http.auth.params;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.Args;
@@ -42,7 +43,7 @@ import org.apache.http.util.Args;
  *   and constructor parameters of
  *   {@link org.apache.http.auth.AuthSchemeProvider}s.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public final class AuthParams {
 

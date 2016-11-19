@@ -29,7 +29,8 @@ package org.apache.http.conn.ssl;
 
 import javax.net.ssl.SSLException;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 
 /**
  * The HostnameVerifier that works the same way as Curl and Firefox.
@@ -47,7 +48,7 @@ import org.apache.http.annotation.Immutable;
  *
  * @deprecated (4.4) Use {@link org.apache.http.conn.ssl.DefaultHostnameVerifier}
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class BrowserCompatHostnameVerifier extends AbstractVerifier {
 

@@ -29,7 +29,6 @@ package org.apache.http.cookie.params;
 
 import java.util.Collection;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
 
@@ -44,7 +43,6 @@ import org.apache.http.params.HttpParams;
  *   org.apache.http.cookie.CookieSpecProvider}s.
  */
 @Deprecated
-@NotThreadSafe
 public class CookieSpecParamBean extends HttpAbstractParamBean {
 
     public CookieSpecParamBean (final HttpParams params) {

@@ -27,7 +27,6 @@
 package org.apache.http.client;
 
 import org.apache.http.ProtocolException;
-import org.apache.http.annotation.Immutable;
 
 /**
  * Signals failure to retry the request due to non-repeatable request
@@ -36,7 +35,6 @@ import org.apache.http.annotation.Immutable;
  *
  * @since 4.0
  */
-@Immutable
 public class NonRepeatableRequestException extends ProtocolException {
 
     private static final long serialVersionUID = 82685265288806048L;

@@ -28,7 +28,6 @@ package org.apache.http.impl.auth;
 
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
@@ -45,7 +44,6 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-@NotThreadSafe
 public class NTLMScheme extends AuthSchemeBase {
 
     enum State {

@@ -36,7 +36,8 @@ import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.NameValuePair;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
@@ -61,7 +62,7 @@ import org.apache.http.util.CharArrayBuffer;
  * @since 4.0
  */
 @Deprecated
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class BrowserCompatSpec extends CookieSpecBase {
 
 

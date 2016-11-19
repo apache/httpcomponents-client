@@ -32,7 +32,6 @@ import java.io.OutputStream;
 import java.net.SocketException;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
@@ -48,7 +47,6 @@ import org.apache.http.util.EntityUtils;
  * @deprecated (4.3) do not use.
  */
 @Deprecated
-@NotThreadSafe
 public class BasicManagedEntity extends HttpEntityWrapper
     implements ConnectionReleaseTrigger, EofSensorWatcher {
 

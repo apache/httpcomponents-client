@@ -33,7 +33,6 @@ import java.net.InetAddress;
 import java.util.Arrays;
 
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.Immutable;
 
 /**
  * A timeout while connecting to an HTTP server or waiting for an
@@ -42,7 +41,6 @@ import org.apache.http.annotation.Immutable;
  *
  * @since 4.0
  */
-@Immutable
 public class ConnectTimeoutException extends InterruptedIOException {
 
     private static final long serialVersionUID = -4816682903149535989L;

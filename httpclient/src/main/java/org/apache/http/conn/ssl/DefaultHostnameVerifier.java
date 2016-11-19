@@ -51,7 +51,8 @@ import javax.security.auth.x500.X500Principal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.util.DomainType;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.apache.http.conn.util.PublicSuffixMatcher;
@@ -61,7 +62,7 @@ import org.apache.http.conn.util.PublicSuffixMatcher;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public final class DefaultHostnameVerifier implements HostnameVerifier {
 
     enum TYPE { IPv4, IPv6, DNS }

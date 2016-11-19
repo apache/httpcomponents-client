@@ -32,7 +32,8 @@ import java.net.URI;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolException;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.RedirectHandler;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.methods.HttpGet;
@@ -43,7 +44,7 @@ import org.apache.http.protocol.HttpContext;
 /**
  * @deprecated (4.1) do not use
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 class DefaultRedirectStrategyAdaptor implements RedirectStrategy {
 

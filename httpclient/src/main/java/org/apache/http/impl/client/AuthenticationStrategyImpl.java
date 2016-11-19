@@ -43,7 +43,8 @@ import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthOption;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
@@ -62,7 +63,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
 
     private final Log log = LogFactory.getLog(getClass());

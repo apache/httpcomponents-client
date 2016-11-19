@@ -29,7 +29,8 @@ package org.apache.http.client.utils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 
 /**
  * Uses the java.net.IDN class through reflection.
@@ -38,7 +39,7 @@ import org.apache.http.annotation.Immutable;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class JdkIdn implements Idn {
     private final Method toUnicode;

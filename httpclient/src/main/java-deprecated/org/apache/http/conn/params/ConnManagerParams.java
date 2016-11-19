@@ -26,7 +26,8 @@
  */
 package org.apache.http.conn.params;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.Args;
@@ -42,7 +43,7 @@ import org.apache.http.util.Args;
  * @deprecated (4.1) use configuration methods of the specific connection manager implementation.
  */
 @Deprecated
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class ConnManagerParams implements ConnManagerPNames {
 
     /** The default maximum number of connections allowed overall */

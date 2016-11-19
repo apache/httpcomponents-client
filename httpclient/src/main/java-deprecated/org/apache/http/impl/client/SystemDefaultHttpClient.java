@@ -30,7 +30,8 @@ package org.apache.http.impl.client;
 import java.net.ProxySelector;
 
 import org.apache.http.ConnectionReuseStrategy;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
@@ -104,7 +105,7 @@ import org.apache.http.params.HttpParams;
  *
  * @deprecated (4.3) use {@link HttpClientBuilder}
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 @Deprecated
 public class SystemDefaultHttpClient extends DefaultHttpClient {
 

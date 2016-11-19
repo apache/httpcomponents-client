@@ -28,7 +28,8 @@
 package org.apache.http.impl.client;
 
 import org.apache.http.HttpVersion;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.protocol.RequestAddCookies;
 import org.apache.http.client.protocol.RequestAuthCache;
 import org.apache.http.client.protocol.RequestClientConnControl;
@@ -112,7 +113,7 @@ import org.apache.http.util.VersionInfo;
  *
  * @deprecated (4.3) use {@link HttpClientBuilder} see also {@link CloseableHttpClient}.
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 @Deprecated
 public class DefaultHttpClient extends AbstractHttpClient {
 

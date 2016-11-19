@@ -37,7 +37,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import org.apache.http.annotation.Immutable;
 import org.apache.http.util.Args;
 
 /**
@@ -47,7 +46,6 @@ import org.apache.http.util.Args;
  *
  * @since 4.3
  */
-@Immutable
 public final class DateUtils {
 
     /**

@@ -35,7 +35,6 @@ import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
@@ -63,7 +62,6 @@ import org.apache.http.entity.StringEntity;
  *
  * @since 4.3
  */
-@NotThreadSafe
 public class EntityBuilder {
 
     private String text;

@@ -26,7 +26,8 @@
  */
 package org.apache.http.impl.auth.win;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.client.CredentialsProvider;
@@ -43,7 +44,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.4
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class WindowsCredentialsProvider implements CredentialsProvider {
 
     private final CredentialsProvider provider;

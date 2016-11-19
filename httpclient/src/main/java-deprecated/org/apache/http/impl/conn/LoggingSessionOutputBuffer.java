@@ -29,7 +29,8 @@ package org.apache.http.impl.conn;
 import java.io.IOException;
 
 import org.apache.http.Consts;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.io.HttpTransportMetrics;
 import org.apache.http.io.SessionOutputBuffer;
 import org.apache.http.util.CharArrayBuffer;
@@ -39,7 +40,7 @@ import org.apache.http.util.CharArrayBuffer;
  * @since 4.0
  * @deprecated (4.3) no longer used.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class LoggingSessionOutputBuffer implements SessionOutputBuffer {
 

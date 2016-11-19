@@ -33,8 +33,9 @@ import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.Obsolete;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
@@ -57,7 +58,7 @@ import org.apache.http.util.CharArrayBuffer;
  * @see org.apache.http.impl.cookie.RFC6265StrictSpec
  */
 @Obsolete
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class RFC2109Spec extends CookieSpecBase {
 
     final static String[] DATE_PATTERNS = {

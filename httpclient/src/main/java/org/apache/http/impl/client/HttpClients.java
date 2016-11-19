@@ -27,7 +27,6 @@
 
 package org.apache.http.impl.client;
 
-import org.apache.http.annotation.Immutable;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
@@ -35,7 +34,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
  * Factory methods for {@link CloseableHttpClient} instances.
  * @since 4.3
  */
-@Immutable
 public class HttpClients {
 
     private HttpClients() {

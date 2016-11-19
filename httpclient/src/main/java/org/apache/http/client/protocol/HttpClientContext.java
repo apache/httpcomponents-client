@@ -30,7 +30,6 @@ package org.apache.http.client.protocol;
 import java.net.URI;
 import java.util.List;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.AuthCache;
@@ -54,7 +53,6 @@ import org.apache.http.protocol.HttpCoreContext;
  *
  * @since 4.3
  */
-@NotThreadSafe
 public class HttpClientContext extends HttpCoreContext {
 
     /**

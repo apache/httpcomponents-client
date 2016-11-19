@@ -33,7 +33,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.NTCredentials;
@@ -48,7 +49,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class SystemDefaultCredentialsProvider implements CredentialsProvider {
 
     private static final Map<String, String> SCHEME_MAP;

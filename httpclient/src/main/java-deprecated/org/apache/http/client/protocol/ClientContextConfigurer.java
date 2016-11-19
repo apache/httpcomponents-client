@@ -27,7 +27,6 @@
 
 package org.apache.http.client.protocol;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthSchemeRegistry;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
@@ -42,7 +41,6 @@ import org.apache.http.util.Args;
  *
  * @deprecated (4.3) use {@link HttpClientContext}
  */
-@NotThreadSafe
 @Deprecated
 public class ClientContextConfigurer implements ClientContext {
 

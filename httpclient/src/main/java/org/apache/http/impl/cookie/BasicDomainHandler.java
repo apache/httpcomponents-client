@@ -28,7 +28,8 @@ package org.apache.http.impl.cookie;
 
 import java.util.Locale;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
@@ -44,7 +45,7 @@ import org.apache.http.util.TextUtils;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class BasicDomainHandler implements CommonCookieAttributeHandler {
 
     public BasicDomainHandler() {

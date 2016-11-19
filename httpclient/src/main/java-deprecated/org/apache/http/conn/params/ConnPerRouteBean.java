@@ -29,7 +29,8 @@ package org.apache.http.conn.params;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.util.Args;
 
@@ -44,7 +45,7 @@ import org.apache.http.util.Args;
  * @deprecated (4.2)  use {@link org.apache.http.pool.ConnPoolControl}
  */
 @Deprecated
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public final class ConnPerRouteBean implements ConnPerRoute {
 
     /** The default maximum number of connections allowed per host */

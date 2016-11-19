@@ -37,7 +37,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.HttpConnectionFactory;
 import org.apache.http.conn.ManagedHttpClientConnection;
@@ -53,7 +54,7 @@ import org.apache.http.io.HttpMessageWriterFactory;
  * Factory for {@link ManagedHttpClientConnection} instances.
  * @since 4.3
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class ManagedHttpClientConnectionFactory
         implements HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> {
 

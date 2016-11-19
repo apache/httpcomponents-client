@@ -29,12 +29,13 @@ package org.apache.http.impl.client.cache;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.Resource;
 import org.apache.http.util.Args;
 
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class ResourceReference extends PhantomReference<HttpCacheEntry> {
 
     private final Resource resource;

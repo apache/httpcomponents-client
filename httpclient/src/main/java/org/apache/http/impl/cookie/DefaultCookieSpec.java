@@ -32,7 +32,8 @@ import java.util.List;
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.CookieSpec;
@@ -49,7 +50,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.4
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class DefaultCookieSpec implements CookieSpec {
 
     private final RFC2965Spec strict;

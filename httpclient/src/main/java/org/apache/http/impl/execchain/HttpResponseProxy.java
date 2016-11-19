@@ -36,7 +36,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.params.HttpParams;
 
@@ -46,7 +45,6 @@ import org.apache.http.params.HttpParams;
  *
  * @since 4.3
  */
-@NotThreadSafe
 class HttpResponseProxy implements CloseableHttpResponse {
 
     private final HttpResponse original;

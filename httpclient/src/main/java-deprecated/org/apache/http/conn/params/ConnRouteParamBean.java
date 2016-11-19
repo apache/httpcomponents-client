@@ -30,7 +30,6 @@ package org.apache.http.conn.params;
 import java.net.InetAddress;
 
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.params.HttpAbstractParamBean;
 import org.apache.http.params.HttpParams;
@@ -45,7 +44,6 @@ import org.apache.http.params.HttpParams;
  * @deprecated (4.3) use {@link org.apache.http.client.config.RequestConfig}.
  */
 @Deprecated
-@NotThreadSafe
 public class ConnRouteParamBean extends HttpAbstractParamBean {
 
     public ConnRouteParamBean (final HttpParams params) {

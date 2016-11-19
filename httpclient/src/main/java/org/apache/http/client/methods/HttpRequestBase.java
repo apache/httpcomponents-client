@@ -31,7 +31,6 @@ import java.net.URI;
 
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.params.HttpProtocolParams;
@@ -42,7 +41,6 @@ import org.apache.http.params.HttpProtocolParams;
  * @since 4.0
  */
 @SuppressWarnings("deprecation")
-@NotThreadSafe
 public abstract class HttpRequestBase extends AbstractExecutionAwareRequest
     implements HttpUriRequest, Configurable {
 

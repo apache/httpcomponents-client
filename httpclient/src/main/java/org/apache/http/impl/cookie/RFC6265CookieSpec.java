@@ -39,7 +39,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
@@ -60,7 +61,7 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.5
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class RFC6265CookieSpec implements CookieSpec {
 
     private final static char PARAM_DELIMITER  = ';';

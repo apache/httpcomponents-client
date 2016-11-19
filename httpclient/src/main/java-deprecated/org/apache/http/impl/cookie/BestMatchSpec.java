@@ -27,7 +27,8 @@
 
 package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 
 /**
  * 'Meta' cookie specification that picks up a cookie policy based on
@@ -37,7 +38,7 @@ import org.apache.http.annotation.ThreadSafe;
  *
  * @since 4.0
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 @Deprecated
 public class BestMatchSpec extends DefaultCookieSpec {
 

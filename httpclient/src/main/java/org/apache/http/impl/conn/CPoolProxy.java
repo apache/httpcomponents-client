@@ -38,14 +38,12 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.protocol.HttpContext;
 
 /**
  * @since 4.3
  */
-@NotThreadSafe
 class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
 
     private volatile CPoolEntry poolEntry;

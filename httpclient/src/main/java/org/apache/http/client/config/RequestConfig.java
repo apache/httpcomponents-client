@@ -31,14 +31,15 @@ import java.net.InetAddress;
 import java.util.Collection;
 
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 
 /**
  *  Immutable class encapsulating request configuration items.
  *  The default setting for stale connection checking changed
  *  to false, and the feature was deprecated starting with version 4.4.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class RequestConfig implements Cloneable {
 
     public static final RequestConfig DEFAULT = new Builder().build();

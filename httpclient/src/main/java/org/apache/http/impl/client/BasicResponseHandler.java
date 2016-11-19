@@ -31,7 +31,8 @@ import java.io.IOException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.util.EntityUtils;
 
@@ -48,7 +49,7 @@ import org.apache.http.util.EntityUtils;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class BasicResponseHandler extends AbstractResponseHandler<String> {
 
     /**

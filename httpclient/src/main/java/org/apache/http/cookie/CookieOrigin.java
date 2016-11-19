@@ -28,7 +28,8 @@ package org.apache.http.cookie;
 
 import java.util.Locale;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.util.Args;
 import org.apache.http.util.TextUtils;
 
@@ -38,7 +39,7 @@ import org.apache.http.util.TextUtils;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class CookieOrigin {
 
     private final String host;

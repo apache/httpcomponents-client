@@ -26,15 +26,12 @@
  */
 package org.apache.http.client.cache;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 /**
  * Used to limiting the size of an incoming response body of
  * unknown size that is optimistically being read in anticipation
  * of caching it.
  * @since 4.1
  */
-@NotThreadSafe // reached
 public class InputLimit {
 
     private final long value;

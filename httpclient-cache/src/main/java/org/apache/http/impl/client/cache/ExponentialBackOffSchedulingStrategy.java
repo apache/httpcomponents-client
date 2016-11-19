@@ -26,12 +26,13 @@
  */
 package org.apache.http.impl.client.cache;
 
-import org.apache.http.annotation.ThreadSafe;
-import org.apache.http.util.Args;
-
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
+import org.apache.http.util.Args;
 
 /**
  * An implementation that backs off exponentially based on the number of
@@ -56,7 +57,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy {
 
     public static final long DEFAULT_BACK_OFF_RATE = 10;

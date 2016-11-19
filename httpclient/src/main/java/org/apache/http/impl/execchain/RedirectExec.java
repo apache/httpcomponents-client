@@ -38,7 +38,8 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.ProtocolException;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
 import org.apache.http.client.RedirectException;
@@ -65,7 +66,7 @@ import org.apache.http.util.EntityUtils;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class RedirectExec implements ClientExecChain {
 
     private final Log log = LogFactory.getLog(getClass());

@@ -26,7 +26,8 @@
  */
 package org.apache.http.client.utils;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 
 /**
  * Facade that provides conversion between Unicode and Punycode domain names.
@@ -36,7 +37,7 @@ import org.apache.http.annotation.Immutable;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class Punycode {
     private static final Idn impl;

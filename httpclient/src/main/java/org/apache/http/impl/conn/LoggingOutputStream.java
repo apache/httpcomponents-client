@@ -27,8 +27,6 @@
 
 package org.apache.http.impl.conn;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -37,7 +35,6 @@ import java.io.OutputStream;
  *
  * @since 4.3
  */
-@NotThreadSafe
 class LoggingOutputStream extends OutputStream {
 
     private final OutputStream out;

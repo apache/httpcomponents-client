@@ -33,7 +33,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.client.cache.HttpCacheStorage;
 import org.apache.http.client.cache.HttpCacheUpdateCallback;
@@ -70,7 +71,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.1
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class ManagedHttpCacheStorage implements HttpCacheStorage, Closeable {
 
     private final CacheMap entries;

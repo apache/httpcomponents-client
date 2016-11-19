@@ -30,7 +30,6 @@ package org.apache.http.conn.routing;
 import java.net.InetAddress;
 
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.util.Args;
 import org.apache.http.util.Asserts;
 import org.apache.http.util.LangUtils;
@@ -40,7 +39,6 @@ import org.apache.http.util.LangUtils;
  *
  * @since 4.0
  */
-@NotThreadSafe
 public final class RouteTracker implements RouteInfo, Cloneable {
 
     /** The target host to connect to. */

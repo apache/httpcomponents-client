@@ -34,7 +34,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.NotThreadSafe;
 
 /**
  * A proxy class that can enhance an arbitrary {@link HttpResponse} with
@@ -42,7 +41,6 @@ import org.apache.http.annotation.NotThreadSafe;
  *
  * @since 4.3
  */
-@NotThreadSafe
 class ResponseProxyHandler implements InvocationHandler {
 
     private static final Method CLOSE_METHOD;

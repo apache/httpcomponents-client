@@ -32,7 +32,8 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 
 /**
  * {@link SSLContext} factory methods.
@@ -41,7 +42,7 @@ import org.apache.http.annotation.Immutable;
  *
  * @deprecated (4.4) use {@link org.apache.http.ssl.SSLContexts}.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class SSLContexts {
 

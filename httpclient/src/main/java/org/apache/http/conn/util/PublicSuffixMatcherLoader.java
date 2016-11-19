@@ -38,7 +38,8 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.Consts;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.util.Args;
 
 /**
@@ -46,7 +47,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.4
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public final class PublicSuffixMatcherLoader {
 
     private static PublicSuffixMatcher load(final InputStream in) throws IOException {

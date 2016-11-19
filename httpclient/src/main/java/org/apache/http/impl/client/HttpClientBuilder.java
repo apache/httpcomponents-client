@@ -47,7 +47,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.client.AuthenticationStrategy;
 import org.apache.http.client.BackoffManager;
@@ -153,7 +152,6 @@ import org.apache.http.util.VersionInfo;
  *
  * @since 4.3
  */
-@NotThreadSafe
 public class HttpClientBuilder {
 
     private HttpRequestExecutor requestExec;

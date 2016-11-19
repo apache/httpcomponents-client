@@ -29,8 +29,6 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 /**
  * HTTP PATCH method.
  * <p>
@@ -50,7 +48,6 @@ import org.apache.http.annotation.NotThreadSafe;
  *
  * @since 4.2
  */
-@NotThreadSafe
 public class HttpPatch extends HttpEntityEnclosingRequestBase {
 
     public final static String METHOD_NAME = "PATCH";

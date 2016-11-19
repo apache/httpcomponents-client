@@ -51,8 +51,6 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 /**
  * Builder for {@link SSLContext} instances.
  *
@@ -60,7 +58,6 @@ import org.apache.http.annotation.NotThreadSafe;
  *
  * @deprecated (4.4) use {@link org.apache.http.ssl.SSLContextBuilder}.
  */
-@NotThreadSafe
 @Deprecated
 public class SSLContextBuilder {
 

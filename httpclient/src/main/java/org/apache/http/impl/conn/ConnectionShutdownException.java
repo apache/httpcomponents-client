@@ -27,15 +27,12 @@
 
 package org.apache.http.impl.conn;
 
-import org.apache.http.annotation.Immutable;
-
 /**
  * Signals that the connection has been shut down or released back to the
  * the connection pool
  *
  * @since 4.1
  */
-@Immutable
 public class ConnectionShutdownException extends IllegalStateException {
 
     private static final long serialVersionUID = 5868657401162844497L;

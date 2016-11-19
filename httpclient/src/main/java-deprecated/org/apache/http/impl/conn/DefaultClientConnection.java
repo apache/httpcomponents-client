@@ -44,9 +44,8 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpResponseFactory;
-import org.apache.http.annotation.NotThreadSafe;
-import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.ManagedHttpClientConnection;
+import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.impl.SocketHttpClientConnection;
 import org.apache.http.io.HttpMessageParser;
 import org.apache.http.io.SessionInputBuffer;
@@ -64,7 +63,6 @@ import org.apache.http.util.Args;
  *
  * @deprecated (4.3) use {@link ManagedHttpClientConnectionFactory}.
  */
-@NotThreadSafe // connSecure, targetHost
 @Deprecated
 public class DefaultClientConnection extends SocketHttpClientConnection
     implements OperatedClientConnection, ManagedHttpClientConnection, HttpContext {

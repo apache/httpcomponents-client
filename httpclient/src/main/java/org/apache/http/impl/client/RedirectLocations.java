@@ -35,15 +35,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 /**
  * This class represents a collection of {@link java.net.URI}s used
  * as redirect locations.
  *
  * @since 4.0
  */
-@NotThreadSafe // HashSet/ArrayList are not synch.
 public class RedirectLocations extends AbstractList<Object> {
 
     private final Set<URI> unique;

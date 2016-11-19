@@ -32,10 +32,8 @@ import java.net.URI;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.protocol.HTTP;
 
-@NotThreadSafe
 class InternalEntityEnclosingHttpRequest extends InternalHttpRequest implements HttpEntityEnclosingRequest {
 
     private HttpEntity entity;

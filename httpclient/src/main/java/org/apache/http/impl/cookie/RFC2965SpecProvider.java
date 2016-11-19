@@ -27,8 +27,9 @@
 
 package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.Obsolete;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.util.PublicSuffixMatcher;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecProvider;
@@ -45,7 +46,7 @@ import org.apache.http.protocol.HttpContext;
  * @see org.apache.http.impl.cookie.RFC6265CookieSpecProvider
  */
 @Obsolete
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class RFC2965SpecProvider implements CookieSpecProvider {
 
     private final PublicSuffixMatcher publicSuffixMatcher;

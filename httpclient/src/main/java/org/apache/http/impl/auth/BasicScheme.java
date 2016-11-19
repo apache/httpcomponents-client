@@ -32,7 +32,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ChallengeState;
@@ -50,7 +49,6 @@ import org.apache.http.util.EncodingUtils;
  *
  * @since 4.0
  */
-@NotThreadSafe
 public class BasicScheme extends RFC2617Scheme {
 
     private static final long serialVersionUID = -1931571557597830536L;

@@ -34,14 +34,12 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.NotThreadSafe;
 
 /**
  * A Proxy class for {@link org.apache.http.HttpEntity} enclosed in a request message.
  *
  * @since 4.3
  */
-@NotThreadSafe
 class RequestEntityProxy implements HttpEntity  {
 
     static void enhance(final HttpEntityEnclosingRequest request) {

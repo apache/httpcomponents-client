@@ -37,7 +37,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.scheme.SocketFactory;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -57,7 +58,7 @@ import org.apache.http.util.Asserts;
  * {@link org.apache.http.conn.scheme.SchemeSocketFactory} interface.
  */
 @Deprecated
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class MultihomePlainSocketFactory implements SocketFactory {
 
     /**

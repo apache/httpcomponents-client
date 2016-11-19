@@ -37,7 +37,8 @@ import java.net.UnknownHostException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.ConnectTimeoutException;
@@ -86,13 +87,13 @@ import org.apache.http.util.Asserts;
  * @deprecated (4.3) use {@link PoolingHttpClientConnectionManager}.
  */
 @Deprecated
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class DefaultClientConnectionOperator implements ClientConnectionOperator {
 
     private final Log log = LogFactory.getLog(getClass());
 
     /** The scheme registry for looking up socket factories. */
-    protected final SchemeRegistry schemeRegistry; // @ThreadSafe
+    protected final SchemeRegistry schemeRegistry; // @Contract(threading = ThreadingBehavior.SAFE)
 
     /** the custom-configured DNS lookup mechanism. */
     protected final DnsResolver dnsResolver;

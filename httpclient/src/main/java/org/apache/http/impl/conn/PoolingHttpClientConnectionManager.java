@@ -42,7 +42,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.Lookup;
 import org.apache.http.config.Registry;
@@ -99,7 +100,7 @@ import org.apache.http.util.Asserts;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class PoolingHttpClientConnectionManager
     implements HttpClientConnectionManager, ConnPoolControl<HttpRoute>, Closeable {
 

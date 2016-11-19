@@ -31,7 +31,6 @@ import java.util.Locale;
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ChallengeState;
@@ -53,7 +52,6 @@ import org.apache.http.util.CharArrayBuffer;
  *
  * @since 4.0
  */
-@NotThreadSafe
 public abstract class AuthSchemeBase implements ContextAwareAuthScheme {
 
     protected ChallengeState challengeState;

@@ -49,7 +49,8 @@ import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.cache.CacheResponseStatus;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.cache.HttpCacheContext;
@@ -99,7 +100,7 @@ import org.apache.http.util.VersionInfo;
  *
  * @since 4.3
  */
-@ThreadSafe // So long as the responseCache implementation is threadsafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class CachingExec implements ClientExecChain {
 
     private final static boolean SUPPORTS_RANGE_AND_CONTENT_RANGE_HEADERS = false;

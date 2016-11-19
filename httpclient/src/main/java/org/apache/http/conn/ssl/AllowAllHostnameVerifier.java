@@ -27,7 +27,8 @@
 
 package org.apache.http.conn.ssl;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 
 /**
  * The ALLOW_ALL HostnameVerifier essentially turns hostname verification
@@ -39,7 +40,7 @@ import org.apache.http.annotation.Immutable;
  * @deprecated (4.4) Use {@link org.apache.http.conn.ssl.NoopHostnameVerifier}
  */
 @Deprecated
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class AllowAllHostnameVerifier extends AbstractVerifier {
 
     public static final AllowAllHostnameVerifier INSTANCE = new AllowAllHostnameVerifier();

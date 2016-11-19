@@ -29,12 +29,9 @@ package org.apache.http.client.entity;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 /**
  * Lazy init InputStream wrapper.
  */
-@NotThreadSafe
 class LazyDecompressingInputStream extends InputStream {
 
     private final InputStream wrappedStream;

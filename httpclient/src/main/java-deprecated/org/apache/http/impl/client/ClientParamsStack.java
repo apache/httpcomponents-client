@@ -27,7 +27,6 @@
 
 package org.apache.http.impl.client;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.params.AbstractHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.util.Args;
@@ -69,7 +68,6 @@ import org.apache.http.util.Args;
  * @deprecated (4.3) use configuration classes provided 'org.apache.http.config'
  *  and 'org.apache.http.client.config'
  */
-@NotThreadSafe
 @Deprecated
 public class ClientParamsStack extends AbstractHttpParams {
 

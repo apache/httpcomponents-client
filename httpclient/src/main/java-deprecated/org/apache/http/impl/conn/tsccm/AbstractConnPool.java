@@ -38,7 +38,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.annotation.GuardedBy;
 import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.OperatedClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
@@ -66,12 +65,8 @@ public abstract class AbstractConnPool {
      */
     protected final Lock poolLock;
 
-    /** References to issued connections */
-    @GuardedBy("poolLock")
     protected Set<BasicPoolEntry> leasedConnections;
 
-    /** The current total number of connections. */
-    @GuardedBy("poolLock")
     protected int numConnections;
 
     /** Indicates whether this pool is shut down. */

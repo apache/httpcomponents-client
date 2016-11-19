@@ -28,7 +28,8 @@ package org.apache.http.conn.scheme;
 
 import java.util.Locale;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.util.Args;
 import org.apache.http.util.LangUtils;
 
@@ -50,7 +51,7 @@ import org.apache.http.util.LangUtils;
  * @deprecated (4.3) use {@link org.apache.http.conn.SchemePortResolver} for default port
  * resolution and {@link org.apache.http.config.Registry} for socket factory lookups.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public final class Scheme {
 

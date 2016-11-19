@@ -31,7 +31,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.http.Header;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
 import org.apache.http.cookie.MalformedCookieException;
@@ -41,7 +42,7 @@ import org.apache.http.cookie.MalformedCookieException;
  *
  * @since 4.1
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class IgnoreSpec extends CookieSpecBase {
 
     @Override

@@ -29,8 +29,6 @@ package org.apache.http.client.methods;
 
 import java.net.URI;
 
-import org.apache.http.annotation.NotThreadSafe;
-
 /**
  * HTTP POST method.
  * <p>
@@ -54,7 +52,6 @@ import org.apache.http.annotation.NotThreadSafe;
  *
  * @since 4.0
  */
-@NotThreadSafe
 public class HttpPost extends HttpEntityEnclosingRequestBase {
 
     public final static String METHOD_NAME = "POST";

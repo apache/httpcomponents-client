@@ -29,7 +29,8 @@ package org.apache.http.impl.auth;
 
 import java.nio.charset.Charset;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeFactory;
 import org.apache.http.auth.AuthSchemeProvider;
@@ -42,7 +43,7 @@ import org.apache.http.protocol.HttpContext;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @SuppressWarnings("deprecation")
 public class DigestSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider {
 

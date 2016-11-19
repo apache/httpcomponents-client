@@ -31,7 +31,8 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -42,7 +43,7 @@ import org.apache.http.protocol.HttpContext;
  * HttpAsyncClientWithFuture wraps calls to execute with a {@link HttpRequestFutureTask}
  * and schedules them using the provided executor service. Scheduled calls may be cancelled.
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class FutureRequestExecutionService implements Closeable {
 
     private final HttpClient httpclient;

@@ -27,8 +27,9 @@
 
 package org.apache.http.impl.cookie;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.Obsolete;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.cookie.CookieSpec;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.protocol.HttpContext;
@@ -44,7 +45,7 @@ import org.apache.http.protocol.HttpContext;
  * @see org.apache.http.impl.cookie.RFC6265CookieSpecProvider
  */
 @Obsolete
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class NetscapeDraftSpecProvider implements CookieSpecProvider {
 
     private final String[] datepatterns;

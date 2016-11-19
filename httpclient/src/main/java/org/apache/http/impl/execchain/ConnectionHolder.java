@@ -34,7 +34,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
 import org.apache.http.HttpClientConnection;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.concurrent.Cancellable;
 import org.apache.http.conn.ConnectionReleaseTrigger;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -44,7 +45,7 @@ import org.apache.http.conn.HttpClientConnectionManager;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeable {
 
     private final Log log;

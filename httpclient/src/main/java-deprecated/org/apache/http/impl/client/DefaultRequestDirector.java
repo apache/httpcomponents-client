@@ -45,7 +45,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AuthProtocolState;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthState;
@@ -132,7 +131,6 @@ import org.apache.http.util.EntityUtils;
  * @deprecated (4.3)
  */
 @Deprecated
-@NotThreadSafe // e.g. managedConn
 public class DefaultRequestDirector implements RequestDirector {
 
     private final Log log;

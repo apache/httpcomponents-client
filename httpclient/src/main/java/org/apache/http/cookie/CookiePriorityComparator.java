@@ -30,7 +30,8 @@ package org.apache.http.cookie;
 import java.util.Comparator;
 import java.util.Date;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.impl.cookie.BasicClientCookie;
 
 /**
@@ -40,7 +41,7 @@ import org.apache.http.impl.cookie.BasicClientCookie;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class CookiePriorityComparator implements Comparator<Cookie> {
 
     public static final CookiePriorityComparator INSTANCE = new CookiePriorityComparator();

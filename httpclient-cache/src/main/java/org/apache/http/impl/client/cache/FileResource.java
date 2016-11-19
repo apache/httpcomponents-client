@@ -31,7 +31,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.cache.Resource;
 
 /**
@@ -39,7 +40,7 @@ import org.apache.http.client.cache.Resource;
  *
  * @since 4.1
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class FileResource implements Resource {
 
     private static final long serialVersionUID = 4132244415919043397L;

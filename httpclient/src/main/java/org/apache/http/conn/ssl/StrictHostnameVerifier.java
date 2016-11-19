@@ -29,7 +29,8 @@ package org.apache.http.conn.ssl;
 
 import javax.net.ssl.SSLException;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 
 /**
  * The Strict HostnameVerifier works the same way as Sun Java 1.4, Sun
@@ -53,7 +54,7 @@ import org.apache.http.annotation.Immutable;
  *
  * @deprecated (4.4) Use {@link org.apache.http.conn.ssl.DefaultHostnameVerifier}
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 @Deprecated
 public class StrictHostnameVerifier extends AbstractVerifier {
 

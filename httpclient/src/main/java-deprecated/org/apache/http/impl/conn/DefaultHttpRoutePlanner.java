@@ -33,7 +33,8 @@ import java.net.InetAddress;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.params.ConnRouteParams;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
@@ -61,12 +62,12 @@ import org.apache.http.util.Asserts;
  *
  * @deprecated (4.3) use {@link DefaultRoutePlanner}
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 @Deprecated
 public class DefaultHttpRoutePlanner implements HttpRoutePlanner {
 
     /** The scheme registry. */
-    protected final SchemeRegistry schemeRegistry; // class is @ThreadSafe
+    protected final SchemeRegistry schemeRegistry; // class is @Contract(threading = ThreadingBehavior.SAFE)
 
     /**
      * Creates a new default route planner.

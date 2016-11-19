@@ -57,7 +57,8 @@ import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolException;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
@@ -126,7 +127,7 @@ import org.apache.http.util.VersionInfo;
  * @deprecated (4.3) use {@link CachingHttpClientBuilder} or {@link CachingHttpClients}.
  */
 @Deprecated
-@ThreadSafe // So long as the responseCache implementation is threadsafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class CachingHttpClient implements HttpClient {
 
     /**

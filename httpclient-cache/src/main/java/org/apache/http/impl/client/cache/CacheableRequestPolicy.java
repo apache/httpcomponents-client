@@ -33,7 +33,8 @@ import org.apache.http.HeaderElement;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.cache.HeaderConstants;
 
 /**
@@ -41,7 +42,7 @@ import org.apache.http.client.cache.HeaderConstants;
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheableRequestPolicy {
 
     private final Log log = LogFactory.getLog(getClass());

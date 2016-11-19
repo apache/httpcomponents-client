@@ -35,7 +35,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.util.Args;
 import org.apache.http.util.LangUtils;
 
@@ -44,7 +45,7 @@ import org.apache.http.util.LangUtils;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class HttpRoute implements RouteInfo, Cloneable {
 
     /** The target host to connect to. */

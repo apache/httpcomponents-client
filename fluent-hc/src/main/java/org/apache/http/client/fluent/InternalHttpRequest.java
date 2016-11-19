@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.http.HttpVersion;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.RequestLine;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.Configurable;
 import org.apache.http.client.methods.HttpExecutionAware;
@@ -44,7 +43,6 @@ import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.message.BasicRequestLine;
 import org.apache.http.util.Args;
 
-@NotThreadSafe
 class InternalHttpRequest extends AbstractHttpMessage
         implements HttpUriRequest, HttpExecutionAware, Configurable {
 

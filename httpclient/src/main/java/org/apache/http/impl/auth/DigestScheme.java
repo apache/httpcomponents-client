@@ -43,7 +43,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.ChallengeState;
@@ -72,7 +71,6 @@ import org.apache.http.util.EncodingUtils;
  *
  * @since 4.0
  */
-@NotThreadSafe
 public class DigestScheme extends RFC2617Scheme {
 
     private static final long serialVersionUID = 3883908186234566916L;

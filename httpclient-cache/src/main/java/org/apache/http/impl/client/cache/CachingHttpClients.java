@@ -29,7 +29,6 @@ package org.apache.http.impl.client.cache;
 
 import java.io.File;
 
-import org.apache.http.annotation.Immutable;
 import org.apache.http.impl.client.CloseableHttpClient;
 
 /**
@@ -38,7 +37,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
  *
  * @since 4.3
  */
-@Immutable
 public class CachingHttpClients {
 
     private CachingHttpClients() {

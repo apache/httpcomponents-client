@@ -26,14 +26,11 @@
  */
 package org.apache.http.client;
 
-import org.apache.http.annotation.Immutable;
-
 /**
  * Signals a non 2xx HTTP response.
  *
  * @since 4.0
  */
-@Immutable
 public class HttpResponseException extends ClientProtocolException {
 
     private static final long serialVersionUID = -7186627969477257933L;

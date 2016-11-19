@@ -40,7 +40,6 @@ import javax.net.ssl.SSLSocket;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.config.MessageConstraints;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.entity.ContentLengthStrategy;
@@ -53,7 +52,6 @@ import org.apache.http.protocol.HttpContext;
  * Default {@link ManagedHttpClientConnection} implementation.
  * @since 4.3
  */
-@NotThreadSafe
 public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnection
                                  implements ManagedHttpClientConnection, HttpContext {
 

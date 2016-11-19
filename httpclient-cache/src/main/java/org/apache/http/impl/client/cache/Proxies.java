@@ -29,7 +29,6 @@ package org.apache.http.impl.client.cache;
 import java.lang.reflect.Proxy;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.Args;
 
@@ -38,7 +37,6 @@ import org.apache.http.util.Args;
  *
  * @since 4.3
  */
-@NotThreadSafe
 class Proxies {
 
     public static CloseableHttpResponse enhanceResponse(final HttpResponse original) {

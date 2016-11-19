@@ -30,7 +30,8 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.cookie.ClientCookie;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.MalformedCookieException;
@@ -42,7 +43,7 @@ import org.apache.http.util.TextUtils;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class LaxMaxAgeHandler extends AbstractCookieAttributeHandler implements CommonCookieAttributeHandler {
 
     private final static Pattern MAX_AGE_PATTERN = Pattern.compile("^\\-?[0-9]+$");

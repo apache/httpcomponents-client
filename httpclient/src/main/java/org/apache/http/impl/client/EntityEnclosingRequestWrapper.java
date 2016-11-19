@@ -35,7 +35,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.ProtocolException;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.protocol.HTTP;
 
@@ -53,7 +52,6 @@ import org.apache.http.protocol.HTTP;
  * @deprecated (4.3) do not use.
  */
 @Deprecated
-@NotThreadSafe // e.g. [gs]etEntity()
 public class EntityEnclosingRequestWrapper extends RequestWrapper
     implements HttpEntityEnclosingRequest {
 

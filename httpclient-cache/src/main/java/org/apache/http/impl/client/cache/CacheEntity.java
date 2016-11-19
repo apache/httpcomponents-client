@@ -33,12 +33,13 @@ import java.io.Serializable;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.cache.HttpCacheEntry;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.Args;
 
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheEntity implements HttpEntity, Serializable {
 
     private static final long serialVersionUID = -3467082284120936233L;

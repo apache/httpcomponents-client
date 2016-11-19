@@ -27,8 +27,6 @@
 
 package org.apache.http.client.params;
 
-import org.apache.http.annotation.Immutable;
-
 /**
  * Standard cookie specifications supported by HttpClient.
  *
@@ -37,7 +35,6 @@ import org.apache.http.annotation.Immutable;
  * @deprecated (4.3) use {@link org.apache.http.client.config.CookieSpecs}.
  */
 @Deprecated
-@Immutable
 public final class CookiePolicy {
 
     /**

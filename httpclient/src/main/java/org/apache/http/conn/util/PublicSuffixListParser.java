@@ -32,7 +32,8 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.annotation.Immutable;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 
 /**
  * Parses the list from <a href="http://publicsuffix.org/">publicsuffix.org</a>
@@ -40,7 +41,7 @@ import org.apache.http.annotation.Immutable;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class PublicSuffixListParser {
 
     public PublicSuffixListParser() {

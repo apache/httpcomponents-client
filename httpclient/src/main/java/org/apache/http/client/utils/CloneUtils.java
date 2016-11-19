@@ -29,14 +29,11 @@ package org.apache.http.client.utils;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.apache.http.annotation.Immutable;
-
 /**
  * A collection of utilities to workaround limitations of Java clone framework.
  *
  * @since 4.0
  */
-@Immutable
 public class CloneUtils {
 
     /**

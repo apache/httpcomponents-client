@@ -33,8 +33,9 @@ import java.util.List;
 import org.apache.http.FormattedHeader;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.Obsolete;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieOrigin;
@@ -57,7 +58,7 @@ import org.apache.http.util.CharArrayBuffer;
  * @see org.apache.http.impl.cookie.RFC6265LaxSpec
  */
 @Obsolete
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class NetscapeDraftSpec extends CookieSpecBase {
 
     protected static final String EXPIRES_PATTERN = "EEE, dd-MMM-yy HH:mm:ss z";

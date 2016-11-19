@@ -30,8 +30,6 @@ package org.apache.http.impl.cookie;
 import java.util.Date;
 import java.util.TimeZone;
 
-import org.apache.http.annotation.Immutable;
-
 /**
  * A utility class for parsing and formatting HTTP dates as used in cookies and
  * other headers.  This class handles dates as defined by RFC 2616 section
@@ -43,7 +41,6 @@ import org.apache.http.annotation.Immutable;
  * @deprecated (4.3) Use {@link org.apache.http.client.utils.DateUtils}.
  */
 @Deprecated
-@Immutable
 public final class DateUtils {
 
     /**

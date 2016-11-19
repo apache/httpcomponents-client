@@ -44,7 +44,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpInetSocketAddress;
 import org.apache.http.conn.scheme.HostNameResolver;
@@ -140,7 +141,7 @@ import org.apache.http.util.TextUtils;
  *
  * @deprecated (4.3) use {@link SSLConnectionSocketFactory}.
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 @Deprecated
 public class SSLSocketFactory implements LayeredConnectionSocketFactory, SchemeLayeredSocketFactory,
                                          LayeredSchemeSocketFactory, LayeredSocketFactory {

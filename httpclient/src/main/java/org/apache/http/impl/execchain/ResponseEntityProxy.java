@@ -34,7 +34,6 @@ import java.net.SocketException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.conn.EofSensorInputStream;
 import org.apache.http.conn.EofSensorWatcher;
 import org.apache.http.entity.HttpEntityWrapper;
@@ -44,7 +43,6 @@ import org.apache.http.entity.HttpEntityWrapper;
  *
  * @since 4.3
  */
-@NotThreadSafe
 class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher {
 
     private final ConnectionHolder connHolder;

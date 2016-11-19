@@ -28,7 +28,6 @@ package org.apache.http.auth;
 
 import java.util.Queue;
 
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.util.Args;
 
 /**
@@ -36,7 +35,6 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  */
-@NotThreadSafe
 public class AuthState {
 
     /** Actual state of authentication protocol */

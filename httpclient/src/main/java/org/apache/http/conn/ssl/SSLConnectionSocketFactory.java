@@ -50,7 +50,8 @@ import javax.security.auth.x500.X500Principal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
-import org.apache.http.annotation.ThreadSafe;
+import org.apache.http.annotation.Contract;
+import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.protocol.HttpContext;
@@ -133,7 +134,8 @@ import org.apache.http.util.TextUtils;
  *
  * @since 4.3
  */
-@ThreadSafe @SuppressWarnings("deprecation")
+@Contract(threading = ThreadingBehavior.SAFE)
+@SuppressWarnings("deprecation")
 public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
     public static final String TLS   = "TLS";
