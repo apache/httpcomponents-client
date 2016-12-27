@@ -31,13 +31,14 @@ import java.net.InetAddress;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 
 /**
  *  Immutable class encapsulating request configuration items.
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class RequestConfig implements Cloneable {
 
     private static final int DEFAULT_CONNECTION_REQUEST_TIMEOUT = (int) TimeUnit.MILLISECONDS.convert(3, TimeUnit.MINUTES);
@@ -65,7 +66,7 @@ public class RequestConfig implements Cloneable {
      * Intended for CDI compatibility
     */
     protected RequestConfig() {
-        this(false, null, null, false, null, false, false, false, 0, false, null, null,
+        this(false, null, null, null, false, false, 0, false, null, null,
                 DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_CONNECT_TIMEOUT, DEFAULT_SOCKET_TIMEOUT, false);
     }
 
@@ -73,10 +74,8 @@ public class RequestConfig implements Cloneable {
             final boolean expectContinueEnabled,
             final HttpHost proxy,
             final InetAddress localAddress,
-            final boolean staleConnectionCheckEnabled,
             final String cookieSpec,
             final boolean redirectsEnabled,
-            final boolean relativeRedirectsAllowed,
             final boolean circularRedirectsAllowed,
             final int maxRedirects,
             final boolean authenticationEnabled,
@@ -343,10 +342,8 @@ public class RequestConfig implements Cloneable {
         private boolean expectContinueEnabled;
         private HttpHost proxy;
         private InetAddress localAddress;
-        private boolean staleConnectionCheckEnabled;
         private String cookieSpec;
         private boolean redirectsEnabled;
-        private boolean relativeRedirectsAllowed;
         private boolean circularRedirectsAllowed;
         private int maxRedirects;
         private boolean authenticationEnabled;
@@ -359,10 +356,8 @@ public class RequestConfig implements Cloneable {
 
         Builder() {
             super();
-            this.staleConnectionCheckEnabled = false;
             this.redirectsEnabled = true;
             this.maxRedirects = 50;
-            this.relativeRedirectsAllowed = true;
             this.authenticationEnabled = true;
             this.connectionRequestTimeout = DEFAULT_CONNECTION_REQUEST_TIMEOUT;
             this.connectTimeout = DEFAULT_CONNECT_TIMEOUT;
@@ -392,11 +387,6 @@ public class RequestConfig implements Cloneable {
 
         public Builder setRedirectsEnabled(final boolean redirectsEnabled) {
             this.redirectsEnabled = redirectsEnabled;
-            return this;
-        }
-
-        public Builder setRelativeRedirectsAllowed(final boolean relativeRedirectsAllowed) {
-            this.relativeRedirectsAllowed = relativeRedirectsAllowed;
             return this;
         }
 
@@ -445,20 +435,13 @@ public class RequestConfig implements Cloneable {
             return this;
         }
 
-        public Builder setStaleConnectionCheckEnabled(final boolean staleConnectionCheckEnabled) {
-            this.staleConnectionCheckEnabled = staleConnectionCheckEnabled;
-            return this;
-        }
-
         public RequestConfig build() {
             return new RequestConfig(
                     expectContinueEnabled,
                     proxy,
                     localAddress,
-                    staleConnectionCheckEnabled,
                     cookieSpec,
                     redirectsEnabled,
-                    relativeRedirectsAllowed,
                     circularRedirectsAllowed,
                     maxRedirects,
                     authenticationEnabled,

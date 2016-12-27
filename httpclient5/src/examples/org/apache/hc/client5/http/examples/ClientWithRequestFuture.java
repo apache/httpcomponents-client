@@ -38,10 +38,10 @@ import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.sync.HttpRequestFutureTask;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.sync.ResponseHandler;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.ResponseHandler;
 
 public class ClientWithRequestFuture {
 
@@ -56,9 +56,9 @@ public class ClientWithRequestFuture {
             // Because things are asynchronous, you must provide a ResponseHandler
             ResponseHandler<Boolean> handler = new ResponseHandler<Boolean>() {
                 @Override
-                public Boolean handleResponse(HttpResponse response) throws IOException {
+                public Boolean handleResponse(ClassicHttpResponse response) throws IOException {
                     // simply return true if the status was OK
-                    return response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+                    return response.getCode() == HttpStatus.SC_OK;
                 }
             };
 

@@ -64,9 +64,9 @@ public final class IdleConnectionEvictor {
                 try {
                     while (!Thread.currentThread().isInterrupted()) {
                         Thread.sleep(sleepTimeMs);
-                        connectionManager.closeExpiredConnections();
+                        connectionManager.closeExpired();
                         if (maxIdleTimeMs > 0) {
-                            connectionManager.closeIdleConnections(maxIdleTimeMs, TimeUnit.MILLISECONDS);
+                            connectionManager.closeIdle(maxIdleTimeMs, TimeUnit.MILLISECONDS);
                         }
                     }
                 } catch (final Exception ex) {

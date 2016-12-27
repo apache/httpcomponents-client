@@ -39,19 +39,18 @@ import java.util.List;
 
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
-import org.apache.hc.client5.http.utils.URIBuilder;
-import org.apache.hc.client5.http.utils.URLEncodedUtils;
-import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.message.HeaderGroup;
+import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -66,7 +65,6 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.3
  */
-@NotThreadSafe
 public class RequestBuilder {
 
     private String method;
@@ -252,17 +250,17 @@ public class RequestBuilder {
         return new RequestBuilder(HttpOptions.METHOD_NAME, uri);
     }
 
-    public static RequestBuilder copy(final HttpRequest request) {
+    public static RequestBuilder copy(final ClassicHttpRequest request) {
         Args.notNull(request, "HTTP request");
         return new RequestBuilder().doCopy(request);
     }
 
-    private RequestBuilder doCopy(final HttpRequest request) {
+    private RequestBuilder doCopy(final ClassicHttpRequest request) {
         if (request == null) {
             return this;
         }
-        method = request.getRequestLine().getMethod();
-        version = request.getRequestLine().getProtocolVersion();
+        method = request.getMethod();
+        version = request.getVersion();
 
         if (headergroup == null) {
             headergroup = new HeaderGroup();
@@ -274,11 +272,11 @@ public class RequestBuilder {
         entity = null;
 
         final HttpEntity originalEntity = request.getEntity();
-        final ContentType contentType = ContentType.get(originalEntity);
+        final ContentType contentType = EntityUtils.getContentType(originalEntity);
         if (contentType != null &&
                 contentType.getMimeType().equals(ContentType.APPLICATION_FORM_URLENCODED.getMimeType())) {
             try {
-                final List<NameValuePair> formParams = URLEncodedUtils.parse(originalEntity);
+                final List<NameValuePair> formParams = EntityUtils.parse(originalEntity);
                 if (!formParams.isEmpty()) {
                     parameters = formParams;
                 }
@@ -288,13 +286,10 @@ public class RequestBuilder {
             entity = originalEntity;
         }
 
-        final URI originalUri;
-        if (request instanceof HttpUriRequest) {
-            uri = ((HttpUriRequest) request).getURI();
-        } else {
-            uri = URI.create(request.getRequestLine().getUri());
+        try {
+            uri = request.getUri();
+        } catch (URISyntaxException ignore) {
         }
-
         if (request instanceof Configurable) {
             config = ((Configurable) request).getConfig();
         } else {
@@ -454,7 +449,6 @@ public class RequestBuilder {
     }
 
     public HttpUriRequest build() {
-        final HttpRequestBase result;
         URI uriNotNull = this.uri != null ? this.uri : URI.create("/");
         HttpEntity entityCopy = this.entity;
         if (parameters != null && !parameters.isEmpty()) {
@@ -472,32 +466,14 @@ public class RequestBuilder {
                 }
             }
         }
-        result = new InternalRequest(method);
-        result.setProtocolVersion(this.version != null ? this.version : HttpVersion.HTTP_1_1);
-        result.setURI(uriNotNull);
+        final HttpUriRequestBase result = new HttpUriRequestBase(method, uriNotNull);
+        result.setVersion(this.version != null ? this.version : HttpVersion.HTTP_1_1);
         if (this.headergroup != null) {
             result.setHeaders(this.headergroup.getAllHeaders());
         }
         result.setEntity(entityCopy);
         result.setConfig(this.config);
         return result;
-    }
-
-    static class InternalRequest extends HttpRequestBase {
-
-        private static final long serialVersionUID = 1L;
-        private final String method;
-
-        InternalRequest(final String method) {
-            super();
-            this.method = method;
-        }
-
-        @Override
-        public String getMethod() {
-            return this.method;
-        }
-
     }
 
 }

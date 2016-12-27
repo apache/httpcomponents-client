@@ -99,7 +99,7 @@ public class HttpAuthenticator {
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
 
-        if (response.getStatusLine().getStatusCode() == challengeCode) {
+        if (response.getCode() == challengeCode) {
             this.log.debug("Authentication required");
             if (authExchange.getState() == AuthExchange.State.SUCCESS) {
                 clearCache(host, clientContext);

@@ -52,16 +52,17 @@ import org.apache.hc.client5.http.impl.auth.NTLMScheme;
 import org.apache.hc.client5.http.impl.io.ConnectionShutdownException;
 import org.apache.hc.client5.http.io.ConnectionRequest;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.methods.HttpPost;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.AuthenticationStrategy;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.NonRepeatableRequestException;
 import org.apache.hc.client5.http.protocol.UserTokenHandler;
 import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -69,11 +70,11 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.StringEntity;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpClientConnection;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.junit.Assert;
@@ -140,15 +141,14 @@ public class TestMainClientExec {
                 .setConnectionRequestTimeout(345)
                 .build();
         context.setRequestConfig(config);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         Mockito.when(requestExecutor.execute(
                 Mockito.same(request),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
-        final CloseableHttpResponse finalResponse = mainClientExec.execute(
-                route, request, context, execAware);
+        final ClassicHttpResponse finalResponse = mainClientExec.execute(request, context, execAware);
         Mockito.verify(connManager).requestConnection(route, null);
         Mockito.verify(connRequest).get(345, TimeUnit.MILLISECONDS);
         Mockito.verify(execAware, Mockito.times(1)).setCancellable(connRequest);
@@ -163,7 +163,7 @@ public class TestMainClientExec {
         Assert.assertSame(managedConn, context.getConnection());
         Assert.assertNull(context.getUserToken());
         Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(finalResponse instanceof HttpResponseProxy);
+        Assert.assertTrue(finalResponse instanceof CloseableHttpResponse);
     }
 
     @Test
@@ -174,8 +174,8 @@ public class TestMainClientExec {
                 .setConnectionRequestTimeout(345)
                 .build();
         context.setRequestConfig(config);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
         Mockito.when(managedConn.isStale()).thenReturn(Boolean.FALSE);
@@ -191,8 +191,7 @@ public class TestMainClientExec {
                 Mockito.same(response),
                 Mockito.<HttpClientContext>any())).thenReturn(678L);
 
-        final CloseableHttpResponse finalResponse = mainClientExec.execute(
-                route, request, context, execAware);
+        final ClassicHttpResponse finalResponse = mainClientExec.execute(request, context, execAware);
         Mockito.verify(connManager).requestConnection(route, null);
         Mockito.verify(connRequest).get(345, TimeUnit.MILLISECONDS);
         Mockito.verify(requestExecutor, Mockito.times(1)).execute(request, managedConn, context);
@@ -200,7 +199,7 @@ public class TestMainClientExec {
         Mockito.verify(managedConn, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(finalResponse instanceof HttpResponseProxy);
+        Assert.assertTrue(finalResponse instanceof CloseableHttpResponse);
     }
 
     @Test
@@ -211,8 +210,8 @@ public class TestMainClientExec {
                 .setConnectionRequestTimeout(345)
                 .build();
         context.setRequestConfig(config);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
         Mockito.when(managedConn.isStale()).thenReturn(Boolean.FALSE);
@@ -228,7 +227,7 @@ public class TestMainClientExec {
                 Mockito.same(route),
                 Mockito.<HttpClientContext>any())).thenReturn("this and that");
 
-        mainClientExec.execute(route, request, context, execAware);
+        mainClientExec.execute(request, context, execAware);
         Mockito.verify(connManager).requestConnection(route, null);
         Mockito.verify(connRequest).get(345, TimeUnit.MILLISECONDS);
         Mockito.verify(requestExecutor, Mockito.times(1)).execute(request, managedConn, context);
@@ -246,8 +245,8 @@ public class TestMainClientExec {
                 .setConnectionRequestTimeout(345)
                 .build();
         context.setRequestConfig(config);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         // The entity is streaming
         response.setEntity(EntityBuilder.create()
                 .setStream(new ByteArrayInputStream(new byte[]{}))
@@ -264,8 +263,7 @@ public class TestMainClientExec {
                 Mockito.same(response),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.FALSE);
 
-        final CloseableHttpResponse finalResponse = mainClientExec.execute(
-                route, request, context, execAware);
+        final ClassicHttpResponse finalResponse = mainClientExec.execute(request, context, execAware);
         Mockito.verify(connManager).requestConnection(route, null);
         Mockito.verify(connRequest).get(345, TimeUnit.MILLISECONDS);
         Mockito.verify(requestExecutor, Mockito.times(1)).execute(request, managedConn, context);
@@ -277,7 +275,7 @@ public class TestMainClientExec {
         Mockito.verify(managedConn, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
-        Assert.assertTrue(finalResponse instanceof HttpResponseProxy);
+        Assert.assertTrue(finalResponse instanceof CloseableHttpResponse);
         finalResponse.close();
 
         Mockito.verify(connManager, Mockito.times(1)).releaseConnection(
@@ -290,16 +288,16 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom().setSocketTimeout(3000).build();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
         context.setRequestConfig(config);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         Mockito.when(managedConn.isOpen()).thenReturn(true);
         Mockito.when(requestExecutor.execute(
                 Mockito.same(request),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
-        mainClientExec.execute(route, request, context, execAware);
+        mainClientExec.execute(request, context, execAware);
         Mockito.verify(managedConn).setSocketTimeout(3000);
     }
 
@@ -307,15 +305,15 @@ public class TestMainClientExec {
     public void testSocketTimeoutReset() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
         Mockito.when(requestExecutor.execute(
                 Mockito.same(request),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
-        mainClientExec.execute(route, request, context, execAware);
+        mainClientExec.execute(request, context, execAware);
         Mockito.verify(managedConn, Mockito.never()).setSocketTimeout(Mockito.anyInt());
     }
 
@@ -323,12 +321,12 @@ public class TestMainClientExec {
     public void testExecAbortedPriorToConnectionLease() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.FALSE);
         Mockito.when(execAware.isAborted()).thenReturn(Boolean.TRUE);
         try {
-            mainClientExec.execute(route, request, context, execAware);
+            mainClientExec.execute(request, context, execAware);
         } catch (final IOException ex) {
             Mockito.verify(connRequest, Mockito.times(1)).cancel();
             throw ex;
@@ -343,12 +341,12 @@ public class TestMainClientExec {
                 .setConnectionRequestTimeout(345)
                 .build();
         context.setRequestConfig(config);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.FALSE);
         Mockito.when(execAware.isAborted()).thenReturn(Boolean.FALSE, Boolean.TRUE);
         try {
-            mainClientExec.execute(route, request, context, execAware);
+            mainClientExec.execute(request, context, execAware);
         } catch (final IOException ex) {
             Mockito.verify(connRequest, Mockito.times(1)).get(345, TimeUnit.MILLISECONDS);
             Mockito.verify(execAware, Mockito.times(2)).setCancellable(Mockito.<Cancellable>any());
@@ -370,12 +368,12 @@ public class TestMainClientExec {
                 .setConnectionRequestTimeout(345)
                 .build();
         context.setRequestConfig(config);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.FALSE);
         Mockito.when(execAware.isAborted()).thenReturn(Boolean.FALSE, Boolean.FALSE, Boolean.TRUE);
         try {
-            mainClientExec.execute(route, request, context, execAware);
+            mainClientExec.execute(request, context, execAware);
         } catch (final IOException ex) {
             Mockito.verify(connRequest, Mockito.times(1)).get(345, TimeUnit.MILLISECONDS);
             Mockito.verify(connManager, Mockito.times(1)).connect(managedConn, route, 567, context);
@@ -391,25 +389,25 @@ public class TestMainClientExec {
     public void testExecConnectionRequestFailed() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
 
         Mockito.when(connRequest.get(Mockito.anyInt(), Mockito.<TimeUnit>any()))
                 .thenThrow(new ExecutionException("Opppsie", null));
-        mainClientExec.execute(route, request, context, execAware);
+        mainClientExec.execute(request, context, execAware);
     }
 
     @Test
     public void testExecRequestRetryOnAuthChallenge() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
-        final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://foo/test"), route);
+        final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
         response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
         final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
                 .setStream(instream1)
                 .build());
-        final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
         final InputStream instream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {2, 3, 4}));
         response2.setEntity(EntityBuilder.create()
                 .setStream(instream2)
@@ -434,27 +432,27 @@ public class TestMainClientExec {
                 Mockito.<Map<String, AuthChallenge>>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
-        final CloseableHttpResponse finalResponse = mainClientExec.execute(
-                route, request, context, execAware);
+        final ClassicHttpResponse finalResponse = mainClientExec.execute(
+                request, context, execAware);
         Mockito.verify(requestExecutor, Mockito.times(2)).execute(request, managedConn, context);
         Mockito.verify(instream1).close();
         Mockito.verify(instream2, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
-        Assert.assertEquals(200, finalResponse.getStatusLine().getStatusCode());
+        Assert.assertEquals(200, finalResponse.getCode());
     }
 
     @Test
     public void testExecEntityEnclosingRequestRetryOnAuthChallenge() throws Exception {
         final HttpRoute route = new HttpRoute(target, proxy);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
-        final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://foo/test"), route);
+        final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
         response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
         final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
                 .setStream(instream1)
                 .build());
-        final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
         final InputStream instream2 = Mockito.spy(new ByteArrayInputStream(new byte[] {2, 3, 4}));
         response2.setEntity(EntityBuilder.create()
                 .setStream(instream2)
@@ -487,14 +485,14 @@ public class TestMainClientExec {
                 Mockito.<Map<String, AuthChallenge>>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
-        final CloseableHttpResponse finalResponse = mainClientExec.execute(
-                route, request, context, execAware);
+        final ClassicHttpResponse finalResponse = mainClientExec.execute(
+                request, context, execAware);
         Mockito.verify(requestExecutor, Mockito.times(2)).execute(request, managedConn, context);
         Mockito.verify(managedConn).close();
         Mockito.verify(instream2, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
-        Assert.assertEquals(200, finalResponse.getStatusLine().getStatusCode());
+        Assert.assertEquals(200, finalResponse.getCode());
         Assert.assertNull(proxyAuthExchange.getAuthScheme());
     }
 
@@ -502,14 +500,14 @@ public class TestMainClientExec {
     public void testExecEntityEnclosingRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
-        final HttpPost post = new HttpPost("http://bar/test");
+        final HttpPost post = new HttpPost("http://foo/test");
         final InputStream instream0 = new ByteArrayInputStream(new byte[] {1, 2, 3});
         post.setEntity(EntityBuilder.create()
                 .setStream(instream0)
                 .build());
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(post, target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(post, route);
 
-        final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 401, "Huh?");
+        final ClassicHttpResponse response1 = new BasicClassicHttpResponse(401, "Huh?");
         response1.setHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=test");
         final InputStream instream1 = new ByteArrayInputStream(new byte[] {1, 2, 3});
         response1.setEntity(EntityBuilder.create()
@@ -530,7 +528,7 @@ public class TestMainClientExec {
             @Override
             public HttpResponse answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
-                final HttpRequest requestEE = (HttpRequest) args[0];
+                final ClassicHttpRequest requestEE = (ClassicHttpRequest) args[0];
                 requestEE.getEntity().writeTo(new ByteArrayOutputStream());
                 return response1;
             }
@@ -546,36 +544,36 @@ public class TestMainClientExec {
                 Mockito.<Map<String, AuthChallenge>>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Collections.<AuthScheme>singletonList(new BasicScheme()));
 
-        mainClientExec.execute(route, request, context, execAware);
+        mainClientExec.execute(request, context, execAware);
     }
 
     @Test(expected=InterruptedIOException.class)
     public void testExecConnectionShutDown() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
 
         Mockito.when(requestExecutor.execute(
-                Mockito.<HttpRequest>any(),
+                Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenThrow(new ConnectionShutdownException());
 
-        mainClientExec.execute(route, request, context, execAware);
+        mainClientExec.execute(request, context, execAware);
     }
 
     @Test(expected=RuntimeException.class)
     public void testExecRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
 
         Mockito.when(requestExecutor.execute(
-                Mockito.<HttpRequest>any(),
+                Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenThrow(new RuntimeException("Ka-boom"));
 
         try {
-            mainClientExec.execute(route, request, context, execAware);
+            mainClientExec.execute(request, context, execAware);
         } catch (final Exception ex) {
             Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
 
@@ -587,15 +585,15 @@ public class TestMainClientExec {
     public void testExecHttpException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
 
         Mockito.when(requestExecutor.execute(
-                Mockito.<HttpRequest>any(),
+                Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenThrow(new HttpException("Ka-boom"));
 
         try {
-            mainClientExec.execute(route, request, context, execAware);
+            mainClientExec.execute(request, context, execAware);
         } catch (final Exception ex) {
             Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
 
@@ -607,15 +605,15 @@ public class TestMainClientExec {
     public void testExecIOException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
 
         Mockito.when(requestExecutor.execute(
-                Mockito.<HttpRequest>any(),
+                Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenThrow(new IOException("Ka-boom"));
 
         try {
-            mainClientExec.execute(route, request, context, execAware);
+            mainClientExec.execute(request, context, execAware);
         } catch (final Exception ex) {
             Mockito.verify(connManager).releaseConnection(managedConn, null, 0, TimeUnit.MILLISECONDS);
 
@@ -631,7 +629,7 @@ public class TestMainClientExec {
                 .setConnectTimeout(567)
                 .build();
         context.setRequestConfig(config);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
 
@@ -649,7 +647,7 @@ public class TestMainClientExec {
                 .setConnectTimeout(567)
                 .build();
         context.setRequestConfig(config);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
 
@@ -667,12 +665,12 @@ public class TestMainClientExec {
                 .setConnectTimeout(321)
                 .build();
         context.setRequestConfig(config);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
         Mockito.when(requestExecutor.execute(
-                Mockito.<HttpRequest>any(),
+                Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
@@ -680,28 +678,28 @@ public class TestMainClientExec {
 
         Mockito.verify(connManager).connect(managedConn, route, 321, context);
         Mockito.verify(connManager).routeComplete(managedConn, route, context);
-        final ArgumentCaptor<HttpRequest> reqCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        final ArgumentCaptor<ClassicHttpRequest> reqCaptor = ArgumentCaptor.forClass(ClassicHttpRequest.class);
         Mockito.verify(requestExecutor).execute(
                 reqCaptor.capture(),
                 Mockito.same(managedConn),
                 Mockito.same(context));
         final HttpRequest connect = reqCaptor.getValue();
         Assert.assertNotNull(connect);
-        Assert.assertEquals("CONNECT", connect.getRequestLine().getMethod());
-        Assert.assertEquals(HttpVersion.HTTP_1_1, connect.getRequestLine().getProtocolVersion());
-        Assert.assertEquals("foo:80", connect.getRequestLine().getUri());
+        Assert.assertEquals("CONNECT", connect.getMethod());
+        Assert.assertEquals(HttpVersion.HTTP_1_1, connect.getVersion());
+        Assert.assertEquals("foo:80", connect.getRequestUri());
     }
 
     @Test(expected = HttpException.class)
     public void testEstablishRouteViaProxyTunnelUnexpectedResponse() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 101, "Lost");
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(101, "Lost");
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
         Mockito.when(requestExecutor.execute(
-                Mockito.<HttpRequest>any(),
+                Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
@@ -712,20 +710,20 @@ public class TestMainClientExec {
     public void testEstablishRouteViaProxyTunnelFailure() throws Exception {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 500, "Boom");
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(500, "Boom");
         response.setEntity(new StringEntity("Ka-boom"));
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
         Mockito.when(requestExecutor.execute(
-                Mockito.<HttpRequest>any(),
+                Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response);
 
         try {
             mainClientExec.establishRoute(managedConn, route, request, context);
         } catch (final TunnelRefusedException ex) {
-            final HttpResponse r = ex.getResponse();
+            final ClassicHttpResponse r = ex.getResponse();
             Assert.assertEquals("Ka-boom", EntityUtils.toString(r.getEntity()));
 
             Mockito.verify(managedConn).close();
@@ -742,14 +740,14 @@ public class TestMainClientExec {
                 .setConnectTimeout(567)
                 .build();
         context.setRequestConfig(config);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
-        final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 407, "Huh?");
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
+        final ClassicHttpResponse response1 = new BasicClassicHttpResponse(407, "Huh?");
         response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, "Basic realm=test");
         final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
                 .setStream(instream1)
                 .build());
-        final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials("user", "pass".toCharArray()));
@@ -761,7 +759,7 @@ public class TestMainClientExec {
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(requestExecutor.execute(
-                Mockito.<HttpRequest>any(),
+                Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response1, response2);
 
@@ -785,14 +783,14 @@ public class TestMainClientExec {
                 .setConnectTimeout(567)
                 .build();
         context.setRequestConfig(config);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
-        final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 407, "Huh?");
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
+        final ClassicHttpResponse response1 = new BasicClassicHttpResponse(407, "Huh?");
         response1.setHeader(HttpHeaders.PROXY_AUTHENTICATE, "Basic realm=test");
         final InputStream instream1 = Mockito.spy(new ByteArrayInputStream(new byte[] {1, 2, 3}));
         response1.setEntity(EntityBuilder.create()
                 .setStream(instream1)
                 .build());
-        final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final ClassicHttpResponse response2 = new BasicClassicHttpResponse(200, "OK");
 
         final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(new AuthScope(proxy), new UsernamePasswordCredentials("user", "pass".toCharArray()));
@@ -804,7 +802,7 @@ public class TestMainClientExec {
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.FALSE);
         Mockito.when(requestExecutor.execute(
-                Mockito.<HttpRequest>any(),
+                Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpClientConnection>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(response1, response2);
 
@@ -828,7 +826,7 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target, null, new HttpHost[] {proxy1, proxy2},
                 true, RouteInfo.TunnelType.TUNNELLED, RouteInfo.LayerType.LAYERED);
         final HttpClientContext context = new HttpClientContext();
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("http://bar/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
 
         Mockito.when(managedConn.isOpen()).thenReturn(Boolean.TRUE);
 

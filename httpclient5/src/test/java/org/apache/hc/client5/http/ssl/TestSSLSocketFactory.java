@@ -41,12 +41,11 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
-import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.localserver.SSLTestContexts;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.bootstrap.io.HttpServer;
-import org.apache.hc.core5.http.bootstrap.io.SSLServerSetupHandler;
-import org.apache.hc.core5.http.bootstrap.io.ServerBootstrap;
+import org.apache.hc.core5.http.impl.io.bootstrap.HttpServer;
+import org.apache.hc.core5.http.impl.io.bootstrap.SSLServerSetupHandler;
+import org.apache.hc.core5.http.impl.io.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.ssl.SSLContexts;
@@ -88,7 +87,6 @@ public class TestSSLSocketFactory {
     @Test
     public void testBasicSSL() throws Exception {
         this.server = ServerBootstrap.bootstrap()
-                .setServerInfo(LocalServerTestBase.ORIGIN)
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .create();
         this.server.start();
@@ -111,7 +109,6 @@ public class TestSSLSocketFactory {
     @Test
     public void testBasicDefaultHostnameVerifier() throws Exception {
         this.server = ServerBootstrap.bootstrap()
-                .setServerInfo(LocalServerTestBase.ORIGIN)
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .create();
         this.server.start();
@@ -132,7 +129,6 @@ public class TestSSLSocketFactory {
     @Test
     public void testClientAuthSSL() throws Exception {
         this.server = ServerBootstrap.bootstrap()
-                .setServerInfo(LocalServerTestBase.ORIGIN)
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .create();
         this.server.start();
@@ -155,7 +151,6 @@ public class TestSSLSocketFactory {
     @Test(expected=IOException.class)
     public void testClientAuthSSLFailure() throws Exception {
         this.server = ServerBootstrap.bootstrap()
-                .setServerInfo(LocalServerTestBase.ORIGIN)
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setSslSetupHandler(new SSLServerSetupHandler() {
 
@@ -186,7 +181,6 @@ public class TestSSLSocketFactory {
     @Test(expected=SSLException.class)
     public void testSSLTrustVerification() throws Exception {
         this.server = ServerBootstrap.bootstrap()
-                .setServerInfo(LocalServerTestBase.ORIGIN)
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .create();
         this.server.start();
@@ -208,7 +202,6 @@ public class TestSSLSocketFactory {
     @Test
     public void testSSLTrustVerificationOverride() throws Exception {
         this.server = ServerBootstrap.bootstrap()
-                .setServerInfo(LocalServerTestBase.ORIGIN)
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .create();
         this.server.start();
@@ -241,7 +234,6 @@ public class TestSSLSocketFactory {
     @Test
     public void testTLSOnly() throws Exception {
         this.server = ServerBootstrap.bootstrap()
-                .setServerInfo(LocalServerTestBase.ORIGIN)
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setSslSetupHandler(new SSLServerSetupHandler() {
 
@@ -268,7 +260,6 @@ public class TestSSLSocketFactory {
     @Test(expected=IOException.class)
     public void testSSLDisabledByDefault() throws Exception {
         this.server = ServerBootstrap.bootstrap()
-                .setServerInfo(LocalServerTestBase.ORIGIN)
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .setSslSetupHandler(new SSLServerSetupHandler() {
 

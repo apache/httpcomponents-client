@@ -38,23 +38,25 @@ import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.NonRepeatableRequestException;
 import org.apache.hc.client5.http.sync.HttpRequestRetryHandler;
-import org.apache.hc.client5.http.utils.URIBuilder;
 import org.apache.hc.client5.http.utils.URIUtils;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.InputStreamEntity;
-import org.apache.hc.core5.http.entity.StringEntity;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URIBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -71,10 +73,10 @@ public class TestClientRequestExecution extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            response.setStatusCode(HttpStatus.SC_OK);
+            response.setCode(HttpStatus.SC_OK);
             final StringEntity entity = new StringEntity("Whatever");
             response.setEntity(entity);
         }
@@ -91,12 +93,12 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         }
 
         @Override
-        public HttpResponse execute(
-                final HttpRequest request,
+        public ClassicHttpResponse execute(
+                final ClassicHttpRequest request,
                 final HttpClientConnection conn,
                 final HttpContext context) throws IOException, HttpException {
 
-            final HttpResponse response = super.execute(request, conn, context);
+            final ClassicHttpResponse response = super.execute(request, conn, context);
             final Object marker = context.getAttribute(MARKER);
             if (marker == null) {
                 context.setAttribute(MARKER, Boolean.TRUE);
@@ -116,6 +118,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
             @Override
             public void process(
                     final HttpRequest request,
+                    final EntityDetails entityDetails,
                     final HttpContext context) throws HttpException, IOException {
                 request.addHeader("my-header", "stuff");
             }
@@ -147,12 +150,12 @@ public class TestClientRequestExecution extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
 
         final Header[] myheaders = reqWrapper.getHeaders("my-header");
         Assert.assertNotNull(myheaders);
@@ -209,15 +212,15 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         final HttpHost target = start();
 
         final HttpClientContext context = HttpClientContext.create();
-        final BasicHttpRequest request = new BasicHttpRequest("GET", "blah.:.blah.:.");
-        final HttpResponse response = this.httpclient.execute(target, request, context);
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", "blah.:.blah.:.");
+        final ClassicHttpResponse response = this.httpclient.execute(target, request, context);
         EntityUtils.consume(response.getEntity());
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
 
         final HttpRequest reqWrapper = context.getRequest();
 
-        Assert.assertEquals("blah.:.blah.:.", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals("blah.:.blah.:.", reqWrapper.getRequestUri());
     }
 
     @Test
@@ -229,12 +232,12 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/stuff#blahblah");
         final HttpClientContext context = HttpClientContext.create();
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest request = context.getRequest();
-        Assert.assertEquals("/stuff", request.getRequestLine().getUri());
+        Assert.assertEquals("/stuff", request.getRequestUri());
     }
 
     @Test
@@ -254,12 +257,12 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet(uri);
         final HttpClientContext context = HttpClientContext.create();
 
-        final HttpResponse response = this.httpclient.execute(httpget, context);
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        final ClassicHttpResponse response = this.httpclient.execute(httpget, context);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest request = context.getRequest();
-        Assert.assertEquals("/stuff", request.getRequestLine().getUri());
+        Assert.assertEquals("/stuff", request.getRequestUri());
 
         final List<URI> redirectLocations = context.getRedirectLocations();
         final URI location = URIUtils.resolve(uri, target, redirectLocations);

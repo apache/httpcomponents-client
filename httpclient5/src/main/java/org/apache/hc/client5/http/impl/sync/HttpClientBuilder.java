@@ -93,7 +93,6 @@ import org.apache.hc.client5.http.sync.BackoffManager;
 import org.apache.hc.client5.http.sync.ConnectionBackoffStrategy;
 import org.apache.hc.client5.http.sync.HttpRequestRetryHandler;
 import org.apache.hc.client5.http.sync.ServiceUnavailableRetryStrategy;
-import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
@@ -107,10 +106,10 @@ import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
-import org.apache.hc.core5.http.protocol.ImmutableHttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
@@ -155,7 +154,6 @@ import org.apache.hc.core5.util.VersionInfo;
  *
  * @since 4.3
  */
-@NotThreadSafe
 public class HttpClientBuilder {
 
     private HttpRequestExecutor requestExec;
@@ -786,7 +784,7 @@ public class HttpClientBuilder {
      * inside an EJB container.
      *
      * @see #setConnectionManagerShared(boolean)
-     * @see HttpClientConnectionManager#closeExpiredConnections()
+     * @see HttpClientConnectionManager#closeExpired()
      *
      * @since 4.4
      */
@@ -809,7 +807,7 @@ public class HttpClientBuilder {
      * inside an EJB container.
      *
      * @see #setConnectionManagerShared(boolean)
-     * @see HttpClientConnectionManager#closeExpiredConnections()
+     * @see HttpClientConnectionManager#closeExpired()
      *
      * @param maxIdleTime maximum time persistent connections can stay idle while kept alive
      * in the connection pool. Connections whose inactivity period exceeds this value will
@@ -1011,7 +1009,7 @@ public class HttpClientBuilder {
                 userAgentCopy = System.getProperty("http.agent");
             }
             if (userAgentCopy == null) {
-                userAgentCopy = VersionInfo.getUserAgent("Apache-HttpClient",
+                userAgentCopy = VersionInfo.getSoftwareInfo("Apache-HttpClient",
                         "org.apache.hc.client5", getClass());
             }
         }
@@ -1021,7 +1019,7 @@ public class HttpClientBuilder {
                 connManagerCopy,
                 reuseStrategyCopy,
                 keepAliveStrategyCopy,
-                new ImmutableHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
+                new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
                 targetAuthStrategyCopy,
                 proxyAuthStrategyCopy,
                 userTokenHandlerCopy);

@@ -31,8 +31,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.methods.HttpUriRequest;
 import org.apache.hc.client5.http.sync.HttpClient;
-import org.apache.hc.client5.http.sync.ResponseHandler;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.io.ResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 class HttpRequestTaskCallable<V> implements Callable<V> {
@@ -107,7 +107,7 @@ class HttpRequestTaskCallable<V> implements Callable<V> {
                 metrics.getActiveConnections().decrementAndGet();
             }
         } else {
-            throw new IllegalStateException("call has been cancelled for request " + request.getURI());
+            throw new IllegalStateException("call has been cancelled");
         }
     }
 

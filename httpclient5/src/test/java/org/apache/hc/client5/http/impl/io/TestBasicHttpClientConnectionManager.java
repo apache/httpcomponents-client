@@ -288,8 +288,8 @@ public class TestBasicHttpClientConnectionManager {
         }
 
         // Should have no effect
-        mgr.closeExpiredConnections();
-        mgr.closeIdleConnections(0L, TimeUnit.MILLISECONDS);
+        mgr.closeExpired();
+        mgr.closeIdle(0L, TimeUnit.MILLISECONDS);
         mgr.shutdown();
 
         Mockito.verify(conn, Mockito.times(1)).shutdown();
@@ -319,7 +319,7 @@ public class TestBasicHttpClientConnectionManager {
 
         Thread.sleep(50);
 
-        mgr.closeExpiredConnections();
+        mgr.closeExpired();
 
         Mockito.verify(conn).close();
     }
@@ -348,7 +348,7 @@ public class TestBasicHttpClientConnectionManager {
 
         Thread.sleep(100);
 
-        mgr.closeIdleConnections(50, TimeUnit.MILLISECONDS);
+        mgr.closeIdle(50, TimeUnit.MILLISECONDS);
 
         Mockito.verify(conn).close();
     }

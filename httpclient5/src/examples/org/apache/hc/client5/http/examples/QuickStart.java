@@ -32,12 +32,12 @@ import java.util.List;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.methods.HttpPost;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 
 public class QuickStart {
@@ -53,7 +53,7 @@ public class QuickStart {
             // connection cannot be safely re-used and will be shut down and discarded
             // by the connection manager.
             try (CloseableHttpResponse response1 = httpclient.execute(httpGet)) {
-                System.out.println(response1.getStatusLine());
+                System.out.println(response1.getCode() + " " + response1.getReasonPhrase());
                 HttpEntity entity1 = response1.getEntity();
                 // do something useful with the response body
                 // and ensure it is fully consumed
@@ -67,7 +67,7 @@ public class QuickStart {
             httpPost.setEntity(new UrlEncodedFormEntity(nvps));
 
             try (CloseableHttpResponse response2 = httpclient.execute(httpPost)) {
-                System.out.println(response2.getStatusLine());
+                System.out.println(response2.getCode() + " " + response2.getReasonPhrase());
                 HttpEntity entity2 = response2.getEntity();
                 // do something useful with the response body
                 // and ensure it is fully consumed

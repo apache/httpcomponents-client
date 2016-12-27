@@ -27,15 +27,9 @@
 
 package org.apache.hc.client5.http.impl.integration;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketException;
 import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.ConnectionPoolTimeoutException;
 import org.apache.hc.client5.http.HttpRoute;
@@ -43,24 +37,19 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.io.ConnectionRequest;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.config.Registry;
-import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.entity.EntityUtils;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpClientConnection;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
+import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.apache.hc.core5.http.protocol.ImmutableHttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestConnControl;
 import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
@@ -102,7 +91,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final int      rsplen = 8;
         final String      uri = "/random/" + rsplen;
 
-        final HttpRequest request = new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", uri);
         final HttpContext context = new BasicHttpContext();
 
         HttpClientConnection conn = getConnection(this.connManager, route);
@@ -110,18 +99,17 @@ public class TestConnectionManagement extends LocalServerTestBase {
         this.connManager.routeComplete(conn, route, context);
 
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
 
-        final HttpProcessor httpProcessor = new ImmutableHttpProcessor(
+        final HttpProcessor httpProcessor = new DefaultHttpProcessor(
                 new RequestTargetHost(), new RequestContent(), new RequestConnControl());
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
-        HttpResponse response = exec.execute(request, conn, context);
+        ClassicHttpResponse response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in first response",
                      HttpStatus.SC_OK,
-                     response.getStatusLine().getStatusCode());
+                     response.getCode());
         byte[] data = EntityUtils.toByteArray(response.getEntity());
         Assert.assertEquals("wrong length of first response entity",
                      rsplen, data.length);
@@ -150,7 +138,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         Assert.assertEquals("wrong status in second response",
                      HttpStatus.SC_OK,
-                     response.getStatusLine().getStatusCode());
+                     response.getCode());
         data = EntityUtils.toByteArray(response.getEntity());
         Assert.assertEquals("wrong length of second response entity",
                      rsplen, data.length);
@@ -168,7 +156,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         Assert.assertEquals("wrong status in third response",
                      HttpStatus.SC_OK,
-                     response.getStatusLine().getStatusCode());
+                     response.getCode());
         data = EntityUtils.toByteArray(response.getEntity());
         Assert.assertEquals("wrong length of third response entity",
                      rsplen, data.length);
@@ -191,7 +179,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final int      rsplen = 8;
         final String      uri = "/random/" + rsplen;
 
-        final HttpRequest request = new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", uri);
         final HttpContext context = new BasicHttpContext();
 
         HttpClientConnection conn = getConnection(this.connManager, route);
@@ -199,18 +187,17 @@ public class TestConnectionManagement extends LocalServerTestBase {
         this.connManager.routeComplete(conn, route, context);
 
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
 
-        final HttpProcessor httpProcessor = new ImmutableHttpProcessor(
+        final HttpProcessor httpProcessor = new DefaultHttpProcessor(
                 new RequestTargetHost(), new RequestContent(), new RequestConnControl());
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
-        HttpResponse response = exec.execute(request, conn, context);
+        ClassicHttpResponse response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in first response",
                      HttpStatus.SC_OK,
-                     response.getStatusLine().getStatusCode());
+                     response.getCode());
         byte[] data = EntityUtils.toByteArray(response.getEntity());
         Assert.assertEquals("wrong length of first response entity",
                      rsplen, data.length);
@@ -239,7 +226,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         Assert.assertEquals("wrong status in second response",
                      HttpStatus.SC_OK,
-                     response.getStatusLine().getStatusCode());
+                     response.getCode());
         data = EntityUtils.toByteArray(response.getEntity());
         Assert.assertEquals("wrong length of second response entity",
                      rsplen, data.length);
@@ -255,7 +242,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         Assert.assertEquals("wrong status in third response",
                      HttpStatus.SC_OK,
-                     response.getStatusLine().getStatusCode());
+                     response.getCode());
         data = EntityUtils.toByteArray(response.getEntity());
         Assert.assertEquals("wrong length of third response entity",
                      rsplen, data.length);
@@ -275,7 +262,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         Assert.assertEquals("wrong status in third response",
                      HttpStatus.SC_OK,
-                     response.getStatusLine().getStatusCode());
+                     response.getCode());
         data = EntityUtils.toByteArray(response.getEntity());
         Assert.assertEquals("wrong length of fourth response entity",
                      rsplen, data.length);
@@ -308,7 +295,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
-        this.connManager.closeExpiredConnections();
+        this.connManager.closeExpired();
 
         // Time has not expired yet.
         Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
@@ -317,7 +304,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         Thread.sleep(150);
 
-        this.connManager.closeExpiredConnections();
+        this.connManager.closeExpired();
 
         // Time expired now, connections are destroyed.
         Assert.assertEquals(Collections.emptySet(), this.connManager.getRoutes());
@@ -355,7 +342,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(1, this.connManager.getStats(route).getAvailable());
 
-        this.connManager.closeExpiredConnections();
+        this.connManager.closeExpired();
 
         // Time has not expired yet.
         Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
@@ -364,7 +351,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
 
         Thread.sleep(150);
 
-        this.connManager.closeExpiredConnections();
+        this.connManager.closeExpired();
 
         // TTL expired now, connections are destroyed.
         Assert.assertEquals(Collections.emptySet(), this.connManager.getRoutes());
@@ -389,26 +376,25 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final String      uri = "/random/" + rsplen;
         final HttpContext context = new BasicHttpContext();
 
-        final HttpRequest request =
-            new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1);
+        final ClassicHttpRequest request =
+            new BasicClassicHttpRequest("GET", uri);
 
         HttpClientConnection conn = getConnection(this.connManager, route);
         this.connManager.connect(conn, route, 0, context);
         this.connManager.routeComplete(conn, route, context);
 
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
 
-        final HttpProcessor httpProcessor = new ImmutableHttpProcessor(
+        final HttpProcessor httpProcessor = new DefaultHttpProcessor(
                 new RequestTargetHost(), new RequestContent(), new RequestConnControl());
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
-        final HttpResponse response = exec.execute(request, conn, context);
+        final ClassicHttpResponse response = exec.execute(request, conn, context);
 
         Assert.assertEquals("wrong status in first response",
                      HttpStatus.SC_OK,
-                     response.getStatusLine().getStatusCode());
+                     response.getCode());
 
         // check that there are no connections available
         try {
@@ -431,254 +417,5 @@ public class TestConnectionManagement extends LocalServerTestBase {
         this.connManager.releaseConnection(conn, null, -1, null);
         this.connManager.shutdown();
     }
-
-    @Test
-    public void testAbortDuringConnecting() throws Exception {
-        final CountDownLatch connectLatch = new CountDownLatch(1);
-        final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
-                connectLatch, WaitPolicy.BEFORE_CONNECT, PlainConnectionSocketFactory.getSocketFactory());
-        final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-            .register("http", stallingSocketFactory)
-            .build();
-
-        this.connManager = new PoolingHttpClientConnectionManager(registry);
-        this.clientBuilder.setConnectionManager(this.connManager);
-
-        this.connManager.setMaxTotal(1);
-
-        final HttpHost target = start();
-        final HttpRoute route = new HttpRoute(target, null, false);
-        final HttpContext context = new BasicHttpContext();
-
-        final HttpClientConnection conn = getConnection(this.connManager, route);
-
-        final AtomicReference<Throwable> throwRef = new AtomicReference<>();
-        final Thread abortingThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    stallingSocketFactory.waitForState();
-                    conn.shutdown();
-                    connManager.releaseConnection(conn, null, -1, null);
-                    connectLatch.countDown();
-                } catch (final Throwable e) {
-                    throwRef.set(e);
-                }
-            }
-        });
-        abortingThread.start();
-
-        try {
-            this.connManager.connect(conn, route, 0, context);
-            this.connManager.routeComplete(conn, route, context);
-            Assert.fail("expected SocketException");
-        } catch(final SocketException expected) {}
-
-        abortingThread.join(5000);
-        if(throwRef.get() != null) {
-            throw new RuntimeException(throwRef.get());
-        }
-
-        Assert.assertFalse(conn.isOpen());
-
-        // the connection is expected to be released back to the manager
-        final HttpClientConnection conn2 = getConnection(this.connManager, route, 5L, TimeUnit.SECONDS);
-        Assert.assertFalse("connection should have been closed", conn2.isOpen());
-
-        this.connManager.releaseConnection(conn2, null, -1, null);
-        this.connManager.shutdown();
-    }
-
-    @Test
-    public void testAbortBeforeSocketCreate() throws Exception {
-        final CountDownLatch connectLatch = new CountDownLatch(1);
-        final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
-                connectLatch, WaitPolicy.BEFORE_CREATE, PlainConnectionSocketFactory.getSocketFactory());
-        final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-            .register("http", stallingSocketFactory)
-            .build();
-
-        this.connManager = new PoolingHttpClientConnectionManager(registry);
-        this.clientBuilder.setConnectionManager(this.connManager);
-
-        this.connManager.setMaxTotal(1);
-
-        final HttpHost target = start();
-        final HttpRoute route = new HttpRoute(target, null, false);
-        final HttpContext context = new BasicHttpContext();
-
-        final HttpClientConnection conn = getConnection(this.connManager, route);
-
-        final AtomicReference<Throwable> throwRef = new AtomicReference<>();
-        final Thread abortingThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    stallingSocketFactory.waitForState();
-                    conn.shutdown();
-                    connManager.releaseConnection(conn, null, -1, null);
-                    connectLatch.countDown();
-                } catch (final Throwable e) {
-                    throwRef.set(e);
-                }
-            }
-        });
-        abortingThread.start();
-
-        try {
-            this.connManager.connect(conn, route, 0, context);
-            this.connManager.routeComplete(conn, route, context);
-            Assert.fail("IOException expected");
-        } catch(final IOException expected) {
-        }
-
-        abortingThread.join(5000);
-        if(throwRef.get() != null) {
-            throw new RuntimeException(throwRef.get());
-        }
-
-        Assert.assertFalse(conn.isOpen());
-
-        // the connection is expected to be released back to the manager
-        final HttpClientConnection conn2 = getConnection(this.connManager, route, 5L, TimeUnit.SECONDS);
-        Assert.assertFalse("connection should have been closed", conn2.isOpen());
-
-        this.connManager.releaseConnection(conn2, null, -1, null);
-        this.connManager.shutdown();
-    }
-
-    @Test
-    public void testAbortAfterSocketConnect() throws Exception {
-        final CountDownLatch connectLatch = new CountDownLatch(1);
-        final StallingSocketFactory stallingSocketFactory = new StallingSocketFactory(
-                connectLatch, WaitPolicy.AFTER_CONNECT, PlainConnectionSocketFactory.getSocketFactory());
-        final Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-            .register("http", stallingSocketFactory)
-            .build();
-
-        this.connManager = new PoolingHttpClientConnectionManager(registry);
-        this.clientBuilder.setConnectionManager(this.connManager);
-
-        this.connManager.setMaxTotal(1);
-
-        final HttpHost target = start();
-        final HttpRoute route = new HttpRoute(target, null, false);
-        final HttpContext context = new BasicHttpContext();
-
-        final HttpClientConnection conn = getConnection(this.connManager, route);
-
-        final AtomicReference<Throwable> throwRef = new AtomicReference<>();
-        final Thread abortingThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    stallingSocketFactory.waitForState();
-                    conn.shutdown();
-                    connManager.releaseConnection(conn, null, -1, null);
-                    connectLatch.countDown();
-                } catch (final Throwable e) {
-                    throwRef.set(e);
-                }
-            }
-        });
-        abortingThread.start();
-
-        try {
-            this.connManager.connect(conn, route, 0, context);
-            this.connManager.routeComplete(conn, route, context);
-            Assert.fail("IOException expected");
-        } catch(final IOException expected) {
-        }
-
-        abortingThread.join(5000);
-        if(throwRef.get() != null) {
-            throw new RuntimeException(throwRef.get());
-        }
-
-        Assert.assertFalse(conn.isOpen());
-
-        // the connection is expected to be released back to the manager
-        final HttpClientConnection conn2 = getConnection(this.connManager, route, 5L, TimeUnit.SECONDS);
-        Assert.assertFalse("connection should have been closed", conn2.isOpen());
-
-        this.connManager.releaseConnection(conn2, null, -1, null);
-        this.connManager.shutdown();
-    }
-
-    static class LatchSupport {
-
-        private final CountDownLatch continueLatch;
-        private final CountDownLatch waitLatch = new CountDownLatch(1);
-        protected final WaitPolicy waitPolicy;
-
-        LatchSupport(final CountDownLatch continueLatch, final WaitPolicy waitPolicy) {
-            this.continueLatch = continueLatch;
-            this.waitPolicy = waitPolicy;
-        }
-
-        void waitForState() throws InterruptedException {
-            if(!waitLatch.await(1, TimeUnit.SECONDS)) {
-                throw new RuntimeException("waited too long");
-            }
-        }
-
-        void latch() {
-            waitLatch.countDown();
-            try {
-                if (!continueLatch.await(60, TimeUnit.SECONDS)) {
-                    throw new RuntimeException("waited too long!");
-                }
-            } catch (final InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private static class StallingSocketFactory extends LatchSupport implements ConnectionSocketFactory {
-
-        private final ConnectionSocketFactory delegate;
-
-        public StallingSocketFactory(
-                final CountDownLatch continueLatch,
-                final WaitPolicy waitPolicy,
-                final ConnectionSocketFactory delegate) {
-            super(continueLatch, waitPolicy);
-            this.delegate = delegate;
-        }
-
-        @Override
-        public Socket connectSocket(
-                final int connectTimeout,
-                final Socket sock,
-                final HttpHost host,
-                final InetSocketAddress remoteAddress,
-                final InetSocketAddress localAddress,
-                final HttpContext context) throws IOException {
-            if(waitPolicy == WaitPolicy.BEFORE_CONNECT) {
-                latch();
-            }
-
-            final Socket socket = delegate.connectSocket(
-                    connectTimeout, sock, host, remoteAddress, localAddress, context);
-
-            if(waitPolicy == WaitPolicy.AFTER_CONNECT) {
-                latch();
-            }
-
-            return socket;
-        }
-
-        @Override
-        public Socket createSocket(final HttpContext context) throws IOException {
-            if(waitPolicy == WaitPolicy.BEFORE_CREATE) {
-                latch();
-            }
-
-            return delegate.createSocket(context);
-        }
-
-    }
-
-    private enum WaitPolicy { BEFORE_CREATE, BEFORE_CONNECT, AFTER_CONNECT, AFTER_OPEN }
 
 }

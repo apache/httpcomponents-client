@@ -28,7 +28,8 @@ package org.apache.hc.client5.http.impl;
 
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.UnsupportedSchemeException;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.Args;
 
@@ -37,7 +38,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.3
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class DefaultSchemePortResolver implements SchemePortResolver {
 
     public static final DefaultSchemePortResolver INSTANCE = new DefaultSchemePortResolver();

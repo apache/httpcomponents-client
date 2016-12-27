@@ -35,9 +35,9 @@ import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.methods.HttpUriRequest;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.Test;
 
 public class TestIdleConnectionEviction extends LocalServerTestBase {
@@ -96,8 +96,8 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
         public void run() {
             try {
                 for (int i = 0; i < this.count; i++) {
-                    final HttpResponse response = this.httpclient.execute(this.target, this.request);
-                    final int status = response.getStatusLine().getStatusCode();
+                    final ClassicHttpResponse response = this.httpclient.execute(this.target, this.request);
+                    final int status = response.getCode();
                     if (status != 200) {
                         this.request.abort();
                         throw new ClientProtocolException("Unexpected status code: " + status);

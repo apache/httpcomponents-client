@@ -33,16 +33,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.methods.HttpUriRequest;
 import org.apache.hc.client5.http.sync.HttpClient;
-import org.apache.hc.client5.http.sync.ResponseHandler;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.io.ResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * HttpAsyncClientWithFuture wraps calls to execute with a {@link HttpRequestFutureTask}
  * and schedules them using the provided executor service. Scheduled calls may be cancelled.
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class FutureRequestExecutionService implements Closeable {
 
     private final HttpClient httpclient;

@@ -27,11 +27,12 @@
 
 package org.apache.hc.client5.http.impl.io;
 
-import org.apache.hc.core5.annotation.Immutable;
-import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpResponseFactory;
-import org.apache.hc.core5.http.config.MessageConstraints;
-import org.apache.hc.core5.http.impl.DefaultHttpResponseFactory;
+import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.impl.io.DefaultClassicHttpResponseFactory;
 import org.apache.hc.core5.http.io.HttpMessageParser;
 import org.apache.hc.core5.http.io.HttpMessageParserFactory;
 import org.apache.hc.core5.http.message.BasicLineParser;
@@ -42,23 +43,23 @@ import org.apache.hc.core5.http.message.LineParser;
  *
  * @since 4.3
  */
-@Immutable
-public class DefaultHttpResponseParserFactory implements HttpMessageParserFactory<HttpResponse> {
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
+public class DefaultHttpResponseParserFactory implements HttpMessageParserFactory<ClassicHttpResponse> {
 
     public static final DefaultHttpResponseParserFactory INSTANCE = new DefaultHttpResponseParserFactory();
 
     private final LineParser lineParser;
-    private final HttpResponseFactory responseFactory;
+    private final HttpResponseFactory<ClassicHttpResponse> responseFactory;
 
     public DefaultHttpResponseParserFactory(
             final LineParser lineParser,
-            final HttpResponseFactory responseFactory) {
+            final HttpResponseFactory<ClassicHttpResponse> responseFactory) {
         super();
         this.lineParser = lineParser != null ? lineParser : BasicLineParser.INSTANCE;
-        this.responseFactory = responseFactory != null ? responseFactory : DefaultHttpResponseFactory.INSTANCE;
+        this.responseFactory = responseFactory != null ? responseFactory : DefaultClassicHttpResponseFactory.INSTANCE;
     }
 
-    public DefaultHttpResponseParserFactory(final HttpResponseFactory responseFactory) {
+    public DefaultHttpResponseParserFactory(final HttpResponseFactory<ClassicHttpResponse> responseFactory) {
         this(null, responseFactory);
     }
 
@@ -67,8 +68,8 @@ public class DefaultHttpResponseParserFactory implements HttpMessageParserFactor
     }
 
     @Override
-    public HttpMessageParser<HttpResponse> create(final MessageConstraints constraints) {
-        return new LenientHttpResponseParser(this.lineParser, this.responseFactory, constraints);
+    public HttpMessageParser<ClassicHttpResponse> create(final H1Config h1Config) {
+        return new LenientHttpResponseParser(this.lineParser, this.responseFactory, h1Config);
     }
 
 }

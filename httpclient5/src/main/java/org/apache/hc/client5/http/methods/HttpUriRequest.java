@@ -27,44 +27,16 @@
 
 package org.apache.hc.client5.http.methods;
 
-import java.net.URI;
-
-import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 
 /**
- * Extended version of the {@link HttpRequest} interface that provides
+ * Extended version of the {@link ClassicHttpRequest} interface that provides
  * convenience methods to access request properties such as request URI
  * and method type.
  *
  * @since 4.0
  */
-public interface HttpUriRequest extends HttpRequest {
-
-    /**
-     * Returns the HTTP method this request uses, such as {@code GET},
-     * {@code PUT}, {@code POST}, or other.
-     */
-    String getMethod();
-
-    /**
-     * Returns the URI this request uses, such as
-     * {@code http://example.org/path/to/file}.
-     * <p>
-     * Note that the URI may be absolute URI (as above) or may be a relative URI.
-     * </p>
-     * <p>
-     * Implementations are encouraged to return
-     * the URI that was initially requested.
-     * </p>
-     * <p>
-     * To find the final URI after any redirects have been processed,
-     * please see the section entitled
-     * <a href="http://hc.apache.org/httpcomponents-client-ga/tutorial/html/fundamentals.html#d4e205">HTTP execution context</a>
-     * in the
-     * <a href="http://hc.apache.org/httpcomponents-client-ga/tutorial/html">HttpClient Tutorial</a>
-     * </p>
-     */
-    URI getURI();
+public interface HttpUriRequest extends ClassicHttpRequest {
 
     /**
      * Aborts execution of the request.

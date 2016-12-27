@@ -29,26 +29,28 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectException;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.utils.URIUtils;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ProtocolException;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,7 +66,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class RedirectExec implements ClientExecChain {
 
     private final Logger log = LogManager.getLogger(getClass());
@@ -87,12 +89,10 @@ public class RedirectExec implements ClientExecChain {
     }
 
     @Override
-    public CloseableHttpResponse execute(
-            final HttpRoute route,
-            final HttpRequestWrapper request,
+    public ClassicHttpResponse execute(
+            final RoutedHttpRequest request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
-        Args.notNull(route, "HTTP route");
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
@@ -103,11 +103,10 @@ public class RedirectExec implements ClientExecChain {
 
         final RequestConfig config = context.getRequestConfig();
         final int maxRedirects = config.getMaxRedirects() > 0 ? config.getMaxRedirects() : 50;
-        HttpRoute currentRoute = route;
-        HttpRequestWrapper currentRequest = request;
+        HttpRoute currentRoute = request.getRoute();
+        RoutedHttpRequest currentRequest = request;
         for (int redirectCount = 0;;) {
-            final CloseableHttpResponse response = requestExecutor.execute(
-                    currentRoute, currentRequest, context, execAware);
+            final ClassicHttpResponse response = requestExecutor.execute(currentRequest, context, execAware);
             try {
                 if (config.isRedirectsEnabled() &&
                         this.redirectStrategy.isRedirected(currentRequest.getOriginal(), response, context)) {
@@ -117,20 +116,19 @@ public class RedirectExec implements ClientExecChain {
                     }
                     redirectCount++;
 
-                    final HttpRequest redirect = this.redirectStrategy.getRedirect(
+                    final ClassicHttpRequest redirect = this.redirectStrategy.getRedirect(
                             currentRequest.getOriginal(), response, context);
-                    if (!redirect.headerIterator().hasNext()) {
-                        final HttpRequest original = request.getOriginal();
-                        redirect.setHeaders(original.getAllHeaders());
+                    final URI redirectUri;
+                    try {
+                        redirectUri = redirect.getUri();
+                    } catch (URISyntaxException ex) {
+                        // Should not happen
+                        throw new ProtocolException(ex.getMessage(), ex);
                     }
-                    currentRequest = HttpRequestWrapper.wrap(redirect, currentRequest.getTarget());
-                    RequestEntityProxy.enhance(currentRequest);
-
-                    final URI uri = currentRequest.getURI();
-                    final HttpHost newTarget = URIUtils.extractHost(uri);
+                    final HttpHost newTarget = URIUtils.extractHost(redirectUri);
                     if (newTarget == null) {
                         throw new ProtocolException("Redirect URI does not specify a valid host name: " +
-                                uri);
+                                redirectUri);
                     }
 
                     // Reset virtual host and auth states if redirecting to another host
@@ -148,10 +146,13 @@ public class RedirectExec implements ClientExecChain {
                         }
                     }
 
-                    currentRoute = this.routePlanner.determineRoute(newTarget, currentRequest, context);
+                    currentRoute = this.routePlanner.determineRoute(newTarget, redirect, context);
                     if (this.log.isDebugEnabled()) {
-                        this.log.debug("Redirecting to '" + uri + "' via " + currentRoute);
+                        this.log.debug("Redirecting to '" + redirectUri + "' via " + currentRoute);
                     }
+                    currentRequest = RoutedHttpRequest.adapt(redirect, currentRoute);
+                    RequestEntityProxy.enhance(currentRequest);
+
                     EntityUtils.consume(response.getEntity());
                     response.close();
                 } else {

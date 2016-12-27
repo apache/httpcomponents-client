@@ -44,17 +44,15 @@ import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.entity.ByteArrayEntity;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 
 class BasicHttpCache implements HttpCache {
     private static final Set<String> safeRequestMethods = new HashSet<>(
@@ -114,15 +112,15 @@ class BasicHttpCache implements HttpCache {
     @Override
     public void flushCacheEntriesFor(final HttpHost host, final HttpRequest request)
             throws IOException {
-        if (!safeRequestMethods.contains(request.getRequestLine().getMethod())) {
-            final String uri = uriExtractor.getURI(host, request);
+        if (!safeRequestMethods.contains(request.getMethod())) {
+            final String uri = uriExtractor.generateKey(host, request);
             storage.removeEntry(uri);
         }
     }
 
     @Override
     public void flushInvalidatedCacheEntriesFor(final HttpHost host, final HttpRequest request, final HttpResponse response) {
-        if (!safeRequestMethods.contains(request.getRequestLine().getMethod())) {
+        if (!safeRequestMethods.contains(request.getMethod())) {
             cacheInvalidator.flushInvalidatedCacheEntries(host, request, response);
         }
     }
@@ -138,7 +136,7 @@ class BasicHttpCache implements HttpCache {
 
     void storeNonVariantEntry(
             final HttpHost target, final HttpRequest req, final HttpCacheEntry entry) throws IOException {
-        final String uri = uriExtractor.getURI(target, req);
+        final String uri = uriExtractor.generateKey(target, req);
         storage.putEntry(uri, entry);
     }
 
@@ -146,8 +144,8 @@ class BasicHttpCache implements HttpCache {
             final HttpHost target,
             final HttpRequest req,
             final HttpCacheEntry entry) throws IOException {
-        final String parentURI = uriExtractor.getURI(target, req);
-        final String variantURI = uriExtractor.getVariantURI(target, req, entry);
+        final String parentURI = uriExtractor.generateKey(target, req);
+        final String variantURI = uriExtractor.generateVariantURI(target, req, entry);
         storage.putEntry(variantURI, entry);
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
@@ -155,8 +153,8 @@ class BasicHttpCache implements HttpCache {
             @Override
             public HttpCacheEntry update(final HttpCacheEntry existing) throws IOException {
                 return doGetUpdatedParentEntry(
-                        req.getRequestLine().getUri(), existing, entry,
-                        uriExtractor.getVariantKey(req, entry),
+                        req.getRequestUri(), existing, entry,
+                        uriExtractor.generateVariantKey(req, entry),
                         variantURI);
             }
 
@@ -172,16 +170,16 @@ class BasicHttpCache implements HttpCache {
     @Override
     public void reuseVariantEntryFor(final HttpHost target, final HttpRequest req,
             final Variant variant) throws IOException {
-        final String parentCacheKey = uriExtractor.getURI(target, req);
+        final String parentCacheKey = uriExtractor.generateKey(target, req);
         final HttpCacheEntry entry = variant.getEntry();
-        final String variantKey = uriExtractor.getVariantKey(req, entry);
+        final String variantKey = uriExtractor.generateVariantKey(req, entry);
         final String variantCacheKey = variant.getCacheKey();
 
         final HttpCacheUpdateCallback callback = new HttpCacheUpdateCallback() {
             @Override
             public HttpCacheEntry update(final HttpCacheEntry existing)
                     throws IOException {
-                return doGetUpdatedParentEntry(req.getRequestLine().getUri(),
+                return doGetUpdatedParentEntry(req.getRequestUri(),
                         existing, entry, variantKey, variantCacheKey);
             }
         };
@@ -194,7 +192,7 @@ class BasicHttpCache implements HttpCache {
     }
 
     boolean isIncompleteResponse(final HttpResponse resp, final Resource resource) {
-        final int status = resp.getStatusLine().getStatusCode();
+        final int status = resp.getCode();
         if (status != HttpStatus.SC_OK
             && status != HttpStatus.SC_PARTIAL_CONTENT) {
             return false;
@@ -215,11 +213,10 @@ class BasicHttpCache implements HttpCache {
         return (resource.length() < contentLength);
     }
 
-    CloseableHttpResponse generateIncompleteResponseError(
+    ClassicHttpResponse generateIncompleteResponseError(
             final HttpResponse response, final Resource resource) {
         final Integer contentLength = Integer.valueOf(response.getFirstHeader(HttpHeaders.CONTENT_LENGTH).getValue());
-        final HttpResponse error =
-            new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_GATEWAY, "Bad Gateway");
+        final ClassicHttpResponse error = new BasicClassicHttpResponse(HttpStatus.SC_BAD_GATEWAY, "Bad Gateway");
         error.setHeader("Content-Type","text/plain;charset=UTF-8");
         final String msg = String.format("Received incomplete response " +
                 "with Content-Length %d but actual body length %d",
@@ -227,7 +224,7 @@ class BasicHttpCache implements HttpCache {
         final byte[] msgBytes = msg.getBytes();
         error.setHeader("Content-Length", Integer.toString(msgBytes.length));
         error.setEntity(new ByteArrayEntity(msgBytes));
-        return Proxies.enhanceResponse(error);
+        return error;
     }
 
     HttpCacheEntry doGetUpdatedParentEntry(
@@ -250,11 +247,10 @@ class BasicHttpCache implements HttpCache {
         return new HttpCacheEntry(
                 src.getRequestDate(),
                 src.getResponseDate(),
-                src.getStatusLine(),
+                src.getStatus(),
                 src.getAllHeaders(),
                 resource,
-                variantMap,
-                src.getRequestMethod());
+                variantMap);
     }
 
     @Override
@@ -262,7 +258,7 @@ class BasicHttpCache implements HttpCache {
             final HttpCacheEntry stale, final HttpResponse originResponse,
             final Date requestSent, final Date responseReceived) throws IOException {
         final HttpCacheEntry updatedEntry = cacheEntryUpdater.updateCacheEntry(
-                request.getRequestLine().getUri(),
+                request.getRequestUri(),
                 stale,
                 requestSent,
                 responseReceived,
@@ -276,7 +272,7 @@ class BasicHttpCache implements HttpCache {
             final HttpCacheEntry stale, final HttpResponse originResponse,
             final Date requestSent, final Date responseReceived, final String cacheKey) throws IOException {
         final HttpCacheEntry updatedEntry = cacheEntryUpdater.updateCacheEntry(
-                request.getRequestLine().getUri(),
+                request.getRequestUri(),
                 stale,
                 requestSent,
                 responseReceived,
@@ -286,19 +282,10 @@ class BasicHttpCache implements HttpCache {
     }
 
     @Override
-    public HttpResponse cacheAndReturnResponse(final HttpHost host, final HttpRequest request,
-            final HttpResponse originResponse, final Date requestSent, final Date responseReceived)
-            throws IOException {
-        return cacheAndReturnResponse(host, request,
-                Proxies.enhanceResponse(originResponse), requestSent,
-                responseReceived);
-    }
-
-    @Override
-    public CloseableHttpResponse cacheAndReturnResponse(
+    public ClassicHttpResponse cacheAndReturnResponse(
             final HttpHost host,
             final HttpRequest request,
-            final CloseableHttpResponse originResponse,
+            final ClassicHttpResponse originResponse,
             final Date requestSent,
             final Date responseReceived) throws IOException {
 
@@ -320,12 +307,11 @@ class BasicHttpCache implements HttpCache {
             final HttpCacheEntry entry = new HttpCacheEntry(
                     requestSent,
                     responseReceived,
-                    originResponse.getStatusLine(),
+                    originResponse.getCode(),
                     originResponse.getAllHeaders(),
-                    resource,
-                    request.getRequestLine().getMethod());
+                    resource);
             storeInCache(host, request, entry);
-            return responseGenerator.generateResponse(HttpRequestWrapper.wrap(request, host), entry);
+            return responseGenerator.generateResponse(request, entry);
         } finally {
             if (closeOriginResponse) {
                 originResponse.close();
@@ -334,21 +320,21 @@ class BasicHttpCache implements HttpCache {
     }
 
     SizeLimitedResponseReader getResponseReader(final HttpRequest request,
-            final CloseableHttpResponse backEndResponse) {
+            final ClassicHttpResponse backEndResponse) {
         return new SizeLimitedResponseReader(
                 resourceFactory, maxObjectSizeBytes, request, backEndResponse);
     }
 
     @Override
     public HttpCacheEntry getCacheEntry(final HttpHost host, final HttpRequest request) throws IOException {
-        final HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
+        final HttpCacheEntry root = storage.getEntry(uriExtractor.generateKey(host, request));
         if (root == null) {
             return null;
         }
         if (!root.hasVariants()) {
             return root;
         }
-        final String variantCacheKey = root.getVariantMap().get(uriExtractor.getVariantKey(request, root));
+        final String variantCacheKey = root.getVariantMap().get(uriExtractor.generateVariantKey(request, root));
         if (variantCacheKey == null) {
             return null;
         }
@@ -365,7 +351,7 @@ class BasicHttpCache implements HttpCache {
     public Map<String, Variant> getVariantCacheEntriesWithEtags(final HttpHost host, final HttpRequest request)
             throws IOException {
         final Map<String,Variant> variants = new HashMap<>();
-        final HttpCacheEntry root = storage.getEntry(uriExtractor.getURI(host, request));
+        final HttpCacheEntry root = storage.getEntry(uriExtractor.generateKey(host, request));
         if (root == null || !root.hasVariants()) {
             return variants;
         }

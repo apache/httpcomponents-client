@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.examples;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 
 /**
@@ -41,10 +41,10 @@ public class ClientAbortMethod {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
-            System.out.println("Executing request " + httpget.getURI());
+            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             try (CloseableHttpResponse response = httpclient.execute(httpget)) {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response.getCode() + " " + response.getReasonPhrase());
                 // Do not feel like reading the response body
                 // Call abort on the request object
                 httpget.abort();

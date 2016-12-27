@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.entity.mime;
 
 import java.util.List;
 
-import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 

@@ -39,8 +39,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hc.client5.http.auth.util.ByteArrayBuilder;
-import org.apache.hc.core5.annotation.NotThreadSafe;
-import org.apache.hc.core5.util.CharsetUtils;
 
 /**
  * Provides an implementation for NTLMv1, NTLMv2, and NTLM2 Session forms of the NTLM
@@ -48,11 +46,10 @@ import org.apache.hc.core5.util.CharsetUtils;
  *
  * @since 4.1
  */
-@NotThreadSafe
 final class NTLMEngineImpl implements NTLMEngine {
 
     /** Unicode encoding */
-    private static final Charset UNICODE_LITTLE_UNMARKED = CharsetUtils.lookup("UnicodeLittleUnmarked");
+    private static final Charset UNICODE_LITTLE_UNMARKED = Charset.forName("UnicodeLittleUnmarked");
     /** Character encoding */
     private static final Charset DEFAULT_CHARSET = StandardCharsets.US_ASCII;
 

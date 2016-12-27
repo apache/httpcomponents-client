@@ -29,7 +29,8 @@ package org.apache.hc.client5.http.auth;
 import java.io.Serializable;
 import java.security.Principal;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.LangUtils;
 
@@ -39,7 +40,7 @@ import org.apache.hc.core5.util.LangUtils;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class UsernamePasswordCredentials implements Credentials, Serializable {
 
     private static final long serialVersionUID = 243343858802739403L;

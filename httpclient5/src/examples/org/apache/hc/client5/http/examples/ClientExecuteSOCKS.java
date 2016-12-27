@@ -37,14 +37,14 @@ import org.apache.hc.client5.http.ConnectTimeoutException;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -69,10 +69,11 @@ public class ClientExecuteSOCKS {
             HttpHost target = new HttpHost("httpbin.org", 80, "http");
             HttpGet request = new HttpGet("/get");
 
-            System.out.println("Executing request " + request + " to " + target + " via SOCKS proxy " + socksaddr);
+            System.out.println("Executing request " + request.getMethod() + " " + request.getUri() +
+                    " via SOCKS proxy " + socksaddr);
             try (CloseableHttpResponse response = httpclient.execute(target, request, context)) {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response.getCode() + " " + response.getReasonPhrase());
                 System.out.println(EntityUtils.toString(response.getEntity()));
             }
         }

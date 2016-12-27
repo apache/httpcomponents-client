@@ -45,8 +45,8 @@ import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.core5.annotation.GuardedBy;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.ConnectionConfig;
 import org.apache.hc.core5.http.config.Lookup;
@@ -79,7 +79,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class BasicHttpClientConnectionManager implements HttpClientConnectionManager, Closeable {
 
     private final Logger log = LogManager.getLogger(getClass());
@@ -87,28 +87,13 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private final HttpClientConnectionOperator connectionOperator;
     private final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory;
 
-    @GuardedBy("this")
     private ManagedHttpClientConnection conn;
-
-    @GuardedBy("this")
     private HttpRoute route;
-
-    @GuardedBy("this")
     private Object state;
-
-    @GuardedBy("this")
     private long updated;
-
-    @GuardedBy("this")
     private long expiry;
-
-    @GuardedBy("this")
     private boolean leased;
-
-    @GuardedBy("this")
     private SocketConfig socketConfig;
-
-    @GuardedBy("this")
     private ConnectionConfig connConfig;
 
     private final AtomicBoolean isShutdown;
@@ -358,7 +343,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     @Override
-    public synchronized void closeExpiredConnections() {
+    public synchronized void closeExpired() {
         if (this.isShutdown.get()) {
             return;
         }
@@ -368,7 +353,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     @Override
-    public synchronized void closeIdleConnections(final long idletime, final TimeUnit tunit) {
+    public synchronized void closeIdle(final long idletime, final TimeUnit tunit) {
         Args.notNull(tunit, "Time unit");
         if (this.isShutdown.get()) {
             return;

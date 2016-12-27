@@ -31,7 +31,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.entity.HttpEntityWrapper;
+import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 import org.apache.hc.core5.util.Args;
 
 /**

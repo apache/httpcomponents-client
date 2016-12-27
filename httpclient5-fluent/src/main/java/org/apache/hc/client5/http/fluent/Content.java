@@ -31,7 +31,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.ContentType;
 
 /**
  * This class represents arbitrary content of a specific type that can be consumed

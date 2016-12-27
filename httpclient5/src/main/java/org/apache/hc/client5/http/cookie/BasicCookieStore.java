@@ -33,8 +33,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.apache.hc.core5.annotation.GuardedBy;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Default implementation of {@link CookieStore}
@@ -42,12 +42,11 @@ import org.apache.hc.core5.annotation.ThreadSafe;
  *
  * @since 4.0
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class BasicCookieStore implements CookieStore, Serializable {
 
     private static final long serialVersionUID = -7581093305228232025L;
 
-    @GuardedBy("this")
     private final TreeSet<Cookie> cookies;
 
     public BasicCookieStore() {

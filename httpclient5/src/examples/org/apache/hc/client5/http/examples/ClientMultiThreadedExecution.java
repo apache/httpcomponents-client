@@ -29,10 +29,10 @@ package org.apache.hc.client5.http.examples;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
@@ -102,7 +102,7 @@ public class ClientMultiThreadedExecution {
         @Override
         public void run() {
             try {
-                System.out.println(id + " - about to get something from " + httpget.getURI());
+                System.out.println(id + " - about to get something from " + httpget.getUri());
                 try (CloseableHttpResponse response = httpClient.execute(httpget, context)) {
                     System.out.println(id + " - get executed");
                     // get the response body as an array of bytes

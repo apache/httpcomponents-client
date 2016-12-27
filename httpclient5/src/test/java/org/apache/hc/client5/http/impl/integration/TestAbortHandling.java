@@ -44,16 +44,16 @@ import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.entity.StringEntity;
 import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.UriHttpRequestHandlerMapper;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -73,16 +73,18 @@ public class TestAbortHandling extends LocalServerTestBase {
 
         this.serverBootstrap.registerHandler("*", new HttpRequestHandler() {
             @Override
-            public void handle(final HttpRequest request, final HttpResponse response,
-                               final HttpContext context) throws HttpException, IOException {
+            public void handle(
+                    final ClassicHttpRequest request,
+                    final ClassicHttpResponse response,
+                    final HttpContext context) throws HttpException, IOException {
                 try {
                     wait.countDown(); // trigger abort
                     Thread.sleep(2000); // allow time for abort to happen
-                    response.setStatusCode(HttpStatus.SC_OK);
+                    response.setCode(HttpStatus.SC_OK);
                     final StringEntity entity = new StringEntity("Whatever");
                     response.setEntity(entity);
                 } catch (final Exception e) {
-                    response.setStatusCode(HttpStatus.SC_REQUEST_TIMEOUT);
+                    response.setCode(HttpStatus.SC_REQUEST_TIMEOUT);
                 }
             }
         });
@@ -316,10 +318,11 @@ public class TestAbortHandling extends LocalServerTestBase {
 
     private static class BasicService implements HttpRequestHandler {
         @Override
-        public void handle(final HttpRequest request,
-                final HttpResponse response,
+        public void handle(
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            response.setStatusCode(200);
+            response.setCode(200);
             response.setEntity(new StringEntity("Hello World"));
         }
     }
@@ -333,11 +336,11 @@ public class TestAbortHandling extends LocalServerTestBase {
         }
 
         @Override
-        public void handle(final HttpRequest request,
-                final HttpResponse response, final HttpContext context)
-                throws HttpException, IOException {
-            final ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
-            response.setStatusLine(ver, this.statuscode);
+        public void handle(
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
+                final HttpContext context) throws HttpException, IOException {
+            response.setCode(this.statuscode);
             response.addHeader(new BasicHeader("Location", "http://localhost:"
                     + this.port + "/newlocation/"));
             response.addHeader(new BasicHeader("Connection", "close"));
@@ -400,12 +403,12 @@ public class TestAbortHandling extends LocalServerTestBase {
         }
 
         @Override
-        public void closeIdleConnections(final long idletime, final TimeUnit tunit) {
+        public void closeIdle(final long idletime, final TimeUnit tunit) {
             throw new UnsupportedOperationException("just a mockup");
         }
 
         @Override
-        public void closeExpiredConnections() {
+        public void closeExpired() {
             throw new UnsupportedOperationException("just a mockup");
         }
 

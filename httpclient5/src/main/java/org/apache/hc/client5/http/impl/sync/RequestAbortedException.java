@@ -29,14 +29,11 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.io.InterruptedIOException;
 
-import org.apache.hc.core5.annotation.Immutable;
-
 /**
  * Signals that the request has been aborted.
  *
  * @since 4.3
  */
-@Immutable
 public class RequestAbortedException extends InterruptedIOException {
 
     private static final long serialVersionUID = 4973849966012490112L;

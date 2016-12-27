@@ -44,12 +44,12 @@ import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.util.Args;
 
 /**
  * Adaptor class that provides convenience type safe setters and getters
@@ -58,7 +58,6 @@ import org.apache.hc.core5.http.protocol.HttpCoreContext;
  *
  * @since 4.3
  */
-@NotThreadSafe
 public class HttpClientContext extends HttpCoreContext {
 
     /**
@@ -134,11 +133,11 @@ public class HttpClientContext extends HttpCoreContext {
     public static final String REQUEST_CONFIG = "http.request-config";
 
     public static HttpClientContext adapt(final HttpContext context) {
+        Args.notNull(context, "HTTP context");
         if (context instanceof HttpClientContext) {
             return (HttpClientContext) context;
-        } else {
-            return new HttpClientContext(context);
         }
+        return new HttpClientContext(context);
     }
 
     public static HttpClientContext create() {

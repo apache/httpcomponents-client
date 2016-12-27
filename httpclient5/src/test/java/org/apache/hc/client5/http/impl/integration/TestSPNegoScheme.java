@@ -39,16 +39,16 @@ import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.StringEntity;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.ietf.jgss.GSSContext;
@@ -73,10 +73,10 @@ public class TestSPNegoScheme extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
+            response.setCode(HttpStatus.SC_UNAUTHORIZED);
             response.addHeader(new BasicHeader("WWW-Authenticate", "Negotiate blablabla"));
             response.addHeader(new BasicHeader("Connection", "Keep-Alive"));
             response.setEntity(new StringEntity("auth required "));
@@ -168,10 +168,10 @@ public class TestSPNegoScheme extends LocalServerTestBase {
 
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
-        final HttpResponse response = this.httpclient.execute(target, httpget);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
         EntityUtils.consume(response.getEntity());
 
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
     }
 
     /**
@@ -199,10 +199,10 @@ public class TestSPNegoScheme extends LocalServerTestBase {
 
         final String s = "/path";
         final HttpGet httpget = new HttpGet(s);
-        final HttpResponse response = this.httpclient.execute(target, httpget);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
         EntityUtils.consume(response.getEntity());
 
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
     }
 
 }

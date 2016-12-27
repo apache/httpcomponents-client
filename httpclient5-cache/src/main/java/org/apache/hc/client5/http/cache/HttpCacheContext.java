@@ -27,14 +27,12 @@
 package org.apache.hc.client5.http.cache;
 
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
  * @since 4.3
  */
-@NotThreadSafe
 public class HttpCacheContext extends HttpClientContext {
 
     /**

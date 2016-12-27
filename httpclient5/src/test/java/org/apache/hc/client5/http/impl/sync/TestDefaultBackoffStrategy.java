@@ -36,7 +36,6 @@ import org.apache.hc.client5.http.ConnectionPoolTimeoutException;
 import org.apache.hc.client5.http.sync.ConnectionBackoffStrategy;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,8 +72,7 @@ public class TestDefaultBackoffStrategy {
 
     @Test
     public void backsOffForServiceUnavailable() {
-        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
-                HttpStatus.SC_SERVICE_UNAVAILABLE, "Service Unavailable");
+        final HttpResponse resp = new BasicHttpResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "Service Unavailable");
         assertTrue(impl.shouldBackoff(resp));
     }
 
@@ -84,8 +82,7 @@ public class TestDefaultBackoffStrategy {
             if (i == HttpStatus.SC_SERVICE_UNAVAILABLE) {
                 continue;
             }
-            final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
-                    i, "Foo");
+            final HttpResponse resp = new BasicHttpResponse(i, "Foo");
             assertFalse(impl.shouldBackoff(resp));
         }
     }

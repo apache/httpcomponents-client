@@ -38,7 +38,8 @@ import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
@@ -52,7 +53,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheEntryUpdater {
 
     private final ResourceFactory resourceFactory;
@@ -84,7 +85,7 @@ class CacheEntryUpdater {
             final Date requestDate,
             final Date responseDate,
             final HttpResponse response) throws IOException {
-        Args.check(response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED,
+        Args.check(response.getCode() == HttpStatus.SC_NOT_MODIFIED,
                 "Response must have 304 status code");
         final Header[] mergedHeaders = mergeHeaders(entry, response);
         Resource resource = null;
@@ -94,10 +95,9 @@ class CacheEntryUpdater {
         return new HttpCacheEntry(
                 requestDate,
                 responseDate,
-                entry.getStatusLine(),
+                entry.getStatus(),
                 mergedHeaders,
-                resource,
-                entry.getRequestMethod());
+                resource);
     }
 
     protected Header[] mergeHeaders(final HttpCacheEntry entry, final HttpResponse response) {

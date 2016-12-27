@@ -34,6 +34,8 @@ import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.localserver.RandomHandler;
 import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpException;
@@ -41,14 +43,10 @@ import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.impl.HttpProcessors;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
-import org.apache.hc.core5.http.protocol.ResponseConnControl;
-import org.apache.hc.core5.http.protocol.ResponseContent;
-import org.apache.hc.core5.http.protocol.ResponseDate;
-import org.apache.hc.core5.http.protocol.ResponseServer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -56,11 +54,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
 
     @Test
     public void testReuseOfPersistentConnections() throws Exception {
-        final HttpProcessor httpproc = HttpProcessorBuilder.create()
-            .add(new ResponseDate())
-            .add(new ResponseServer(LocalServerTestBase.ORIGIN))
-            .add(new ResponseContent())
-            .add(new ResponseConnControl()).build();
+        final HttpProcessor httpproc = HttpProcessors.customServer(null).build();
 
         this.serverBootstrap.setHttpProcessor(httpproc)
                 .registerHandler("/random/*", new RandomHandler());
@@ -99,6 +93,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
         @Override
         public void process(
                 final HttpResponse response,
+                final EntityDetails entityDetails,
                 final HttpContext context) throws HttpException, IOException {
             response.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
         }
@@ -107,11 +102,8 @@ public class TestConnectionReuse extends LocalServerTestBase {
 
     @Test
     public void testReuseOfClosedConnections() throws Exception {
-        final HttpProcessor httpproc = HttpProcessorBuilder.create()
-            .add(new ResponseDate())
-            .add(new ResponseServer(LocalServerTestBase.ORIGIN))
-            .add(new ResponseContent())
-            .add(new AlwaysCloseConn()).build();
+        final HttpProcessor httpproc = HttpProcessors.customServer(null)
+                .add(new AlwaysCloseConn()).build();
 
         this.serverBootstrap.setHttpProcessor(httpproc)
                 .registerHandler("/random/*", new RandomHandler());
@@ -147,11 +139,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
 
     @Test
     public void testReuseOfAbortedConnections() throws Exception {
-        final HttpProcessor httpproc = HttpProcessorBuilder.create()
-            .add(new ResponseDate())
-            .add(new ResponseServer(LocalServerTestBase.ORIGIN))
-            .add(new ResponseContent())
-            .add(new ResponseConnControl()).build();
+        final HttpProcessor httpproc = HttpProcessors.customServer(null).build();
 
         this.serverBootstrap.setHttpProcessor(httpproc)
                 .registerHandler("/random/*", new RandomHandler());
@@ -187,12 +175,8 @@ public class TestConnectionReuse extends LocalServerTestBase {
 
     @Test
     public void testKeepAliveHeaderRespected() throws Exception {
-        final HttpProcessor httpproc = HttpProcessorBuilder.create()
-            .add(new ResponseDate())
-                .add(new ResponseServer(LocalServerTestBase.ORIGIN))
-            .add(new ResponseContent())
-            .add(new ResponseConnControl())
-            .add(new ResponseKeepAlive()).build();
+        final HttpProcessor httpproc = HttpProcessors.customServer(null)
+                .add(new ResponseKeepAlive()).build();
 
         this.serverBootstrap.setHttpProcessor(httpproc)
                 .registerHandler("/random/*", new RandomHandler());
@@ -202,7 +186,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
 
         final HttpHost target = start();
 
-        HttpResponse response = this.httpclient.execute(target, new HttpGet("/random/2000"));
+        ClassicHttpResponse response = this.httpclient.execute(target, new HttpGet("/random/2000"));
         EntityUtils.consume(response.getEntity());
 
         Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
@@ -257,7 +241,7 @@ public class TestConnectionReuse extends LocalServerTestBase {
             try {
                 for (int i = 0; i < this.repetitions; i++) {
                     final HttpGet httpget = new HttpGet(this.requestURI);
-                    final HttpResponse response = this.httpclient.execute(
+                    final ClassicHttpResponse response = this.httpclient.execute(
                             this.target,
                             httpget);
                     if (this.forceClose) {
@@ -281,8 +265,10 @@ public class TestConnectionReuse extends LocalServerTestBase {
     // if there is no Connection: close header.
     private static class ResponseKeepAlive implements HttpResponseInterceptor {
         @Override
-        public void process(final HttpResponse response, final HttpContext context)
-                throws HttpException, IOException {
+        public void process(
+                final HttpResponse response,
+                final EntityDetails entityDetails,
+                final HttpContext context) throws HttpException, IOException {
             final Header connection = response.getFirstHeader(HttpHeaders.CONNECTION);
             if(connection != null) {
                 if(!connection.getValue().equalsIgnoreCase("Close")) {

@@ -39,7 +39,6 @@ import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.junit.Before;
@@ -432,7 +431,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Cache-Control", "max-age=5, stale-if-error=15")
         };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
-        final HttpRequest req = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+        final HttpRequest req = new BasicHttpRequest("GET","/");
         assertTrue(impl.mayReturnStaleIfError(req, entry, now));
     }
 
@@ -443,7 +442,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Cache-Control", "max-age=5")
         };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
-        final HttpRequest req = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+        final HttpRequest req = new BasicHttpRequest("GET","/");
         req.setHeader("Cache-Control","stale-if-error=15");
         assertTrue(impl.mayReturnStaleIfError(req, entry, now));
     }
@@ -455,7 +454,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Cache-Control", "max-age=5, stale-if-error=1")
         };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
-        final HttpRequest req = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+        final HttpRequest req = new BasicHttpRequest("GET","/");
         assertFalse(impl.mayReturnStaleIfError(req, entry, now));
     }
 
@@ -466,7 +465,7 @@ public class TestCacheValidityPolicy {
                 new BasicHeader("Cache-Control", "max-age=5")
         };
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(now, now, headers);
-        final HttpRequest req = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+        final HttpRequest req = new BasicHttpRequest("GET","/");
         req.setHeader("Cache-Control","stale-if-error=1");
         assertFalse(impl.mayReturnStaleIfError(req, entry, now));
     }

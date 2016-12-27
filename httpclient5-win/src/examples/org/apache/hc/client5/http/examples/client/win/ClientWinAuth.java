@@ -31,7 +31,7 @@ import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.win.WinHttpClients;
 import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * This example demonstrates how to create HttpClient pre-configured
@@ -52,11 +52,11 @@ public class ClientWinAuth {
         try {
             HttpGet httpget = new HttpGet("http://winhost/");
 
-            System.out.println("Executing request " + httpget.getRequestLine());
+            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             CloseableHttpResponse response = httpclient.execute(httpget);
             try {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response.getCode() + " " + response.getReasonPhrase());
                 EntityUtils.consume(response.getEntity());
             } finally {
                 response.close();

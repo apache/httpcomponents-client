@@ -30,7 +30,8 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.File;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Factory methods for {@link CloseableHttpClient} instances
@@ -38,7 +39,7 @@ import org.apache.hc.core5.annotation.Immutable;
  *
  * @since 4.3
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class CachingHttpClients {
 
     private CachingHttpClients() {

@@ -31,15 +31,14 @@ import java.net.URI;
 import java.util.List;
 
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.http.entity.BasicHttpEntity;
-import org.apache.hc.core5.http.entity.ContentType;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.StringEntity;
+import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.Assert;
@@ -52,8 +51,7 @@ public class TestRequestBuilder {
         final HttpUriRequest request = RequestBuilder.get().build();
         Assert.assertNotNull(request);
         Assert.assertEquals("GET", request.getMethod());
-        Assert.assertEquals(URI.create("/"), request.getURI());
-        Assert.assertEquals(HttpVersion.HTTP_1_1, request.getProtocolVersion());
+        Assert.assertEquals(URI.create("/"), request.getUri());
     }
 
     @Test
@@ -61,8 +59,7 @@ public class TestRequestBuilder {
         final HttpUriRequest request = RequestBuilder.create("Whatever").build();
         Assert.assertNotNull(request);
         Assert.assertEquals("Whatever", request.getMethod());
-        Assert.assertEquals(URI.create("/"), request.getURI());
-        Assert.assertEquals(HttpVersion.HTTP_1_1, request.getProtocolVersion());
+        Assert.assertEquals(URI.create("/"), request.getUri());
     }
 
     @Test
@@ -71,8 +68,7 @@ public class TestRequestBuilder {
         final HttpUriRequest request = RequestBuilder.post().setEntity(entity).build();
         Assert.assertNotNull(request);
         Assert.assertEquals("POST", request.getMethod());
-        Assert.assertEquals(URI.create("/"), request.getURI());
-        Assert.assertEquals(HttpVersion.HTTP_1_1, request.getProtocolVersion());
+        Assert.assertEquals(URI.create("/"), request.getUri());
         Assert.assertSame(entity, request.getEntity());
     }
 
@@ -82,8 +78,7 @@ public class TestRequestBuilder {
         final HttpUriRequest request = RequestBuilder.get().setEntity(entity).build();
         Assert.assertNotNull(request);
         Assert.assertEquals("GET", request.getMethod());
-        Assert.assertEquals(URI.create("/"), request.getURI());
-        Assert.assertEquals(HttpVersion.HTTP_1_1, request.getProtocolVersion());
+        Assert.assertEquals(URI.create("/"), request.getUri());
         Assert.assertSame(entity, request.getEntity());
     }
 
@@ -93,7 +88,7 @@ public class TestRequestBuilder {
                 .addParameter("p1", "this")
                 .addParameter("p2", "that")
                 .build();
-        Assert.assertEquals(new URI("/?p1=this&p2=that"), request.getURI());
+        Assert.assertEquals(new URI("/?p1=this&p2=that"), request.getUri());
     }
 
     @Test
@@ -102,7 +97,7 @@ public class TestRequestBuilder {
                 .addParameter("p1", "this")
                 .addParameters(new BasicNameValuePair("p2", "that"))
                 .build();
-        Assert.assertEquals(new URI("/?p1=this&p2=that"), request.getURI());
+        Assert.assertEquals(new URI("/?p1=this&p2=that"), request.getUri());
     }
 
     @Test
@@ -113,7 +108,7 @@ public class TestRequestBuilder {
                 .build();
         final HttpEntity entity = request.getEntity();
         Assert.assertNotNull(entity);
-        Assert.assertEquals(new URI("/"), request.getURI());
+        Assert.assertEquals(new URI("/"), request.getUri());
         Assert.assertEquals("p1=this&p2=that", EntityUtils.toString(entity));
     }
 
@@ -125,7 +120,7 @@ public class TestRequestBuilder {
                 .addParameter("p2", "that")
                 .setEntity(new StringEntity("blah"))
                 .build();
-        Assert.assertEquals(new URI("http://targethost/?blah&p1=this&p2=that"), request.getURI());
+        Assert.assertEquals(new URI("http://targethost/?blah&p1=this&p2=that"), request.getUri());
     }
 
     @Test
@@ -142,12 +137,12 @@ public class TestRequestBuilder {
             .build();
         Assert.assertNotNull(request);
         Assert.assertEquals("PUT", request.getMethod());
-        Assert.assertEquals(URI.create("/stuff"), request.getURI());
-        Assert.assertEquals(HttpVersion.HTTP_1_0, request.getProtocolVersion());
+        Assert.assertEquals(URI.create("/stuff"), request.getUri());
+        Assert.assertEquals(HttpVersion.HTTP_1_0, request.getVersion());
 
         final HttpUriRequest copy = RequestBuilder.copy(request).setUri("/other-stuff").build();
         Assert.assertEquals("PUT", copy.getMethod());
-        Assert.assertEquals(URI.create("/other-stuff"), copy.getURI());
+        Assert.assertEquals(URI.create("/other-stuff"), copy.getUri());
         Assert.assertSame(entity, copy.getEntity());
         Assert.assertTrue(copy instanceof Configurable);
         Assert.assertSame(config, ((Configurable) copy).getConfig());
@@ -202,9 +197,9 @@ public class TestRequestBuilder {
     public void testCopyAndSetUri() throws Exception {
         final URI uri1 = URI.create("http://host1.com/path?param=something");
         final URI uri2 = URI.create("http://host2.com/path?param=somethingdifferent");
-        final HttpRequest request1 = new HttpGet(uri1);
+        final HttpGet request1 = new HttpGet(uri1);
         final HttpUriRequest request2 = RequestBuilder.copy(request1).setUri(uri2).build();
-        Assert.assertEquals(request2.getURI(), uri2);
+        Assert.assertEquals(request2.getUri(), uri2);
     }
 
     @Test

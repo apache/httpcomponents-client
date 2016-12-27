@@ -30,9 +30,10 @@ package org.apache.hc.client5.http.protocol;
 import java.io.IOException;
 
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HeaderElements;
-import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
@@ -52,7 +53,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.3
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class RequestExpectContinue implements HttpRequestInterceptor {
 
     public RequestExpectContinue() {
@@ -60,16 +61,15 @@ public class RequestExpectContinue implements HttpRequestInterceptor {
     }
 
     @Override
-    public void process(final HttpRequest request, final HttpContext context)
+    public void process(final HttpRequest request, final EntityDetails entity, final HttpContext context)
             throws HttpException, IOException {
         Args.notNull(request, "HTTP request");
 
         if (!request.containsHeader(HttpHeaders.EXPECT)) {
-            final ProtocolVersion ver = request.getRequestLine().getProtocolVersion();
-            final HttpEntity entity = request.getEntity();
+            final ProtocolVersion version = request.getVersion() != null ? request.getVersion() : HttpVersion.HTTP_1_1;
             // Do not send the expect header if request body is known to be empty
             if (entity != null
-                    && entity.getContentLength() != 0 && !ver.lessEquals(HttpVersion.HTTP_1_0)) {
+                    && entity.getContentLength() != 0 && !version.lessEquals(HttpVersion.HTTP_1_0)) {
                 final HttpClientContext clientContext = HttpClientContext.adapt(context);
                 final RequestConfig config = clientContext.getRequestConfig();
                 if (config.isExpectContinueEnabled()) {

@@ -41,20 +41,20 @@ import org.apache.hc.client5.http.protocol.CircularRedirectException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
-import org.apache.hc.client5.http.utils.URIBuilder;
 import org.apache.hc.client5.http.utils.URIUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TextUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,8 +68,8 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.1
  */
-@Immutable
-public class DefaultRedirectStrategy implements RedirectStrategy {
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
+public class DefaultRedirectStrategy<T extends HttpRequest> implements RedirectStrategy {
 
     private final Logger log = LogManager.getLogger(getClass());
 
@@ -100,7 +100,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         if (!response.containsHeader(HttpHeaders.LOCATION)) {
             return false;
         }
-        final int statusCode = response.getStatusLine().getStatusCode();
+        final int statusCode = response.getCode();
         switch (statusCode) {
             case HttpStatus.SC_MOVED_PERMANENTLY:
             case HttpStatus.SC_MOVED_TEMPORARILY:
@@ -138,11 +138,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         try {
             if (!uri.isAbsolute()) {
                 // Resolve location URI
-                final HttpHost target = clientContext.getTargetHost();
-                Asserts.notNull(target, "Target host");
-                final URI requestURI = new URI(request.getRequestLine().getUri());
-                final URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, false);
-                uri = URIUtils.resolve(absoluteRequestURI, uri);
+                uri = URIUtils.resolve(request.getUri(), uri);
             }
         } catch (final URISyntaxException ex) {
             throw new ProtocolException(ex.getMessage(), ex);
@@ -185,18 +181,20 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
 
     @Override
     public HttpUriRequest getRedirect(
-            final HttpRequest request,
+            final ClassicHttpRequest request,
             final HttpResponse response,
             final HttpContext context) throws HttpException {
         final URI uri = getLocationURI(request, response, context);
-        final int statusCode = response.getStatusLine().getStatusCode();
+        final int statusCode = response.getCode();
         switch (statusCode) {
             case HttpStatus.SC_MOVED_PERMANENTLY:
             case HttpStatus.SC_MOVED_TEMPORARILY:
             case HttpStatus.SC_SEE_OTHER:
-                final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
+                final String method = request.getMethod().toUpperCase(Locale.ROOT);
                 if (!this.safeMethods.containsKey(method)) {
-                    return new HttpGet(uri);
+                    final HttpGet httpGet = new HttpGet(uri);
+                    httpGet.setHeaders(request.getAllHeaders());
+                    return httpGet;
                 }
             case HttpStatus.SC_TEMPORARY_REDIRECT:
             default:

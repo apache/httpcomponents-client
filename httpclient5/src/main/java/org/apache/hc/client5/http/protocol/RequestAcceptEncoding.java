@@ -26,12 +26,12 @@
  */
 package org.apache.hc.client5.http.protocol;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.core5.annotation.Immutable;
-import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -45,7 +45,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class RequestAcceptEncoding implements HttpRequestInterceptor {
 
     private final String acceptEncoding;
@@ -73,9 +73,7 @@ public class RequestAcceptEncoding implements HttpRequestInterceptor {
     }
 
     @Override
-    public void process(
-            final HttpRequest request,
-            final HttpContext context) throws HttpException, IOException {
+    public void process(final HttpRequest request, final EntityDetails entity, final HttpContext context) {
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final RequestConfig requestConfig = clientContext.getRequestConfig();

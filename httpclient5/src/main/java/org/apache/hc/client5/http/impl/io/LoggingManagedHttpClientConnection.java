@@ -28,23 +28,22 @@
 package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 
-import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentLengthStrategy;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.config.MessageConstraints;
+import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.impl.io.SocketHolder;
 import org.apache.hc.core5.http.io.HttpMessageParserFactory;
 import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
+import org.apache.hc.core5.http.message.RequestLine;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.logging.log4j.Logger;
 
-@NotThreadSafe
 class LoggingManagedHttpClientConnection extends DefaultManagedHttpClientConnection {
 
     private final Logger log;
@@ -57,16 +56,14 @@ class LoggingManagedHttpClientConnection extends DefaultManagedHttpClientConnect
             final Logger headerlog,
             final Logger wirelog,
             final int buffersize,
-            final int fragmentSizeHint,
             final CharsetDecoder chardecoder,
             final CharsetEncoder charencoder,
-            final MessageConstraints constraints,
+            final H1Config h1Config,
             final ContentLengthStrategy incomingContentStrategy,
             final ContentLengthStrategy outgoingContentStrategy,
-            final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
-            final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
-        super(id, buffersize, fragmentSizeHint, chardecoder, charencoder,
-                constraints, incomingContentStrategy, outgoingContentStrategy,
+            final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
+            final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
+        super(id, buffersize, chardecoder, charencoder, h1Config, incomingContentStrategy, outgoingContentStrategy,
                 requestWriterFactory, responseParserFactory);
         this.log = log;
         this.headerlog = headerlog;
@@ -101,27 +98,14 @@ class LoggingManagedHttpClientConnection extends DefaultManagedHttpClientConnect
     }
 
     @Override
-    protected InputStream getSocketInputStream(final Socket socket) throws IOException {
-        InputStream in = super.getSocketInputStream(socket);
-        if (this.wire.enabled()) {
-            in = new LoggingInputStream(in, this.wire);
-        }
-        return in;
+    public void bind(final Socket socket) throws IOException {
+        super.bind(this.wire.enabled() ? new LoggingSocketHolder(socket, this.wire) : new SocketHolder(socket));
     }
 
     @Override
-    protected OutputStream getSocketOutputStream(final Socket socket) throws IOException {
-        OutputStream out = super.getSocketOutputStream(socket);
-        if (this.wire.enabled()) {
-            out = new LoggingOutputStream(out, this.wire);
-        }
-        return out;
-    }
-
-    @Override
-    protected void onResponseReceived(final HttpResponse response) {
+    protected void onResponseReceived(final ClassicHttpResponse response) {
         if (response != null && this.headerlog.isDebugEnabled()) {
-            this.headerlog.debug(getId() + " << " + response.getStatusLine().toString());
+            this.headerlog.debug(getId() + " << " + new StatusLine(response));
             final Header[] headers = response.getAllHeaders();
             for (final Header header : headers) {
                 this.headerlog.debug(getId() + " << " + header.toString());
@@ -130,9 +114,9 @@ class LoggingManagedHttpClientConnection extends DefaultManagedHttpClientConnect
     }
 
     @Override
-    protected void onRequestSubmitted(final HttpRequest request) {
+    protected void onRequestSubmitted(final ClassicHttpRequest request) {
         if (request != null && this.headerlog.isDebugEnabled()) {
-            this.headerlog.debug(getId() + " >> " + request.getRequestLine().toString());
+            this.headerlog.debug(getId() + " >> " + new RequestLine(request));
             final Header[] headers = request.getAllHeaders();
             for (final Header header : headers) {
                 this.headerlog.debug(getId() + " >> " + header.toString());

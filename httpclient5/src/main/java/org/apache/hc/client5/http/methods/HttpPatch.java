@@ -29,8 +29,6 @@ package org.apache.hc.client5.http.methods;
 
 import java.net.URI;
 
-import org.apache.hc.core5.annotation.NotThreadSafe;
-
 /**
  * HTTP PATCH method.
  * <p>
@@ -50,29 +48,18 @@ import org.apache.hc.core5.annotation.NotThreadSafe;
  *
  * @since 4.2
  */
-@NotThreadSafe
-public class HttpPatch extends HttpRequestBase {
+public class HttpPatch extends HttpUriRequestBase {
 
     private static final long serialVersionUID = 1L;
+
     public final static String METHOD_NAME = "PATCH";
 
-    public HttpPatch() {
-        super();
-    }
-
     public HttpPatch(final URI uri) {
-        super();
-        setURI(uri);
+        super(METHOD_NAME, uri);
     }
 
     public HttpPatch(final String uri) {
-        super();
-        setURI(URI.create(uri));
-    }
-
-    @Override
-    public String getMethod() {
-        return METHOD_NAME;
+        this(URI.create(uri));
     }
 
 }

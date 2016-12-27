@@ -48,8 +48,8 @@ public class TestIdleConnectionEvictor {
 
         Thread.sleep(1000);
 
-        Mockito.verify(cm, Mockito.atLeast(1)).closeExpiredConnections();
-        Mockito.verify(cm, Mockito.atLeast(1)).closeIdleConnections(3000, TimeUnit.MILLISECONDS);
+        Mockito.verify(cm, Mockito.atLeast(1)).closeExpired();
+        Mockito.verify(cm, Mockito.atLeast(1)).closeIdle(3000, TimeUnit.MILLISECONDS);
 
         Assert.assertTrue(connectionEvictor.isRunning());
 
@@ -67,8 +67,8 @@ public class TestIdleConnectionEvictor {
 
         Thread.sleep(1000);
 
-        Mockito.verify(cm, Mockito.atLeast(1)).closeExpiredConnections();
-        Mockito.verify(cm, Mockito.never()).closeIdleConnections(Mockito.anyLong(), Mockito.<TimeUnit>any());
+        Mockito.verify(cm, Mockito.atLeast(1)).closeExpired();
+        Mockito.verify(cm, Mockito.never()).closeIdle(Mockito.anyLong(), Mockito.<TimeUnit>any());
 
         Assert.assertTrue(connectionEvictor.isRunning());
 

@@ -30,18 +30,18 @@ import java.io.IOException;
 import java.net.Socket;
 
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.StringEntity;
 import org.apache.hc.core5.http.impl.io.DefaultBHttpServerConnection;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,9 +55,9 @@ public class TestMalformedServerResponse extends LocalServerTestBase {
         }
 
         @Override
-        public void sendResponseHeader(final HttpResponse response) throws HttpException, IOException {
+        public void sendResponseHeader(final ClassicHttpResponse response) throws HttpException, IOException {
             super.sendResponseHeader(response);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+            if (response.getCode() == HttpStatus.SC_NO_CONTENT) {
                 response.setEntity(new StringEntity(
                         "garbage\ngarbage\n" +
                         "garbage\ngarbage\n" +
@@ -90,10 +90,10 @@ public class TestMalformedServerResponse extends LocalServerTestBase {
 
             @Override
             public void handle(
-                    final HttpRequest request,
-                    final HttpResponse response,
+                    final ClassicHttpRequest request,
+                    final ClassicHttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
-                response.setStatusCode(HttpStatus.SC_NO_CONTENT);
+                response.setCode(HttpStatus.SC_NO_CONTENT);
             }
 
         });
@@ -101,10 +101,10 @@ public class TestMalformedServerResponse extends LocalServerTestBase {
 
             @Override
             public void handle(
-                    final HttpRequest request,
-                    final HttpResponse response,
+                    final ClassicHttpRequest request,
+                    final ClassicHttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
-                response.setStatusCode(HttpStatus.SC_OK);
+                response.setCode(HttpStatus.SC_OK);
                 response.setEntity(new StringEntity("Some important stuff"));
             }
 
@@ -113,12 +113,12 @@ public class TestMalformedServerResponse extends LocalServerTestBase {
         final HttpHost target = start();
         final HttpGet get1 = new HttpGet("/nostuff");
         try (CloseableHttpResponse response1 = this.httpclient.execute(target, get1)) {
-            Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response1.getStatusLine().getStatusCode());
+            Assert.assertEquals(HttpStatus.SC_NO_CONTENT, response1.getCode());
             EntityUtils.consume(response1.getEntity());
         }
         final HttpGet get2 = new HttpGet("/stuff");
         try (CloseableHttpResponse response2 = this.httpclient.execute(target, get2)) {
-            Assert.assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
+            Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
             EntityUtils.consume(response2.getEntity());
         }
     }

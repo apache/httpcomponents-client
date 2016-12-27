@@ -29,8 +29,6 @@ package org.apache.hc.client5.http.methods;
 
 import java.net.URI;
 
-import org.apache.hc.core5.annotation.NotThreadSafe;
-
 /**
  * HTTP POST method.
  * <p>
@@ -54,32 +52,21 @@ import org.apache.hc.core5.annotation.NotThreadSafe;
  *
  * @since 4.0
  */
-@NotThreadSafe
-public class HttpPost extends HttpRequestBase {
+public class HttpPost extends HttpUriRequestBase {
 
     private static final long serialVersionUID = 1L;
+
     public final static String METHOD_NAME = "POST";
 
-    public HttpPost() {
-        super();
-    }
-
     public HttpPost(final URI uri) {
-        super();
-        setURI(uri);
+        super(METHOD_NAME, uri);
     }
 
     /**
      * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpPost(final String uri) {
-        super();
-        setURI(URI.create(uri));
-    }
-
-    @Override
-    public String getMethod() {
-        return METHOD_NAME;
+        this(URI.create(uri));
     }
 
 }

@@ -57,29 +57,25 @@ import org.apache.hc.client5.http.methods.HttpPut;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.NonRepeatableRequestException;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.InputStreamEntity;
-import org.apache.hc.core5.http.entity.StringEntity;
+import org.apache.hc.core5.http.impl.HttpProcessors;
+import org.apache.hc.core5.http.io.HttpExpectationVerifier;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
-import org.apache.hc.core5.http.protocol.HttpExpectationVerifier;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
-import org.apache.hc.core5.http.protocol.ResponseConnControl;
-import org.apache.hc.core5.http.protocol.ResponseContent;
-import org.apache.hc.core5.http.protocol.ResponseDate;
-import org.apache.hc.core5.http.protocol.ResponseServer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,11 +88,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
     @Before @Override
     public void setUp() throws Exception {
         super.setUp();
-        final HttpProcessor httpproc = HttpProcessorBuilder.create()
-            .add(new ResponseDate())
-            .add(new ResponseServer(LocalServerTestBase.ORIGIN))
-            .add(new ResponseContent())
-            .add(new ResponseConnControl())
+        final HttpProcessor httpproc = HttpProcessors.customServer(null)
             .add(new RequestBasicAuth())
             .add(new ResponseBasicUnauthorized()).build();
         this.serverBootstrap.setHttpProcessor(httpproc);
@@ -106,14 +98,14 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             final String creds = (String) context.getAttribute("creds");
             if (creds == null || !creds.equals("test:test")) {
-                response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
+                response.setCode(HttpStatus.SC_UNAUTHORIZED);
             } else {
-                response.setStatusCode(HttpStatus.SC_OK);
+                response.setCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
                 response.setEntity(entity);
             }
@@ -132,14 +124,14 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         @Override
         public void verify(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException {
             final String creds = this.authTokenExtractor.extract(request);
             if (creds == null || !creds.equals("test:test")) {
-                response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
+                response.setCode(HttpStatus.SC_UNAUTHORIZED);
             } else {
-                response.setStatusCode(HttpStatus.SC_CONTINUE);
+                response.setCode(HttpStatus.SC_CONTINUE);
             }
         }
 
@@ -178,9 +170,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
         Assert.assertNotNull(entity);
         EntityUtils.consume(entity);
         final AuthScope authscope = credsProvider.getAuthScope();
@@ -200,9 +192,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
         Assert.assertNotNull(entity);
         EntityUtils.consume(entity);
         final AuthScope authscope = credsProvider.getAuthScope();
@@ -222,9 +214,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpHost target = start();
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertNotNull(entity);
         EntityUtils.consume(entity);
         final AuthScope authscope = credsProvider.getAuthScope();
@@ -234,11 +226,7 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
     @Test
     public void testBasicAuthenticationSuccessOnNonRepeatablePutExpectContinue() throws Exception {
-        final HttpProcessor httpproc = HttpProcessorBuilder.create()
-            .add(new ResponseDate())
-            .add(new ResponseServer(LocalServerTestBase.ORIGIN))
-            .add(new ResponseContent())
-            .add(new ResponseConnControl())
+        final HttpProcessor httpproc = HttpProcessors.customServer(null)
             .add(new RequestBasicAuth())
             .add(new ResponseBasicUnauthorized()).build();
         this.serverBootstrap.setHttpProcessor(httpproc)
@@ -261,9 +249,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
-        final HttpResponse response = this.httpclient.execute(target, httpput, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpput, context);
         final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertNotNull(entity);
     }
 
@@ -311,9 +299,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 new UsernamePasswordCredentials("test", "test".toCharArray()));
         context.setCredentialsProvider(credsProvider);
 
-        final HttpResponse response = this.httpclient.execute(target, httppost, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httppost, context);
         final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertNotNull(entity);
         EntityUtils.consume(entity);
         final AuthScope authscope = credsProvider.getAuthScope();
@@ -390,15 +378,15 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/");
 
-        final HttpResponse response1 = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response1 = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity1 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response1.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
         Assert.assertNotNull(entity1);
         EntityUtils.consume(entity1);
 
-        final HttpResponse response2 = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response2 = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity2 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
         Assert.assertNotNull(entity2);
         EntityUtils.consume(entity2);
 
@@ -417,15 +405,15 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             final String givenCreds = (String) context.getAttribute("creds");
             if (givenCreds == null || !givenCreds.equals(this.realmCreds)) {
-                response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
+                response.setCode(HttpStatus.SC_UNAUTHORIZED);
                 response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"" + this.realm + "\"");
             } else {
-                response.setStatusCode(HttpStatus.SC_OK);
+                response.setCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
                 response.setEntity(entity);
             }
@@ -458,25 +446,25 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         final HttpGet httpget1 = new HttpGet("/this");
 
-        final HttpResponse response1 = this.httpclient.execute(target, httpget1, context);
+        final ClassicHttpResponse response1 = this.httpclient.execute(target, httpget1, context);
         final HttpEntity entity1 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response1.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
         Assert.assertNotNull(entity1);
         EntityUtils.consume(entity1);
 
         final HttpGet httpget2 = new HttpGet("/this");
 
-        final HttpResponse response2 = this.httpclient.execute(target, httpget2, context);
+        final ClassicHttpResponse response2 = this.httpclient.execute(target, httpget2, context);
         final HttpEntity entity2 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
         Assert.assertNotNull(entity2);
         EntityUtils.consume(entity2);
 
         final HttpGet httpget3 = new HttpGet("/that");
 
-        final HttpResponse response3 = this.httpclient.execute(target, httpget3, context);
+        final ClassicHttpResponse response3 = this.httpclient.execute(target, httpget3, context);
         final HttpEntity entity3 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response3.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response3.getCode());
         Assert.assertNotNull(entity3);
         EntityUtils.consume(entity3);
 
@@ -491,9 +479,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("http://test:test@" +  target.toHostString() + "/");
 
         final HttpClientContext context = HttpClientContext.create();
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertNotNull(entity);
         EntityUtils.consume(entity);
     }
@@ -506,9 +494,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("http://test:all-wrong@" +  target.toHostString() + "/");
 
         final HttpClientContext context = HttpClientContext.create();
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response.getCode());
         Assert.assertNotNull(entity);
         EntityUtils.consume(entity);
     }
@@ -521,14 +509,14 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             final HttpConnection conn = (HttpConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
             final InetSocketAddress socketAddress = (InetSocketAddress) conn.getLocalAddress();
             final String localhost = socketAddress.getHostName();
             final int port = socketAddress.getPort();
-            response.setStatusCode(HttpStatus.SC_MOVED_PERMANENTLY);
+            response.setCode(HttpStatus.SC_MOVED_PERMANENTLY);
             response.addHeader(new BasicHeader("Location",
                     "http://test:test@" + localhost + ":" + port + "/"));
         }
@@ -545,9 +533,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("http://" +  target.toHostString() + "/thatway");
         final HttpClientContext context = HttpClientContext.create();
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertNotNull(entity);
         EntityUtils.consume(entity);
     }
@@ -563,15 +551,15 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             this.count.incrementAndGet();
             final String creds = (String) context.getAttribute("creds");
             if (creds == null || !creds.equals("test:test")) {
-                response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
+                response.setCode(HttpStatus.SC_UNAUTHORIZED);
             } else {
-                response.setStatusCode(HttpStatus.SC_OK);
+                response.setCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
                 response.setEntity(entity);
             }
@@ -598,9 +586,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         context.setAuthCache(authCache);
 
         final HttpGet httpget = new HttpGet("/");
-        final HttpResponse response1 = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response1 = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity1 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response1.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
         Assert.assertNotNull(entity1);
         EntityUtils.consume(entity1);
 
@@ -624,9 +612,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         context.setCredentialsProvider(credsProvider);
 
         final HttpGet httpget = new HttpGet("/");
-        final HttpResponse response1 = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response1 = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity1 = response1.getEntity();
-        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response1.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED, response1.getCode());
         Assert.assertNotNull(entity1);
         EntityUtils.consume(entity1);
 
@@ -637,14 +625,14 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             final String creds = (String) context.getAttribute("creds");
             if (creds == null || !creds.equals("test:test")) {
-                response.setStatusCode(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);
+                response.setCode(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);
             } else {
-                response.setStatusCode(HttpStatus.SC_OK);
+                response.setCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
                 response.setEntity(entity);
             }
@@ -663,10 +651,10 @@ public class TestClientAuthentication extends LocalServerTestBase {
         context.setCredentialsProvider(credsProvider);
 
         final HttpGet httpget = new HttpGet("/");
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity = response.getEntity();
         Assert.assertEquals(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED,
-                response.getStatusLine().getStatusCode());
+                response.getCode());
         EntityUtils.consume(entity);
     }
 
@@ -674,14 +662,14 @@ public class TestClientAuthentication extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             final String creds = (String) context.getAttribute("creds");
             if (creds == null || !creds.equals("test:test")) {
-                response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
+                response.setCode(HttpStatus.SC_UNAUTHORIZED);
             } else {
-                response.setStatusCode(HttpStatus.SC_OK);
+                response.setCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
                 response.setEntity(entity);
                 response.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
@@ -705,9 +693,9 @@ public class TestClientAuthentication extends LocalServerTestBase {
         for (int i = 0; i < 2; i++) {
             final HttpGet httpget = new HttpGet("/");
 
-            final HttpResponse response = this.httpclient.execute(target, httpget, context);
+            final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
             EntityUtils.consume(response.getEntity());
-            Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         }
     }
 

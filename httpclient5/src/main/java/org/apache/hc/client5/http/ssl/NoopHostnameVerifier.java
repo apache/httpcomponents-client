@@ -30,7 +30,8 @@ package org.apache.hc.client5.http.ssl;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * The NO_OP HostnameVerifier essentially turns hostname verification
@@ -38,7 +39,7 @@ import org.apache.hc.core5.annotation.Immutable;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class NoopHostnameVerifier implements HostnameVerifier {
 
     public static final NoopHostnameVerifier INSTANCE = new NoopHostnameVerifier();

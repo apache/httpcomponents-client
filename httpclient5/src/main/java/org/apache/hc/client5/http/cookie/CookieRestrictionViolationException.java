@@ -27,15 +27,12 @@
 
 package org.apache.hc.client5.http.cookie;
 
-import org.apache.hc.core5.annotation.Immutable;
-
 /**
  * Signals that a cookie violates a restriction imposed by the cookie
  * specification.
  *
  * @since 4.1
  */
-@Immutable
 public class CookieRestrictionViolationException extends MalformedCookieException {
 
     private static final long serialVersionUID = 7371235577078589013L;

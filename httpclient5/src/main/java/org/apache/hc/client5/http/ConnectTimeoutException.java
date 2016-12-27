@@ -32,7 +32,6 @@ import java.io.InterruptedIOException;
 import java.net.InetAddress;
 import java.util.Arrays;
 
-import org.apache.hc.core5.annotation.Immutable;
 import org.apache.hc.core5.http.HttpHost;
 
 /**
@@ -42,7 +41,6 @@ import org.apache.hc.core5.http.HttpHost;
  *
  * @since 4.0
  */
-@Immutable
 public class ConnectTimeoutException extends InterruptedIOException {
 
     private static final long serialVersionUID = -4816682903149535989L;

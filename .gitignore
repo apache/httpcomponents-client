@@ -7,3 +7,4 @@ bin
 target
 .idea
 *.iml
+/httpclient5/src/test/resources/log4j2-debug.xml

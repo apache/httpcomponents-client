@@ -31,11 +31,11 @@ import java.io.FileInputStream;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpPost;
-import org.apache.hc.core5.http.entity.ContentType;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.InputStreamEntity;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 
 /**
  * Example how to use unbuffered chunk-encoded POST request.
@@ -63,10 +63,10 @@ public class ClientChunkEncodedPost {
 
             httppost.setEntity(reqEntity);
 
-            System.out.println("Executing request: " + httppost.getRequestLine());
+            System.out.println("Executing request " + httppost.getMethod() + " " + httppost.getUri());
             try (CloseableHttpResponse response = httpclient.execute(httppost)) {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response.getCode() + " " + response.getReasonPhrase());
                 System.out.println(EntityUtils.toString(response.getEntity()));
             }
         }

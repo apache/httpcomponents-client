@@ -34,11 +34,13 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.StatusLine;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.MessageHeaders;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.HeaderGroup;
 import org.apache.hc.core5.util.Args;
 
@@ -51,15 +53,15 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.1
  */
-@Immutable
-public class HttpCacheEntry implements Serializable {
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
+public class HttpCacheEntry implements MessageHeaders, Serializable {
 
     private static final long serialVersionUID = -6300496422359477413L;
     private static final String REQUEST_METHOD_HEADER_NAME = "Hc-Request-Method";
 
     private final Date requestDate;
     private final Date responseDate;
-    private final StatusLine statusLine;
+    private final int status;
     private final HeaderGroup responseHeaders;
     private final Resource resource;
     private final Map<String,String> variantMap;
@@ -73,8 +75,8 @@ public class HttpCacheEntry implements Serializable {
      * @param responseDate
      *          Date/time that the response came back (Used for age
      *            calculations)
-     * @param statusLine
-     *          HTTP status line from origin response
+     * @param status
+     *          HTTP status from origin response
      * @param responseHeaders
      *          Header[] from original HTTP Response
      * @param resource representing origin response body
@@ -82,63 +84,30 @@ public class HttpCacheEntry implements Serializable {
      *   of this parent entry; this maps a "variant key" (derived
      *   from the varying request headers) to a "cache key" (where
      *   in the cache storage the particular variant is located)
-     * @param requestMethod HTTP method used when the request was made
      */
     public HttpCacheEntry(
             final Date requestDate,
             final Date responseDate,
-            final StatusLine statusLine,
+            final int status,
             final Header[] responseHeaders,
             final Resource resource,
-            final Map<String,String> variantMap,
-            final String requestMethod) {
+            final Map<String,String> variantMap) {
         super();
         Args.notNull(requestDate, "Request date");
         Args.notNull(responseDate, "Response date");
-        Args.notNull(statusLine, "Status line");
+        Args.check(status >= HttpStatus.SC_SUCCESS, "Status code");
         Args.notNull(responseHeaders, "Response headers");
         this.requestDate = requestDate;
         this.responseDate = responseDate;
-        this.statusLine = statusLine;
+        this.status = status;
         this.responseHeaders = new HeaderGroup();
         this.responseHeaders.setHeaders(responseHeaders);
         this.resource = resource;
-        this.variantMap = variantMap != null
-            ? new HashMap<>(variantMap)
-            : null;
+        this.variantMap = variantMap != null ? new HashMap<>(variantMap) : null;
         this.date = parseDate();
     }
 
     /**
-     * Create a new {@link HttpCacheEntry} with variants.
-     * @param requestDate
-     *          Date/time when the request was made (Used for age
-     *            calculations)
-     * @param responseDate
-     *          Date/time that the response came back (Used for age
-     *            calculations)
-     * @param statusLine
-     *          HTTP status line from origin response
-     * @param responseHeaders
-     *          Header[] from original HTTP Response
-     * @param resource representing origin response body
-     * @param variantMap describing cache entries that are variants
-     *   of this parent entry; this maps a "variant key" (derived
-     *   from the varying request headers) to a "cache key" (where
-     *   in the cache storage the particular variant is located)
-     */
-    public HttpCacheEntry(
-            final Date requestDate,
-            final Date responseDate,
-            final StatusLine statusLine,
-            final Header[] responseHeaders,
-            final Resource resource,
-            final Map<String,String> variantMap) {
-        this(requestDate, responseDate, statusLine, responseHeaders, resource,
-                variantMap, null);
-    }
-
-    /**
      * Create a new {@link HttpCacheEntry}.
      *
      * @param requestDate
@@ -147,38 +116,15 @@ public class HttpCacheEntry implements Serializable {
      * @param responseDate
      *          Date/time that the response came back (Used for age
      *            calculations)
-     * @param statusLine
-     *          HTTP status line from origin response
+     * @param status
+     *          HTTP status from origin response
      * @param responseHeaders
      *          Header[] from original HTTP Response
      * @param resource representing origin response body
      */
-    public HttpCacheEntry(final Date requestDate, final Date responseDate, final StatusLine statusLine,
+    public HttpCacheEntry(final Date requestDate, final Date responseDate, final int status,
             final Header[] responseHeaders, final Resource resource) {
-        this(requestDate, responseDate, statusLine, responseHeaders, resource,
-                new HashMap<String,String>());
-    }
-
-    /**
-     * Create a new {@link HttpCacheEntry}.
-     *
-     * @param requestDate
-     *          Date/time when the request was made (Used for age
-     *            calculations)
-     * @param responseDate
-     *          Date/time that the response came back (Used for age
-     *            calculations)
-     * @param statusLine
-     *          HTTP status line from origin response
-     * @param responseHeaders
-     *          Header[] from original HTTP Response
-     * @param resource representing origin response body
-     * @param requestMethod HTTP method used when the request was made
-     */
-    public HttpCacheEntry(final Date requestDate, final Date responseDate, final StatusLine statusLine,
-            final Header[] responseHeaders, final Resource resource, final String requestMethod) {
-        this(requestDate, responseDate, statusLine, responseHeaders, resource,
-                new HashMap<String,String>(),requestMethod);
+        this(requestDate, responseDate, status, responseHeaders, resource, new HashMap<String,String>());
     }
 
     /**
@@ -194,35 +140,10 @@ public class HttpCacheEntry implements Serializable {
     }
 
     /**
-     * Returns the {@link StatusLine} from the origin
-     * {@link org.apache.hc.core5.http.HttpResponse}.
+     * Returns the status from the origin {@link org.apache.hc.core5.http.HttpResponse}.
      */
-    public StatusLine getStatusLine() {
-        return this.statusLine;
-    }
-
-    /**
-     * Returns the {@link ProtocolVersion} from the origin
-     * {@link org.apache.hc.core5.http.HttpResponse}.
-     */
-    public ProtocolVersion getProtocolVersion() {
-        return this.statusLine.getProtocolVersion();
-    }
-
-    /**
-     * Gets the reason phrase from the origin
-     * {@link org.apache.hc.core5.http.HttpResponse}, for example, "Not Modified".
-     */
-    public String getReasonPhrase() {
-        return this.statusLine.getReasonPhrase();
-    }
-
-    /**
-     * Returns the HTTP response code from the origin
-     * {@link org.apache.hc.core5.http.HttpResponse}.
-     */
-    public int getStatusCode() {
-        return this.statusLine.getStatusCode();
+    public int getStatus() {
+        return this.status;
     }
 
     /**
@@ -245,6 +166,7 @@ public class HttpCacheEntry implements Serializable {
     /**
      * Returns all the headers that were on the origin response.
      */
+    @Override
     public Header[] getAllHeaders() {
         final HeaderGroup filteredHeaders = new HeaderGroup();
         for (final Iterator<Header> iterator = responseHeaders.headerIterator(); iterator.hasNext();) {
@@ -260,6 +182,7 @@ public class HttpCacheEntry implements Serializable {
      * Returns the first header from the origin response with the given
      * name.
      */
+    @Override
     public Header getFirstHeader(final String name) {
         if (REQUEST_METHOD_HEADER_NAME.equalsIgnoreCase(name)) {
             return null;
@@ -268,14 +191,63 @@ public class HttpCacheEntry implements Serializable {
     }
 
     /**
+     * @since 5.0
+     */
+    @Override
+    public Header getLastHeader(final String name) {
+        return responseHeaders.getLastHeader(name);
+    }
+
+    /**
      * Gets all the headers with the given name that were on the origin
      * response.
      */
+    @Override
     public Header[] getHeaders(final String name) {
         if (REQUEST_METHOD_HEADER_NAME.equalsIgnoreCase(name)) {
             return new Header[0];
         }
         return responseHeaders.getHeaders(name);
+    }
+
+    /**
+     * @since 5.0
+     */
+    @Override
+    public boolean containsHeader(final String name) {
+        return responseHeaders.containsHeader(name);
+    }
+
+    /**
+     * @since 5.0
+     */
+    @Override
+    public int containsHeaders(final String name) {
+        return responseHeaders.containsHeaders(name);
+    }
+
+    /**
+     * @since 5.0
+     */
+    @Override
+    public Header getSingleHeader(final String name) throws ProtocolException {
+        return responseHeaders.getSingleHeader(name);
+    }
+
+    /**
+     * @since 5.0
+     */
+    @Override
+    public Iterator<Header> headerIterator() {
+        return responseHeaders.headerIterator();
+    }
+
+    /**
+     * @since 5.0
+     */
+    @Override
+    public Iterator<Header> headerIterator(final String name) {
+        return responseHeaders.headerIterator(name);
     }
 
     /**
@@ -325,8 +297,7 @@ public class HttpCacheEntry implements Serializable {
      * @since 4.4
      */
     public String getRequestMethod() {
-        final Header requestMethodHeader = responseHeaders
-                .getFirstHeader(REQUEST_METHOD_HEADER_NAME);
+        final Header requestMethodHeader = responseHeaders.getFirstHeader(REQUEST_METHOD_HEADER_NAME);
         if (requestMethodHeader != null) {
             return requestMethodHeader.getValue();
         }
@@ -340,7 +311,7 @@ public class HttpCacheEntry implements Serializable {
     @Override
     public String toString() {
         return "[request date=" + this.requestDate + "; response date=" + this.responseDate
-                + "; statusLine=" + this.statusLine + "]";
+                + "; status=" + this.status + "]";
     }
 
 }

@@ -27,20 +27,17 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
-import java.lang.reflect.Proxy;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.entity.ByteArrayEntity;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.StringEntity;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,13 +57,13 @@ public class TestSizeLimitedResponseReader {
     @Test
     public void testLargeResponseIsTooLarge() throws Exception {
         final byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
-        final CloseableHttpResponse response = make200Response(buf);
+        final ClassicHttpResponse response = make200Response(buf);
 
         impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
 
         impl.readResponse();
         final boolean tooLarge = impl.isLimitReached();
-        final HttpResponse result = impl.getReconstructedResponse();
+        final ClassicHttpResponse result = impl.getReconstructedResponse();
         final byte[] body = EntityUtils.toByteArray(result.getEntity());
 
         Assert.assertTrue(tooLarge);
@@ -76,13 +73,13 @@ public class TestSizeLimitedResponseReader {
     @Test
     public void testExactSizeResponseIsNotTooLarge() throws Exception {
         final byte[] buf = new byte[] { 1, 2, 3, 4 };
-        final CloseableHttpResponse response = make200Response(buf);
+        final ClassicHttpResponse response = make200Response(buf);
 
         impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
 
         impl.readResponse();
         final boolean tooLarge = impl.isLimitReached();
-        final HttpResponse reconstructed = impl.getReconstructedResponse();
+        final ClassicHttpResponse reconstructed = impl.getReconstructedResponse();
         final byte[] result = EntityUtils.toByteArray(reconstructed.getEntity());
 
         Assert.assertFalse(tooLarge);
@@ -92,13 +89,13 @@ public class TestSizeLimitedResponseReader {
     @Test
     public void testSmallResponseIsNotTooLarge() throws Exception {
         final byte[] buf = new byte[] { 1, 2, 3 };
-        final CloseableHttpResponse response = make200Response(buf);
+        final ClassicHttpResponse response = make200Response(buf);
 
         impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
 
         impl.readResponse();
         final boolean tooLarge = impl.isLimitReached();
-        final HttpResponse reconstructed = impl.getReconstructedResponse();
+        final ClassicHttpResponse reconstructed = impl.getReconstructedResponse();
         final byte[] result = EntityUtils.toByteArray(reconstructed.getEntity());
 
         Assert.assertFalse(tooLarge);
@@ -107,7 +104,7 @@ public class TestSizeLimitedResponseReader {
 
     @Test
     public void testResponseWithNoEntityIsNotTooLarge() throws Exception {
-        final CloseableHttpResponse response = make200Response();
+        final ClassicHttpResponse response = make200Response();
 
         impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
 
@@ -119,7 +116,7 @@ public class TestSizeLimitedResponseReader {
 
     @Test
     public void testTooLargeEntityHasOriginalContentTypes() throws Exception {
-        final CloseableHttpResponse response = make200Response();
+        final ClassicHttpResponse response = make200Response();
         final StringEntity entity = new StringEntity("large entity content");
         response.setEntity(entity);
 
@@ -127,7 +124,7 @@ public class TestSizeLimitedResponseReader {
 
         impl.readResponse();
         final boolean tooLarge = impl.isLimitReached();
-        final HttpResponse result = impl.getReconstructedResponse();
+        final ClassicHttpResponse result = impl.getReconstructedResponse();
         final HttpEntity reconstructedEntity = result.getEntity();
         Assert.assertEquals(entity.getContentEncoding(), reconstructedEntity.getContentEncoding());
         Assert.assertEquals(entity.getContentType(), reconstructedEntity.getContentType());
@@ -141,16 +138,12 @@ public class TestSizeLimitedResponseReader {
     @Test
     public void testTooLargeResponseCombinedClosed() throws Exception {
         final AtomicBoolean closed = new AtomicBoolean(false);
-        final CloseableHttpResponse response = (CloseableHttpResponse) Proxy
-                .newProxyInstance(ResponseProxyHandler.class.getClassLoader(),
-                        new Class<?>[] { CloseableHttpResponse.class },
-                        new ResponseProxyHandler(new BasicHttpResponse(
-                                HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK")) {
-                            @Override
-                            public void close() throws IOException {
-                                closed.set(true);
-                            }
-                        });
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK") {
+            @Override
+            public void close() throws IOException {
+                closed.set(true);
+            }
+        };
         final StringEntity entity = new StringEntity("large entity content");
         response.setEntity(entity);
 
@@ -158,7 +151,7 @@ public class TestSizeLimitedResponseReader {
 
         impl.readResponse();
         final boolean tooLarge = impl.isLimitReached();
-        try (CloseableHttpResponse result = impl.getReconstructedResponse()) {
+        try (ClassicHttpResponse result = impl.getReconstructedResponse()) {
             final HttpEntity reconstructedEntity = result.getEntity();
             Assert.assertEquals(entity.getContentEncoding(), reconstructedEntity.getContentEncoding());
             Assert.assertEquals(entity.getContentType(), reconstructedEntity.getContentType());
@@ -175,14 +168,14 @@ public class TestSizeLimitedResponseReader {
     @Test
     public void testResponseCopiesAllOriginalHeaders() throws Exception {
         final byte[] buf = new byte[] { 1, 2, 3 };
-        final CloseableHttpResponse response = make200Response(buf);
+        final ClassicHttpResponse response = make200Response(buf);
         response.setHeader("Content-Encoding", "gzip");
 
         impl = new SizeLimitedResponseReader(new HeapResourceFactory(), MAX_SIZE, request, response);
 
         impl.readResponse();
         final boolean tooLarge = impl.isLimitReached();
-        final HttpResponse reconstructed = impl.getReconstructedResponse();
+        final ClassicHttpResponse reconstructed = impl.getReconstructedResponse();
         final byte[] result = EntityUtils.toByteArray(reconstructed.getEntity());
 
         Assert.assertFalse(tooLarge);
@@ -190,16 +183,14 @@ public class TestSizeLimitedResponseReader {
         Assert.assertEquals("gzip", reconstructed.getFirstHeader("Content-Encoding").getValue());
     }
 
-    private CloseableHttpResponse make200Response() {
-        return Proxies.enhanceResponse(new BasicHttpResponse(
-                HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK"));
+    private ClassicHttpResponse make200Response() {
+        return new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
     }
 
-    private CloseableHttpResponse make200Response(final byte[] buf) {
-        final HttpResponse response = new BasicHttpResponse(
-                HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+    private ClassicHttpResponse make200Response(final byte[] buf) {
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         response.setEntity(new ByteArrayEntity(buf));
-        return Proxies.enhanceResponse(response);
+        return response;
     }
 
 }

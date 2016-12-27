@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.auth;
 
-import org.apache.hc.core5.annotation.Immutable;
 import org.apache.hc.core5.http.ProtocolException;
 
 /**
@@ -36,7 +35,6 @@ import org.apache.hc.core5.http.ProtocolException;
  *
  * @since 4.0
  */
-@Immutable
 public class MalformedChallengeException extends ProtocolException {
 
     private static final long serialVersionUID = 814586927989932284L;

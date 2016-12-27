@@ -38,12 +38,13 @@ import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
 import org.junit.Assert;
 import org.junit.Before;
@@ -95,7 +96,7 @@ public class TestInternalHttpClient {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
 
-        final ArgumentCaptor<HttpRequestWrapper> argcap = ArgumentCaptor.forClass(HttpRequestWrapper.class);
+        final ArgumentCaptor<HttpRequest> argcap = ArgumentCaptor.forClass(HttpRequest.class);
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
                 argcap.capture(),
@@ -104,11 +105,10 @@ public class TestInternalHttpClient {
         client.execute(httpget);
 
         Assert.assertNotNull(argcap.getValue());
-        Assert.assertSame(httpget, argcap.getValue().getOriginal());
+        Assert.assertSame(httpget, argcap.getValue());
 
         Mockito.verify(execChain).execute(
-                Mockito.same(route),
-                Mockito.<HttpRequestWrapper>any(),
+                Mockito.<RoutedHttpRequest>any(),
                 Mockito.<HttpClientContext>any(),
                 Mockito.same(httpget));
     }
@@ -120,11 +120,10 @@ public class TestInternalHttpClient {
 
         Mockito.when(routePlanner.determineRoute(
                 Mockito.eq(new HttpHost("somehost")),
-                Mockito.<HttpRequestWrapper>any(),
+                Mockito.<RoutedHttpRequest>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
         Mockito.when(execChain.execute(
-                Mockito.same(route),
-                Mockito.<HttpRequestWrapper>any(),
+                Mockito.<RoutedHttpRequest>any(),
                 Mockito.<HttpClientContext>any(),
                 Mockito.same(httpget))).thenThrow(new HttpException());
 
@@ -134,6 +133,13 @@ public class TestInternalHttpClient {
     @Test
     public void testExecuteDefaultContext() throws Exception {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
+        final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
+
+        Mockito.when(routePlanner.determineRoute(
+                Mockito.eq(new HttpHost("somehost")),
+                Mockito.<RoutedHttpRequest>any(),
+                Mockito.<HttpClientContext>any())).thenReturn(route);
+
         final HttpClientContext context = HttpClientContext.create();
         client.execute(httpget, context);
 
@@ -147,6 +153,12 @@ public class TestInternalHttpClient {
     @Test
     public void testExecuteRequestConfig() throws Exception {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
+        final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
+
+        Mockito.when(routePlanner.determineRoute(
+                Mockito.eq(new HttpHost("somehost")),
+                Mockito.<RoutedHttpRequest>any(),
+                Mockito.<HttpClientContext>any())).thenReturn(route);
 
         final RequestConfig config = RequestConfig.custom().build();
         httpget.setConfig(config);
@@ -160,6 +172,13 @@ public class TestInternalHttpClient {
     @Test
     public void testExecuteLocalContext() throws Exception {
         final HttpGet httpget = new HttpGet("http://somehost/stuff");
+        final HttpRoute route = new HttpRoute(new HttpHost("somehost", 80));
+
+        Mockito.when(routePlanner.determineRoute(
+                Mockito.eq(new HttpHost("somehost")),
+                Mockito.<RoutedHttpRequest>any(),
+                Mockito.<HttpClientContext>any())).thenReturn(route);
+
         final HttpClientContext context = HttpClientContext.create();
 
         final Lookup<CookieSpecProvider> localCookieSpecRegistry = Mockito.mock(Lookup.class);

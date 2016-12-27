@@ -33,11 +33,11 @@ import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.entity.mime.StringBody;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpPost;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.entity.ContentType;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * Example how to use multipart/form encoded POST request.
@@ -64,10 +64,10 @@ public class ClientMultipartFormPost {
 
             httppost.setEntity(reqEntity);
 
-            System.out.println("executing request " + httppost.getRequestLine());
+            System.out.println("executing request " + httppost);
             try (CloseableHttpResponse response = httpclient.execute(httppost)) {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response);
                 HttpEntity resEntity = response.getEntity();
                 if (resEntity != null) {
                     System.out.println("Response content length: " + resEntity.getContentLength());

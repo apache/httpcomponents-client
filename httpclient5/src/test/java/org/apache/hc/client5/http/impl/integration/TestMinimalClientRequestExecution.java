@@ -35,15 +35,16 @@ import org.apache.hc.client5.http.impl.sync.HttpClients;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.StringEntity;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Test;
@@ -61,10 +62,10 @@ public class TestMinimalClientRequestExecution extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            response.setStatusCode(HttpStatus.SC_OK);
+            response.setCode(HttpStatus.SC_OK);
             final StringEntity entity = new StringEntity("Whatever");
             response.setEntity(entity);
         }
@@ -79,9 +80,9 @@ public class TestMinimalClientRequestExecution extends LocalServerTestBase {
         final HttpClientContext context = HttpClientContext.create();
         for (int i = 0; i < 10; i++) {
             final HttpGet request = new HttpGet("/");
-            final HttpResponse response = this.httpclient.execute(target, request, context);
+            final ClassicHttpResponse response = this.httpclient.execute(target, request, context);
             EntityUtils.consume(response.getEntity());
-            Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+            Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
 
             final HttpRequest reqWrapper = context.getRequest();
             Assert.assertNotNull(reqWrapper);

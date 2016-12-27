@@ -34,17 +34,16 @@ import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.entity.EntityUtils;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
@@ -60,8 +59,8 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
         this.serverBootstrap.registerHandler("*", new HttpRequestHandler() {
             @Override
             public void handle(
-                    final HttpRequest request,
-                    final HttpResponse response,
+                    final ClassicHttpRequest request,
+                    final ClassicHttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
 
                 final int n = Integer.parseInt(request.getFirstHeader("X-Request").getValue());
@@ -71,8 +70,7 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
                     Assert.assertEquals("app.mydomain.fr", request
                             .getFirstHeader("Host").getValue());
 
-                    response.setStatusLine(HttpVersion.HTTP_1_1,
-                            HttpStatus.SC_OK);
+                    response.setCode(HttpStatus.SC_OK);
                     // Respond with Set-Cookie on virtual host domain. This
                     // should be valid.
                     response.addHeader(new BasicHeader("Set-Cookie",
@@ -87,8 +85,7 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
                     // We should get our cookie back.
                     Assert.assertNotNull("We must get a cookie header",
                             request.getFirstHeader("Cookie"));
-                    response.setStatusLine(HttpVersion.HTTP_1_1,
-                            HttpStatus.SC_OK);
+                    response.setCode(HttpStatus.SC_OK);
                     break;
 
                 case 3:
@@ -96,8 +93,7 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
                     Assert.assertEquals("app.mydomain.fr", request
                             .getFirstHeader("Host").getValue());
 
-                    response.setStatusLine(HttpVersion.HTTP_1_1,
-                            HttpStatus.SC_OK);
+                    response.setCode(HttpStatus.SC_OK);
                     break;
                 default:
                     Assert.fail("Unexpected value: " + n);
@@ -115,7 +111,7 @@ public class TestCookieVirtualHost extends LocalServerTestBase {
 
         // First request : retrieve a domain cookie from remote server.
         URI uri = new URI("http://app.mydomain.fr");
-        HttpRequest httpRequest = new HttpGet(uri);
+        HttpGet httpRequest = new HttpGet(uri);
         httpRequest.addHeader("X-Request", "1");
         try (CloseableHttpResponse response1 = this.httpclient.execute(target, httpRequest, context)) {
             EntityUtils.consume(response1.getEntity());

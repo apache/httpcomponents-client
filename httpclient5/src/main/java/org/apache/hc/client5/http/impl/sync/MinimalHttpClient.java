@@ -33,20 +33,22 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.Configurable;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -54,7 +56,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 class MinimalHttpClient extends CloseableHttpClient {
 
     private final HttpClientConnectionManager connManager;
@@ -74,7 +76,7 @@ class MinimalHttpClient extends CloseableHttpClient {
     @Override
     protected CloseableHttpResponse doExecute(
             final HttpHost target,
-            final HttpRequest request,
+            final ClassicHttpRequest request,
             final HttpContext context) throws IOException {
         Args.notNull(target, "Target host");
         Args.notNull(request, "HTTP request");
@@ -83,10 +85,14 @@ class MinimalHttpClient extends CloseableHttpClient {
             execAware = (HttpExecutionAware) request;
         }
         try {
-            final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request, target);
+            if (request.getScheme() == null) {
+                request.setScheme(target.getSchemeName());
+            }
+            if (request.getAuthority() == null) {
+                request.setAuthority(new URIAuthority(target));
+            }
             final HttpClientContext localcontext = HttpClientContext.adapt(
-                context != null ? context : new BasicHttpContext());
-            final HttpRoute route = new HttpRoute(target);
+                    context != null ? context : new BasicHttpContext());
             RequestConfig config = null;
             if (request instanceof Configurable) {
                 config = ((Configurable) request).getConfig();
@@ -94,7 +100,10 @@ class MinimalHttpClient extends CloseableHttpClient {
             if (config != null) {
                 localcontext.setRequestConfig(config);
             }
-            return this.requestExecutor.execute(route, wrapper, localcontext, execAware);
+            final HttpRoute route = new HttpRoute(target);
+            final ClassicHttpResponse response = this.requestExecutor.execute(
+                    RoutedHttpRequest.adapt(request, route), localcontext, execAware);
+            return CloseableHttpResponse.adapt(response);
         } catch (final HttpException httpException) {
             throw new ClientProtocolException(httpException);
         }

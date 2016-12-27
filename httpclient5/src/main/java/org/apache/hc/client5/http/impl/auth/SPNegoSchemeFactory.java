@@ -29,7 +29,8 @@ package org.apache.hc.client5.http.impl.auth;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -38,7 +39,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 4.2
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class SPNegoSchemeFactory implements AuthSchemeProvider {
 
     private final DnsResolver dnsResolver;

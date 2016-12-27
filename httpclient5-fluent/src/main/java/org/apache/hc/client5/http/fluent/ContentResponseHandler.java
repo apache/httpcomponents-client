@@ -30,8 +30,7 @@ import java.io.IOException;
 
 import org.apache.hc.client5.http.impl.sync.AbstractResponseHandler;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.entity.ContentType;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * {@link org.apache.hc.client5.http.sync.ResponseHandler} implementation that converts
@@ -47,7 +46,7 @@ public class ContentResponseHandler extends AbstractResponseHandler<Content> {
     @Override
     public Content handleEntity(final HttpEntity entity) throws IOException {
         return entity != null ?
-                new Content(EntityUtils.toByteArray(entity), ContentType.getOrDefault(entity)) :
+                new Content(EntityUtils.toByteArray(entity), EntityUtils.getContentTypeOrDefault(entity)) :
                 Content.NO_CONTENT;
     }
 

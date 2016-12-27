@@ -29,8 +29,6 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -40,26 +38,21 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.io.ConnectionShutdownException;
 import org.apache.hc.client5.http.io.ConnectionRequest;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
-import org.apache.hc.client5.http.methods.HttpUriRequest;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RequestClientConnControl;
-import org.apache.hc.client5.http.utils.URIUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpClientConnection;
+import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.apache.hc.core5.http.protocol.ImmutableHttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
@@ -77,7 +70,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.3
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class MinimalClientExec implements ClientExecChain {
 
     private final Logger log = LogManager.getLogger(getClass());
@@ -97,11 +90,11 @@ public class MinimalClientExec implements ClientExecChain {
         Args.notNull(connManager, "Client connection manager");
         Args.notNull(reuseStrategy, "Connection reuse strategy");
         Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
-        this.httpProcessor = new ImmutableHttpProcessor(
+        this.httpProcessor = new DefaultHttpProcessor(
                 new RequestContent(),
                 new RequestTargetHost(),
                 new RequestClientConnControl(),
-                new RequestUserAgent(VersionInfo.getUserAgent(
+                new RequestUserAgent(VersionInfo.getSoftwareInfo(
                         "Apache-HttpClient", "org.apache.hc.client5", getClass())));
         this.requestExecutor    = requestExecutor;
         this.connManager        = connManager;
@@ -109,37 +102,15 @@ public class MinimalClientExec implements ClientExecChain {
         this.keepAliveStrategy  = keepAliveStrategy;
     }
 
-    static void rewriteRequestURI(
-            final HttpRequestWrapper request,
-            final HttpRoute route) throws ProtocolException {
-        try {
-            URI uri = request.getURI();
-            if (uri != null) {
-                // Make sure the request URI is relative
-                if (uri.isAbsolute()) {
-                    uri = URIUtils.rewriteURI(uri, null, true);
-                } else {
-                    uri = URIUtils.rewriteURI(uri);
-                }
-                request.setURI(uri);
-            }
-        } catch (final URISyntaxException ex) {
-            throw new ProtocolException("Invalid URI: " + request.getRequestLine().getUri(), ex);
-        }
-    }
-
     @Override
-    public CloseableHttpResponse execute(
-            final HttpRoute route,
-            final HttpRequestWrapper request,
+    public ClassicHttpResponse execute(
+            final RoutedHttpRequest request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
-        Args.notNull(route, "HTTP route");
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        rewriteRequestURI(request, route);
-
+        final HttpRoute route = request.getRoute();
         final ConnectionRequest connRequest = connManager.requestConnection(route, null);
         if (execAware != null) {
             if (execAware.isAborted()) {
@@ -166,14 +137,14 @@ public class MinimalClientExec implements ClientExecChain {
             throw new RequestAbortedException("Request execution failed", cause);
         }
 
-        final ConnectionHolder releaseTrigger = new ConnectionHolder(log, connManager, managedConn);
+        final ConnectionHolder connHolder = new ConnectionHolder(log, connManager, managedConn);
         try {
             if (execAware != null) {
                 if (execAware.isAborted()) {
-                    releaseTrigger.close();
+                    connHolder.close();
                     throw new RequestAbortedException("Request aborted");
                 }
-                execAware.setCancellable(releaseTrigger);
+                execAware.setCancellable(connHolder);
             }
 
             if (!managedConn.isOpen()) {
@@ -190,52 +161,41 @@ public class MinimalClientExec implements ClientExecChain {
                 managedConn.setSocketTimeout(timeout);
             }
 
-            HttpHost target = null;
-            final HttpRequest original = request.getOriginal();
-            if (original instanceof HttpUriRequest) {
-                final URI uri = ((HttpUriRequest) original).getURI();
-                if (uri.isAbsolute()) {
-                    target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
-                }
-            }
-            if (target == null) {
-                target = route.getTargetHost();
-            }
-
-            context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
             context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
             context.setAttribute(HttpCoreContext.HTTP_CONNECTION, managedConn);
             context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
 
-            httpProcessor.process(request, context);
-            final HttpResponse response = requestExecutor.execute(request, managedConn, context);
-            httpProcessor.process(response, context);
+            httpProcessor.process(request, request.getEntity(), context);
+            final ClassicHttpResponse response = requestExecutor.execute(request, managedConn, context);
+            httpProcessor.process(response, response.getEntity(), context);
 
             // The connection is in or can be brought to a re-usable state.
             if (reuseStrategy.keepAlive(request, response, context)) {
                 // Set the idle duration of this connection
                 final long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
-                releaseTrigger.setValidFor(duration, TimeUnit.MILLISECONDS);
-                releaseTrigger.markReusable();
+                connHolder.setValidFor(duration, TimeUnit.MILLISECONDS);
+                connHolder.markReusable();
             } else {
-                releaseTrigger.markNonReusable();
+                connHolder.markNonReusable();
             }
 
             // check for entity, release connection if possible
             final HttpEntity entity = response.getEntity();
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
-                releaseTrigger.releaseConnection();
-                return new HttpResponseProxy(response, null);
+                connHolder.releaseConnection();
+                return new CloseableHttpResponse(response, null);
+            } else {
+                ResponseEntityProxy.enchance(response, connHolder);
+                return new CloseableHttpResponse(response, connHolder);
             }
-            return new HttpResponseProxy(response, releaseTrigger);
         } catch (final ConnectionShutdownException ex) {
             final InterruptedIOException ioex = new InterruptedIOException(
                     "Connection has been shut down");
             ioex.initCause(ex);
             throw ioex;
         } catch (final HttpException | RuntimeException | IOException ex) {
-            releaseTrigger.abortConnection();
+            connHolder.abortConnection();
             throw ex;
         }
     }

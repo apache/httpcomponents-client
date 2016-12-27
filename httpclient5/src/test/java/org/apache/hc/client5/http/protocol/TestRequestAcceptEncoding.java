@@ -43,7 +43,7 @@ public class TestRequestAcceptEncoding {
         final HttpContext context = new BasicHttpContext();
 
         final HttpRequestInterceptor interceptor = new RequestAcceptEncoding();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
         final Header header = request.getFirstHeader("Accept-Encoding");
         Assert.assertNotNull(header);
         Assert.assertEquals("gzip,deflate", header.getValue());
@@ -56,7 +56,7 @@ public class TestRequestAcceptEncoding {
         final HttpContext context = new BasicHttpContext();
 
         final HttpRequestInterceptor interceptor = new RequestAcceptEncoding();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
         final Header header = request.getFirstHeader("Accept-Encoding");
         Assert.assertNotNull(header);
         Assert.assertEquals("stuff", header.getValue());

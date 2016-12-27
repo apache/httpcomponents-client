@@ -37,11 +37,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.hc.client5.http.fluent.Request;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.protocol.HttpResponseException;
-import org.apache.hc.client5.http.sync.ResponseHandler;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.StatusLine;
-import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -56,13 +57,11 @@ public class FluentResponseHandling {
                 .execute().handleResponse(new ResponseHandler<Document>() {
 
             @Override
-            public Document handleResponse(final HttpResponse response) throws IOException {
-                StatusLine statusLine = response.getStatusLine();
+            public Document handleResponse(final ClassicHttpResponse response) throws IOException {
+                int status = response.getCode();
                 HttpEntity entity = response.getEntity();
-                if (statusLine.getStatusCode() >= 300) {
-                    throw new HttpResponseException(
-                            statusLine.getStatusCode(),
-                            statusLine.getReasonPhrase());
+                if (status >= HttpStatus.SC_REDIRECTION) {
+                    throw new HttpResponseException(status, response.getReasonPhrase());
                 }
                 if (entity == null) {
                     throw new ClientProtocolException("Response contains no content");
@@ -70,7 +69,7 @@ public class FluentResponseHandling {
                 DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
                 try {
                     DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
-                    ContentType contentType = ContentType.getOrDefault(entity);
+                    ContentType contentType = EntityUtils.getContentTypeOrDefault(entity);
                     if (!contentType.equals(ContentType.APPLICATION_XML)) {
                         throw new ClientProtocolException("Unexpected content type:" + contentType);
                     }

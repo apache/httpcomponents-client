@@ -31,7 +31,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
@@ -40,7 +41,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 4.3
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
 
     public static final PlainConnectionSocketFactory INSTANCE = new PlainConnectionSocketFactory();

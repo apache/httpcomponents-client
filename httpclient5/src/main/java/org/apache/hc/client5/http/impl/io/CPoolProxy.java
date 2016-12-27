@@ -32,40 +32,54 @@ import java.net.SocketAddress;
 
 import javax.net.ssl.SSLSession;
 
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
-import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpConnectionMetrics;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.pool.PoolEntry;
 
 /**
  * @since 4.3
  */
-@NotThreadSafe
 class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
 
-    private volatile CPoolEntry poolEntry;
+    private volatile PoolEntry<HttpRoute, ManagedHttpClientConnection> poolEntry;
+    private volatile boolean routeComplete;
 
-    CPoolProxy(final CPoolEntry entry) {
+    CPoolProxy(final PoolEntry<HttpRoute, ManagedHttpClientConnection> entry) {
         super();
         this.poolEntry = entry;
     }
 
-    CPoolEntry getPoolEntry() {
+    PoolEntry<HttpRoute, ManagedHttpClientConnection> getPoolEntry() {
         return this.poolEntry;
     }
 
-    CPoolEntry detach() {
-        final CPoolEntry local = this.poolEntry;
+    boolean isDetached() {
+        return this.poolEntry == null;
+    }
+
+    PoolEntry<HttpRoute, ManagedHttpClientConnection> detach() {
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> local = this.poolEntry;
         this.poolEntry = null;
         return local;
     }
 
+    public void markRouteComplete() {
+        this.routeComplete = true;
+    }
+
+    public boolean isRouteComplete() {
+        return this.routeComplete;
+    }
+
     ManagedHttpClientConnection getConnection() {
-        final CPoolEntry local = this.poolEntry;
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> local = this.poolEntry;
         if (local == null) {
             return null;
         }
@@ -82,38 +96,51 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
 
     @Override
     public void close() throws IOException {
-        final CPoolEntry local = this.poolEntry;
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> local = this.poolEntry;
         if (local != null) {
-            local.closeConnection();
+            final ManagedHttpClientConnection conn = local.getConnection();
+            if (conn != null) {
+                conn.close();
+            }
         }
     }
 
     @Override
     public void shutdown() throws IOException {
-        final CPoolEntry local = this.poolEntry;
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> local = this.poolEntry;
         if (local != null) {
-            local.shutdownConnection();
+            final ManagedHttpClientConnection conn = local.getConnection();
+            if (conn != null) {
+                conn.close();
+            }
         }
     }
 
     @Override
     public boolean isOpen() {
-        final CPoolEntry local = this.poolEntry;
+        final PoolEntry<HttpRoute, ManagedHttpClientConnection> local = this.poolEntry;
         if (local != null) {
-            return !local.isClosed();
-        } else {
-            return false;
+            final ManagedHttpClientConnection conn = local.getConnection();
+            if (conn != null) {
+                return conn.isOpen();
+            }
         }
+        return false;
     }
 
     @Override
-    public boolean isStale() {
+    public boolean isStale() throws IOException {
         final HttpClientConnection conn = getConnection();
         if (conn != null) {
             return conn.isStale();
         } else {
             return true;
         }
+    }
+
+    @Override
+    public ProtocolVersion getProtocolVersion() {
+        return getValidConnection().getProtocolVersion();
     }
 
     @Override
@@ -152,7 +179,7 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
     }
 
     @Override
-    public void terminateRequest(final HttpRequest request) throws HttpException, IOException {
+    public void terminateRequest(final ClassicHttpRequest request) throws HttpException, IOException {
         getValidConnection().terminateRequest(request);
     }
 
@@ -162,22 +189,22 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
     }
 
     @Override
-    public void sendRequestHeader(final HttpRequest request) throws HttpException, IOException {
+    public void sendRequestHeader(final ClassicHttpRequest request) throws HttpException, IOException {
         getValidConnection().sendRequestHeader(request);
     }
 
     @Override
-    public void sendRequestEntity(final HttpRequest request) throws HttpException, IOException {
+    public void sendRequestEntity(final ClassicHttpRequest request) throws HttpException, IOException {
         getValidConnection().sendRequestEntity(request);
     }
 
     @Override
-    public HttpResponse receiveResponseHeader() throws HttpException, IOException {
+    public ClassicHttpResponse receiveResponseHeader() throws HttpException, IOException {
         return getValidConnection().receiveResponseHeader();
     }
 
     @Override
-    public void receiveResponseEntity(final HttpResponse response) throws HttpException, IOException {
+    public void receiveResponseEntity(final ClassicHttpResponse response) throws HttpException, IOException {
         getValidConnection().receiveResponseEntity(response);
     }
 
@@ -230,6 +257,10 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
     }
 
     @Override
+    public void setProtocolVersion(final ProtocolVersion version) {
+    }
+
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("CPoolProxy{");
         final ManagedHttpClientConnection conn = getConnection();
@@ -242,27 +273,11 @@ class CPoolProxy implements ManagedHttpClientConnection, HttpContext {
         return sb.toString();
     }
 
-    public static HttpClientConnection newProxy(final CPoolEntry poolEntry) {
-        return new CPoolProxy(poolEntry);
-    }
-
-    private static CPoolProxy getProxy(final HttpClientConnection conn) {
+    static CPoolProxy getProxy(final HttpClientConnection conn) {
         if (!CPoolProxy.class.isInstance(conn)) {
             throw new IllegalStateException("Unexpected connection proxy class: " + conn.getClass());
         }
         return CPoolProxy.class.cast(conn);
-    }
-
-    public static CPoolEntry getPoolEntry(final HttpClientConnection proxy) {
-        final CPoolEntry entry = getProxy(proxy).getPoolEntry();
-        if (entry == null) {
-            throw new ConnectionShutdownException();
-        }
-        return entry;
-    }
-
-    public static CPoolEntry detach(final HttpClientConnection conn) {
-        return getProxy(conn).detach();
     }
 
 }

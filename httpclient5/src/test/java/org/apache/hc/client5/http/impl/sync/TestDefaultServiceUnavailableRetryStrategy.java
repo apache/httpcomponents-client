@@ -31,7 +31,6 @@ import java.util.Date;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,12 +47,12 @@ public class TestDefaultServiceUnavailableRetryStrategy {
 
     @Test
     public void testBasics() throws Exception {
-        final HttpResponse response1 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 503, "Oppsie");
+        final HttpResponse response1 = new BasicHttpResponse(503, "Oppsie");
         Assert.assertTrue(this.impl.retryRequest(response1, 1, null));
         Assert.assertTrue(this.impl.retryRequest(response1, 2, null));
         Assert.assertTrue(this.impl.retryRequest(response1, 3, null));
         Assert.assertFalse(this.impl.retryRequest(response1, 4, null));
-        final HttpResponse response2 = new BasicHttpResponse(HttpVersion.HTTP_1_1, 500, "Big Time Oppsie");
+        final HttpResponse response2 = new BasicHttpResponse(500, "Big Time Oppsie");
         Assert.assertFalse(this.impl.retryRequest(response2, 1, null));
 
         Assert.assertEquals(1234, this.impl.getRetryInterval(response1, null));
@@ -61,7 +60,7 @@ public class TestDefaultServiceUnavailableRetryStrategy {
 
     @Test
     public void testRetryAfterHeaderAsLong() throws Exception {
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 503, "Oppsie");
+        final HttpResponse response = new BasicHttpResponse(503, "Oppsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, "321");
 
         Assert.assertEquals(321000, this.impl.getRetryInterval(response, null));
@@ -70,7 +69,7 @@ public class TestDefaultServiceUnavailableRetryStrategy {
     @Test
     public void testRetryAfterHeaderAsDate() throws Exception {
         this.impl = new DefaultServiceUnavailableRetryStrategy(3, 1);
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 503, "Oppsie");
+        final HttpResponse response = new BasicHttpResponse(503, "Oppsie");
 
         response.setHeader(HttpHeaders.RETRY_AFTER, DateUtils.formatDate(new Date(System.currentTimeMillis() + 100000L)));
 
@@ -79,7 +78,7 @@ public class TestDefaultServiceUnavailableRetryStrategy {
 
     @Test
     public void testRetryAfterHeaderAsPastDate() throws Exception {
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 503, "Oppsie");
+        final HttpResponse response = new BasicHttpResponse(503, "Oppsie");
 
         response.setHeader(HttpHeaders.RETRY_AFTER, DateUtils.formatDate(new Date(System.currentTimeMillis() - 100000L)));
 
@@ -90,7 +89,7 @@ public class TestDefaultServiceUnavailableRetryStrategy {
     public void testInvalidRetryAfterHeader() throws Exception {
         final DefaultServiceUnavailableRetryStrategy impl = new DefaultServiceUnavailableRetryStrategy(3, 1234);
 
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 503, "Oppsie");
+        final HttpResponse response = new BasicHttpResponse(503, "Oppsie");
         response.setHeader(HttpHeaders.RETRY_AFTER, "Stuff");
 
         Assert.assertEquals(1234, impl.getRetryInterval(response, null));

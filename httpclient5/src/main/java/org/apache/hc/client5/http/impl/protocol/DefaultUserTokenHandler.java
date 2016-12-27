@@ -36,7 +36,8 @@ import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.UserTokenHandler;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
@@ -54,7 +55,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class DefaultUserTokenHandler implements UserTokenHandler {
 
     public static final DefaultUserTokenHandler INSTANCE = new DefaultUserTokenHandler();

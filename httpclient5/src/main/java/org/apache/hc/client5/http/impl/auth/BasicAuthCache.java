@@ -40,7 +40,8 @@ import org.apache.hc.client5.http.UnsupportedSchemeException;
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.LogManager;
@@ -56,7 +57,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.1
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class BasicAuthCache implements AuthCache {
 
     private final Logger log = LogManager.getLogger(getClass());

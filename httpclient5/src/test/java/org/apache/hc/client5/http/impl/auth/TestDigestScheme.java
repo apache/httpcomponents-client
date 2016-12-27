@@ -45,12 +45,14 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ParseException;
-import org.apache.hc.core5.http.entity.InputStreamEntity;
-import org.apache.hc.core5.http.entity.StringEntity;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.message.ParserCursor;
@@ -583,7 +585,7 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthenticationQopAuthInt() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("Post", "/");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
         request.setEntity(new StringEntity("abc\u00e4\u00f6\u00fcabc", StandardCharsets.ISO_8859_1));
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
@@ -638,7 +640,7 @@ public class TestDigestScheme {
 
     @Test
     public void testDigestAuthenticationQopAuthOrAuthIntNonRepeatableEntity() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("Post", "/");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
         request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1));
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);
@@ -687,7 +689,7 @@ public class TestDigestScheme {
 
     @Test(expected=AuthenticationException.class)
     public void testDigestAuthenticationQopIntOnlyNonRepeatableEntity() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("Post", "/");
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("Post", "/");
         request.setEntity(new InputStreamEntity(new ByteArrayInputStream(new byte[] {'a'}), -1));
         final HttpHost host = new HttpHost("somehost", 80);
         final AuthScope authScope = new AuthScope(host, "realm1", null);

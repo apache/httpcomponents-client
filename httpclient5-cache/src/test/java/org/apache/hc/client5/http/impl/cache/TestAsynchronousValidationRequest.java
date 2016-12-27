@@ -35,15 +35,14 @@ import java.io.IOException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
 import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.ProtocolException;
-import org.apache.hc.core5.http.StatusLine;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,12 +54,11 @@ public class TestAsynchronousValidationRequest {
     private CachingExec mockClient;
     private HttpHost host;
     private HttpRoute route;
-    private HttpRequestWrapper request;
+    private RoutedHttpRequest request;
     private HttpClientContext context;
     private HttpExecutionAware mockExecAware;
     private HttpCacheEntry mockCacheEntry;
-    private CloseableHttpResponse mockResponse;
-    private StatusLine mockStatusLine;
+    private ClassicHttpResponse mockResponse;
 
     @Before
     public void setUp() {
@@ -68,12 +66,11 @@ public class TestAsynchronousValidationRequest {
         mockClient = mock(CachingExec.class);
         host = new HttpHost("foo.example.com", 80);
         route = new HttpRoute(host);
-        request = HttpRequestWrapper.wrap(new HttpGet("/"), host);
+        request = RoutedHttpRequest.adapt(new HttpGet("/"), route);
         context = HttpClientContext.create();
         mockExecAware = mock(HttpExecutionAware.class);
         mockCacheEntry = mock(HttpCacheEntry.class);
-        mockResponse = mock(CloseableHttpResponse.class);
-        mockStatusLine = mock(StatusLine.class);
+        mockResponse = mock(ClassicHttpResponse.class);
     }
 
     @Test
@@ -81,20 +78,18 @@ public class TestAsynchronousValidationRequest {
         final String identifier = "foo";
 
         final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
-                mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
+                mockParent, mockClient, request, context, mockExecAware, mockCacheEntry,
                 identifier, 0);
 
         when(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).thenReturn(mockResponse);
-        when(mockResponse.getStatusLine()).thenReturn(mockStatusLine);
-        when(mockStatusLine.getStatusCode()).thenReturn(200);
+                        request, context, mockExecAware, mockCacheEntry)).thenReturn(mockResponse);
+        when(mockResponse.getCode()).thenReturn(200);
 
         impl.run();
 
         verify(mockClient).revalidateCacheEntry(
-                route, request, context, mockExecAware, mockCacheEntry);
-        verify(mockResponse).getStatusLine();
+                request, context, mockExecAware, mockCacheEntry);
         verify(mockParent).markComplete(identifier);
         verify(mockParent).jobSuccessful(identifier);
     }
@@ -104,21 +99,18 @@ public class TestAsynchronousValidationRequest {
         final String identifier = "foo";
 
         final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
-                mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
+                mockParent, mockClient, request, context, mockExecAware, mockCacheEntry,
                 identifier, 0);
 
         when(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).thenReturn(mockResponse);
-        when(mockResponse.getStatusLine()).thenReturn(mockStatusLine);
-        when(mockStatusLine.getStatusCode()).thenReturn(200);
+                        request, context, mockExecAware, mockCacheEntry)).thenReturn(mockResponse);
+        when(mockResponse.getCode()).thenReturn(200);
 
         impl.run();
 
         verify(mockClient).revalidateCacheEntry(
-                route, request, context, mockExecAware, mockCacheEntry);
-        verify(mockResponse).getStatusLine();
-        verify(mockStatusLine).getStatusCode();
+                request, context, mockExecAware, mockCacheEntry);
         verify(mockParent).markComplete(identifier);
         verify(mockParent).jobSuccessful(identifier);
     }
@@ -129,22 +121,19 @@ public class TestAsynchronousValidationRequest {
         final Header[] warning = new Header[] {new BasicHeader(HeaderConstants.WARNING, "110 localhost \"Response is stale\"")};
 
         final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
-                mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
+                mockParent, mockClient, request, context, mockExecAware, mockCacheEntry,
                 identifier, 0);
 
         when(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).thenReturn(mockResponse);
-        when(mockResponse.getStatusLine()).thenReturn(mockStatusLine);
-        when(mockStatusLine.getStatusCode()).thenReturn(200);
+                        request, context, mockExecAware, mockCacheEntry)).thenReturn(mockResponse);
+        when(mockResponse.getCode()).thenReturn(200);
         when(mockResponse.getHeaders(HeaderConstants.WARNING)).thenReturn(warning);
 
         impl.run();
 
         verify(mockClient).revalidateCacheEntry(
-                route, request, context, mockExecAware, mockCacheEntry);
-        verify(mockResponse).getStatusLine();
-        verify(mockStatusLine).getStatusCode();
+                request, context, mockExecAware, mockCacheEntry);
         verify(mockResponse).getHeaders(HeaderConstants.WARNING);
         verify(mockParent).markComplete(identifier);
         verify(mockParent).jobFailed(identifier);
@@ -155,18 +144,18 @@ public class TestAsynchronousValidationRequest {
         final String identifier = "foo";
 
         final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
-                mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
+                mockParent, mockClient, request, context, mockExecAware, mockCacheEntry,
                 identifier, 0);
 
         when(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).thenThrow(
+                        request, context, mockExecAware, mockCacheEntry)).thenThrow(
                 new ProtocolException());
 
         impl.run();
 
         verify(mockClient).revalidateCacheEntry(
-                route, request, context, mockExecAware, mockCacheEntry);
+                request, context, mockExecAware, mockCacheEntry);
         verify(mockParent).markComplete(identifier);
         verify(mockParent).jobFailed(identifier);
     }
@@ -176,18 +165,18 @@ public class TestAsynchronousValidationRequest {
         final String identifier = "foo";
 
         final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
-                mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
+                mockParent, mockClient, request, context, mockExecAware, mockCacheEntry,
                 identifier, 0);
 
         when(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).thenThrow(
+                        request, context, mockExecAware, mockCacheEntry)).thenThrow(
                                 new IOException());
 
         impl.run();
 
         verify(mockClient).revalidateCacheEntry(
-                route, request, context, mockExecAware, mockCacheEntry);
+                request, context, mockExecAware, mockCacheEntry);
         verify(mockParent).markComplete(identifier);
         verify(mockParent).jobFailed(identifier);
     }
@@ -197,18 +186,18 @@ public class TestAsynchronousValidationRequest {
         final String identifier = "foo";
 
         final AsynchronousValidationRequest impl = new AsynchronousValidationRequest(
-                mockParent, mockClient, route, request, context, mockExecAware, mockCacheEntry,
+                mockParent, mockClient, request, context, mockExecAware, mockCacheEntry,
                 identifier, 0);
 
         when(
                 mockClient.revalidateCacheEntry(
-                        route, request, context, mockExecAware, mockCacheEntry)).thenThrow(
+                        request, context, mockExecAware, mockCacheEntry)).thenThrow(
                                 new RuntimeException());
 
         impl.run();
 
         verify(mockClient).revalidateCacheEntry(
-                route, request, context, mockExecAware, mockCacheEntry);
+                request, context, mockExecAware, mockCacheEntry);
         verify(mockParent).markComplete(identifier);
         verify(mockParent).jobFailed(identifier);
     }

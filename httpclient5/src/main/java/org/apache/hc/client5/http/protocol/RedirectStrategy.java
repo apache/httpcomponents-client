@@ -28,6 +28,7 @@
 package org.apache.hc.client5.http.protocol;
 
 import org.apache.hc.client5.http.methods.HttpUriRequest;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -74,7 +75,7 @@ public interface RedirectStrategy {
      * @return redirected request
      */
     HttpUriRequest getRedirect(
-            HttpRequest request,
+            ClassicHttpRequest request,
             HttpResponse response,
             HttpContext context) throws HttpException;
 

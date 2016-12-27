@@ -30,9 +30,9 @@ package org.apache.hc.client5.http.entity;
 import java.io.File;
 import java.io.InputStream;
 
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.entity.ContentType;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;

@@ -30,13 +30,14 @@ package org.apache.hc.client5.http.impl.sync;
 import java.io.IOException;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.NonRepeatableRequestException;
 import org.apache.hc.client5.http.sync.HttpRequestRetryHandler;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.NoHttpResponseException;
@@ -56,7 +57,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.3
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class RetryExec implements ClientExecChain {
 
     private final Logger log = LogManager.getLogger(getClass());
@@ -74,19 +75,18 @@ public class RetryExec implements ClientExecChain {
     }
 
     @Override
-    public CloseableHttpResponse execute(
-            final HttpRoute route,
-            final HttpRequestWrapper request,
+    public ClassicHttpResponse execute(
+            final RoutedHttpRequest request,
             final HttpClientContext context,
             final HttpExecutionAware execAware) throws IOException, HttpException {
-        Args.notNull(route, "HTTP route");
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
         final Header[] origheaders = request.getAllHeaders();
         for (int execCount = 1;; execCount++) {
             try {
-                return this.requestExecutor.execute(route, request, context, execAware);
+                return this.requestExecutor.execute(request, context, execAware);
             } catch (final IOException ex) {
+                final HttpRoute route = request.getRoute();
                 if (execAware != null && execAware.isAborted()) {
                     this.log.debug("Request has been aborted");
                     throw ex;

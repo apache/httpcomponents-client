@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.win;
 import java.security.Principal;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthenticationException;
@@ -37,11 +36,10 @@ import org.apache.hc.client5.http.auth.BasicUserPrincipal;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.config.AuthSchemes;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,7 +66,6 @@ import com.sun.jna.ptr.IntByReference;
  *
  * @since 4.4
  */
-@NotThreadSafe
 public class WindowsNegotiateScheme implements AuthScheme {
 
     private final Logger log = LogManager.getLogger(getClass());
@@ -196,7 +193,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
                     throw new Win32Exception(rc);
                 }
 
-                final String targetName = getServicePrincipalName(context);
+                final String targetName = getServicePrincipalName(request);
                 response = getToken(null, null, targetName);
             } catch (final RuntimeException ex) {
                 failAuthCleanup();
@@ -213,7 +210,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
                 final byte[] continueTokenBytes = Base64.decodeBase64(challenge);
                 final SecBufferDesc continueTokenBuffer = new SecBufferDesc(
                         Sspi.SECBUFFER_TOKEN, continueTokenBytes);
-                final String targetName = getServicePrincipalName(context);
+                final String targetName = getServicePrincipalName(request);
                 response = getToken(this.sspiContext, continueTokenBuffer, targetName);
             } catch (final RuntimeException ex) {
                 failAuthCleanup();
@@ -236,23 +233,14 @@ public class WindowsNegotiateScheme implements AuthScheme {
     // at http://www.chromium.org/developers/design-documents/http-authentication). Here,
     // I've chosen to use the host that has been provided in HttpHost so that I don't incur
     // any additional DNS lookup cost.
-    private String getServicePrincipalName(final HttpContext context) {
-        final String spn;
+    private String getServicePrincipalName(final HttpRequest request) {
+        String spn = null;
         if (this.servicePrincipalName != null) {
             spn = this.servicePrincipalName;
         } else {
-            final HttpClientContext clientContext = HttpClientContext.adapt(context);
-            final HttpHost target = clientContext.getTargetHost();
-            if (target != null) {
-                spn = "HTTP/" + target.getHostName();
-            } else {
-                final RouteInfo route = clientContext.getHttpRoute();
-                if (route != null) {
-                    spn = "HTTP/" + route.getTargetHost().getHostName();
-                } else {
-                    // Should not happen
-                    spn = null;
-                }
+            final URIAuthority authority = request.getAuthority();
+            if (authority != null) {
+                spn = "HTTP/" + authority.getHostName();
             }
         }
         if (this.log.isDebugEnabled()) {

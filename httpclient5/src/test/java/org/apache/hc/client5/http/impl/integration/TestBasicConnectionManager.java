@@ -28,10 +28,10 @@ package org.apache.hc.client5.http.impl.integration;
 
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -44,7 +44,7 @@ public class TestBasicConnectionManager extends LocalServerTestBase {
         final HttpHost target = start();
         final HttpGet get = new HttpGet("/random/1024");
         try (CloseableHttpResponse response = this.httpclient.execute(target, get)) {
-            Assert.assertEquals(200, response.getStatusLine().getStatusCode());
+            Assert.assertEquals(200, response.getCode());
             EntityUtils.consume(response.getEntity());
         }
     }

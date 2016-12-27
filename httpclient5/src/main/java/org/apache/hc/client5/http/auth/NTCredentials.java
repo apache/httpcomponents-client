@@ -30,7 +30,8 @@ import java.io.Serializable;
 import java.security.Principal;
 import java.util.Locale;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.LangUtils;
 
@@ -40,7 +41,7 @@ import org.apache.hc.core5.util.LangUtils;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class NTCredentials implements Credentials, Serializable {
 
     private static final long serialVersionUID = -7385699315228907265L;

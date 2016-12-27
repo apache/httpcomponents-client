@@ -29,11 +29,10 @@ package org.apache.hc.client5.http.impl.io;
 
 import java.io.IOException;
 
-import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseFactory;
-import org.apache.hc.core5.http.config.MessageConstraints;
+import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.io.DefaultHttpResponseParser;
 import org.apache.hc.core5.http.message.LineParser;
 import org.apache.hc.core5.util.CharArrayBuffer;
@@ -46,7 +45,6 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.2
  */
-@NotThreadSafe
 public class LenientHttpResponseParser extends DefaultHttpResponseParser {
 
     private final Logger log = LogManager.getLogger(getClass());
@@ -57,31 +55,32 @@ public class LenientHttpResponseParser extends DefaultHttpResponseParser {
      * @param lineParser      the line parser. If {@code null}
      *                        {@link org.apache.hc.core5.http.message.BasicLineParser#INSTANCE} will be used.
      * @param responseFactory HTTP response factory. If {@code null}
-     *                        {@link org.apache.hc.core5.http.impl.DefaultHttpResponseFactory#INSTANCE} will be used.
-     * @param constraints     the message constraints. If {@code null}
-     *                        {@link MessageConstraints#DEFAULT} will be used.
+     *                        {@link org.apache.hc.core5.http.impl.io.DefaultClassicHttpResponseFactory#INSTANCE}
+     *                        will be used.
+     * @param h1Config        HTTP/1.1 parameters. If {@code null}. {@link H1Config#DEFAULT} will be used.
+     *
      * @since 4.3
      */
     public LenientHttpResponseParser(
             final LineParser lineParser,
-            final HttpResponseFactory responseFactory,
-            final MessageConstraints constraints) {
-        super(lineParser, responseFactory, constraints);
+            final HttpResponseFactory<ClassicHttpResponse> responseFactory,
+            final H1Config h1Config) {
+        super(lineParser, responseFactory, h1Config);
     }
 
     /**
      * Creates new instance of DefaultHttpResponseParser.
      *
-     * @param constraints the message constraints. If {@code null}
-     *                    {@link MessageConstraints#DEFAULT} will be used.
+     * @param h1Config        HTTP/1.1 parameters. If {@code null}. {@link H1Config#DEFAULT} will be used.
+     *
      * @since 4.3
      */
-    public LenientHttpResponseParser(final MessageConstraints constraints) {
-        this(null, null, constraints);
+    public LenientHttpResponseParser(final H1Config h1Config) {
+        this(null, null, h1Config);
     }
 
     @Override
-    protected HttpResponse createMessage(final CharArrayBuffer buffer) throws IOException {
+    protected ClassicHttpResponse createMessage(final CharArrayBuffer buffer) throws IOException {
         try {
             return super.createMessage(buffer);
         } catch (final HttpException ex) {

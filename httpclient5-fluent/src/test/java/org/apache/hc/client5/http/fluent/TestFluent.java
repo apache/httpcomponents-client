@@ -33,16 +33,16 @@ import java.nio.charset.Charset;
 
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
-import org.apache.hc.client5.http.sync.ResponseHandler;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.entity.ContentType;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.StringEntity;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.After;
 import org.junit.Assert;
@@ -58,8 +58,8 @@ public class TestFluent extends LocalServerTestBase {
 
             @Override
             public void handle(
-                    final HttpRequest request,
-                    final HttpResponse response,
+                    final ClassicHttpRequest request,
+                    final ClassicHttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
                 response.setEntity(new StringEntity("All is well", ContentType.TEXT_PLAIN));
             }
@@ -69,13 +69,13 @@ public class TestFluent extends LocalServerTestBase {
 
             @Override
             public void handle(
-                    final HttpRequest request,
-                    final HttpResponse response,
+                    final ClassicHttpRequest request,
+                    final ClassicHttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
                 HttpEntity responseEntity = null;
                 final HttpEntity requestEntity = request.getEntity();
                 if (requestEntity != null) {
-                    final ContentType contentType = ContentType.getOrDefault(requestEntity);
+                    final ContentType contentType = EntityUtils.getContentTypeOrDefault(requestEntity);
                     if (ContentType.TEXT_PLAIN.getMimeType().equals(contentType.getMimeType())) {
                         responseEntity = new StringEntity(
                                 EntityUtils.toString(requestEntity), ContentType.TEXT_PLAIN);
@@ -164,7 +164,7 @@ public class TestFluent extends LocalServerTestBase {
 
                 @Override
                 public Object handleResponse(
-                        final HttpResponse response) throws IOException {
+                        final ClassicHttpResponse response) throws IOException {
                     return null;
                 }
 

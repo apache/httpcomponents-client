@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 
 import org.apache.hc.client5.http.cache.Resource;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -36,11 +36,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.hc.client5.http.HttpConnectionFactory;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentLengthStrategy;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.config.ConnectionConfig;
+import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.DefaultContentLengthStrategy;
 import org.apache.hc.core5.http.impl.io.DefaultHttpRequestWriterFactory;
 import org.apache.hc.core5.http.io.HttpMessageParserFactory;
@@ -52,20 +54,20 @@ import org.apache.logging.log4j.Logger;
  * Factory for {@link ManagedHttpClientConnection} instances.
  * @since 4.3
  */
-@Immutable
-public class ManagedHttpClientConnectionFactory
-        implements HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> {
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
+public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> {
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
     public static final ManagedHttpClientConnectionFactory INSTANCE = new ManagedHttpClientConnectionFactory();
 
     private final Logger log = LogManager.getLogger(DefaultManagedHttpClientConnection.class);
-    private final Logger headerlog = LogManager.getLogger("org.apache.http.headers");
-    private final Logger wirelog = LogManager.getLogger("org.apache.http.wire");
+    private final Logger headerlog = LogManager.getLogger("org.apache.hc.client5.http.headers");
+    private final Logger wirelog = LogManager.getLogger("org.apache.hc.client5.http.wire");
 
-    private final HttpMessageWriterFactory<HttpRequest> requestWriterFactory;
-    private final HttpMessageParserFactory<HttpResponse> responseParserFactory;
+    private final H1Config h1Config;
+    private final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory;
+    private final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory;
     private final ContentLengthStrategy incomingContentStrategy;
     private final ContentLengthStrategy outgoingContentStrategy;
 
@@ -73,11 +75,13 @@ public class ManagedHttpClientConnectionFactory
      * @since 4.4
      */
     public ManagedHttpClientConnectionFactory(
-            final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
-            final HttpMessageParserFactory<HttpResponse> responseParserFactory,
+            final H1Config h1Config,
+            final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
+            final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory,
             final ContentLengthStrategy incomingContentStrategy,
             final ContentLengthStrategy outgoingContentStrategy) {
         super();
+        this.h1Config = h1Config != null ? h1Config : H1Config.DEFAULT;
         this.requestWriterFactory = requestWriterFactory != null ? requestWriterFactory :
                 DefaultHttpRequestWriterFactory.INSTANCE;
         this.responseParserFactory = responseParserFactory != null ? responseParserFactory :
@@ -89,14 +93,16 @@ public class ManagedHttpClientConnectionFactory
     }
 
     public ManagedHttpClientConnectionFactory(
-            final HttpMessageWriterFactory<HttpRequest> requestWriterFactory,
-            final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
-        this(requestWriterFactory, responseParserFactory, null, null);
+            final H1Config h1Config,
+            final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
+            final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
+        this(h1Config, requestWriterFactory, responseParserFactory, null, null);
     }
 
     public ManagedHttpClientConnectionFactory(
-            final HttpMessageParserFactory<HttpResponse> responseParserFactory) {
-        this(null, responseParserFactory);
+            final H1Config h1Config,
+            final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
+        this(h1Config, null, responseParserFactory);
     }
 
     public ManagedHttpClientConnectionFactory() {
@@ -128,10 +134,9 @@ public class ManagedHttpClientConnectionFactory
                 headerlog,
                 wirelog,
                 cconfig.getBufferSize(),
-                cconfig.getFragmentSizeHint(),
                 chardecoder,
                 charencoder,
-                cconfig.getMessageConstraints(),
+                h1Config,
                 incomingContentStrategy,
                 outgoingContentStrategy,
                 requestWriterFactory,

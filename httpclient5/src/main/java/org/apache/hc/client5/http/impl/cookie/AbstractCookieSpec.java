@@ -35,7 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.CookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.CookieSpec;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Asserts;
 
 /**
@@ -46,7 +47,7 @@ import org.apache.hc.core5.util.Asserts;
  *
  * @since 4.0
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public abstract class AbstractCookieSpec implements CookieSpec {
 
     /**

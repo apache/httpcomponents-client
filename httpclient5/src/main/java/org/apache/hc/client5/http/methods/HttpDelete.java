@@ -29,8 +29,6 @@ package org.apache.hc.client5.http.methods;
 
 import java.net.URI;
 
-import org.apache.hc.core5.annotation.NotThreadSafe;
-
 /**
  * HTTP DELETE method
  * <p>
@@ -46,33 +44,22 @@ import org.apache.hc.core5.annotation.NotThreadSafe;
  *
  * @since 4.0
  */
-@NotThreadSafe // HttpRequestBase is @NotThreadSafe
-public class HttpDelete extends HttpRequestBase {
+public class HttpDelete extends HttpUriRequestBase {
 
     private static final long serialVersionUID = 1L;
+
     public final static String METHOD_NAME = "DELETE";
 
 
-    public HttpDelete() {
-        super();
-    }
-
     public HttpDelete(final URI uri) {
-        super();
-        setURI(uri);
+        super(METHOD_NAME, uri);
     }
 
     /**
      * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpDelete(final String uri) {
-        super();
-        setURI(URI.create(uri));
-    }
-
-    @Override
-    public String getMethod() {
-        return METHOD_NAME;
+        this(URI.create(uri));
     }
 
 }

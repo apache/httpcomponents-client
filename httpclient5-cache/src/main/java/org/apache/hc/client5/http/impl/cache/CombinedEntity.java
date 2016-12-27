@@ -33,11 +33,9 @@ import java.io.OutputStream;
 import java.io.SequenceInputStream;
 
 import org.apache.hc.client5.http.cache.Resource;
-import org.apache.hc.core5.annotation.NotThreadSafe;
-import org.apache.hc.core5.http.entity.AbstractHttpEntity;
+import org.apache.hc.core5.http.io.entity.AbstractHttpEntity;
 import org.apache.hc.core5.util.Args;
 
-@NotThreadSafe
 class CombinedEntity extends AbstractHttpEntity {
 
     private final Resource resource;
@@ -80,6 +78,11 @@ class CombinedEntity extends AbstractHttpEntity {
                 outstream.write(tmp, 0, l);
             }
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        dispose();
     }
 
     private void dispose() {

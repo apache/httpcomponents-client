@@ -30,7 +30,6 @@ import static org.junit.Assert.assertFalse;
 
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,8 +51,7 @@ public class TestNullBackoffStrategy {
 
     @Test
     public void doesNotBackoffForResponses() {
-        final HttpResponse resp = new BasicHttpResponse(HttpVersion.HTTP_1_1,
-                HttpStatus.SC_SERVICE_UNAVAILABLE, "Service Unavailable");
+        final HttpResponse resp = new BasicHttpResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "Service Unavailable");
         assertFalse(impl.shouldBackoff(resp));
     }
 }

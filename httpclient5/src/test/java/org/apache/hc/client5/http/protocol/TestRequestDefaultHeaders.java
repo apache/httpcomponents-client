@@ -45,7 +45,7 @@ public class TestRequestDefaultHeaders {
     public void testRequestParameterCheck() throws Exception {
         final HttpContext context = new BasicHttpContext();
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders();
-        interceptor.process(null, context);
+        interceptor.process(null, null, context);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class TestRequestDefaultHeaders {
         final HttpContext context = new BasicHttpContext();
 
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
         final Header header1 = request.getFirstHeader("custom");
         Assert.assertNull(header1);
     }
@@ -70,7 +70,7 @@ public class TestRequestDefaultHeaders {
         final HttpContext context = new BasicHttpContext();
 
         final HttpRequestInterceptor interceptor = new RequestDefaultHeaders(defheaders);
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
         final Header[] headers = request.getHeaders("custom");
         Assert.assertNotNull(headers);
         Assert.assertEquals(1, headers.length);

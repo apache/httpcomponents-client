@@ -30,15 +30,15 @@ package org.apache.hc.client5.http.localserver;
 import java.io.IOException;
 import java.util.Locale;
 
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.MethodNotSupportedException;
-import org.apache.hc.core5.http.entity.ByteArrayEntity;
-import org.apache.hc.core5.http.entity.EntityUtils;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -58,12 +58,12 @@ public class EchoHandler implements HttpRequestHandler {
      * @throws IOException      in case of an IO problem
      */
     @Override
-    public void handle(final HttpRequest request,
-                       final HttpResponse response,
+    public void handle(final ClassicHttpRequest request,
+                       final ClassicHttpResponse response,
                        final HttpContext context)
         throws HttpException, IOException {
 
-        final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
+        final String method = request.getMethod().toUpperCase(Locale.ROOT);
         if (!"GET".equals(method) &&
             !"POST".equals(method) &&
             !"PUT".equals(method)
@@ -89,7 +89,7 @@ public class EchoHandler implements HttpRequestHandler {
         }
         entity = bae;
 
-        response.setStatusCode(HttpStatus.SC_OK);
+        response.setCode(HttpStatus.SC_OK);
         response.setEntity(entity);
     }
 

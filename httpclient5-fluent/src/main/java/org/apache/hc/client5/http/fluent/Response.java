@@ -31,21 +31,24 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.protocol.HttpResponseException;
-import org.apache.hc.client5.http.sync.ResponseHandler;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.StatusLine;
-import org.apache.hc.core5.http.entity.ByteArrayEntity;
-import org.apache.hc.core5.http.entity.ContentType;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 public class Response {
 
-    private final HttpResponse response;
+    private final ClassicHttpResponse response;
     private boolean consumed;
 
-    Response(final HttpResponse response) {
+    Response(final ClassicHttpResponse response) {
         super();
         this.response = response;
     }
@@ -87,6 +90,8 @@ public class Response {
         assertNotConsumed();
         try {
             return handler.handleResponse(this.response);
+        } catch (HttpException ex) {
+            throw new ClientProtocolException(ex);
         } finally {
             dispose();
         }
@@ -103,7 +108,7 @@ public class Response {
             if (entity != null) {
                 final ByteArrayEntity byteArrayEntity = new ByteArrayEntity(
                         EntityUtils.toByteArray(entity));
-                final ContentType contentType = ContentType.getOrDefault(entity);
+                final ContentType contentType = EntityUtils.getContentTypeOrDefault(entity);
                 byteArrayEntity.setContentType(contentType.toString());
                 this.response.setEntity(byteArrayEntity);
             }
@@ -115,10 +120,9 @@ public class Response {
 
     public void saveContent(final File file) throws IOException {
         assertNotConsumed();
-        final StatusLine statusLine = response.getStatusLine();
-        if (statusLine.getStatusCode() >= 300) {
-            throw new HttpResponseException(statusLine.getStatusCode(),
-                    statusLine.getReasonPhrase());
+        final int status = response.getCode();
+        if (status >= HttpStatus.SC_REDIRECTION) {
+            throw new HttpResponseException(status, response.getReasonPhrase());
         }
         try (FileOutputStream out = new FileOutputStream(file)) {
             final HttpEntity entity = this.response.getEntity();

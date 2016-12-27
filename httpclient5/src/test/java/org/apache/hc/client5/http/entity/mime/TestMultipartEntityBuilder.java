@@ -32,7 +32,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.Assert;
 import org.junit.Test;

@@ -32,7 +32,7 @@ import java.io.InputStream;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.core5.http.HttpEntity;
 
@@ -46,10 +46,10 @@ public class ClientConnectionRelease {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
-            System.out.println("Executing request " + httpget.getRequestLine());
+            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             try (CloseableHttpResponse response = httpclient.execute(httpget)) {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response.getCode() + " " + response.getReasonPhrase());
 
                 // Get hold of the response entity
                 HttpEntity entity = response.getEntity();

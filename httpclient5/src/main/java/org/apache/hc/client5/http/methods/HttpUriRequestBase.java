@@ -24,69 +24,33 @@
  * <http://www.apache.org/>.
  *
  */
-
-package org.apache.hc.client5.http.fluent;
+package org.apache.hc.client5.http.methods;
 
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.methods.Configurable;
-import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpUriRequest;
-import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.apache.hc.core5.concurrent.Cancellable;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.RequestLine;
-import org.apache.hc.core5.http.message.AbstractHttpMessage;
-import org.apache.hc.core5.http.message.BasicRequestLine;
-import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 
-@NotThreadSafe
-class InternalHttpRequest extends AbstractHttpMessage
+public class HttpUriRequestBase extends BasicClassicHttpRequest
         implements HttpUriRequest, HttpExecutionAware, Configurable {
 
     private static final long serialVersionUID = 1L;
-    private final String method;
-    private ProtocolVersion version;
-    private URI uri;
-    private RequestConfig config;
 
+    private RequestConfig requestConfig;
     private final AtomicBoolean aborted;
     private final AtomicReference<Cancellable> cancellableRef;
 
-    InternalHttpRequest(final String method, final URI requestURI) {
-        Args.notBlank(method, "Method");
-        Args.notNull(requestURI, "Request URI");
-        this.method = method;
-        this.uri = requestURI;
+    public HttpUriRequestBase(final String method, final URI requestUri) {
+        super(method, requestUri);
         this.aborted = new AtomicBoolean(false);
         this.cancellableRef = new AtomicReference<>(null);
     }
 
-    public void setProtocolVersion(final ProtocolVersion version) {
-        this.version = version;
-    }
-
     @Override
-    public ProtocolVersion getProtocolVersion() {
-        return version != null ? version : HttpVersion.HTTP_1_1;
-    }
-
-    @Override
-    public String getMethod() {
-        return this.method;
-    }
-
-    @Override
-    public URI getURI() {
-        return this.uri;
-    }
-
-    @Override
-    public void abort() throws UnsupportedOperationException {
+    public void abort() {
         if (this.aborted.compareAndSet(false, true)) {
             final Cancellable cancellable = this.cancellableRef.getAndSet(null);
             if (cancellable != null) {
@@ -100,6 +64,9 @@ class InternalHttpRequest extends AbstractHttpMessage
         return this.aborted.get();
     }
 
+    /**
+     * @since 4.2
+     */
     @Override
     public void setCancellable(final Cancellable cancellable) {
         if (!this.aborted.get()) {
@@ -107,36 +74,33 @@ class InternalHttpRequest extends AbstractHttpMessage
         }
     }
 
-    @Override
-    public RequestLine getRequestLine() {
-        final ProtocolVersion ver = getProtocolVersion();
-        final URI uriCopy = getURI();
-        String uritext = null;
-        if (uriCopy != null) {
-            uritext = uriCopy.toASCIIString();
+    /**
+     * Resets internal state of the request making it reusable.
+     *
+     * @since 4.2
+     */
+    public void reset() {
+        final Cancellable cancellable = this.cancellableRef.getAndSet(null);
+        if (cancellable != null) {
+            cancellable.cancel();
         }
-        if (uritext == null || uritext.isEmpty()) {
-            uritext = "/";
-        }
-        return new BasicRequestLine(getMethod(), uritext, ver);
+        this.aborted.set(false);
+    }
+
+    public void setConfig(final RequestConfig requestConfig) {
+        this.requestConfig = requestConfig;
     }
 
     @Override
     public RequestConfig getConfig() {
-        return config;
-    }
-
-    public void setConfig(final RequestConfig config) {
-        this.config = config;
-    }
-
-    public void setURI(final URI uri) {
-        this.uri = uri;
+        return requestConfig;
     }
 
     @Override
     public String toString() {
-        return getMethod() + " " + getURI() + " " + getProtocolVersion();
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getMethod()).append(" ").append(getRequestUri());
+        return sb.toString();
     }
 
 }

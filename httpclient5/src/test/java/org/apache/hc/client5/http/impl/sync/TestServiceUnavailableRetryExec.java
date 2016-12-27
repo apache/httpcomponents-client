@@ -27,12 +27,12 @@
 package org.apache.hc.client5.http.impl.sync;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
 import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.sync.ServiceUnavailableRetryStrategy;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -66,13 +66,12 @@ public class TestServiceUnavailableRetryExec {
     public void testFundamentals() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet get = new HttpGet("/test");
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get, target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(get, route);
         final HttpClientContext context = HttpClientContext.create();
 
-        final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
+        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
 
         Mockito.when(requestExecutor.execute(
-                Mockito.eq(route),
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenReturn(response);
@@ -84,10 +83,9 @@ public class TestServiceUnavailableRetryExec {
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpContext>any())).thenReturn(0L);
 
-        retryExec.execute(route, request, context, execAware);
+        retryExec.execute(request, context, execAware);
 
         Mockito.verify(requestExecutor, Mockito.times(2)).execute(
-                Mockito.eq(route),
                 Mockito.same(request),
                 Mockito.same(context),
                 Mockito.same(execAware));
@@ -97,13 +95,12 @@ public class TestServiceUnavailableRetryExec {
     @Test(expected = RuntimeException.class)
     public void testStrategyRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(new HttpGet("/test"), target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("/test"), route);
         final HttpClientContext context = HttpClientContext.create();
 
-        final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
+        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
         Mockito.when(requestExecutor.execute(
-                Mockito.eq(route),
-                Mockito.<HttpRequestWrapper>any(),
+                Mockito.<RoutedHttpRequest>any(),
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenReturn(response);
         Mockito.doThrow(new RuntimeException("Ooopsie")).when(retryStrategy).retryRequest(
@@ -111,7 +108,7 @@ public class TestServiceUnavailableRetryExec {
                 Mockito.anyInt(),
                 Mockito.<HttpContext>any());
         try {
-            retryExec.execute(route, request, context, execAware);
+            retryExec.execute(request, context, execAware);
         } catch (final Exception ex) {
             Mockito.verify(response).close();
             throw ex;

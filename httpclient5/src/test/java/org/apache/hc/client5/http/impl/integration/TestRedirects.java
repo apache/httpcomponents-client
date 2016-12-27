@@ -44,19 +44,20 @@ import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectException;
 import org.apache.hc.client5.http.utils.URIUtils;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.StringEntity;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.UriHttpRequestHandlerMapper;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
@@ -83,8 +84,8 @@ public class TestRedirects extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             final HttpConnection conn = (HttpConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
             final InetSocketAddress socketAddress = (InetSocketAddress) conn.getLocalAddress();
@@ -93,18 +94,18 @@ public class TestRedirects extends LocalServerTestBase {
                 localhost = "localhost";
             }
             final int port = socketAddress.getPort();
-            final String uri = request.getRequestLine().getUri();
+            final String uri = request.getRequestUri();
             if (uri.equals("/oldlocation/")) {
-                response.setStatusCode(this.statuscode);
+                response.setCode(this.statuscode);
                 response.addHeader(new BasicHeader("Location",
                         "http://" + localhost + ":" + port + "/newlocation/"));
                 response.addHeader(new BasicHeader("Connection", "close"));
             } else if (uri.equals("/newlocation/")) {
-                response.setStatusCode(HttpStatus.SC_OK);
+                response.setCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("Successful redirect");
                 response.setEntity(entity);
             } else {
-                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+                response.setCode(HttpStatus.SC_NOT_FOUND);
             }
         }
 
@@ -118,18 +119,18 @@ public class TestRedirects extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final String uri = request.getRequestLine().getUri();
+            final String uri = request.getRequestUri();
             if (uri.startsWith("/circular-oldlocation")) {
-                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
+                response.setCode(HttpStatus.SC_MOVED_TEMPORARILY);
                 response.addHeader(new BasicHeader("Location", "/circular-location2"));
             } else if (uri.startsWith("/circular-location2")) {
-                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
+                response.setCode(HttpStatus.SC_MOVED_TEMPORARILY);
                 response.addHeader(new BasicHeader("Location", "/circular-oldlocation"));
             } else {
-                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+                response.setCode(HttpStatus.SC_NOT_FOUND);
             }
         }
     }
@@ -142,19 +143,19 @@ public class TestRedirects extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final String uri = request.getRequestLine().getUri();
+            final String uri = request.getRequestUri();
             if (uri.equals("/oldlocation/")) {
-                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
+                response.setCode(HttpStatus.SC_MOVED_TEMPORARILY);
                 response.addHeader(new BasicHeader("Location", "/relativelocation/"));
             } else if (uri.equals("/relativelocation/")) {
-                response.setStatusCode(HttpStatus.SC_OK);
+                response.setCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("Successful redirect");
                 response.setEntity(entity);
             } else {
-                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+                response.setCode(HttpStatus.SC_NOT_FOUND);
             }
         }
     }
@@ -167,19 +168,19 @@ public class TestRedirects extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final String uri = request.getRequestLine().getUri();
+            final String uri = request.getRequestUri();
             if (uri.equals("/test/oldlocation")) {
-                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
+                response.setCode(HttpStatus.SC_MOVED_TEMPORARILY);
                 response.addHeader(new BasicHeader("Location", "relativelocation"));
             } else if (uri.equals("/test/relativelocation")) {
-                response.setStatusCode(HttpStatus.SC_OK);
+                response.setCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("Successful redirect");
                 response.setEntity(entity);
             } else {
-                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+                response.setCode(HttpStatus.SC_NOT_FOUND);
             }
         }
     }
@@ -192,16 +193,16 @@ public class TestRedirects extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final String uri = request.getRequestLine().getUri();
+            final String uri = request.getRequestUri();
             if (uri.equals("/rome")) {
-                response.setStatusCode(HttpStatus.SC_OK);
+                response.setCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("Successful redirect");
                 response.setEntity(entity);
             } else {
-                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
+                response.setCode(HttpStatus.SC_MOVED_TEMPORARILY);
                 response.addHeader(new BasicHeader("Location", "/rome"));
             }
         }
@@ -217,19 +218,19 @@ public class TestRedirects extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final String uri = request.getRequestLine().getUri();
+            final String uri = request.getRequestUri();
             if (uri.equals("/oldlocation/")) {
-                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
+                response.setCode(HttpStatus.SC_MOVED_TEMPORARILY);
                 response.addHeader(new BasicHeader("Location", url));
             } else if (uri.equals("/relativelocation/")) {
-                response.setStatusCode(HttpStatus.SC_OK);
+                response.setCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("Successful redirect");
                 response.setEntity(entity);
             } else {
-                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+                response.setCode(HttpStatus.SC_NOT_FOUND);
             }
         }
     }
@@ -245,13 +246,13 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(HttpStatus.SC_MULTIPLE_CHOICES, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/oldlocation/"), reqWrapper.getUri());
 
         final List<URI> redirects = context.getRedirectLocations();
         Assert.assertNull(redirects);
@@ -268,15 +269,13 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
-        final HttpHost host = context.getTargetHost();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
-        Assert.assertEquals(target, host);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/newlocation/"), reqWrapper.getUri());
 
         final List<URI> redirects = context.getRedirectLocations();
         Assert.assertNotNull(redirects);
@@ -297,15 +296,13 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
-        final HttpHost host = context.getTargetHost();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
-        Assert.assertEquals(target, host);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/newlocation/"), reqWrapper.getUri());
     }
 
     @Test
@@ -314,10 +311,10 @@ public class TestRedirects extends LocalServerTestBase {
 
             @Override
             public void handle(
-                    final HttpRequest request,
-                    final HttpResponse response,
+                    final ClassicHttpRequest request,
+                    final ClassicHttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
-                response.setStatusCode(HttpStatus.SC_MOVED_TEMPORARILY);
+                response.setCode(HttpStatus.SC_MOVED_TEMPORARILY);
             }
 
         });
@@ -328,15 +325,13 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
-        final HttpHost host = context.getTargetHost();
 
-        Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
-        Assert.assertEquals(target, host);
+        Assert.assertEquals(HttpStatus.SC_MOVED_TEMPORARILY, response.getCode());
+        Assert.assertEquals("/oldlocation/", reqWrapper.getRequestUri());
     }
 
     @Test
@@ -350,15 +345,13 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
-        final HttpHost host = context.getTargetHost();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
-        Assert.assertEquals(target, host);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/newlocation/"), reqWrapper.getUri());
     }
 
     @Test
@@ -372,13 +365,13 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(HttpStatus.SC_NOT_MODIFIED, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/oldlocation/"), reqWrapper.getUri());
     }
 
     @Test
@@ -391,13 +384,13 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_USE_PROXY, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/oldlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(HttpStatus.SC_USE_PROXY, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/oldlocation/"), reqWrapper.getUri());
     }
 
     @Test
@@ -411,15 +404,13 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
-        final HttpHost host = context.getTargetHost();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
-        Assert.assertEquals(target, host);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/newlocation/"), reqWrapper.getUri());
     }
 
     @Test(expected=ClientProtocolException.class)
@@ -471,24 +462,19 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
 
-        final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(true).build();
         final HttpGet first = new HttpGet("/rome");
-        first.setConfig(config);
 
         EntityUtils.consume(this.httpclient.execute(target, first, context).getEntity());
 
         final HttpGet second = new HttpGet("/rome");
-        second.setConfig(config);
 
-        final HttpResponse response = this.httpclient.execute(target, second, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, second, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
-        final HttpHost host = context.getTargetHost();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/rome", reqWrapper.getRequestLine().getUri());
-        Assert.assertEquals(host, target);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/rome"), reqWrapper.getUri());
     }
 
     @Test
@@ -499,25 +485,19 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
 
-        final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(true).build();
         final HttpGet first = new HttpGet("/lille");
-        first.setConfig(config);
-
-        final HttpResponse response1 = this.httpclient.execute(target, first, context);
+        final ClassicHttpResponse response1 = this.httpclient.execute(target, first, context);
         EntityUtils.consume(response1.getEntity());
 
         final HttpGet second = new HttpGet("/lille");
-        second.setConfig(config);
 
-        final HttpResponse response2 = this.httpclient.execute(target, second, context);
+        final ClassicHttpResponse response2 = this.httpclient.execute(target, second, context);
         EntityUtils.consume(response2.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
-        final HttpHost host = context.getTargetHost();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
-        Assert.assertEquals("/rome", reqWrapper.getRequestLine().getUri());
-        Assert.assertEquals(host, target);
+        Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/rome"), reqWrapper.getUri());
     }
 
     @Test
@@ -528,25 +508,20 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
 
-        final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(true).build();
         final HttpGet first = new HttpGet("/alian");
-        first.setConfig(config);
 
-        final HttpResponse response1 = this.httpclient.execute(target, first, context);
+        final ClassicHttpResponse response1 = this.httpclient.execute(target, first, context);
         EntityUtils.consume(response1.getEntity());
 
         final HttpGet second = new HttpGet("/lille");
-        second.setConfig(config);
 
-        final HttpResponse response2 = this.httpclient.execute(target, second, context);
+        final ClassicHttpResponse response2 = this.httpclient.execute(target, second, context);
         EntityUtils.consume(response2.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
-        final HttpHost host = context.getTargetHost();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response2.getStatusLine().getStatusCode());
-        Assert.assertEquals("/rome", reqWrapper.getRequestLine().getUri());
-        Assert.assertEquals(host, target);
+        Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/rome"), reqWrapper.getUri());
     }
 
     @Test
@@ -560,14 +535,14 @@ public class TestRedirects extends LocalServerTestBase {
         final HttpPost httppost = new HttpPost("/oldlocation/");
         httppost.setEntity(new StringEntity("stuff"));
 
-        final HttpResponse response = this.httpclient.execute(target, httppost, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httppost, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
-        Assert.assertEquals("GET", reqWrapper.getRequestLine().getMethod());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/newlocation/"), reqWrapper.getUri());
+        Assert.assertEquals("GET", reqWrapper.getMethod());
     }
 
     @Test
@@ -578,19 +553,15 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
 
-        final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(true).build();
         final HttpGet httpget = new HttpGet("/oldlocation/");
-        httpget.setConfig(config);
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
-        final HttpHost host = context.getTargetHost();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/relativelocation/", reqWrapper.getRequestLine().getUri());
-        Assert.assertEquals(host, target);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/relativelocation/"), reqWrapper.getUri());
     }
 
     @Test
@@ -601,19 +572,15 @@ public class TestRedirects extends LocalServerTestBase {
 
         final HttpClientContext context = HttpClientContext.create();
 
-        final RequestConfig config = RequestConfig.custom().setRelativeRedirectsAllowed(true).build();
         final HttpGet httpget = new HttpGet("/test/oldlocation");
-        httpget.setConfig(config);
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
-        final HttpHost host = context.getTargetHost();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/test/relativelocation", reqWrapper.getRequestLine().getUri());
-        Assert.assertEquals(host, target);
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/test/relativelocation"), reqWrapper.getUri());
     }
 
     @Test(expected=ClientProtocolException.class)
@@ -672,13 +639,13 @@ public class TestRedirects extends LocalServerTestBase {
         context.setCookieStore(cookieStore);
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/newlocation/"), reqWrapper.getUri());
 
         final Header[] headers = reqWrapper.getHeaders("Cookie");
         Assert.assertEquals("There can only be one (cookie)", 1, headers.length);
@@ -697,13 +664,13 @@ public class TestRedirects extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/oldlocation/");
 
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
 
         final HttpRequest reqWrapper = context.getRequest();
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-        Assert.assertEquals("/newlocation/", reqWrapper.getRequestLine().getUri());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
+        Assert.assertEquals(URIUtils.create(target, "/newlocation/"), reqWrapper.getUri());
 
         final Header header = reqWrapper.getFirstHeader(HttpHeaders.USER_AGENT);
         Assert.assertEquals("my-test-client", header.getValue());

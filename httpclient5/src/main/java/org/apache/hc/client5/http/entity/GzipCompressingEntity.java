@@ -59,7 +59,7 @@ import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.entity.HttpEntityWrapper;
+import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 import org.apache.hc.core5.util.Args;
 
 /**

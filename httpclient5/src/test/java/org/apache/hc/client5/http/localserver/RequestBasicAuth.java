@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.localserver;
 
 import java.io.IOException;
 
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
@@ -46,6 +47,7 @@ public class RequestBasicAuth implements HttpRequestInterceptor {
     @Override
     public void process(
             final HttpRequest request,
+            final EntityDetails entityDetails,
             final HttpContext context) throws HttpException, IOException {
         context.setAttribute("creds", this.authTokenExtractor.extract(request));
     }

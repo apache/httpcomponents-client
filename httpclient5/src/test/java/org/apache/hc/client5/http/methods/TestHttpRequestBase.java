@@ -27,7 +27,8 @@
 
 package org.apache.hc.client5.http.methods;
 
-import org.apache.hc.core5.http.HttpVersion;
+import java.net.URI;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,15 +37,14 @@ public class TestHttpRequestBase {
     @Test
     public void testBasicProperties() throws Exception {
         final HttpGet httpget = new HttpGet("http://host/path");
-        Assert.assertEquals("GET", httpget.getRequestLine().getMethod());
-        Assert.assertEquals("http://host/path", httpget.getRequestLine().getUri());
-        Assert.assertEquals(HttpVersion.HTTP_1_1, httpget.getRequestLine().getProtocolVersion());
+        Assert.assertEquals("GET", httpget.getMethod());
+        Assert.assertEquals(new URI("http://host/path"), httpget.getUri());
     }
 
     @Test
     public void testEmptyURI() throws Exception {
         final HttpGet httpget = new HttpGet("");
-        Assert.assertEquals("/", httpget.getRequestLine().getUri());
+        Assert.assertEquals(new URI("/"), httpget.getUri());
     }
 
 }

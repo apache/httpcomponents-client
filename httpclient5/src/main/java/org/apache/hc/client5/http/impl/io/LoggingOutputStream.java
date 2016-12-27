@@ -30,14 +30,11 @@ package org.apache.hc.client5.http.impl.io;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.apache.hc.core5.annotation.NotThreadSafe;
-
 /**
  * Internal class.
  *
  * @since 4.3
  */
-@NotThreadSafe
 class LoggingOutputStream extends OutputStream {
 
     private final OutputStream out;

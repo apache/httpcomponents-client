@@ -35,10 +35,9 @@ import java.util.concurrent.RejectedExecutionException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 
 /**
@@ -91,19 +90,18 @@ class AsynchronousValidator implements Closeable {
      */
     public synchronized void revalidateCacheEntry(
             final CachingExec cachingExec,
-            final HttpRoute route,
-            final HttpRequestWrapper request,
+            final RoutedHttpRequest request,
             final HttpClientContext context,
             final HttpExecutionAware execAware,
             final HttpCacheEntry entry) {
         // getVariantURI will fall back on getURI if no variants exist
-        final String uri = cacheKeyGenerator.getVariantURI(context.getTargetHost(), request, entry);
+        final String uri = cacheKeyGenerator.generateVariantURI(request.getTargetHost(), request, entry);
 
         if (!queued.contains(uri)) {
             final int consecutiveFailedAttempts = failureCache.getErrorCount(uri);
             final AsynchronousValidationRequest revalidationRequest =
                 new AsynchronousValidationRequest(
-                        this, cachingExec, route, request, context, execAware, entry, uri, consecutiveFailedAttempts);
+                        this, cachingExec, request, context, execAware, entry, uri, consecutiveFailedAttempts);
 
             try {
                 schedulingStrategy.schedule(revalidationRequest);

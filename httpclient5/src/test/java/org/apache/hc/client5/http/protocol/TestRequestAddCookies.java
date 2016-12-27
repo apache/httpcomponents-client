@@ -90,14 +90,14 @@ public class TestRequestAddCookies {
     public void testRequestParameterCheck() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(null, context);
+        interceptor.process(null, null, context);
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testContextParameterCheck() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, null);
+        interceptor.process(request, null, null);
     }
 
     @Test
@@ -107,13 +107,12 @@ public class TestRequestAddCookies {
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
         Assert.assertNotNull(headers);
@@ -135,13 +134,12 @@ public class TestRequestAddCookies {
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
         Assert.assertNotNull(headers);
@@ -155,13 +153,12 @@ public class TestRequestAddCookies {
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.COOKIE_STORE, null);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
         Assert.assertNotNull(headers);
@@ -175,33 +172,12 @@ public class TestRequestAddCookies {
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, null);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
-
-        final Header[] headers = request.getHeaders("Cookie");
-        Assert.assertNotNull(headers);
-        Assert.assertEquals(0, headers.length);
-    }
-
-    @Test
-    public void testNoTargetHost() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("GET", "/");
-
-        final HttpRoute route = new HttpRoute(this.target, null, false);
-
-        final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, null);
-        context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
-        context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
-        context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
-
-        final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
         Assert.assertNotNull(headers);
@@ -213,13 +189,12 @@ public class TestRequestAddCookies {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, null);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
         Assert.assertNotNull(headers);
@@ -234,14 +209,13 @@ public class TestRequestAddCookies {
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.REQUEST_CONFIG, config);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final CookieSpec cookieSpec = context.getCookieSpec();
         Assert.assertTrue(cookieSpec instanceof RFC6265StrictSpec);
@@ -259,13 +233,12 @@ public class TestRequestAddCookies {
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
     }
 
     @Test
@@ -276,13 +249,12 @@ public class TestRequestAddCookies {
         final HttpRoute route = new HttpRoute(new HttpHost("localhost.local", 1234), null, false);
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final CookieOrigin cookieOrigin = context.getCookieOrigin();
         Assert.assertNotNull(cookieOrigin);
@@ -301,13 +273,12 @@ public class TestRequestAddCookies {
                 new HttpHost("localhost.local", 80), null, new HttpHost("localhost", 8888), false);
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final CookieOrigin cookieOrigin = context.getCookieOrigin();
         Assert.assertNotNull(cookieOrigin);
@@ -327,13 +298,12 @@ public class TestRequestAddCookies {
                 new HttpHost("localhost", 8888), true, TunnelType.TUNNELLED, LayerType.LAYERED);
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final CookieOrigin cookieOrigin = context.getCookieOrigin();
         Assert.assertNotNull(cookieOrigin);
@@ -360,7 +330,6 @@ public class TestRequestAddCookies {
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
@@ -369,7 +338,7 @@ public class TestRequestAddCookies {
         Thread.sleep(200);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
         Assert.assertNotNull(headers);
@@ -392,13 +361,12 @@ public class TestRequestAddCookies {
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final Header[] headers = request.getHeaders("Cookie");
         Assert.assertNotNull(headers);
@@ -428,13 +396,12 @@ public class TestRequestAddCookies {
         final HttpRoute route = new HttpRoute(this.target, null, false);
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 
         final HttpRequestInterceptor interceptor = new RequestAddCookies();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final Header[] headers1 = request.getHeaders("Cookie");
         Assert.assertNotNull(headers1);

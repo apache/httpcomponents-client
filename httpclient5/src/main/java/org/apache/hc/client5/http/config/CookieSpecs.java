@@ -27,14 +27,15 @@
 
 package org.apache.hc.client5.http.config;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Standard cookie specifications supported by HttpClient.
  *
  * @since 4.3
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class CookieSpecs {
 
     /**

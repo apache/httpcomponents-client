@@ -31,7 +31,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.util.Args;
 
@@ -41,7 +42,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 5.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class AuthChallenge {
 
     private final String scheme;

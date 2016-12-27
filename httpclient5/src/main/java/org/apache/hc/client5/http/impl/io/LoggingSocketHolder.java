@@ -25,16 +25,31 @@
  *
  */
 
-package org.apache.hc.client5.http.methods;
+package org.apache.hc.client5.http.impl.io;
 
-import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 
-import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.impl.io.SocketHolder;
 
-/**
- * Extended version of the {@link HttpResponse} interface that also extends {@link Closeable}.
- *
- * @since 4.3
- */
-public interface CloseableHttpResponse extends HttpResponse, Closeable {
+class LoggingSocketHolder extends SocketHolder {
+
+    private final Wire wire;
+
+    LoggingSocketHolder(final Socket socket, final Wire wire) {
+        super(socket);
+        this.wire = wire;
+    }
+
+    @Override
+    protected InputStream getInputStream(final Socket socket) throws IOException {
+        return new LoggingInputStream(super.getInputStream(socket), wire);
+    }
+
+    @Override
+    protected OutputStream getOutputStream(final Socket socket) throws IOException {
+        return new LoggingOutputStream(super.getOutputStream(socket), wire);
+    }
 }

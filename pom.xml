@@ -67,7 +67,7 @@
   <properties>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
-    <httpcore.version>5.0-alpha1</httpcore.version>
+    <httpcore.version>5.0-alpha2</httpcore.version>
     <log4j.version>2.7</log4j.version>
     <commons-codec.version>1.10</commons-codec.version>
     <ehcache.version>2.6.11</ehcache.version>
@@ -75,7 +75,7 @@
     <slf4j.version>1.7.13</slf4j.version>
     <junit.version>4.12</junit.version>
     <easymock.version>2.5.2</easymock.version>
-    <mockito.version>1.8.5</mockito.version>
+    <mockito.version>1.10.19</mockito.version>
     <jna.version>4.2.1</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <hc.rat.version>0.12</hc.rat.version>

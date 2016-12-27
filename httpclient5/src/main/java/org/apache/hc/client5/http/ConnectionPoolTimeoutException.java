@@ -27,8 +27,6 @@
 
 package org.apache.hc.client5.http;
 
-import org.apache.hc.core5.annotation.Immutable;
-
 /**
  * A timeout while waiting for an available connection
  * from a connection manager.
@@ -36,7 +34,6 @@ import org.apache.hc.core5.annotation.Immutable;
  *
  * @since 4.0
  */
-@Immutable
 public class ConnectionPoolTimeoutException extends ConnectTimeoutException {
 
     private static final long serialVersionUID = -7898874842020245128L;

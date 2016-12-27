@@ -37,24 +37,22 @@ import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.localserver.RequestBasicAuth;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.StringEntity;
+import org.apache.hc.core5.http.impl.HttpProcessors;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
-import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
-import org.apache.hc.core5.http.protocol.ResponseConnControl;
-import org.apache.hc.core5.http.protocol.ResponseContent;
-import org.apache.hc.core5.http.protocol.ResponseDate;
-import org.apache.hc.core5.http.protocol.ResponseServer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,8 +64,9 @@ public class TestClientAuthenticationFallBack extends LocalServerTestBase {
         @Override
         public void process(
                 final HttpResponse response,
+                final EntityDetails entityDetails,
                 final HttpContext context) throws HttpException, IOException {
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+            if (response.getCode() == HttpStatus.SC_UNAUTHORIZED) {
                 response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Digest realm=\"test realm\" invalid");
                 response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test realm\"");
             }
@@ -78,11 +77,7 @@ public class TestClientAuthenticationFallBack extends LocalServerTestBase {
     @Before @Override
     public void setUp() throws Exception {
         super.setUp();
-        final HttpProcessor httpproc = HttpProcessorBuilder.create()
-            .add(new ResponseDate())
-            .add(new ResponseServer(LocalServerTestBase.ORIGIN))
-            .add(new ResponseContent())
-            .add(new ResponseConnControl())
+        final HttpProcessor httpproc = HttpProcessors.customServer(null)
             .add(new RequestBasicAuth())
             .add(new ResponseBasicUnauthorized()).build();
         this.serverBootstrap.setHttpProcessor(httpproc);
@@ -92,14 +87,14 @@ public class TestClientAuthenticationFallBack extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
             final String creds = (String) context.getAttribute("creds");
             if (creds == null || !creds.equals("test:test")) {
-                response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
+                response.setCode(HttpStatus.SC_UNAUTHORIZED);
             } else {
-                response.setStatusCode(HttpStatus.SC_OK);
+                response.setCode(HttpStatus.SC_OK);
                 final StringEntity entity = new StringEntity("success", StandardCharsets.US_ASCII);
                 response.setEntity(entity);
             }
@@ -141,9 +136,9 @@ public class TestClientAuthenticationFallBack extends LocalServerTestBase {
         context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         final HttpEntity entity = response.getEntity();
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getCode());
         Assert.assertNotNull(entity);
         EntityUtils.consume(entity);
         final AuthScope authscope = credsProvider.getAuthScope();

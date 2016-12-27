@@ -33,12 +33,12 @@ import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.methods.HttpUriRequest;
 import org.apache.hc.client5.http.methods.RequestBuilder;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * A example that demonstrates how HttpClient APIs can be used to perform
@@ -55,7 +55,7 @@ public class ClientFormLogin {
             try (CloseableHttpResponse response1 = httpclient.execute(httpget)) {
                 HttpEntity entity = response1.getEntity();
 
-                System.out.println("Login form get: " + response1.getStatusLine());
+                System.out.println("Login form get: " + response1.getCode() + " " + response1.getReasonPhrase());
                 EntityUtils.consume(entity);
 
                 System.out.println("Initial set of cookies:");
@@ -77,7 +77,7 @@ public class ClientFormLogin {
             try (CloseableHttpResponse response2 = httpclient.execute(login)) {
                 HttpEntity entity = response2.getEntity();
 
-                System.out.println("Login form get: " + response2.getStatusLine());
+                System.out.println("Login form get: " + response2.getCode() + " " + response2.getReasonPhrase());
                 EntityUtils.consume(entity);
 
                 System.out.println("Post logon cookies:");

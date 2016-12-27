@@ -29,11 +29,10 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
 
-import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 
 /**
@@ -43,7 +42,7 @@ import org.apache.hc.core5.http.HttpException;
  * <p>
  * Important: please note it is required for decorators that implement post execution aspects
  * or response post-processing of any sort to release resources associated with the response
- * by calling {@link CloseableHttpResponse#close()} methods in case of an I/O, protocol or
+ * by calling {@link ClassicHttpResponse#close()} methods in case of an I/O, protocol or
  * runtime exception, or in case the response is not propagated to the caller.
  * </p>
  *
@@ -55,7 +54,6 @@ public interface ClientExecChain {
      * Executes th request either by transmitting it to the target server or
      * by passing it onto the next executor in the request execution chain.
      *
-     * @param route connection route.
      * @param request current request.
      * @param clientContext current HTTP context.
      * @param execAware receiver of notifications of blocking I/O operations.
@@ -66,9 +64,8 @@ public interface ClientExecChain {
      * @throws HttpException in case of an HTTP protocol error
      *   (usually this type of exceptions are non-recoverable).
      */
-    CloseableHttpResponse execute(
-            HttpRoute route,
-            HttpRequestWrapper request,
+    ClassicHttpResponse execute(
+            RoutedHttpRequest request,
             HttpClientContext clientContext,
             HttpExecutionAware execAware) throws IOException, HttpException;
 

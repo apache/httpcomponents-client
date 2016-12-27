@@ -28,30 +28,24 @@
 package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
-import org.apache.hc.client5.http.methods.HttpUriRequest;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.utils.URIUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Request executor in the request execution chain that is responsible
@@ -67,10 +61,8 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.3
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class ProtocolExec implements ClientExecChain {
-
-    private final Logger log = LogManager.getLogger(getClass());
 
     private final ClientExecChain requestExecutor;
     private final HttpProcessor httpProcessor;
@@ -82,65 +74,18 @@ public class ProtocolExec implements ClientExecChain {
         this.httpProcessor = httpProcessor;
     }
 
-    void rewriteRequestURI(
-            final HttpRequestWrapper request,
-            final HttpRoute route) throws ProtocolException {
-        final URI uri = request.getURI();
-        if (uri != null) {
-            try {
-                request.setURI(URIUtils.rewriteURIForRoute(uri, route));
-            } catch (final URISyntaxException ex) {
-                throw new ProtocolException("Invalid URI: " + uri, ex);
-            }
-        }
-    }
-
     @Override
-    public CloseableHttpResponse execute(
-            final HttpRoute route,
-            final HttpRequestWrapper request,
+    public ClassicHttpResponse execute(
+            final RoutedHttpRequest request,
             final HttpClientContext context,
-            final HttpExecutionAware execAware) throws IOException,
-        HttpException {
-        Args.notNull(route, "HTTP route");
+            final HttpExecutionAware execAware) throws IOException, HttpException {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        final HttpRequest original = request.getOriginal();
-        URI uri = null;
-        if (original instanceof HttpUriRequest) {
-            uri = ((HttpUriRequest) original).getURI();
-        } else {
-            final String uriString = original.getRequestLine().getUri();
-            try {
-                uri = URI.create(uriString);
-            } catch (final IllegalArgumentException ex) {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("Unable to parse '" + uriString + "' as a valid URI; " +
-                        "request URI and Host header may be inconsistent", ex);
-                }
-            }
-
-        }
-        request.setURI(uri);
-
-        // Re-write request URI if needed
-        rewriteRequestURI(request, route);
-
-        HttpHost target = null;
-        if (uri != null && uri.isAbsolute() && uri.getHost() != null) {
-            target = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
-        }
-        if (target == null) {
-            target = request.getTarget();
-        }
-        if (target == null) {
-            target = route.getTargetHost();
-        }
-
-        // Get user info from the URI
-        if (uri != null) {
-            final String userinfo = uri.getUserInfo();
+        final HttpRoute route = request.getRoute();
+        final URIAuthority authority = request.getAuthority();
+        if (authority != null) {
+            final String userinfo = authority.getUserInfo();
             if (userinfo != null) {
                 final CredentialsProvider credsProvider = context.getCredentialsProvider();
                 if (credsProvider instanceof CredentialsStore) {
@@ -155,25 +100,23 @@ public class ProtocolExec implements ClientExecChain {
                         password = null;
                     }
                     ((CredentialsStore) credsProvider).setCredentials(
-                            new AuthScope(target),
+                            new AuthScope(authority.getHostName(), authority.getPort(), null, AuthSchemes.BASIC),
                             new UsernamePasswordCredentials(userName, password));
                 }
             }
         }
 
         // Run request protocol interceptors
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
 
-        this.httpProcessor.process(request, context);
+        this.httpProcessor.process(request, request.getEntity(), context);
 
-        final CloseableHttpResponse response = this.requestExecutor.execute(route, request,
-            context, execAware);
+        final ClassicHttpResponse response = this.requestExecutor.execute(request, context, execAware);
         try {
             // Run response protocol interceptors
             context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
-            this.httpProcessor.process(response, context);
+            this.httpProcessor.process(response, response.getEntity(), context);
             return response;
         } catch (final RuntimeException | HttpException | IOException ex) {
             response.close();

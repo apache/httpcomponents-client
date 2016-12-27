@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.localserver;
 
 import java.io.IOException;
 
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
@@ -41,8 +42,9 @@ public class ResponseBasicUnauthorized implements HttpResponseInterceptor {
     @Override
     public void process(
             final HttpResponse response,
+            final EntityDetails entityDetails,
             final HttpContext context) throws HttpException, IOException {
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+        if (response.getCode() == HttpStatus.SC_UNAUTHORIZED) {
             if (!response.containsHeader(HttpHeaders.WWW_AUTHENTICATE)) {
                 response.addHeader(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\"test realm\"");
             }

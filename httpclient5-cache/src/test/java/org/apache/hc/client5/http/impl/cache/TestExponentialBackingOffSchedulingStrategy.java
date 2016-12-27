@@ -35,10 +35,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.impl.sync.ClientExecChain;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -160,10 +160,10 @@ public class TestExponentialBackingOffSchedulingStrategy {
         final CachingExec cachingHttpClient = new CachingExec(clientExecChain);
         final AsynchronousValidator mockValidator = new AsynchronousValidator(impl);
         final HttpHost host = new HttpHost("foo.example.com", 80);
-        final HttpRoute httpRoute = new HttpRoute(host);
-        final HttpRequestWrapper httpRequestWrapper = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/"), host);
+        final HttpRoute route = new HttpRoute(host);
+        final RoutedHttpRequest routedHttpRequest = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/"), route);
         final HttpClientContext httpClientContext = new HttpClientContext();
-        return new AsynchronousValidationRequest(mockValidator, cachingHttpClient, httpRoute, httpRequestWrapper,
+        return new AsynchronousValidationRequest(mockValidator, cachingHttpClient, routedHttpRequest,
                 httpClientContext, null, null, "identifier", errorCount);
     }
 

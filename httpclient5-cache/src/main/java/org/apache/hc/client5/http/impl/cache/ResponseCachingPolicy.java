@@ -29,13 +29,15 @@ package org.apache.hc.client5.http.impl.cache;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -44,13 +46,15 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.message.MessageSupport;
 
 /**
  * Determines if an HttpResponse can be cached.
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class ResponseCachingPolicy {
 
     private static final String[] AUTH_CACHEABLE_PARAMS = {
@@ -111,7 +115,7 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        final int status = response.getStatusLine().getStatusCode();
+        final int status = response.getCode();
         if (cacheableStatuses.contains(status)) {
             // these response codes MAY be cached
             cacheable = true;
@@ -154,11 +158,11 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        for (final Header varyHdr : response.getHeaders(HeaderConstants.VARY)) {
-            for (final HeaderElement elem : varyHdr.getElements()) {
-                if ("*".equals(elem.getName())) {
-                    return false;
-                }
+        final Iterator<HeaderElement> it = MessageSupport.iterate(response, HeaderConstants.VARY);
+        while (it.hasNext()) {
+            final HeaderElement elem = it.next();
+            if ("*".equals(elem.getName())) {
+                return false;
             }
         }
 
@@ -189,27 +193,25 @@ class ResponseCachingPolicy {
     }
 
     protected boolean isExplicitlyNonCacheable(final HttpResponse response) {
-        final Header[] cacheControlHeaders = response.getHeaders(HeaderConstants.CACHE_CONTROL);
-        for (final Header header : cacheControlHeaders) {
-            for (final HeaderElement elem : header.getElements()) {
-                if (HeaderConstants.CACHE_CONTROL_NO_STORE.equals(elem.getName())
-                        || HeaderConstants.CACHE_CONTROL_NO_CACHE.equals(elem.getName())
-                        || (sharedCache && HeaderConstants.PRIVATE.equals(elem.getName()))) {
-                    return true;
-                }
+        final Iterator<HeaderElement> it = MessageSupport.iterate(response, HeaderConstants.CACHE_CONTROL);
+        while (it.hasNext()) {
+            final HeaderElement elem = it.next();
+            if (HeaderConstants.CACHE_CONTROL_NO_STORE.equals(elem.getName())
+                    || HeaderConstants.CACHE_CONTROL_NO_CACHE.equals(elem.getName())
+                    || (sharedCache && HeaderConstants.PRIVATE.equals(elem.getName()))) {
+                return true;
             }
         }
         return false;
     }
 
     protected boolean hasCacheControlParameterFrom(final HttpMessage msg, final String[] params) {
-        final Header[] cacheControlHeaders = msg.getHeaders(HeaderConstants.CACHE_CONTROL);
-        for (final Header header : cacheControlHeaders) {
-            for (final HeaderElement elem : header.getElements()) {
-                for (final String param : params) {
-                    if (param.equalsIgnoreCase(elem.getName())) {
-                        return true;
-                    }
+        final Iterator<HeaderElement> it = MessageSupport.iterate(msg, HeaderConstants.CACHE_CONTROL);
+        while (it.hasNext()) {
+            final HeaderElement elem = it.next();
+            for (final String param : params) {
+                if (param.equalsIgnoreCase(elem.getName())) {
+                    return true;
                 }
             }
         }
@@ -247,7 +249,7 @@ class ResponseCachingPolicy {
             return false;
         }
 
-        if (request.getRequestLine().getUri().contains("?")) {
+        if (request.getRequestUri().contains("?")) {
             if (neverCache1_0ResponsesWithQueryString && from1_0Origin(response)) {
                 log.debug("Response was not cacheable as it had a query string.");
                 return false;
@@ -269,7 +271,7 @@ class ResponseCachingPolicy {
             }
         }
 
-        final String method = request.getRequestLine().getMethod();
+        final String method = request.getMethod();
         return isResponseCacheable(method, response);
     }
 
@@ -292,22 +294,23 @@ class ResponseCachingPolicy {
     }
 
     private boolean from1_0Origin(final HttpResponse response) {
-        final Header via = response.getFirstHeader(HeaderConstants.VIA);
-        if (via != null) {
-            for(final HeaderElement elt : via.getElements()) {
-                final String proto = elt.toString().split("\\s")[0];
-                if (proto.contains("/")) {
-                    return proto.equals("HTTP/1.0");
-                } else {
-                    return proto.equals("1.0");
-                }
+        final Iterator<HeaderElement> it = MessageSupport.iterate(response, HeaderConstants.VIA);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            final String proto = elt.toString().split("\\s")[0];
+            if (proto.contains("/")) {
+                return proto.equals("HTTP/1.0");
+            } else {
+                return proto.equals("1.0");
             }
         }
-        return HttpVersion.HTTP_1_0.equals(response.getProtocolVersion());
+        final ProtocolVersion version = response.getVersion() != null ? response.getVersion() : HttpVersion.DEFAULT;
+        return HttpVersion.HTTP_1_0.equals(version);
     }
 
     private boolean requestProtocolGreaterThanAccepted(final HttpRequest req) {
-        return req.getProtocolVersion().compareToVersion(HttpVersion.HTTP_1_1) > 0;
+        final ProtocolVersion version = req.getVersion() != null ? req.getVersion() : HttpVersion.DEFAULT;
+        return version.compareToVersion(HttpVersion.HTTP_1_1) > 0;
     }
 
 }

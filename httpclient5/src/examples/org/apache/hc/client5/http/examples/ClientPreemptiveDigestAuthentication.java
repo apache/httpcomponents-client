@@ -32,11 +32,11 @@ import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.DigestScheme;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * An example of HttpClient can be customized to authenticate
@@ -68,11 +68,11 @@ public class ClientPreemptiveDigestAuthentication {
 
             HttpGet httpget = new HttpGet("http://httpbin.org/digest-auth/auth/user/passwd");
 
-            System.out.println("Executing request " + httpget.getRequestLine() + " to target " + target);
+            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             for (int i = 0; i < 3; i++) {
                 try (CloseableHttpResponse response = httpclient.execute(target, httpget, localContext)) {
                     System.out.println("----------------------------------------");
-                    System.out.println(response.getStatusLine());
+                    System.out.println(response.getCode() + " " + response.getReasonPhrase());
                     EntityUtils.consume(response.getEntity());
                 }
             }

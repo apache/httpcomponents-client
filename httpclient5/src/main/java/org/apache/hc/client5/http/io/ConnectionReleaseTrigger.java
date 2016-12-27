@@ -30,8 +30,9 @@ import java.io.IOException;
 
 /**
  * Interface for releasing a connection. This can be implemented by various
- * "trigger" objects which are associated with a connection, for example
- * a {@link EofSensorInputStream} or the {@link ManagedHttpClientConnection} itself.
+ * "trigger" objects which are associated with a leased connection, for example
+ * a {@link org.apache.hc.core5.http.io.EofSensorInputStream}
+ * or the {@link ManagedHttpClientConnection} itself.
  * <p>
  * The methods in this interface can safely be called multiple times.
  * The first invocation releases the connection, subsequent calls

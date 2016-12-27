@@ -36,7 +36,6 @@ import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.cookie.RFC6265LaxSpec;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.Assert;
 import org.junit.Before;
@@ -59,19 +58,19 @@ public class TestResponseProcessCookies {
     public void testResponseParameterCheck() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
-        interceptor.process(null, context);
+        interceptor.process(null, null, context);
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testContextParameterCheck() throws Exception {
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(200, "OK");
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
-        interceptor.process(response, null);
+        interceptor.process(response, null, null);
     }
 
     @Test
     public void testParseCookies() throws Exception {
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(200, "OK");
         response.addHeader("Set-Cookie", "name1=value1");
 
         final HttpClientContext context = HttpClientContext.create();
@@ -80,7 +79,7 @@ public class TestResponseProcessCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
 
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
-        interceptor.process(response, context);
+        interceptor.process(response, null, context);
 
         final List<Cookie> cookies = this.cookieStore.getCookies();
         Assert.assertNotNull(cookies);
@@ -94,7 +93,7 @@ public class TestResponseProcessCookies {
 
     @Test
     public void testNoCookieOrigin() throws Exception {
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(200, "OK");
         response.addHeader("Set-Cookie", "name1=value1");
 
         final HttpClientContext context = HttpClientContext.create();
@@ -103,7 +102,7 @@ public class TestResponseProcessCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
 
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
-        interceptor.process(response, context);
+        interceptor.process(response, null, context);
 
         final List<Cookie> cookies = this.cookieStore.getCookies();
         Assert.assertNotNull(cookies);
@@ -112,7 +111,7 @@ public class TestResponseProcessCookies {
 
     @Test
     public void testNoCookieSpec() throws Exception {
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(200, "OK");
         response.addHeader("Set-Cookie", "name1=value1");
 
         final HttpClientContext context = HttpClientContext.create();
@@ -121,7 +120,7 @@ public class TestResponseProcessCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
 
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
-        interceptor.process(response, context);
+        interceptor.process(response, null, context);
 
         final List<Cookie> cookies = this.cookieStore.getCookies();
         Assert.assertNotNull(cookies);
@@ -130,7 +129,7 @@ public class TestResponseProcessCookies {
 
     @Test
     public void testNoCookieStore() throws Exception {
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+        final HttpResponse response = new BasicHttpResponse(200, "OK");
         response.addHeader("Set-Cookie", "name1=value1");
 
         final HttpClientContext context = HttpClientContext.create();
@@ -139,7 +138,7 @@ public class TestResponseProcessCookies {
         context.setAttribute(HttpClientContext.COOKIE_STORE, null);
 
         final HttpResponseInterceptor interceptor = new ResponseProcessCookies();
-        interceptor.process(response, context);
+        interceptor.process(response, null, context);
 
         final List<Cookie> cookies = this.cookieStore.getCookies();
         Assert.assertNotNull(cookies);

@@ -32,7 +32,7 @@ import java.io.OutputStream;
 import java.net.SocketException;
 
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

@@ -34,15 +34,15 @@ import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.UserTokenHandler;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.StringEntity;
 import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
@@ -61,10 +61,10 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            response.setStatusCode(HttpStatus.SC_OK);
+            response.setCode(HttpStatus.SC_OK);
             final StringEntity entity = new StringEntity("Whatever");
             response.setEntity(entity);
         }
@@ -170,7 +170,7 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
                 this.context.setAttribute("user", this.uid);
                 for (int r = 0; r < this.requestCount; r++) {
                     final HttpGet httpget = new HttpGet("/");
-                    final HttpResponse response = this.httpclient.execute(
+                    final ClassicHttpResponse response = this.httpclient.execute(
                             this.target,
                             httpget,
                             this.context);
@@ -223,7 +223,7 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
         // Bottom of the pool : a *keep alive* connection to Route 1.
         final HttpContext context1 = new BasicHttpContext();
         context1.setAttribute("user", "stuff");
-        final HttpResponse response1 = this.httpclient.execute(
+        final ClassicHttpResponse response1 = this.httpclient.execute(
                 target, new HttpGet("/"), context1);
         EntityUtils.consume(response1.getEntity());
 
@@ -236,7 +236,7 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
         // Send a very simple HTTP get (it MUST be simple, no auth, no proxy, no 302, no 401, ...)
         // Send it to another route. Must be a keepalive.
         final HttpContext context2 = new BasicHttpContext();
-        final HttpResponse response2 = this.httpclient.execute(
+        final ClassicHttpResponse response2 = this.httpclient.execute(
                 new HttpHost("127.0.0.1", this.server.getLocalPort()), new HttpGet("/"), context2);
         EntityUtils.consume(response2.getEntity());
         // ConnPoolByRoute now has 2 free connexions, out of its 2 max.
@@ -251,7 +251,7 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
         // The killed conn is the oldest, which means the first HTTPGet ([localhost][stuff]).
         // When this happens, the RouteSpecificPool becomes empty.
         final HttpContext context3 = new BasicHttpContext();
-        final HttpResponse response3 = this.httpclient.execute(
+        final ClassicHttpResponse response3 = this.httpclient.execute(
                 target, new HttpGet("/"), context3);
 
         // If the ConnPoolByRoute did not behave coherently with the RouteSpecificPool

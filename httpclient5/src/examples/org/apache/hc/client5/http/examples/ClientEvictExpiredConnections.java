@@ -31,9 +31,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.pool.PoolStats;
 
 /**
@@ -61,11 +61,11 @@ public class ClientEvictExpiredConnections {
                 String requestURI = urisToGet[i];
                 HttpGet request = new HttpGet(requestURI);
 
-                System.out.println("Executing request " + requestURI);
+                System.out.println("Executing request " + request.getMethod() + " " + request.getRequestUri());
 
                 try (CloseableHttpResponse response = httpclient.execute(request)) {
                     System.out.println("----------------------------------------");
-                    System.out.println(response.getStatusLine());
+                    System.out.println(response.getCode() + " " + response.getReasonPhrase());
                     EntityUtils.consume(response.getEntity());
                 }
             }

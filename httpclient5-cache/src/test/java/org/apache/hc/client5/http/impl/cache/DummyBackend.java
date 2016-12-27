@@ -28,26 +28,24 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
 
-import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.impl.sync.ClientExecChain;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 
 public class DummyBackend implements ClientExecChain {
 
-    private HttpRequest request;
-    private HttpResponse response = new BasicHttpResponse(new ProtocolVersion("HTTP",1,1), HttpStatus.SC_OK, "OK");
+    private ClassicHttpRequest request;
+    private ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
     private int executions = 0;
 
-    public void setResponse(final HttpResponse resp) {
+    public void setResponse(final ClassicHttpResponse resp) {
         response = resp;
     }
 
@@ -56,14 +54,13 @@ public class DummyBackend implements ClientExecChain {
     }
 
     @Override
-    public CloseableHttpResponse execute(
-            final HttpRoute route,
-            final HttpRequestWrapper request,
+    public ClassicHttpResponse execute(
+            final RoutedHttpRequest request,
             final HttpClientContext clientContext,
             final HttpExecutionAware execAware) throws IOException, HttpException {
         this.request = request;
         executions++;
-        return Proxies.enhanceResponse(response);
+        return response;
     }
 
     public int getExecutions() {

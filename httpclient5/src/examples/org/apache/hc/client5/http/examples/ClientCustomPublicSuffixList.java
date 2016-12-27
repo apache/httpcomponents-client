@@ -33,15 +33,14 @@ import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
-import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * This example demonstrates how to use a custom public suffix list.
@@ -74,13 +73,11 @@ public class ClientCustomPublicSuffixList {
 
             HttpGet httpget = new HttpGet("https://httpbin.org/get");
 
-            System.out.println("executing request " + httpget.getRequestLine());
+            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
 
             try (CloseableHttpResponse response = httpclient.execute(httpget)) {
-                HttpEntity entity = response.getEntity();
-
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response.getCode() + " " + response.getReasonPhrase());
                 System.out.println(EntityUtils.toString(response.getEntity()));
             }
         }

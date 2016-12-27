@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.fluent;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
@@ -141,7 +142,13 @@ public class Executor {
      * @since 4.4
      */
     public Executor auth(final String host, final Credentials creds) {
-        return auth(HttpHost.create(host), creds);
+        final HttpHost httpHost;
+        try {
+            httpHost = HttpHost.create(host);
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("Invalid host: " + host);
+        }
+        return auth(httpHost, creds);
     }
 
     public Executor authPreemptive(final HttpHost host) {
@@ -160,7 +167,13 @@ public class Executor {
      * @since 4.4
      */
     public Executor authPreemptive(final String host) {
-        return authPreemptive(HttpHost.create(host));
+        final HttpHost httpHost;
+        try {
+            httpHost = HttpHost.create(host);
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("Invalid host: " + host);
+        }
+        return authPreemptive(httpHost);
     }
 
     public Executor authPreemptiveProxy(final HttpHost proxy) {
@@ -179,7 +192,13 @@ public class Executor {
      * @since 4.4
      */
     public Executor authPreemptiveProxy(final String proxy) {
-        return authPreemptiveProxy(HttpHost.create(proxy));
+        final HttpHost httpHost;
+        try {
+            httpHost = HttpHost.create(proxy);
+        } catch (URISyntaxException ex) {
+            throw new IllegalArgumentException("Invalid host: " + proxy);
+        }
+        return authPreemptiveProxy(httpHost);
     }
 
     public Executor auth(final Credentials cred) {
@@ -256,7 +275,7 @@ public class Executor {
      * @since 4.4
      */
     public static void closeIdleConnections() {
-        CONNMGR.closeIdleConnections(0, TimeUnit.MICROSECONDS);
+        CONNMGR.closeIdle(0, TimeUnit.MICROSECONDS);
     }
 
 }

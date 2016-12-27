@@ -34,7 +34,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cookie.SetCookie;
-import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -42,7 +41,6 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.0
  */
-@NotThreadSafe
 public class BasicClientCookie implements SetCookie, Cloneable, Serializable {
 
     private static final long serialVersionUID = -3869795591041535538L;

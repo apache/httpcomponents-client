@@ -31,11 +31,12 @@ import java.io.IOException;
 
 import org.apache.hc.client5.http.impl.sync.AbstractResponseHandler;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.ParseException;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * A {@link org.apache.hc.client5.http.sync.ResponseHandler} that returns the response body as a String
@@ -44,13 +45,13 @@ import org.apache.hc.core5.http.entity.EntityUtils;
  * <p>
  * If this is used with
  * {@link org.apache.hc.client5.http.sync.HttpClient#execute(
- *  org.apache.hc.client5.http.methods.HttpUriRequest, org.apache.hc.client5.http.sync.ResponseHandler)},
+ *  org.apache.hc.core5.http.ClassicHttpRequest, org.apache.hc.client5.http.sync.ResponseHandler)},
  * HttpClient may handle redirects (3xx responses) internally.
  * </p>
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class BasicResponseHandler extends AbstractResponseHandler<String> {
 
     /**
@@ -66,8 +67,7 @@ public class BasicResponseHandler extends AbstractResponseHandler<String> {
     }
 
     @Override
-    public String handleResponse(
-            final HttpResponse response) throws IOException {
+    public String handleResponse(final ClassicHttpResponse response) throws IOException {
         return super.handleResponse(response);
     }
 

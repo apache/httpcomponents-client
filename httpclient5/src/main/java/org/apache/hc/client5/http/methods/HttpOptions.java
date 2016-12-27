@@ -32,8 +32,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.hc.core5.annotation.NotThreadSafe;
-import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.util.Args;
@@ -55,27 +54,21 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.0
  */
-@NotThreadSafe
-public class HttpOptions extends HttpRequestBase {
+public class HttpOptions extends HttpUriRequestBase {
 
     private static final long serialVersionUID = 1L;
+
     public final static String METHOD_NAME = "OPTIONS";
 
-    public HttpOptions() {
-        super();
-    }
-
     public HttpOptions(final URI uri) {
-        super();
-        setURI(uri);
+        super(METHOD_NAME, uri);
     }
 
     /**
      * @throws IllegalArgumentException if the uri is invalid.
      */
     public HttpOptions(final String uri) {
-        super();
-        setURI(URI.create(uri));
+        this(URI.create(uri));
     }
 
     @Override
@@ -86,14 +79,11 @@ public class HttpOptions extends HttpRequestBase {
     public Set<String> getAllowedMethods(final HttpResponse response) {
         Args.notNull(response, "HTTP response");
 
-        final Iterator<Header> it = response.headerIterator("Allow");
+        final Iterator<HeaderElement> it = MessageSupport.iterate(response, "Allow");
         final Set<String> methods = new HashSet<>();
         while (it.hasNext()) {
-            final Header header = it.next();
-            final HeaderElement[] elements = header.getElements();
-            for (final HeaderElement element : elements) {
-                methods.add(element.getName());
-            }
+            final HeaderElement element = it.next();
+            methods.add(element.getName());
         }
         return methods;
     }

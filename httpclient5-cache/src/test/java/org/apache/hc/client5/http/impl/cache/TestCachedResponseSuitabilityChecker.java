@@ -33,7 +33,6 @@ import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.junit.Assert;
@@ -60,7 +59,7 @@ public class TestCachedResponseSuitabilityChecker {
         nineSecondsAgo = new Date(now.getTime() - 9 * 1000L);
 
         host = new HttpHost("foo.example.com");
-        request = new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1);
+        request = new BasicHttpRequest("GET", "/foo");
         entry = HttpTestUtils.makeCacheEntry();
 
         impl = new CachedResponseSuitabilityChecker(CacheConfig.DEFAULT);
@@ -253,7 +252,7 @@ public class TestCachedResponseSuitabilityChecker {
 
     @Test
     public void testSuitableIfRequestMethodisHEAD() {
-        final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo", HttpVersion.HTTP_1_1);
+        final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo");
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),
                 new BasicHeader("Cache-Control", "max-age=3600"),
@@ -316,7 +315,7 @@ public class TestCachedResponseSuitabilityChecker {
 
     @Test
     public void testSuitableForHEADIfHeadResponseCachingEnabledAndEntryDoesNotSpecifyARequestMethod() {
-        final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo", HttpVersion.HTTP_1_1);
+        final HttpRequest headRequest = new BasicHttpRequest("HEAD", "/foo");
         impl = new CachedResponseSuitabilityChecker(CacheConfig.custom().build());
         final Header[] headers = {
                 new BasicHeader("Date", DateUtils.formatDate(tenSecondsAgo)),

@@ -41,14 +41,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.sync.ResponseHandler;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.bootstrap.io.HttpServer;
-import org.apache.hc.core5.http.bootstrap.io.ServerBootstrap;
+import org.apache.hc.core5.http.impl.io.bootstrap.HttpServer;
+import org.apache.hc.core5.http.impl.io.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.ResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.After;
 import org.junit.Assert;
@@ -71,7 +71,8 @@ public class TestFutureRequestExecutionService {
 
                 @Override
                 public void handle(
-                        final HttpRequest request, final HttpResponse response,
+                        final ClassicHttpRequest request,
+                        final ClassicHttpResponse response,
                         final HttpContext context) throws HttpException, IOException {
                     try {
                         while(blocked.get()) {
@@ -80,7 +81,7 @@ public class TestFutureRequestExecutionService {
                     } catch (final InterruptedException e) {
                         throw new IllegalStateException(e);
                     }
-                    response.setStatusCode(200);
+                    response.setCode(200);
                 }
             }).create();
 
@@ -187,8 +188,8 @@ public class TestFutureRequestExecutionService {
     private final class OkidokiHandler implements ResponseHandler<Boolean> {
         @Override
         public Boolean handleResponse(
-                final HttpResponse response) throws IOException {
-            return response.getStatusLine().getStatusCode() == 200;
+                final ClassicHttpResponse response) throws IOException {
+            return response.getCode() == 200;
         }
     }
 

@@ -32,12 +32,12 @@ import java.util.Locale;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.entity.DecompressingEntity;
 import org.apache.hc.client5.http.entity.DeflateInputStream;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HeaderElement;
-import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
@@ -56,10 +56,8 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * @since 4.1
  *
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class ResponseContentEncoding implements HttpResponseInterceptor {
-
-    public static final String UNCOMPRESSED = "http.client.response.uncompressed";
 
     private final static InputStreamFactory GZIP = new InputStreamFactory() {
 
@@ -123,8 +121,8 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
     @Override
     public void process(
             final HttpResponse response,
+            final EntityDetails entity,
             final HttpContext context) throws HttpException, IOException {
-        final HttpEntity entity = response.getEntity();
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final RequestConfig requestConfig = clientContext.getRequestConfig();
@@ -139,10 +137,10 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
                     final String codecname = codec.getName().toLowerCase(Locale.ROOT);
                     final InputStreamFactory decoderFactory = decoderRegistry.lookup(codecname);
                     if (decoderFactory != null) {
-                        response.setEntity(new DecompressingEntity(response.getEntity(), decoderFactory));
-                        response.removeHeaders("Content-Length");
-                        response.removeHeaders("Content-Encoding");
-                        response.removeHeaders("Content-MD5");
+//                        response.setEntity(new DecompressingEntity(response.getEntity(), decoderFactory));
+//                        response.removeHeaders("Content-Length");
+//                        response.removeHeaders("Content-Encoding");
+//                        response.removeHeaders("Content-MD5");
                     } else {
                         if (!"identity".equals(codecname) && !ignoreUnknown) {
                             throw new HttpException("Unsupported Content-Encoding: " + codec.getName());

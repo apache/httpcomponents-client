@@ -30,14 +30,15 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import org.apache.hc.client5.http.cache.Resource;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Cache resource backed by a byte array on the heap.
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class HeapResource implements Resource {
 
     private static final long serialVersionUID = -2078599905620463394L;

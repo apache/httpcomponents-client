@@ -34,10 +34,10 @@ import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * This example demonstrates the use of a local HTTP context populated with
@@ -56,12 +56,12 @@ public class ClientCustomContext {
             localContext.setCookieStore(cookieStore);
 
             HttpGet httpget = new HttpGet("http://httpbin.org/cookies");
-            System.out.println("Executing request " + httpget.getRequestLine());
+            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
 
             // Pass local context as a parameter
             try (CloseableHttpResponse response = httpclient.execute(httpget, localContext)) {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response.getCode() + " " + response.getReasonPhrase());
                 List<Cookie> cookies = cookieStore.getCookies();
                 for (int i = 0; i < cookies.size(); i++) {
                     System.out.println("Local cookie: " + cookies.get(i));

@@ -53,29 +53,28 @@ import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.config.ConnectionConfig;
-import org.apache.hc.core5.http.config.MessageConstraints;
+import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.config.SocketConfig;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.impl.DefaultHttpResponseFactory;
+import org.apache.hc.core5.http.impl.io.DefaultClassicHttpResponseFactory;
 import org.apache.hc.core5.http.impl.io.DefaultHttpRequestWriterFactory;
 import org.apache.hc.core5.http.io.HttpMessageParser;
 import org.apache.hc.core5.http.io.HttpMessageParserFactory;
 import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicLineParser;
 import org.apache.hc.core5.http.message.LineParser;
@@ -92,10 +91,10 @@ public class ClientConfiguration {
 
         // Use custom message parser / writer to customize the way HTTP
         // messages are parsed from and written out to the data stream.
-        HttpMessageParserFactory<HttpResponse> responseParserFactory = new DefaultHttpResponseParserFactory() {
+        HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory = new DefaultHttpResponseParserFactory() {
 
             @Override
-            public HttpMessageParser<HttpResponse> create(MessageConstraints constraints) {
+            public HttpMessageParser<ClassicHttpResponse> create(H1Config h1Config) {
                 LineParser lineParser = new BasicLineParser() {
 
                     @Override
@@ -108,18 +107,18 @@ public class ClientConfiguration {
                     }
 
                 };
-                return new LenientHttpResponseParser(lineParser, DefaultHttpResponseFactory.INSTANCE, constraints);
+                return new LenientHttpResponseParser(lineParser, DefaultClassicHttpResponseFactory.INSTANCE, h1Config);
             }
 
         };
-        HttpMessageWriterFactory<HttpRequest> requestWriterFactory = new DefaultHttpRequestWriterFactory();
+        HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory = new DefaultHttpRequestWriterFactory();
 
         // Use a custom connection factory to customize the process of
         // initialization of outgoing HTTP connections. Beside standard connection
         // configuration parameters HTTP connection factory can define message
         // parser / writer routines to be employed by individual connections.
         HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory = new ManagedHttpClientConnectionFactory(
-                requestWriterFactory, responseParserFactory);
+                H1Config.DEFAULT, requestWriterFactory, responseParserFactory);
 
         // Client HTTP connection objects when fully initialized can be bound to
         // an arbitrary network socket. The process of network socket initialization,
@@ -167,7 +166,7 @@ public class ClientConfiguration {
         connManager.setValidateAfterInactivity(1000);
 
         // Create message constraints
-        MessageConstraints messageConstraints = MessageConstraints.custom()
+        H1Config messageConstraints = H1Config.custom()
             .setMaxHeaderCount(200)
             .setMaxLineLength(2000)
             .build();
@@ -176,7 +175,6 @@ public class ClientConfiguration {
             .setMalformedInputAction(CodingErrorAction.IGNORE)
             .setUnmappableInputAction(CodingErrorAction.IGNORE)
             .setCharset(StandardCharsets.UTF_8)
-            .setMessageConstraints(messageConstraints)
             .build();
         // Configure the connection manager to use connection configuration either
         // by default or for a specific host.
@@ -228,12 +226,10 @@ public class ClientConfiguration {
             context.setCookieStore(cookieStore);
             context.setCredentialsProvider(credentialsProvider);
 
-            System.out.println("executing request " + httpget.getURI());
+            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             try (CloseableHttpResponse response = httpclient.execute(httpget, context)) {
-                HttpEntity entity = response.getEntity();
-
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response.getCode() + " " + response.getReasonPhrase());
                 System.out.println(EntityUtils.toString(response.getEntity()));
 
                 // Once the request has been executed the local context can

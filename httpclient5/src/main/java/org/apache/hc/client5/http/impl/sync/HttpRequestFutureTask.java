@@ -112,7 +112,7 @@ public class HttpRequestFutureTask<V> extends FutureTask<V> {
 
     @Override
     public String toString() {
-        return request.getRequestLine().getUri();
+        return request.toString();
     }
 
 }

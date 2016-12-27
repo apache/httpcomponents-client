@@ -61,7 +61,7 @@ public class TestRequestBuilder {
         final String uriExpected = String.format("https://somehost.com/stuff?parameter1=value1&parameter2=%s&parameter3=%s", encodedData1, encodedData2);
 
         final HttpUriRequest request = requestBuilder.build();
-        Assert.assertEquals(uriExpected, request.getURI().toString());
+        Assert.assertEquals(uriExpected, request.getUri().toString());
     }
 
     private NameValuePair[] createParameters() {

@@ -42,7 +42,6 @@ import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.InvalidCredentialsException;
 import org.apache.hc.client5.http.auth.KerberosCredentials;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
-import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -59,7 +58,6 @@ import org.ietf.jgss.Oid;
 /**
  * @since 4.2
  */
-@NotThreadSafe
 public abstract class GGSSchemeBase implements AuthScheme {
 
     enum State {

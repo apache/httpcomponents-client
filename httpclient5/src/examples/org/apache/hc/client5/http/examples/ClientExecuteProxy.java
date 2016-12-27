@@ -30,10 +30,10 @@ package org.apache.hc.client5.http.examples;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * How to send a request via proxy.
@@ -53,11 +53,12 @@ public class ClientExecuteProxy {
             HttpGet request = new HttpGet("/get");
             request.setConfig(config);
 
-            System.out.println("Executing request " + request.getRequestLine() + " to " + target + " via " + proxy);
+            System.out.println("Executing request " + request.getMethod() + " " + request.getUri() +
+                    " via " + proxy);
 
             try (CloseableHttpResponse response = httpclient.execute(target, request)) {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response.getCode() + " " + response.getReasonPhrase());
                 System.out.println(EntityUtils.toString(response.getEntity()));
             }
         }

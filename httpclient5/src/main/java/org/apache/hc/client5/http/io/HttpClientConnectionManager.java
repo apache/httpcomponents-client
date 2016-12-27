@@ -85,7 +85,7 @@ public interface HttpClientConnectionManager {
      * @param validDuration the duration of time this connection is valid for reuse.
      * @param timeUnit the time unit.
      *
-     * @see #closeExpiredConnections()
+     * @see #closeExpired()
      */
     void releaseConnection(
             HttpClientConnection conn, Object newState, long validDuration, TimeUnit timeUnit);
@@ -151,9 +151,9 @@ public interface HttpClientConnectionManager {
      * @param idletime  the idle time of connections to be closed
      * @param tunit     the unit for the {@code idletime}
      *
-     * @see #closeExpiredConnections()
+     * @see #closeExpired()
      */
-    void closeIdleConnections(long idletime, TimeUnit tunit);
+    void closeIdle(long idletime, TimeUnit tunit);
 
     /**
      * Closes all expired connections in the pool.
@@ -164,7 +164,7 @@ public interface HttpClientConnectionManager {
      * Times will be checked with milliseconds precision.
      * </p>
      */
-    void closeExpiredConnections();
+    void closeExpired();
 
     /**
      * Shuts down this connection manager and releases allocated resources.

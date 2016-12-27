@@ -30,7 +30,9 @@ package org.apache.hc.client5.http.protocol;
 import java.io.IOException;
 
 import org.apache.hc.client5.http.RouteInfo;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -48,7 +50,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class RequestClientConnControl implements HttpRequestInterceptor {
 
     private final Logger log = LogManager.getLogger(getClass());
@@ -60,11 +62,11 @@ public class RequestClientConnControl implements HttpRequestInterceptor {
     }
 
     @Override
-    public void process(final HttpRequest request, final HttpContext context)
+    public void process(final HttpRequest request, final EntityDetails entity, final HttpContext context)
             throws HttpException, IOException {
         Args.notNull(request, "HTTP request");
 
-        final String method = request.getRequestLine().getMethod();
+        final String method = request.getMethod();
         if (method.equalsIgnoreCase("CONNECT")) {
             request.setHeader(PROXY_CONN_DIRECTIVE, HeaderElements.KEEP_ALIVE);
             return;

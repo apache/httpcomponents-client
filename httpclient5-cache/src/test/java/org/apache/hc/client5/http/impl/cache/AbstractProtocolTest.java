@@ -31,16 +31,15 @@ import java.util.HashMap;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.impl.sync.ClientExecChain;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.easymock.EasyMock;
 import org.easymock.IExpectationSetters;
 import org.junit.Before;
@@ -55,14 +54,14 @@ public abstract class AbstractProtocolTest {
     protected HttpEntity body;
     protected ClientExecChain mockBackend;
     protected HttpCache mockCache;
-    protected HttpRequestWrapper request;
+    protected RoutedHttpRequest request;
     protected HttpCacheContext context;
-    protected CloseableHttpResponse originResponse;
+    protected ClassicHttpResponse originResponse;
     protected CacheConfig config;
     protected ClientExecChain impl;
     protected HttpCache cache;
 
-    public static HttpRequestWrapper eqRequest(final HttpRequestWrapper in) {
+    public static RoutedHttpRequest eqRequest(final RoutedHttpRequest in) {
         EasyMock.reportMatcher(new RequestEquivalent(in));
         return null;
     }
@@ -72,7 +71,7 @@ public abstract class AbstractProtocolTest {
         return null;
     }
 
-    public static CloseableHttpResponse eqCloseableResponse(final CloseableHttpResponse in) {
+    public static ClassicHttpResponse eqCloseableResponse(final ClassicHttpResponse in) {
         EasyMock.reportMatcher(new ResponseEquivalent(in));
         return null;
     }
@@ -85,12 +84,11 @@ public abstract class AbstractProtocolTest {
 
         body = HttpTestUtils.makeBody(entityLength);
 
-        request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/foo", HttpVersion.HTTP_1_1), host);
+        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/foo"), route);
 
         context = HttpCacheContext.create();
-        context.setTargetHost(host);
 
-        originResponse = Proxies.enhanceResponse(HttpTestUtils.make200Response());
+        originResponse = HttpTestUtils.make200Response();
 
         config = CacheConfig.custom()
             .setMaxCacheEntries(MAX_ENTRIES)
@@ -122,23 +120,21 @@ public abstract class AbstractProtocolTest {
         EasyMock.verify(mockCache);
     }
 
-    protected IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequest() throws Exception {
-        final CloseableHttpResponse resp = mockBackend.execute(
-                EasyMock.isA(HttpRoute.class),
-                EasyMock.isA(HttpRequestWrapper.class),
+    protected IExpectationSetters<ClassicHttpResponse> backendExpectsAnyRequest() throws Exception {
+        final ClassicHttpResponse resp = mockBackend.execute(
+                EasyMock.isA(RoutedHttpRequest.class),
                 EasyMock.isA(HttpClientContext.class),
                 EasyMock.<HttpExecutionAware>isNull());
         return EasyMock.expect(resp);
     }
 
-    protected IExpectationSetters<CloseableHttpResponse> backendExpectsAnyRequestAndReturn(
-            final HttpResponse reponse) throws Exception {
-        final CloseableHttpResponse resp = mockBackend.execute(
-                EasyMock.isA(HttpRoute.class),
-                EasyMock.isA(HttpRequestWrapper.class),
+    protected IExpectationSetters<ClassicHttpResponse> backendExpectsAnyRequestAndReturn(
+            final ClassicHttpResponse response) throws Exception {
+        final ClassicHttpResponse resp = mockBackend.execute(
+                EasyMock.isA(RoutedHttpRequest.class),
                 EasyMock.isA(HttpClientContext.class),
                 EasyMock.<HttpExecutionAware>isNull());
-        return EasyMock.expect(resp).andReturn(Proxies.enhanceResponse(reponse));
+        return EasyMock.expect(resp).andReturn(response);
     }
 
     protected void emptyMockCacheExpectsNoPuts() throws Exception {

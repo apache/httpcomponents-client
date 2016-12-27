@@ -33,7 +33,7 @@ import java.util.zip.GZIPInputStream;
 import org.apache.hc.core5.http.HttpEntity;
 
 /**
- * {@link org.apache.hc.core5.http.entity.HttpEntityWrapper} for handling gzip
+ * {@link org.apache.hc.core5.http.io.entity.HttpEntityWrapper} for handling gzip
  * Content Coded responses.
  *
  * @since 4.1

@@ -32,24 +32,22 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
 
-import org.apache.hc.client5.http.io.EofSensorInputStream;
-import org.apache.hc.client5.http.io.EofSensorWatcher;
-import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.entity.HttpEntityWrapper;
+import org.apache.hc.core5.http.io.EofSensorInputStream;
+import org.apache.hc.core5.http.io.EofSensorWatcher;
+import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 
 /**
  * A wrapper class for {@link HttpEntity} enclosed in a response message.
  *
  * @since 4.3
  */
-@NotThreadSafe
 class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher {
 
     private final ConnectionHolder connHolder;
 
-    public static void enchance(final HttpResponse response, final ConnectionHolder connHolder) {
+    public static void enchance(final ClassicHttpResponse response, final ConnectionHolder connHolder) {
         final HttpEntity entity = response.getEntity();
         if (entity != null && entity.isStreaming() && connHolder != null) {
             response.setEntity(new ResponseEntityProxy(entity, connHolder));

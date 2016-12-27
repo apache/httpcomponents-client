@@ -32,10 +32,12 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HeaderElements;
@@ -45,12 +47,14 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.MessageSupport;
 
 /**
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class ResponseProtocolCompliance {
 
     private static final String UNEXPECTED_100_CONTINUE = "The incoming request did not contain a "
@@ -66,7 +70,7 @@ class ResponseProtocolCompliance {
      * @param response The {@link HttpResponse} from the origin server
      * @throws IOException Bad things happened
      */
-    public void ensureProtocolCompliance(final HttpRequestWrapper request, final HttpResponse response)
+    public void ensureProtocolCompliance(final RoutedHttpRequest request, final ClassicHttpResponse response)
             throws IOException {
         if (backendResponseMustNotHaveBody(request, response)) {
             consumeBody(response);
@@ -90,7 +94,7 @@ class ResponseProtocolCompliance {
         warningsWithNonMatchingWarnDatesAreRemoved(response);
     }
 
-    private void consumeBody(final HttpResponse response) throws IOException {
+    private void consumeBody(final ClassicHttpResponse response) throws IOException {
         final HttpEntity body = response.getEntity();
         if (body != null) {
             IOUtils.consume(body);
@@ -140,7 +144,7 @@ class ResponseProtocolCompliance {
         for (final Header h : hdrs) {
             final StringBuilder buf = new StringBuilder();
             boolean first = true;
-            for (final HeaderElement elt : h.getElements()) {
+            for (final HeaderElement elt : MessageSupport.parse(h)) {
                 if ("identity".equalsIgnoreCase(elt.getName())) {
                     modified = true;
                 } else {
@@ -173,9 +177,9 @@ class ResponseProtocolCompliance {
     }
 
     private void ensurePartialContentIsNotSentToAClientThatDidNotRequestIt(final HttpRequest request,
-            final HttpResponse response) throws IOException {
+            final ClassicHttpResponse response) throws IOException {
         if (request.getFirstHeader(HeaderConstants.RANGE) != null
-                || response.getStatusLine().getStatusCode() != HttpStatus.SC_PARTIAL_CONTENT) {
+                || response.getCode() != HttpStatus.SC_PARTIAL_CONTENT) {
             return;
         }
 
@@ -185,11 +189,11 @@ class ResponseProtocolCompliance {
 
     private void ensure200ForOPTIONSRequestWithNoBodyHasContentLengthZero(final HttpRequest request,
             final HttpResponse response) {
-        if (!request.getRequestLine().getMethod().equalsIgnoreCase(HeaderConstants.OPTIONS_METHOD)) {
+        if (!request.getMethod().equalsIgnoreCase(HeaderConstants.OPTIONS_METHOD)) {
             return;
         }
 
-        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+        if (response.getCode() != HttpStatus.SC_OK) {
             return;
         }
 
@@ -203,7 +207,7 @@ class ResponseProtocolCompliance {
                 "Content-Language", HttpHeaders.CONTENT_LENGTH, "Content-MD5",
                 "Content-Range", HttpHeaders.CONTENT_TYPE, HeaderConstants.LAST_MODIFIED
         };
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
+        if (response.getCode() == HttpStatus.SC_NOT_MODIFIED) {
             for(final String hdr : disallowedEntityHeaders) {
                 response.removeHeaders(hdr);
             }
@@ -211,15 +215,15 @@ class ResponseProtocolCompliance {
     }
 
     private boolean backendResponseMustNotHaveBody(final HttpRequest request, final HttpResponse backendResponse) {
-        return HeaderConstants.HEAD_METHOD.equals(request.getRequestLine().getMethod())
-                || backendResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NO_CONTENT
-                || backendResponse.getStatusLine().getStatusCode() == HttpStatus.SC_RESET_CONTENT
-                || backendResponse.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_MODIFIED;
+        return HeaderConstants.HEAD_METHOD.equals(request.getMethod())
+                || backendResponse.getCode() == HttpStatus.SC_NO_CONTENT
+                || backendResponse.getCode() == HttpStatus.SC_RESET_CONTENT
+                || backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED;
     }
 
-    private void requestDidNotExpect100ContinueButResponseIsOne(final HttpRequestWrapper request,
-            final HttpResponse response) throws IOException {
-        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CONTINUE) {
+    private void requestDidNotExpect100ContinueButResponseIsOne(final RoutedHttpRequest request,
+            final ClassicHttpResponse response) throws IOException {
+        if (response.getCode() != HttpStatus.SC_CONTINUE) {
             return;
         }
 
@@ -232,10 +236,11 @@ class ResponseProtocolCompliance {
         throw new ClientProtocolException(UNEXPECTED_100_CONTINUE);
     }
 
-    private void transferEncodingIsNotReturnedTo1_0Client(final HttpRequestWrapper request,
+    private void transferEncodingIsNotReturnedTo1_0Client(final RoutedHttpRequest request,
             final HttpResponse response) {
         final HttpRequest originalRequest = request.getOriginal();
-        if (originalRequest.getProtocolVersion().compareToVersion(HttpVersion.HTTP_1_1) >= 0) {
+        final ProtocolVersion version = originalRequest.getVersion() != null ? originalRequest.getVersion() : HttpVersion.DEFAULT;
+        if (version.compareToVersion(HttpVersion.HTTP_1_1) >= 0) {
             return;
         }
 

@@ -40,7 +40,7 @@
   <packaging>bundle</packaging>
 
   <properties>
-    <httpcore.osgi.import.version>"5.0-alpha1"</httpcore.osgi.import.version>
+    <httpcore.osgi.import.version>"5.0-alpha2"</httpcore.osgi.import.version>
     <log4j.osgi.import.version>"2.7"</log4j.osgi.import.version>
     <pax.url.version>2.4.1</pax.url.version>
     <pax.exam.version>4.5.0</pax.exam.version>
@@ -198,17 +198,7 @@
                 org.osgi.framework,
                 org.osgi.service.cm,
                 org.apache.logging.log4j;version=${log4j.osgi.import.version},
-                org.apache.hc.core5.concurrent;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.pool;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.ssl;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.util;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http.config;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http.entity;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http.message;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http.io;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http.protocol;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http.impl.io;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.*;version=${httpcore.osgi.import.version},
                 net.sf.ehcache.*;resolution:=optional,
                 net.spy.memcached.*;resolution:=optional
             </Import-Package>

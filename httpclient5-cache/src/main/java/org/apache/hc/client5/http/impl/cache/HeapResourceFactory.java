@@ -33,14 +33,15 @@ import java.io.InputStream;
 import org.apache.hc.client5.http.cache.InputLimit;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Generates {@link Resource} instances stored entirely in heap.
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class HeapResourceFactory implements ResourceFactory {
 
     @Override

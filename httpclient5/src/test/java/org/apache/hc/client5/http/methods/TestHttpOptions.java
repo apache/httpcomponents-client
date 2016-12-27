@@ -29,9 +29,7 @@ package org.apache.hc.client5.http.methods;
 
 import java.util.Set;
 
-import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.apache.hc.core5.http.message.BasicStatusLine;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,13 +37,11 @@ public class TestHttpOptions {
 
     @Test
     public void testMultipleAllows() {
-        final ProtocolVersion proto = new ProtocolVersion("HTTP", 1, 1);
-        final BasicStatusLine line = new BasicStatusLine(proto, 200, "test reason");
-        final BasicHttpResponse resp = new BasicHttpResponse(line);
+        final BasicHttpResponse resp = new BasicHttpResponse(200, "test reason");
         resp.addHeader("Allow", "POST");
         resp.addHeader("Allow", "GET");
 
-        final HttpOptions opt = new HttpOptions();
+        final HttpOptions opt = new HttpOptions("*");
         final Set<String> methodsName = opt.getAllowedMethods(resp);
 
         Assert.assertTrue(methodsName.contains("POST"));

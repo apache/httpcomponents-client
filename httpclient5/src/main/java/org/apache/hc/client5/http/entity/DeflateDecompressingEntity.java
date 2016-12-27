@@ -32,7 +32,7 @@ import java.io.InputStream;
 import org.apache.hc.core5.http.HttpEntity;
 
 /**
- * {@link org.apache.hc.core5.http.entity.HttpEntityWrapper} responsible for
+ * {@link org.apache.hc.core5.http.io.entity.HttpEntityWrapper} responsible for
  * handling deflate Content Coded responses. In RFC2616 terms, {@code deflate}
  * means a {@code zlib} stream as defined in RFC1950. Some server
  * implementations have misinterpreted RFC2616 to mean that a

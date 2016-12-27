@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.DnsResolver;
-import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
@@ -37,7 +36,6 @@ import org.ietf.jgss.Oid;
  *
  * @since 4.2
  */
-@NotThreadSafe
 public class SPNegoScheme extends GGSSchemeBase {
 
     private static final String SPNEGO_OID = "1.3.6.1.5.5.2";

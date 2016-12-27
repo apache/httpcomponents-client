@@ -32,13 +32,10 @@ import java.io.InputStream;
 
 import org.apache.hc.client5.http.impl.sync.AbstractResponseHandler;
 import org.apache.hc.client5.http.protocol.HttpResponseException;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.StatusLine;
-import org.apache.hc.core5.http.entity.EntityUtils;
-import org.apache.hc.core5.http.entity.StringEntity;
-import org.apache.hc.core5.http.message.BasicStatusLine;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -50,10 +47,9 @@ public class TestAbstractResponseHandler {
 
     @Test
     public void testSuccessfulResponse() throws Exception {
-        final StatusLine sl = new BasicStatusLine(HttpVersion.HTTP_1_1, 200, "OK");
-        final HttpResponse response = Mockito.mock(HttpResponse.class);
+        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
         final HttpEntity entity = new StringEntity("42");
-        Mockito.when(response.getStatusLine()).thenReturn(sl);
+        Mockito.when(response.getCode()).thenReturn(200);
         Mockito.when(response.getEntity()).thenReturn(entity);
 
         final AbstractResponseHandler<Integer> handler = new AbstractResponseHandler<Integer>() {
@@ -74,9 +70,8 @@ public class TestAbstractResponseHandler {
         final HttpEntity entity = Mockito.mock(HttpEntity.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);
         Mockito.when(entity.getContent()).thenReturn(instream);
-        final StatusLine sl = new BasicStatusLine(HttpVersion.HTTP_1_1, 404, "Not Found");
-        final HttpResponse response = Mockito.mock(HttpResponse.class);
-        Mockito.when(response.getStatusLine()).thenReturn(sl);
+        final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
+        Mockito.when(response.getCode()).thenReturn(404);
         Mockito.when(response.getEntity()).thenReturn(entity);
 
         final BasicResponseHandler handler = new BasicResponseHandler();
@@ -85,7 +80,6 @@ public class TestAbstractResponseHandler {
             Assert.fail("HttpResponseException expected");
         } catch (final HttpResponseException ex) {
             Assert.assertEquals(404, ex.getStatusCode());
-            Assert.assertEquals("Not Found", ex.getMessage());
         }
         Mockito.verify(entity).getContent();
         Mockito.verify(instream).close();

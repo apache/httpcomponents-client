@@ -37,17 +37,17 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.io.ConnectionRequest;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.MalformedChunkCodingException;
-import org.apache.hc.core5.http.entity.BasicHttpEntity;
-import org.apache.hc.core5.http.entity.EntityUtils;
 import org.apache.hc.core5.http.impl.io.DefaultBHttpServerConnection;
 import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.pool.PoolStats;
@@ -68,7 +68,7 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         final HttpHost target = start();
         // Get some random data
         final HttpGet httpget = new HttpGet("/random/20000");
-        final HttpResponse response = this.httpclient.execute(target, httpget);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
 
         ConnectionRequest connreq = this.connManager.requestConnection(new HttpRoute(target), null);
         try {
@@ -104,7 +104,7 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         final HttpHost target = start();
         // Get some random data
         final HttpGet httpget = new HttpGet("/random/20000");
-        final HttpResponse response = this.httpclient.execute(target, httpget);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
 
         ConnectionRequest connreq = this.connManager.requestConnection(new HttpRoute(target), null);
         try {
@@ -142,7 +142,7 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
 
         // Get some random data
         final HttpGet httpget = new HttpGet("/random/20000");
-        final HttpResponse response = this.httpclient.execute(target, httpget);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
 
         ConnectionRequest connreq = this.connManager.requestConnection(new HttpRoute(target), null);
         try {
@@ -171,8 +171,8 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
 
             @Override
             public void handle(
-                    final HttpRequest request,
-                    final HttpResponse response,
+                    final ClassicHttpRequest request,
+                    final ClassicHttpResponse response,
                     final HttpContext context) throws HttpException, IOException {
                 final BasicHttpEntity entity = new BasicHttpEntity() {
 
@@ -210,7 +210,7 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
 
         // Get some random data
         final HttpGet httpget = new HttpGet("/dropdead");
-        final HttpResponse response = this.httpclient.execute(target, httpget);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
 
         ConnectionRequest connreq = this.connManager.requestConnection(new HttpRoute(target), null);
         try {

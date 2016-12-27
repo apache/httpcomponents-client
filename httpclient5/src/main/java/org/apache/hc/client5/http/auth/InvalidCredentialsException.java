@@ -26,7 +26,8 @@
  */
 package org.apache.hc.client5.http.auth;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Authentication credentials required to respond to a authentication
@@ -35,7 +36,7 @@ import org.apache.hc.core5.annotation.Immutable;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class InvalidCredentialsException extends AuthenticationException {
 
     private static final long serialVersionUID = -4834003835215460648L;

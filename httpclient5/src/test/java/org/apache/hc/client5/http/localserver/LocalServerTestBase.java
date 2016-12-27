@@ -33,9 +33,9 @@ import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.bootstrap.io.HttpServer;
-import org.apache.hc.core5.http.bootstrap.io.ServerBootstrap;
 import org.apache.hc.core5.http.config.SocketConfig;
+import org.apache.hc.core5.http.impl.io.bootstrap.HttpServer;
+import org.apache.hc.core5.http.impl.io.bootstrap.ServerBootstrap;
 import org.junit.After;
 import org.junit.Before;
 
@@ -45,8 +45,6 @@ import org.junit.Before;
 public abstract class LocalServerTestBase {
 
     public enum ProtocolScheme { http, https };
-
-    public static final String ORIGIN = "TEST/1.1";
 
     protected final ProtocolScheme scheme;
 
@@ -75,7 +73,6 @@ public abstract class LocalServerTestBase {
                 .build();
         this.serverBootstrap = ServerBootstrap.bootstrap()
                 .setSocketConfig(socketConfig)
-                .setServerInfo(ORIGIN)
                 .registerHandler("/echo/*", new EchoHandler())
                 .registerHandler("/random/*", new RandomHandler());
         if (this.scheme.equals(ProtocolScheme.https)) {

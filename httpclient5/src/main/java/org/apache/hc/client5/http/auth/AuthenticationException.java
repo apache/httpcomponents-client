@@ -26,7 +26,6 @@
  */
 package org.apache.hc.client5.http.auth;
 
-import org.apache.hc.core5.annotation.Immutable;
 import org.apache.hc.core5.http.ProtocolException;
 
 /**
@@ -35,7 +34,6 @@ import org.apache.hc.core5.http.ProtocolException;
  *
  * @since 4.0
  */
-@Immutable
 public class AuthenticationException extends ProtocolException {
 
     private static final long serialVersionUID = -6794031905674764776L;

@@ -31,8 +31,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.zip.Deflater;
 
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.entity.ByteArrayEntity;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.Assert;
 import org.junit.Test;
 

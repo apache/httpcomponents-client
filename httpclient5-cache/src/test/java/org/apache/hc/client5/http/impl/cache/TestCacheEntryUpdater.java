@@ -38,7 +38,6 @@ import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.Before;
@@ -69,8 +68,7 @@ public class TestCacheEntryUpdater {
         eightSecondsAgo = new Date(now.getTime() - 8000L);
         tenSecondsAgo = new Date(now.getTime() - 10000L);
 
-        response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
-                HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        response = new BasicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
 
         impl = new CacheEntryUpdater();
     }
@@ -227,8 +225,7 @@ public class TestCacheEntryUpdater {
     @Test
     public void cannotUpdateFromANon304OriginResponse() throws Exception {
         entry = HttpTestUtils.makeCacheEntry();
-        response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
-                HttpStatus.SC_OK, "OK");
+        response = new BasicHttpResponse(HttpStatus.SC_OK, "OK");
         try {
             impl.updateCacheEntry("A", entry, new Date(), new Date(),
                     response);

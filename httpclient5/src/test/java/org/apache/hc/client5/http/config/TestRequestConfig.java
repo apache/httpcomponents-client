@@ -70,7 +70,6 @@ public class TestRequestConfig {
                 .setExpectContinueEnabled(true)
                 .setAuthenticationEnabled(false)
                 .setRedirectsEnabled(false)
-                .setRelativeRedirectsAllowed(false)
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(100)
                 .setCookieSpec(CookieSpecs.STANDARD)

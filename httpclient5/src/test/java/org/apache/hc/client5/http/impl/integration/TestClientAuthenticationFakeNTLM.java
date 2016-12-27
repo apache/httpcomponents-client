@@ -35,16 +35,14 @@ import org.apache.hc.client5.http.impl.sync.HttpClients;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.entity.EntityUtils;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
-import org.apache.hc.core5.http.message.BasicStatusLine;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Test;
@@ -58,13 +56,10 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            response.setStatusLine(new BasicStatusLine(
-                    HttpVersion.HTTP_1_1,
-                    HttpStatus.SC_UNAUTHORIZED,
-                    "Authentication Required"));
+            response.setCode(HttpStatus.SC_UNAUTHORIZED);
             response.setHeader("Connection", "Keep-Alive");
             response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "NTLM");
         }
@@ -87,10 +82,10 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         final HttpContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
-                response.getStatusLine().getStatusCode());
+                response.getCode());
     }
 
     static class NtlmType2MessageResponseHandler implements HttpRequestHandler {
@@ -103,13 +98,10 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            response.setStatusLine(new BasicStatusLine(
-                    HttpVersion.HTTP_1_1,
-                    HttpStatus.SC_UNAUTHORIZED,
-                    "Authentication Required"));
+            response.setCode(HttpStatus.SC_UNAUTHORIZED);
             response.setHeader("Connection", "Keep-Alive");
             if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
                 response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "NTLM");
@@ -137,10 +129,10 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         final HttpContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
-                response.getStatusLine().getStatusCode());
+                response.getCode());
     }
 
     @Test
@@ -161,10 +153,10 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         final HttpContext context = HttpClientContext.create();
         final HttpGet httpget = new HttpGet("/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
-                response.getStatusLine().getStatusCode());
+                response.getCode());
     }
 
     static class NtlmType2MessageOnlyResponseHandler implements HttpRequestHandler {
@@ -177,13 +169,10 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
 
         @Override
         public void handle(
-                final HttpRequest request,
-                final HttpResponse response,
+                final ClassicHttpRequest request,
+                final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            response.setStatusLine(new BasicStatusLine(
-                    HttpVersion.HTTP_1_1,
-                    HttpStatus.SC_UNAUTHORIZED,
-                    "Authentication Required"));
+            response.setCode(HttpStatus.SC_UNAUTHORIZED);
             response.setHeader("Connection", "Keep-Alive");
             response.setHeader(HttpHeaders.WWW_AUTHENTICATE, authenticateHeaderValue);
         }
@@ -204,10 +193,10 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
-                response.getStatusLine().getStatusCode());
+                response.getCode());
     }
 
     @Test
@@ -225,10 +214,10 @@ public class TestClientAuthenticationFakeNTLM extends LocalServerTestBase {
         context.setCredentialsProvider(credsProvider);
         final HttpGet httpget = new HttpGet("/");
 
-        final HttpResponse response = this.httpclient.execute(target, httpget, context);
+        final ClassicHttpResponse response = this.httpclient.execute(target, httpget, context);
         EntityUtils.consume(response.getEntity());
         Assert.assertEquals(HttpStatus.SC_UNAUTHORIZED,
-                response.getStatusLine().getStatusCode());
+                response.getCode());
     }
 
 }

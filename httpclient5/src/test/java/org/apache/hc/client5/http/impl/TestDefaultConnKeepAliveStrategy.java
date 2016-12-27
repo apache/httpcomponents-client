@@ -29,9 +29,7 @@ package org.apache.hc.client5.http.impl;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.apache.hc.core5.http.message.BasicStatusLine;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
@@ -52,8 +50,7 @@ public class TestDefaultConnKeepAliveStrategy {
     @Test
     public void testNoKeepAliveHeader() throws Exception {
         final HttpContext context = new BasicHttpContext(null);
-        final HttpResponse response = new BasicHttpResponse(
-                new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK"));
+        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         final long d = keepAliveStrat.getKeepAliveDuration(response, context);
         Assert.assertEquals(-1, d);
@@ -62,8 +59,7 @@ public class TestDefaultConnKeepAliveStrategy {
     @Test
     public void testEmptyKeepAliveHeader() throws Exception {
         final HttpContext context = new BasicHttpContext(null);
-        final HttpResponse response = new BasicHttpResponse(
-                new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK"));
+        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.addHeader("Keep-Alive", "timeout, max=20");
         final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         final long d = keepAliveStrat.getKeepAliveDuration(response, context);
@@ -73,8 +69,7 @@ public class TestDefaultConnKeepAliveStrategy {
     @Test
     public void testInvalidKeepAliveHeader() throws Exception {
         final HttpContext context = new BasicHttpContext(null);
-        final HttpResponse response = new BasicHttpResponse(
-                new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK"));
+        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.addHeader("Keep-Alive", "timeout=whatever, max=20");
         final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         final long d = keepAliveStrat.getKeepAliveDuration(response, context);
@@ -84,8 +79,7 @@ public class TestDefaultConnKeepAliveStrategy {
     @Test
     public void testKeepAliveHeader() throws Exception {
         final HttpContext context = new BasicHttpContext(null);
-        final HttpResponse response = new BasicHttpResponse(
-                new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK"));
+        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_OK);
         response.addHeader("Keep-Alive", "timeout=300, max=20");
         final ConnectionKeepAliveStrategy keepAliveStrat = new DefaultConnectionKeepAliveStrategy();
         final long d = keepAliveStrat.getKeepAliveDuration(response, context);

@@ -36,7 +36,8 @@ import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.client5.http.cookie.SetCookie;
 import org.apache.hc.client5.http.psl.PublicSuffixList;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -50,7 +51,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.4
  */
-@Immutable // dependencies are expected to be immutable or thread-safe
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class PublicSuffixDomainFilter implements CommonCookieAttributeHandler {
 
     private final CommonCookieAttributeHandler handler;

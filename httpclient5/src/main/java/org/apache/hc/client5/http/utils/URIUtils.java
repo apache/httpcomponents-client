@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Stack;
 
-import org.apache.hc.client5.http.RouteInfo;
-import org.apache.hc.core5.annotation.Immutable;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.net.URIAuthority;
+import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
 
@@ -44,7 +44,6 @@ import org.apache.hc.core5.util.TextUtils;
  *
  * @since 4.0
  */
-@Immutable
 public class URIUtils {
 
     /**
@@ -129,39 +128,6 @@ public class URIUtils {
         }
         uribuilder.setFragment(null);
         return uribuilder.build();
-    }
-
-    /**
-     * A convenience method that optionally converts the original {@link java.net.URI} either
-     * to a relative or an absolute form as required by the specified route.
-     *
-     * @param uri
-     *            original URI.
-     * @throws URISyntaxException
-     *             If the resulting URI is invalid.
-     *
-     * @since 4.4
-     */
-    public static URI rewriteURIForRoute(final URI uri, final RouteInfo route) throws URISyntaxException {
-        if (uri == null) {
-            return null;
-        }
-        if (route.getProxyHost() != null && !route.isTunnelled()) {
-            // Make sure the request URI is absolute
-            if (!uri.isAbsolute()) {
-                final HttpHost target = route.getTargetHost();
-                return rewriteURI(uri, target, true);
-            } else {
-                return rewriteURI(uri);
-            }
-        } else {
-            // Make sure the request URI is relative
-            if (uri.isAbsolute()) {
-                return rewriteURI(uri, null, true);
-            } else {
-                return rewriteURI(uri);
-            }
-        }
     }
 
     /**
@@ -367,6 +333,35 @@ public class URIUtils {
             uribuilder.setPort(target.getPort());
         }
         return uribuilder.build();
+    }
+
+    /**
+     * Convenience factory method for {@link URI} instances.
+     *
+     * @since 5.0
+     */
+    public static URI create(final HttpHost host, final String path) throws URISyntaxException {
+        final URIBuilder builder = new URIBuilder(path);
+        if (host != null) {
+            builder.setHost(host.getHostName()).setPort(host.getPort()).setScheme(host.getSchemeName());
+        }
+        return builder.build();
+    }
+
+    /**
+     * Convenience factory method for {@link URI} instances.
+     *
+     * @since 5.0
+     */
+    public static URI create(final String scheme, final URIAuthority host, final String path) throws URISyntaxException {
+        final URIBuilder builder = new URIBuilder(path);
+        if (scheme != null) {
+            builder.setScheme(scheme);
+        }
+        if (host != null) {
+            builder.setHost(host.getHostName()).setPort(host.getPort());
+        }
+        return builder.build();
     }
 
     /**

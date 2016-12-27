@@ -28,7 +28,8 @@ package org.apache.hc.client5.http.auth;
 
 import java.util.Locale;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.LangUtils;
@@ -42,7 +43,7 @@ import org.apache.hc.core5.util.LangUtils;
  * </p>
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class AuthScope {
 
     /**

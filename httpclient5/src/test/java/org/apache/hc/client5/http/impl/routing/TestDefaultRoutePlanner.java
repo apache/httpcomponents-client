@@ -33,7 +33,6 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
@@ -61,7 +60,7 @@ public class TestDefaultRoutePlanner {
     @Test
     public void testDirect() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80, "http");
-        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpContext context = new BasicHttpContext();
         final HttpRoute route = routePlanner.determineRoute(target, request, context);
@@ -76,7 +75,7 @@ public class TestDefaultRoutePlanner {
     public void testDirectDefaultPort() throws Exception {
         final HttpHost target = new HttpHost("somehost", -1, "https");
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(443);
-        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpContext context = new BasicHttpContext();
         final HttpRoute route = routePlanner.determineRoute(target, request, context);
@@ -90,7 +89,7 @@ public class TestDefaultRoutePlanner {
     public void testViaProxy() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80, "http");
         final HttpHost proxy = new HttpHost("proxy", 8080);
-        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpClientContext context = HttpClientContext.create();
         context.setRequestConfig(RequestConfig.custom().setProxy(proxy).build());
@@ -105,7 +104,7 @@ public class TestDefaultRoutePlanner {
 
     @Test(expected= ProtocolException.class)
     public void testNullTarget() throws Exception {
-        final HttpRequest request = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
+        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpContext context = new BasicHttpContext();
         routePlanner.determineRoute(null, request, context);

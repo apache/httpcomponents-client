@@ -58,7 +58,7 @@ abstract class AbstractMultipartForm {
 
     private static void writeBytes(
             final ByteArrayBuffer b, final OutputStream out) throws IOException {
-        out.write(b.buffer(), 0, b.length());
+        out.write(b.array(), 0, b.length());
     }
 
     private static void writeBytes(

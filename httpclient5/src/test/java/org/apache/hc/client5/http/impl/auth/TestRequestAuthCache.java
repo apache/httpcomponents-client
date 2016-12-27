@@ -39,7 +39,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,14 +76,14 @@ public class TestRequestAuthCache {
     public void testRequestParameterCheck() throws Exception {
         final HttpClientContext context = HttpClientContext.create();
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
-        interceptor.process(null, context);
+        interceptor.process(null, null, context);
     }
 
     @Test(expected=IllegalArgumentException.class)
     public void testContextParameterCheck() throws Exception {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
-        interceptor.process(request, null);
+        interceptor.process(request, null, null);
     }
 
     @Test
@@ -93,7 +92,6 @@ public class TestRequestAuthCache {
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credProvider);
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
 
         final AuthCache authCache = new BasicAuthCache();
@@ -103,7 +101,7 @@ public class TestRequestAuthCache {
         context.setAttribute(HttpClientContext.AUTH_CACHE, authCache);
 
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final AuthExchange targetAuthExchange = context.getAuthExchange(this.target);
         final AuthExchange proxyAuthExchange = context.getAuthExchange(this.proxy);
@@ -120,7 +118,6 @@ public class TestRequestAuthCache {
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, null);
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
 
         final AuthCache authCache = new BasicAuthCache();
@@ -130,7 +127,7 @@ public class TestRequestAuthCache {
         context.setAttribute(HttpClientContext.AUTH_CACHE, authCache);
 
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final AuthExchange targetAuthExchange = context.getAuthExchange(this.target);
         final AuthExchange proxyAuthExchange = context.getAuthExchange(this.proxy);
@@ -147,12 +144,11 @@ public class TestRequestAuthCache {
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credProvider);
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
         context.setAttribute(HttpClientContext.AUTH_CACHE, null);
 
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final AuthExchange targetAuthExchange = context.getAuthExchange(this.target);
         final AuthExchange proxyAuthExchange = context.getAuthExchange(this.proxy);
@@ -169,14 +165,13 @@ public class TestRequestAuthCache {
 
         final HttpClientContext context = HttpClientContext.create();
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, this.credProvider);
-        context.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, this.target);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, new HttpRoute(this.target, null, this.proxy, false));
 
         final AuthCache authCache = new BasicAuthCache();
         context.setAttribute(HttpClientContext.AUTH_CACHE, authCache);
 
         final HttpRequestInterceptor interceptor = new RequestAuthCache();
-        interceptor.process(request, context);
+        interceptor.process(request, null, context);
 
         final AuthExchange targetAuthExchange = context.getAuthExchange(this.target);
         final AuthExchange proxyAuthExchange = context.getAuthExchange(this.proxy);

@@ -35,10 +35,11 @@ import org.apache.hc.client5.http.entity.EntityBuilder;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.methods.HttpPost;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.NonRepeatableRequestException;
 import org.apache.hc.client5.http.sync.HttpRequestRetryHandler;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -78,11 +79,10 @@ public class TestRetryExec {
         final HttpGet get = new HttpGet("/test");
         get.addHeader("header", "this");
         get.addHeader("header", "that");
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get, target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(get, route);
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(requestExecutor.execute(
-                Mockito.eq(route),
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenAnswer(new Answer<Object>() {
@@ -90,7 +90,7 @@ public class TestRetryExec {
             @Override
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
-                final HttpRequestWrapper wrapper = (HttpRequestWrapper) args[1];
+                final RoutedHttpRequest wrapper = (RoutedHttpRequest) args[0];
                 final Header[] headers = wrapper.getAllHeaders();
                 Assert.assertEquals(2, headers.length);
                 Assert.assertEquals("this", headers[0].getValue());
@@ -106,10 +106,9 @@ public class TestRetryExec {
                 Mockito.eq(1),
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
         try {
-            retryExec.execute(route, request, context, execAware);
+            retryExec.execute(request, context, execAware);
         } catch (final IOException ex) {
             Mockito.verify(requestExecutor, Mockito.times(2)).execute(
-                    Mockito.eq(route),
                     Mockito.same(request),
                     Mockito.same(context),
                     Mockito.same(execAware));
@@ -121,21 +120,19 @@ public class TestRetryExec {
     public void testAbortedRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpGet get = new HttpGet("/test");
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(get, target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(get, route);
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(requestExecutor.execute(
-                Mockito.eq(route),
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenThrow(new IOException("Ka-boom"));
 
         Mockito.when(execAware.isAborted()).thenReturn(Boolean.TRUE);
         try {
-            retryExec.execute(route, request, context, execAware);
+            retryExec.execute(request, context, execAware);
         } catch (final IOException ex) {
             Mockito.verify(requestExecutor, Mockito.times(1)).execute(
-                    Mockito.eq(route),
                     Mockito.same(request),
                     Mockito.same(context),
                     Mockito.same(execAware));
@@ -156,11 +153,10 @@ public class TestRetryExec {
         post.setEntity(EntityBuilder.create()
                 .setStream(new ByteArrayInputStream(new byte[]{}))
                 .build());
-        final HttpRequestWrapper request = HttpRequestWrapper.wrap(post, target);
+        final RoutedHttpRequest request = RoutedHttpRequest.adapt(post, route);
         final HttpClientContext context = HttpClientContext.create();
 
         Mockito.when(requestExecutor.execute(
-                Mockito.eq(route),
                 Mockito.same(request),
                 Mockito.<HttpClientContext>any(),
                 Mockito.<HttpExecutionAware>any())).thenAnswer(new Answer<Object>() {
@@ -168,7 +164,7 @@ public class TestRetryExec {
             @Override
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
-                final HttpRequest req = (HttpRequest) args[1];
+                final ClassicHttpRequest req = (ClassicHttpRequest) args[0];
                 req.getEntity().writeTo(new ByteArrayOutputStream());
                 throw new IOException("Ka-boom");
             }
@@ -180,10 +176,9 @@ public class TestRetryExec {
                 Mockito.eq(1),
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
         try {
-            retryExec.execute(route, request, context, execAware);
+            retryExec.execute(request, context, execAware);
         } catch (final IOException ex) {
             Mockito.verify(requestExecutor, Mockito.times(1)).execute(
-                    Mockito.eq(route),
                     Mockito.same(request),
                     Mockito.same(context),
                     Mockito.same(execAware));
