@@ -80,8 +80,8 @@ public abstract class LocalServerTestBase {
         }
 
         this.connManager = new PoolingHttpClientConnectionManager();
+        this.connManager.setDefaultSocketConfig(socketConfig);
         this.clientBuilder = HttpClientBuilder.create()
-                .setDefaultSocketConfig(socketConfig)
                 .setConnectionManager(this.connManager);
     }
 

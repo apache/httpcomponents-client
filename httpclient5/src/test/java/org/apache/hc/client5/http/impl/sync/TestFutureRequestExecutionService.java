@@ -39,6 +39,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -66,32 +68,35 @@ public class TestFutureRequestExecutionService {
 
     @Before
     public void before() throws Exception {
-            this.localServer = ServerBootstrap.bootstrap()
-                    .registerHandler("/wait", new HttpRequestHandler() {
+        this.localServer = ServerBootstrap.bootstrap()
+                .registerHandler("/wait", new HttpRequestHandler() {
 
-                @Override
-                public void handle(
-                        final ClassicHttpRequest request,
-                        final ClassicHttpResponse response,
-                        final HttpContext context) throws HttpException, IOException {
-                    try {
-                        while(blocked.get()) {
-                            Thread.sleep(10);
-                        }
-                    } catch (final InterruptedException e) {
-                        throw new IllegalStateException(e);
+            @Override
+            public void handle(
+                    final ClassicHttpRequest request,
+                    final ClassicHttpResponse response,
+                    final HttpContext context) throws HttpException, IOException {
+                try {
+                    while(blocked.get()) {
+                        Thread.sleep(10);
                     }
-                    response.setCode(200);
+                } catch (final InterruptedException e) {
+                    throw new IllegalStateException(e);
                 }
-            }).create();
+                response.setCode(200);
+            }
+        }).create();
 
-            this.localServer.start();
-            uri = "http://localhost:" + this.localServer.getLocalPort() + "/wait";
-            final CloseableHttpClient httpClient = HttpClientBuilder.create()
-                    .setMaxConnPerRoute(5)
-                    .build();
-            final ExecutorService executorService = Executors.newFixedThreadPool(5);
-            httpAsyncClientWithFuture = new FutureRequestExecutionService(httpClient, executorService);
+        this.localServer.start();
+        uri = "http://localhost:" + this.localServer.getLocalPort() + "/wait";
+        final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
+                .setMaxConnPerRoute(5)
+                .build();
+        final CloseableHttpClient httpClient = HttpClientBuilder.create()
+                .setConnectionManager(cm)
+                .build();
+        final ExecutorService executorService = Executors.newFixedThreadPool(5);
+        httpAsyncClientWithFuture = new FutureRequestExecutionService(httpClient, executorService);
     }
 
     @After

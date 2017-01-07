@@ -32,10 +32,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.FutureRequestExecutionService;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.sync.HttpRequestFutureTask;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -47,9 +49,13 @@ public class ClientWithRequestFuture {
 
     public static void main(String[] args) throws Exception {
         // the simplest way to create a HttpAsyncClientWithFuture
-        CloseableHttpClient httpclient = HttpClientBuilder.create()
+        HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
                 .setMaxConnPerRoute(5)
-                .setMaxConnTotal(5).build();
+                .setMaxConnTotal(5)
+                .build();
+        CloseableHttpClient httpclient = HttpClientBuilder.create()
+                .setConnectionManager(cm)
+                .build();
         ExecutorService execService = Executors.newFixedThreadPool(5);
         try (FutureRequestExecutionService requestExecService = new FutureRequestExecutionService(
                 httpclient, execService)) {

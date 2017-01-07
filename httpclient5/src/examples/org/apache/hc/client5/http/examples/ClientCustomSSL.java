@@ -30,9 +30,11 @@ import java.io.File;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.sync.HttpClients;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.HttpClients;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
@@ -51,14 +53,17 @@ public class ClientCustomSSL {
                 .loadTrustMaterial(new File("my.keystore"), "nopassword".toCharArray(),
                         new TrustSelfSignedStrategy())
                 .build();
-        // Allow TLSv1 protocol only
+        // Allow TLSv1.2 protocol only
         SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
                 sslcontext,
-                new String[] { "TLSv1" },
+                new String[] { "TLSv1.2" },
                 null,
                 SSLConnectionSocketFactory.getDefaultHostnameVerifier());
-        try (CloseableHttpClient httpclient = HttpClients.custom()
+        HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(sslsf)
+                .build();
+        try (CloseableHttpClient httpclient = HttpClients.custom()
+                .setConnectionManager(cm)
                 .build()) {
 
             HttpGet httpget = new HttpGet("https://httpbin.org/");

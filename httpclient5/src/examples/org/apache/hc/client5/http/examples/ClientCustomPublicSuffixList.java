@@ -31,16 +31,20 @@ import java.net.URL;
 import org.apache.hc.client5.http.config.CookieSpecs;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.impl.cookie.RFC6265CookieSpecProvider;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.sync.HttpClients;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.sync.HttpClients;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.ssl.SSLContexts;
 
 /**
  * This example demonstrates how to use a custom public suffix list.
@@ -57,17 +61,20 @@ public class ClientCustomPublicSuffixList {
         // Please use the publicsuffix.org URL to download the list no more than once per day !!!
         // Please consider making a local copy !!!
 
-        DefaultHostnameVerifier hostnameVerifier = new DefaultHostnameVerifier(publicSuffixMatcher);
-
         RFC6265CookieSpecProvider cookieSpecProvider = new RFC6265CookieSpecProvider(publicSuffixMatcher);
         Lookup<CookieSpecProvider> cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
                 .register(CookieSpecs.DEFAULT, cookieSpecProvider)
                 .register(CookieSpecs.STANDARD, cookieSpecProvider)
                 .register(CookieSpecs.STANDARD_STRICT, cookieSpecProvider)
                 .build();
-
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+                SSLContexts.createDefault(),
+                new DefaultHostnameVerifier(publicSuffixMatcher));
+        HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(sslsf)
+                .build();
         try (CloseableHttpClient httpclient = HttpClients.custom()
-                .setSSLHostnameVerifier(hostnameVerifier)
+                .setConnectionManager(cm)
                 .setDefaultCookieSpecRegistry(cookieSpecRegistry)
                 .build()) {
 
