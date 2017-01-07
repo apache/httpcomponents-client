@@ -818,6 +818,13 @@ public class HttpClientBuilder {
                 routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
             }
         }
+
+        // Optionally, add service unavailable retry executor
+        final ServiceUnavailableRetryStrategy serviceUnavailStrategyCopy = this.serviceUnavailStrategy;
+        if (serviceUnavailStrategyCopy != null) {
+            execChain = new ServiceUnavailableRetryExec(execChain, serviceUnavailStrategyCopy);
+        }
+
         // Add redirect executor, if not disabled
         if (!redirectHandlingDisabled) {
             RedirectStrategy redirectStrategyCopy = this.redirectStrategy;
@@ -827,11 +834,6 @@ public class HttpClientBuilder {
             execChain = new RedirectExec(execChain, routePlannerCopy, redirectStrategyCopy);
         }
 
-        // Optionally, add service unavailable retry executor
-        final ServiceUnavailableRetryStrategy serviceUnavailStrategyCopy = this.serviceUnavailStrategy;
-        if (serviceUnavailStrategyCopy != null) {
-            execChain = new ServiceUnavailableRetryExec(execChain, serviceUnavailStrategyCopy);
-        }
         // Optionally, add connection back-off executor
         if (this.backoffManager != null && this.connectionBackoffStrategy != null) {
             execChain = new BackoffStrategyExec(execChain, this.connectionBackoffStrategy, this.backoffManager);
