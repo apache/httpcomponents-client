@@ -26,50 +26,32 @@
  */
 package org.apache.http.osgi.impl;
 
-import java.util.List;
-import java.util.Map;
-
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.osgi.services.HttpClientBuilderFactory;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 
-/**
- * @since 4.3
- *
- * @deprecated (4.5). No longer used.
- */
-@Deprecated
-public final class OSGiClientBuilderFactory implements HttpClientBuilderFactory {
+final class OSGiHttpClientBuilderFactory implements HttpClientBuilderFactory {
 
-    private final BundleContext bundleContext;
+    private final HttpClientBuilderConfigurator configurator;
 
-    private final Map<String, ServiceRegistration> registeredConfigurations;
+    private final HttpProxyConfigurationActivator.HttpClientTracker httpClientTracker;
 
-    private final List<CloseableHttpClient> trackedHttpClients;
-
-    public OSGiClientBuilderFactory(
-            final BundleContext bundleContext,
-            final Map<String, ServiceRegistration> registeredConfigurations,
-            final List<CloseableHttpClient> trackedHttpClients) {
-        this.bundleContext = bundleContext;
-        this.registeredConfigurations = registeredConfigurations;
-        this.trackedHttpClients = trackedHttpClients;
+    OSGiHttpClientBuilderFactory(
+            final HttpClientBuilderConfigurator configurator,
+            final HttpProxyConfigurationActivator.HttpClientTracker httpClientTracker) {
+        this.configurator = configurator;
+        this.httpClientTracker = httpClientTracker;
     }
 
     @Override
     public HttpClientBuilder newBuilder() {
-        return new HttpClientBuilder() {
+        return configurator.configure(new HttpClientBuilder() {
             @Override
             public CloseableHttpClient build() {
-                final CloseableHttpClient httpClient = super.build();
-                synchronized (trackedHttpClients) {
-                    trackedHttpClients.add(httpClient);
-                }
-                return httpClient;
+                final CloseableHttpClient client = super.build();
+                httpClientTracker.track(client);
+                return client;
             }
-        };
+        });
     }
-
 }

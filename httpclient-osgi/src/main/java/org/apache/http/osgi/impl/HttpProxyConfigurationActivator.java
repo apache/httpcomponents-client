@@ -100,7 +100,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, BUILDER_FACTORY_SERVICE_NAME);
         clientFactory = context.registerService(HttpClientBuilderFactory.class.getName(),
-                                                new OSGiClientBuilderFactory(configurator, httpClientTracker),
+                                                new OSGiHttpClientBuilderFactory(configurator, httpClientTracker),
                                                 props);
 
         props.clear();
@@ -108,7 +108,7 @@ public final class HttpProxyConfigurationActivator implements BundleActivator, M
         props.put(Constants.SERVICE_VENDOR, context.getBundle().getHeaders().get(Constants.BUNDLE_VENDOR));
         props.put(Constants.SERVICE_DESCRIPTION, CACHEABLE_BUILDER_FACTORY_SERVICE_NAME);
         cachingClientFactory = context.registerService(CachingHttpClientBuilderFactory.class.getName(),
-                                                       new OSGiCachingClientBuilderFactory(configurator, httpClientTracker),
+                                                       new OSGiCachingHttpClientBuilderFactory(configurator, httpClientTracker),
                                                        props);
     }
 

@@ -30,16 +30,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
 import org.apache.http.osgi.services.CachingHttpClientBuilderFactory;
 
-/**
- * @since 4.3
- */
-final class OSGiCachingClientBuilderFactory implements CachingHttpClientBuilderFactory {
+final class OSGiCachingHttpClientBuilderFactory implements CachingHttpClientBuilderFactory {
 
     private final HttpClientBuilderConfigurator configurator;
 
     private final HttpProxyConfigurationActivator.HttpClientTracker httpClientTracker;
 
-    OSGiCachingClientBuilderFactory(
+    OSGiCachingHttpClientBuilderFactory(
             final HttpClientBuilderConfigurator configurator,
             final HttpProxyConfigurationActivator.HttpClientTracker httpClientTracker) {
         this.configurator = configurator;
