@@ -72,7 +72,19 @@ public class RFC2109Spec extends CookieSpecBase {
     /** Default constructor */
     public RFC2109Spec(final String[] datepatterns, final boolean oneHeader) {
         super(new RFC2109VersionHandler(),
-                new BasicPathHandler(),
+                new BasicPathHandler() {
+
+                    @Override
+                    public void validate(
+                            final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
+                        if (!match(cookie, origin)) {
+                            throw new CookieRestrictionViolationException(
+                                    "Illegal 'path' attribute \"" + cookie.getPath()
+                                            + "\". Path of origin: \"" + origin.getPath() + "\"");
+                        }
+                    }
+
+                },
                 new RFC2109DomainHandler(),
                 new BasicMaxAgeHandler(),
                 new BasicSecureHandler(),

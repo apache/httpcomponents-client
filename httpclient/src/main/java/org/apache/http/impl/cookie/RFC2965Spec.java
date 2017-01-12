@@ -43,6 +43,7 @@ import org.apache.http.cookie.CommonCookieAttributeHandler;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.cookie.CookieAttributeHandler;
 import org.apache.http.cookie.CookieOrigin;
+import org.apache.http.cookie.CookieRestrictionViolationException;
 import org.apache.http.cookie.MalformedCookieException;
 import org.apache.http.cookie.SM;
 import org.apache.http.message.BufferedHeader;
@@ -72,7 +73,19 @@ public class RFC2965Spec extends RFC2109Spec {
     public RFC2965Spec(final String[] datepatterns, final boolean oneHeader) {
         super(oneHeader,
                 new RFC2965VersionAttributeHandler(),
-                new BasicPathHandler(),
+                new BasicPathHandler() {
+
+                    @Override
+                    public void validate(
+                            final Cookie cookie, final CookieOrigin origin) throws MalformedCookieException {
+                        if (!match(cookie, origin)) {
+                            throw new CookieRestrictionViolationException(
+                                    "Illegal 'path' attribute \"" + cookie.getPath()
+                                            + "\". Path of origin: \"" + origin.getPath() + "\"");
+                        }
+                    }
+
+                },
                 new RFC2965DomainAttributeHandler(),
                 new RFC2965PortAttributeHandler(),
                 new BasicMaxAgeHandler(),
