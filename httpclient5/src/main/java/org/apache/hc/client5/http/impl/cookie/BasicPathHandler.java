@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.cookie;
 import org.apache.hc.client5.http.cookie.CommonCookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
-import org.apache.hc.client5.http.cookie.CookieRestrictionViolationException;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.client5.http.cookie.SetCookie;
 import org.apache.hc.core5.annotation.Contract;
@@ -58,11 +57,6 @@ public class BasicPathHandler implements CommonCookieAttributeHandler {
     @Override
     public void validate(final Cookie cookie, final CookieOrigin origin)
             throws MalformedCookieException {
-        if (!match(cookie, origin)) {
-            throw new CookieRestrictionViolationException(
-                "Illegal 'path' attribute \"" + cookie.getPath()
-                + "\". Path of origin: \"" + origin.getPath() + "\"");
-        }
     }
 
     static boolean pathMatch(final String uriPath, final String cookiePath) {
