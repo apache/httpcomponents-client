@@ -397,7 +397,11 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                 }
             }
 
-            if (!this.hostnameVerifier.verify(hostname, session)) {
+            if (this.hostnameVerifier instanceof HttpClientHostnameVerifier) {
+                final Certificate[] certs = session.getPeerCertificates();
+                final X509Certificate x509 = (X509Certificate) certs[0];
+                ((HttpClientHostnameVerifier) this.hostnameVerifier).verify(hostname, x509);
+            } else if (!this.hostnameVerifier.verify(hostname, session)) {
                 final Certificate[] certs = session.getPeerCertificates();
                 final X509Certificate x509 = (X509Certificate) certs[0];
                 final List<String> subjectAlts = DefaultHostnameVerifier.extractSubjectAlts(hostname, x509);

@@ -44,7 +44,6 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
@@ -64,7 +63,7 @@ import org.apache.logging.log4j.Logger;
  * @since 4.4
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
-public final class DefaultHostnameVerifier implements HostnameVerifier {
+public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier {
 
     enum HostNameType {
 
@@ -105,6 +104,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
         }
     }
 
+    @Override
     public void verify(
             final String host, final X509Certificate cert) throws SSLException {
         final HostNameType hostType = determineHostFormat(host);
