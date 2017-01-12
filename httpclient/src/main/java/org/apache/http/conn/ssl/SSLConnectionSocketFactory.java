@@ -463,9 +463,9 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             if (!this.hostnameVerifier.verify(hostname, session)) {
                 final Certificate[] certs = session.getPeerCertificates();
                 final X509Certificate x509 = (X509Certificate) certs[0];
-                final X500Principal x500Principal = x509.getSubjectX500Principal();
-                throw new SSLPeerUnverifiedException("Host name '" + hostname + "' does not match " +
-                        "the certificate subject provided by the peer (" + x500Principal.toString() + ")");
+                final List<String> subjectAlts = DefaultHostnameVerifier.extractSubjectAlts(hostname, x509);
+                throw new SSLPeerUnverifiedException("Certificate for <" + hostname + "> doesn't match any " +
+                        "of the subject alternative names: " + subjectAlts);
             }
             // verifyHostName() didn't blowup - good!
         } catch (final IOException iox) {

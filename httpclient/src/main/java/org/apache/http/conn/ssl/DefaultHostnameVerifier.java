@@ -46,6 +46,7 @@ import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.security.auth.x500.X500Principal;
 
@@ -65,10 +66,17 @@ import org.apache.http.conn.util.PublicSuffixMatcher;
 @Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public final class DefaultHostnameVerifier implements HostnameVerifier {
 
-    enum TYPE { IPv4, IPv6, DNS }
+    enum HostNameType {
 
-    final static int DNS_NAME_TYPE        = 2;
-    final static int IP_ADDRESS_TYPE      = 7;
+        IPv4(7), IPv6(7), DNS(2);
+
+        final int subjectType;
+
+        HostNameType(final int subjectType) {
+            this.subjectType = subjectType;
+        }
+
+    }
 
     private final Log log = LogFactory.getLog(getClass());
 
@@ -99,22 +107,10 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
 
     public void verify(
             final String host, final X509Certificate cert) throws SSLException {
-        TYPE hostFormat = TYPE.DNS;
-        if (InetAddressUtils.isIPv4Address(host)) {
-            hostFormat = TYPE.IPv4;
-        } else {
-            String s = host;
-            if (s.startsWith("[") && s.endsWith("]")) {
-                s = host.substring(1, host.length() - 1);
-            }
-            if (InetAddressUtils.isIPv6Address(s)) {
-                hostFormat = TYPE.IPv6;
-            }
-        }
-        final int subjectType = hostFormat == TYPE.IPv4 || hostFormat == TYPE.IPv6 ? IP_ADDRESS_TYPE : DNS_NAME_TYPE;
-        final List<String> subjectAlts = extractSubjectAlts(cert, subjectType);
+        final HostNameType hostType = determineHostFormat(host);
+        final List<String> subjectAlts = extractSubjectAlts(cert, hostType.subjectType);
         if (subjectAlts != null && !subjectAlts.isEmpty()) {
-            switch (hostFormat) {
+            switch (hostType) {
                 case IPv4:
                     matchIPAddress(host, subjectAlts);
                     break;
@@ -144,7 +140,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                 return;
             }
         }
-        throw new SSLException("Certificate for <" + host + "> doesn't match any " +
+        throw new SSLPeerUnverifiedException("Certificate for <" + host + "> doesn't match any " +
                 "of the subject alternative names: " + subjectAlts);
     }
 
@@ -157,7 +153,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                 return;
             }
         }
-        throw new SSLException("Certificate for <" + host + "> doesn't match any " +
+        throw new SSLPeerUnverifiedException("Certificate for <" + host + "> doesn't match any " +
                 "of the subject alternative names: " + subjectAlts);
     }
 
@@ -171,7 +167,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                 return;
             }
         }
-        throw new SSLException("Certificate for <" + host + "> doesn't match any " +
+        throw new SSLPeerUnverifiedException("Certificate for <" + host + "> doesn't match any " +
                 "of the subject alternative names: " + subjectAlts);
     }
 
@@ -180,7 +176,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
         final String normalizedHost = host.toLowerCase(Locale.ROOT);
         final String normalizedCn = cn.toLowerCase(Locale.ROOT);
         if (!matchIdentityStrict(normalizedHost, normalizedCn, publicSuffixMatcher)) {
-            throw new SSLException("Certificate for <" + host + "> doesn't match " +
+            throw new SSLPeerUnverifiedException("Certificate for <" + host + "> doesn't match " +
                     "common name of the certificate subject: " + cn);
         }
     }
@@ -278,6 +274,21 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
         }
     }
 
+    static HostNameType determineHostFormat(final String host) {
+        if (InetAddressUtils.isIPv4Address(host)) {
+            return HostNameType.IPv4;
+        } else {
+            String s = host;
+            if (s.startsWith("[") && s.endsWith("]")) {
+                s = host.substring(1, host.length() - 1);
+            }
+            if (InetAddressUtils.isIPv6Address(s)) {
+                return HostNameType.IPv6;
+            }
+        }
+        return HostNameType.DNS;
+    }
+
     static List<String> extractSubjectAlts(final X509Certificate cert, final int subjectType) {
         Collection<List<?>> c = null;
         try {
@@ -300,6 +311,11 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
             }
         }
         return subjectAltList;
+    }
+
+    static List<String> extractSubjectAlts(final String host, final X509Certificate cert) {
+        final HostNameType hostType = determineHostFormat(host);
+        return extractSubjectAlts(cert, hostType.subjectType);
     }
 
     /*

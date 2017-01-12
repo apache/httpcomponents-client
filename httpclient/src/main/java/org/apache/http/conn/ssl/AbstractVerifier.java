@@ -132,9 +132,14 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
     @Override
     public final void verify(
             final String host, final X509Certificate cert) throws SSLException {
-        final boolean ipv4 = InetAddressUtils.isIPv4Address(host);
-        final boolean ipv6 = InetAddressUtils.isIPv6Address(host);
-        final int subjectType = ipv4 || ipv6 ? DefaultHostnameVerifier.IP_ADDRESS_TYPE : DefaultHostnameVerifier.DNS_NAME_TYPE;
+        final int subjectType;
+        if (InetAddressUtils.isIPv4Address(host)) {
+            subjectType = DefaultHostnameVerifier.HostNameType.IPv4.subjectType;
+        } else if (InetAddressUtils.isIPv6Address(host)) {
+            subjectType = DefaultHostnameVerifier.HostNameType.IPv6.subjectType;
+        } else {
+            subjectType = DefaultHostnameVerifier.HostNameType.DNS.subjectType;
+        }
         final List<String> subjectAlts = DefaultHostnameVerifier.extractSubjectAlts(cert, subjectType);
         final X500Principal subjectPrincipal = cert.getSubjectX500Principal();
         final String cn = DefaultHostnameVerifier.extractCN(subjectPrincipal.getName(X500Principal.RFC2253));
@@ -246,7 +251,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
      */
     public static String[] getDNSSubjectAlts(final X509Certificate cert) {
         final List<String> subjectAlts = DefaultHostnameVerifier.extractSubjectAlts(
-                cert, DefaultHostnameVerifier.DNS_NAME_TYPE);
+                cert, DefaultHostnameVerifier.HostNameType.DNS.subjectType);
         return subjectAlts != null && !subjectAlts.isEmpty() ?
                 subjectAlts.toArray(new String[subjectAlts.size()]) : null;
     }
