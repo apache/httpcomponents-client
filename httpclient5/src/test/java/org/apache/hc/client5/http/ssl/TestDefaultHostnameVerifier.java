@@ -149,6 +149,21 @@ public class TestDefaultHostnameVerifier {
         in = new ByteArrayInputStream(CertificatesToPlayWith.X509_MULTIPLE_VALUE_AVA);
         x509 = (X509Certificate) cf.generateCertificate(in);
         impl.verify("repository.infonotary.com", x509);
+
+        in = new ByteArrayInputStream(CertificatesToPlayWith.S_GOOGLE_COM);
+        x509 = (X509Certificate) cf.generateCertificate(in);
+        impl.verify("*.google.com", x509);
+
+        in = new ByteArrayInputStream(CertificatesToPlayWith.S_GOOGLE_COM);
+        x509 = (X509Certificate) cf.generateCertificate(in);
+        impl.verify("*.Google.com", x509);
+
+        in = new ByteArrayInputStream(CertificatesToPlayWith.IP_1_1_1_1);
+        x509 = (X509Certificate) cf.generateCertificate(in);
+        impl.verify("1.1.1.1", x509);
+
+        exceptionPlease(impl, "1.1.1.2", x509);
+        exceptionPlease(impl, "dummy-value.com", x509);
     }
 
     @Test
@@ -259,18 +274,18 @@ public class TestDefaultHostnameVerifier {
     @Test // Check compressed IPv6 hostname matching
     public void testHTTPCLIENT_1316() throws Exception{
         final String host1 = "2001:0db8:aaaa:bbbb:cccc:0:0:0001";
-        DefaultHostnameVerifier.matchIPv6Address(host1, Arrays.asList("2001:0db8:aaaa:bbbb:cccc:0:0:0001"));
-        DefaultHostnameVerifier.matchIPv6Address(host1, Arrays.asList("2001:0db8:aaaa:bbbb:cccc::1"));
+        DefaultHostnameVerifier.matchIPv6Address(host1, Arrays.asList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc:0:0:0001")));
+        DefaultHostnameVerifier.matchIPv6Address(host1, Arrays.asList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::1")));
         try {
-            DefaultHostnameVerifier.matchIPv6Address(host1, Arrays.asList("2001:0db8:aaaa:bbbb:cccc::10"));
+            DefaultHostnameVerifier.matchIPv6Address(host1, Arrays.asList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::10")));
             Assert.fail("SSLException expected");
         } catch (final SSLException expected) {
         }
         final String host2 = "2001:0db8:aaaa:bbbb:cccc::1";
-        DefaultHostnameVerifier.matchIPv6Address(host2, Arrays.asList("2001:0db8:aaaa:bbbb:cccc:0:0:0001"));
-        DefaultHostnameVerifier.matchIPv6Address(host2, Arrays.asList("2001:0db8:aaaa:bbbb:cccc::1"));
+        DefaultHostnameVerifier.matchIPv6Address(host2, Arrays.asList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc:0:0:0001")));
+        DefaultHostnameVerifier.matchIPv6Address(host2, Arrays.asList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::1")));
         try {
-            DefaultHostnameVerifier.matchIPv6Address(host2, Arrays.asList("2001:0db8:aaaa:bbbb:cccc::10"));
+            DefaultHostnameVerifier.matchIPv6Address(host2, Arrays.asList(SubjectName.IP("2001:0db8:aaaa:bbbb:cccc::10")));
             Assert.fail("SSLException expected");
         } catch (final SSLException expected) {
         }
