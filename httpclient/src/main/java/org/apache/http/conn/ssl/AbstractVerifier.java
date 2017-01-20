@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -132,15 +133,21 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
     @Override
     public final void verify(
             final String host, final X509Certificate cert) throws SSLException {
-        final int subjectType;
-        if (InetAddressUtils.isIPv4Address(host)) {
-            subjectType = DefaultHostnameVerifier.HostNameType.IPv4.subjectType;
-        } else if (InetAddressUtils.isIPv6Address(host)) {
-            subjectType = DefaultHostnameVerifier.HostNameType.IPv6.subjectType;
+        final List<SubjectName> allSubjectAltNames = DefaultHostnameVerifier.getSubjectAltNames(cert);
+        final List<String> subjectAlts = new ArrayList<String>();
+        if (InetAddressUtils.isIPv4Address(host) || InetAddressUtils.isIPv6Address(host)) {
+            for (SubjectName subjectName: allSubjectAltNames) {
+                if (subjectName.getType() == SubjectName.IP) {
+                    subjectAlts.add(subjectName.getValue());
+                }
+            }
         } else {
-            subjectType = DefaultHostnameVerifier.HostNameType.DNS.subjectType;
+            for (SubjectName subjectName: allSubjectAltNames) {
+                if (subjectName.getType() == SubjectName.DNS) {
+                    subjectAlts.add(subjectName.getValue());
+                }
+            }
         }
-        final List<String> subjectAlts = DefaultHostnameVerifier.extractSubjectAlts(cert, subjectType);
         final X500Principal subjectPrincipal = cert.getSubjectX500Principal();
         final String cn = DefaultHostnameVerifier.extractCN(subjectPrincipal.getName(X500Principal.RFC2253));
         verify(host,
@@ -250,10 +257,17 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
      * @return Array of SubjectALT DNS names stored in the certificate.
      */
     public static String[] getDNSSubjectAlts(final X509Certificate cert) {
-        final List<String> subjectAlts = DefaultHostnameVerifier.extractSubjectAlts(
-                cert, DefaultHostnameVerifier.HostNameType.DNS.subjectType);
-        return subjectAlts != null && !subjectAlts.isEmpty() ?
-                subjectAlts.toArray(new String[subjectAlts.size()]) : null;
+        final List<SubjectName> subjectAltNames = DefaultHostnameVerifier.getSubjectAltNames(cert);
+        if (subjectAltNames == null) {
+            return null;
+        }
+        final List<String> dnsAlts = new ArrayList<String>();
+        for (SubjectName subjectName: subjectAltNames) {
+            if (subjectName.getType() == SubjectName.DNS) {
+                dnsAlts.add(subjectName.getValue());
+            }
+        }
+        return dnsAlts.isEmpty() ? dnsAlts.toArray(new String[dnsAlts.size()]) : null;
     }
 
     /**
