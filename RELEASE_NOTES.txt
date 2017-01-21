@@ -1,15 +1,78 @@
 Release 4.5.3
 -------------------
 
-HttpClient 4.5.3 (GA) is a maintenance release that fixes a number of minor defects found since 4.5.2.
+HttpClient 4.5.3 (GA) is a maintenance release that fixes a number of defects found since 4.5.2.
 
 Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
 
 Changelog:
 -------------------
 
-* [HTTPCLIENT-1727] org.apache.http.impl.client.AbstractHttpClient#createClientConnectionManager Does not account for context class loader.
-  Contributed by Charles Allen <charles dot allen at metamarkets dot com>
+* [HTTPCLIENT-1803] Improved handling of malformed paths by URIBuilder.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1802] Do not attempt to match SSL host to subject CN if subject alternative name of any type are given.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1788] RFC 6265 policy must not reject cookies with paths that are no prefix of the uri path.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1792] SSLConnectionSocketFactory to throw SSLPeerUnverifiedException with a better error message
+  when hostname verification fails.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1779] [OSGi] support NTLM proxy authentication.
+  Contributed by Julian Sedding <jsedding@apache.org>
+
+* [HTTPCLIENT-1773] [OSGi] HttpProxyConfigurationActivator does not unregister HttpClientBuilderFactory.
+  Contributed by Julian Sedding <jsedding@apache.org>
+
+* [HTTPCLIENT-1771] improve OSGi webconsole display for org.apache.http.proxyconfigurator.
+  Contributed by Julian Sedding <jsedding at apache.org>
+
+* [HTTPCLIENT-1770] OSGi metatype for org.apache.http.proxyconfigurator missing factoryPid.
+  Contributed by Julian Sedding <jsedding at apache.org>
+
+* [HTTPCLIENT-1767] Null pointer dereference in EofSensorInputStream and ResponseEntityProxy.
+  Contributed by Peter Ansell <p_ansell@yahoo.com>
+
+* Support changing system default ProxySelector.
+  Contributed by Robin Stevens <stevensro at gmail.com>
+
+* All services registered in the OSGi service registry provide the whole bundle header dictionary as vendor
+  property value.
+  Contributed by Christoph Fiehe <christoph.fiehe at materna.de>
+
+* [HTTPCLIENT-1750] OSGi support for CachingHttpClientBuilder.
+  Contributed by Justin Edelson <justin at justinedelson.com>
+
+* [HTTPCLIENT-1749] OSGi client builder to use weak references to track HttpClient instances.
+  Contributed by Justin Edelson <justin at justinedelson.com>
+
+* [HTTPCLIENT-1747] apply RequestConfig defaults when using HttpParams values in backward compatibility mode.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Override LaxRedirectStrategy's INSTANCE field.
+  Contributed by Eric Wu <ericwuyi at gmail.com>
+
+* [HTTPCLIENT-1736] do not request cred delegation by default when using Kerberos auth.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1744] normalize hostname and certificate CN when matching to CN.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1732] SystemDefaultCredentialsProvider to take http.proxyHost and http.proxyPort system
+  properties into account.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* Revert "HTTPCLIENT-1712: SPNego schemes to take service scheme into account when generating auth token".
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1727] AbstractHttpClient#createClientConnectionManager does not account for context class loader.
+  Contributed by Charles Allen <charles.allen at metamarkets.com>
+
+* [HTTPCLIENT-1726:] Copy the SNI fix from SSLConnectionSocketFactory to the deprecated SSLSocketFactory class.
+  Contributed by David Black <dblack at atlassian.com>
 
 
 Release 4.5.2
