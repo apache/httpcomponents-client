@@ -292,4 +292,11 @@ public class TestURIBuilder {
         return parameters;
     }
 
+    @Test
+    public void testMalformedPath() throws Exception {
+        final String path = "@notexample.com/mypath";
+        final URI uri = new URIBuilder(path).setHost("example.com").build();
+        Assert.assertEquals("example.com", uri.getHost());
+    }
+
 }
