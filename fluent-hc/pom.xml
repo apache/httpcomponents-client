@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-client</artifactId>
-    <version>4.5.3-SNAPSHOT</version>
+    <version>4.5.3</version>
   </parent>
   <artifactId>fluent-hc</artifactId>
   <name>Apache HttpClient Fluent API</name>
