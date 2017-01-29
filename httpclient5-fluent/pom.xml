@@ -121,7 +121,7 @@
           <quiet>true</quiet>
           <source>${maven.compiler.source}</source>
           <links>
-            <link>http://docs.oracle.com/javase/6/docs/api/</link>
+            <link>http://docs.oracle.com/javase/7/docs/api/</link>
             <link>http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
             <link>http://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/</link>
           </links>

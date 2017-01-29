@@ -140,10 +140,10 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             execAware = (HttpExecutionAware) request;
         }
         try {
-            if (request.getScheme() == null) {
+            if (request.getScheme() == null && target != null) {
                 request.setScheme(target.getSchemeName());
             }
-            if (request.getAuthority() == null) {
+            if (request.getAuthority() == null && target != null) {
                 request.setAuthority(new URIAuthority(target));
             }
             final HttpClientContext localcontext = HttpClientContext.adapt(
