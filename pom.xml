@@ -386,6 +386,8 @@
             <exclude>.checkstyle</exclude>
             <exclude>.externalToolBuilders/**</exclude>			
             <exclude>maven-eclipse.xml</exclude>
+            <exclude>**/serial</exclude>
+            <exclude>**/index.txt</exclude>
           </excludes>
         </configuration>
       </plugin>
