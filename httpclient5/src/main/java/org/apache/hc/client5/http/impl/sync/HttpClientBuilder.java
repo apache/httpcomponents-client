@@ -27,17 +27,6 @@
 
 package org.apache.hc.client5.http.impl.sync;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.net.ProxySelector;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
@@ -88,6 +77,8 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
+import org.apache.hc.core5.http.PostRouteInterceptor;
+import org.apache.hc.core5.http.PreRouteInterceptor;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
@@ -99,8 +90,21 @@ import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
+import org.apache.hc.core5.http.route.RouteProcessor;
+import org.apache.hc.core5.http.route.RouteProcessorBuilder;
 import org.apache.hc.core5.util.TextUtils;
 import org.apache.hc.core5.util.VersionInfo;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.net.ProxySelector;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Builder for {@link CloseableHttpClient} instances.
@@ -142,6 +146,11 @@ public class HttpClientBuilder {
     private LinkedList<HttpRequestInterceptor> requestLast;
     private LinkedList<HttpResponseInterceptor> responseFirst;
     private LinkedList<HttpResponseInterceptor> responseLast;
+
+    private LinkedList<PreRouteInterceptor> preRouteFirst;
+    private LinkedList<PreRouteInterceptor> preRouteLast;
+    private LinkedList<PostRouteInterceptor> postRouteFirst;
+    private LinkedList<PostRouteInterceptor> postRouteLast;
 
     private HttpRequestRetryHandler retryHandler;
     private HttpRoutePlanner routePlanner;
@@ -354,6 +363,62 @@ public class HttpClientBuilder {
             requestLast = new LinkedList<>();
         }
         requestLast.addLast(itcp);
+        return this;
+    }
+
+    /**
+     * Adds this route interceptor to the head of the route processing list.
+     */
+    public final HttpClientBuilder addRouteInterceptorFirst(final PostRouteInterceptor itcp) {
+        if (itcp == null) {
+            return this;
+        }
+        if (postRouteFirst == null) {
+            postRouteFirst = new LinkedList<PostRouteInterceptor>();
+        }
+        postRouteFirst.addFirst(itcp);
+        return this;
+    }
+
+    /**
+     * Adds this route interceptor to the tail of the route processing list.
+     */
+    public final HttpClientBuilder addRouteInterceptorLast(final PostRouteInterceptor itcp) {
+        if (itcp == null) {
+            return this;
+        }
+        if (postRouteLast == null) {
+            postRouteLast = new LinkedList<PostRouteInterceptor>();
+        }
+        postRouteLast.addLast(itcp);
+        return this;
+    }
+
+    /**
+     * Adds this route interceptor to the head of the route processing list.
+     */
+    public final HttpClientBuilder addRouteInterceptorFirst(final PreRouteInterceptor itcp) {
+        if (itcp == null) {
+            return this;
+        }
+        if (preRouteFirst == null) {
+            preRouteFirst = new LinkedList<PreRouteInterceptor>();
+        }
+        preRouteFirst.addFirst(itcp);
+        return this;
+    }
+
+    /**
+     * Adds this route interceptor to the tail of the route processing list.
+     */
+    public final HttpClientBuilder addRouteInterceptorLast(final PreRouteInterceptor itcp) {
+        if (itcp == null) {
+            return this;
+        }
+        if (preRouteLast == null) {
+            preRouteLast = new LinkedList<PreRouteInterceptor>();
+        }
+        preRouteLast.addLast(itcp);
         return this;
     }
 
@@ -610,6 +675,7 @@ public class HttpClientBuilder {
             final ConnectionReuseStrategy reuseStrategy,
             final ConnectionKeepAliveStrategy keepAliveStrategy,
             final HttpProcessor proxyHttpProcessor,
+            final RouteProcessor routeProcessor,
             final AuthenticationStrategy targetAuthStrategy,
             final AuthenticationStrategy proxyAuthStrategy,
             final UserTokenHandler userTokenHandler)
@@ -620,6 +686,7 @@ public class HttpClientBuilder {
                 reuseStrategy,
                 keepAliveStrategy,
                 proxyHttpProcessor,
+                routeProcessor,
                 targetAuthStrategy,
                 proxyAuthStrategy,
                 userTokenHandler);
@@ -721,12 +788,37 @@ public class HttpClientBuilder {
             }
         }
 
+        // add route processor
+        final RouteProcessorBuilder rb = RouteProcessorBuilder.create();
+        if (preRouteFirst != null) {
+            for (final PreRouteInterceptor i: preRouteFirst) {
+                rb.addFirst(i);
+            }
+        }
+        if (postRouteFirst != null) {
+            for (final PostRouteInterceptor i: postRouteFirst) {
+                rb.addFirst(i);
+            }
+        }
+        if (preRouteLast != null) {
+            for (final PreRouteInterceptor i: preRouteLast) {
+                rb.addLast(i);
+            }
+        }
+        if (postRouteLast != null) {
+            for (final PostRouteInterceptor i: postRouteLast) {
+                rb.addLast(i);
+            }
+        }
+        final RouteProcessor routeProcessor = rb.build();
+
         ClientExecChain execChain = createMainExec(
                 requestExecCopy,
                 connManagerCopy,
                 reuseStrategyCopy,
                 keepAliveStrategyCopy,
                 new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
+                routeProcessor,
                 targetAuthStrategyCopy,
                 proxyAuthStrategyCopy,
                 userTokenHandlerCopy);
