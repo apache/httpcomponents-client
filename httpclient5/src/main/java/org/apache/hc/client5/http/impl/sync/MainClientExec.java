@@ -27,11 +27,6 @@
 
 package org.apache.hc.client5.http.impl.sync;
 
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteTracker;
@@ -63,6 +58,8 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.PostRouteInterceptor;
+import org.apache.hc.core5.http.PreRouteInterceptor;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.io.entity.BufferedHttpEntity;
@@ -74,9 +71,17 @@ import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
+import org.apache.hc.core5.http.route.DefaultRouteProcessor;
+import org.apache.hc.core5.http.route.RouteProcessor;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The last request executor in the HTTP request execution chain
@@ -98,6 +103,7 @@ public class MainClientExec implements ClientExecChain {
     private final ConnectionReuseStrategy reuseStrategy;
     private final ConnectionKeepAliveStrategy keepAliveStrategy;
     private final HttpProcessor proxyHttpProcessor;
+    private final RouteProcessor routeProcessor;
     private final AuthenticationStrategy targetAuthStrategy;
     private final AuthenticationStrategy proxyAuthStrategy;
     private final HttpAuthenticator authenticator;
@@ -113,6 +119,7 @@ public class MainClientExec implements ClientExecChain {
             final ConnectionReuseStrategy reuseStrategy,
             final ConnectionKeepAliveStrategy keepAliveStrategy,
             final HttpProcessor proxyHttpProcessor,
+            final RouteProcessor routeProcessor,
             final AuthenticationStrategy targetAuthStrategy,
             final AuthenticationStrategy proxyAuthStrategy,
             final UserTokenHandler userTokenHandler) {
@@ -121,6 +128,7 @@ public class MainClientExec implements ClientExecChain {
         Args.notNull(reuseStrategy, "Connection reuse strategy");
         Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
         Args.notNull(proxyHttpProcessor, "Proxy HTTP processor");
+        Args.notNull(routeProcessor, "Route processor");
         Args.notNull(targetAuthStrategy, "Target authentication strategy");
         Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
         Args.notNull(userTokenHandler, "User token handler");
@@ -131,6 +139,7 @@ public class MainClientExec implements ClientExecChain {
         this.reuseStrategy      = reuseStrategy;
         this.keepAliveStrategy  = keepAliveStrategy;
         this.proxyHttpProcessor = proxyHttpProcessor;
+        this.routeProcessor     = routeProcessor;
         this.targetAuthStrategy = targetAuthStrategy;
         this.proxyAuthStrategy  = proxyAuthStrategy;
         this.userTokenHandler   = userTokenHandler;
@@ -146,6 +155,7 @@ public class MainClientExec implements ClientExecChain {
             final UserTokenHandler userTokenHandler) {
         this(requestExecutor, connManager, reuseStrategy, keepAliveStrategy,
                 new DefaultHttpProcessor(new RequestTargetHost()),
+                new DefaultRouteProcessor(new ArrayList<PreRouteInterceptor>(),new ArrayList<PostRouteInterceptor>()),
                 targetAuthStrategy, proxyAuthStrategy, userTokenHandler);
     }
 
@@ -216,7 +226,9 @@ public class MainClientExec implements ClientExecChain {
                 if (!managedConn.isOpen()) {
                     this.log.debug("Opening connection " + route);
                     try {
+                        this.routeProcessor.preProcess(request, context);
                         establishRoute(managedConn, route, request, context);
+                        this.routeProcessor.postProcess(request, context);
                     } catch (final TunnelRefusedException ex) {
                         if (this.log.isDebugEnabled()) {
                             this.log.debug(ex.getMessage());

@@ -26,16 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.sync;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InterruptedIOException;
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo;
@@ -77,6 +67,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http.route.RouteProcessor;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -86,6 +77,16 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings({"boxing","static-access"}) // test code
 public class TestMainClientExec {
@@ -100,6 +101,8 @@ public class TestMainClientExec {
     private ConnectionKeepAliveStrategy keepAliveStrategy;
     @Mock
     private HttpProcessor proxyHttpProcessor;
+    @Mock
+    private RouteProcessor routeProcessor;
     @Mock
     private AuthenticationStrategy targetAuthStrategy;
     @Mock
@@ -121,7 +124,7 @@ public class TestMainClientExec {
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
         mainClientExec = new MainClientExec(requestExecutor, connManager, reuseStrategy,
-            keepAliveStrategy, proxyHttpProcessor, targetAuthStrategy, proxyAuthStrategy, userTokenHandler);
+            keepAliveStrategy, proxyHttpProcessor, routeProcessor, targetAuthStrategy, proxyAuthStrategy, userTokenHandler);
         target = new HttpHost("foo", 80);
         proxy = new HttpHost("bar", 8888);
 
