@@ -26,17 +26,18 @@
  */
 package org.apache.http.client.utils;
 
-import org.apache.http.Consts;
-import org.apache.http.NameValuePair;
-import org.apache.http.conn.util.InetAddressUtils;
-import org.apache.http.message.BasicNameValuePair;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import org.apache.http.Consts;
+import org.apache.http.NameValuePair;
+import org.apache.http.conn.util.InetAddressUtils;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.TextUtils;
 
 /**
  * Builder for {@link URI} instances.
@@ -492,7 +493,7 @@ public class URIBuilder {
 
     private static String normalizePath(final String path) {
         String s = path;
-        if (s == null || "".equals(s)) {
+        if (TextUtils.isBlank(s)) {
             return "";
         }
         int n = 0;
