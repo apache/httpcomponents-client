@@ -34,13 +34,14 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.NTCredentials;
+import org.apache.http.impl.auth.NTLMEngineImpl.Type1Message;
+import org.apache.http.impl.auth.NTLMEngineImpl.Type3Message;
 import org.apache.http.message.BufferedHeader;
-import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
 /**
  * NTLM is a proprietary authentication scheme developed by Microsoft
- * and optimized for Windows platforms.
+ * and optimized for Windows platforms. Specified in [MS-NLMP].
  *
  * @since 4.0
  */
@@ -55,26 +56,19 @@ public class NTLMScheme extends AuthSchemeBase {
         FAILED,
     }
 
-    private final NTLMEngine engine;
+    private NTLMEngineImpl engine;
 
     private State state;
     private String challenge;
-
-    public NTLMScheme(final NTLMEngine engine) {
-        super();
-        Args.notNull(engine, "NTLM engine");
-        this.engine = engine;
-        this.state = State.UNINITIATED;
-        this.challenge = null;
-    }
 
     /**
      * @since 4.3
      */
     public NTLMScheme() {
-        this(new NTLMEngineImpl());
+        super();
+        this.state = State.UNINITIATED;
+        this.challenge = null;
     }
-
     @Override
     public String getSchemeName() {
         return "ntlm";
@@ -119,32 +113,33 @@ public class NTLMScheme extends AuthSchemeBase {
     }
 
     @Override
+    @Deprecated
     public Header authenticate(
-            final Credentials credentials,
-            final HttpRequest request) throws AuthenticationException {
+        final Credentials credentials,
+        final HttpRequest request ) throws AuthenticationException
+    {
+        if (engine == null) {
         NTCredentials ntcredentials = null;
-        try {
-            ntcredentials = (NTCredentials) credentials;
-        } catch (final ClassCastException e) {
-            throw new InvalidCredentialsException(
-             "Credentials cannot be used for NTLM authentication: "
-              + credentials.getClass().getName());
+            try {
+                ntcredentials = (NTCredentials) credentials;
+            } catch (final ClassCastException e) {
+                throw new InvalidCredentialsException(
+                 "Credentials cannot be used for NTLM authentication: "
+                  + credentials.getClass().getName());
+            }
+            engine = new NTLMEngineImpl( ntcredentials, true );
         }
         String response = null;
         if (this.state == State.FAILED) {
             throw new AuthenticationException("NTLM authentication failed");
         } else if (this.state == State.CHALLENGE_RECEIVED) {
-            response = this.engine.generateType1Msg(
-                    ntcredentials.getDomain(),
-                    ntcredentials.getWorkstation());
+            final Type1Message negoMessage = engine.generateType1MsgObject( null );
+            response = negoMessage.getResponse();
             this.state = State.MSG_TYPE1_GENERATED;
         } else if (this.state == State.MSG_TYPE2_RECEVIED) {
-            response = this.engine.generateType3Msg(
-                    ntcredentials.getUserName(),
-                    ntcredentials.getPassword(),
-                    ntcredentials.getDomain(),
-                    ntcredentials.getWorkstation(),
-                    this.challenge);
+            engine.parseType2Message( this.challenge );
+            final Type3Message authenticateMessage = engine.generateType3MsgObject( null );
+            response = authenticateMessage.getResponse();
             this.state = State.MSG_TYPE3_GENERATED;
         } else {
             throw new AuthenticationException("Unexpected state: " + this.state);
