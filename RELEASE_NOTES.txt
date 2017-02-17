@@ -11,6 +11,7 @@ Changelog:
 * [HTTPCLIENT-1816] Update Apache Commons Codec 1.9 to 1.10.
   Contributed by Gary Gregory <ggregory at apache.org>
 
+
 Release 4.5.3
 -------------------
 
