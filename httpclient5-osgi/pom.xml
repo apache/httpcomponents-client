@@ -41,7 +41,7 @@
 
   <properties>
     <httpcore.osgi.import.version>"5.0-alpha2"</httpcore.osgi.import.version>
-    <log4j.osgi.import.version>"2.7"</log4j.osgi.import.version>
+    <log4j.osgi.import.version>"2.8"</log4j.osgi.import.version>
     <pax.url.version>2.4.1</pax.url.version>
     <pax.exam.version>4.5.0</pax.exam.version>
     <osgi.framework.version>5.0.0</osgi.framework.version>
