@@ -16,6 +16,9 @@ Changelog:
 * [HTTPCLIENT-1786] Port from Apache Commons Logging to Apache Log4j 2.
   Contributed by Gary Gregory <ggregory at apache.org>
 
+* [HTTPCLIENT-1817] Add a "Trust All" TrustStrategy implementation.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 Release 5.0-ALPHA1
 -------------------
 
