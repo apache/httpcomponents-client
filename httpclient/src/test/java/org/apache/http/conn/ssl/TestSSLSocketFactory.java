@@ -30,6 +30,9 @@ package org.apache.http.conn.ssl;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
@@ -217,15 +220,7 @@ public class TestSSLSocketFactory {
     }
 
     @Test
-    public void testSSLTrustVerificationOverride() throws Exception {
-        this.server = ServerBootstrap.bootstrap()
-                .setServerInfo(LocalServerTestBase.ORIGIN)
-                .setSslContext(SSLTestContexts.createServerSSLContext())
-                .create();
-        this.server.start();
-
-        final HttpContext context = new BasicHttpContext();
-
+    public void testSSLTrustVerificationOverrideWithCustsom() throws Exception {
         final TrustStrategy trustStrategy = new TrustStrategy() {
 
             @Override
@@ -235,6 +230,29 @@ public class TestSSLSocketFactory {
             }
 
         };
+        testSSLTrustVerificationOverride(trustStrategy);
+    }
+
+    @Test
+    public void testSSLTrustVerificationOverrideWithTrustSelfSignedStrategy() throws Exception {
+        testSSLTrustVerificationOverride(TrustSelfSignedStrategy.INSTANCE);
+    }
+
+    @Test
+    public void testSSLTrustVerificationOverrideWithTrustAllStrategy() throws Exception {
+        testSSLTrustVerificationOverride(TrustAllStrategy.INSTANCE);
+    }
+
+	private void testSSLTrustVerificationOverride(final TrustStrategy trustStrategy)
+			throws Exception, IOException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
+		this.server = ServerBootstrap.bootstrap()
+                .setServerInfo(LocalServerTestBase.ORIGIN)
+                .setSslContext(SSLTestContexts.createServerSSLContext())
+                .create();
+        this.server.start();
+
+        final HttpContext context = new BasicHttpContext();
+
         final SSLContext sslcontext = SSLContexts.custom()
             .loadTrustMaterial(null, trustStrategy)
             .build();
@@ -247,7 +265,7 @@ public class TestSSLSocketFactory {
         final HttpHost target = new HttpHost("localhost", this.server.getLocalPort(), "https");
         final SSLSocket sslSocket = (SSLSocket) socketFactory.connectSocket(0, socket, target, remoteAddress, null, context);
         sslSocket.close();
-    }
+	}
 
     @Test
     public void testTLSOnly() throws Exception {

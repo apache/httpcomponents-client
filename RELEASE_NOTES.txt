@@ -8,6 +8,9 @@ Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1817] Add a "Trust All" TrustStrategy implementation.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 * [HTTPCLIENT-1816] Update Apache Commons Codec 1.9 to 1.10.
   Contributed by Gary Gregory <ggregory at apache.org>
 
