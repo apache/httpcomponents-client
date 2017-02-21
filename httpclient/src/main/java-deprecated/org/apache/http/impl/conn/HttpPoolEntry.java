@@ -42,7 +42,7 @@ import org.apache.http.pool.PoolEntry;
  * @deprecated (4.3) no longer used.
  */
 @Deprecated
-class HttpPoolEntry extends PoolEntry<HttpRoute, OperatedClientConnection> {
+public class HttpPoolEntry extends PoolEntry<HttpRoute, OperatedClientConnection> {
 
     private final Log log;
     private final RouteTracker tracker;

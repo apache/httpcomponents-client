@@ -58,7 +58,7 @@ import org.apache.http.util.Asserts;
  * @deprecated (4.3) use {@link ManagedHttpClientConnectionFactory}.
  */
 @Deprecated
-class ManagedClientConnectionImpl implements ManagedClientConnection {
+public class ManagedClientConnectionImpl implements ManagedClientConnection {
 
     private final ClientConnectionManager manager;
     private final ClientConnectionOperator operator;
@@ -66,7 +66,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
     private volatile boolean reusable;
     private volatile long duration;
 
-    ManagedClientConnectionImpl(
+    public ManagedClientConnectionImpl(
             final ClientConnectionManager manager,
             final ClientConnectionOperator operator,
             final HttpPoolEntry entry) {
@@ -90,7 +90,7 @@ class ManagedClientConnectionImpl implements ManagedClientConnection {
         return this.poolEntry;
     }
 
-    HttpPoolEntry detach() {
+    public HttpPoolEntry detach() {
         final HttpPoolEntry local = this.poolEntry;
         this.poolEntry = null;
         return local;

@@ -43,7 +43,7 @@ import org.apache.http.pool.ConnFactory;
  * @deprecated (4.3) no longer used.
  */
 @Deprecated
-class HttpConnPool extends AbstractConnPool<HttpRoute, OperatedClientConnection, HttpPoolEntry> {
+public class HttpConnPool extends AbstractConnPool<HttpRoute, OperatedClientConnection, HttpPoolEntry> {
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
