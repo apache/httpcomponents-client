@@ -27,14 +27,14 @@
 package org.apache.http.conn.ssl;
 
 /**
- * A strategy to establish trustworthiness of certificates without consulting the trust manager
- * configured in the actual SSL context. This interface can be used to override the standard
- * JSSE certificate verification process.
+ * A strategy to establish trustworthiness of certificates without consulting
+ * the trust manager configured in the actual SSL context. This interface can be
+ * used to override the standard JSSE certificate verification process.
  *
  * @since 4.1
  */
 public interface TrustStrategy extends org.apache.http.ssl.TrustStrategy {
-	
-	// Empty! Inherits from org.apache.http.ssl.TrustStrategy.
+
+    // Empty! Inherits from org.apache.http.ssl.TrustStrategy.
 
 }
