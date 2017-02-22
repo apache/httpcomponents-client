@@ -249,7 +249,7 @@ public class TestSSLSocketFactory {
     private void testSSLTrustVerificationOverride(final TrustStrategy trustStrategy)
             throws Exception, IOException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
         // @formatter:off
-		this.server = ServerBootstrap.bootstrap()
+        this.server = ServerBootstrap.bootstrap()
                 .setSslContext(SSLTestContexts.createServerSSLContext())
                 .create();
         // @formatter:on
