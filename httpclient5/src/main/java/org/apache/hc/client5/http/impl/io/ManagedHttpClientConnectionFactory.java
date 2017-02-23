@@ -27,14 +27,14 @@
 
 package org.apache.hc.client5.http.impl.io;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.hc.client5.http.HttpConnectionFactory;
-import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -45,43 +45,38 @@ import org.apache.hc.core5.http.config.ConnectionConfig;
 import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.DefaultContentLengthStrategy;
 import org.apache.hc.core5.http.impl.io.DefaultHttpRequestWriterFactory;
+import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.HttpMessageParserFactory;
 import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Factory for {@link ManagedHttpClientConnection} instances.
  * @since 4.3
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> {
+public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory<ManagedHttpClientConnection> {
 
     private static final AtomicLong COUNTER = new AtomicLong();
 
     public static final ManagedHttpClientConnectionFactory INSTANCE = new ManagedHttpClientConnectionFactory();
 
-    private final Logger log = LogManager.getLogger(DefaultManagedHttpClientConnection.class);
-    private final Logger headerlog = LogManager.getLogger("org.apache.hc.client5.http.headers");
-    private final Logger wirelog = LogManager.getLogger("org.apache.hc.client5.http.wire");
-
     private final H1Config h1Config;
+    private final ConnectionConfig connectionConfig;
     private final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory;
     private final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory;
     private final ContentLengthStrategy incomingContentStrategy;
     private final ContentLengthStrategy outgoingContentStrategy;
 
-    /**
-     * @since 4.4
-     */
     public ManagedHttpClientConnectionFactory(
             final H1Config h1Config,
+            final ConnectionConfig connectionConfig,
             final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory,
             final ContentLengthStrategy incomingContentStrategy,
             final ContentLengthStrategy outgoingContentStrategy) {
         super();
         this.h1Config = h1Config != null ? h1Config : H1Config.DEFAULT;
+        this.connectionConfig = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
         this.requestWriterFactory = requestWriterFactory != null ? requestWriterFactory :
                 DefaultHttpRequestWriterFactory.INSTANCE;
         this.responseParserFactory = responseParserFactory != null ? responseParserFactory :
@@ -94,31 +89,32 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
 
     public ManagedHttpClientConnectionFactory(
             final H1Config h1Config,
+            final ConnectionConfig connectionConfig,
             final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
-        this(h1Config, requestWriterFactory, responseParserFactory, null, null);
+        this(h1Config, connectionConfig, requestWriterFactory, responseParserFactory, null, null);
     }
 
     public ManagedHttpClientConnectionFactory(
             final H1Config h1Config,
+            final ConnectionConfig connectionConfig,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
-        this(h1Config, null, responseParserFactory);
+        this(h1Config, connectionConfig, null, responseParserFactory);
     }
 
     public ManagedHttpClientConnectionFactory() {
-        this(null, null);
+        this(null, null, null);
     }
 
     @Override
-    public ManagedHttpClientConnection create(final HttpRoute route, final ConnectionConfig config) {
-        final ConnectionConfig cconfig = config != null ? config : ConnectionConfig.DEFAULT;
+    public ManagedHttpClientConnection createConnection(final Socket socket) throws IOException {
         CharsetDecoder chardecoder = null;
         CharsetEncoder charencoder = null;
-        final Charset charset = cconfig.getCharset();
-        final CodingErrorAction malformedInputAction = cconfig.getMalformedInputAction() != null ?
-                cconfig.getMalformedInputAction() : CodingErrorAction.REPORT;
-        final CodingErrorAction unmappableInputAction = cconfig.getUnmappableInputAction() != null ?
-                cconfig.getUnmappableInputAction() : CodingErrorAction.REPORT;
+        final Charset charset = this.connectionConfig.getCharset();
+        final CodingErrorAction malformedInputAction = this.connectionConfig.getMalformedInputAction() != null ?
+                this.connectionConfig.getMalformedInputAction() : CodingErrorAction.REPORT;
+        final CodingErrorAction unmappableInputAction = this.connectionConfig.getUnmappableInputAction() != null ?
+                this.connectionConfig.getUnmappableInputAction() : CodingErrorAction.REPORT;
         if (charset != null) {
             chardecoder = charset.newDecoder();
             chardecoder.onMalformedInput(malformedInputAction);
@@ -128,12 +124,9 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
             charencoder.onUnmappableCharacter(unmappableInputAction);
         }
         final String id = "http-outgoing-" + Long.toString(COUNTER.getAndIncrement());
-        return new LoggingManagedHttpClientConnection(
+        final DefaultManagedHttpClientConnection conn = new DefaultManagedHttpClientConnection(
                 id,
-                log,
-                headerlog,
-                wirelog,
-                cconfig.getBufferSize(),
+                connectionConfig.getBufferSize(),
                 chardecoder,
                 charencoder,
                 h1Config,
@@ -141,6 +134,10 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
                 outgoingContentStrategy,
                 requestWriterFactory,
                 responseParserFactory);
+        if (socket != null) {
+            conn.bind(socket);
+        }
+        return conn;
     }
 
 }

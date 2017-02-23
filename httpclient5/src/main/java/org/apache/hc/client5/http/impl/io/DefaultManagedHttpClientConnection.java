@@ -32,35 +32,41 @@ import java.io.InterruptedIOException;
 import java.net.Socket;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
+import org.apache.hc.client5.http.impl.logging.LoggingSocketHolder;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
+import org.apache.hc.client5.http.utils.Identifiable;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentLengthStrategy;
-import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.io.DefaultBHttpClientConnection;
 import org.apache.hc.core5.http.impl.io.SocketHolder;
 import org.apache.hc.core5.http.io.HttpMessageParserFactory;
 import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
-import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.message.RequestLine;
+import org.apache.hc.core5.http.message.StatusLine;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Default {@link ManagedHttpClientConnection} implementation.
  * @since 4.3
  */
-public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnection
-        implements ManagedHttpClientConnection, HttpContext {
+public class DefaultManagedHttpClientConnection
+        extends DefaultBHttpClientConnection implements ManagedHttpClientConnection, Identifiable {
+
+    private final Logger log = LogManager.getLogger(DefaultManagedHttpClientConnection.class);
+    private final Logger headerlog = LogManager.getLogger("org.apache.hc.client5.http.headers");
+    private final Logger wirelog = LogManager.getLogger("org.apache.hc.client5.http.wire");
 
     private final String id;
-    private final Map<String, Object> attributes;
-
-    private volatile boolean shutdown;
+    private final AtomicBoolean closed;
 
     public DefaultManagedHttpClientConnection(
             final String id,
@@ -75,7 +81,7 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
         super(buffersize, chardecoder, charencoder, h1Config, incomingContentStrategy, outgoingContentStrategy,
                 requestWriterFactory, responseParserFactory);
         this.id = id;
-        this.attributes = new ConcurrentHashMap<>();
+        this.closed = new AtomicBoolean();
     }
 
     public DefaultManagedHttpClientConnection(
@@ -90,14 +96,8 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
     }
 
     @Override
-    public void shutdown() throws IOException {
-        this.shutdown = true;
-        super.shutdown();
-    }
-
-    @Override
     public void bind(final SocketHolder socketHolder) throws IOException {
-        if (this.shutdown) {
+        if (this.closed.get()) {
             final Socket socket = socketHolder.getSocket();
             socket.close(); // allow this to throw...
             // ...but if it doesn't, explicitly throw one ourselves.
@@ -123,22 +123,58 @@ public class DefaultManagedHttpClientConnection extends DefaultBHttpClientConnec
     }
 
     @Override
-    public void setProtocolVersion(final ProtocolVersion version) {
+    public void close() throws IOException {
+        if (this.closed.compareAndSet(false, true)) {
+            if (this.log.isDebugEnabled()) {
+                this.log.debug(this.id + ": Close connection");
+            }
+            super.close();
+        }
     }
 
     @Override
-    public Object getAttribute(final String id) {
-        return this.attributes.get(id);
+    public void setSocketTimeout(final int timeout) {
+        if (this.log.isDebugEnabled()) {
+            this.log.debug(this.id + ": set socket timeout to " + timeout);
+        }
+        super.setSocketTimeout(timeout);
     }
 
     @Override
-    public void setAttribute(final String id, final Object obj) {
-        this.attributes.put(id, obj);
+    public void shutdown() throws IOException {
+        if (this.closed.compareAndSet(false, true)) {
+            if (this.log.isDebugEnabled()) {
+                this.log.debug(this.id + ": Shutdown connection");
+            }
+            super.shutdown();
+        }
     }
 
     @Override
-    public Object removeAttribute(final String id) {
-        return this.attributes.remove(id);
+    public void bind(final Socket socket) throws IOException {
+        super.bind(this.wirelog.isDebugEnabled() ? new LoggingSocketHolder(socket, this.id, this.wirelog) : new SocketHolder(socket));
+    }
+
+    @Override
+    protected void onResponseReceived(final ClassicHttpResponse response) {
+        if (response != null && this.headerlog.isDebugEnabled()) {
+            this.headerlog.debug(this.id + " << " + new StatusLine(response));
+            final Header[] headers = response.getAllHeaders();
+            for (final Header header : headers) {
+                this.headerlog.debug(this.id + " << " + header.toString());
+            }
+        }
+    }
+
+    @Override
+    protected void onRequestSubmitted(final ClassicHttpRequest request) {
+        if (request != null && this.headerlog.isDebugEnabled()) {
+            this.headerlog.debug(this.id + " >> " + new RequestLine(request));
+            final Header[] headers = request.getAllHeaders();
+            for (final Header header : headers) {
+                this.headerlog.debug(this.id + " >> " + header.toString());
+            }
+        }
     }
 
 }

@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.impl.sync;
 import java.io.IOException;
 import java.net.Socket;
 
-import org.apache.hc.client5.http.HttpConnectionFactory;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.RouteInfo.LayerType;
 import org.apache.hc.client5.http.RouteInfo.TunnelType;
@@ -66,6 +65,7 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.entity.BufferedHttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
@@ -83,7 +83,7 @@ import org.apache.hc.core5.util.Args;
  */
 public class ProxyClient {
 
-    private final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory;
+    private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
     private final ConnectionConfig connectionConfig;
     private final RequestConfig requestConfig;
     private final HttpProcessor httpProcessor;
@@ -98,7 +98,7 @@ public class ProxyClient {
      * @since 4.3
      */
     public ProxyClient(
-            final HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory,
+            final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
             final ConnectionConfig connectionConfig,
             final RequestConfig requestConfig) {
         super();
@@ -148,8 +148,7 @@ public class ProxyClient {
                 this.requestConfig.getLocalAddress(),
                 proxy, false, TunnelType.TUNNELLED, LayerType.PLAIN);
 
-        final ManagedHttpClientConnection conn = this.connFactory.create(
-                route, this.connectionConfig);
+        final ManagedHttpClientConnection conn = this.connFactory.createConnection(null);
         final HttpContext context = new BasicHttpContext();
         ClassicHttpResponse response;
 

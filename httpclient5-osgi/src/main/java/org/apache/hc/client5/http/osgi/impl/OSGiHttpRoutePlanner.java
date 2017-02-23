@@ -34,7 +34,6 @@ import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.osgi.services.ProxyConfiguration;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -53,7 +52,7 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
      * {@inheritDoc}
      */
     @Override
-    protected HttpHost determineProxy(final HttpHost target, final HttpRequest request, final HttpContext context) throws HttpException {
+    protected HttpHost determineProxy(final HttpHost target, final HttpContext context) throws HttpException {
         HttpHost proxyHost = null;
         for (final ProxyConfiguration proxyConfiguration : proxyConfigurations) {
             if (proxyConfiguration.isEnabled()) {

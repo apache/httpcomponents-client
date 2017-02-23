@@ -25,16 +25,11 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.io;
+package org.apache.hc.client5.http.impl.logging;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * Internal class.
- *
- * @since 4.3
- */
 class LoggingInputStream extends InputStream {
 
     private final InputStream in;

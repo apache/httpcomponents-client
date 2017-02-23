@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.core5.pool.ConnPoolControl;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -41,7 +41,7 @@ public class TestIdleConnectionEvictor {
 
     @Test
     public void testEvictExpiredAndIdle() throws Exception {
-        final HttpClientConnectionManager cm = Mockito.mock(HttpClientConnectionManager.class);
+        final ConnPoolControl<?> cm = Mockito.mock(ConnPoolControl.class);
         final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
                 500, TimeUnit.MILLISECONDS, 3, TimeUnit.SECONDS);
         connectionEvictor.start();
@@ -60,7 +60,7 @@ public class TestIdleConnectionEvictor {
 
     @Test
     public void testEvictExpiredOnly() throws Exception {
-        final HttpClientConnectionManager cm = Mockito.mock(HttpClientConnectionManager.class);
+        final ConnPoolControl<?> cm = Mockito.mock(ConnPoolControl.class);
         final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
                 500, TimeUnit.MILLISECONDS, 0, TimeUnit.SECONDS);
         connectionEvictor.start();

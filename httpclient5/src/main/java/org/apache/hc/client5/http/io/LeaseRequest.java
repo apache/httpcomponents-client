@@ -29,21 +29,20 @@ package org.apache.hc.client5.http.io;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-import org.apache.hc.client5.http.ConnectionPoolTimeoutException;
 import org.apache.hc.core5.concurrent.Cancellable;
-import org.apache.hc.core5.http.io.HttpClientConnection;
 
 /**
- * Represents a request for a {@link HttpClientConnection} whose life cycle
+ * Represents a request for a {@link ConnectionEndpoint} whose life cycle
  * is managed by a connection manager.
  *
- * @since 4.3
+ * @since 5.0
  */
-public interface ConnectionRequest extends Cancellable {
+public interface LeaseRequest extends Cancellable {
 
     /**
-     * Obtains a connection within a given time.
+     * Returns {@link ConnectionEndpoint} within a given time.
      * This method will block until a connection becomes available,
      * the timeout expires, or the connection manager is shut down.
      * Timeouts are handled with millisecond precision.
@@ -59,12 +58,12 @@ public interface ConnectionRequest extends Cancellable {
      * @return  a connection that can be used to communicate
      *          along the given route
      *
-     * @throws ConnectionPoolTimeoutException
+     * @throws TimeoutException
      *         in case of a timeout
      * @throws InterruptedException
      *         if the calling thread is interrupted while waiting
      */
-    HttpClientConnection get(long timeout, TimeUnit tunit)
-        throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException;
+    ConnectionEndpoint get(long timeout, TimeUnit tunit)
+            throws InterruptedException, ExecutionException, TimeoutException;
 
 }

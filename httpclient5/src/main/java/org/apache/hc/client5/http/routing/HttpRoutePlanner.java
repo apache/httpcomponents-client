@@ -48,13 +48,9 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 public interface HttpRoutePlanner {
 
     /**
-     * Determines the route for a request.
+     * Determines the route for the given host.
      *
      * @param target    the target host for the request.
-     *                  Implementations may accept {@code null}
-     *                  if they can still determine a route, for example
-     *                  to a default target or by inspecting the request.
-     * @param request   the request to execute
      * @param context   the context to use for the subsequent execution.
      *                  Implementations may accept {@code null}.
      *
@@ -62,8 +58,19 @@ public interface HttpRoutePlanner {
      *
      * @throws HttpException    in case of a problem
      */
-    HttpRoute determineRoute(HttpHost target,
-                             HttpRequest request,
-                             HttpContext context) throws HttpException;
+    HttpRoute determineRoute(HttpHost target, HttpContext context) throws HttpException;
+
+    /**
+     * Determines the target host for the given request.
+     *
+     * @param request   the request to be executed
+     * @param context   the context to use for the subsequent execution.
+     *                  Implementations may accept {@code null}.
+     *
+     * @return  the route that the request should take
+     *
+     * @throws HttpException    in case of a problem
+     */
+    HttpHost determineTargetHost(HttpRequest request, HttpContext context) throws HttpException;
 
 }

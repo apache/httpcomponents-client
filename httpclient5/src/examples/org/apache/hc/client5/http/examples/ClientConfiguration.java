@@ -36,7 +36,6 @@ import java.util.Arrays;
 import javax.net.ssl.SSLContext;
 
 import org.apache.hc.client5.http.DnsResolver;
-import org.apache.hc.client5.http.HttpConnectionFactory;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
@@ -45,15 +44,13 @@ import org.apache.hc.client5.http.config.CookieSpecs;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.BasicCookieStore;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.impl.io.DefaultHttpResponseParserFactory;
-import org.apache.hc.client5.http.impl.io.LenientHttpResponseParser;
 import org.apache.hc.client5.http.impl.io.ManagedHttpClientConnectionFactory;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
-import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
@@ -71,6 +68,9 @@ import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.impl.io.DefaultClassicHttpResponseFactory;
 import org.apache.hc.core5.http.impl.io.DefaultHttpRequestWriterFactory;
+import org.apache.hc.core5.http.impl.io.DefaultHttpResponseParser;
+import org.apache.hc.core5.http.impl.io.DefaultHttpResponseParserFactory;
+import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.io.HttpMessageParser;
 import org.apache.hc.core5.http.io.HttpMessageParserFactory;
 import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
@@ -107,18 +107,30 @@ public class ClientConfiguration {
                     }
 
                 };
-                return new LenientHttpResponseParser(lineParser, DefaultClassicHttpResponseFactory.INSTANCE, h1Config);
+                return new DefaultHttpResponseParser(lineParser, DefaultClassicHttpResponseFactory.INSTANCE, h1Config);
             }
 
         };
         HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory = new DefaultHttpRequestWriterFactory();
 
+        // Create HTTP/1.1 protocol configuration
+        H1Config h1Config = H1Config.custom()
+                .setMaxHeaderCount(200)
+                .setMaxLineLength(2000)
+                .build();
+        // Create connection configuration
+        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .setMalformedInputAction(CodingErrorAction.IGNORE)
+                .setUnmappableInputAction(CodingErrorAction.IGNORE)
+                .setCharset(StandardCharsets.UTF_8)
+                .build();
+
         // Use a custom connection factory to customize the process of
         // initialization of outgoing HTTP connections. Beside standard connection
         // configuration parameters HTTP connection factory can define message
         // parser / writer routines to be employed by individual connections.
-        HttpConnectionFactory<HttpRoute, ManagedHttpClientConnection> connFactory = new ManagedHttpClientConnectionFactory(
-                H1Config.DEFAULT, requestWriterFactory, responseParserFactory);
+        HttpConnectionFactory<ManagedHttpClientConnection> connFactory = new ManagedHttpClientConnectionFactory(
+                h1Config, connectionConfig, requestWriterFactory, responseParserFactory);
 
         // Client HTTP connection objects when fully initialized can be bound to
         // an arbitrary network socket. The process of network socket initialization,
@@ -161,25 +173,8 @@ public class ClientConfiguration {
         // Configure the connection manager to use socket configuration either
         // by default or for a specific host.
         connManager.setDefaultSocketConfig(socketConfig);
-        connManager.setSocketConfig(new HttpHost("somehost", 80), socketConfig);
         // Validate connections after 1 sec of inactivity
         connManager.setValidateAfterInactivity(1000);
-
-        // Create message constraints
-        H1Config messageConstraints = H1Config.custom()
-            .setMaxHeaderCount(200)
-            .setMaxLineLength(2000)
-            .build();
-        // Create connection configuration
-        ConnectionConfig connectionConfig = ConnectionConfig.custom()
-            .setMalformedInputAction(CodingErrorAction.IGNORE)
-            .setUnmappableInputAction(CodingErrorAction.IGNORE)
-            .setCharset(StandardCharsets.UTF_8)
-            .build();
-        // Configure the connection manager to use connection configuration either
-        // by default or for a specific host.
-        connManager.setDefaultConnectionConfig(connectionConfig);
-        connManager.setConnectionConfig(new HttpHost("somehost", 80), ConnectionConfig.DEFAULT);
 
         // Configure total max or per route limits for persistent connections
         // that can be kept in the pool or leased by the connection manager.

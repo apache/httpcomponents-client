@@ -243,6 +243,8 @@ public class TestHttpClientConnectionOperator {
         final HttpContext context = new BasicHttpContext();
         final HttpHost host = new HttpHost("somehost", -1, "https");
 
+        Mockito.when(conn.isOpen()).thenReturn(true);
+        Mockito.when(conn.getSocket()).thenReturn(socket);
         Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(sslSocketFactory);
         Mockito.when(schemePortResolver.resolve(host)).thenReturn(443);
         Mockito.when(sslSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);

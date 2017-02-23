@@ -39,7 +39,6 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -73,10 +72,7 @@ public class SystemDefaultRoutePlanner extends DefaultRoutePlanner {
     }
 
     @Override
-    protected HttpHost determineProxy(
-            final HttpHost    target,
-            final HttpRequest request,
-            final HttpContext context) throws HttpException {
+    protected HttpHost determineProxy(final HttpHost target, final HttpContext context) throws HttpException {
         final URI targetURI;
         try {
             targetURI = new URI(target.toURI());

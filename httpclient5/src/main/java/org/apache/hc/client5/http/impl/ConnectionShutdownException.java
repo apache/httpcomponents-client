@@ -25,33 +25,23 @@
  *
  */
 
-package org.apache.hc.client5.http;
+package org.apache.hc.client5.http.impl;
 
 /**
- * A timeout while waiting for an available connection
- * from a connection manager.
+ * Signals that the connection has been shut down or released back to the
+ * the connection pool
  *
- *
- * @since 4.0
+ * @since 4.1
  */
-public class ConnectionPoolTimeoutException extends ConnectTimeoutException {
+public class ConnectionShutdownException extends IllegalStateException {
 
-    private static final long serialVersionUID = -7898874842020245128L;
+    private static final long serialVersionUID = 5868657401162844497L;
 
     /**
-     * Creates a ConnectTimeoutException with a {@code null} detail message.
+     * Creates a new ConnectionShutdownException with a {@code null} detail message.
      */
-    public ConnectionPoolTimeoutException() {
+    public ConnectionShutdownException() {
         super();
-    }
-
-    /**
-     * Creates a ConnectTimeoutException with the specified detail message.
-     *
-     * @param message The exception detail message
-     */
-    public ConnectionPoolTimeoutException(final String message) {
-        super(message);
     }
 
 }

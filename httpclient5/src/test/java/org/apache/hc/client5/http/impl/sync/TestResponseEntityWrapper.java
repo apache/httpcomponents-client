@@ -43,7 +43,7 @@ public class TestResponseEntityWrapper {
 
     private InputStream instream;
     private HttpEntity entity;
-    private ConnectionHolder connHolder;
+    private EndpointHolder endpointHolder;
     private ResponseEntityProxy wrapper;
 
     @Before
@@ -51,83 +51,83 @@ public class TestResponseEntityWrapper {
         instream = Mockito.mock(InputStream.class);
         entity = Mockito.mock(HttpEntity.class);
         Mockito.when(entity.getContent()).thenReturn(instream);
-        connHolder = Mockito.mock(ConnectionHolder.class);
-        wrapper = new ResponseEntityProxy(entity, connHolder);
+        endpointHolder = Mockito.mock(EndpointHolder.class);
+        wrapper = new ResponseEntityProxy(entity, endpointHolder);
     }
 
     @Test
     public void testReusableEntityStreamClosed() throws Exception {
         Mockito.when(entity.isStreaming()).thenReturn(true);
-        Mockito.when(connHolder.isReusable()).thenReturn(true);
+        Mockito.when(endpointHolder.isReusable()).thenReturn(true);
         EntityUtils.consume(wrapper);
 
         Mockito.verify(instream, Mockito.times(1)).close();
-        Mockito.verify(connHolder).releaseConnection();
+        Mockito.verify(endpointHolder).releaseConnection();
     }
 
     @Test
     public void testReusableEntityStreamClosedIOError() throws Exception {
         Mockito.when(entity.isStreaming()).thenReturn(true);
-        Mockito.when(connHolder.isReusable()).thenReturn(true);
+        Mockito.when(endpointHolder.isReusable()).thenReturn(true);
         Mockito.doThrow(new IOException()).when(instream).close();
         try {
             EntityUtils.consume(wrapper);
             Assert.fail("IOException expected");
         } catch (final IOException ex) {
         }
-        Mockito.verify(connHolder).abortConnection();
+        Mockito.verify(endpointHolder).abortConnection();
     }
 
     @Test
     public void testEntityStreamClosedIOErrorAlreadyReleased() throws Exception {
         Mockito.when(entity.isStreaming()).thenReturn(true);
-        Mockito.when(connHolder.isReusable()).thenReturn(true);
-        Mockito.when(connHolder.isReleased()).thenReturn(true);
+        Mockito.when(endpointHolder.isReusable()).thenReturn(true);
+        Mockito.when(endpointHolder.isReleased()).thenReturn(true);
         Mockito.doThrow(new SocketException()).when(instream).close();
         EntityUtils.consume(wrapper);
-        Mockito.verify(connHolder).close();
+        Mockito.verify(endpointHolder).close();
     }
 
     @Test
     public void testReusableEntityWriteTo() throws Exception {
         final OutputStream outstream = Mockito.mock(OutputStream.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);
-        Mockito.when(connHolder.isReusable()).thenReturn(true);
+        Mockito.when(endpointHolder.isReusable()).thenReturn(true);
         wrapper.writeTo(outstream);
-        Mockito.verify(connHolder).releaseConnection();
+        Mockito.verify(endpointHolder).releaseConnection();
     }
 
     @Test
     public void testReusableEntityWriteToIOError() throws Exception {
         final OutputStream outstream = Mockito.mock(OutputStream.class);
         Mockito.when(entity.isStreaming()).thenReturn(true);
-        Mockito.when(connHolder.isReusable()).thenReturn(true);
+        Mockito.when(endpointHolder.isReusable()).thenReturn(true);
         Mockito.doThrow(new IOException()).when(entity).writeTo(outstream);
         try {
             wrapper.writeTo(outstream);
             Assert.fail("IOException expected");
         } catch (final IOException ex) {
         }
-        Mockito.verify(connHolder, Mockito.never()).releaseConnection();
-        Mockito.verify(connHolder).abortConnection();
+        Mockito.verify(endpointHolder, Mockito.never()).releaseConnection();
+        Mockito.verify(endpointHolder).abortConnection();
     }
 
     @Test
     public void testReusableEntityEndOfStream() throws Exception {
         Mockito.when(instream.read()).thenReturn(-1);
         Mockito.when(entity.isStreaming()).thenReturn(true);
-        Mockito.when(connHolder.isReusable()).thenReturn(true);
+        Mockito.when(endpointHolder.isReusable()).thenReturn(true);
         final InputStream content = wrapper.getContent();
         Assert.assertEquals(-1, content.read());
         Mockito.verify(instream).close();
-        Mockito.verify(connHolder).releaseConnection();
+        Mockito.verify(endpointHolder).releaseConnection();
     }
 
     @Test
     public void testReusableEntityEndOfStreamIOError() throws Exception {
         Mockito.when(instream.read()).thenReturn(-1);
         Mockito.when(entity.isStreaming()).thenReturn(true);
-        Mockito.when(connHolder.isReusable()).thenReturn(true);
+        Mockito.when(endpointHolder.isReusable()).thenReturn(true);
         Mockito.doThrow(new IOException()).when(instream).close();
         final InputStream content = wrapper.getContent();
         try {
@@ -135,7 +135,7 @@ public class TestResponseEntityWrapper {
             Assert.fail("IOException expected");
         } catch (final IOException ex) {
         }
-        Mockito.verify(connHolder).abortConnection();
+        Mockito.verify(endpointHolder).abortConnection();
     }
 
 }

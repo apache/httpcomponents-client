@@ -31,13 +31,16 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.io.ConnectionShutdownException;
-import org.apache.hc.client5.http.io.ConnectionRequest;
+import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.impl.ConnectionShutdownException;
+import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
 import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -45,11 +48,12 @@ import org.apache.hc.client5.http.protocol.RequestClientConnControl;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
-import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
@@ -86,20 +90,16 @@ public class MinimalClientExec implements ClientExecChain {
             final HttpClientConnectionManager connManager,
             final ConnectionReuseStrategy reuseStrategy,
             final ConnectionKeepAliveStrategy keepAliveStrategy) {
-        Args.notNull(requestExecutor, "HTTP request executor");
-        Args.notNull(connManager, "Client connection manager");
-        Args.notNull(reuseStrategy, "Connection reuse strategy");
-        Args.notNull(keepAliveStrategy, "Connection keep alive strategy");
+        this.requestExecutor = Args.notNull(requestExecutor, "Request executor");
+        this.connManager = Args.notNull(connManager, "Connection manager");
+        this.reuseStrategy = reuseStrategy != null ? reuseStrategy : DefaultConnectionReuseStrategy.INSTANCE;
+        this.keepAliveStrategy = keepAliveStrategy != null ? keepAliveStrategy : DefaultConnectionKeepAliveStrategy.INSTANCE;
         this.httpProcessor = new DefaultHttpProcessor(
                 new RequestContent(),
                 new RequestTargetHost(),
                 new RequestClientConnControl(),
                 new RequestUserAgent(VersionInfo.getSoftwareInfo(
                         "Apache-HttpClient", "org.apache.hc.client5", getClass())));
-        this.requestExecutor    = requestExecutor;
-        this.connManager        = connManager;
-        this.reuseStrategy      = reuseStrategy;
-        this.keepAliveStrategy  = keepAliveStrategy;
     }
 
     @Override
@@ -111,7 +111,7 @@ public class MinimalClientExec implements ClientExecChain {
         Args.notNull(context, "HTTP context");
 
         final HttpRoute route = request.getRoute();
-        final ConnectionRequest connRequest = connManager.requestConnection(route, null);
+        final LeaseRequest connRequest = connManager.lease(route, null);
         if (execAware != null) {
             if (execAware.isAborted()) {
                 connRequest.cancel();
@@ -122,10 +122,12 @@ public class MinimalClientExec implements ClientExecChain {
 
         final RequestConfig config = context.getRequestConfig();
 
-        final HttpClientConnection managedConn;
+        final ConnectionEndpoint endpoint;
         try {
             final int timeout = config.getConnectionRequestTimeout();
-            managedConn = connRequest.get(timeout > 0 ? timeout : 0, TimeUnit.MILLISECONDS);
+            endpoint = connRequest.get(timeout > 0 ? timeout : 0, TimeUnit.MILLISECONDS);
+        } catch(final TimeoutException ex) {
+            throw new ConnectionRequestTimeoutException(ex.getMessage());
         } catch(final InterruptedException interrupted) {
             Thread.currentThread().interrupt();
             throw new RequestAbortedException("Request aborted", interrupted);
@@ -137,57 +139,54 @@ public class MinimalClientExec implements ClientExecChain {
             throw new RequestAbortedException("Request execution failed", cause);
         }
 
-        final ConnectionHolder connHolder = new ConnectionHolder(log, connManager, managedConn);
+        final EndpointHolder endpointHolder = new EndpointHolder(log, connManager, endpoint);
         try {
             if (execAware != null) {
                 if (execAware.isAborted()) {
-                    connHolder.close();
+                    endpointHolder.close();
                     throw new RequestAbortedException("Request aborted");
                 }
-                execAware.setCancellable(connHolder);
+                execAware.setCancellable(endpointHolder);
             }
-
-            if (!managedConn.isOpen()) {
+            if (!endpoint.isConnected()) {
                 final int timeout = config.getConnectTimeout();
                 this.connManager.connect(
-                    managedConn,
-                    route,
-                    timeout > 0 ? timeout : 0,
-                    context);
-                this.connManager.routeComplete(managedConn, route, context);
+                        endpoint,
+                        timeout > 0 ? timeout : 0,
+                        TimeUnit.MILLISECONDS,
+                        context);
             }
             final int timeout = config.getSocketTimeout();
             if (timeout >= 0) {
-                managedConn.setSocketTimeout(timeout);
+                endpoint.setSocketTimeout(timeout);
             }
 
             context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
-            context.setAttribute(HttpCoreContext.HTTP_CONNECTION, managedConn);
             context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
 
             httpProcessor.process(request, request.getEntity(), context);
-            final ClassicHttpResponse response = requestExecutor.execute(request, managedConn, context);
+            final ClassicHttpResponse response = endpoint.execute(request, requestExecutor, context);
             httpProcessor.process(response, response.getEntity(), context);
 
             // The connection is in or can be brought to a re-usable state.
             if (reuseStrategy.keepAlive(request, response, context)) {
                 // Set the idle duration of this connection
                 final long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
-                connHolder.setValidFor(duration, TimeUnit.MILLISECONDS);
-                connHolder.markReusable();
+                endpointHolder.setValidFor(duration, TimeUnit.MILLISECONDS);
+                endpointHolder.markReusable();
             } else {
-                connHolder.markNonReusable();
+                endpointHolder.markNonReusable();
             }
 
             // check for entity, release connection if possible
             final HttpEntity entity = response.getEntity();
             if (entity == null || !entity.isStreaming()) {
                 // connection not needed and (assumed to be) in re-usable state
-                connHolder.releaseConnection();
+                endpointHolder.releaseConnection();
                 return new CloseableHttpResponse(response, null);
             } else {
-                ResponseEntityProxy.enchance(response, connHolder);
-                return new CloseableHttpResponse(response, connHolder);
+                ResponseEntityProxy.enchance(response, endpointHolder);
+                return new CloseableHttpResponse(response, endpointHolder);
             }
         } catch (final ConnectionShutdownException ex) {
             final InterruptedIOException ioex = new InterruptedIOException(
@@ -195,7 +194,7 @@ public class MinimalClientExec implements ClientExecChain {
             ioex.initCause(ex);
             throw ioex;
         } catch (final HttpException | RuntimeException | IOException ex) {
-            connHolder.abortConnection();
+            endpointHolder.abortConnection();
             throw ex;
         }
     }

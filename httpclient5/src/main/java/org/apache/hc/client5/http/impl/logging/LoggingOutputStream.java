@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.io;
+package org.apache.hc.client5.http.impl.logging;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -49,6 +49,7 @@ class LoggingOutputStream extends OutputStream {
     @Override
     public void write(final int b) throws IOException {
         try {
+            out.write(b);
             wire.output(b);
         } catch (final IOException ex) {
             wire.output("[write] I/O error: " + ex.getMessage());

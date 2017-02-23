@@ -115,15 +115,4 @@ public class TestExceptions {
         Assert.assertEquals("Connect to localhost [/1.2.3.4, /5.6.7.8] refused", ctx.getMessage());
     }
 
-    @Test
-    public void testConnectionPoolTimeoutException() {
-        final String msg = "sample exception message";
-        ConnectionPoolTimeoutException cptx = new ConnectionPoolTimeoutException(msg);
-        Assert.assertFalse(!cptx.toString().contains(msg));
-        Assert.assertSame(msg, cptx.getMessage());
-
-        cptx = new ConnectionPoolTimeoutException();
-        Assert.assertNull(cptx.getMessage());
-    }
-
 }

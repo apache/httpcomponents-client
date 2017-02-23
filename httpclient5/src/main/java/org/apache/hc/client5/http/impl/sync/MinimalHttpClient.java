@@ -110,8 +110,8 @@ class MinimalHttpClient extends CloseableHttpClient {
     }
 
     @Override
-    public void close() {
-        this.connManager.shutdown();
+    public void close() throws IOException {
+        this.connManager.close();
     }
 
 }

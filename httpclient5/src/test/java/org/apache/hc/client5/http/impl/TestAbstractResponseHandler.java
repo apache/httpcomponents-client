@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.hc.client5.http.impl.sync.AbstractResponseHandler;
+import org.apache.hc.client5.http.impl.sync.BasicResponseHandler;
 import org.apache.hc.client5.http.protocol.HttpResponseException;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;

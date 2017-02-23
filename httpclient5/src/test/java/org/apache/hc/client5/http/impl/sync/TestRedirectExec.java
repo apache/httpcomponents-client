@@ -121,7 +121,6 @@ public class TestRedirectExec {
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
                 Mockito.eq(target),
-                Mockito.<RoutedHttpRequest>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
 
         redirectExec.execute(request, context, execAware);
@@ -173,7 +172,6 @@ public class TestRedirectExec {
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
                 Mockito.eq(target),
-                Mockito.<RoutedHttpRequest>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
 
         redirectExec.execute(request, context, execAware);
@@ -207,7 +205,6 @@ public class TestRedirectExec {
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
                 Mockito.eq(target),
-                Mockito.<RoutedHttpRequest>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
 
         redirectExec.execute(request, context, execAware);
@@ -253,11 +250,9 @@ public class TestRedirectExec {
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
                 Mockito.eq(target),
-                Mockito.<RoutedHttpRequest>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(new HttpRoute(target));
         Mockito.when(httpRoutePlanner.determineRoute(
                 Mockito.eq(otherHost),
-                Mockito.<RoutedHttpRequest>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(new HttpRoute(otherHost));
 
         redirectExec.execute(request, context, execAware);

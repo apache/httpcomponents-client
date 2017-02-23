@@ -99,7 +99,7 @@ import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
-import org.apache.hc.core5.util.TextUtils;
+import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.VersionInfo;
 
 /**
@@ -547,14 +547,11 @@ public class HttpClientBuilder {
      * One MUST explicitly close HttpClient with {@link CloseableHttpClient#close()} in order
      * to stop and release the background thread.
      * <p>
-     * Please note this method has no effect if the instance of HttpClient is configuted to
+     * Please note this method has no effect if the instance of HttpClient is configured to
      * use a shared connection manager.
-     * <p>
-     * Please note this method may not be used when the instance of HttpClient is created
-     * inside an EJB container.
      *
      * @see #setConnectionManagerShared(boolean)
-     * @see HttpClientConnectionManager#closeExpired()
+     * @see ConnPoolControl#closeExpired()
      *
      * @since 4.4
      */
@@ -570,14 +567,11 @@ public class HttpClientBuilder {
      * One MUST explicitly close HttpClient with {@link CloseableHttpClient#close()} in order
      * to stop and release the background thread.
      * <p>
-     * Please note this method has no effect if the instance of HttpClient is configuted to
+     * Please note this method has no effect if the instance of HttpClient is configured to
      * use a shared connection manager.
-     * <p>
-     * Please note this method may not be used when the instance of HttpClient is created
-     * inside an EJB container.
      *
      * @see #setConnectionManagerShared(boolean)
-     * @see HttpClientConnectionManager#closeExpired()
+     * @see ConnPoolControl#closeIdle(long, TimeUnit)
      *
      * @param maxIdleTime maximum time persistent connections can stay idle while kept alive
      * in the connection pool. Connections whose inactivity period exceeds this value will
@@ -650,13 +644,6 @@ public class HttpClientBuilder {
             closeables = new ArrayList<>();
         }
         closeables.add(closeable);
-    }
-
-    private static String[] split(final String s) {
-        if (TextUtils.isBlank(s)) {
-            return null;
-        }
-        return s.split(" *, *");
     }
 
     public CloseableHttpClient build() {
@@ -873,34 +860,26 @@ public class HttpClientBuilder {
             if (closeablesCopy == null) {
                 closeablesCopy = new ArrayList<>(1);
             }
-            final HttpClientConnectionManager cm = connManagerCopy;
-
             if (evictExpiredConnections || evictIdleConnections) {
-                final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
-                        maxIdleTime > 0 ? maxIdleTime : 10, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS);
-                closeablesCopy.add(new Closeable() {
+                if (connManagerCopy instanceof ConnPoolControl) {
+                    final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor((ConnPoolControl<?>) connManagerCopy,
+                            maxIdleTime > 0 ? maxIdleTime : 10, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS);
+                    closeablesCopy.add(new Closeable() {
 
-                    @Override
-                    public void close() throws IOException {
-                        connectionEvictor.shutdown();
-                    }
+                        @Override
+                        public void close() throws IOException {
+                            connectionEvictor.shutdown();
+                        }
 
-                });
-                connectionEvictor.start();
-            }
-            closeablesCopy.add(new Closeable() {
-
-                @Override
-                public void close() throws IOException {
-                    cm.shutdown();
+                    });
+                    connectionEvictor.start();
                 }
-
-            });
+            }
+            closeablesCopy.add(connManagerCopy);
         }
 
         return new InternalHttpClient(
                 execChain,
-                connManagerCopy,
                 routePlannerCopy,
                 cookieSpecRegistryCopy,
                 authSchemeRegistryCopy,

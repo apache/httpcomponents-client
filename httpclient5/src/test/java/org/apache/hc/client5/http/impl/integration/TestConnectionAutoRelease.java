@@ -31,10 +31,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-import org.apache.hc.client5.http.ConnectionPoolTimeoutException;
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.io.ConnectionRequest;
+import org.apache.hc.client5.http.io.ConnectionEndpoint;
+import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -44,13 +45,11 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.MalformedChunkCodingException;
 import org.apache.hc.core5.http.impl.io.DefaultBHttpServerConnection;
-import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
-import org.apache.hc.core5.pool.PoolStats;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -62,19 +61,18 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         this.connManager.setMaxTotal(1);
 
         // Zero connections in the pool
-        PoolStats stats = this.connManager.getTotalStats();
-        Assert.assertEquals(0, stats.getAvailable());
+        Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
 
         final HttpHost target = start();
         // Get some random data
         final HttpGet httpget = new HttpGet("/random/20000");
         final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
 
-        ConnectionRequest connreq = this.connManager.requestConnection(new HttpRoute(target), null);
+        final LeaseRequest connreq1 = this.connManager.lease(new HttpRoute(target), null);
         try {
-            connreq.get(250, TimeUnit.MILLISECONDS);
+            connreq1.get(250, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (final ConnectionPoolTimeoutException expected) {
+        } catch (final TimeoutException expected) {
         }
 
         final HttpEntity e = response.getEntity();
@@ -82,14 +80,13 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         EntityUtils.consume(e);
 
         // Expect one connection in the pool
-        stats = this.connManager.getTotalStats();
-        Assert.assertEquals(1, stats.getAvailable());
+        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
 
         // Make sure one connection is available
-        connreq = this.connManager.requestConnection(new HttpRoute(target), null);
-        final HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
+        final LeaseRequest connreq2 = this.connManager.lease(new HttpRoute(target), null);
+        final ConnectionEndpoint endpoint = connreq2.get(250, TimeUnit.MILLISECONDS);
 
-        this.connManager.releaseConnection(conn, null, -1, null);
+        this.connManager.release(endpoint, null, -1, null);
     }
 
     @Test
@@ -98,19 +95,18 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         this.connManager.setMaxTotal(1);
 
         // Zero connections in the pool
-        PoolStats stats = this.connManager.getTotalStats();
-        Assert.assertEquals(0, stats.getAvailable());
+        Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
 
         final HttpHost target = start();
         // Get some random data
         final HttpGet httpget = new HttpGet("/random/20000");
         final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
 
-        ConnectionRequest connreq = this.connManager.requestConnection(new HttpRoute(target), null);
+        final LeaseRequest connreq1 = this.connManager.lease(new HttpRoute(target), null);
         try {
-            connreq.get(250, TimeUnit.MILLISECONDS);
+            connreq1.get(250, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (final ConnectionPoolTimeoutException expected) {
+        } catch (final TimeoutException expected) {
         }
 
         final HttpEntity e = response.getEntity();
@@ -119,14 +115,13 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         e.writeTo(outsteam);
 
         // Expect one connection in the pool
-        stats = this.connManager.getTotalStats();
-        Assert.assertEquals(1, stats.getAvailable());
+        Assert.assertEquals(1, this.connManager.getTotalStats().getAvailable());
 
         // Make sure one connection is available
-        connreq = this.connManager.requestConnection(new HttpRoute(target), null);
-        final HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
+        final LeaseRequest connreq2 = this.connManager.lease(new HttpRoute(target), null);
+        final ConnectionEndpoint endpoint = connreq2.get(250, TimeUnit.MILLISECONDS);
 
-        this.connManager.releaseConnection(conn, null, -1, null);
+        this.connManager.release(endpoint, null, -1, null);
     }
 
     @Test
@@ -135,8 +130,7 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         this.connManager.setMaxTotal(1);
 
         // Zero connections in the pool
-        final PoolStats stats = this.connManager.getTotalStats();
-        Assert.assertEquals(0, stats.getAvailable());
+        Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
 
         final HttpHost target = start();
 
@@ -144,11 +138,11 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/random/20000");
         final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
 
-        ConnectionRequest connreq = this.connManager.requestConnection(new HttpRoute(target), null);
+        final LeaseRequest connreq1 = this.connManager.lease(new HttpRoute(target), null);
         try {
-            connreq.get(250, TimeUnit.MILLISECONDS);
+            connreq1.get(250, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (final ConnectionPoolTimeoutException expected) {
+        } catch (final TimeoutException expected) {
         }
 
         final HttpEntity e = response.getEntity();
@@ -159,10 +153,10 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
 
         // Make sure one connection is available
-        connreq = this.connManager.requestConnection(new HttpRoute(target), null);
-        final HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
+        final LeaseRequest connreq2 = this.connManager.lease(new HttpRoute(target), null);
+        final ConnectionEndpoint endpoint = connreq2.get(250, TimeUnit.MILLISECONDS);
 
-        this.connManager.releaseConnection(conn, null, -1, null);
+        this.connManager.release(endpoint, null, -1, null);
     }
 
     @Test
@@ -212,11 +206,11 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         final HttpGet httpget = new HttpGet("/dropdead");
         final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
 
-        ConnectionRequest connreq = this.connManager.requestConnection(new HttpRoute(target), null);
+        final LeaseRequest connreq1 = this.connManager.lease(new HttpRoute(target), null);
         try {
-            connreq.get(250, TimeUnit.MILLISECONDS);
+            connreq1.get(250, TimeUnit.MILLISECONDS);
             Assert.fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (final ConnectionPoolTimeoutException expected) {
+        } catch (final TimeoutException expected) {
         }
 
         final HttpEntity e = response.getEntity();
@@ -233,10 +227,10 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
 
         // Make sure one connection is available
-        connreq = this.connManager.requestConnection(new HttpRoute(target), null);
-        final HttpClientConnection conn = connreq.get(250, TimeUnit.MILLISECONDS);
+        final LeaseRequest connreq2 = this.connManager.lease(new HttpRoute(target), null);
+        final ConnectionEndpoint endpoint = connreq2.get(250, TimeUnit.MILLISECONDS);
 
-        this.connManager.releaseConnection(conn, null, -1, null);
+        this.connManager.release(endpoint, null, -1, null);
     }
 
 }

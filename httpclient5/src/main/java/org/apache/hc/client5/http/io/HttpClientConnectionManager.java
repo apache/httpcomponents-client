@@ -26,11 +26,11 @@
  */
 package org.apache.hc.client5.http.io;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -40,137 +40,77 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * HTTP connections, manage persistent connections and synchronize access to
  * persistent connections making sure that only one thread of execution can
  * have access to a connection at a time.
- * </p>
  * <p>
  * Implementations of this interface must be thread-safe. Access to shared
  * data must be synchronized as methods of this interface may be executed
  * from multiple threads.
- * </p>
  *
  * @since 4.3
  */
-public interface HttpClientConnectionManager {
+public interface HttpClientConnectionManager extends Closeable {
 
     /**
-     * Returns a new {@link ConnectionRequest}, from which a
-     * {@link HttpClientConnection} can be obtained or the request can be
-     * aborted.
+     * Returns a {@link LeaseRequest} object which can be used to obtain
+     * a {@link ConnectionEndpoint} to cancel the request by calling
+     * {@link LeaseRequest#cancel()}.
      * <p>
-     * Please note that newly allocated connections can be returned
-     * in the closed state. The consumer of that connection is responsible
-     * for fully establishing the route the to the connection target
-     * by calling {@link #connect(HttpClientConnection, HttpRoute, int, HttpContext)}  connect} in order to connect
-     * directly to the target or to the first proxy hop, optionally calling
-     * {@link #upgrade(HttpClientConnection, HttpRoute, HttpContext)}  upgrade} method to upgrade
-     * the connection after having executed {@code CONNECT} method to
-     * all intermediate proxy hops and and finally calling {@link #routeComplete(HttpClientConnection, HttpRoute,
-     * HttpContext)} routeComplete} to mark the route
-     *  as fully completed.
-     * </p>
+     * Please note that newly allocated endpoints can be leased
+     * {@link ConnectionEndpoint#isConnected() disconnected}. The consumer of the endpoint
+     * is responsible for fully establishing the route to the endpoint target
+     * by calling {@link #connect(ConnectionEndpoint, long, TimeUnit, HttpContext)}
+     * in order to connect directly to the target or to the first proxy hop,
+     * and optionally calling {@link #upgrade(ConnectionEndpoint, HttpContext)} method
+     * to upgrade the underlying transport to Transport Layer Security after having
+     * executed a {@code CONNECT} method to all intermediate proxy hops.
      *
      * @param route HTTP route of the requested connection.
      * @param state expected state of the connection or {@code null}
      *              if the connection is not expected to carry any state.
      */
-    ConnectionRequest requestConnection(HttpRoute route, Object state);
+    LeaseRequest lease(HttpRoute route, Object state);
 
     /**
-     * Releases the connection back to the manager making it potentially
+     * Releases the endpoint back to the manager making it potentially
      * re-usable by other consumers. Optionally, the maximum period
      * of how long the manager should keep the connection alive can be
      * defined using {@code validDuration} and {@code timeUnit}
      * parameters.
      *
-     * @param conn      the managed connection to release.
+     * @param endpoint      the managed endpoint.
+     * @param newState      the new connection state of {@code null} if state-less.
      * @param validDuration the duration of time this connection is valid for reuse.
      * @param timeUnit the time unit.
      *
      * @see #closeExpired()
      */
-    void releaseConnection(
-            HttpClientConnection conn, Object newState, long validDuration, TimeUnit timeUnit);
+    void release(ConnectionEndpoint endpoint, Object newState, long validDuration, TimeUnit timeUnit);
 
     /**
-     * Connects the underlying connection socket to the connection target in case
+     * Connects the endpoint to the initial hop (connection target in case
      * of a direct route or to the first proxy hop in case of a route via a proxy
-     * (or multiple proxies).
+     * or multiple proxies).
      *
-     * @param conn the managed connection.
-     * @param route the route of the connection.
-     * @param connectTimeout connect timeout in milliseconds.
+     * @param endpoint      the managed endpoint.
+     * @param connectTimeout connect timeout.
+     * @param timeUnit the time unit.
      * @param context the actual HTTP context.
      * @throws IOException
      */
     void connect(
-            HttpClientConnection conn,
-            HttpRoute route,
-            int connectTimeout,
+            ConnectionEndpoint endpoint,
+            long connectTimeout,
+            TimeUnit timeUnit,
             HttpContext context) throws IOException;
 
     /**
-     * Upgrades the underlying connection socket to TLS/SSL (or another layering
-     * protocol) after having executed {@code CONNECT} method to all
-     * intermediate proxy hops
+     * Upgrades the endpoint's underlying transport to Transport Layer Security.
      *
-     * @param conn the managed connection.
-     * @param route the route of the connection.
+     * @param endpoint      the managed endpoint.
      * @param context the actual HTTP context.
      * @throws IOException
      */
     void upgrade(
-            HttpClientConnection conn,
-            HttpRoute route,
+            ConnectionEndpoint endpoint,
             HttpContext context) throws IOException;
-
-    /**
-     * Marks the connection as fully established with all its intermediate
-     * hops completed.
-     *
-     * @param conn the managed connection.
-     * @param route the route of the connection.
-     * @param context the actual HTTP context.
-     * @throws IOException
-     */
-    void routeComplete(
-            HttpClientConnection conn,
-            HttpRoute route,
-            HttpContext context) throws IOException;
-
-    /**
-     * Closes idle connections in the pool.
-     * <p>
-     * Open connections in the pool that have not been used for the
-     * timespan given by the argument will be closed.
-     * Currently allocated connections are not subject to this method.
-     * Times will be checked with milliseconds precision
-     * </p>
-     * <p>
-     * All expired connections will also be closed.
-     * </p>
-     *
-     * @param idletime  the idle time of connections to be closed
-     * @param tunit     the unit for the {@code idletime}
-     *
-     * @see #closeExpired()
-     */
-    void closeIdle(long idletime, TimeUnit tunit);
-
-    /**
-     * Closes all expired connections in the pool.
-     * <p>
-     * Open connections in the pool that have not been used for
-     * the timespan defined when the connection was released will be closed.
-     * Currently allocated connections are not subject to this method.
-     * Times will be checked with milliseconds precision.
-     * </p>
-     */
-    void closeExpired();
-
-    /**
-     * Shuts down this connection manager and releases allocated resources.
-     * This includes closing all connections, whether they are currently
-     * used or not.
-     */
-    void shutdown();
 
 }

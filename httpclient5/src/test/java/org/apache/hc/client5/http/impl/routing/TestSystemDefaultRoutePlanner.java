@@ -38,8 +38,6 @@ import java.util.List;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
@@ -68,10 +66,9 @@ public class TestSystemDefaultRoutePlanner {
     @Test
     public void testDirect() throws Exception {
         final HttpHost target = new HttpHost("somehost", 80, "http");
-        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpContext context = new BasicHttpContext();
-        final HttpRoute route = routePlanner.determineRoute(target, request, context);
+        final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assert.assertEquals(target, route.getTargetHost());
         Assert.assertEquals(1, route.getHopCount());
@@ -83,10 +80,9 @@ public class TestSystemDefaultRoutePlanner {
     public void testDirectDefaultPort() throws Exception {
         final HttpHost target = new HttpHost("somehost", -1, "https");
         Mockito.when(schemePortResolver.resolve(target)).thenReturn(443);
-        final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpContext context = new BasicHttpContext();
-        final HttpRoute route = routePlanner.determineRoute(target, request, context);
+        final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assert.assertEquals(new HttpHost("somehost", 443, "https"), route.getTargetHost());
         Assert.assertEquals(1, route.getHopCount());
@@ -109,11 +105,9 @@ public class TestSystemDefaultRoutePlanner {
         Mockito.when(proxySelector.select(new URI("http://somehost:80"))).thenReturn(proxies);
 
         final HttpHost target = new HttpHost("somehost", 80, "http");
-        final HttpRequest request =
-            new BasicHttpRequest("GET", "/");
 
         final HttpContext context = new BasicHttpContext();
-        final HttpRoute route = routePlanner.determineRoute(target, request, context);
+        final HttpRoute route = routePlanner.determineRoute(target, context);
 
         Assert.assertEquals(target, route.getTargetHost());
         Assert.assertEquals(2, route.getHopCount());

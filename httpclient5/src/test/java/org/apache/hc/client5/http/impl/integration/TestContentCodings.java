@@ -41,7 +41,7 @@ import java.util.concurrent.Executors;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPOutputStream;
 
-import org.apache.hc.client5.http.impl.BasicResponseHandler;
+import org.apache.hc.client5.http.impl.sync.BasicResponseHandler;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.methods.HttpGet;

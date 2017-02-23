@@ -51,41 +51,41 @@ public class TestOSGiHttpRoutePlanner {
     public void testDeterminProxy() throws Exception {
         OSGiHttpRoutePlanner planner = new OSGiHttpRoutePlanner(singletonList(pc1));
 
-        HttpHost proxy = planner.determineProxy(new HttpHost("localhost", 8090), null, null);
+        HttpHost proxy = planner.determineProxy(new HttpHost("localhost", 8090), null);
         assertNull(proxy);
 
-        proxy = planner.determineProxy(new HttpHost("there", 9090), null, null);
+        proxy = planner.determineProxy(new HttpHost("there", 9090), null);
         assertNotNull(proxy);
         assertTrue(proxy.getHostName().equals("proxy1"));
 
-        proxy = planner.determineProxy(new HttpHost("10.2.144.23", 4554), null, null);
+        proxy = planner.determineProxy(new HttpHost("10.2.144.23", 4554), null);
         assertNotNull(proxy);
         assertTrue(proxy.getHostName().equals("proxy1"));
 
         final InetAddress addr = InetAddress.getByName("localhost");
-        proxy = planner.determineProxy(new HttpHost(addr, 4554), null, null);
+        proxy = planner.determineProxy(new HttpHost(addr, 4554), null);
         assertNull(proxy);
 
-        proxy = planner.determineProxy(new HttpHost("hc.apache.org", 4554), null, null);
+        proxy = planner.determineProxy(new HttpHost("hc.apache.org", 4554), null);
         assertNull(proxy);
 
 
         // test with more than one registration of proxyConfiguration
         planner = new OSGiHttpRoutePlanner(asList(pc1, pc2));
-        proxy = planner.determineProxy(new HttpHost("localhost", 8090), null, null);
+        proxy = planner.determineProxy(new HttpHost("localhost", 8090), null);
         assertNull(proxy);
 
-        proxy = planner.determineProxy(new HttpHost("there", 9090), null, null);
+        proxy = planner.determineProxy(new HttpHost("there", 9090), null);
         assertNotNull(proxy);
         assertTrue(proxy.getHostName().equals("proxy1")); // the first one
 
-        proxy = planner.determineProxy(new HttpHost(addr, 4554), null, null);
+        proxy = planner.determineProxy(new HttpHost(addr, 4554), null);
         assertNull(proxy);
 
-        proxy = planner.determineProxy(new HttpHost("hc.apache.org", 4554), null, null);
+        proxy = planner.determineProxy(new HttpHost("hc.apache.org", 4554), null);
         assertNull(proxy);
 
-        proxy = planner.determineProxy(new HttpHost("docs.oracle.com", 4554), null, null);
+        proxy = planner.determineProxy(new HttpHost("docs.oracle.com", 4554), null);
         assertNull(proxy);
     }
 
@@ -93,11 +93,11 @@ public class TestOSGiHttpRoutePlanner {
     public void testMasking() throws Exception {
         final OSGiHttpRoutePlanner planner = new OSGiHttpRoutePlanner(singletonList(pc2));
 
-        HttpHost proxy = planner.determineProxy(new HttpHost("12.34.34.2", 4554), null, null);
+        HttpHost proxy = planner.determineProxy(new HttpHost("12.34.34.2", 4554), null);
         assertNotNull(proxy);
         assertTrue(proxy.getHostName().equals("proxy2"));
 
-        proxy = planner.determineProxy(new HttpHost("12.34.34.8", 4554), null, null);
+        proxy = planner.determineProxy(new HttpHost("12.34.34.8", 4554), null);
         assertNotNull(proxy);
     }
 

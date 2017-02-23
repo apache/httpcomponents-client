@@ -28,27 +28,23 @@
 package org.apache.hc.client5.http.impl.integration;
 
 import java.util.Collections;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-import org.apache.hc.client5.http.ConnectionPoolTimeoutException;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.client5.http.io.ConnectionRequest;
-import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.io.ConnectionEndpoint;
+import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
-import org.apache.hc.core5.http.io.HttpClientConnection;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestConnControl;
 import org.apache.hc.core5.http.protocol.RequestContent;
@@ -61,22 +57,6 @@ import org.junit.Test;
  * to communicate with.
  */
 public class TestConnectionManagement extends LocalServerTestBase {
-
-    private static HttpClientConnection getConnection(
-            final HttpClientConnectionManager mgr,
-            final HttpRoute route,
-            final long timeout,
-            final TimeUnit unit) throws ConnectionPoolTimeoutException, ExecutionException, InterruptedException {
-        final ConnectionRequest connRequest = mgr.requestConnection(route, null);
-        return connRequest.get(timeout, unit);
-    }
-
-    private static HttpClientConnection getConnection(
-            final HttpClientConnectionManager mgr,
-            final HttpRoute route) throws ConnectionPoolTimeoutException, ExecutionException, InterruptedException {
-        final ConnectionRequest connRequest = mgr.requestConnection(route, null);
-        return connRequest.get(0, TimeUnit.MILLISECONDS);
-    }
 
     /**
      * Tests releasing and re-using a connection after a response is read.
@@ -91,79 +71,60 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final int      rsplen = 8;
         final String      uri = "/random/" + rsplen;
 
-        final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", uri);
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", target, uri);
         final HttpContext context = new BasicHttpContext();
 
-        HttpClientConnection conn = getConnection(this.connManager, route);
-        this.connManager.connect(conn, route, 0, context);
-        this.connManager.routeComplete(conn, route, context);
+        final LeaseRequest leaseRequest1 = this.connManager.lease(route, null);
+        final ConnectionEndpoint endpoint1 = leaseRequest1.get(0, TimeUnit.MILLISECONDS);
 
-        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
+        this.connManager.connect(endpoint1, 0, TimeUnit.MILLISECONDS, context);
 
         final HttpProcessor httpProcessor = new DefaultHttpProcessor(
                 new RequestTargetHost(), new RequestContent(), new RequestConnControl());
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
-        ClassicHttpResponse response = exec.execute(request, conn, context);
-
-        Assert.assertEquals("wrong status in first response",
-                     HttpStatus.SC_OK,
-                     response.getCode());
-        byte[] data = EntityUtils.toByteArray(response.getEntity());
-        Assert.assertEquals("wrong length of first response entity",
-                     rsplen, data.length);
-        // ignore data, but it must be read
+        try (final ClassicHttpResponse response1 = endpoint1.execute(request, exec, context)) {
+            Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
+        }
 
         // check that there is no auto-release by default
         try {
             // this should fail quickly, connection has not been released
-            getConnection(this.connManager, route, 10L, TimeUnit.MILLISECONDS);
-            Assert.fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (final ConnectionPoolTimeoutException e) {
+            final LeaseRequest leaseRequest2 = this.connManager.lease(route, null);
+            leaseRequest2.get(10, TimeUnit.MILLISECONDS);
+            Assert.fail("TimeoutException expected");
+        } catch (final TimeoutException ex) {
             // expected
         }
 
-        conn.close();
-        this.connManager.releaseConnection(conn, null, -1, null);
-        conn = getConnection(this.connManager, route);
-        Assert.assertFalse("connection should have been closed", conn.isOpen());
+        endpoint1.close();
+        this.connManager.release(endpoint1, null, -1, null);
+        final LeaseRequest leaseRequest2 = this.connManager.lease(route, null);
+        final ConnectionEndpoint endpoint2 = leaseRequest2.get(0, TimeUnit.MILLISECONDS);
+        Assert.assertFalse(endpoint2.isConnected());
 
-        this.connManager.connect(conn, route, 0, context);
-        this.connManager.routeComplete(conn, route, context);
+        this.connManager.connect(endpoint2, 0, TimeUnit.MILLISECONDS, context);
 
-        // repeat the communication, no need to prepare the request again
-        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
-        response = exec.execute(request, conn, context);
-
-        Assert.assertEquals("wrong status in second response",
-                     HttpStatus.SC_OK,
-                     response.getCode());
-        data = EntityUtils.toByteArray(response.getEntity());
-        Assert.assertEquals("wrong length of second response entity",
-                     rsplen, data.length);
-        // ignore data, but it must be read
+        try (final ClassicHttpResponse response2 = endpoint2.execute(request, exec, context)) {
+            Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
+        }
 
         // release connection after marking it for re-use
         // expect the next connection obtained to be open
-        this.connManager.releaseConnection(conn, null, -1, null);
-        conn = getConnection(this.connManager, route);
-        Assert.assertTrue("connection should have been open", conn.isOpen());
+        this.connManager.release(endpoint2, null, -1, null);
+
+        final LeaseRequest leaseRequest3 = this.connManager.lease(route, null);
+        final ConnectionEndpoint endpoint3 = leaseRequest3.get(0, TimeUnit.MILLISECONDS);
+        Assert.assertTrue(endpoint3.isConnected());
 
         // repeat the communication, no need to prepare the request again
-        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
-        response = exec.execute(request, conn, context);
+        try (final ClassicHttpResponse response3 = endpoint3.execute(request, exec, context)) {
+            Assert.assertEquals(HttpStatus.SC_OK, response3.getCode());
+        }
 
-        Assert.assertEquals("wrong status in third response",
-                     HttpStatus.SC_OK,
-                     response.getCode());
-        data = EntityUtils.toByteArray(response.getEntity());
-        Assert.assertEquals("wrong length of third response entity",
-                     rsplen, data.length);
-        // ignore data, but it must be read
-
-        this.connManager.releaseConnection(conn, null, -1, null);
-        this.connManager.shutdown();
+        this.connManager.release(endpoint3, null, -1, null);
+        this.connManager.close();
     }
 
     /**
@@ -179,96 +140,71 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final int      rsplen = 8;
         final String      uri = "/random/" + rsplen;
 
-        final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", uri);
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", target, uri);
         final HttpContext context = new BasicHttpContext();
 
-        HttpClientConnection conn = getConnection(this.connManager, route);
-        this.connManager.connect(conn, route, 0, context);
-        this.connManager.routeComplete(conn, route, context);
-
-        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
+        final LeaseRequest leaseRequest1 = this.connManager.lease(route, null);
+        final ConnectionEndpoint endpoint1 = leaseRequest1.get(0, TimeUnit.MILLISECONDS);
+        this.connManager.connect(endpoint1, 0, TimeUnit.MILLISECONDS, context);
 
         final HttpProcessor httpProcessor = new DefaultHttpProcessor(
                 new RequestTargetHost(), new RequestContent(), new RequestConnControl());
 
         final HttpRequestExecutor exec = new HttpRequestExecutor();
         exec.preProcess(request, httpProcessor, context);
-        ClassicHttpResponse response = exec.execute(request, conn, context);
-
-        Assert.assertEquals("wrong status in first response",
-                     HttpStatus.SC_OK,
-                     response.getCode());
-        byte[] data = EntityUtils.toByteArray(response.getEntity());
-        Assert.assertEquals("wrong length of first response entity",
-                     rsplen, data.length);
-        // ignore data, but it must be read
+        try (final ClassicHttpResponse response1 = endpoint1.execute(request, exec, context)) {
+            Assert.assertEquals(HttpStatus.SC_OK, response1.getCode());
+        }
 
         // check that there is no auto-release by default
         try {
             // this should fail quickly, connection has not been released
-            getConnection(this.connManager, route, 10L, TimeUnit.MILLISECONDS);
-            Assert.fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (final ConnectionPoolTimeoutException e) {
+            final LeaseRequest leaseRequest2 = this.connManager.lease(route, null);
+            leaseRequest2.get(10, TimeUnit.MILLISECONDS);
+            Assert.fail("TimeoutException expected");
+        } catch (final TimeoutException ex) {
             // expected
         }
 
-        conn.close();
-        this.connManager.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
-        conn = getConnection(this.connManager, route);
-        Assert.assertFalse("connection should have been closed", conn.isOpen());
+        endpoint1.close();
+        this.connManager.release(endpoint1, null, 100, TimeUnit.MILLISECONDS);
+
+        final LeaseRequest leaseRequest2 = this.connManager.lease(route, null);
+        final ConnectionEndpoint endpoint2 = leaseRequest2.get(0, TimeUnit.MILLISECONDS);
+        Assert.assertFalse(endpoint2.isConnected());
+
+        this.connManager.connect(endpoint2, 0, TimeUnit.MILLISECONDS, context);
+
+        try (final ClassicHttpResponse response2 = endpoint2.execute(request, exec, context)) {
+            Assert.assertEquals(HttpStatus.SC_OK, response2.getCode());
+        }
+
+        this.connManager.release(endpoint2, null, 100, TimeUnit.MILLISECONDS);
+
+        final LeaseRequest leaseRequest3 = this.connManager.lease(route, null);
+        final ConnectionEndpoint endpoint3 = leaseRequest3.get(0, TimeUnit.MILLISECONDS);
+        Assert.assertTrue(endpoint3.isConnected());
 
         // repeat the communication, no need to prepare the request again
-        this.connManager.connect(conn, route, 0, context);
-        this.connManager.routeComplete(conn, route, context);
+        try (final ClassicHttpResponse response3 = endpoint3.execute(request, exec, context)) {
+            Assert.assertEquals(HttpStatus.SC_OK, response3.getCode());
+        }
 
-        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
-        response = exec.execute(request, conn, context);
-
-        Assert.assertEquals("wrong status in second response",
-                     HttpStatus.SC_OK,
-                     response.getCode());
-        data = EntityUtils.toByteArray(response.getEntity());
-        Assert.assertEquals("wrong length of second response entity",
-                     rsplen, data.length);
-        // ignore data, but it must be read
-
-        this.connManager.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
-        conn = getConnection(this.connManager, route);
-        Assert.assertTrue("connection should have been open", conn.isOpen());
-
-        // repeat the communication, no need to prepare the request again
-        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
-        response = exec.execute(request, conn, context);
-
-        Assert.assertEquals("wrong status in third response",
-                     HttpStatus.SC_OK,
-                     response.getCode());
-        data = EntityUtils.toByteArray(response.getEntity());
-        Assert.assertEquals("wrong length of third response entity",
-                     rsplen, data.length);
-        // ignore data, but it must be read
-
-        this.connManager.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
+        this.connManager.release(endpoint3, null, 100, TimeUnit.MILLISECONDS);
         Thread.sleep(150);
-        conn = getConnection(this.connManager, route);
-        Assert.assertTrue("connection should have been closed", !conn.isOpen());
+
+        final LeaseRequest leaseRequest4 = this.connManager.lease(route, null);
+        final ConnectionEndpoint endpoint4 = leaseRequest4.get(0, TimeUnit.MILLISECONDS);
+        Assert.assertFalse(endpoint4.isConnected());
 
         // repeat the communication, no need to prepare the request again
-        this.connManager.connect(conn, route, 0, context);
-        this.connManager.routeComplete(conn, route, context);
+        this.connManager.connect(endpoint4, 0, TimeUnit.MILLISECONDS, context);
 
-        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
-        response = exec.execute(request, conn, context);
+        try (final ClassicHttpResponse response4 = endpoint4.execute(request, exec, context)) {
+            Assert.assertEquals(HttpStatus.SC_OK, response4.getCode());
+        }
 
-        Assert.assertEquals("wrong status in third response",
-                     HttpStatus.SC_OK,
-                     response.getCode());
-        data = EntityUtils.toByteArray(response.getEntity());
-        Assert.assertEquals("wrong length of fourth response entity",
-                     rsplen, data.length);
-        // ignore data, but it must be read
-
-        this.connManager.shutdown();
+        this.connManager.close();
     }
 
     @Test
@@ -280,15 +216,15 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpRoute route = new HttpRoute(target, null, false);
         final HttpContext context = new BasicHttpContext();
 
-        final HttpClientConnection conn = getConnection(this.connManager, route);
-        this.connManager.connect(conn, route, 0, context);
-        this.connManager.routeComplete(conn, route, context);
+        final LeaseRequest leaseRequest1 = this.connManager.lease(route, null);
+        final ConnectionEndpoint endpoint1 = leaseRequest1.get(0, TimeUnit.MILLISECONDS);
+        this.connManager.connect(endpoint1, 0, TimeUnit.MILLISECONDS, context);
 
         Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
         Assert.assertEquals(1, this.connManager.getStats(route).getLeased());
 
-        this.connManager.releaseConnection(conn, null, 100, TimeUnit.MILLISECONDS);
+        this.connManager.release(endpoint1, null, 100, TimeUnit.MILLISECONDS);
 
         // Released, still active.
         Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
@@ -311,7 +247,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(0, this.connManager.getStats(route).getAvailable());
 
-        this.connManager.shutdown();
+        this.connManager.close();
     }
 
     @Test
@@ -327,15 +263,15 @@ public class TestConnectionManagement extends LocalServerTestBase {
         final HttpRoute route = new HttpRoute(target, null, false);
         final HttpContext context = new BasicHttpContext();
 
-        final HttpClientConnection conn = getConnection(this.connManager, route);
-        this.connManager.connect(conn, route, 0, context);
-        this.connManager.routeComplete(conn, route, context);
+        final LeaseRequest leaseRequest1 = this.connManager.lease(route, null);
+        final ConnectionEndpoint endpoint1 = leaseRequest1.get(0, TimeUnit.MILLISECONDS);
+        this.connManager.connect(endpoint1, 0, TimeUnit.MILLISECONDS, context);
 
         Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
         Assert.assertEquals(1, this.connManager.getTotalStats().getLeased());
         Assert.assertEquals(1, this.connManager.getStats(route).getLeased());
         // Release, let remain idle for forever
-        this.connManager.releaseConnection(conn, null, -1, TimeUnit.MILLISECONDS);
+        this.connManager.release(endpoint1, null, 0, TimeUnit.MILLISECONDS);
 
         // Released, still active.
         Assert.assertEquals(Collections.singleton(route), this.connManager.getRoutes());
@@ -358,64 +294,7 @@ public class TestConnectionManagement extends LocalServerTestBase {
         Assert.assertEquals(0, this.connManager.getTotalStats().getAvailable());
         Assert.assertEquals(0, this.connManager.getStats(route).getAvailable());
 
-        this.connManager.shutdown();
-    }
-
-    /**
-     * Tests releasing connection from #abort method called from the
-     * main execution thread while there is no blocking I/O operation.
-     */
-    @Test
-    public void testReleaseConnectionOnAbort() throws Exception {
-
-        this.connManager.setMaxTotal(1);
-
-        final HttpHost target = start();
-        final HttpRoute route = new HttpRoute(target, null, false);
-        final int      rsplen = 8;
-        final String      uri = "/random/" + rsplen;
-        final HttpContext context = new BasicHttpContext();
-
-        final ClassicHttpRequest request =
-            new BasicClassicHttpRequest("GET", uri);
-
-        HttpClientConnection conn = getConnection(this.connManager, route);
-        this.connManager.connect(conn, route, 0, context);
-        this.connManager.routeComplete(conn, route, context);
-
-        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
-
-        final HttpProcessor httpProcessor = new DefaultHttpProcessor(
-                new RequestTargetHost(), new RequestContent(), new RequestConnControl());
-
-        final HttpRequestExecutor exec = new HttpRequestExecutor();
-        exec.preProcess(request, httpProcessor, context);
-        final ClassicHttpResponse response = exec.execute(request, conn, context);
-
-        Assert.assertEquals("wrong status in first response",
-                     HttpStatus.SC_OK,
-                     response.getCode());
-
-        // check that there are no connections available
-        try {
-            // this should fail quickly, connection has not been released
-            getConnection(this.connManager, route, 100L, TimeUnit.MILLISECONDS);
-            Assert.fail("ConnectionPoolTimeoutException should have been thrown");
-        } catch (final ConnectionPoolTimeoutException e) {
-            // expected
-        }
-
-        // abort the connection
-        Assert.assertTrue(conn instanceof HttpClientConnection);
-        conn.shutdown();
-        this.connManager.releaseConnection(conn, null, -1, null);
-
-        // the connection is expected to be released back to the manager
-        conn = getConnection(this.connManager, route, 5L, TimeUnit.SECONDS);
-        Assert.assertFalse("connection should have been closed", conn.isOpen());
-
-        this.connManager.releaseConnection(conn, null, -1, null);
-        this.connManager.shutdown();
+        this.connManager.close();
     }
 
 }

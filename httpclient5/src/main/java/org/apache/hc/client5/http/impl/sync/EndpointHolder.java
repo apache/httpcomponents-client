@@ -32,12 +32,11 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.hc.client5.http.io.ConnectionReleaseTrigger;
+import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.Cancellable;
-import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.logging.log4j.Logger;
 
 /**
@@ -46,26 +45,25 @@ import org.apache.logging.log4j.Logger;
  * @since 4.3
  */
 @Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
-class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeable {
+class EndpointHolder implements Cancellable, Closeable {
 
     private final Logger log;
 
     private final HttpClientConnectionManager manager;
-    private final HttpClientConnection managedConn;
+    private final ConnectionEndpoint endpoint;
     private final AtomicBoolean released;
     private volatile boolean reusable;
     private volatile Object state;
     private volatile long validDuration;
-    private volatile TimeUnit tunit;
 
-    public ConnectionHolder(
+    public EndpointHolder(
             final Logger log,
             final HttpClientConnectionManager manager,
-            final HttpClientConnection managedConn) {
+            final ConnectionEndpoint endpoint) {
         super();
         this.log = log;
         this.manager = manager;
-        this.managedConn = managedConn;
+        this.endpoint = endpoint;
         this.released = new AtomicBoolean(false);
     }
 
@@ -86,54 +84,46 @@ class ConnectionHolder implements ConnectionReleaseTrigger, Cancellable, Closeab
     }
 
     public void setValidFor(final long duration, final TimeUnit tunit) {
-        synchronized (this.managedConn) {
-            this.validDuration = duration;
-            this.tunit = tunit;
-        }
+        this.validDuration = (tunit != null ? tunit : TimeUnit.MILLISECONDS).toMillis(duration);
     }
 
     private void releaseConnection(final boolean reusable) {
         if (this.released.compareAndSet(false, true)) {
-            synchronized (this.managedConn) {
+            synchronized (this.endpoint) {
                 if (reusable) {
-                    this.manager.releaseConnection(this.managedConn,
-                            this.state, this.validDuration, this.tunit);
+                    this.manager.release(this.endpoint, this.state, this.validDuration, TimeUnit.MILLISECONDS);
                 } else {
                     try {
-                        this.managedConn.close();
+                        this.endpoint.close();
                         log.debug("Connection discarded");
                     } catch (final IOException ex) {
                         if (this.log.isDebugEnabled()) {
                             this.log.debug(ex.getMessage(), ex);
                         }
                     } finally {
-                        this.manager.releaseConnection(
-                                this.managedConn, null, 0, TimeUnit.MILLISECONDS);
+                        this.manager.release(this.endpoint, null, 0, TimeUnit.MILLISECONDS);
                     }
                 }
             }
         }
     }
 
-    @Override
     public void releaseConnection() {
         releaseConnection(this.reusable);
     }
 
-    @Override
     public void abortConnection() {
         if (this.released.compareAndSet(false, true)) {
-            synchronized (this.managedConn) {
+            synchronized (this.endpoint) {
                 try {
-                    this.managedConn.shutdown();
+                    this.endpoint.shutdown();
                     log.debug("Connection discarded");
                 } catch (final IOException ex) {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug(ex.getMessage(), ex);
                     }
                 } finally {
-                    this.manager.releaseConnection(
-                            this.managedConn, null, 0, TimeUnit.MILLISECONDS);
+                    this.manager.release(this.endpoint, null, 0, TimeUnit.MILLISECONDS);
                 }
             }
         }

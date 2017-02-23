@@ -45,35 +45,35 @@ import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
  */
 class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher {
 
-    private final ConnectionHolder connHolder;
+    private final EndpointHolder endpointHolder;
 
-    public static void enchance(final ClassicHttpResponse response, final ConnectionHolder connHolder) {
+    public static void enchance(final ClassicHttpResponse response, final EndpointHolder connHolder) {
         final HttpEntity entity = response.getEntity();
         if (entity != null && entity.isStreaming() && connHolder != null) {
             response.setEntity(new ResponseEntityProxy(entity, connHolder));
         }
     }
 
-    ResponseEntityProxy(final HttpEntity entity, final ConnectionHolder connHolder) {
+    ResponseEntityProxy(final HttpEntity entity, final EndpointHolder endpointHolder) {
         super(entity);
-        this.connHolder = connHolder;
+        this.endpointHolder = endpointHolder;
     }
 
     private void cleanup() throws IOException {
-        if (this.connHolder != null) {
-            this.connHolder.close();
+        if (this.endpointHolder != null) {
+            this.endpointHolder.close();
         }
     }
 
     private void abortConnection() {
-        if (this.connHolder != null) {
-            this.connHolder.abortConnection();
+        if (this.endpointHolder != null) {
+            this.endpointHolder.abortConnection();
         }
     }
 
     public void releaseConnection() {
-        if (this.connHolder != null) {
-            this.connHolder.releaseConnection();
+        if (this.endpointHolder != null) {
+            this.endpointHolder.releaseConnection();
         }
     }
 
@@ -123,7 +123,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
     @Override
     public boolean streamClosed(final InputStream wrapped) throws IOException {
         try {
-            final boolean open = connHolder != null && !connHolder.isReleased();
+            final boolean open = endpointHolder != null && !endpointHolder.isReleased();
             // this assumes that closing the stream will
             // consume the remainder of the response body:
             try {

@@ -30,14 +30,18 @@ package org.apache.hc.client5.http.impl.io;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.core5.http.config.ConnectionConfig;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.config.SocketConfig;
-import org.apache.hc.core5.util.TextUtils;
+import org.apache.hc.core5.http.io.HttpConnectionFactory;
+import org.apache.hc.core5.pool.ConnPoolListener;
+import org.apache.hc.core5.pool.ConnPoolPolicy;
 
 /**
  * Builder for {@link PoolingHttpClientConnectionManager} instances.
@@ -67,11 +71,13 @@ import org.apache.hc.core5.util.TextUtils;
  */
 public class PoolingHttpClientConnectionManagerBuilder {
 
+    private HttpConnectionFactory<ManagedHttpClientConnection> connectionFactory;
     private LayeredConnectionSocketFactory sslSocketFactory;
+    private SchemePortResolver schemePortResolver;
     private DnsResolver dnsResolver;
-
+    private ConnPoolPolicy connPoolPolicy;
+    private ConnPoolListener<HttpRoute> connPoolListener;
     private SocketConfig defaultSocketConfig;
-    private ConnectionConfig defaultConnectionConfig;
 
     private boolean systemProperties;
 
@@ -91,11 +97,52 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link LayeredConnectionSocketFactory} instance for SSL connections.
+     * Assigns {@link HttpConnectionFactory} instance.
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setConnectionFactory(
+            final HttpConnectionFactory<ManagedHttpClientConnection> connectionFactory) {
+        this.connectionFactory = connectionFactory;
+        return this;
+    }
+
+    /**
+     * Assigns {@link LayeredConnectionSocketFactory} instance.
      */
     public final PoolingHttpClientConnectionManagerBuilder setSSLSocketFactory(
             final LayeredConnectionSocketFactory sslSocketFactory) {
         this.sslSocketFactory = sslSocketFactory;
+        return this;
+    }
+
+    /**
+     * Assigns {@link DnsResolver} instance.
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setDnsResolver(final DnsResolver dnsResolver) {
+        this.dnsResolver = dnsResolver;
+        return this;
+    }
+
+    /**
+     * Assigns {@link SchemePortResolver} instance.
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setSchemePortResolver(final SchemePortResolver schemePortResolver) {
+        this.schemePortResolver = schemePortResolver;
+        return this;
+    }
+
+    /**
+     * Assigns {@link ConnPoolPolicy} value.
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setConnPoolPolicy(final ConnPoolPolicy connPoolPolicy) {
+        this.connPoolPolicy = connPoolPolicy;
+        return this;
+    }
+
+    /**
+     * Assigns {@link ConnPoolListener} instance.
+     */
+    public final PoolingHttpClientConnectionManagerBuilder setConnPoolListener(final ConnPoolListener<HttpRoute> connPoolListener) {
+        this.connPoolListener = connPoolListener;
         return this;
     }
 
@@ -124,17 +171,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns default {@link ConnectionConfig}.
-     */
-    public final PoolingHttpClientConnectionManagerBuilder setDefaultConnectionConfig(final ConnectionConfig config) {
-        this.defaultConnectionConfig = config;
-        return this;
-    }
-
-    /**
      * Sets maximum time to live for persistent connections
-     *
-     * @since 4.4
      */
     public final PoolingHttpClientConnectionManagerBuilder setConnectionTimeToLive(final long connTimeToLive, final TimeUnit connTimeToLiveTimeUnit) {
         this.connTimeToLive = connTimeToLive;
@@ -154,27 +191,12 @@ public class PoolingHttpClientConnectionManagerBuilder {
     }
 
     /**
-     * Assigns {@link DnsResolver} instance.
-     */
-    public final PoolingHttpClientConnectionManagerBuilder setDnsResolver(final DnsResolver dnsResolver) {
-        this.dnsResolver = dnsResolver;
-        return this;
-    }
-
-    /**
      * Use system properties when creating and configuring default
      * implementations.
      */
     public final PoolingHttpClientConnectionManagerBuilder useSystemProperties() {
         this.systemProperties = true;
         return this;
-    }
-
-    private static String[] split(final String s) {
-        if (TextUtils.isBlank(s)) {
-            return null;
-        }
-        return s.split(" *, *");
     }
 
     public PoolingHttpClientConnectionManager build() {
@@ -187,17 +209,16 @@ public class PoolingHttpClientConnectionManagerBuilder {
                                         SSLConnectionSocketFactory.getSystemSocketFactory() :
                                         SSLConnectionSocketFactory.getSocketFactory()))
                         .build(),
-                null,
-                null,
+                connectionFactory,
+                schemePortResolver,
                 dnsResolver,
+                connPoolPolicy,
+                connPoolListener,
                 connTimeToLive,
                 connTimeToLiveTimeUnit != null ? connTimeToLiveTimeUnit : TimeUnit.MILLISECONDS);
         poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);
         if (defaultSocketConfig != null) {
             poolingmgr.setDefaultSocketConfig(defaultSocketConfig);
-        }
-        if (defaultConnectionConfig != null) {
-            poolingmgr.setDefaultConnectionConfig(defaultConnectionConfig);
         }
         if (maxConnTotal > 0) {
             poolingmgr.setMaxTotal(maxConnTotal);

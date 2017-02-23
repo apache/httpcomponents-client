@@ -32,8 +32,7 @@ import static org.junit.Assert.assertTrue;
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 
-import org.apache.hc.client5.http.ConnectionPoolTimeoutException;
-import org.apache.hc.client5.http.sync.ConnectionBackoffStrategy;
+import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
@@ -51,11 +50,6 @@ public class TestDefaultBackoffStrategy {
     }
 
     @Test
-    public void isABackoffStrategy() {
-        assertTrue(impl instanceof ConnectionBackoffStrategy);
-    }
-
-    @Test
     public void backsOffForSocketTimeouts() {
         assertTrue(impl.shouldBackoff(new SocketTimeoutException()));
     }
@@ -67,7 +61,7 @@ public class TestDefaultBackoffStrategy {
 
     @Test
     public void doesNotBackOffForConnectionManagerTimeout() {
-        assertFalse(impl.shouldBackoff(new ConnectionPoolTimeoutException()));
+        assertFalse(impl.shouldBackoff(new ConnectionRequestTimeoutException()));
     }
 
     @Test

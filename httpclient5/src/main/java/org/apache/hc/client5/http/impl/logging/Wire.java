@@ -24,52 +24,36 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.io;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+package org.apache.hc.client5.http.impl.logging;
 
-import org.apache.hc.core5.annotation.Contract;
-import org.apache.hc.core5.annotation.ThreadingBehavior;
+import java.nio.ByteBuffer;
+
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.Logger;
 
-/**
- * Logs data to the wire LOG.
- *
- * @since 4.0
- */
-@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class Wire {
 
     private final Logger log;
     private final String id;
 
-    /**
-     * @since 4.3
-     */
-    public Wire(final Logger log, final String id) {
+    Wire(final Logger log, final String id) {
+        super();
         this.log = log;
         this.id = id;
     }
 
-    public Wire(final Logger log) {
-        this(log, "");
-    }
-
-    private void wire(final String header, final InputStream instream)
-      throws IOException {
+    private void wire(final String header, final byte[] b, final int pos, final int off) {
         final StringBuilder buffer = new StringBuilder();
-        int ch;
-        while ((ch = instream.read()) != -1) {
+        for (int i = 0; i < off; i++) {
+            final int ch = b[pos + i];
             if (ch == 13) {
                 buffer.append("[\\r]");
             } else if (ch == 10) {
                     buffer.append("[\\n]\"");
                     buffer.insert(0, "\"");
                     buffer.insert(0, header);
-                    log.debug(id + " " + buffer.toString());
+                    this.log.debug(this.id + " " + buffer.toString());
                     buffer.setLength(0);
             } else if ((ch < 32) || (ch > 127)) {
                 buffer.append("[0x");
@@ -83,70 +67,73 @@ class Wire {
             buffer.append('\"');
             buffer.insert(0, '\"');
             buffer.insert(0, header);
-            log.debug(id + " " + buffer.toString());
+            this.log.debug(this.id + " " + buffer.toString());
         }
     }
 
 
-    public boolean enabled() {
-        return log.isDebugEnabled();
+    public boolean isEnabled() {
+        return this.log.isDebugEnabled();
     }
 
-    public void output(final InputStream outstream)
-      throws IOException {
-        Args.notNull(outstream, "Output");
-        wire(">> ", outstream);
-    }
-
-    public void input(final InputStream instream)
-      throws IOException {
-        Args.notNull(instream, "Input");
-        wire("<< ", instream);
-    }
-
-    public void output(final byte[] b, final int off, final int len)
-      throws IOException {
+    public void output(final byte[] b, final int pos, final int off) {
         Args.notNull(b, "Output");
-        wire(">> ", new ByteArrayInputStream(b, off, len));
+        wire(">> ", b, pos, off);
     }
 
-    public void input(final byte[] b, final int off, final int len)
-      throws IOException {
+    public void input(final byte[] b, final int pos, final int off) {
         Args.notNull(b, "Input");
-        wire("<< ", new ByteArrayInputStream(b, off, len));
+        wire("<< ", b, pos, off);
     }
 
-    public void output(final byte[] b)
-      throws IOException {
+    public void output(final byte[] b) {
         Args.notNull(b, "Output");
-        wire(">> ", new ByteArrayInputStream(b));
+        output(b, 0, b.length);
     }
 
-    public void input(final byte[] b)
-      throws IOException {
+    public void input(final byte[] b) {
         Args.notNull(b, "Input");
-        wire("<< ", new ByteArrayInputStream(b));
+        input(b, 0, b.length);
     }
 
-    public void output(final int b)
-      throws IOException {
+    public void output(final int b) {
         output(new byte[] {(byte) b});
     }
 
-    public void input(final int b)
-      throws IOException {
+    public void input(final int b) {
         input(new byte[] {(byte) b});
     }
 
-    public void output(final String s)
-      throws IOException {
+    public void output(final String s) {
         Args.notNull(s, "Output");
         output(s.getBytes());
     }
 
-    public void input(final String s)
-      throws IOException {
+    public void input(final String s) {
         Args.notNull(s, "Input");
         input(s.getBytes());
     }
+
+    public void output(final ByteBuffer b) {
+        Args.notNull(b, "Output");
+        if (b.hasArray()) {
+            output(b.array(), b.arrayOffset() + b.position(), b.remaining());
+        } else {
+            final byte[] tmp = new byte[b.remaining()];
+            b.get(tmp);
+            output(tmp);
+        }
+    }
+
+    public void input(final ByteBuffer b) {
+        Args.notNull(b, "Input");
+        if (b.hasArray()) {
+            input(b.array(), b.arrayOffset() + b.position(), b.remaining());
+        } else {
+            final byte[] tmp = new byte[b.remaining()];
+            b.get(tmp);
+            input(tmp);
+        }
+    }
+
 }

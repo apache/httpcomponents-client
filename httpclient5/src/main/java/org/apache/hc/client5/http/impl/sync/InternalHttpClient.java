@@ -37,7 +37,6 @@ import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.methods.Configurable;
 import org.apache.hc.client5.http.methods.HttpExecutionAware;
 import org.apache.hc.client5.http.methods.RoutedHttpRequest;
@@ -70,7 +69,6 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     private final Logger log = LogManager.getLogger(getClass());
 
     private final ClientExecChain execChain;
-    private final HttpClientConnectionManager connManager;
     private final HttpRoutePlanner routePlanner;
     private final Lookup<CookieSpecProvider> cookieSpecRegistry;
     private final Lookup<AuthSchemeProvider> authSchemeRegistry;
@@ -81,7 +79,6 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
 
     public InternalHttpClient(
             final ClientExecChain execChain,
-            final HttpClientConnectionManager connManager,
             final HttpRoutePlanner routePlanner,
             final Lookup<CookieSpecProvider> cookieSpecRegistry,
             final Lookup<AuthSchemeProvider> authSchemeRegistry,
@@ -91,10 +88,8 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             final List<Closeable> closeables) {
         super();
         Args.notNull(execChain, "HTTP client exec chain");
-        Args.notNull(connManager, "HTTP connection manager");
         Args.notNull(routePlanner, "HTTP route planner");
         this.execChain = execChain;
-        this.connManager = connManager;
         this.routePlanner = routePlanner;
         this.cookieSpecRegistry = cookieSpecRegistry;
         this.authSchemeRegistry = authSchemeRegistry;
@@ -105,10 +100,11 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     }
 
     private HttpRoute determineRoute(
-            final HttpHost target,
+            final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws HttpException {
-        return this.routePlanner.determineRoute(target, request, context);
+        final HttpHost target = host != null ? host : this.routePlanner.determineTargetHost(request, context);
+        return this.routePlanner.determineRoute(target, context);
     }
 
     private void setupContext(final HttpClientContext context) {

@@ -25,11 +25,10 @@
  *
  */
 
-package org.apache.hc.client5.http.impl;
+package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
 
-import org.apache.hc.client5.http.impl.sync.AbstractResponseHandler;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -39,13 +38,13 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
- * A {@link org.apache.hc.client5.http.sync.ResponseHandler} that returns the response body as a String
+ * A {@link org.apache.hc.core5.http.io.ResponseHandler} that returns the response body as a String
  * for successful (2xx) responses. If the response code was &gt;= 300, the response
  * body is consumed and an {@link org.apache.hc.client5.http.protocol.HttpResponseException} is thrown.
  * <p>
  * If this is used with
  * {@link org.apache.hc.client5.http.sync.HttpClient#execute(
- *  org.apache.hc.core5.http.ClassicHttpRequest, org.apache.hc.client5.http.sync.ResponseHandler)},
+ *  org.apache.hc.core5.http.ClassicHttpRequest, org.apache.hc.core5.http.io.ResponseHandler)},
  * HttpClient may handle redirects (3xx responses) internally.
  * </p>
  *

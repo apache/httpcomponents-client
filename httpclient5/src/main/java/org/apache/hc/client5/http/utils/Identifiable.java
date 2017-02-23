@@ -25,23 +25,15 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.io;
+package org.apache.hc.client5.http.utils;
 
 /**
- * Signals that the connection has been shut down or released back to the
- * the connection pool
+ * Object with a unique identifier.
  *
- * @since 4.1
+ * @since 5.0
  */
-public class ConnectionShutdownException extends IllegalStateException {
+public interface Identifiable {
 
-    private static final long serialVersionUID = 5868657401162844497L;
-
-    /**
-     * Creates a new ConnectionShutdownException with a {@code null} detail message.
-     */
-    public ConnectionShutdownException() {
-        super();
-    }
+    String getId();
 
 }

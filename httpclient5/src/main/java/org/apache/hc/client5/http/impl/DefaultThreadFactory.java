@@ -24,32 +24,41 @@
  * <http://www.apache.org/>.
  *
  */
+package org.apache.hc.client5.http.impl;
 
-package org.apache.hc.client5.http.impl.io;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicLong;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
+/**
+ * @since 5.0
+ */
+public class DefaultThreadFactory implements ThreadFactory {
 
-import org.apache.hc.core5.http.impl.io.SocketHolder;
+    private final String namePrefix;
+    private final ThreadGroup group;
+    private final AtomicLong count;
+    private final boolean daemon;
 
-class LoggingSocketHolder extends SocketHolder {
+    public DefaultThreadFactory(final String namePrefix, final ThreadGroup group, final boolean daemon) {
+        this.namePrefix = namePrefix;
+        this.group = group;
+        this.count = new AtomicLong();
+        this.daemon = daemon;
+    }
 
-    private final Wire wire;
+    public DefaultThreadFactory(final String namePrefix) {
+        this(namePrefix, null, false);
+    }
 
-    LoggingSocketHolder(final Socket socket, final Wire wire) {
-        super(socket);
-        this.wire = wire;
+    public DefaultThreadFactory(final String namePrefix, final boolean daemon) {
+        this(namePrefix, null, daemon);
     }
 
     @Override
-    protected InputStream getInputStream(final Socket socket) throws IOException {
-        return new LoggingInputStream(super.getInputStream(socket), wire);
+    public Thread newThread(final Runnable target) {
+        final Thread thread = new Thread(this.group, target, this.namePrefix + "-"  + this.count.incrementAndGet());
+        thread.setDaemon(this.daemon);
+        return thread;
     }
 
-    @Override
-    protected OutputStream getOutputStream(final Socket socket) throws IOException {
-        return new LoggingOutputStream(super.getOutputStream(socket), wire);
-    }
 }

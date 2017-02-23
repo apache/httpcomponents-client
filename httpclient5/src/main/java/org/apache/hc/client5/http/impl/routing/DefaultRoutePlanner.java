@@ -43,7 +43,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.net.URIAuthority;
 
 /**
  * Default implementation of an {@link HttpRoutePlanner}. It will not make use of
@@ -63,11 +63,7 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
     }
 
     @Override
-    public HttpRoute determineRoute(
-            final HttpHost host,
-            final HttpRequest request,
-            final HttpContext context) throws HttpException {
-        Args.notNull(request, "Request");
+    public HttpRoute determineRoute(final HttpHost host, final HttpContext context) throws HttpException {
         if (host == null) {
             throw new ProtocolException("Target host is not specified");
         }
@@ -76,7 +72,7 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         final InetAddress local = config.getLocalAddress();
         HttpHost proxy = config.getProxy();
         if (proxy == null) {
-            proxy = determineProxy(host, request, context);
+            proxy = determineProxy(host, context);
         }
 
         final HttpHost target;
@@ -100,6 +96,20 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
         }
     }
 
+    @Override
+    public HttpHost determineTargetHost(final HttpRequest request, final HttpContext context) throws HttpException {
+        final URIAuthority authority = request.getAuthority();
+        if (authority != null) {
+            final String scheme = request.getScheme();
+            if (scheme == null) {
+                throw new ProtocolException("Protocol scheme is not specified");
+            }
+            return new HttpHost(authority, scheme);
+        } else {
+            return null;
+        }
+    }
+
     /**
      * This implementation returns null.
      *
@@ -107,7 +117,6 @@ public class DefaultRoutePlanner implements HttpRoutePlanner {
      */
     protected HttpHost determineProxy(
             final HttpHost target,
-            final HttpRequest request,
             final HttpContext context) throws HttpException {
         return null;
     }

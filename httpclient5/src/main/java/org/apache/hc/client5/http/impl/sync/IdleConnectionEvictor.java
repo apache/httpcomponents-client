@@ -30,7 +30,8 @@ package org.apache.hc.client5.http.impl.sync;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.DefaultThreadFactory;
+import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -41,7 +42,6 @@ import org.apache.hc.core5.util.Args;
  */
 public final class IdleConnectionEvictor {
 
-    private final HttpClientConnectionManager connectionManager;
     private final ThreadFactory threadFactory;
     private final Thread thread;
     private final long sleepTimeMs;
@@ -50,12 +50,12 @@ public final class IdleConnectionEvictor {
     private volatile Exception exception;
 
     public IdleConnectionEvictor(
-            final HttpClientConnectionManager connectionManager,
+            final ConnPoolControl<?> connectionManager,
             final ThreadFactory threadFactory,
             final long sleepTime, final TimeUnit sleepTimeUnit,
             final long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
-        this.connectionManager = Args.notNull(connectionManager, "Connection manager");
-        this.threadFactory = threadFactory != null ? threadFactory : new DefaultThreadFactory();
+        Args.notNull(connectionManager, "Connection manager");
+        this.threadFactory = threadFactory != null ? threadFactory : new DefaultThreadFactory("idle-connection-evictor", true);
         this.sleepTimeMs = sleepTimeUnit != null ? sleepTimeUnit.toMillis(sleepTime) : sleepTime;
         this.maxIdleTimeMs = maxIdleTimeUnit != null ? maxIdleTimeUnit.toMillis(maxIdleTime) : maxIdleTime;
         this.thread = this.threadFactory.newThread(new Runnable() {
@@ -78,14 +78,14 @@ public final class IdleConnectionEvictor {
     }
 
     public IdleConnectionEvictor(
-            final HttpClientConnectionManager connectionManager,
+            final ConnPoolControl<?> connectionManager,
             final long sleepTime, final TimeUnit sleepTimeUnit,
             final long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
         this(connectionManager, null, sleepTime, sleepTimeUnit, maxIdleTime, maxIdleTimeUnit);
     }
 
     public IdleConnectionEvictor(
-            final HttpClientConnectionManager connectionManager,
+            final ConnPoolControl<?> connectionManager,
             final long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
         this(connectionManager, null,
                 maxIdleTime > 0 ? maxIdleTime : 5, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS,
@@ -107,17 +107,5 @@ public final class IdleConnectionEvictor {
     public void awaitTermination(final long time, final TimeUnit tunit) throws InterruptedException {
         thread.join((tunit != null ? tunit : TimeUnit.MILLISECONDS).toMillis(time));
     }
-
-    static class DefaultThreadFactory implements ThreadFactory {
-
-        @Override
-        public Thread newThread(final Runnable r) {
-            final Thread t = new Thread(r, "Connection evictor");
-            t.setDaemon(true);
-            return t;
-        }
-
-    }
-
 
 }

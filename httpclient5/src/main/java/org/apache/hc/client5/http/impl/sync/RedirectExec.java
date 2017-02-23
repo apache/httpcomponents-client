@@ -146,7 +146,7 @@ public class RedirectExec implements ClientExecChain {
                         }
                     }
 
-                    currentRoute = this.routePlanner.determineRoute(newTarget, redirect, context);
+                    currentRoute = this.routePlanner.determineRoute(newTarget, context);
                     if (this.log.isDebugEnabled()) {
                         this.log.debug("Redirecting to '" + redirectUri + "' via " + currentRoute);
                     }

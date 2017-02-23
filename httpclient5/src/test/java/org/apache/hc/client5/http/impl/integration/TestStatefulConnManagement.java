@@ -36,10 +36,10 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.UserTokenHandler;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
@@ -119,12 +119,10 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
         }
 
         for (final HttpContext context : contexts) {
-            final String uid = (String) context.getAttribute("user");
-
-            for (int r = 0; r < requestCount; r++) {
-                final String state = (String) context.getAttribute("r" + r);
-                Assert.assertNotNull(state);
-                Assert.assertEquals(uid, state);
+            final String state0 = (String) context.getAttribute("r0");
+            Assert.assertNotNull(state0);
+            for (int r = 1; r < requestCount; r++) {
+                Assert.assertEquals(state0, (String) context.getAttribute("r" + r));
             }
         }
 
@@ -176,13 +174,8 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
                             this.context);
                     this.count++;
 
-                    final HttpClientConnection conn = this.context.getConnection(HttpClientConnection.class);
-                    final HttpContext connContext = (HttpContext) conn;
-                    String connuid = (String) connContext.getAttribute("user");
-                    if (connuid == null) {
-                        connContext.setAttribute("user", this.uid);
-                        connuid = this.uid;
-                    }
+                    final HttpConnection conn = this.context.getConnection();
+                    final String connuid = Integer.toHexString(System.identityHashCode(conn));
                     this.context.setAttribute("r" + r, connuid);
                     EntityUtils.consume(response.getEntity());
                 }

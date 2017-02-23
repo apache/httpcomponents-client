@@ -48,6 +48,7 @@ import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ConnectionClosedException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.SocketConfig;
@@ -191,6 +192,9 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         }
         final LayeredConnectionSocketFactory lsf = (LayeredConnectionSocketFactory) sf;
         Socket sock = conn.getSocket();
+        if (sock == null) {
+            throw new ConnectionClosedException("Connection is closed");
+        }
         final int port = this.schemePortResolver.resolve(host);
         sock = lsf.createLayeredSocket(sock, host.getHostName(), port, context);
         conn.bind(sock);
