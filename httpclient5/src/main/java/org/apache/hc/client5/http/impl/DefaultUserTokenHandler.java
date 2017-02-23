@@ -24,7 +24,7 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.protocol;
+package org.apache.hc.client5.http.impl;
 
 import java.security.Principal;
 

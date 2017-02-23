@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.sync;
+package org.apache.hc.client5.http.impl;
 
 import java.util.concurrent.TimeUnit;
 

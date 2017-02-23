@@ -30,7 +30,7 @@ package org.apache.hc.client5.http.impl.integration;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.sync.IdleConnectionEvictor;
+import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.methods.HttpUriRequest;

@@ -25,12 +25,11 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.sync;
+package org.apache.hc.client5.http.impl;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.impl.DefaultThreadFactory;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.Args;
 

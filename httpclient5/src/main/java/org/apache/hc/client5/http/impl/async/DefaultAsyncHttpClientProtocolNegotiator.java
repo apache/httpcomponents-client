@@ -24,27 +24,44 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.sync;
 
-import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.protocol.UserTokenHandler;
+package org.apache.hc.client5.http.impl.async;
+
+import java.nio.charset.Charset;
+
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.impl.ConnectionListener;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http2.config.H2Config;
+import org.apache.hc.core5.http2.impl.nio.ClientHttpProtocolNegotiator;
+import org.apache.hc.core5.http2.impl.nio.Http2StreamListener;
+import org.apache.hc.core5.reactor.IOSession;
 
 /**
- * Noop implementation of {@link UserTokenHandler} that always returns {@code null}.
- *
- * @since 4.3
+ * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class NoopUserTokenHandler implements UserTokenHandler {
+public class DefaultAsyncHttpClientProtocolNegotiator extends ClientHttpProtocolNegotiator {
 
-    public static final NoopUserTokenHandler INSTANCE = new NoopUserTokenHandler();
+    public DefaultAsyncHttpClientProtocolNegotiator(
+            final IOSession ioSession,
+            final HttpProcessor httpProcessor,
+            final HandlerFactory<AsyncPushConsumer> pushHandlerFactory,
+            final Charset charset,
+            final H2Config h2Config,
+            final ConnectionListener connectionListener,
+            final Http2StreamListener streamListener) {
+        super(ioSession, httpProcessor, pushHandlerFactory, charset, h2Config, connectionListener, streamListener);
+    }
 
     @Override
-    public Object getUserToken(final HttpRoute route, final HttpContext context) {
-        return null;
+    public ProtocolVersion getProtocolVersion() {
+        return HttpVersion.HTTP_2_0;
     }
 
 }
