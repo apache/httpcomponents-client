@@ -40,7 +40,7 @@ public final class ConnPoolSupport {
         if (object instanceof Identifiable) {
             return ((Identifiable) object).getId();
         } else {
-            return Integer.toHexString(System.identityHashCode(object));
+            return object.getClass().getSimpleName() + "-" + Integer.toHexString(System.identityHashCode(object));
         }
     }
 
