@@ -31,13 +31,13 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.methods.RoutedHttpRequest;
-import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.message.MessageSupport;
 
 /**
  * @since 4.1

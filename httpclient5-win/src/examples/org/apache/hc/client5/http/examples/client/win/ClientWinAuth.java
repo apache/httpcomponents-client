@@ -30,7 +30,7 @@ package org.apache.hc.client5.http.examples.client.win;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.win.WinHttpClients;
-import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**

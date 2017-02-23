@@ -31,8 +31,8 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.hc.client5.http.methods.HttpUriRequest;
-import org.apache.hc.client5.http.methods.RequestBuilder;
+import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
+import org.apache.hc.client5.http.sync.methods.RequestBuilder;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.Assert;

@@ -35,8 +35,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.impl.sync.ClientExecChain;
-import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.junit.Before;

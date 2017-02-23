@@ -38,7 +38,7 @@ import org.apache.hc.client5.http.impl.auth.SPNegoScheme;
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
-import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;

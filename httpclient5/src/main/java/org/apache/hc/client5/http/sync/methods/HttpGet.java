@@ -25,26 +25,41 @@
  *
  */
 
-package org.apache.hc.client5.http.methods;
+package org.apache.hc.client5.http.sync.methods;
 
 import java.net.URI;
 
-import org.junit.Assert;
-import org.junit.Test;
+/**
+ * HTTP GET method.
+ * <p>
+ * The HTTP GET method is defined in section 9.3 of
+ * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
+ * </p>
+ * <blockquote>
+ * The GET method means retrieve whatever information (in the form of an
+ * entity) is identified by the Request-URI. If the Request-URI refers
+ * to a data-producing process, it is the produced data which shall be
+ * returned as the entity in the response and not the source text of the
+ * process, unless that text happens to be the output of the process.
+ * </blockquote>
+ *
+ * @since 4.0
+ */
+public class HttpGet extends HttpUriRequestBase {
 
-public class TestHttpRequestBase {
+    private static final long serialVersionUID = 1L;
 
-    @Test
-    public void testBasicProperties() throws Exception {
-        final HttpGet httpget = new HttpGet("http://host/path");
-        Assert.assertEquals("GET", httpget.getMethod());
-        Assert.assertEquals(new URI("http://host/path"), httpget.getUri());
+    public final static String METHOD_NAME = "GET";
+
+    public HttpGet(final URI uri) {
+        super(METHOD_NAME, uri);
     }
 
-    @Test
-    public void testEmptyURI() throws Exception {
-        final HttpGet httpget = new HttpGet("");
-        Assert.assertEquals(new URI("/"), httpget.getUri());
+    /**
+     * @throws IllegalArgumentException if the uri is invalid.
+     */
+    public HttpGet(final String uri) {
+        this(URI.create(uri));
     }
 
 }

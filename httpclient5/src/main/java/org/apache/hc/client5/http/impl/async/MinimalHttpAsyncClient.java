@@ -34,9 +34,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncClientEndpoint;
+import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.ComplexFuture;
-import org.apache.hc.client5.http.methods.Configurable;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.protocol.HttpClientContext;

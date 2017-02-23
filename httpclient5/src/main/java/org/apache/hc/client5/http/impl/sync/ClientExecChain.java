@@ -29,9 +29,8 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
 
-import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 

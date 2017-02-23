@@ -25,27 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.http.methods;
-
-import java.util.Set;
-
-import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.junit.Assert;
-import org.junit.Test;
-
-public class TestHttpOptions {
-
-    @Test
-    public void testMultipleAllows() {
-        final BasicHttpResponse resp = new BasicHttpResponse(200, "test reason");
-        resp.addHeader("Allow", "POST");
-        resp.addHeader("Allow", "GET");
-
-        final HttpOptions opt = new HttpOptions("*");
-        final Set<String> methodsName = opt.getAllowedMethods(resp);
-
-        Assert.assertTrue(methodsName.contains("POST"));
-        Assert.assertTrue(methodsName.contains("GET"));
-    }
-
-}
+/**
+ * Standard HTTP method implementations.
+ */
+package org.apache.hc.client5.http.sync.methods;

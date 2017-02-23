@@ -25,67 +25,39 @@
  *
  */
 
-package org.apache.hc.client5.http.methods;
+package org.apache.hc.client5.http.sync.methods;
 
 import java.net.URI;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
-import org.apache.hc.core5.http.message.MessageSupport;
-import org.apache.hc.core5.http.HeaderElement;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.util.Args;
 
 /**
- * HTTP OPTIONS method.
+ * HTTP PUT method.
  * <p>
- * The HTTP OPTIONS method is defined in section 9.2 of
+ * The HTTP PUT method is defined in section 9.6 of
  * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
  * </p>
  * <blockquote>
- *  The OPTIONS method represents a request for information about the
- *  communication options available on the request/response chain
- *  identified by the Request-URI. This method allows the client to
- *  determine the options and/or requirements associated with a resource,
- *  or the capabilities of a server, without implying a resource action
- *  or initiating a resource retrieval.
+ * The PUT method requests that the enclosed entity be stored under the
+ * supplied Request-URI. If the Request-URI refers to an already
+ * existing resource, the enclosed entity SHOULD be considered as a
+ * modified version of the one residing on the origin server.
  * </blockquote>
  *
  * @since 4.0
  */
-public class HttpOptions extends HttpUriRequestBase {
+public class HttpPut extends HttpUriRequestBase {
 
     private static final long serialVersionUID = 1L;
+    public final static String METHOD_NAME = "PUT";
 
-    public final static String METHOD_NAME = "OPTIONS";
-
-    public HttpOptions(final URI uri) {
+    public HttpPut(final URI uri) {
         super(METHOD_NAME, uri);
     }
 
     /**
      * @throws IllegalArgumentException if the uri is invalid.
      */
-    public HttpOptions(final String uri) {
+    public HttpPut(final String uri) {
         this(URI.create(uri));
-    }
-
-    @Override
-    public String getMethod() {
-        return METHOD_NAME;
-    }
-
-    public Set<String> getAllowedMethods(final HttpResponse response) {
-        Args.notNull(response, "HTTP response");
-
-        final Iterator<HeaderElement> it = MessageSupport.iterate(response, "Allow");
-        final Set<String> methods = new HashSet<>();
-        while (it.hasNext()) {
-            final HeaderElement element = it.next();
-            methods.add(element.getName());
-        }
-        return methods;
     }
 
 }

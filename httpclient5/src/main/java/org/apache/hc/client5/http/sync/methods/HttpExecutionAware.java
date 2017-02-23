@@ -25,39 +25,24 @@
  *
  */
 
-package org.apache.hc.client5.http.methods;
+package org.apache.hc.client5.http.sync.methods;
 
-import java.net.URI;
+import org.apache.hc.core5.concurrent.Cancellable;
 
 /**
- * HTTP PUT method.
- * <p>
- * The HTTP PUT method is defined in section 9.6 of
- * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
- * </p>
- * <blockquote>
- * The PUT method requests that the enclosed entity be stored under the
- * supplied Request-URI. If the Request-URI refers to an already
- * existing resource, the enclosed entity SHOULD be considered as a
- * modified version of the one residing on the origin server.
- * </blockquote>
+ * Interface to be implemented by any object that wishes to be notified of
+ * blocking I/O operations that could be cancelled.
  *
- * @since 4.0
+ * @since 4.3
  */
-public class HttpPut extends HttpUriRequestBase {
+public interface HttpExecutionAware {
 
-    private static final long serialVersionUID = 1L;
-    public final static String METHOD_NAME = "PUT";
-
-    public HttpPut(final URI uri) {
-        super(METHOD_NAME, uri);
-    }
+    boolean isAborted();
 
     /**
-     * @throws IllegalArgumentException if the uri is invalid.
+     * Sets {@link Cancellable} for the ongoing operation.
      */
-    public HttpPut(final String uri) {
-        this(URI.create(uri));
-    }
+    void setCancellable(Cancellable cancellable);
 
 }
+

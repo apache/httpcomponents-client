@@ -37,7 +37,7 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
-import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;

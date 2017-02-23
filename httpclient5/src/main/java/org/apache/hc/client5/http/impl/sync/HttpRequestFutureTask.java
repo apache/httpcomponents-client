@@ -28,7 +28,7 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.util.concurrent.FutureTask;
 
-import org.apache.hc.client5.http.methods.HttpUriRequest;
+import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
 
 /**
  * FutureTask implementation that wraps a HttpAsyncClientCallable and exposes various task

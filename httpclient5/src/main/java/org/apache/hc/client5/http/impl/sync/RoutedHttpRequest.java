@@ -25,7 +25,7 @@
  *
  */
 
-package org.apache.hc.client5.http.methods;
+package org.apache.hc.client5.http.impl.sync;
 
 import java.net.URI;
 import java.net.URISyntaxException;

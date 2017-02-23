@@ -27,9 +27,9 @@
 package org.apache.hc.client5.http.impl.integration;
 
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
-import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.client5.http.localserver.LocalServerTestBase;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.junit.Assert;

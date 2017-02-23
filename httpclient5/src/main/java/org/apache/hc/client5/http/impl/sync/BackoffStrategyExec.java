@@ -31,11 +31,10 @@ import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.sync.BackoffManager;
 import org.apache.hc.client5.http.sync.ConnectionBackoffStrategy;
+import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpResponse;

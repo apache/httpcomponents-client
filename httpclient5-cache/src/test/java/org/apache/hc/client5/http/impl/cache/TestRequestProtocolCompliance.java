@@ -33,8 +33,8 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.methods.HttpPut;
-import org.apache.hc.client5.http.methods.RoutedHttpRequest;
+import org.apache.hc.client5.http.sync.methods.HttpPut;
+import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpVersion;

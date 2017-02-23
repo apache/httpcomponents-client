@@ -30,8 +30,8 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 
 import org.apache.hc.client5.http.ConnectTimeoutException;
-import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.client5.http.methods.HttpUriRequest;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
+import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
 import org.junit.Assert;
 import org.junit.Test;
 

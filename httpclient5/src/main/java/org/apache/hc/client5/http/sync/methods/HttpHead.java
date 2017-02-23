@@ -25,42 +25,43 @@
  *
  */
 
-package org.apache.hc.client5.http.methods;
+package org.apache.hc.client5.http.sync.methods;
 
 import java.net.URI;
 
 /**
- * HTTP TRACE method.
+ * HTTP HEAD method.
  * <p>
- * The HTTP TRACE method is defined in section 9.6 of
+ * The HTTP HEAD method is defined in section 9.4 of
  * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
  * </p>
  * <blockquote>
- *  The TRACE method is used to invoke a remote, application-layer loop-
- *  back of the request message. The final recipient of the request
- *  SHOULD reflect the message received back to the client as the
- *  entity-body of a 200 (OK) response. The final recipient is either the
- *  origin server or the first proxy or gateway to receive a Max-Forwards
- *  value of zero (0) in the request (see section 14.31). A TRACE request
- *  MUST NOT include an entity.
+ * The HEAD method is identical to GET except that the server MUST NOT
+ * return a message-body in the response. The metainformation contained
+ * in the HTTP headers in response to a HEAD request SHOULD be identical
+ * to the information sent in response to a GET request. This method can
+ * be used for obtaining metainformation about the entity implied by the
+ * request without transferring the entity-body itself. This method is
+ * often used for testing hypertext links for validity, accessibility,
+ * and recent modification.
  * </blockquote>
  *
  * @since 4.0
  */
-public class HttpTrace extends HttpUriRequestBase {
+public class HttpHead extends HttpUriRequestBase {
 
     private static final long serialVersionUID = 1L;
 
-    public final static String METHOD_NAME = "TRACE";
+    public final static String METHOD_NAME = "HEAD";
 
-    public HttpTrace(final URI uri) {
+    public HttpHead(final URI uri) {
         super(METHOD_NAME, uri);
     }
 
     /**
      * @throws IllegalArgumentException if the uri is invalid.
      */
-    public HttpTrace(final String uri) {
+    public HttpHead(final String uri) {
         this(URI.create(uri));
     }
 

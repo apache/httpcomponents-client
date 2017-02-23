@@ -34,13 +34,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.client5.http.methods.HttpUriRequest;
-import org.apache.hc.client5.http.methods.RequestBuilder;
 import org.apache.hc.client5.http.protocol.CircularRedirectException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
+import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
+import org.apache.hc.client5.http.sync.methods.RequestBuilder;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;

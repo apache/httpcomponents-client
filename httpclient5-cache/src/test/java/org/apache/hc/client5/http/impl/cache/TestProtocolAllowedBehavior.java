@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.impl.cache;
 import java.net.SocketTimeoutException;
 import java.util.Date;
 
-import org.apache.hc.client5.http.methods.RoutedHttpRequest;
+import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;

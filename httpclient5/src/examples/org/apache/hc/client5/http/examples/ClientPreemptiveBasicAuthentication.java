@@ -29,10 +29,10 @@ package org.apache.hc.client5.http.examples;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.sync.HttpClients;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.client5.http.impl.sync.HttpClients;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 

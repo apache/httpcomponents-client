@@ -32,8 +32,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
-import org.apache.hc.client5.http.methods.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
+import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;

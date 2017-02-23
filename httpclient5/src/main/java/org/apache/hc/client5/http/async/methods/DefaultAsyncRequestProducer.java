@@ -28,8 +28,8 @@ package org.apache.hc.client5.http.async.methods;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.methods.Configurable;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;

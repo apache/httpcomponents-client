@@ -31,8 +31,8 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.hc.client5.http.methods.HttpUriRequest;
 import org.apache.hc.client5.http.sync.HttpClient;
+import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;

@@ -25,48 +25,67 @@
  *
  */
 
-package org.apache.hc.client5.http.methods;
+package org.apache.hc.client5.http.sync.methods;
 
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.util.Args;
 
 /**
- * HTTP POST method.
+ * HTTP OPTIONS method.
  * <p>
- * The HTTP POST method is defined in section 9.5 of
+ * The HTTP OPTIONS method is defined in section 9.2 of
  * <a href="http://www.ietf.org/rfc/rfc2616.txt">RFC2616</a>:
  * </p>
  * <blockquote>
- * The POST method is used to request that the origin server accept the entity
- * enclosed in the request as a new subordinate of the resource identified by
- * the Request-URI in the Request-Line. POST is designed to allow a uniform
- * method to cover the following functions:
- * <ul>
- *   <li>Annotation of existing resources</li>
- *   <li>Posting a message to a bulletin board, newsgroup, mailing list, or
- *     similar group of articles</li>
- *   <li>Providing a block of data, such as the result of submitting a form,
- *     to a data-handling process</li>
- *   <li>Extending a database through an append operation</li>
- * </ul>
+ *  The OPTIONS method represents a request for information about the
+ *  communication options available on the request/response chain
+ *  identified by the Request-URI. This method allows the client to
+ *  determine the options and/or requirements associated with a resource,
+ *  or the capabilities of a server, without implying a resource action
+ *  or initiating a resource retrieval.
  * </blockquote>
  *
  * @since 4.0
  */
-public class HttpPost extends HttpUriRequestBase {
+public class HttpOptions extends HttpUriRequestBase {
 
     private static final long serialVersionUID = 1L;
 
-    public final static String METHOD_NAME = "POST";
+    public final static String METHOD_NAME = "OPTIONS";
 
-    public HttpPost(final URI uri) {
+    public HttpOptions(final URI uri) {
         super(METHOD_NAME, uri);
     }
 
     /**
      * @throws IllegalArgumentException if the uri is invalid.
      */
-    public HttpPost(final String uri) {
+    public HttpOptions(final String uri) {
         this(URI.create(uri));
+    }
+
+    @Override
+    public String getMethod() {
+        return METHOD_NAME;
+    }
+
+    public Set<String> getAllowedMethods(final HttpResponse response) {
+        Args.notNull(response, "HTTP response");
+
+        final Iterator<HeaderElement> it = MessageSupport.iterate(response, "Allow");
+        final Set<String> methods = new HashSet<>();
+        while (it.hasNext()) {
+            final HeaderElement element = it.next();
+            methods.add(element.getName());
+        }
+        return methods;
     }
 
 }

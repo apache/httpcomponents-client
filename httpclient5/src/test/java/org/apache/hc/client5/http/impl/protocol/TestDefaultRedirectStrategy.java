@@ -30,12 +30,12 @@ import java.net.URI;
 import java.util.List;
 
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.client5.http.methods.HttpHead;
-import org.apache.hc.client5.http.methods.HttpPost;
-import org.apache.hc.client5.http.methods.HttpTrace;
-import org.apache.hc.client5.http.methods.HttpUriRequest;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
+import org.apache.hc.client5.http.sync.methods.HttpHead;
+import org.apache.hc.client5.http.sync.methods.HttpPost;
+import org.apache.hc.client5.http.sync.methods.HttpTrace;
+import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;

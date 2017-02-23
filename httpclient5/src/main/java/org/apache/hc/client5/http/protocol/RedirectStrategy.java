@@ -27,7 +27,7 @@
 
 package org.apache.hc.client5.http.protocol;
 
-import org.apache.hc.client5.http.methods.HttpUriRequest;
+import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;

@@ -29,9 +29,9 @@ package org.apache.hc.client5.http.impl.integration;
 import java.io.IOException;
 import java.net.Socket;
 
-import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.client5.http.localserver.LocalServerTestBase;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;

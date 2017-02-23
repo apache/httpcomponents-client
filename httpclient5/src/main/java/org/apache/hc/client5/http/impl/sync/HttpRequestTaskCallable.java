@@ -29,8 +29,8 @@ package org.apache.hc.client5.http.impl.sync;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.hc.client5.http.methods.HttpUriRequest;
 import org.apache.hc.client5.http.sync.HttpClient;
+import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.io.ResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;

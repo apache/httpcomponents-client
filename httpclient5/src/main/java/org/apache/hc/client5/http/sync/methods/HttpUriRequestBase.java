@@ -24,12 +24,13 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.methods;
+package org.apache.hc.client5.http.sync.methods;
 
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;

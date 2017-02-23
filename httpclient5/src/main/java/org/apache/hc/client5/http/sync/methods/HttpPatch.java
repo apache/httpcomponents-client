@@ -25,33 +25,41 @@
  *
  */
 
-package org.apache.hc.client5.http.methods;
+package org.apache.hc.client5.http.sync.methods;
 
-import org.apache.hc.core5.http.ClassicHttpRequest;
+import java.net.URI;
 
 /**
- * Extended version of the {@link ClassicHttpRequest} interface that provides
- * convenience methods to access request properties such as request URI
- * and method type.
+ * HTTP PATCH method.
+ * <p>
+ * The HTTP PATCH method is defined in <a
+ * href="http://tools.ietf.org/html/rfc5789">RF5789</a>:
+ * </p>
+ * <blockquote> The PATCH
+ * method requests that a set of changes described in the request entity be
+ * applied to the resource identified by the Request- URI. Differs from the PUT
+ * method in the way the server processes the enclosed entity to modify the
+ * resource identified by the Request-URI. In a PUT request, the enclosed entity
+ * origin server, and the client is requesting that the stored version be
+ * replaced. With PATCH, however, the enclosed entity contains a set of
+ * instructions describing how a resource currently residing on the origin
+ * server should be modified to produce a new version.
+ * </blockquote>
  *
- * @since 4.0
+ * @since 4.2
  */
-public interface HttpUriRequest extends ClassicHttpRequest {
+public class HttpPatch extends HttpUriRequestBase {
 
-    /**
-     * Aborts execution of the request.
-     *
-     * @throws UnsupportedOperationException if the abort operation
-     *   is not supported / cannot be implemented.
-     */
-    void abort() throws UnsupportedOperationException;
+    private static final long serialVersionUID = 1L;
 
-    /**
-     * Tests if the request execution has been aborted.
-     *
-     * @return {@code true} if the request execution has been aborted,
-     *   {@code false} otherwise.
-     */
-    boolean isAborted();
+    public final static String METHOD_NAME = "PATCH";
+
+    public HttpPatch(final URI uri) {
+        super(METHOD_NAME, uri);
+    }
+
+    public HttpPatch(final String uri) {
+        this(URI.create(uri));
+    }
 
 }
