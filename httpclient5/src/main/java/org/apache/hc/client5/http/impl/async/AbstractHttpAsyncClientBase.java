@@ -34,7 +34,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.core5.function.Callback;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ExceptionListener;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.nio.command.ShutdownType;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
@@ -54,6 +56,7 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
 
     final Logger log = LogManager.getLogger(getClass());
 
+    private final AsyncPushConsumerRegistry pushConsumerRegistry;
     private final DefaultConnectingIOReactor ioReactor;
     private final ExceptionListener exceptionListener;
     private final ExecutorService executorService;
@@ -61,6 +64,7 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
 
     public AbstractHttpAsyncClientBase(
             final IOEventHandlerFactory eventHandlerFactory,
+            final AsyncPushConsumerRegistry pushConsumerRegistry,
             final IOReactorConfig reactorConfig,
             final ThreadFactory threadFactory,
             final ThreadFactory workerThreadFactory) throws IOReactorException {
@@ -77,6 +81,7 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
                     }
 
                 });
+        this.pushConsumerRegistry = pushConsumerRegistry;
         this.exceptionListener = new ExceptionListener() {
             @Override
             public void onError(final Exception ex) {
@@ -97,13 +102,16 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
                     try {
                         ioReactor.execute();
                     } catch (Exception ex) {
-                        if (exceptionListener != null) {
-                            exceptionListener.onError(ex);
-                        }
+                        exceptionListener.onError(ex);
                     }
                 }
             });
         }
+    }
+
+    @Override
+    public void register(final String hostname, final String uriPattern, final Supplier<AsyncPushConsumer> supplier) {
+        pushConsumerRegistry.register(hostname, uriPattern, supplier);
     }
 
     void ensureRunning() {

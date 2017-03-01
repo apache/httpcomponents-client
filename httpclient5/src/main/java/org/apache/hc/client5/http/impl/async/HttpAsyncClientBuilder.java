@@ -43,13 +43,13 @@ import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.DefaultThreadFactory;
-import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.DefaultUserTokenHandler;
+import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
+import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
-import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
-import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
@@ -57,6 +57,7 @@ import org.apache.hc.client5.http.protocol.UserTokenHandler;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
@@ -66,6 +67,8 @@ import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.config.ConnectionConfig;
 import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
@@ -518,11 +521,19 @@ public class HttpAsyncClientBuilder {
             }
             closeablesCopy.add(connManagerCopy);
         }
+        final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         final IOEventHandlerFactory ioEventHandlerFactory;
         if (protocolVersion != null && protocolVersion.greaterEquals(HttpVersion.HTTP_2)) {
             ioEventHandlerFactory = new DefaultAsyncHttp2ClientEventHandlerFactory(
                     httpProcessor,
-                    null,
+                    new HandlerFactory<AsyncPushConsumer>() {
+
+                        @Override
+                        public AsyncPushConsumer create(final HttpRequest request) throws HttpException {
+                            return pushConsumerRegistry.get(request);
+                        }
+
+                    },
                     StandardCharsets.US_ASCII,
                     h2Config != null ? h2Config : H2Config.DEFAULT);
         } else {
@@ -554,6 +565,7 @@ public class HttpAsyncClientBuilder {
         try {
             return new InternalHttpAsyncClient(
                     ioEventHandlerFactory,
+                    pushConsumerRegistry,
                     ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
                     new DefaultThreadFactory("httpclient-main", true),
                     new DefaultThreadFactory("httpclient-dispatch", true),

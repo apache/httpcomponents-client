@@ -28,32 +28,22 @@ package org.apache.hc.client5.http.async.methods;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.List;
 
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
-import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
-import org.apache.hc.core5.http.nio.CapacityChannel;
 
-public abstract class AbstractBinResponseConsumer<T> implements AsyncResponseConsumer<T> {
-
-    private static final ByteBuffer EMPTY = ByteBuffer.wrap(new byte[0]);
+public abstract class AbstractBinResponseConsumer<T> extends AbstractBinDataConsumer implements AsyncResponseConsumer<T> {
 
     private volatile FutureCallback<T> resultCallback;
 
     protected abstract void start(HttpResponse response, ContentType contentType) throws HttpException, IOException;
 
-    protected abstract int capacity();
-
-    protected abstract void data(ByteBuffer data, boolean endOfStream) throws IOException;
-
-    protected abstract T getResult();
+    protected abstract T buildResult();
 
     @Override
     public final void consumeResponse(
@@ -70,34 +60,18 @@ public abstract class AbstractBinResponseConsumer<T> implements AsyncResponseCon
             }
         } else {
             start(response, null);
-            resultCallback.completed(getResult());
+            completed();
         }
 
     }
 
     @Override
-    public final void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
-        capacityChannel.update(capacity());
-    }
-
-    @Override
-    public final int consume(final ByteBuffer src) throws IOException {
-        data(src, false);
-        return capacity();
-    }
-
-    @Override
-    public final void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
-        data(EMPTY, true);
-        resultCallback.completed(getResult());
+    protected final void completed() {
+        resultCallback.completed(buildResult());
     }
 
     @Override
     public void failed(final Exception cause) {
-    }
-
-    @Override
-    public void releaseResources() {
     }
 
 }

@@ -32,10 +32,14 @@ import java.nio.charset.StandardCharsets;
 import org.apache.hc.client5.http.impl.DefaultThreadFactory;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.config.ConnectionConfig;
 import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
@@ -117,10 +121,12 @@ public class HttpAsyncClients {
 
     private static MinimalHttpAsyncClient createMinimalImpl(
             final IOEventHandlerFactory eventHandlerFactory,
+            final AsyncPushConsumerRegistry pushConsumerRegistry,
             final AsyncClientConnectionManager connmgr) {
         try {
             return new MinimalHttpAsyncClient(
                     eventHandlerFactory,
+                    pushConsumerRegistry,
                     IOReactorConfig.DEFAULT,
                     new DefaultThreadFactory("httpclient-main", true),
                     new DefaultThreadFactory("httpclient-dispatch", true),
@@ -133,22 +139,34 @@ public class HttpAsyncClients {
     private static MinimalHttpAsyncClient createMinimalImpl(
             final H1Config h1Config,
             final AsyncClientConnectionManager connmgr) {
-        return createMinimalImpl(new DefaultAsyncHttp1ClientEventHandlerFactory(
+        return createMinimalImpl(
+                new DefaultAsyncHttp1ClientEventHandlerFactory(
                         createMinimalProtocolProcessor(),
                         h1Config,
                         ConnectionConfig.DEFAULT,
                         DefaultConnectionReuseStrategy.INSTANCE),
+                new AsyncPushConsumerRegistry(),
                 connmgr);
     }
 
     private static MinimalHttpAsyncClient createMinimalImpl(
             final H2Config h2Config,
             final AsyncClientConnectionManager connmgr) {
-        return createMinimalImpl(new DefaultAsyncHttp2ClientEventHandlerFactory(
+        final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
+        return createMinimalImpl(
+                new DefaultAsyncHttp2ClientEventHandlerFactory(
                         createMinimalProtocolProcessor(),
-                        null,
+                        new HandlerFactory<AsyncPushConsumer>() {
+
+                            @Override
+                            public AsyncPushConsumer create(final HttpRequest request) throws HttpException {
+                                return pushConsumerRegistry.get(request);
+                            }
+
+                        },
                         StandardCharsets.US_ASCII,
                         h2Config),
+                pushConsumerRegistry,
                 connmgr);
     }
 

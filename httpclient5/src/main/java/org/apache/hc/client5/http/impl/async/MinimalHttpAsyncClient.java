@@ -61,11 +61,12 @@ class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
 
     public MinimalHttpAsyncClient(
             final IOEventHandlerFactory eventHandlerFactory,
+            final AsyncPushConsumerRegistry pushConsumerRegistry,
             final IOReactorConfig reactorConfig,
             final ThreadFactory threadFactory,
             final ThreadFactory workerThreadFactory,
             final AsyncClientConnectionManager connmgr) throws IOReactorException {
-        super(eventHandlerFactory, reactorConfig, threadFactory, workerThreadFactory);
+        super(eventHandlerFactory, pushConsumerRegistry, reactorConfig, threadFactory, workerThreadFactory);
         this.connmgr = connmgr;
     }
 

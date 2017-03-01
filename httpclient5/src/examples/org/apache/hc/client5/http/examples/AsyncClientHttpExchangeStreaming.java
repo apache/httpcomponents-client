@@ -91,13 +91,17 @@ public class AsyncClientHttpExchangeStreaming {
                         }
 
                         @Override
-                        protected Void getResult() {
+                        protected Void buildResult() throws IOException {
                             return null;
                         }
 
                         @Override
                         public void failed(final Exception cause) {
                             System.out.println(requestUri + "->" + cause);
+                        }
+
+                        @Override
+                        public void releaseResources() {
                         }
 
                     }, null);

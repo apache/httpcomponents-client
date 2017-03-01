@@ -28,31 +28,24 @@ package org.apache.hc.client5.http.async.methods;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 
-import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 
-public abstract class AbstractCharResponseConsumer<T> extends AbstractCharDataConsumer implements AsyncResponseConsumer<T> {
+public abstract class AbstractBinPushConsumer extends AbstractBinDataConsumer implements AsyncPushConsumer {
 
-    private volatile FutureCallback<T> resultCallback;
-
-    protected abstract void start(HttpResponse response, ContentType contentType) throws HttpException, IOException;
-
-    protected abstract T buildResult() throws IOException;
+    protected abstract void start(HttpRequest promise, HttpResponse response, ContentType contentType) throws HttpException, IOException;
 
     @Override
-    public final void consumeResponse(
+    public final void consumePromise(
+            final HttpRequest promise,
             final HttpResponse response,
-            final EntityDetails entityDetails,
-            final FutureCallback<T> resultCallback) throws HttpException, IOException {
-        this.resultCallback = resultCallback;
+            final EntityDetails entityDetails) throws HttpException, IOException {
         if (entityDetails != null) {
             final ContentType contentType;
             try {
@@ -60,21 +53,11 @@ public abstract class AbstractCharResponseConsumer<T> extends AbstractCharDataCo
             } catch (UnsupportedCharsetException ex) {
                 throw new UnsupportedEncodingException(ex.getMessage());
             }
-            Charset charset = contentType != null ? contentType.getCharset() : null;
-            if (charset == null) {
-                charset = StandardCharsets.US_ASCII;
-            }
-            setCharsetDecoder(charset.newDecoder());
-            start(response, contentType);
+            start(promise, response, contentType);
         } else {
-            start(response, null);
+            start(promise, response, null);
             completed();
         }
-    }
-
-    @Override
-    protected final void completed() throws IOException {
-        resultCallback.completed(buildResult());
     }
 
     @Override

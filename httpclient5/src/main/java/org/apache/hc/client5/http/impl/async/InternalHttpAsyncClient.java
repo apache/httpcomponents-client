@@ -82,8 +82,9 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
     private final RequestConfig defaultConfig;
     private final List<Closeable> closeables;
 
-    public InternalHttpAsyncClient(
+    InternalHttpAsyncClient(
             final IOEventHandlerFactory eventHandlerFactory,
+            final AsyncPushConsumerRegistry pushConsumerRegistry,
             final IOReactorConfig reactorConfig,
             final ThreadFactory threadFactory,
             final ThreadFactory workerThreadFactory,
@@ -93,7 +94,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
             final UserTokenHandler userTokenHandler,
             final RequestConfig defaultConfig,
             final List<Closeable> closeables) throws IOReactorException {
-        super(eventHandlerFactory, reactorConfig, threadFactory, workerThreadFactory);
+        super(eventHandlerFactory, pushConsumerRegistry, reactorConfig, threadFactory, workerThreadFactory);
         this.connmgr = connmgr;
         this.routePlanner = routePlanner;
         this.keepAliveStrategy = keepAliveStrategy;

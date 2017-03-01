@@ -37,7 +37,9 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
 import org.apache.hc.core5.reactor.ExceptionEvent;
@@ -74,6 +76,10 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
             final AsyncResponseConsumer<T> responseConsumer,
             final FutureCallback<T> callback) {
         return execute(requestProducer, responseConsumer, HttpClientContext.create(), callback);
+    }
+
+    public final void register(final String uriPattern, final Supplier<AsyncPushConsumer> supplier) {
+        register(null, uriPattern, supplier);
     }
 
 }

@@ -40,6 +40,7 @@ import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 
 /**
@@ -55,9 +56,14 @@ public class AsyncClientHttp2Multiplexing {
                 .setSoTimeout(5000)
                 .build();
 
+        H2Config h2Config = H2Config.custom()
+                .setPushEnabled(false)
+                .build();
+
         CloseableHttpAsyncClient client = HttpAsyncClients.custom()
-                .setProtocolVersion(HttpVersion.HTTP_1_1)
                 .setIOReactorConfig(ioReactorConfig)
+                .setProtocolVersion(HttpVersion.HTTP_2)
+                .setH2Config(h2Config)
                 .build();
 
         client.start();
