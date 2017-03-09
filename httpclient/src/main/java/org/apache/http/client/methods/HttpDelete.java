@@ -44,7 +44,7 @@ import java.net.URI;
  *
  * @since 4.0
  */
-public class HttpDelete extends HttpRequestBase {
+public class HttpDelete extends HttpEntityEnclosingRequestBase {
 
     public final static String METHOD_NAME = "DELETE";
 
