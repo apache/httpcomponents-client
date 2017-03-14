@@ -75,6 +75,10 @@ import org.apache.http.util.EncodingUtils;
  * looked like. Maybe it should be separated to ordinary classes in the future.
  * The connection-less mode of operation is only partially implemented and not really tested.
  * </p>
+ * <p>
+ * Based on [MS-NLMP]: NT LAN Manager (NTLM) Authentication Protocol (Revision 28.0, 7/4/2016)
+ * https://msdn.microsoft.com/en-us/library/cc236621.aspx
+ * </p>
  *
  * @since 4.1
  */

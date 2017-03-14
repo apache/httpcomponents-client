@@ -76,6 +76,7 @@ import org.apache.http.util.CharsetUtils;
  * can be also switched to GSS. In fact it only works in CredSSP+NTLM case.
  * </p>
  * <p>
+ * Based on [MS-CSSP]: Credential Security Support Provider (CredSSP) Protocol (Revision 13.0, 7/14/2016).
  * The implementation was inspired by Python CredSSP and NTLM implementation by Jordan Borean.
  * </p>
  */
