@@ -54,7 +54,7 @@ import org.apache.http.util.Args;
  *
  * @since 4.0
  */
-public class HttpOptions extends HttpRequestBase {
+public class HttpOptions extends HttpEntityEnclosingRequestBase {
 
     public final static String METHOD_NAME = "OPTIONS";
 
