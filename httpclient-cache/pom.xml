@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.apache.httpcomponents</groupId>
     <artifactId>httpcomponents-client</artifactId>
-    <version>4.6.0-alpha1-SNAPSHOT</version>
+    <version>4.6-alpha1-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient-cache</artifactId>
   <name>Apache HttpClient Cache</name>
