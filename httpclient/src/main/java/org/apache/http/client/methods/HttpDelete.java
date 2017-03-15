@@ -48,7 +48,7 @@ import java.net.URI;
  * in turn does not say anything about allowing or disallowing a message-body.
  * So we allow DELETE to have a body for flexibility.
  * </p>
- * 
+ *
  * @since 4.0
  */
 public class HttpDelete extends HttpEntityEnclosingRequestBase {
