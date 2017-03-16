@@ -252,7 +252,8 @@ public class WindowsNegotiateScheme extends AuthSchemeBase {
             }
         } else {
             final HttpClientContext clientContext = HttpClientContext.adapt(context);
-            final HttpHost target = clientContext.getTargetHost();            if (target != null) {
+            final HttpHost target = clientContext.getTargetHost();
+            if (target != null) {
                 spn = "HTTP/" + target.getHostName();
             } else {
                 final RouteInfo route = clientContext.getHttpRoute();
