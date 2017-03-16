@@ -26,8 +26,8 @@
  */
 package org.apache.http.impl.auth;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.util.Arrays;
@@ -35,11 +35,12 @@ import java.util.Locale;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.Consts;
-import org.apache.http.util.CharsetUtils;
-import org.apache.http.util.EncodingUtils;
+import org.apache.http.auth.NTCredentials;
 
 /**
  * Provides an implementation for NTLMv1, NTLMv2, and NTLM2 Session forms of the NTLM
@@ -50,30 +51,48 @@ import org.apache.http.util.EncodingUtils;
 final class NTLMEngineImpl implements NTLMEngine {
 
     /** Unicode encoding */
-    private static final Charset UNICODE_LITTLE_UNMARKED = CharsetUtils.lookup("UnicodeLittleUnmarked");
+    private static final Charset UNICODE_LITTLE_UNMARKED = Charset.forName("UnicodeLittleUnmarked");
     /** Character encoding */
-    private static final Charset DEFAULT_CHARSET = Consts.ASCII;
+    private static final Charset DEFAULT_CHARSET = StandardCharsets.US_ASCII;
 
     // Flags we use; descriptions according to:
     // http://davenport.sourceforge.net/ntlm.html
     // and
     // http://msdn.microsoft.com/en-us/library/cc236650%28v=prot.20%29.aspx
-    protected static final int FLAG_REQUEST_UNICODE_ENCODING = 0x00000001;      // Unicode string encoding requested
-    protected static final int FLAG_REQUEST_TARGET = 0x00000004;                      // Requests target field
-    protected static final int FLAG_REQUEST_SIGN = 0x00000010;  // Requests all messages have a signature attached, in NEGOTIATE message.
-    protected static final int FLAG_REQUEST_SEAL = 0x00000020;  // Request key exchange for message confidentiality in NEGOTIATE message.  MUST be used in conjunction with 56BIT.
-    protected static final int FLAG_REQUEST_LAN_MANAGER_KEY = 0x00000080;    // Request Lan Manager key instead of user session key
-    protected static final int FLAG_REQUEST_NTLMv1 = 0x00000200; // Request NTLMv1 security.  MUST be set in NEGOTIATE and CHALLENGE both
-    protected static final int FLAG_DOMAIN_PRESENT = 0x00001000;        // Domain is present in message
-    protected static final int FLAG_WORKSTATION_PRESENT = 0x00002000;   // Workstation is present in message
-    protected static final int FLAG_REQUEST_ALWAYS_SIGN = 0x00008000;   // Requests a signature block on all messages.  Overridden by REQUEST_SIGN and REQUEST_SEAL.
-    protected static final int FLAG_REQUEST_NTLM2_SESSION = 0x00080000; // From server in challenge, requesting NTLM2 session security
-    protected static final int FLAG_REQUEST_VERSION = 0x02000000;       // Request protocol version
-    protected static final int FLAG_TARGETINFO_PRESENT = 0x00800000;    // From server in challenge message, indicating targetinfo is present
-    protected static final int FLAG_REQUEST_128BIT_KEY_EXCH = 0x20000000; // Request explicit 128-bit key exchange
-    protected static final int FLAG_REQUEST_EXPLICIT_KEY_EXCH = 0x40000000;     // Request explicit key exchange
-    protected static final int FLAG_REQUEST_56BIT_ENCRYPTION = 0x80000000;      // Must be used in conjunction with SEAL
+    // [MS-NLMP] section 2.2.2.5
+    public static final int FLAG_REQUEST_UNICODE_ENCODING = 0x00000001;      // Unicode string encoding requested
+    public static final int FLAG_REQUEST_TARGET = 0x00000004;                      // Requests target field
+    public static final int FLAG_REQUEST_SIGN = 0x00000010;  // Requests all messages have a signature attached, in NEGOTIATE message.
+    public static final int FLAG_REQUEST_SEAL = 0x00000020;  // Request key exchange for message confidentiality in NEGOTIATE message.  MUST be used in conjunction with 56BIT.
+    public static final int FLAG_REQUEST_LAN_MANAGER_KEY = 0x00000080;    // Request Lan Manager key instead of user session key
+    public static final int FLAG_REQUEST_NTLMv1 = 0x00000200; // Request NTLMv1 security.  MUST be set in NEGOTIATE and CHALLENGE both
+    public static final int FLAG_DOMAIN_PRESENT = 0x00001000;        // Domain is present in message
+    public static final int FLAG_WORKSTATION_PRESENT = 0x00002000;   // Workstation is present in message
+    public static final int FLAG_REQUEST_ALWAYS_SIGN = 0x00008000;   // Requests a signature block on all messages.  Overridden by REQUEST_SIGN and REQUEST_SEAL.
+    public static final int FLAG_REQUEST_NTLM2_SESSION = 0x00080000; // From server in challenge, requesting NTLM2 session security
+    public static final int FLAG_REQUEST_VERSION = 0x02000000;       // Request protocol version
+    public static final int FLAG_TARGETINFO_PRESENT = 0x00800000;    // From server in challenge message, indicating targetinfo is present
+    public static final int FLAG_REQUEST_128BIT_KEY_EXCH = 0x20000000; // Request explicit 128-bit key exchange
+    public static final int FLAG_REQUEST_EXPLICIT_KEY_EXCH = 0x40000000;     // Request explicit key exchange
+    public static final int FLAG_REQUEST_56BIT_ENCRYPTION = 0x80000000;      // Must be used in conjunction with SEAL
 
+    // Attribute-value identifiers (AvId)
+    // according to [MS-NLMP] section 2.2.2.1
+    public static final int MSV_AV_EOL = 0x0000; // Indicates that this is the last AV_PAIR in the list.
+    public static final int MSV_AV_NB_COMPUTER_NAME = 0x0001; // The server's NetBIOS computer name.
+    public static final int MSV_AV_NB_DOMAIN_NAME = 0x0002; // The server's NetBIOS domain name.
+    public static final int MSV_AV_DNS_COMPUTER_NAME = 0x0003; // The fully qualified domain name (FQDN) of the computer.
+    public static final int MSV_AV_DNS_DOMAIN_NAME = 0x0004; // The FQDN of the domain.
+    public static final int MSV_AV_DNS_TREE_NAME = 0x0005; // The FQDN of the forest.
+    public static final int MSV_AV_FLAGS = 0x0006; // A 32-bit value indicating server or client configuration.
+    public static final int MSV_AV_TIMESTAMP = 0x0007; // server local time
+    public static final int MSV_AV_SINGLE_HOST = 0x0008; // A Single_Host_Data structure.
+    public static final int MSV_AV_TARGET_NAME = 0x0009; // The SPN of the target server.
+    public static final int MSV_AV_CHANNEL_BINDINGS = 0x000A; // A channel bindings hash.
+
+    public static final int MSV_AV_FLAGS_ACCOUNT_AUTH_CONSTAINED = 0x00000001; // Indicates to the client that the account authentication is constrained.
+    public static final int MSV_AV_FLAGS_MIC = 0x00000002; // Indicates that the client is providing message integrity in the MIC field in the AUTHENTICATE_MESSAGE.
+    public static final int MSV_AV_FLAGS_UNTRUSTED_TARGET_SPN = 0x00000004; // Indicates that the client is providing a target SPN generated from an untrusted source.
 
     /** Secure random generator */
     private static final java.security.SecureRandom RND_GEN;
@@ -87,16 +106,201 @@ final class NTLMEngineImpl implements NTLMEngine {
     }
 
     /** The signature string as bytes in the default encoding */
-    private static final byte[] SIGNATURE;
+    private static final byte[] SIGNATURE = getNullTerminatedAsciiString("NTLMSSP");
 
-    static {
-        final byte[] bytesWithoutNull = "NTLMSSP".getBytes(Consts.ASCII);
-        SIGNATURE = new byte[bytesWithoutNull.length + 1];
-        System.arraycopy(bytesWithoutNull, 0, SIGNATURE, 0, bytesWithoutNull.length);
-        SIGNATURE[bytesWithoutNull.length] = (byte) 0x00;
+    // Key derivation magic strings for the SIGNKEY algorithm defined in
+    // [MS-NLMP] section 3.4.5.2
+    private static final byte[] SIGN_MAGIC_SERVER = getNullTerminatedAsciiString(
+        "session key to server-to-client signing key magic constant");
+    private static final byte[] SIGN_MAGIC_CLIENT = getNullTerminatedAsciiString(
+        "session key to client-to-server signing key magic constant");
+    private static final byte[] SEAL_MAGIC_SERVER = getNullTerminatedAsciiString(
+        "session key to server-to-client sealing key magic constant");
+    private static final byte[] SEAL_MAGIC_CLIENT = getNullTerminatedAsciiString(
+        "session key to client-to-server sealing key magic constant");
+
+    // prefix for GSS API channel binding
+    private static final byte[] MAGIC_TLS_SERVER_ENDPOINT = "tls-server-end-point:".getBytes(StandardCharsets.US_ASCII);
+
+    private static byte[] getNullTerminatedAsciiString( final String source )
+    {
+        final byte[] bytesWithoutNull = source.getBytes(StandardCharsets.US_ASCII);
+        final byte[] target = new byte[bytesWithoutNull.length + 1];
+        System.arraycopy(bytesWithoutNull, 0, target, 0, bytesWithoutNull.length);
+        target[bytesWithoutNull.length] = (byte) 0x00;
+        return target;
     }
 
     private static final String TYPE_1_MESSAGE = new Type1Message().getResponse();
+
+    final NTCredentials credentials;
+    final private boolean isConnection;
+
+    /**
+     * Type 1 (NEGOTIATE) message sent by the client.
+     */
+    private Type1Message type1Message;
+
+    /**
+     * Type 2 (CHALLENGE) message received by the client.
+     */
+    private Type2Message type2Message;
+
+    /**
+     * Type 3 (AUTHENTICATE) message sent by the client.
+     */
+    private Type3Message type3Message;
+
+    /**
+     * The key that is result of the NTLM key exchange.
+     */
+    private byte[] exportedSessionKey;
+
+    // just for compatibility
+    public NTLMEngineImpl() {
+        this( null, true );
+    }
+
+
+    /**
+     * Creates a new instance of NTLM engine.
+     *
+     * @param credentials NT credentials that will be used in the message exchange.
+     * @param isConnection true for connection mode, false for connection-less mode.
+     */
+    public NTLMEngineImpl( final NTCredentials credentials, final boolean isConnection ) {
+        super();
+        this.credentials = credentials;
+        this.isConnection = isConnection;
+    }
+
+
+    /**
+     * Generate (create) new NTLM AUTHENTICATE (type 1) message in a form of Java object.
+     * The generated message is remembered by the engine, e.g. for the purpose of MIC computation.
+     *
+     * @param ntlmFlags initial flags for the message. These flags influence the behavior of
+     *                  entire protocol exchange.
+     * @return NTLM AUTHENTICATE (type 1) message in a form of Java object
+     * @throws NTLMEngineException in case of any (foreseeable) error
+     */
+    public Type1Message generateType1MsgObject( final Integer ntlmFlags ) throws NTLMEngineException
+    {
+        if ( type1Message != null )
+        {
+            throw new NTLMEngineException( "Type 1 message already generated" );
+        }
+        if ( credentials == null )
+        {
+            throw new NTLMEngineException( "No credentials" );
+        }
+        type1Message = new Type1Message(
+            credentials.getDomain(),
+            credentials.getWorkstation(),
+            ntlmFlags );
+        return type1Message;
+    }
+
+
+    /**
+     * Parse NTLM CHALLENGE (type 2) message in a base64-encoded format. The message is remembered by the engine.
+     *
+     * @param type2MessageBase64 base64 encoded NTLM challenge message
+     * @return NTLM challenge message in a form of Java object.
+     * @throws NTLMEngineException in case of any (foreseeable) error
+     */
+    public Type2Message parseType2Message( final String type2MessageBase64 ) throws NTLMEngineException
+    {
+        return parseType2Message( Base64.decodeBase64( type2MessageBase64.getBytes( DEFAULT_CHARSET ) ) );
+    }
+
+
+    /**
+     * Parse NTLM CHALLENGE (type 2) message in a binary format. The message is remembered by the engine.
+     *
+     * @param type2MessageBytes binary (byte array) NTLM challenge message
+     * @return NTLM challenge message in a form of Java object.
+     * @throws NTLMEngineException in case of any (foreseeable) error
+     */
+    public Type2Message parseType2Message( final byte[] type2MessageBytes ) throws NTLMEngineException
+    {
+        if ( type2Message != null )
+        {
+            throw new NTLMEngineException( "Type 2 message already parsed" );
+        }
+        type2Message = new Type2Message( type2MessageBytes );
+        return type2Message;
+    }
+
+
+    /**
+     * Generate NTLM AUTHENTICATE (type 3) message based on previous messages that were seen by the engine.
+     *
+     * @param peerServerCertificate optional peer certificate. If present then it will be used to set up
+     *                              GSS API channel binding.
+     * @return NTLM authenticate message in a form of Java object.
+     * @throws NTLMEngineException in case of any (foreseeable) error
+     */
+    public Type3Message generateType3MsgObject( final X509Certificate peerServerCertificate ) throws NTLMEngineException
+    {
+        if ( type3Message != null )
+        {
+            throw new NTLMEngineException( "Type 3 message already generated" );
+        }
+        if ( type2Message == null )
+        {
+            throw new NTLMEngineException( "Type 2 message was not yet parsed" );
+        }
+        if ( credentials == null )
+        {
+            throw new NTLMEngineException( "No credentials" );
+        }
+        type3Message = new Type3Message(
+            credentials.getDomain(),
+            credentials.getWorkstation(),
+            credentials.getUserName(),
+            credentials.getPassword(),
+            type2Message.getChallenge(),
+            type2Message.getFlags(),
+            type2Message.getTarget(),
+            type2Message.getTargetInfo(),
+            peerServerCertificate,
+            type1Message.getBytes(),
+            type2Message.getBytes());
+        this.exportedSessionKey = type3Message.getExportedSessionKey();
+        return type3Message;
+    }
+
+    /**
+     * Returns the response for the given message.
+     *
+     * @param message
+     *            the message that was received from the server.
+     * @param username
+     *            the username to authenticate with.
+     * @param password
+     *            the password to authenticate with.
+     * @param host
+     *            The host.
+     * @param domain
+     *            the NT domain to authenticate in.
+     * @return The response.
+     * @throws org.apache.hc.core5.http.HttpException
+     *             If the messages cannot be retrieved.
+     */
+    static String getResponseFor(final String message, final String username, final String password,
+            final String host, final String domain) throws NTLMEngineException {
+
+        final String response;
+        if (message == null || message.trim().equals("")) {
+            response = getType1Message(host, domain);
+        } else {
+            final Type2Message t2m = new Type2Message(message);
+            response = getType3Message(username, password, host, domain, t2m.getChallenge(),
+                t2m.getFlags(), t2m.getTarget(), t2m.getTargetInfo());
+        }
+        return response;
+    }
 
     /**
      * Returns the response for the given message.
@@ -116,15 +320,17 @@ final class NTLMEngineImpl implements NTLMEngine {
      *             If the messages cannot be retrieved.
      */
     static String getResponseFor(final String message, final String username, final String password,
-            final String host, final String domain) throws NTLMEngineException {
+            final String host, final String domain, final X509Certificate peerServerCertificate) throws NTLMEngineException {
 
         final String response;
         if (message == null || message.trim().equals("")) {
-            response = getType1Message(host, domain);
+            response = new Type1Message(host, domain).getResponse();
         } else {
+            final Type1Message t1m = new Type1Message(host, domain);
             final Type2Message t2m = new Type2Message(message);
-            response = getType3Message(username, password, host, domain, t2m.getChallenge(), t2m
-                    .getFlags(), t2m.getTarget(), t2m.getTargetInfo());
+            response = getType3Message(username, password, host, domain, t2m.getChallenge(),
+                t2m.getFlags(), t2m.getTarget(), t2m.getTargetInfo(),
+                peerServerCertificate, t1m.getBytes(), t2m.getBytes());
         }
         return response;
     }
@@ -140,7 +346,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      *            The domain to authenticate with.
      * @return String the message to add to the HTTP request header.
      */
-    static String getType1Message(final String host, final String domain) throws NTLMEngineException {
+    static String getType1Message(final String host, final String domain) {
         // For compatibility reason do not include domain and host in type 1 message
         //return new Type1Message(domain, host).getResponse();
         return TYPE_1_MESSAGE;
@@ -173,26 +379,32 @@ final class NTLMEngineImpl implements NTLMEngine {
                 targetInformation).getResponse();
     }
 
-    /** Strip dot suffix from a name */
-    private static String stripDotSuffix(final String value) {
-        if (value == null) {
-            return null;
-        }
-        final int index = value.indexOf(".");
-        if (index != -1) {
-            return value.substring(0, index);
-        }
-        return value;
-    }
-
-    /** Convert host to standard form */
-    private static String convertHost(final String host) {
-        return stripDotSuffix(host);
-    }
-
-    /** Convert domain to standard form */
-    private static String convertDomain(final String domain) {
-        return stripDotSuffix(domain);
+    /**
+     * Creates the type 3 message using the given server nonce. The type 3
+     * message includes all the information for authentication, host, domain,
+     * username and the result of encrypting the nonce sent by the server using
+     * the user's password as the key.
+     *
+     * @param user
+     *            The user name. This should not include the domain name.
+     * @param password
+     *            The password.
+     * @param host
+     *            The host that is originating the authentication request.
+     * @param domain
+     *            The domain to authenticate within.
+     * @param nonce
+     *            the 8 byte array the server sent.
+     * @return The type 3 message.
+     * @throws NTLMEngineException
+     *             If {@encrypt(byte[],byte[])} fails.
+     */
+    static String getType3Message(final String user, final String password, final String host, final String domain,
+            final byte[] nonce, final int type2Flags, final String target, final byte[] targetInformation,
+            final X509Certificate peerServerCertificate, final byte[] type1Message, final byte[] type2Message)
+            throws NTLMEngineException {
+        return new Type3Message(domain, host, user, password, nonce, type2Flags, target,
+                targetInformation, peerServerCertificate, type1Message, type2Message).getResponse();
     }
 
     private static int readULong(final byte[] src, final int index) throws NTLMEngineException {
@@ -552,7 +764,7 @@ final class NTLMEngineImpl implements NTLMEngine {
     static byte[] ntlm2SessionResponse(final byte[] ntlmHash, final byte[] challenge,
             final byte[] clientChallenge) throws NTLMEngineException {
         try {
-            final MessageDigest md5 = MessageDigest.getInstance("MD5");
+            final MessageDigest md5 = getMD5();
             md5.update(challenge);
             md5.update(clientChallenge);
             final byte[] digest = md5.digest();
@@ -579,13 +791,13 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     private static byte[] lmHash(final String password) throws NTLMEngineException {
         try {
-            final byte[] oemPassword = password.toUpperCase(Locale.ROOT).getBytes(Consts.ASCII);
+            final byte[] oemPassword = password.toUpperCase(Locale.ROOT).getBytes(StandardCharsets.US_ASCII);
             final int length = Math.min(oemPassword.length, 14);
             final byte[] keyBytes = new byte[14];
             System.arraycopy(oemPassword, 0, keyBytes, 0, length);
             final Key lowKey = createDESKey(keyBytes, 0);
             final Key highKey = createDESKey(keyBytes, 7);
-            final byte[] magicConstant = "KGS!@#$%".getBytes(Consts.ASCII);
+            final byte[] magicConstant = "KGS!@#$%".getBytes(StandardCharsets.US_ASCII);
             final Cipher des = Cipher.getInstance("DES/ECB/NoPadding");
             des.init(Cipher.ENCRYPT_MODE, lowKey);
             final byte[] lowHash = des.doFinal(magicConstant);
@@ -719,6 +931,205 @@ final class NTLMEngineImpl implements NTLMEngine {
         return lmv2Response;
     }
 
+    public static enum Mode
+    {
+        CLIENT, SERVER;
+    }
+
+
+    public Handle createClientHandle() throws NTLMEngineException
+    {
+        final Handle handle = new Handle( exportedSessionKey, Mode.CLIENT, isConnection );
+        return handle;
+    }
+
+
+    public Handle createServer() throws NTLMEngineException
+    {
+        final Handle handle = new Handle( exportedSessionKey, Mode.SERVER, isConnection );
+        return handle;
+    }
+
+    public static class Handle
+    {
+        final private byte[] exportedSessionKey;
+        private byte[] signingKey;
+        private byte[] sealingKey;
+        private Cipher rc4;
+        final Mode mode;
+        final private boolean isConnection;
+        int sequenceNumber = 0;
+
+
+        Handle( final byte[] exportedSessionKey, final Mode mode, final boolean isConnection )
+            throws NTLMEngineException
+        {
+            this.exportedSessionKey = exportedSessionKey;
+            this.isConnection = isConnection;
+            this.mode = mode;
+            try
+            {
+                final MessageDigest signMd5 = getMD5();
+                final MessageDigest sealMd5 = getMD5();
+                signMd5.update( exportedSessionKey );
+                sealMd5.update( exportedSessionKey );
+                if ( mode == Mode.CLIENT )
+                {
+                    signMd5.update( SIGN_MAGIC_CLIENT );
+                    sealMd5.update( SEAL_MAGIC_CLIENT );
+                }
+                else
+                {
+                    signMd5.update( SIGN_MAGIC_SERVER );
+                    sealMd5.update( SEAL_MAGIC_SERVER );
+                }
+                signingKey = signMd5.digest();
+                sealingKey = sealMd5.digest();
+            }
+            catch ( final Exception e )
+            {
+                throw new NTLMEngineException( e.getMessage(), e );
+            }
+            rc4 = initCipher();
+        }
+
+        public byte[] getSigningKey()
+        {
+            return signingKey;
+        }
+
+
+        public byte[] getSealingKey()
+        {
+            return sealingKey;
+        }
+
+        private Cipher initCipher() throws NTLMEngineException
+        {
+            Cipher cipher;
+            try
+            {
+                cipher = Cipher.getInstance( "RC4" );
+                if ( mode == Mode.CLIENT )
+                {
+                    cipher.init( Cipher.ENCRYPT_MODE, new SecretKeySpec( sealingKey, "RC4" ) );
+                }
+                else
+                {
+                    cipher.init( Cipher.DECRYPT_MODE, new SecretKeySpec( sealingKey, "RC4" ) );
+                }
+            }
+            catch ( Exception e )
+            {
+                throw new NTLMEngineException( e.getMessage(), e );
+            }
+            return cipher;
+        }
+
+
+        private void advanceMessageSequence() throws NTLMEngineException
+        {
+            if ( !isConnection )
+            {
+                final MessageDigest sealMd5 = getMD5();
+                sealMd5.update( sealingKey );
+                final byte[] seqNumBytes = new byte[4];
+                writeULong( seqNumBytes, sequenceNumber, 0 );
+                sealMd5.update( seqNumBytes );
+                sealingKey = sealMd5.digest();
+                initCipher();
+            }
+            sequenceNumber++;
+        }
+
+        private byte[] encrypt( final byte[] data ) throws NTLMEngineException
+        {
+            return rc4.update( data );
+        }
+
+        private byte[] decrypt( final byte[] data ) throws NTLMEngineException
+        {
+            return rc4.update( data );
+        }
+
+        private byte[] computeSignature( final byte[] message ) throws NTLMEngineException
+        {
+            final byte[] sig = new byte[16];
+
+            // version
+            sig[0] = 0x01;
+            sig[1] = 0x00;
+            sig[2] = 0x00;
+            sig[3] = 0x00;
+
+            // HMAC (first 8 bytes)
+            final HMACMD5 hmacMD5 = new HMACMD5( signingKey );
+            hmacMD5.update( encodeLong( sequenceNumber ) );
+            hmacMD5.update( message );
+            final byte[] hmac = hmacMD5.getOutput();
+            final byte[] trimmedHmac = new byte[8];
+            System.arraycopy( hmac, 0, trimmedHmac, 0, 8 );
+            final byte[] encryptedHmac = encrypt( trimmedHmac );
+            System.arraycopy( encryptedHmac, 0, sig, 4, 8 );
+
+            // sequence number
+            encodeLong( sig, 12, sequenceNumber );
+
+            return sig;
+        }
+
+        private boolean validateSignature( final byte[] signature, final byte message[] ) throws NTLMEngineException
+        {
+            final byte[] computedSignature = computeSignature( message );
+            //            log.info( "SSSSS validateSignature("+seqNumber+")\n"
+            //                + "  received: " + DebugUtil.dump( signature ) + "\n"
+            //                + "  computed: " + DebugUtil.dump( computedSignature ) );
+            return Arrays.equals( signature, computedSignature );
+        }
+
+        public byte[] signAndEncryptMessage( final byte[] cleartextMessage ) throws NTLMEngineException
+        {
+            final byte[] encryptedMessage = encrypt( cleartextMessage );
+            final byte[] signature = computeSignature( cleartextMessage );
+            final byte[] outMessage = new byte[signature.length + encryptedMessage.length];
+            System.arraycopy( signature, 0, outMessage, 0, signature.length );
+            System.arraycopy( encryptedMessage, 0, outMessage, signature.length, encryptedMessage.length );
+            advanceMessageSequence();
+            return outMessage;
+        }
+
+        public byte[] decryptAndVerifySignedMessage( final byte[] inMessage ) throws NTLMEngineException
+        {
+            final byte[] signature = new byte[16];
+            System.arraycopy( inMessage, 0, signature, 0, signature.length );
+            final byte[] encryptedMessage = new byte[inMessage.length - 16];
+            System.arraycopy( inMessage, 16, encryptedMessage, 0, encryptedMessage.length );
+            final byte[] cleartextMessage = decrypt( encryptedMessage );
+            if ( !validateSignature( signature, cleartextMessage ) )
+            {
+                throw new NTLMEngineException( "Wrong signature" );
+            }
+            advanceMessageSequence();
+            return cleartextMessage;
+        }
+
+    }
+
+    private static byte[] encodeLong( final int value )
+    {
+        final byte[] enc = new byte[4];
+        encodeLong( enc, 0, value );
+        return enc;
+    }
+
+    private static void encodeLong( final byte[] buf, final int offset, final int value )
+    {
+        buf[offset + 0] = ( byte ) ( value & 0xff );
+        buf[offset + 1] = ( byte ) ( value >> 8 & 0xff );
+        buf[offset + 2] = ( byte ) ( value >> 16 & 0xff );
+        buf[offset + 3] = ( byte ) ( value >> 24 & 0xff );
+    }
+
     /**
      * Creates the NTLMv2 blob from the given target information block and
      * client challenge.
@@ -802,21 +1213,43 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
     }
 
+    /**
+     * Find the character set based on the flags.
+     * @param flags is the flags.
+     * @return the character set.
+     */
+    private static Charset getCharset(final int flags) throws NTLMEngineException
+    {
+        if ((flags & FLAG_REQUEST_UNICODE_ENCODING) == 0) {
+            return DEFAULT_CHARSET;
+        } else {
+            if (UNICODE_LITTLE_UNMARKED == null) {
+                throw new NTLMEngineException( "Unicode not supported" );
+            }
+            return UNICODE_LITTLE_UNMARKED;
+        }
+    }
+
     /** NTLM message generation, base class */
     static class NTLMMessage {
         /** The current response */
-        private byte[] messageContents = null;
+        protected byte[] messageContents = null;
 
         /** The current output position */
-        private int currentOutputPosition = 0;
+        protected int currentOutputPosition = 0;
 
         /** Constructor to use when message contents are not yet known */
         NTLMMessage() {
         }
 
-        /** Constructor to use when message contents are known */
+        /** Constructor taking a string */
         NTLMMessage(final String messageBody, final int expectedType) throws NTLMEngineException {
-            messageContents = Base64.decodeBase64(messageBody.getBytes(DEFAULT_CHARSET));
+            this(Base64.decodeBase64(messageBody.getBytes(DEFAULT_CHARSET)), expectedType);
+        }
+
+        /** Constructor to use when message bytes are known */
+        NTLMMessage(final byte[] message, final int expectedType) throws NTLMEngineException {
+            messageContents = message;
             // Look for NTLM message
             if (messageContents.length < SIGNATURE.length) {
                 throw new NTLMEngineException("NTLM message decoding error - packet too short");
@@ -947,16 +1380,18 @@ final class NTLMEngineImpl implements NTLMEngine {
          * @return The response as above.
          */
         String getResponse() {
-            final byte[] resp;
-            if (messageContents.length > currentOutputPosition) {
-                final byte[] tmp = new byte[currentOutputPosition];
-                System.arraycopy(messageContents, 0, tmp, 0, currentOutputPosition);
-                resp = tmp;
-            } else {
-                resp = messageContents;
-            }
-            return EncodingUtils.getAsciiString(Base64.encodeBase64(resp));
+            return new String(Base64.encodeBase64(getBytes()), StandardCharsets.US_ASCII);
         }
+
+        public byte[] getBytes() {
+            final byte[] resp;
+            if ( messageContents.length > currentOutputPosition ) {
+                final byte[] tmp = new byte[currentOutputPosition];
+                System.arraycopy( messageContents, 0, tmp, 0, currentOutputPosition );
+                messageContents = tmp;
+            }
+            return messageContents;
+         }
 
     }
 
@@ -965,16 +1400,19 @@ final class NTLMEngineImpl implements NTLMEngine {
 
         private final byte[] hostBytes;
         private final byte[] domainBytes;
+        private final int flags;
 
         Type1Message(final String domain, final String host) throws NTLMEngineException {
+            this(domain, host, null);
+        }
+
+        Type1Message(final String domain, final String host, final Integer flags) throws NTLMEngineException {
             super();
-            if (UNICODE_LITTLE_UNMARKED == null) {
-                throw new NTLMEngineException("Unicode not supported");
-            }
-            // Strip off domain name from the host!
-            final String unqualifiedHost = convertHost(host);
-            // Use only the base domain name!
-            final String unqualifiedDomain = convertDomain(domain);
+            this.flags = ((flags == null)?getDefaultFlags():flags);
+            // All host name manipulations now take place in the credentials
+            final String unqualifiedHost = host;
+            // All domain name manipulations now take place in the credentials
+            final String unqualifiedDomain = domain;
 
             hostBytes = unqualifiedHost != null ?
                     unqualifiedHost.getBytes(UNICODE_LITTLE_UNMARKED) : null;
@@ -986,45 +1424,61 @@ final class NTLMEngineImpl implements NTLMEngine {
             super();
             hostBytes = null;
             domainBytes = null;
+            flags = getDefaultFlags();
         }
+
+        private int getDefaultFlags() {
+            return
+                //FLAG_WORKSTATION_PRESENT |
+                //FLAG_DOMAIN_PRESENT |
+
+                // Required flags
+                //FLAG_REQUEST_LAN_MANAGER_KEY |
+                FLAG_REQUEST_NTLMv1 |
+                FLAG_REQUEST_NTLM2_SESSION |
+
+                // Protocol version request
+                FLAG_REQUEST_VERSION |
+
+                // Recommended privacy settings
+                FLAG_REQUEST_ALWAYS_SIGN |
+                //FLAG_REQUEST_SEAL |
+                //FLAG_REQUEST_SIGN |
+
+                // These must be set according to documentation, based on use of SEAL above
+                FLAG_REQUEST_128BIT_KEY_EXCH |
+                FLAG_REQUEST_56BIT_ENCRYPTION |
+                //FLAG_REQUEST_EXPLICIT_KEY_EXCH |
+
+                FLAG_REQUEST_UNICODE_ENCODING;
+
+        }
+
         /**
          * Getting the response involves building the message before returning
          * it
          */
         @Override
         String getResponse() {
+            int domainBytesLength = 0;
+            if ( domainBytes != null ) {
+                domainBytesLength = domainBytes.length;
+            }
+            int hostBytesLength = 0;
+            if ( hostBytes != null ) {
+                hostBytesLength = hostBytes.length;
+            }
+
             // Now, build the message. Calculate its length first, including
             // signature or type.
-            final int finalLength = 32 + 8 /*+ hostBytes.length + domainBytes.length */;
+            final int finalLength = 32 + 8 + hostBytesLength + domainBytesLength;
 
             // Set up the response. This will initialize the signature, message
             // type, and flags.
             prepareResponse(finalLength, 1);
 
             // Flags. These are the complete set of flags we support.
-            addULong(
-                    //FLAG_WORKSTATION_PRESENT |
-                    //FLAG_DOMAIN_PRESENT |
-
-                    // Required flags
-                    //FLAG_REQUEST_LAN_MANAGER_KEY |
-                    FLAG_REQUEST_NTLMv1 |
-                    FLAG_REQUEST_NTLM2_SESSION |
-
-                    // Protocol version request
-                    FLAG_REQUEST_VERSION |
-
-                    // Recommended privacy settings
-                    FLAG_REQUEST_ALWAYS_SIGN |
-                    //FLAG_REQUEST_SEAL |
-                    //FLAG_REQUEST_SIGN |
-
-                    // These must be set according to documentation, based on use of SEAL above
-                    FLAG_REQUEST_128BIT_KEY_EXCH |
-                    FLAG_REQUEST_56BIT_ENCRYPTION |
-                    //FLAG_REQUEST_EXPLICIT_KEY_EXCH |
-
-                    FLAG_REQUEST_UNICODE_ENCODING);
+            addULong(flags);
 
             // Domain length (two times).
             addUShort(/*domainBytes.length*/0);
@@ -1063,12 +1517,16 @@ final class NTLMEngineImpl implements NTLMEngine {
 
     /** Type 2 message class */
     static class Type2Message extends NTLMMessage {
-        protected byte[] challenge;
+        protected final byte[] challenge;
         protected String target;
         protected byte[] targetInfo;
-        protected int flags;
+        protected final int flags;
 
-        Type2Message(final String message) throws NTLMEngineException {
+        Type2Message(final String messageBody) throws NTLMEngineException {
+            this(Base64.decodeBase64(messageBody.getBytes(DEFAULT_CHARSET)));
+        }
+
+        Type2Message(final byte[] message) throws NTLMEngineException {
             super(message, 2);
 
             // Type 2 message is laid out as follows:
@@ -1091,12 +1549,6 @@ final class NTLMEngineImpl implements NTLMEngine {
 
             flags = readULong(20);
 
-            if ((flags & FLAG_REQUEST_UNICODE_ENCODING) == 0) {
-                throw new NTLMEngineException(
-                        "NTLM type 2 message indicates no support for Unicode. Flags are: "
-                                + Integer.toString(flags));
-            }
-
             // Do the target!
             target = null;
             // The TARGET_DESIRED flag is said to not have understood semantics
@@ -1105,11 +1557,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             if (getMessageLength() >= 12 + 8) {
                 final byte[] bytes = readSecurityBuffer(12);
                 if (bytes.length != 0) {
-                    try {
-                        target = new String(bytes, "UnicodeLittleUnmarked");
-                    } catch (final UnsupportedEncodingException e) {
-                        throw new NTLMEngineException(e.getMessage(), e);
-                    }
+                    target = new String(bytes, getCharset(flags));
                 }
             }
 
@@ -1148,32 +1596,76 @@ final class NTLMEngineImpl implements NTLMEngine {
 
     /** Type 3 message assembly class */
     static class Type3Message extends NTLMMessage {
+        // For mic computation
+        protected final byte[] type1Message;
+        protected final byte[] type2Message;
         // Response flags from the type2 message
-        protected int type2Flags;
+        protected final int type2Flags;
 
-        protected byte[] domainBytes;
-        protected byte[] hostBytes;
-        protected byte[] userBytes;
+        protected final byte[] domainBytes;
+        protected final byte[] hostBytes;
+        protected final byte[] userBytes;
 
         protected byte[] lmResp;
         protected byte[] ntResp;
-        protected byte[] sessionKey;
+        protected final byte[] sessionKey;
+        protected final byte[] exportedSessionKey;
 
+        protected final boolean computeMic;
+
+        /** More primitive constructor: don't include cert or previous messages.
+        */
+        Type3Message(final String domain,
+            final String host,
+            final String user,
+            final String password,
+            final byte[] nonce,
+            final int type2Flags,
+            final String target,
+            final byte[] targetInformation)
+            throws NTLMEngineException {
+            this(domain, host, user, password, nonce, type2Flags, target, targetInformation, null, null, null);
+        }
 
         /** Constructor. Pass the arguments we will need */
-        Type3Message(final String domain, final String host, final String user, final String password, final byte[] nonce,
-                final int type2Flags, final String target, final byte[] targetInformation)
-                throws NTLMEngineException {
+        Type3Message(final String domain,
+            final String host,
+            final String user,
+            final String password,
+            final byte[] nonce,
+            final int type2Flags,
+            final String target,
+            final byte[] targetInformation,
+            final X509Certificate peerServerCertificate,
+            final byte[] type1Message,
+            final byte[] type2Message)
+            throws NTLMEngineException {
             // Save the flags
             this.type2Flags = type2Flags;
+            this.type1Message = type1Message;
+            this.type2Message = type2Message;
 
-            // Strip off domain name from the host!
-            final String unqualifiedHost = convertHost(host);
-            // Use only the base domain name!
-            final String unqualifiedDomain = convertDomain(domain);
+            // All host name manipulations now take place in the credentials
+            final String unqualifiedHost = host;
+            // All domain name manipulations now take place in the credentials
+            final String unqualifiedDomain = domain;
 
-            // Create a cipher generator class.  Use domain BEFORE it gets modified!
-            final CipherGen gen = new CipherGen(unqualifiedDomain, user, password, nonce, target, targetInformation);
+
+            byte[] responseTargetInformation = targetInformation;
+            if (peerServerCertificate != null) {
+                responseTargetInformation = addGssMicAvsToTargetInfo(targetInformation, peerServerCertificate);
+                computeMic = true;
+            } else {
+                computeMic = false;
+            }
+
+             // Create a cipher generator class.  Use domain BEFORE it gets modified!
+            final CipherGen gen = new CipherGen(unqualifiedDomain,
+                user,
+                password,
+                nonce,
+                target,
+                responseTargetInformation);
 
             // Use the new code to calculate the responses, including v2 if that
             // seems warranted.
@@ -1226,20 +1718,32 @@ final class NTLMEngineImpl implements NTLMEngine {
 
             if ((type2Flags & FLAG_REQUEST_SIGN) != 0) {
                 if ((type2Flags & FLAG_REQUEST_EXPLICIT_KEY_EXCH) != 0) {
-                    sessionKey = RC4(gen.getSecondaryKey(), userSessionKey);
+                    exportedSessionKey = gen.getSecondaryKey();
+                    sessionKey = RC4(exportedSessionKey, userSessionKey);
                 } else {
                     sessionKey = userSessionKey;
+                    exportedSessionKey = sessionKey;
                 }
             } else {
+                if (computeMic) {
+                    throw new NTLMEngineException("Cannot sign/seal: no exported session key");
+                }
                 sessionKey = null;
+                exportedSessionKey = null;
             }
-            if (UNICODE_LITTLE_UNMARKED == null) {
-                throw new NTLMEngineException("Unicode not supported");
-            }
-            hostBytes = unqualifiedHost != null ? unqualifiedHost.getBytes(UNICODE_LITTLE_UNMARKED) : null;
-            domainBytes = unqualifiedDomain != null ? unqualifiedDomain
-                    .toUpperCase(Locale.ROOT).getBytes(UNICODE_LITTLE_UNMARKED) : null;
-            userBytes = user.getBytes(UNICODE_LITTLE_UNMARKED);
+            final Charset charset = getCharset(type2Flags);
+            hostBytes = unqualifiedHost != null ? unqualifiedHost.getBytes(charset) : null;
+             domainBytes = unqualifiedDomain != null ? unqualifiedDomain
+                .toUpperCase(Locale.ROOT).getBytes(charset) : null;
+            userBytes = user.getBytes(charset);
+        }
+
+        public byte[] getEncryptedRandomSessionKey() {
+            return sessionKey;
+        }
+
+        public byte[] getExportedSessionKey() {
+            return exportedSessionKey;
         }
 
         /** Assemble the response */
@@ -1259,7 +1763,8 @@ final class NTLMEngineImpl implements NTLMEngine {
             }
 
             // Calculate the layout within the packet
-            final int lmRespOffset = 72;  // allocate space for the version
+            final int lmRespOffset = 72 + // allocate space for the version
+                ( computeMic ? 16 : 0 ); // and MIC
             final int ntRespOffset = lmRespOffset + lmRespLen;
             final int domainOffset = ntRespOffset + ntRespLen;
             final int userOffset = domainOffset + domainLen;
@@ -1314,6 +1819,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
             // Flags.
             addULong(
+                    /*
                     //FLAG_WORKSTATION_PRESENT |
                     //FLAG_DOMAIN_PRESENT |
 
@@ -1338,6 +1844,8 @@ final class NTLMEngineImpl implements NTLMEngine {
                     (type2Flags & FLAG_TARGETINFO_PRESENT) |
                     (type2Flags & FLAG_REQUEST_UNICODE_ENCODING) |
                     (type2Flags & FLAG_REQUEST_TARGET)
+                        */
+                type2Flags
             );
 
             // Version
@@ -1346,6 +1854,12 @@ final class NTLMEngineImpl implements NTLMEngine {
             addULong(2600);
             // NTLM revision
             addUShort(0x0f00);
+
+            int micPosition = -1;
+            if ( computeMic ) {
+                micPosition = currentOutputPosition;
+                currentOutputPosition += 16;
+            }
 
             // Add the actual data
             addBytes(lmResp);
@@ -1357,8 +1871,70 @@ final class NTLMEngineImpl implements NTLMEngine {
                 addBytes(sessionKey);
             }
 
+            // Write the mic back into its slot in the message
+
+            if (computeMic) {
+                // Computation of message integrity code (MIC) as specified in [MS-NLMP] section 3.2.5.1.2.
+                final HMACMD5 hmacMD5 = new HMACMD5( exportedSessionKey );
+                hmacMD5.update( type1Message );
+                hmacMD5.update( type2Message );
+                hmacMD5.update( messageContents );
+                final byte[] mic = hmacMD5.getOutput();
+                System.arraycopy( mic, 0, messageContents, micPosition, mic.length );
+            }
             return super.getResponse();
         }
+
+        /**
+         * Add GSS channel binding hash and MIC flag to the targetInfo.
+         * Looks like this is needed if we want to use exported session key for GSS wrapping.
+         */
+        private byte[] addGssMicAvsToTargetInfo( final byte[] originalTargetInfo,
+            final X509Certificate peerServerCertificate ) throws NTLMEngineException
+        {
+            final byte[] newTargetInfo = new byte[originalTargetInfo.length + 8 + 20];
+            final int appendLength = originalTargetInfo.length - 4; // last tag is MSV_AV_EOL, do not copy that
+            System.arraycopy( originalTargetInfo, 0, newTargetInfo, 0, appendLength );
+            writeUShort( newTargetInfo, MSV_AV_FLAGS, appendLength );
+            writeUShort( newTargetInfo, 4, appendLength + 2 );
+            writeULong( newTargetInfo, MSV_AV_FLAGS_MIC, appendLength + 4 );
+            writeUShort( newTargetInfo, MSV_AV_CHANNEL_BINDINGS, appendLength + 8 );
+            writeUShort( newTargetInfo, 16, appendLength + 10 );
+
+            byte[] channelBindingsHash;
+            try
+            {
+                final byte[] certBytes = peerServerCertificate.getEncoded();
+                final MessageDigest sha256 = MessageDigest.getInstance( "SHA-256" );
+                final byte[] certHashBytes = sha256.digest( certBytes );
+                final byte[] channelBindingStruct = new byte[16 + 4 + MAGIC_TLS_SERVER_ENDPOINT.length
+                    + certHashBytes.length];
+                writeULong( channelBindingStruct, 0x00000035, 16 );
+                System.arraycopy( MAGIC_TLS_SERVER_ENDPOINT, 0, channelBindingStruct, 20,
+                    MAGIC_TLS_SERVER_ENDPOINT.length );
+                System.arraycopy( certHashBytes, 0, channelBindingStruct, 20 + MAGIC_TLS_SERVER_ENDPOINT.length,
+                    certHashBytes.length );
+                final MessageDigest md5 = getMD5();
+                channelBindingsHash = md5.digest( channelBindingStruct );
+            }
+            catch ( CertificateEncodingException e )
+            {
+                throw new NTLMEngineException( e.getMessage(), e );
+            }
+            catch ( NoSuchAlgorithmException e )
+            {
+                throw new NTLMEngineException( e.getMessage(), e );
+            }
+
+            System.arraycopy( channelBindingsHash, 0, newTargetInfo, appendLength + 12, 16 );
+            return newTargetInfo;
+         }
+
+    }
+
+    static void writeUShort(final byte[] buffer, final int value, final int offset) {
+        buffer[offset] = ( byte ) ( value & 0xff );
+        buffer[offset + 1] = ( byte ) ( value >> 8 & 0xff );
     }
 
     static void writeULong(final byte[] buffer, final int value, final int offset) {
@@ -1384,6 +1960,14 @@ final class NTLMEngineImpl implements NTLMEngine {
         return ((val << numbits) | (val >>> (32 - numbits)));
     }
 
+    static MessageDigest getMD5() {
+        try {
+            return MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException ex) {
+            throw new RuntimeException("MD5 message digest doesn't seem to exist - fatal error: "+ex.getMessage(), ex);
+        }
+    }
+
     /**
      * Cryptography support - MD4. The following class was based loosely on the
      * RFC and on code found at http://www.cs.umd.edu/~harry/jotp/src/md.java.
@@ -1397,7 +1981,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         protected int C = 0x98badcfe;
         protected int D = 0x10325476;
         protected long count = 0L;
-        protected byte[] dataBuffer = new byte[64];
+        protected final byte[] dataBuffer = new byte[64];
 
         MD4() {
         }
@@ -1556,20 +2140,13 @@ final class NTLMEngineImpl implements NTLMEngine {
      * resources by Karl Wright
      */
     static class HMACMD5 {
-        protected byte[] ipad;
-        protected byte[] opad;
-        protected MessageDigest md5;
+        protected final byte[] ipad;
+        protected final byte[] opad;
+        protected final MessageDigest md5;
 
-        HMACMD5(final byte[] input) throws NTLMEngineException {
+        HMACMD5(final byte[] input) {
             byte[] key = input;
-            try {
-                md5 = MessageDigest.getInstance("MD5");
-            } catch (final Exception ex) {
-                // Umm, the algorithm doesn't exist - throw an
-                // NTLMEngineException!
-                throw new NTLMEngineException(
-                        "Error getting md5 message digest implementation: " + ex.getMessage(), ex);
-            }
+            md5 = getMD5();
 
             // Initialize the pad buffers with the key
             ipad = new byte[64];
@@ -1594,7 +2171,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                 i++;
             }
 
-            // Very important: update the digest with the ipad buffer
+            // Very important: processChallenge the digest with the ipad buffer
             md5.reset();
             md5.update(ipad);
 
