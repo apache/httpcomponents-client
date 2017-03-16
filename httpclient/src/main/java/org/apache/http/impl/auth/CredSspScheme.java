@@ -116,7 +116,9 @@ public class CredSspScheme extends AuthSchemeBase
 
     private State state;
     private SSLEngine sslEngine;
-    private NTLMEngineImpl ntlmEngine;
+    private NTLMEngineImpl.Type1Message type1Message;
+    private NTLMEngineImpl.Type2Message type2Message;
+    private NTLMEngineImpl.Type3Message type3Message;
     private CredSspTsRequest lastReceivedTsRequest;
     private NTLMEngineImpl.Handle ntlmOutgoingHandle;
     private NTLMEngineImpl.Handle ntlmIncomingHandle;
@@ -327,12 +329,6 @@ public class CredSspScheme extends AuthSchemeBase
                     + credentials.getClass().getName() );
         }
 
-        if ( ntlmEngine == null )
-        {
-
-            ntlmEngine = new NTLMEngineImpl( ntcredentials, true );
-        }
-
         String outputString = null;
 
         if ( state == State.UNINITIATED )
@@ -352,8 +348,9 @@ public class CredSspScheme extends AuthSchemeBase
 
             final int ntlmFlags = getNtlmFlags();
             final ByteBuffer buf = allocateOutBuffer();
-            final NTLMEngineImpl.Type1Message ntlmNegoMessage = ntlmEngine.generateType1MsgObject( ntlmFlags );
-            final byte[] ntlmNegoMessageEncoded = ntlmNegoMessage.getBytes();
+            type1Message = new NTLMEngineImpl.Type1Message(
+                ntcredentials.getDomain(), ntcredentials.getWorkstation(), ntlmFlags);
+            final byte[] ntlmNegoMessageEncoded = type1Message.getBytes();
             final CredSspTsRequest req = CredSspTsRequest.createNegoToken( ntlmNegoMessageEncoded );
             req.encode( buf );
             buf.flip();
@@ -364,17 +361,30 @@ public class CredSspScheme extends AuthSchemeBase
         else if ( state == State.NEGO_TOKEN_RECEIVED )
         {
             final ByteBuffer buf = allocateOutBuffer();
-            final NTLMEngineImpl.Type2Message ntlmType2Message = ntlmEngine
-                .parseType2Message( lastReceivedTsRequest.getNegoToken() );
+            type2Message = new NTLMEngineImpl.Type2Message(
+                lastReceivedTsRequest.getNegoToken());
 
             final X509Certificate peerServerCertificate = getPeerServerCertificate();
 
-            final NTLMEngineImpl.Type3Message ntlmAuthenticateMessage = ntlmEngine
-                .generateType3MsgObject( peerServerCertificate );
-            final byte[] ntlmAuthenticateMessageEncoded = ntlmAuthenticateMessage.getBytes();
+            type3Message = new NTLMEngineImpl.Type3Message(
+                ntcredentials.getDomain(),
+                ntcredentials.getWorkstation(),
+                ntcredentials.getUserName(),
+                ntcredentials.getPassword(),
+                type2Message.getChallenge(),
+                type2Message.getFlags(),
+                type2Message.getTarget(),
+                type2Message.getTargetInfo(),
+                peerServerCertificate,
+                type1Message.getBytes(),
+                type2Message.getBytes());
 
-            ntlmOutgoingHandle = ntlmEngine.createClientHandle();
-            ntlmIncomingHandle = ntlmEngine.createServer();
+            final byte[] ntlmAuthenticateMessageEncoded = type3Message.getBytes();
+
+            final byte[] exportedSessionKey = type3Message.getExportedSessionKey();
+
+            ntlmOutgoingHandle = new NTLMEngineImpl.Handle(exportedSessionKey, NTLMEngineImpl.Mode.CLIENT, true);
+            ntlmIncomingHandle = new NTLMEngineImpl.Handle(exportedSessionKey, NTLMEngineImpl.Mode.SERVER, true);
 
             final CredSspTsRequest req = CredSspTsRequest.createNegoToken( ntlmAuthenticateMessageEncoded );
             peerPublicKey = getSubjectPublicKeyDer( peerServerCertificate.getPublicKey() );

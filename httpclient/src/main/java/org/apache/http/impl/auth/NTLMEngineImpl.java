@@ -40,7 +40,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.auth.NTCredentials;
 
 /**
  * Provides an implementation for NTLMv1, NTLMv2, and NTLM2 Session forms of the NTLM
@@ -60,40 +59,40 @@ final class NTLMEngineImpl implements NTLMEngine {
     // and
     // http://msdn.microsoft.com/en-us/library/cc236650%28v=prot.20%29.aspx
     // [MS-NLMP] section 2.2.2.5
-    public static final int FLAG_REQUEST_UNICODE_ENCODING = 0x00000001;      // Unicode string encoding requested
-    public static final int FLAG_REQUEST_OEM_ENCODING = 0x00000002;      // OEM string encoding requested
-    public static final int FLAG_REQUEST_TARGET = 0x00000004;                      // Requests target field
-    public static final int FLAG_REQUEST_SIGN = 0x00000010;  // Requests all messages have a signature attached, in NEGOTIATE message.
-    public static final int FLAG_REQUEST_SEAL = 0x00000020;  // Request key exchange for message confidentiality in NEGOTIATE message.  MUST be used in conjunction with 56BIT.
-    public static final int FLAG_REQUEST_LAN_MANAGER_KEY = 0x00000080;    // Request Lan Manager key instead of user session key
-    public static final int FLAG_REQUEST_NTLMv1 = 0x00000200; // Request NTLMv1 security.  MUST be set in NEGOTIATE and CHALLENGE both
-    public static final int FLAG_DOMAIN_PRESENT = 0x00001000;        // Domain is present in message
-    public static final int FLAG_WORKSTATION_PRESENT = 0x00002000;   // Workstation is present in message
-    public static final int FLAG_REQUEST_ALWAYS_SIGN = 0x00008000;   // Requests a signature block on all messages.  Overridden by REQUEST_SIGN and REQUEST_SEAL.
-    public static final int FLAG_REQUEST_NTLM2_SESSION = 0x00080000; // From server in challenge, requesting NTLM2 session security
-    public static final int FLAG_REQUEST_VERSION = 0x02000000;       // Request protocol version
-    public static final int FLAG_TARGETINFO_PRESENT = 0x00800000;    // From server in challenge message, indicating targetinfo is present
-    public static final int FLAG_REQUEST_128BIT_KEY_EXCH = 0x20000000; // Request explicit 128-bit key exchange
-    public static final int FLAG_REQUEST_EXPLICIT_KEY_EXCH = 0x40000000;     // Request explicit key exchange
-    public static final int FLAG_REQUEST_56BIT_ENCRYPTION = 0x80000000;      // Must be used in conjunction with SEAL
+    static final int FLAG_REQUEST_UNICODE_ENCODING = 0x00000001;      // Unicode string encoding requested
+    static final int FLAG_REQUEST_OEM_ENCODING = 0x00000002;      // OEM string encoding requested
+    static final int FLAG_REQUEST_TARGET = 0x00000004;                      // Requests target field
+    static final int FLAG_REQUEST_SIGN = 0x00000010;  // Requests all messages have a signature attached, in NEGOTIATE message.
+    static final int FLAG_REQUEST_SEAL = 0x00000020;  // Request key exchange for message confidentiality in NEGOTIATE message.  MUST be used in conjunction with 56BIT.
+    static final int FLAG_REQUEST_LAN_MANAGER_KEY = 0x00000080;    // Request Lan Manager key instead of user session key
+    static final int FLAG_REQUEST_NTLMv1 = 0x00000200; // Request NTLMv1 security.  MUST be set in NEGOTIATE and CHALLENGE both
+    static final int FLAG_DOMAIN_PRESENT = 0x00001000;        // Domain is present in message
+    static final int FLAG_WORKSTATION_PRESENT = 0x00002000;   // Workstation is present in message
+    static final int FLAG_REQUEST_ALWAYS_SIGN = 0x00008000;   // Requests a signature block on all messages.  Overridden by REQUEST_SIGN and REQUEST_SEAL.
+    static final int FLAG_REQUEST_NTLM2_SESSION = 0x00080000; // From server in challenge, requesting NTLM2 session security
+    static final int FLAG_REQUEST_VERSION = 0x02000000;       // Request protocol version
+    static final int FLAG_TARGETINFO_PRESENT = 0x00800000;    // From server in challenge message, indicating targetinfo is present
+    static final int FLAG_REQUEST_128BIT_KEY_EXCH = 0x20000000; // Request explicit 128-bit key exchange
+    static final int FLAG_REQUEST_EXPLICIT_KEY_EXCH = 0x40000000;     // Request explicit key exchange
+    static final int FLAG_REQUEST_56BIT_ENCRYPTION = 0x80000000;      // Must be used in conjunction with SEAL
 
     // Attribute-value identifiers (AvId)
     // according to [MS-NLMP] section 2.2.2.1
-    public static final int MSV_AV_EOL = 0x0000; // Indicates that this is the last AV_PAIR in the list.
-    public static final int MSV_AV_NB_COMPUTER_NAME = 0x0001; // The server's NetBIOS computer name.
-    public static final int MSV_AV_NB_DOMAIN_NAME = 0x0002; // The server's NetBIOS domain name.
-    public static final int MSV_AV_DNS_COMPUTER_NAME = 0x0003; // The fully qualified domain name (FQDN) of the computer.
-    public static final int MSV_AV_DNS_DOMAIN_NAME = 0x0004; // The FQDN of the domain.
-    public static final int MSV_AV_DNS_TREE_NAME = 0x0005; // The FQDN of the forest.
-    public static final int MSV_AV_FLAGS = 0x0006; // A 32-bit value indicating server or client configuration.
-    public static final int MSV_AV_TIMESTAMP = 0x0007; // server local time
-    public static final int MSV_AV_SINGLE_HOST = 0x0008; // A Single_Host_Data structure.
-    public static final int MSV_AV_TARGET_NAME = 0x0009; // The SPN of the target server.
-    public static final int MSV_AV_CHANNEL_BINDINGS = 0x000A; // A channel bindings hash.
+    static final int MSV_AV_EOL = 0x0000; // Indicates that this is the last AV_PAIR in the list.
+    static final int MSV_AV_NB_COMPUTER_NAME = 0x0001; // The server's NetBIOS computer name.
+    static final int MSV_AV_NB_DOMAIN_NAME = 0x0002; // The server's NetBIOS domain name.
+    static final int MSV_AV_DNS_COMPUTER_NAME = 0x0003; // The fully qualified domain name (FQDN) of the computer.
+    static final int MSV_AV_DNS_DOMAIN_NAME = 0x0004; // The FQDN of the domain.
+    static final int MSV_AV_DNS_TREE_NAME = 0x0005; // The FQDN of the forest.
+    static final int MSV_AV_FLAGS = 0x0006; // A 32-bit value indicating server or client configuration.
+    static final int MSV_AV_TIMESTAMP = 0x0007; // server local time
+    static final int MSV_AV_SINGLE_HOST = 0x0008; // A Single_Host_Data structure.
+    static final int MSV_AV_TARGET_NAME = 0x0009; // The SPN of the target server.
+    static final int MSV_AV_CHANNEL_BINDINGS = 0x000A; // A channel bindings hash.
 
-    public static final int MSV_AV_FLAGS_ACCOUNT_AUTH_CONSTAINED = 0x00000001; // Indicates to the client that the account authentication is constrained.
-    public static final int MSV_AV_FLAGS_MIC = 0x00000002; // Indicates that the client is providing message integrity in the MIC field in the AUTHENTICATE_MESSAGE.
-    public static final int MSV_AV_FLAGS_UNTRUSTED_TARGET_SPN = 0x00000004; // Indicates that the client is providing a target SPN generated from an untrusted source.
+    static final int MSV_AV_FLAGS_ACCOUNT_AUTH_CONSTAINED = 0x00000001; // Indicates to the client that the account authentication is constrained.
+    static final int MSV_AV_FLAGS_MIC = 0x00000002; // Indicates that the client is providing message integrity in the MIC field in the AUTHENTICATE_MESSAGE.
+    static final int MSV_AV_FLAGS_UNTRUSTED_TARGET_SPN = 0x00000004; // Indicates that the client is providing a target SPN generated from an untrusted source.
 
     /** Secure random generator */
     private static final java.security.SecureRandom RND_GEN;
@@ -134,142 +133,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
     private static final String TYPE_1_MESSAGE = new Type1Message().getResponse();
 
-    final NTCredentials credentials;
-    final private boolean isConnection;
-
-    /**
-     * Type 1 (NEGOTIATE) message sent by the client.
-     */
-    private Type1Message type1Message;
-
-    /**
-     * Type 2 (CHALLENGE) message received by the client.
-     */
-    private Type2Message type2Message;
-
-    /**
-     * Type 3 (AUTHENTICATE) message sent by the client.
-     */
-    private Type3Message type3Message;
-
-    /**
-     * The key that is result of the NTLM key exchange.
-     */
-    private byte[] exportedSessionKey;
-
-    // just for compatibility
-    public NTLMEngineImpl() {
-        this( null, true );
-    }
-
-
-    /**
-     * Creates a new instance of NTLM engine.
-     *
-     * @param credentials NT credentials that will be used in the message exchange.
-     * @param isConnection true for connection mode, false for connection-less mode.
-     */
-    public NTLMEngineImpl( final NTCredentials credentials, final boolean isConnection ) {
-        super();
-        this.credentials = credentials;
-        this.isConnection = isConnection;
-    }
-
-
-    /**
-     * Generate (create) new NTLM AUTHENTICATE (type 1) message in a form of Java object.
-     * The generated message is remembered by the engine, e.g. for the purpose of MIC computation.
-     *
-     * @param ntlmFlags initial flags for the message. These flags influence the behavior of
-     *                  entire protocol exchange.
-     * @return NTLM AUTHENTICATE (type 1) message in a form of Java object
-     * @throws NTLMEngineException in case of any (foreseeable) error
-     */
-    public Type1Message generateType1MsgObject( final Integer ntlmFlags ) throws NTLMEngineException
-    {
-        if ( type1Message != null )
-        {
-            throw new NTLMEngineException( "Type 1 message already generated" );
-        }
-        if ( credentials == null )
-        {
-            throw new NTLMEngineException( "No credentials" );
-        }
-        type1Message = new Type1Message(
-            credentials.getDomain(),
-            credentials.getWorkstation(),
-            ntlmFlags );
-        return type1Message;
-    }
-
-
-    /**
-     * Parse NTLM CHALLENGE (type 2) message in a base64-encoded format. The message is remembered by the engine.
-     *
-     * @param type2MessageBase64 base64 encoded NTLM challenge message
-     * @return NTLM challenge message in a form of Java object.
-     * @throws NTLMEngineException in case of any (foreseeable) error
-     */
-    public Type2Message parseType2Message( final String type2MessageBase64 ) throws NTLMEngineException
-    {
-        return parseType2Message( Base64.decodeBase64( type2MessageBase64.getBytes( DEFAULT_CHARSET ) ) );
-    }
-
-
-    /**
-     * Parse NTLM CHALLENGE (type 2) message in a binary format. The message is remembered by the engine.
-     *
-     * @param type2MessageBytes binary (byte array) NTLM challenge message
-     * @return NTLM challenge message in a form of Java object.
-     * @throws NTLMEngineException in case of any (foreseeable) error
-     */
-    public Type2Message parseType2Message( final byte[] type2MessageBytes ) throws NTLMEngineException
-    {
-        if ( type2Message != null )
-        {
-            throw new NTLMEngineException( "Type 2 message already parsed" );
-        }
-        type2Message = new Type2Message( type2MessageBytes );
-        return type2Message;
-    }
-
-
-    /**
-     * Generate NTLM AUTHENTICATE (type 3) message based on previous messages that were seen by the engine.
-     *
-     * @param peerServerCertificate optional peer certificate. If present then it will be used to set up
-     *                              GSS API channel binding.
-     * @return NTLM authenticate message in a form of Java object.
-     * @throws NTLMEngineException in case of any (foreseeable) error
-     */
-    public Type3Message generateType3MsgObject( final X509Certificate peerServerCertificate ) throws NTLMEngineException
-    {
-        if ( type3Message != null )
-        {
-            throw new NTLMEngineException( "Type 3 message already generated" );
-        }
-        if ( type2Message == null )
-        {
-            throw new NTLMEngineException( "Type 2 message was not yet parsed" );
-        }
-        if ( credentials == null )
-        {
-            throw new NTLMEngineException( "No credentials" );
-        }
-        type3Message = new Type3Message(
-            credentials.getDomain(),
-            credentials.getWorkstation(),
-            credentials.getUserName(),
-            credentials.getPassword(),
-            type2Message.getChallenge(),
-            type2Message.getFlags(),
-            type2Message.getTarget(),
-            type2Message.getTargetInfo(),
-            peerServerCertificate,
-            type1Message.getBytes(),
-            type2Message.getBytes());
-        this.exportedSessionKey = type3Message.getExportedSessionKey();
-        return type3Message;
+    NTLMEngineImpl() {
     }
 
     /**
@@ -932,26 +796,12 @@ final class NTLMEngineImpl implements NTLMEngine {
         return lmv2Response;
     }
 
-    public static enum Mode
+    static enum Mode
     {
         CLIENT, SERVER;
     }
 
-
-    public Handle createClientHandle() throws NTLMEngineException
-    {
-        final Handle handle = new Handle( exportedSessionKey, Mode.CLIENT, isConnection );
-        return handle;
-    }
-
-
-    public Handle createServer() throws NTLMEngineException
-    {
-        final Handle handle = new Handle( exportedSessionKey, Mode.SERVER, isConnection );
-        return handle;
-    }
-
-    public static class Handle
+    static class Handle
     {
         final private byte[] exportedSessionKey;
         private byte[] signingKey;
