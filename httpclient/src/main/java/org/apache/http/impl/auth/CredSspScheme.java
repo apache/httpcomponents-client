@@ -514,30 +514,30 @@ public class CredSspScheme extends AuthSchemeBase
     {
 
         final byte[] domainBytes = encodeUnicode( ntcredentials.getDomain() );
-        final byte[] domainOctetStringBytesLengthBytes = DerUtil.encodeLength( domainBytes.length );
+        final byte[] domainOctetStringBytesLengthBytes = encodeLength( domainBytes.length );
         final int domainNameLength = 1 + domainOctetStringBytesLengthBytes.length + domainBytes.length;
-        final byte[] domainNameLengthBytes = DerUtil.encodeLength( domainNameLength );
+        final byte[] domainNameLengthBytes = encodeLength( domainNameLength );
 
         final byte[] usernameBytes = encodeUnicode( ntcredentials.getUserName() );
-        final byte[] usernameOctetStringBytesLengthBytes = DerUtil.encodeLength( usernameBytes.length );
+        final byte[] usernameOctetStringBytesLengthBytes = encodeLength( usernameBytes.length );
         final int userNameLength = 1 + usernameOctetStringBytesLengthBytes.length + usernameBytes.length;
-        final byte[] userNameLengthBytes = DerUtil.encodeLength( userNameLength );
+        final byte[] userNameLengthBytes = encodeLength( userNameLength );
 
         final byte[] passwordBytes = encodeUnicode( ntcredentials.getPassword() );
-        final byte[] passwordOctetStringBytesLengthBytes = DerUtil.encodeLength( passwordBytes.length );
+        final byte[] passwordOctetStringBytesLengthBytes = encodeLength( passwordBytes.length );
         final int passwordLength = 1 + passwordOctetStringBytesLengthBytes.length + passwordBytes.length;
-        final byte[] passwordLengthBytes = DerUtil.encodeLength( passwordLength );
+        final byte[] passwordLengthBytes = encodeLength( passwordLength );
 
         final int tsPasswordLength = 1 + domainNameLengthBytes.length + domainNameLength +
             1 + userNameLengthBytes.length + userNameLength +
             1 + passwordLengthBytes.length + passwordLength;
-        final byte[] tsPasswordLengthBytes = DerUtil.encodeLength( tsPasswordLength );
+        final byte[] tsPasswordLengthBytes = encodeLength( tsPasswordLength );
         final int credentialsOctetStringLength = 1 + tsPasswordLengthBytes.length + tsPasswordLength;
-        final byte[] credentialsOctetStringLengthBytes = DerUtil.encodeLength( credentialsOctetStringLength );
+        final byte[] credentialsOctetStringLengthBytes = encodeLength( credentialsOctetStringLength );
         final int credentialsLength = 1 + credentialsOctetStringLengthBytes.length + credentialsOctetStringLength;
-        final byte[] credentialsLengthBytes = DerUtil.encodeLength( credentialsLength );
+        final byte[] credentialsLengthBytes = encodeLength( credentialsLength );
         final int tsCredentialsLength = 5 + 1 + credentialsLengthBytes.length + credentialsLength;
-        final byte[] tsCredentialsLengthBytes = DerUtil.encodeLength( tsCredentialsLength );
+        final byte[] tsCredentialsLengthBytes = encodeLength( tsCredentialsLength );
 
         final ByteBuffer buf = ByteBuffer.allocate( 1 + tsCredentialsLengthBytes.length + tsCredentialsLength );
 
@@ -607,13 +607,13 @@ public class CredSspScheme extends AuthSchemeBase
             final byte[] encodedPubKeyInfo = publicKey.getEncoded();
 
             final ByteBuffer buf = ByteBuffer.wrap( encodedPubKeyInfo );
-            DerUtil.getByteAndAssert( buf, 0x30, "initial sequence" );
-            DerUtil.parseLength( buf );
-            DerUtil.getByteAndAssert( buf, 0x30, "AlgorithmIdentifier sequence" );
-            final int algIdSeqLength = DerUtil.parseLength( buf );
+            getByteAndAssert( buf, 0x30, "initial sequence" );
+            parseLength( buf );
+            getByteAndAssert( buf, 0x30, "AlgorithmIdentifier sequence" );
+            final int algIdSeqLength = parseLength( buf );
             buf.position( buf.position() + algIdSeqLength );
-            DerUtil.getByteAndAssert( buf, 0x03, "subjectPublicKey type" );
-            int subjectPublicKeyLegth = DerUtil.parseLength( buf );
+            getByteAndAssert( buf, 0x03, "subjectPublicKey type" );
+            int subjectPublicKeyLegth = parseLength( buf );
             // There may be leading padding byte ... or whatever that is. Skip that.
             final byte b = buf.get();
             if ( b == 0 )
@@ -862,13 +862,13 @@ public class CredSspScheme extends AuthSchemeBase
             authInfo = null;
             pubKeyAuth = null;
 
-            DerUtil.getByteAndAssert( buf, 0x30, "initial sequence" );
-            DerUtil.parseLength( buf );
+            getByteAndAssert( buf, 0x30, "initial sequence" );
+            parseLength( buf );
 
             while ( buf.hasRemaining() )
             {
-                final int contentTag = DerUtil.getAndAssertContentSpecificTag( buf, "content tag" );
-                DerUtil.parseLength( buf );
+                final int contentTag = getAndAssertContentSpecificTag( buf, "content tag" );
+                parseLength( buf );
                 switch ( contentTag )
                 {
                     case 0:
@@ -887,7 +887,7 @@ public class CredSspScheme extends AuthSchemeBase
                         processErrorCode( buf );
                         break;
                     default:
-                        DerUtil.parseError( buf, "unexpected content tag " + contentTag );
+                        parseError( buf, "unexpected content tag " + contentTag );
                 }
             }
         }
@@ -895,31 +895,31 @@ public class CredSspScheme extends AuthSchemeBase
 
         private void processVersion( final ByteBuffer buf ) throws MalformedChallengeException
         {
-            DerUtil.getByteAndAssert( buf, 0x02, "version type" );
-            DerUtil.getLengthAndAssert( buf, 1, "version length" );
-            DerUtil.getByteAndAssert( buf, VERSION, "wrong protocol version" );
+            getByteAndAssert( buf, 0x02, "version type" );
+            getLengthAndAssert( buf, 1, "version length" );
+            getByteAndAssert( buf, VERSION, "wrong protocol version" );
         }
 
 
         private void parseNegoTokens( final ByteBuffer buf ) throws MalformedChallengeException
         {
-            DerUtil.getByteAndAssert( buf, 0x30, "negoTokens sequence" );
-            DerUtil.parseLength( buf );
+            getByteAndAssert( buf, 0x30, "negoTokens sequence" );
+            parseLength( buf );
             // I have seen both 0x30LL encoding and 0x30LL0x30LL encoding. Accept both.
             byte bufByte = buf.get();
             if ( bufByte == 0x30 )
             {
-                DerUtil.parseLength( buf );
+                parseLength( buf );
                 bufByte = buf.get();
             }
             if ( ( bufByte & 0xff ) != 0xa0 )
             {
-                DerUtil.parseError( buf, "negoTokens: wrong content-specific tag " + String.format( "%02X", bufByte ) );
+                parseError( buf, "negoTokens: wrong content-specific tag " + String.format( "%02X", bufByte ) );
             }
-            DerUtil.parseLength( buf );
-            DerUtil.getByteAndAssert( buf, 0x04, "negoToken type" );
+            parseLength( buf );
+            getByteAndAssert( buf, 0x04, "negoToken type" );
 
-            final int tokenLength = DerUtil.parseLength( buf );
+            final int tokenLength = parseLength( buf );
             negoToken = new byte[tokenLength];
             buf.get( negoToken );
         }
@@ -927,8 +927,8 @@ public class CredSspScheme extends AuthSchemeBase
 
         private void parseAuthInfo( final ByteBuffer buf ) throws MalformedChallengeException
         {
-            DerUtil.getByteAndAssert( buf, 0x04, "authInfo type" );
-            final int length = DerUtil.parseLength( buf );
+            getByteAndAssert( buf, 0x04, "authInfo type" );
+            final int length = parseLength( buf );
             authInfo = new byte[length];
             buf.get( authInfo );
         }
@@ -936,8 +936,8 @@ public class CredSspScheme extends AuthSchemeBase
 
         private void parsePubKeyAuth( final ByteBuffer buf ) throws MalformedChallengeException
         {
-            DerUtil.getByteAndAssert( buf, 0x04, "pubKeyAuth type" );
-            final int length = DerUtil.parseLength( buf );
+            getByteAndAssert( buf, 0x04, "pubKeyAuth type" );
+            final int length = parseLength( buf );
             pubKeyAuth = new byte[length];
             buf.get( pubKeyAuth );
         }
@@ -945,11 +945,11 @@ public class CredSspScheme extends AuthSchemeBase
 
         private void processErrorCode( final ByteBuffer buf ) throws MalformedChallengeException
         {
-            DerUtil.getLengthAndAssert( buf, 3, "error code length" );
-            DerUtil.getByteAndAssert( buf, 0x02, "error code type" );
-            DerUtil.getLengthAndAssert( buf, 1, "error code length" );
+            getLengthAndAssert( buf, 3, "error code length" );
+            getByteAndAssert( buf, 0x02, "error code type" );
+            getLengthAndAssert( buf, 1, "error code length" );
             final byte errorCode = buf.get();
-            DerUtil.parseError( buf, "Error code " + errorCode );
+            parseError( buf, "Error code " + errorCode );
         }
 
 
@@ -968,15 +968,15 @@ public class CredSspScheme extends AuthSchemeBase
             if ( negoToken != null )
             {
                 int len = negoToken.length;
-                final byte[] negoTokenLengthBytes = DerUtil.encodeLength( len );
+                final byte[] negoTokenLengthBytes = encodeLength( len );
                 len += 1 + negoTokenLengthBytes.length;
-                final byte[] negoTokenLength1Bytes = DerUtil.encodeLength( len );
+                final byte[] negoTokenLength1Bytes = encodeLength( len );
                 len += 1 + negoTokenLength1Bytes.length;
-                final byte[] negoTokenLength2Bytes = DerUtil.encodeLength( len );
+                final byte[] negoTokenLength2Bytes = encodeLength( len );
                 len += 1 + negoTokenLength2Bytes.length;
-                final byte[] negoTokenLength3Bytes = DerUtil.encodeLength( len );
+                final byte[] negoTokenLength3Bytes = encodeLength( len );
                 len += 1 + negoTokenLength3Bytes.length;
-                final byte[] negoTokenLength4Bytes = DerUtil.encodeLength( len );
+                final byte[] negoTokenLength4Bytes = encodeLength( len );
 
                 inner.put( ( byte ) ( 0x01 | 0xa0 ) ); // negoData tag [1]
                 inner.put( negoTokenLength4Bytes ); // length
@@ -998,10 +998,10 @@ public class CredSspScheme extends AuthSchemeBase
 
             if ( authInfo != null )
             {
-                final byte[] authInfoEncodedLength = DerUtil.encodeLength( authInfo.length );
+                final byte[] authInfoEncodedLength = encodeLength( authInfo.length );
 
                 inner.put( ( byte ) ( 0x02 | 0xa0 ) ); // authInfo tag [2]
-                inner.put( DerUtil.encodeLength( 1 + authInfoEncodedLength.length + authInfo.length ) ); // length
+                inner.put( encodeLength( 1 + authInfoEncodedLength.length + authInfo.length ) ); // length
 
                 inner.put( ( byte ) ( 0x04 ) ); // OCTET STRING tag
                 inner.put( authInfoEncodedLength );
@@ -1010,10 +1010,10 @@ public class CredSspScheme extends AuthSchemeBase
 
             if ( pubKeyAuth != null )
             {
-                final byte[] pubKeyAuthEncodedLength = DerUtil.encodeLength( pubKeyAuth.length );
+                final byte[] pubKeyAuthEncodedLength = encodeLength( pubKeyAuth.length );
 
                 inner.put( ( byte ) ( 0x03 | 0xa0 ) ); // pubKeyAuth tag [3]
-                inner.put( DerUtil.encodeLength( 1 + pubKeyAuthEncodedLength.length + pubKeyAuth.length ) ); // length
+                inner.put( encodeLength( 1 + pubKeyAuthEncodedLength.length + pubKeyAuth.length ) ); // length
 
                 inner.put( ( byte ) ( 0x04 ) ); // OCTET STRING tag
                 inner.put( pubKeyAuthEncodedLength );
@@ -1024,7 +1024,7 @@ public class CredSspScheme extends AuthSchemeBase
 
             // SEQUENCE tag
             buf.put( ( byte ) ( 0x10 | 0x20 ) );
-            buf.put( DerUtil.encodeLength( inner.limit() ) );
+            buf.put( encodeLength( inner.limit() ) );
             buf.put( inner );
         }
 
@@ -1053,6 +1053,103 @@ public class CredSspScheme extends AuthSchemeBase
             return "TsRequest(negoToken=" + Arrays.toString( negoToken ) + ", authInfo="
                 + Arrays.toString( authInfo ) + ", pubKeyAuth=" + Arrays.toString( pubKeyAuth ) + ")";
         }
+    }
+
+    static void getByteAndAssert( final ByteBuffer buf, final int expectedValue, final String errorMessage )
+        throws MalformedChallengeException
+    {
+        final byte bufByte = buf.get();
+        if ( bufByte != expectedValue )
+        {
+            parseError( buf, errorMessage + expectMessage( expectedValue, bufByte ) );
+        }
+    }
+
+    private static String expectMessage( final int expectedValue, final int realValue )
+    {
+        return "(expected " + String.format( "%02X", expectedValue ) + ", got " + String.format( "%02X", realValue )
+            + ")";
+    }
+
+    static int parseLength( final ByteBuffer buf )
+    {
+        byte bufByte = buf.get();
+        if ( bufByte == 0x80 )
+        {
+            return -1; // infinite
+        }
+        if ( ( bufByte & 0x80 ) == 0x80 )
+        {
+            final int size = bufByte & 0x7f;
+            int length = 0;
+            for ( int i = 0; i < size; i++ )
+            {
+                bufByte = buf.get();
+                length = ( length << 8 ) + ( bufByte & 0xff );
+            }
+            return length;
+        }
+        else
+        {
+            return bufByte;
+        }
+    }
+
+    static void getLengthAndAssert( final ByteBuffer buf, final int expectedValue, final String errorMessage )
+        throws MalformedChallengeException
+    {
+        final int bufLength = parseLength( buf );
+        if ( expectedValue != bufLength )
+        {
+            parseError( buf, errorMessage + expectMessage( expectedValue, bufLength ) );
+        }
+    }
+
+    static int getAndAssertContentSpecificTag( final ByteBuffer buf, final String errorMessage ) throws MalformedChallengeException
+    {
+        final byte bufByte = buf.get();
+        if ( ( bufByte & 0xe0 ) != 0xa0 )
+        {
+            parseError( buf, errorMessage + ": wrong content-specific tag " + String.format( "%02X", bufByte ) );
+        }
+        final int tag = bufByte & 0x1f;
+        return tag;
+    }
+
+    static void parseError( final ByteBuffer buf, final String errorMessage ) throws MalformedChallengeException
+    {
+        throw new MalformedChallengeException(
+            "Error parsing TsRequest (position:" + buf.position() + "): " + errorMessage );
+    }
+
+    static byte[] encodeLength( final int length )
+    {
+        if ( length < 128 )
+        {
+            final byte[] encoded = new byte[1];
+            encoded[0] = ( byte ) length;
+            return encoded;
+        }
+
+        int size = 1;
+
+        int val = length;
+        while ( ( val >>>= 8 ) != 0 )
+        {
+            size++;
+        }
+
+        final byte[] encoded = new byte[1 + size];
+        encoded[0] = ( byte ) ( size | 0x80 );
+
+        int shift = ( size - 1 ) * 8;
+        for ( int i = 0; i < size; i++ )
+        {
+            encoded[i + 1] = ( byte ) ( length >> shift );
+            shift -= 8;
+        }
+
+        return encoded;
     }
 
 }
