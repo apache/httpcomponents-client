@@ -126,17 +126,6 @@ public class CredSspScheme extends AuthSchemeBase
     private NTLMEngineImpl.Handle ntlmIncomingHandle;
     private byte[] peerPublicKey;
 
-    /**
-     * Enabling or disabling the development trace (extra logging).
-     * We do NOT want this to be enabled by default.
-     * We do not want to enable it even if full logging is turned on.
-     * This may leak sensitive key material to the log files. It is supposed to be used only
-     * for development purposes. We really need this to diagnose protocol issues. Most of the
-     * protocol is TLS-encrypted. Some parts are encrypted several times. We cannot use packet
-     * sniffer or other tools for diagnostics. We need to see the values before encryption.
-     */
-    private static boolean develTrace = false;
-
 
     public CredSspScheme() {
         this(new NTLMEngineImpl());
@@ -250,10 +239,6 @@ public class CredSspScheme extends AuthSchemeBase
         throws MalformedChallengeException
     {
         final String inputString = buffer.substringTrimmed( beginIndex, endIndex );
-        if ( develTrace )
-        {
-            log.trace( "<< Received: " + inputString );
-        }
 
         if ( inputString.isEmpty() )
         {
@@ -272,10 +257,6 @@ public class CredSspScheme extends AuthSchemeBase
         if ( state == State.TLS_HANDSHAKE )
         {
             unwrapHandshake( inputString );
-            if ( develTrace )
-            {
-                log.trace( "TLS handshake status: " + getSSLEngine().getHandshakeStatus() );
-            }
             if ( getSSLEngine().getHandshakeStatus() == HandshakeStatus.NOT_HANDSHAKING )
             {
                 log.trace( "TLS handshake finished" );
@@ -288,10 +269,6 @@ public class CredSspScheme extends AuthSchemeBase
             final ByteBuffer buf = unwrap( inputString );
             state = State.NEGO_TOKEN_RECEIVED;
             lastReceivedTsRequest = CredSspTsRequest.createDecoded( buf );
-            if ( develTrace )
-            {
-                log.trace( "Received tsrequest(negotoken:CHALLENGE):\n" + lastReceivedTsRequest.debugDump() );
-            }
         }
 
         if ( state == State.PUB_KEY_AUTH_SENT )
@@ -299,10 +276,6 @@ public class CredSspScheme extends AuthSchemeBase
             final ByteBuffer buf = unwrap( inputString );
             state = State.PUB_KEY_AUTH_RECEIVED;
             lastReceivedTsRequest = CredSspTsRequest.createDecoded( buf );
-            if ( develTrace )
-            {
-                log.trace( "Received tsrequest(pubKeyAuth):\n" + lastReceivedTsRequest.debugDump() );
-            }
         }
     }
 
