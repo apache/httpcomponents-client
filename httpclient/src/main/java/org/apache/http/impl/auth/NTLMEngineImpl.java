@@ -61,6 +61,7 @@ final class NTLMEngineImpl implements NTLMEngine {
     // http://msdn.microsoft.com/en-us/library/cc236650%28v=prot.20%29.aspx
     // [MS-NLMP] section 2.2.2.5
     public static final int FLAG_REQUEST_UNICODE_ENCODING = 0x00000001;      // Unicode string encoding requested
+    public static final int FLAG_REQUEST_OEM_ENCODING = 0x00000002;      // OEM string encoding requested
     public static final int FLAG_REQUEST_TARGET = 0x00000004;                      // Requests target field
     public static final int FLAG_REQUEST_SIGN = 0x00000010;  // Requests all messages have a signature attached, in NEGOTIATE message.
     public static final int FLAG_REQUEST_SEAL = 0x00000020;  // Request key exchange for message confidentiality in NEGOTIATE message.  MUST be used in conjunction with 56BIT.
