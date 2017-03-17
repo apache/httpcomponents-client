@@ -30,13 +30,13 @@ package org.apache.http.impl.auth;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Base64;
 import java.util.Arrays;
 
 import javax.net.ssl.SSLContext;
@@ -66,6 +66,7 @@ import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.CharsetUtils;
 
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * <p>
@@ -731,13 +732,13 @@ public class CredSspScheme extends AuthSchemeBase
         final int limit = buffer.limit();
         final byte[] bytes = new byte[limit];
         buffer.get( bytes );
-        return Base64.getEncoder().encodeToString( bytes );
+        return new String(Base64.encodeBase64(bytes), StandardCharsets.US_ASCII);
     }
 
 
     private ByteBuffer decodeBase64( final String inputString )
     {
-        final byte[] inputBytes = Base64.getDecoder().decode( inputString );
+        final byte[] inputBytes = Base64.decodeBase64(inputString.getBytes(StandardCharsets.US_ASCII));
         final ByteBuffer buffer = ByteBuffer.wrap( inputBytes );
         return buffer;
     }
