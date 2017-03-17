@@ -29,6 +29,7 @@ package org.apache.http.impl.auth;
 import org.apache.http.Consts;
 import org.junit.Assert;
 import org.junit.Test;
+import java.util.Random;
 
 public class TestNTLMEngineImpl {
 
@@ -92,6 +93,8 @@ public class TestNTLMEngineImpl {
     @Test
     public void testLMResponse() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            new Random(1234),
+            1234L,
             null,
             null,
             "SecREt01",
@@ -110,6 +113,8 @@ public class TestNTLMEngineImpl {
     @Test
     public void testNTLMResponse() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            new Random(1234),
+            1234L,
             null,
             null,
             "SecREt01",
@@ -128,6 +133,8 @@ public class TestNTLMEngineImpl {
     @Test
     public void testLMv2Response() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            new Random(1234),
+            1234L,
             "DOMAIN",
             "user",
             "SecREt01",
@@ -146,6 +153,8 @@ public class TestNTLMEngineImpl {
     @Test
     public void testNTLMv2Response() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            new Random(1234),
+            1234L,
             "DOMAIN",
             "user",
             "SecREt01",
@@ -166,6 +175,8 @@ public class TestNTLMEngineImpl {
     @Test
     public void testLM2SessionResponse() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            new Random(1234),
+            1234L,
             "DOMAIN",
             "user",
             "SecREt01",
@@ -184,6 +195,8 @@ public class TestNTLMEngineImpl {
     @Test
     public void testNTLM2SessionResponse() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            new Random(1234),
+            1234L,
             "DOMAIN",
             "user",
             "SecREt01",
@@ -202,6 +215,8 @@ public class TestNTLMEngineImpl {
     @Test
     public void testNTLMUserSessionKey() throws Exception {
         final NTLMEngineImpl.CipherGen gen = new NTLMEngineImpl.CipherGen(
+            new Random(1234),
+            1234L,
             "DOMAIN",
             "user",
             "SecREt01",
@@ -219,35 +234,32 @@ public class TestNTLMEngineImpl {
 
     @Test
     public void testType1Message() throws Exception {
-        final byte[] bytes = new NTLMEngineImpl().getType1Message("myhost", "mydomain").getBytes();
-        final byte[] bytes2 = toBytes("546C524D54564E545541414241414141415949496F6741414141416F414141414141414141436741414141464153674B4141414144773D3D");
+        final byte[] bytes = new NTLMEngineImpl.Type1Message("myhost", "mydomain").getBytes();
+        final byte[] bytes2 = toBytes("4E544C4D5353500001000000018208A2000000002800000000000000280000000501280A0000000F6D00790064006F006D00610069006E004D00590048004F0053005400");
         checkArraysMatch(bytes2, bytes);
     }
 
     @Test
     public void testType3Message() throws Exception {
-        final byte[] bytes = new NTLMEngineImpl().getType3Message("me", "mypassword", "myhost", "mydomain",
+        final byte[] bytes = new NTLMEngineImpl.Type3Message(
+            new Random(1234),
+            1234L,
+            "me", "mypassword", "myhost", "mydomain",
             toBytes("0001020304050607"),
             0xffffffff,
             null,null).getBytes();
-        // Verify the parts that have no random or timestamp component
-        checkArraysMatch(toBytes("546C524D54564E545541414441414141474141594145674141414159414267415941414141424141454142344141414142414145414967414141414D414177416A4141414142414145414359414141412F2F2F2F2F7755424B416F4141414150"),
-            0, bytes);
-        checkArraysMatch(toBytes("414141414141414141414141414141414141414141"),
-            107, bytes);
-        checkArraysMatch(toBytes("5451425A414551415477424E414545415351424F414730415A51427441486B416141427641484D416441"),
-            160, bytes);
-        final byte[] bytes2 = new NTLMEngineImpl().getType3Message("me", "mypassword", "myhost", "mydomain",
+        checkArraysMatch(toBytes("4E544C4D53535000030000001800180048000000180018006000000004000400780000000C000C007C0000001400140088000000100010009C000000FFFFFFFF0501280A0000000FA86886A5D297814200000000000000000000000000000000EEC7568E00798491244959B9C942F4F367C5CBABEEF546F74D0045006D00790068006F00730074006D007900700061007300730077006F007200640094DDAB1EBB82C9A1AB914CAE6F199644"),
+            bytes);
+        final byte[] bytes2 = new NTLMEngineImpl.Type3Message(
+            new Random(1234),
+            1234L,
+            "me", "mypassword", "myhost", "mydomain",
             toBytes("0001020304050607"),
             0xffffffff,
             "mytarget",
             toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000")).getBytes();
-        checkArraysMatch(toBytes("546C524D54564E545541414441414141474141594145674141414353414A49415941414141424141454144794141414142414145414149424141414D41417741426745414142414145414153415141412F2F2F2F2F7755424B416F4141414150"),
-            0, bytes2);
-        checkArraysMatch(toBytes("45424141414141414141"),
-            150, bytes2);
-        checkArraysMatch(toBytes("4141414141434141774152414250414530415151424A414534414151414D41464D41525142534146594152514253414151414641426B414738416251426841476B416267417541474D416277427441414D414967427A414755416367423241475541636741754147514162774274414745416151427541433441597742764147304141414141414141414141424E41466B4152414250414530415151424A414534416251426C414730416551426F414738416377423041"),
-            182, bytes2);
+        checkArraysMatch(toBytes("4E544C4D53535000030000001800180048000000920092006000000004000400F20000000C000C00F600000014001400020100001000100016010000FFFFFFFF0501280A0000000F3695F1EA7B164788A437892FA7504320DA2D8CF378EBC83CE856A8FB985BF7783545828A91A13AE8010100000000000020CBFAD5DEB19D01A86886A5D29781420000000002000C0044004F004D00410049004E0001000C005300450052005600450052000400140064006F006D00610069006E002E0063006F006D00030022007300650072007600650072002E0064006F006D00610069006E002E0063006F006D0000000000000000004D0045006D00790068006F00730074006D007900700061007300730077006F0072006400BB1AAD36F11631CC7CBC8800CEEE1C99"),
+            bytes2);
     }
 
     @Test
@@ -263,16 +275,6 @@ public class TestNTLMEngineImpl {
         Assert.assertEquals(a1.length,a2.length);
         for (int i = 0; i < a1.length; i++) {
             Assert.assertEquals(a1[i],a2[i]);
-        }
-    }
-
-    /* Byte array check helper */
-    static void checkArraysMatch(final byte[] a1,
-        final int a2StartIndex, final byte[] a2)
-        throws Exception {
-        Assert.assertTrue(a2.length - a2StartIndex >= a1.length);
-        for (int i = 0; i < a1.length; i++) {
-            Assert.assertEquals(a1[i],a2[i + a2StartIndex]);
         }
     }
 

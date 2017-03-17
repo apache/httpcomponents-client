@@ -32,6 +32,7 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Random;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -300,30 +301,27 @@ final class NTLMEngineImpl implements NTLMEngine {
     }
 
     /** Calculate a challenge block */
-    private static byte[] makeRandomChallenge() throws NTLMEngineException {
-        if (RND_GEN == null) {
-            throw new NTLMEngineException("Random generator not available");
-        }
+    private static byte[] makeRandomChallenge(final Random random) throws NTLMEngineException {
         final byte[] rval = new byte[8];
-        synchronized (RND_GEN) {
-            RND_GEN.nextBytes(rval);
+        synchronized (random) {
+            random.nextBytes(rval);
         }
         return rval;
     }
 
     /** Calculate a 16-byte secondary key */
-    private static byte[] makeSecondaryKey() throws NTLMEngineException {
-        if (RND_GEN == null) {
-            throw new NTLMEngineException("Random generator not available");
-        }
+    private static byte[] makeSecondaryKey(final Random random) throws NTLMEngineException {
         final byte[] rval = new byte[16];
-        synchronized (RND_GEN) {
-            RND_GEN.nextBytes(rval);
+        synchronized (random) {
+            random.nextBytes(rval);
         }
         return rval;
     }
 
     protected static class CipherGen {
+
+        protected final Random random;
+        protected final long currentTime;
 
         protected final String domain;
         protected final String user;
@@ -356,10 +354,14 @@ final class NTLMEngineImpl implements NTLMEngine {
         protected byte[] ntlm2SessionResponseUserSessionKey = null;
         protected byte[] lanManagerSessionKey = null;
 
-        public CipherGen(final String domain, final String user, final String password,
+        public CipherGen(final Random random, final long currentTime,
+            final String domain, final String user, final String password,
             final byte[] challenge, final String target, final byte[] targetInformation,
             final byte[] clientChallenge, final byte[] clientChallenge2,
             final byte[] secondaryKey, final byte[] timestamp) {
+            this.random = random;
+            this.currentTime = currentTime;
+
             this.domain = domain;
             this.target = target;
             this.user = user;
@@ -372,16 +374,21 @@ final class NTLMEngineImpl implements NTLMEngine {
             this.timestamp = timestamp;
         }
 
-        public CipherGen(final String domain, final String user, final String password,
-            final byte[] challenge, final String target, final byte[] targetInformation) {
-            this(domain, user, password, challenge, target, targetInformation, null, null, null, null);
+        public CipherGen(final Random random, final long currentTime,
+            final String domain,
+            final String user,
+            final String password,
+            final byte[] challenge,
+            final String target,
+            final byte[] targetInformation) {
+            this(random, currentTime, domain, user, password, challenge, target, targetInformation, null, null, null, null);
         }
 
         /** Calculate and return client challenge */
         public byte[] getClientChallenge()
             throws NTLMEngineException {
             if (clientChallenge == null) {
-                clientChallenge = makeRandomChallenge();
+                clientChallenge = makeRandomChallenge(random);
             }
             return clientChallenge;
         }
@@ -390,7 +397,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         public byte[] getClientChallenge2()
             throws NTLMEngineException {
             if (clientChallenge2 == null) {
-                clientChallenge2 = makeRandomChallenge();
+                clientChallenge2 = makeRandomChallenge(random);
             }
             return clientChallenge2;
         }
@@ -399,7 +406,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         public byte[] getSecondaryKey()
             throws NTLMEngineException {
             if (secondaryKey == null) {
-                secondaryKey = makeSecondaryKey();
+                secondaryKey = makeSecondaryKey(random);
             }
             return secondaryKey;
         }
@@ -461,7 +468,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         /** Calculate a timestamp */
         public byte[] getTimestamp() {
             if (timestamp == null) {
-                long time = System.currentTimeMillis();
+                long time = this.currentTime;
                 time += 11644473600000l; // milliseconds from January 1, 1601 -> epoch.
                 time *= 10000; // tenths of a microsecond.
                 // convert to little-endian byte array.
@@ -1230,11 +1237,14 @@ final class NTLMEngineImpl implements NTLMEngine {
          *
          * @return The response as above.
          */
-        String getResponse() {
+        public String getResponse() {
             return new String(Base64.encodeBase64(getBytes()), StandardCharsets.US_ASCII);
         }
 
         public byte[] getBytes() {
+            if (messageContents == null) {
+                buildMessage();
+            }
             final byte[] resp;
             if ( messageContents.length > currentOutputPosition ) {
                 final byte[] tmp = new byte[currentOutputPosition];
@@ -1242,8 +1252,11 @@ final class NTLMEngineImpl implements NTLMEngine {
                 messageContents = tmp;
             }
             return messageContents;
-         }
+        }
 
+        protected void buildMessage() {
+            throw new RuntimeException("Message builder not implemented for "+getClass().getName());
+        }
     }
 
     /** Type 1 message assembly class */
@@ -1310,7 +1323,7 @@ final class NTLMEngineImpl implements NTLMEngine {
          * it
          */
         @Override
-        String getResponse() {
+        protected void buildMessage() {
             int domainBytesLength = 0;
             if ( domainBytes != null ) {
                 domainBytesLength = domainBytes.length;
@@ -1360,8 +1373,6 @@ final class NTLMEngineImpl implements NTLMEngine {
             if (domainBytes != null) {
                 addBytes(domainBytes);
             }
-
-            return super.getResponse();
         }
 
     }
@@ -1478,6 +1489,21 @@ final class NTLMEngineImpl implements NTLMEngine {
             this(domain, host, user, password, nonce, type2Flags, target, targetInformation, null, null, null);
         }
 
+        /** More primitive constructor: don't include cert or previous messages.
+        */
+        Type3Message(final Random random, final long currentTime,
+            final String domain,
+            final String host,
+            final String user,
+            final String password,
+            final byte[] nonce,
+            final int type2Flags,
+            final String target,
+            final byte[] targetInformation)
+            throws NTLMEngineException {
+            this(random, currentTime, domain, host, user, password, nonce, type2Flags, target, targetInformation, null, null, null);
+        }
+
         /** Constructor. Pass the arguments we will need */
         Type3Message(final String domain,
             final String host,
@@ -1491,6 +1517,28 @@ final class NTLMEngineImpl implements NTLMEngine {
             final byte[] type1Message,
             final byte[] type2Message)
             throws NTLMEngineException {
+            this(RND_GEN, System.currentTimeMillis(), domain, host, user, password, nonce, type2Flags, target, targetInformation, peerServerCertificate, type1Message, type2Message);
+        }
+
+        /** Constructor. Pass the arguments we will need */
+        Type3Message(final Random random, final long currentTime,
+            final String domain,
+            final String host,
+            final String user,
+            final String password,
+            final byte[] nonce,
+            final int type2Flags,
+            final String target,
+            final byte[] targetInformation,
+            final X509Certificate peerServerCertificate,
+            final byte[] type1Message,
+            final byte[] type2Message)
+            throws NTLMEngineException {
+
+            if (random == null) {
+                throw new NTLMEngineException("Random generator not available");
+            }
+
             // Save the flags
             this.type2Flags = type2Flags;
             this.type1Message = type1Message;
@@ -1511,7 +1559,8 @@ final class NTLMEngineImpl implements NTLMEngine {
             }
 
              // Create a cipher generator class.  Use domain BEFORE it gets modified!
-            final CipherGen gen = new CipherGen(unqualifiedDomain,
+            final CipherGen gen = new CipherGen(random, currentTime,
+                unqualifiedDomain,
                 user,
                 password,
                 nonce,
@@ -1599,7 +1648,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
         /** Assemble the response */
         @Override
-        String getResponse() {
+        protected void buildMessage() {
             final int ntRespLen = ntResp.length;
             final int lmRespLen = lmResp.length;
 
@@ -1733,7 +1782,6 @@ final class NTLMEngineImpl implements NTLMEngine {
                 final byte[] mic = hmacMD5.getOutput();
                 System.arraycopy( mic, 0, messageContents, micPosition, mic.length );
             }
-            return super.getResponse();
         }
 
         /**
