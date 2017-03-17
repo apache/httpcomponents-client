@@ -65,6 +65,11 @@ public final class AuthSchemes {
      */
     public static final String KERBEROS = "Kerberos";
 
+    /**
+     * CredSSP authentication scheme defined in [MS-CSSP].
+     */
+    public static final String CREDSSP = "CredSSP";
+
     private AuthSchemes() {
     }
 
