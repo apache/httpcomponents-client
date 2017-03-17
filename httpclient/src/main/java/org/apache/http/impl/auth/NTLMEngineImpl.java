@@ -1345,15 +1345,15 @@ final class NTLMEngineImpl implements NTLMEngine {
             addULong(flags);
 
             // Domain length (two times).
-            addUShort(/*domainBytes.length*/0);
-            addUShort(/*domainBytes.length*/0);
+            addUShort(domainBytesLength);
+            addUShort(domainBytesLength);
 
             // Domain offset.
-            addULong(/*hostBytes.length +*/ 32 + 8);
+            addULong(hostBytesLength + 32 + 8);
 
             // Host length (two times).
-            addUShort(/*hostBytes.length*/0);
-            addUShort(/*hostBytes.length*/0);
+            addUShort(hostBytesLength);
+            addUShort(hostBytesLength);
 
             // Host offset (always 32 + 8).
             addULong(32 + 8);

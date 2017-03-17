@@ -235,7 +235,7 @@ public class TestNTLMEngineImpl {
     @Test
     public void testType1Message() throws Exception {
         final byte[] bytes = new NTLMEngineImpl.Type1Message("myhost", "mydomain").getBytes();
-        final byte[] bytes2 = toBytes("4E544C4D5353500001000000018208A2000000002800000000000000280000000501280A0000000F6D00790064006F006D00610069006E004D00590048004F0053005400");
+        final byte[] bytes2 = toBytes("4E544C4D5353500001000000018208A20C000C003800000010001000280000000501280A0000000F6D00790064006F006D00610069006E004D00590048004F0053005400");
         checkArraysMatch(bytes2, bytes);
     }
 
