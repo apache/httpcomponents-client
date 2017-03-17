@@ -566,6 +566,9 @@ public class CredSspScheme extends AuthSchemeBase
 
     private byte[] encodeUnicode( final String string )
     {
+        if (string == null) {
+            return new byte[0];
+        }
         return string.getBytes( UNICODE_LITTLE_UNMARKED );
     }
 
