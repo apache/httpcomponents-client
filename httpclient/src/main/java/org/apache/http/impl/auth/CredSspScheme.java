@@ -30,7 +30,7 @@ package org.apache.http.impl.auth;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import org.apache.http.Consts;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -732,13 +732,13 @@ public class CredSspScheme extends AuthSchemeBase
         final int limit = buffer.limit();
         final byte[] bytes = new byte[limit];
         buffer.get( bytes );
-        return new String(Base64.encodeBase64(bytes), StandardCharsets.US_ASCII);
+        return new String(Base64.encodeBase64(bytes), Consts.ASCII);
     }
 
 
     private ByteBuffer decodeBase64( final String inputString )
     {
-        final byte[] inputBytes = Base64.decodeBase64(inputString.getBytes(StandardCharsets.US_ASCII));
+        final byte[] inputBytes = Base64.decodeBase64(inputString.getBytes(Consts.ASCII));
         final ByteBuffer buffer = ByteBuffer.wrap( inputBytes );
         return buffer;
     }

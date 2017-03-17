@@ -27,7 +27,7 @@
 package org.apache.http.impl.auth;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import org.apache.http.Consts;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.util.Arrays;
@@ -53,7 +53,7 @@ final class NTLMEngineImpl implements NTLMEngine {
     /** Unicode encoding */
     private static final Charset UNICODE_LITTLE_UNMARKED = Charset.forName("UnicodeLittleUnmarked");
     /** Character encoding */
-    private static final Charset DEFAULT_CHARSET = StandardCharsets.US_ASCII;
+    private static final Charset DEFAULT_CHARSET = Consts.ASCII;
 
     // Flags we use; descriptions according to:
     // http://davenport.sourceforge.net/ntlm.html
@@ -121,11 +121,11 @@ final class NTLMEngineImpl implements NTLMEngine {
         "session key to client-to-server sealing key magic constant");
 
     // prefix for GSS API channel binding
-    private static final byte[] MAGIC_TLS_SERVER_ENDPOINT = "tls-server-end-point:".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] MAGIC_TLS_SERVER_ENDPOINT = "tls-server-end-point:".getBytes(Consts.ASCII);
 
     private static byte[] getNullTerminatedAsciiString( final String source )
     {
-        final byte[] bytesWithoutNull = source.getBytes(StandardCharsets.US_ASCII);
+        final byte[] bytesWithoutNull = source.getBytes(Consts.ASCII);
         final byte[] target = new byte[bytesWithoutNull.length + 1];
         System.arraycopy(bytesWithoutNull, 0, target, 0, bytesWithoutNull.length);
         target[bytesWithoutNull.length] = (byte) 0x00;
@@ -663,13 +663,13 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     private static byte[] lmHash(final String password) throws NTLMEngineException {
         try {
-            final byte[] oemPassword = password.toUpperCase(Locale.ROOT).getBytes(StandardCharsets.US_ASCII);
+            final byte[] oemPassword = password.toUpperCase(Locale.ROOT).getBytes(Consts.ASCII);
             final int length = Math.min(oemPassword.length, 14);
             final byte[] keyBytes = new byte[14];
             System.arraycopy(oemPassword, 0, keyBytes, 0, length);
             final Key lowKey = createDESKey(keyBytes, 0);
             final Key highKey = createDESKey(keyBytes, 7);
-            final byte[] magicConstant = "KGS!@#$%".getBytes(StandardCharsets.US_ASCII);
+            final byte[] magicConstant = "KGS!@#$%".getBytes(Consts.ASCII);
             final Cipher des = Cipher.getInstance("DES/ECB/NoPadding");
             des.init(Cipher.ENCRYPT_MODE, lowKey);
             final byte[] lowHash = des.doFinal(magicConstant);
@@ -1238,7 +1238,7 @@ final class NTLMEngineImpl implements NTLMEngine {
          * @return The response as above.
          */
         public String getResponse() {
-            return new String(Base64.encodeBase64(getBytes()), StandardCharsets.US_ASCII);
+            return new String(Base64.encodeBase64(getBytes()), Consts.ASCII);
         }
 
         public byte[] getBytes() {
