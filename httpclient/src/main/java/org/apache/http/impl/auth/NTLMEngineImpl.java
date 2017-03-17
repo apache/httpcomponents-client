@@ -1179,7 +1179,7 @@ final class NTLMEngineImpl implements NTLMEngine {
          * Prepares the object to create a response of the given length.
          *
          * @param maxlength
-         *            the maximum length of the response to prepare, not
+         *            the maximum length of the response to prepare,
          *            including the type and the signature (which this method
          *            adds).
          */
