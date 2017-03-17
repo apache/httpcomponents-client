@@ -51,6 +51,9 @@ public class TestNTLMEngineImpl {
         if (c >= 'a' && c <= 'f') {
             return (byte) (c - 'a' + 0x0a);
         }
+        if (c >= 'A' && c <= 'F') {
+            return (byte) (c - 'A' + 0x0a);
+        }
         return (byte) (c - '0');
     }
 
@@ -216,20 +219,35 @@ public class TestNTLMEngineImpl {
 
     @Test
     public void testType1Message() throws Exception {
-        new NTLMEngineImpl().getType1Message("myhost", "mydomain");
+        final byte[] bytes = new NTLMEngineImpl().getType1Message("myhost", "mydomain").getBytes();
+        final byte[] bytes2 = toBytes("546C524D54564E545541414241414141415949496F6741414141416F414141414141414141436741414141464153674B4141414144773D3D");
+        checkArraysMatch(bytes2, bytes);
     }
 
     @Test
     public void testType3Message() throws Exception {
-        new NTLMEngineImpl().getType3Message("me", "mypassword", "myhost", "mydomain",
+        final byte[] bytes = new NTLMEngineImpl().getType3Message("me", "mypassword", "myhost", "mydomain",
             toBytes("0001020304050607"),
             0xffffffff,
-            null,null);
-        new NTLMEngineImpl().getType3Message("me", "mypassword", "myhost", "mydomain",
+            null,null).getBytes();
+        // Verify the parts that have no random or timestamp component
+        checkArraysMatch(toBytes("546C524D54564E545541414441414141474141594145674141414159414267415941414141424141454142344141414142414145414967414141414D414177416A4141414142414145414359414141412F2F2F2F2F7755424B416F4141414150"),
+            0, bytes);
+        checkArraysMatch(toBytes("414141414141414141414141414141414141414141"),
+            107, bytes);
+        checkArraysMatch(toBytes("5451425A414551415477424E414545415351424F414730415A51427441486B416141427641484D416441"),
+            160, bytes);
+        final byte[] bytes2 = new NTLMEngineImpl().getType3Message("me", "mypassword", "myhost", "mydomain",
             toBytes("0001020304050607"),
             0xffffffff,
             "mytarget",
-            toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"));
+            toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000")).getBytes();
+        checkArraysMatch(toBytes("546C524D54564E545541414441414141474141594145674141414353414A49415941414141424141454144794141414142414145414149424141414D41417741426745414142414145414153415141412F2F2F2F2F7755424B416F4141414150"),
+            0, bytes2);
+        checkArraysMatch(toBytes("45424141414141414141"),
+            150, bytes2);
+        checkArraysMatch(toBytes("4141414141434141774152414250414530415151424A414534414151414D41464D41525142534146594152514253414151414641426B414738416251426841476B416267417541474D416277427441414D414967427A414755416367423241475541636741754147514162774274414745416151427541433441597742764147304141414141414141414141424E41466B4152414250414530415151424A414534416251426C414730416551426F414738416377423041"),
+            182, bytes2);
     }
 
     @Test
@@ -247,4 +265,15 @@ public class TestNTLMEngineImpl {
             Assert.assertEquals(a1[i],a2[i]);
         }
     }
+
+    /* Byte array check helper */
+    static void checkArraysMatch(final byte[] a1,
+        final int a2StartIndex, final byte[] a2)
+        throws Exception {
+        Assert.assertTrue(a2.length - a2StartIndex >= a1.length);
+        for (int i = 0; i < a1.length; i++) {
+            Assert.assertEquals(a1[i],a2[i + a2StartIndex]);
+        }
+    }
+
 }
