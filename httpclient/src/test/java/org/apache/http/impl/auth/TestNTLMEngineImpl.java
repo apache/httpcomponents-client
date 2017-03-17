@@ -291,6 +291,19 @@ public class TestNTLMEngineImpl {
         final CertificateFactory cf = CertificateFactory.getInstance("X.509");
 
         final Certificate cert = cf.generateCertificate(fis);
+
+        final byte[] bytes2 = new NTLMEngineImpl.Type3Message(
+            new Random(1234),
+            1234L,
+            "me", "mypassword", "myhost", "mydomain",
+            toBytes("0001020304050607"),
+            0xffffffff,
+            "mytarget",
+            toBytes("02000c0044004f004d00410049004e0001000c005300450052005600450052000400140064006f006d00610069006e002e0063006f006d00030022007300650072007600650072002e0064006f006d00610069006e002e0063006f006d0000000000"),
+            cert,
+            toBytes("4E544C4D5353500001000000018208A20C000C003800000010001000280000000501280A0000000F6D00790064006F006D00610069006E004D00590048004F0053005400"),
+            toBytes("4E544C4D5353500001000000018208A20C000C003800000010001000280000000501280A0000000F6D00790064006F006D00610069006E004D00590048004F0053005400FFFEFDFCFBFA")).getBytes();
+
         //System.out.println(cert.toString());
     }
 

@@ -38,7 +38,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
+import java.security.cert.Certificate;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -186,7 +186,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      *             If the messages cannot be retrieved.
      */
     static String getResponseFor(final String message, final String username, final String password,
-            final String host, final String domain, final X509Certificate peerServerCertificate) throws NTLMEngineException {
+            final String host, final String domain, final Certificate peerServerCertificate) throws NTLMEngineException {
 
         final String response;
         if (message == null || message.trim().equals("")) {
@@ -267,7 +267,7 @@ final class NTLMEngineImpl implements NTLMEngine {
      */
     static String getType3Message(final String user, final String password, final String host, final String domain,
             final byte[] nonce, final int type2Flags, final String target, final byte[] targetInformation,
-            final X509Certificate peerServerCertificate, final byte[] type1Message, final byte[] type2Message)
+            final Certificate peerServerCertificate, final byte[] type1Message, final byte[] type2Message)
             throws NTLMEngineException {
         return new Type3Message(domain, host, user, password, nonce, type2Flags, target,
                 targetInformation, peerServerCertificate, type1Message, type2Message).getResponse();
@@ -1536,7 +1536,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             final int type2Flags,
             final String target,
             final byte[] targetInformation,
-            final X509Certificate peerServerCertificate,
+            final Certificate peerServerCertificate,
             final byte[] type1Message,
             final byte[] type2Message)
             throws NTLMEngineException {
@@ -1553,7 +1553,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             final int type2Flags,
             final String target,
             final byte[] targetInformation,
-            final X509Certificate peerServerCertificate,
+            final Certificate peerServerCertificate,
             final byte[] type1Message,
             final byte[] type2Message)
             throws NTLMEngineException {
@@ -1811,7 +1811,7 @@ final class NTLMEngineImpl implements NTLMEngine {
          * Looks like this is needed if we want to use exported session key for GSS wrapping.
          */
         private byte[] addGssMicAvsToTargetInfo( final byte[] originalTargetInfo,
-            final X509Certificate peerServerCertificate ) throws NTLMEngineException
+            final Certificate peerServerCertificate ) throws NTLMEngineException
         {
             final byte[] newTargetInfo = new byte[originalTargetInfo.length + 8 + 20];
             final int appendLength = originalTargetInfo.length - 4; // last tag is MSV_AV_EOL, do not copy that

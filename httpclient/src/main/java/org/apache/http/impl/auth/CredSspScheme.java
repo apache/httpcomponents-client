@@ -344,7 +344,7 @@ public class CredSspScheme extends AuthSchemeBase
             type2Message = new NTLMEngineImpl.Type2Message(
                 lastReceivedTsRequest.getNegoToken());
 
-            final X509Certificate peerServerCertificate = getPeerServerCertificate();
+            final Certificate peerServerCertificate = getPeerServerCertificate();
 
             type3Message = new NTLMEngineImpl.Type3Message(
                 ntcredentials.getDomain(),
@@ -424,7 +424,7 @@ public class CredSspScheme extends AuthSchemeBase
     }
 
 
-    private X509Certificate getPeerServerCertificate() throws AuthenticationException
+    private Certificate getPeerServerCertificate() throws AuthenticationException
     {
         Certificate[] peerCertificates;
         try
