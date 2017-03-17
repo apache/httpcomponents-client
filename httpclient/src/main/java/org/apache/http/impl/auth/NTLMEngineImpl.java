@@ -1088,6 +1088,28 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
     }
 
+    /** Strip dot suffix from a name */
+    private static String stripDotSuffix(final String value) {
+        if (value == null) {
+            return null;
+        }
+        final int index = value.indexOf(".");
+        if (index != -1) {
+            return value.substring(0, index);
+        }
+        return value;
+    }
+
+    /** Convert host to standard form */
+    private static String convertHost(final String host) {
+        return stripDotSuffix(host);
+    }
+
+    /** Convert domain to standard form */
+    private static String convertDomain(final String domain) {
+        return stripDotSuffix(domain);
+    }
+
     /** NTLM message generation, base class */
     static class NTLMMessage {
         /** The current response */
@@ -1273,10 +1295,11 @@ final class NTLMEngineImpl implements NTLMEngine {
         Type1Message(final String domain, final String host, final Integer flags) throws NTLMEngineException {
             super();
             this.flags = ((flags == null)?getDefaultFlags():flags);
-            // All host name manipulations now take place in the credentials
-            final String unqualifiedHost = host;
-            // All domain name manipulations now take place in the credentials
-            final String unqualifiedDomain = domain;
+
+            // Strip off domain name from the host!
+            final String unqualifiedHost = convertHost(host);
+            // Use only the base domain name!
+            final String unqualifiedDomain = convertDomain(domain);
 
             hostBytes = unqualifiedHost != null ?
                     unqualifiedHost.getBytes(UNICODE_LITTLE_UNMARKED) : null;
@@ -1544,11 +1567,10 @@ final class NTLMEngineImpl implements NTLMEngine {
             this.type1Message = type1Message;
             this.type2Message = type2Message;
 
-            // All host name manipulations now take place in the credentials
-            final String unqualifiedHost = host;
-            // All domain name manipulations now take place in the credentials
-            final String unqualifiedDomain = domain;
-
+            // Strip off domain name from the host!
+            final String unqualifiedHost = convertHost(host);
+            // Use only the base domain name!
+            final String unqualifiedDomain = convertDomain(domain);
 
             byte[] responseTargetInformation = targetInformation;
             if (peerServerCertificate != null) {
