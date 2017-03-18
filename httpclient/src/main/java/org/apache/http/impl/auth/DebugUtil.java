@@ -34,7 +34,7 @@ import java.nio.ByteBuffer;
 /**
  * Simple debugging utility class for CredSSP and NTLM implementations.
  */
-public class DebugUtil
+class DebugUtil
 {
 
     public static String dump( final ByteBuffer buf )
