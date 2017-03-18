@@ -81,7 +81,7 @@ public final class AuthChallenge {
     @Override
     public String toString() {
         final StringBuilder buffer = new StringBuilder();
-        buffer.append(challengeType).append(" ").append(scheme).append(" ");
+        buffer.append(scheme).append(" ");
         if (value != null) {
             buffer.append(value);
         } else if (params != null) {

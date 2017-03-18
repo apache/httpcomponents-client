@@ -29,13 +29,16 @@ package org.apache.hc.client5.http.impl.win;
 import java.security.Principal;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.hc.client5.http.RouteInfo;
 import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthenticationException;
 import org.apache.hc.client5.http.auth.BasicUserPrincipal;
+import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.config.AuthSchemes;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -74,6 +77,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
     private final String scheme;
     private final String servicePrincipalName;
 
+    private ChallengeType challengeType;
     private String challenge;
     private CredHandle clientCred;
     private CtxtHandle sspiContext;
@@ -138,6 +142,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
         if (authChallenge.getValue() == null) {
             throw new MalformedChallengeException("Missing auth challenge");
         }
+        challengeType = authChallenge.getChallengeType();
         challenge = authChallenge.getValue();
         if (challenge.isEmpty()) {
             if (clientCred != null) {
@@ -177,6 +182,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
             final HttpRequest request,
             final HttpContext context) throws AuthenticationException {
 
+        final HttpClientContext clientContext = HttpClientContext.adapt(context);
         final String response;
         if (clientCred == null) {
             // client credentials handle
@@ -193,7 +199,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
                     throw new Win32Exception(rc);
                 }
 
-                final String targetName = getServicePrincipalName(request);
+                final String targetName = getServicePrincipalName(request, clientContext);
                 response = getToken(null, null, targetName);
             } catch (final RuntimeException ex) {
                 failAuthCleanup();
@@ -210,7 +216,7 @@ public class WindowsNegotiateScheme implements AuthScheme {
                 final byte[] continueTokenBytes = Base64.decodeBase64(challenge);
                 final SecBufferDesc continueTokenBuffer = new SecBufferDesc(
                         Sspi.SECBUFFER_TOKEN, continueTokenBytes);
-                final String targetName = getServicePrincipalName(request);
+                final String targetName = getServicePrincipalName(request, clientContext);
                 response = getToken(this.sspiContext, continueTokenBuffer, targetName);
             } catch (final RuntimeException ex) {
                 failAuthCleanup();
@@ -233,14 +239,30 @@ public class WindowsNegotiateScheme implements AuthScheme {
     // at http://www.chromium.org/developers/design-documents/http-authentication). Here,
     // I've chosen to use the host that has been provided in HttpHost so that I don't incur
     // any additional DNS lookup cost.
-    private String getServicePrincipalName(final HttpRequest request) {
+    private String getServicePrincipalName(final HttpRequest request, final HttpClientContext clientContext) {
         String spn = null;
         if (this.servicePrincipalName != null) {
             spn = this.servicePrincipalName;
+        } else if (challengeType == ChallengeType.PROXY) {
+            final RouteInfo route = clientContext.getHttpRoute();
+            if (route != null) {
+                spn = "HTTP/" + route.getProxyHost().getHostName();
+            } else {
+                // Should not happen
+                spn = null;
+            }
         } else {
             final URIAuthority authority = request.getAuthority();
             if (authority != null) {
                 spn = "HTTP/" + authority.getHostName();
+            } else {
+                final RouteInfo route = clientContext.getHttpRoute();
+                if (route != null) {
+                    spn = "HTTP/" + route.getTargetHost().getHostName();
+                } else {
+                    // Should not happen
+                    spn = null;
+                }
             }
         }
         if (this.log.isDebugEnabled()) {
