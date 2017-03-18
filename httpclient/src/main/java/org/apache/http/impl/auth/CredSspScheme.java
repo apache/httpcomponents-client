@@ -563,11 +563,12 @@ public class CredSspScheme extends AuthSchemeBase
         }
     }
 
+    private final static byte[] EMPTYBUFFER = new byte[0];
 
     private byte[] encodeUnicode( final String string )
     {
         if (string == null) {
-            return new byte[0];
+            return EMPTYBUFFER;
         }
         return string.getBytes( UNICODE_LITTLE_UNMARKED );
     }
