@@ -385,6 +385,16 @@ final class NTLMEngineImpl implements NTLMEngine {
             this.timestamp = timestamp;
         }
 
+        @Deprecated
+        public CipherGen(final String domain,
+            final String user,
+            final String password,
+            final byte[] challenge,
+            final String target,
+            final byte[] targetInformation) {
+            this(RND_GEN, System.currentTimeMillis(), domain, user, password, challenge, target, targetInformation);
+        }
+
         public CipherGen(final Random random, final long currentTime,
             final String domain,
             final String user,
