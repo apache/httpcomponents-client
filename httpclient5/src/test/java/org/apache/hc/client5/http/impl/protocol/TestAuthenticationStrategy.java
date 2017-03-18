@@ -85,9 +85,9 @@ public class TestAuthenticationStrategy {
         final HttpClientContext context = HttpClientContext.create();
 
         final Map<String, AuthChallenge> challenges = new HashMap<>();
-        challenges.put("basic", new AuthChallenge("Basic",
+        challenges.put("basic", new AuthChallenge(ChallengeType.TARGET, "Basic",
                 new BasicNameValuePair("realm", "test")));
-        challenges.put("digest", new AuthChallenge("Digest",
+        challenges.put("digest", new AuthChallenge(ChallengeType.TARGET, "Digest",
                 new BasicNameValuePair("realm", "test"), new BasicNameValuePair("nonce", "1234")));
 
         final List<AuthScheme> authSchemes = authStrategy.select(ChallengeType.TARGET, challenges, context);
@@ -101,11 +101,11 @@ public class TestAuthenticationStrategy {
         final HttpClientContext context = HttpClientContext.create();
 
         final Map<String, AuthChallenge> challenges = new HashMap<>();
-        challenges.put("basic", new AuthChallenge("Basic",
+        challenges.put("basic", new AuthChallenge(ChallengeType.TARGET, "Basic",
                 new BasicNameValuePair("realm", "realm1")));
-        challenges.put("digest", new AuthChallenge("Digest",
+        challenges.put("digest", new AuthChallenge(ChallengeType.TARGET, "Digest",
                 new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
-        challenges.put("whatever", new AuthChallenge("Whatever",
+        challenges.put("whatever", new AuthChallenge(ChallengeType.TARGET, "Whatever",
                 new BasicNameValuePair("realm", "realm3")));
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
@@ -137,9 +137,9 @@ public class TestAuthenticationStrategy {
         final HttpClientContext context = HttpClientContext.create();
 
         final Map<String, AuthChallenge> challenges = new HashMap<>();
-        challenges.put("basic", new AuthChallenge("Basic",
+        challenges.put("basic", new AuthChallenge(ChallengeType.TARGET, "Basic",
                 new BasicNameValuePair("realm", "realm1")));
-        challenges.put("digest", new AuthChallenge("Digest",
+        challenges.put("digest", new AuthChallenge(ChallengeType.TARGET, "Digest",
                 new BasicNameValuePair("realm", "realm2"), new BasicNameValuePair("nonce", "1234")));
 
         final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()

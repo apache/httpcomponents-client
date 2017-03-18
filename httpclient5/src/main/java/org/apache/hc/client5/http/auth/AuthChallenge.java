@@ -45,20 +45,25 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class AuthChallenge {
 
+    private final ChallengeType challengeType;
     private final String scheme;
     private final String value;
     private final List<NameValuePair> params;
 
-    public AuthChallenge(final String scheme, final String value, final List<? extends NameValuePair> params) {
+    public AuthChallenge(final ChallengeType challengeType, final String scheme, final String value, final List<? extends NameValuePair> params) {
         super();
-        Args.notNull(scheme, "Auth scheme");
-        this.scheme = scheme;
+        this.challengeType = Args.notNull(challengeType, "Challenge type");
+        this.scheme = Args.notNull(scheme, "Auth scheme");
         this.value = value;
         this.params = params != null ? Collections.unmodifiableList(new ArrayList<>(params)) : null;
     }
 
-    public AuthChallenge(final String scheme, final NameValuePair... params) {
-        this(scheme, null, Arrays.asList(params));
+    public AuthChallenge(final ChallengeType challengeType, final String scheme, final NameValuePair... params) {
+        this(challengeType, scheme, null, Arrays.asList(params));
+    }
+
+    public ChallengeType getChallengeType() {
+        return challengeType;
     }
 
     public String getScheme() {
@@ -76,7 +81,7 @@ public final class AuthChallenge {
     @Override
     public String toString() {
         final StringBuilder buffer = new StringBuilder();
-        buffer.append(scheme).append(" ");
+        buffer.append(challengeType).append(" ").append(scheme).append(" ");
         if (value != null) {
             buffer.append(value);
         } else if (params != null) {

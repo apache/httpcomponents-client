@@ -41,6 +41,7 @@ import org.apache.hc.client5.http.auth.AuthChallenge;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.AuthenticationException;
+import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
@@ -69,7 +70,7 @@ public class TestDigestScheme {
         final CharArrayBuffer buffer = new CharArrayBuffer(s.length());
         buffer.append(s);
         final ParserCursor cursor = new ParserCursor(0, buffer.length());
-        final List<AuthChallenge> authChallenges = AuthChallengeParser.INSTANCE.parse(buffer, cursor);
+        final List<AuthChallenge> authChallenges = AuthChallengeParser.INSTANCE.parse(ChallengeType.TARGET, buffer, cursor);
         Assert.assertEquals(1, authChallenges.size());
         return authChallenges.get(0);
     }

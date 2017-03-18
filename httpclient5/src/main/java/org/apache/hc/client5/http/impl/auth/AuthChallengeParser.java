@@ -32,6 +32,7 @@ import java.util.BitSet;
 import java.util.List;
 
 import org.apache.hc.client5.http.auth.AuthChallenge;
+import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
@@ -70,7 +71,7 @@ public class AuthChallengeParser {
         return new BasicNameValuePair(token, null);
     }
 
-    public List<AuthChallenge> parse(final CharSequence buffer, final ParserCursor cursor) throws ParseException {
+    public List<AuthChallenge> parse(final ChallengeType challengeType, final CharSequence buffer, final ParserCursor cursor) throws ParseException {
 
         final List<AuthChallenge> list = new ArrayList<>();
         String scheme = null;
@@ -82,7 +83,7 @@ public class AuthChallengeParser {
                     if (params.isEmpty()) {
                         throw new ParseException("Malformed auth challenge");
                     }
-                    list.add(createAuthChallenge(scheme, params));
+                    list.add(createAuthChallenge(challengeType, scheme, params));
                     params.clear();
                 }
                 scheme = tokenOrParameter.getName();
@@ -96,24 +97,24 @@ public class AuthChallengeParser {
                 cursor.updatePos(cursor.getPos() + 1);
             }
         }
-        list.add(createAuthChallenge(scheme, params));
+        list.add(createAuthChallenge(challengeType, scheme, params));
         return list;
     }
 
-    private static AuthChallenge createAuthChallenge(final String scheme, final List<NameValuePair> params) throws ParseException {
+    private static AuthChallenge createAuthChallenge(final ChallengeType challengeType, final String scheme, final List<NameValuePair> params) throws ParseException {
         if (scheme != null) {
             if (params.size() == 1) {
                 final NameValuePair nvp = params.get(0);
                 if (nvp.getValue() == null) {
-                    return new AuthChallenge(scheme, nvp.getName(), null);
+                    return new AuthChallenge(challengeType, scheme, nvp.getName(), null);
                 }
             }
-            return new AuthChallenge(scheme, null, params.size() > 0 ? params : null);
+            return new AuthChallenge(challengeType, scheme, null, params.size() > 0 ? params : null);
         }
         if (params.size() == 1) {
             final NameValuePair nvp = params.get(0);
             if (nvp.getValue() == null) {
-                return new AuthChallenge(nvp.getName(), null, null);
+                return new AuthChallenge(challengeType, nvp.getName(), null, null);
             }
         }
         throw new ParseException("Malformed auth challenge");

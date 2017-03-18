@@ -156,7 +156,7 @@ public class HttpAuthenticator {
             final ParserCursor cursor = new ParserCursor(pos, buffer.length());
             final List<AuthChallenge> authChallenges;
             try {
-                authChallenges = parser.parse(buffer, cursor);
+                authChallenges = parser.parse(challengeType, buffer, cursor);
             } catch (final ParseException ex) {
                 if (this.log.isWarnEnabled()) {
                     this.log.warn("Malformed challenge: " + header.getValue());
