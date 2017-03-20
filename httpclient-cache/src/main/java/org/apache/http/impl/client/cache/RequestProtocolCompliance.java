@@ -32,7 +32,9 @@ import java.util.List;
 
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -43,8 +45,8 @@ import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.cache.HeaderConstants;
 import org.apache.http.client.methods.HttpRequestWrapper;
-import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.HttpEntityWrapper;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.message.BasicStatusLine;
@@ -193,9 +195,17 @@ class RequestProtocolCompliance {
     }
 
     private void addContentTypeHeaderIfMissing(final HttpEntityEnclosingRequest request) {
-        if (request.getEntity().getContentType() == null) {
-            ((AbstractHttpEntity) request.getEntity()).setContentType(
-                    ContentType.APPLICATION_OCTET_STREAM.getMimeType());
+        final HttpEntity entity = request.getEntity();
+        if (entity != null && entity.getContentType() == null) {
+            final HttpEntityWrapper entityWrapper = new HttpEntityWrapper(entity) {
+
+                @Override
+                public Header getContentType() {
+                    return new BasicHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_OCTET_STREAM.getMimeType());
+                }
+
+            };
+            request.setEntity(entityWrapper);
         }
     }
 
