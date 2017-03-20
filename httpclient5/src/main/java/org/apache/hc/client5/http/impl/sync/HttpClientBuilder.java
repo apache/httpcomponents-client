@@ -865,7 +865,8 @@ public class HttpClientBuilder {
             if (evictExpiredConnections || evictIdleConnections) {
                 if (connManagerCopy instanceof ConnPoolControl) {
                     final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor((ConnPoolControl<?>) connManagerCopy,
-                            maxIdleTime > 0 ? maxIdleTime : 10, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS);
+                            maxIdleTime > 0 ? maxIdleTime : 10, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS,
+                            maxIdleTime, maxIdleTimeUnit);
                     closeablesCopy.add(new Closeable() {
 
                         @Override
