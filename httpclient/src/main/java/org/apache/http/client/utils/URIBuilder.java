@@ -146,9 +146,9 @@ public class URIBuilder {
                 }
             }
             if (this.encodedPath != null) {
-                sb.append(normalizePath(this.encodedPath));
+                sb.append(normalizePath(this.encodedPath, sb.length() == 0));
             } else if (this.path != null) {
-                sb.append(encodePath(normalizePath(this.path)));
+                sb.append(encodePath(normalizePath(this.path, sb.length() == 0)));
             }
             if (this.encodedQuery != null) {
                 sb.append("?").append(this.encodedQuery);
@@ -164,6 +164,26 @@ public class URIBuilder {
             sb.append("#").append(encodeUric(this.fragment));
         }
         return sb.toString();
+    }
+
+    private static String normalizePath(final String path, final boolean relative) {
+        String s = path;
+        if (TextUtils.isBlank(s)) {
+            return "";
+        }
+        int n = 0;
+        for (; n < s.length(); n++) {
+            if (s.charAt(n) != '/') {
+                break;
+            }
+        }
+        if (n > 1) {
+            s = s.substring(n - 1);
+        }
+        if (!relative && !s.startsWith("/")) {
+            s = "/" + s;
+        }
+        return s;
     }
 
     private void digestURI(final URI uri) {
@@ -489,26 +509,6 @@ public class URIBuilder {
     @Override
     public String toString() {
         return buildString();
-    }
-
-    private static String normalizePath(final String path) {
-        String s = path;
-        if (TextUtils.isBlank(s)) {
-            return "";
-        }
-        int n = 0;
-        for (; n < s.length(); n++) {
-            if (s.charAt(n) != '/') {
-                break;
-            }
-        }
-        if (n > 1) {
-            s = s.substring(n - 1);
-        }
-        if (!s.startsWith("/")) {
-            s = "/" + s;
-        }
-        return s;
     }
 
 }
