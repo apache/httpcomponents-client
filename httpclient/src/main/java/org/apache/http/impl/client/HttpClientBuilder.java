@@ -88,6 +88,7 @@ import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.cookie.CookieSpecProvider;
 import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.auth.BasicSchemeFactory;
+import org.apache.http.impl.auth.CredSspSchemeFactory;
 import org.apache.http.impl.auth.DigestSchemeFactory;
 import org.apache.http.impl.auth.KerberosSchemeFactory;
 import org.apache.http.impl.auth.NTLMSchemeFactory;
@@ -1174,6 +1175,7 @@ public class HttpClientBuilder {
             authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeProvider>create()
                 .register(AuthSchemes.BASIC, new BasicSchemeFactory())
                 .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
+                .register(AuthSchemes.CREDSSP, new CredSspSchemeFactory())
                 .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
                 .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory())
                 .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory())
