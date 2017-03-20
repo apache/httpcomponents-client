@@ -871,8 +871,12 @@ public class HttpClientBuilder {
                         @Override
                         public void close() throws IOException {
                             connectionEvictor.shutdown();
+                            try {
+                                connectionEvictor.awaitTermination(1, TimeUnit.SECONDS);
+                            } catch (InterruptedException interrupted) {
+                                Thread.currentThread().interrupt();
+                            }
                         }
-
                     });
                     connectionEvictor.start();
                 }
