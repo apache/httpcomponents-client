@@ -73,6 +73,7 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
                 AuthSchemes.SPNEGO,
                 AuthSchemes.KERBEROS,
                 AuthSchemes.NTLM,
+                AuthSchemes.CREDSSP,
                 AuthSchemes.DIGEST,
                 AuthSchemes.BASIC));
 

@@ -8,6 +8,9 @@ Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
 Changelog:
 -------------------
 
+* [HTTPCLIENT-1834] Add support for CredSsp.
+  Contributed by Radovan Semancik <radovan.semancik at evolveum.com> and Karl Wright <kwright at apache.org>
+
 * [HTTPCLIENT-1833] Fix Windows Negotiate-NTLM handling of proxies.
   Contributed by Roman Stoffel <roman.stoffel at gamler.info>
 
