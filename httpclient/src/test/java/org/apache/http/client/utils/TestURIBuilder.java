@@ -299,4 +299,16 @@ public class TestURIBuilder {
         Assert.assertEquals("example.com", uri.getHost());
     }
 
+    @Test
+    public void testRelativePath() throws Exception {
+        final URI uri = new URIBuilder("./mypath").build();
+        Assert.assertEquals(new URI("./mypath"), uri);
+    }
+
+    @Test
+    public void testRelativePathWithAuthority() throws Exception {
+        final URI uri = new URIBuilder("./mypath").setHost("somehost").setScheme("http").build();
+        Assert.assertEquals(new URI("http://somehost/./mypath"), uri);
+    }
+
 }
