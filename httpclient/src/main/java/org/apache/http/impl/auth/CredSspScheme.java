@@ -30,7 +30,6 @@ package org.apache.http.impl.auth;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import org.apache.http.Consts;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -42,16 +41,18 @@ import java.util.Arrays;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLEngineResult.HandshakeStatus;
+import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import javax.net.ssl.SSLEngineResult.HandshakeStatus;
-import javax.net.ssl.SSLEngineResult.Status;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.auth.AUTH;
@@ -65,8 +66,6 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.CharsetUtils;
-
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * <p>
@@ -118,7 +117,6 @@ public class CredSspScheme extends AuthSchemeBase
 
     private State state;
     private SSLEngine sslEngine;
-    private final NTLMEngineImpl ntlmEngine;
     private NTLMEngineImpl.Type1Message type1Message;
     private NTLMEngineImpl.Type2Message type2Message;
     private NTLMEngineImpl.Type3Message type3Message;
@@ -129,11 +127,6 @@ public class CredSspScheme extends AuthSchemeBase
 
 
     public CredSspScheme() {
-        this(new NTLMEngineImpl());
-    }
-
-    public CredSspScheme(final NTLMEngineImpl ntlmEngine) {
-        this.ntlmEngine = ntlmEngine;
         state = State.UNINITIATED;
     }
 
