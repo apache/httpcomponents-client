@@ -27,11 +27,13 @@
 
 package org.apache.hc.client5.http.impl;
 
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class maintains a background thread to enforce an eviction policy for expired / idle
@@ -41,12 +43,11 @@ import org.apache.hc.core5.util.Args;
  */
 public final class IdleConnectionEvictor {
 
+    private final Logger log = LogManager.getLogger(getClass());
     private final ThreadFactory threadFactory;
     private final Thread thread;
     private final long sleepTimeMs;
     private final long maxIdleTimeMs;
-
-    private volatile Exception exception;
 
     public IdleConnectionEvictor(
             final ConnPoolControl<?> connectionManager,
@@ -68,10 +69,11 @@ public final class IdleConnectionEvictor {
                             connectionManager.closeIdle(maxIdleTimeMs, TimeUnit.MILLISECONDS);
                         }
                     }
-                } catch (final Exception ex) {
-                    exception = ex;
+                } catch (final RuntimeException uncaught) {
+                    log.error(uncaught.getMessage(), uncaught);
+                } catch (final InterruptedException interrupted) {
+                    // time to shut down
                 }
-
             }
         });
     }

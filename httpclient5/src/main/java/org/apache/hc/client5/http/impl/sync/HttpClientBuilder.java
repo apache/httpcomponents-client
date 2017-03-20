@@ -867,14 +867,19 @@ public class HttpClientBuilder {
             if (evictExpiredConnections || evictIdleConnections) {
                 if (connManagerCopy instanceof ConnPoolControl) {
                     final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor((ConnPoolControl<?>) connManagerCopy,
-                            maxIdleTime > 0 ? maxIdleTime : 10, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS);
+                            maxIdleTime > 0 ? maxIdleTime : 10, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS,
+                            maxIdleTime, maxIdleTimeUnit);
                     closeablesCopy.add(new Closeable() {
 
                         @Override
                         public void close() throws IOException {
                             connectionEvictor.shutdown();
+                            try {
+                                connectionEvictor.awaitTermination(1, TimeUnit.SECONDS);
+                            } catch (InterruptedException interrupted) {
+                                Thread.currentThread().interrupt();
+                            }
                         }
-
                     });
                     connectionEvictor.start();
                 }
