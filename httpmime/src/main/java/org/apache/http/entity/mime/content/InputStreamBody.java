@@ -46,6 +46,7 @@ public class InputStreamBody extends AbstractContentBody {
 
     private final InputStream in;
     private final String filename;
+    private final long contentLength;
 
     /**
      * @since 4.1
@@ -66,10 +67,18 @@ public class InputStreamBody extends AbstractContentBody {
      * @since 4.3
      */
     public InputStreamBody(final InputStream in, final ContentType contentType, final String filename) {
+        this(in, contentType, filename, -1);
+    }
+
+    /**
+     * @since 4.6
+     */
+    public InputStreamBody(final InputStream in, final ContentType contentType, final String filename, final long contentLength) {
         super(contentType);
         Args.notNull(in, "Input stream");
         this.in = in;
         this.filename = filename;
+        this.contentLength = contentLength >= 0 ? contentLength : -1;
     }
 
     /**
@@ -105,7 +114,7 @@ public class InputStreamBody extends AbstractContentBody {
 
     @Override
     public long getContentLength() {
-        return -1;
+        return this.contentLength;
     }
 
     @Override
