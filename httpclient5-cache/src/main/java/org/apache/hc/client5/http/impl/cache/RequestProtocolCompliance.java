@@ -32,8 +32,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
-import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
+import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -47,7 +47,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.io.entity.AbstractHttpEntity;
+import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.message.MessageSupport;
@@ -191,7 +191,15 @@ class RequestProtocolCompliance {
     private void addContentTypeHeaderIfMissing(final RoutedHttpRequest request) {
         final HttpEntity entity = request.getEntity();
         if (entity != null && entity.getContentType() == null) {
-            ((AbstractHttpEntity) entity).setContentType(ContentType.APPLICATION_OCTET_STREAM.getMimeType());
+            final HttpEntityWrapper entityWrapper = new HttpEntityWrapper(entity) {
+
+                @Override
+                public String getContentType() {
+                    return ContentType.APPLICATION_OCTET_STREAM.getMimeType();
+                }
+
+            };
+            request.setEntity(entityWrapper);
         }
     }
 
