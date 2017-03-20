@@ -1085,28 +1085,6 @@ final class NTLMEngineImpl implements NTLMEngine {
         }
     }
 
-    /** Strip dot suffix from a name */
-    private static String stripDotSuffix(final String value) {
-        if (value == null) {
-            return null;
-        }
-        final int index = value.indexOf(".");
-        if (index != -1) {
-            return value.substring(0, index);
-        }
-        return value;
-    }
-
-    /** Convert host to standard form */
-    private static String convertHost(final String host) {
-        return stripDotSuffix(host);
-    }
-
-    /** Convert domain to standard form */
-    private static String convertDomain(final String domain) {
-        return stripDotSuffix(domain);
-    }
-
     /** NTLM message generation, base class */
     static class NTLMMessage {
         /** The current response */
@@ -1293,10 +1271,9 @@ final class NTLMEngineImpl implements NTLMEngine {
             super();
             this.flags = ((flags == null)?getDefaultFlags():flags);
 
-            // Strip off domain name from the host!
-            final String unqualifiedHost = convertHost(host);
-            // Use only the base domain name!
-            final String unqualifiedDomain = convertDomain(domain);
+            // See HTTPCLIENT-1662
+            final String unqualifiedHost = host;
+            final String unqualifiedDomain = domain;
 
             hostBytes = unqualifiedHost != null ?
                     unqualifiedHost.getBytes(UNICODE_LITTLE_UNMARKED) : null;

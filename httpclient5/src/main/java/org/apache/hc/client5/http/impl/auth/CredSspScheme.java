@@ -318,7 +318,7 @@ public class CredSspScheme implements AuthScheme
             final int ntlmFlags = getNtlmFlags();
             final ByteBuffer buf = allocateOutBuffer();
             type1Message = new NTLMEngineImpl.Type1Message(
-                ntcredentials.getDomain(), ntcredentials.getWorkstation(), ntlmFlags);
+                ntcredentials.getNetbiosDomain(), ntcredentials.getWorkstation(), ntlmFlags);
             final byte[] ntlmNegoMessageEncoded = type1Message.getBytes();
             final CredSspTsRequest req = CredSspTsRequest.createNegoToken( ntlmNegoMessageEncoded );
             req.encode( buf );
@@ -336,7 +336,7 @@ public class CredSspScheme implements AuthScheme
             final Certificate peerServerCertificate = getPeerServerCertificate();
 
             type3Message = new NTLMEngineImpl.Type3Message(
-                ntcredentials.getDomain(),
+                ntcredentials.getNetbiosDomain(),
                 ntcredentials.getWorkstation(),
                 ntcredentials.getUserName(),
                 ntcredentials.getPassword(),
