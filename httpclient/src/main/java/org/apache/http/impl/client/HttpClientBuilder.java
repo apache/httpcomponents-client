@@ -1209,7 +1209,8 @@ public class HttpClientBuilder {
 
             if (evictExpiredConnections || evictIdleConnections) {
                 final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
-                        maxIdleTime > 0 ? maxIdleTime : 10, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS);
+                        maxIdleTime > 0 ? maxIdleTime : 10, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS,
+                        maxIdleTime, maxIdleTimeUnit);
                 closeablesCopy.add(new Closeable() {
 
                     @Override
@@ -1221,7 +1222,6 @@ public class HttpClientBuilder {
                             Thread.currentThread().interrupt();
                         }
                     }
-
                 });
                 connectionEvictor.start();
             }
