@@ -136,13 +136,13 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         final List<SubjectName> allSubjectAltNames = DefaultHostnameVerifier.getSubjectAltNames(cert);
         final List<String> subjectAlts = new ArrayList<String>();
         if (InetAddressUtils.isIPv4Address(host) || InetAddressUtils.isIPv6Address(host)) {
-            for (SubjectName subjectName: allSubjectAltNames) {
+            for (final SubjectName subjectName: allSubjectAltNames) {
                 if (subjectName.getType() == SubjectName.IP) {
                     subjectAlts.add(subjectName.getValue());
                 }
             }
         } else {
-            for (SubjectName subjectName: allSubjectAltNames) {
+            for (final SubjectName subjectName: allSubjectAltNames) {
                 if (subjectName.getType() == SubjectName.DNS) {
                     subjectAlts.add(subjectName.getValue());
                 }
@@ -262,7 +262,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
             return null;
         }
         final List<String> dnsAlts = new ArrayList<String>();
-        for (SubjectName subjectName: subjectAltNames) {
+        for (final SubjectName subjectName: subjectAltNames) {
             if (subjectName.getType() == SubjectName.DNS) {
                 dnsAlts.add(subjectName.getValue());
             }
