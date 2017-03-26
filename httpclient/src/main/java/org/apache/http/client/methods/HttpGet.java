@@ -45,7 +45,7 @@ import java.net.URI;
  *
  * @since 4.0
  */
-public class HttpGet extends HttpRequestBase {
+public class HttpGet extends HttpEntityEnclosingRequestBase {
 
     public final static String METHOD_NAME = "GET";
 
