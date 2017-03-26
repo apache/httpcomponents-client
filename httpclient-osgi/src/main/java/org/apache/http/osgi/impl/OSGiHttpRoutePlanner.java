@@ -53,7 +53,7 @@ final class OSGiHttpRoutePlanner extends DefaultRoutePlanner {
                                                                   "([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\." +
                                                                   "([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
 
-    private List<ProxyConfiguration> proxyConfigurations;
+    private final List<ProxyConfiguration> proxyConfigurations;
 
     public OSGiHttpRoutePlanner(final List<ProxyConfiguration> proxyConfigurations) {
         super(null);

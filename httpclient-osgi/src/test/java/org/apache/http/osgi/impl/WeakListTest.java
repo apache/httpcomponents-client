@@ -53,7 +53,7 @@ public class WeakListTest {
         boolean thrown = false;
         try {
             it.next();
-        } catch (NoSuchElementException e) {
+        } catch (final NoSuchElementException e) {
             thrown = true;
         }
         assertTrue(thrown);
