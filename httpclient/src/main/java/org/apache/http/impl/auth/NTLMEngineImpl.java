@@ -767,7 +767,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         final private byte[] exportedSessionKey;
         private byte[] signingKey;
         private byte[] sealingKey;
-        private Cipher rc4;
+        private final Cipher rc4;
         final Mode mode;
         final private boolean isConnection;
         int sequenceNumber = 0;
@@ -831,7 +831,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                     cipher.init( Cipher.DECRYPT_MODE, new SecretKeySpec( sealingKey, "RC4" ) );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 throw new NTLMEngineException( e.getMessage(), e );
             }
@@ -1792,11 +1792,11 @@ final class NTLMEngineImpl implements NTLMEngine {
                 final MessageDigest md5 = getMD5();
                 channelBindingsHash = md5.digest( channelBindingStruct );
             }
-            catch ( CertificateEncodingException e )
+            catch ( final CertificateEncodingException e )
             {
                 throw new NTLMEngineException( e.getMessage(), e );
             }
-            catch ( NoSuchAlgorithmException e )
+            catch ( final NoSuchAlgorithmException e )
             {
                 throw new NTLMEngineException( e.getMessage(), e );
             }
@@ -1838,7 +1838,7 @@ final class NTLMEngineImpl implements NTLMEngine {
     static MessageDigest getMD5() {
         try {
             return MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
             throw new RuntimeException("MD5 message digest doesn't seem to exist - fatal error: "+ex.getMessage(), ex);
         }
     }

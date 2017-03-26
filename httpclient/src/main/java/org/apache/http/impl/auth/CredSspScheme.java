@@ -176,11 +176,11 @@ public class CredSspScheme extends AuthSchemeBase
         {
             sslContext = SSLContexts.custom().build();
         }
-        catch ( NoSuchAlgorithmException e )
+        catch ( final NoSuchAlgorithmException e )
         {
             throw new RuntimeException( "Error creating SSL Context: " + e.getMessage(), e );
         }
-        catch ( KeyManagementException e )
+        catch ( final KeyManagementException e )
         {
             throw new RuntimeException( "Error creating SSL Context: " + e.getMessage(), e );
         }
@@ -218,7 +218,7 @@ public class CredSspScheme extends AuthSchemeBase
             sslContext.init( null, new TrustManager[]
                 { tm }, null );
         }
-        catch ( KeyManagementException e )
+        catch ( final KeyManagementException e )
         {
             throw new RuntimeException( "SSL Context initialization error: " + e.getMessage(), e );
         }
@@ -424,11 +424,11 @@ public class CredSspScheme extends AuthSchemeBase
         {
             peerCertificates = sslEngine.getSession().getPeerCertificates();
         }
-        catch ( SSLPeerUnverifiedException e )
+        catch ( final SSLPeerUnverifiedException e )
         {
             throw new AuthenticationException( e.getMessage(), e );
         }
-        for ( Certificate peerCertificate : peerCertificates )
+        for ( final Certificate peerCertificate : peerCertificates )
         {
             if ( !( peerCertificate instanceof X509Certificate ) )
             {
@@ -550,7 +550,7 @@ public class CredSspScheme extends AuthSchemeBase
         {
             return ntlmOutgoingHandle.signAndEncryptMessage( authInfo );
         }
-        catch ( NTLMEngineException e )
+        catch ( final NTLMEngineException e )
         {
             throw new AuthenticationException( e.getMessage(), e );
         }
@@ -599,7 +599,7 @@ public class CredSspScheme extends AuthSchemeBase
             buf.get( subjectPublicKey );
             return subjectPublicKey;
         }
-        catch ( MalformedChallengeException e )
+        catch ( final MalformedChallengeException e )
         {
             throw new AuthenticationException( e.getMessage(), e );
         }
@@ -612,7 +612,7 @@ public class CredSspScheme extends AuthSchemeBase
         {
             getSSLEngine().beginHandshake();
         }
-        catch ( SSLException e )
+        catch ( final SSLException e )
         {
             throw new AuthenticationException( "SSL Engine error: " + e.getMessage(), e );
         }
@@ -667,7 +667,7 @@ public class CredSspScheme extends AuthSchemeBase
                 throw new AuthenticationException( "SSL Engine error status: " + engineResult.getStatus() );
             }
         }
-        catch ( SSLException e )
+        catch ( final SSLException e )
         {
             throw new AuthenticationException( "SSL Engine wrap error: " + e.getMessage(), e );
         }
@@ -717,7 +717,7 @@ public class CredSspScheme extends AuthSchemeBase
             }
 
         }
-        catch ( SSLException e )
+        catch ( final SSLException e )
         {
             throw new MalformedChallengeException( "SSL Engine unwrap error: " + e.getMessage(), e );
         }

@@ -1218,7 +1218,7 @@ public class HttpClientBuilder {
                         connectionEvictor.shutdown();
                         try {
                             connectionEvictor.awaitTermination(1L, TimeUnit.SECONDS);
-                        } catch (InterruptedException interrupted) {
+                        } catch (final InterruptedException interrupted) {
                             Thread.currentThread().interrupt();
                         }
                     }

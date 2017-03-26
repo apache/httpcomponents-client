@@ -132,7 +132,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsProvider {
                                     systemcreds = new PasswordAuthentication(proxyUser, proxyPassword != null ? proxyPassword.toCharArray() : new char[] {});
                                 }
                             }
-                        } catch (NumberFormatException ex) {
+                        } catch (final NumberFormatException ex) {
                         }
                     }
                 }

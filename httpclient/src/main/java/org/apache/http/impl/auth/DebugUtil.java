@@ -57,7 +57,7 @@ class DebugUtil
             sb.append( "null" );
             return;
         }
-        for ( byte b : bytes )
+        for ( final byte b : bytes )
         {
             sb.append( String.format( "%02X ", b ) );
         }
