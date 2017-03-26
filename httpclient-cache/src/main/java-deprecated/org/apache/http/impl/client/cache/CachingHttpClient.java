@@ -339,38 +339,45 @@ public class CachingHttpClient implements HttpClient {
         return cacheUpdates.get();
     }
 
+    @Override
     public HttpResponse execute(final HttpHost target, final HttpRequest request) throws IOException {
         final HttpContext defaultContext = null;
         return execute(target, request, defaultContext);
     }
 
+    @Override
     public <T> T execute(final HttpHost target, final HttpRequest request,
                          final ResponseHandler<? extends T> responseHandler) throws IOException {
         return execute(target, request, responseHandler, null);
     }
 
+    @Override
     public <T> T execute(final HttpHost target, final HttpRequest request,
                          final ResponseHandler<? extends T> responseHandler, final HttpContext context) throws IOException {
         final HttpResponse resp = execute(target, request, context);
         return handleAndConsume(responseHandler,resp);
     }
 
+    @Override
     public HttpResponse execute(final HttpUriRequest request) throws IOException {
         final HttpContext context = null;
         return execute(request, context);
     }
 
+    @Override
     public HttpResponse execute(final HttpUriRequest request, final HttpContext context) throws IOException {
         final URI uri = request.getURI();
         final HttpHost httpHost = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
         return execute(httpHost, request, context);
     }
 
+    @Override
     public <T> T execute(final HttpUriRequest request, final ResponseHandler<? extends T> responseHandler)
             throws IOException {
         return execute(request, responseHandler, null);
     }
 
+    @Override
     public <T> T execute(final HttpUriRequest request, final ResponseHandler<? extends T> responseHandler,
                          final HttpContext context) throws IOException {
         final HttpResponse resp = execute(request, context);
@@ -408,14 +415,17 @@ public class CachingHttpClient implements HttpClient {
         return result;
     }
 
+    @Override
     public ClientConnectionManager getConnectionManager() {
         return backend.getConnectionManager();
     }
 
+    @Override
     public HttpParams getParams() {
         return backend.getParams();
     }
 
+    @Override
     public HttpResponse execute(final HttpHost target, final HttpRequest originalRequest, final HttpContext context)
             throws IOException {
 
@@ -1138,6 +1148,7 @@ public class CachingHttpClient implements HttpClient {
             this.identifier = identifier;
         }
 
+        @Override
         public void run() {
             try {
                 cachingClient.revalidateCacheEntry(target, request, context, cacheEntry);
