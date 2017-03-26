@@ -93,10 +93,12 @@ class WeakList<T> extends AbstractList<T> {
             fetchNext();
         }
 
+        @Override
         public boolean hasNext() {
             return next != null;
         }
 
+        @Override
         public T next() {
             if (next != null) {
                 final T result = next.get();
@@ -119,6 +121,7 @@ class WeakList<T> extends AbstractList<T> {
             next = null;
         }
 
+        @Override
         public void remove() {
             throw new UnsupportedOperationException();
         }
