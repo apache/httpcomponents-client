@@ -5,7 +5,7 @@ HttpClient 4.5.4 (GA) is a maintenance release that fixes a number of defects fo
 
 Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
 
-Changelog:
+Change log:
 -------------------
 
 * [HTTPCLIENT-1834] Add support for CredSsp.
@@ -20,7 +20,7 @@ Changelog:
 * [HTTPCLIENT-1816] Update Apache Commons Codec 1.9 to 1.10.
   Contributed by Gary Gregory <ggregory at apache.org>
 
-* [HTTPCLIENT-1828] HttpDelete does not extend HttpEntityEnclosingRequestBase.
+* [HTTPCLIENT-1828] HttpDelete, HttpGet, HttpHead do not extend HttpEntityEnclosingRequestBase.
   Contributed by Saravanakumar Selvaraj <saravanakumar dot java at gmail dot com> and Gary Gregory <ggregory at apache.org>
 
 

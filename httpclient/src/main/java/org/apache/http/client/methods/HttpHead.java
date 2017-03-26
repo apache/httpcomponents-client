@@ -48,7 +48,7 @@ import java.net.URI;
  *
  * @since 4.0
  */
-public class HttpHead extends HttpRequestBase {
+public class HttpHead extends HttpEntityEnclosingRequestBase {
 
     public final static String METHOD_NAME = "HEAD";
 
