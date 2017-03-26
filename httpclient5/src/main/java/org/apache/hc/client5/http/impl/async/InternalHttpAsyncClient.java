@@ -316,6 +316,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                     userTokenRef.set(userToken);
                 }
 
+                @Override
                 public void produceRequest(
                         final RequestChannel channel) throws HttpException, IOException {
                     exchangeHandler.produceRequest(log.isDebugEnabled() ? new RequestChannel() {
@@ -333,14 +334,17 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                     } : channel);
                 }
 
+                @Override
                 public int available() {
                     return exchangeHandler.available();
                 }
 
+                @Override
                 public void produce(final DataStreamChannel channel) throws IOException {
                     exchangeHandler.produce(channel);
                 }
 
+                @Override
                 public void consumeResponse(
                         final HttpResponse response,
                         final EntityDetails entityDetails) throws HttpException, IOException {
@@ -359,6 +363,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                     }
                 }
 
+                @Override
                 public void consumeInformation(final HttpResponse response) throws HttpException, IOException {
                     if (log.isDebugEnabled()) {
                         log.debug(ConnPoolSupport.getId(connectionEndpoint) + " exchange " + id  + ": intermediate response " + new StatusLine(response));
@@ -366,14 +371,17 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                     exchangeHandler.consumeInformation(response);
                 }
 
+                @Override
                 public void updateCapacity(final CapacityChannel capacityChannel) throws IOException {
                     exchangeHandler.updateCapacity(capacityChannel);
                 }
 
+                @Override
                 public int consume(final ByteBuffer src) throws IOException {
                     return exchangeHandler.consume(src);
                 }
 
+                @Override
                 public void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
                     if (log.isDebugEnabled()) {
                         log.debug(ConnPoolSupport.getId(connectionEndpoint) + " exchange " + id  + ": completed");
@@ -382,6 +390,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                     updateState();
                 }
 
+                @Override
                 public void failed(final Exception cause) {
                     if (log.isDebugEnabled()) {
                         log.debug(ConnPoolSupport.getId(connectionEndpoint) + " exchange " + id  + ": failed", cause);
@@ -390,6 +399,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                     exchangeHandler.failed(cause);
                 }
 
+                @Override
                 public void cancel() {
                     if (log.isDebugEnabled()) {
                         log.debug(ConnPoolSupport.getId(connectionEndpoint) + " exchange " + id  + ": cancelled");
@@ -398,6 +408,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                     exchangeHandler.cancel();
                 }
 
+                @Override
                 public void releaseResources() {
                     exchangeHandler.releaseResources();
                 }
