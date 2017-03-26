@@ -73,6 +73,7 @@ public class URLEncodedUtils {
     /**
      * @deprecated 4.5 Use {@link #parse(URI, Charset)}
      */
+    @Deprecated
     public static List <NameValuePair> parse(final URI uri, final String charsetName) {
         return parse(uri, charsetName != null ? Charset.forName(charsetName) : null);
     }
