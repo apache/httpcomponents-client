@@ -45,14 +45,14 @@ import org.apache.hc.core5.reactor.IOReactorConfig;
  */
 public class AsyncClientConnectionEviction {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
 
-        IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
+        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
                 .setConnectTimeout(5000)
                 .setSoTimeout(5000)
                 .build();
 
-        CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
                 .setIOReactorConfig(ioReactorConfig)
                 .evictExpiredConnections()
                 .evictIdleConnections(10, TimeUnit.SECONDS)
@@ -60,7 +60,7 @@ public class AsyncClientConnectionEviction {
 
         client.start();
 
-        HttpHost target = new HttpHost("httpbin.org");
+        final HttpHost target = new HttpHost("httpbin.org");
 
         final SimpleHttpRequest request = new SimpleHttpRequest("GET", target, "/", null, null);
         final Future<SimpleHttpResponse> future1 = client.execute(

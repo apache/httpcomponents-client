@@ -120,7 +120,7 @@ public class RedirectExec implements ClientExecChain {
                     final URI redirectUri;
                     try {
                         redirectUri = redirect.getUri();
-                    } catch (URISyntaxException ex) {
+                    } catch (final URISyntaxException ex) {
                         // Should not happen
                         throw new ProtocolException(ex.getMessage(), ex);
                     }

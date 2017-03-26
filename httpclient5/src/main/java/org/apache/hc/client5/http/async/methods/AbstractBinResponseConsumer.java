@@ -55,7 +55,7 @@ public abstract class AbstractBinResponseConsumer<T> extends AbstractBinDataCons
             try {
                 final ContentType contentType = ContentType.parse(entityDetails.getContentType());
                 start(response, contentType);
-            } catch (UnsupportedCharsetException ex) {
+            } catch (final UnsupportedCharsetException ex) {
                 throw new UnsupportedEncodingException(ex.getMessage());
             }
         } else {

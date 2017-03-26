@@ -131,7 +131,7 @@ public class HttpAsyncClients {
                     new DefaultThreadFactory("httpclient-main", true),
                     new DefaultThreadFactory("httpclient-dispatch", true),
                     connmgr);
-        } catch (IOReactorException ex) {
+        } catch (final IOReactorException ex) {
             throw new IllegalStateException(ex.getMessage(), ex);
         }
     }

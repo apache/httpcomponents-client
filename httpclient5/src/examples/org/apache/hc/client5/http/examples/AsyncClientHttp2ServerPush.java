@@ -54,18 +54,18 @@ import org.apache.hc.core5.reactor.IOReactorConfig;
  */
 public class AsyncClientHttp2ServerPush {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
 
-        IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
+        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
                 .setConnectTimeout(5000)
                 .setSoTimeout(5000)
                 .build();
 
-        H2Config h2Config = H2Config.custom()
+        final H2Config h2Config = H2Config.custom()
                 .setPushEnabled(true)
                 .build();
 
-        CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
                 .setIOReactorConfig(ioReactorConfig)
                 .setProtocolVersion(HttpVersion.HTTP_2)
                 .setH2Config(h2Config)
@@ -116,7 +116,7 @@ public class AsyncClientHttp2ServerPush {
 
         final HttpHost target = new HttpHost("http2bin.org");
         final String requestURI = "/";
-        Future<Void> future = client.execute(
+        final Future<Void> future = client.execute(
                 AsyncRequestBuilder.get(target, requestURI).build(),
                 new AbstractCharResponseConsumer<Void>() {
 

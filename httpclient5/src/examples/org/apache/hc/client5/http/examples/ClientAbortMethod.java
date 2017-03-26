@@ -37,9 +37,9 @@ import org.apache.hc.client5.http.sync.methods.HttpGet;
  */
 public class ClientAbortMethod {
 
-    public final static void main(String[] args) throws Exception {
+    public final static void main(final String[] args) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpGet httpget = new HttpGet("http://httpbin.org/get");
+            final HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             try (CloseableHttpResponse response = httpclient.execute(httpget)) {

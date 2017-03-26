@@ -201,7 +201,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                 }
 
             });
-        } catch (HttpException ex) {
+        } catch (final HttpException ex) {
             future.failed(ex);
         }
         return future;
@@ -265,7 +265,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                 }
 
             });
-        } catch (HttpException ex) {
+        } catch (final HttpException ex) {
             future.failed(ex);
         }
         return future;
@@ -419,7 +419,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
         private void closeEndpoint() {
             try {
                 connectionEndpoint.close();
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 log.debug("I/O error closing connection endpoint: " + ex.getMessage(), ex);
             }
         }

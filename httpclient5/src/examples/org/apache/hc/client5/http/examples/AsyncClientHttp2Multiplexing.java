@@ -49,18 +49,18 @@ import org.apache.hc.core5.reactor.IOReactorConfig;
  */
 public class AsyncClientHttp2Multiplexing {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
 
-        IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
+        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
                 .setConnectTimeout(5000)
                 .setSoTimeout(5000)
                 .build();
 
-        H2Config h2Config = H2Config.custom()
+        final H2Config h2Config = H2Config.custom()
                 .setPushEnabled(false)
                 .build();
 
-        CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
                 .setIOReactorConfig(ioReactorConfig)
                 .setProtocolVersion(HttpVersion.HTTP_2)
                 .setH2Config(h2Config)
@@ -68,15 +68,15 @@ public class AsyncClientHttp2Multiplexing {
 
         client.start();
 
-        HttpHost target = new HttpHost("http2bin.org");
-        Future<AsyncClientEndpoint> leaseFuture = client.lease(target, null);
-        AsyncClientEndpoint endpoint = leaseFuture.get(30, TimeUnit.SECONDS);
+        final HttpHost target = new HttpHost("http2bin.org");
+        final Future<AsyncClientEndpoint> leaseFuture = client.lease(target, null);
+        final AsyncClientEndpoint endpoint = leaseFuture.get(30, TimeUnit.SECONDS);
         try {
-            String[] requestUris = new String[] {"/", "/ip", "/user-agent", "/headers"};
+            final String[] requestUris = new String[] {"/", "/ip", "/user-agent", "/headers"};
 
             final CountDownLatch latch = new CountDownLatch(requestUris.length);
             for (final String requestUri: requestUris) {
-                SimpleHttpRequest request = new SimpleHttpRequest("GET", target, requestUri, null, null);
+                final SimpleHttpRequest request = new SimpleHttpRequest("GET", target, requestUri, null, null);
                 endpoint.execute(
                         new SimpleRequestProducer(request),
                         new SimpleResponseConsumer(),

@@ -47,24 +47,24 @@ import org.apache.hc.core5.reactor.IOReactorConfig;
  */
 public class AsyncClientHttpExchangeStreaming {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
 
-        IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
+        final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
                 .setConnectTimeout(5000)
                 .setSoTimeout(5000)
                 .build();
 
-        CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
                 .setIOReactorConfig(ioReactorConfig)
                 .build();
 
         client.start();
 
-        HttpHost target = new HttpHost("httpbin.org");
-        String[] requestUris = new String[] {"/", "/ip", "/user-agent", "/headers"};
+        final HttpHost target = new HttpHost("httpbin.org");
+        final String[] requestUris = new String[] {"/", "/ip", "/user-agent", "/headers"};
 
         for (final String requestUri: requestUris) {
-            Future<Void> future = client.execute(
+            final Future<Void> future = client.execute(
                     AsyncRequestBuilder.get(target, requestUri).build(),
                     new AbstractCharResponseConsumer<Void>() {
 

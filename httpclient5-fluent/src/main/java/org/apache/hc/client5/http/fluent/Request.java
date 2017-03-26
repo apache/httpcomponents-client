@@ -305,7 +305,7 @@ public class Request {
     public Request viaProxy(final String proxy) {
         try {
             this.proxy = HttpHost.create(proxy);
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new IllegalArgumentException("Invalid host");
         }
         return this;

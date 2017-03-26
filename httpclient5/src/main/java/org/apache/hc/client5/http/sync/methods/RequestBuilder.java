@@ -289,7 +289,7 @@ public class RequestBuilder {
 
         try {
             uri = request.getUri();
-        } catch (URISyntaxException ignore) {
+        } catch (final URISyntaxException ignore) {
         }
         if (request instanceof Configurable) {
             config = ((Configurable) request).getConfig();

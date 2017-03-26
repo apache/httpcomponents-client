@@ -44,19 +44,19 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
  */
 public class ClientMultipartFormPost {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         if (args.length != 1)  {
             System.out.println("File path not given");
             System.exit(1);
         }
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpPost httppost = new HttpPost("http://localhost:8080" +
+            final HttpPost httppost = new HttpPost("http://localhost:8080" +
                     "/servlets-examples/servlet/RequestInfoExample");
 
-            FileBody bin = new FileBody(new File(args[0]));
-            StringBody comment = new StringBody("A binary file of some kind", ContentType.TEXT_PLAIN);
+            final FileBody bin = new FileBody(new File(args[0]));
+            final StringBody comment = new StringBody("A binary file of some kind", ContentType.TEXT_PLAIN);
 
-            HttpEntity reqEntity = MultipartEntityBuilder.create()
+            final HttpEntity reqEntity = MultipartEntityBuilder.create()
                     .addPart("bin", bin)
                     .addPart("comment", comment)
                     .build();
@@ -68,7 +68,7 @@ public class ClientMultipartFormPost {
             try (CloseableHttpResponse response = httpclient.execute(httppost)) {
                 System.out.println("----------------------------------------");
                 System.out.println(response);
-                HttpEntity resEntity = response.getEntity();
+                final HttpEntity resEntity = response.getEntity();
                 if (resEntity != null) {
                     System.out.println("Response content length: " + resEntity.getContentLength());
                 }

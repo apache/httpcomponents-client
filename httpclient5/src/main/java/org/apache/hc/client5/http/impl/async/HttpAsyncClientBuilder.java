@@ -576,7 +576,7 @@ public class HttpAsyncClientBuilder {
                     userTokenHandlerCopy,
                     defaultRequestConfig,
                     closeablesCopy);
-        } catch (IOReactorException ex) {
+        } catch (final IOReactorException ex) {
             throw new IllegalStateException(ex.getMessage(), ex);
         }
     }

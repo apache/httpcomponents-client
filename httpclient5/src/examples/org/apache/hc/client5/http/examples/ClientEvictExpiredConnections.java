@@ -42,8 +42,8 @@ import org.apache.hc.core5.pool.PoolStats;
  */
 public class ClientEvictExpiredConnections {
 
-    public static void main(String[] args) throws Exception {
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+    public static void main(final String[] args) throws Exception {
+        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)
@@ -51,15 +51,15 @@ public class ClientEvictExpiredConnections {
                 .evictIdleConnections(5L, TimeUnit.SECONDS)
                 .build()) {
             // create an array of URIs to perform GETs on
-            String[] urisToGet = {
+            final String[] urisToGet = {
                     "http://hc.apache.org/",
                     "http://hc.apache.org/httpcomponents-core-ga/",
                     "http://hc.apache.org/httpcomponents-client-ga/",
             };
 
             for (int i = 0; i < urisToGet.length; i++) {
-                String requestURI = urisToGet[i];
-                HttpGet request = new HttpGet(requestURI);
+                final String requestURI = urisToGet[i];
+                final HttpGet request = new HttpGet(requestURI);
 
                 System.out.println("Executing request " + request.getMethod() + " " + request.getRequestUri());
 
@@ -70,13 +70,13 @@ public class ClientEvictExpiredConnections {
                 }
             }
 
-            PoolStats stats1 = cm.getTotalStats();
+            final PoolStats stats1 = cm.getTotalStats();
             System.out.println("Connections kept alive: " + stats1.getAvailable());
 
             // Sleep 10 sec and let the connection evictor do its job
             Thread.sleep(10000);
 
-            PoolStats stats2 = cm.getTotalStats();
+            final PoolStats stats2 = cm.getTotalStats();
             System.out.println("Connections kept alive: " + stats2.getAvailable());
 
         }

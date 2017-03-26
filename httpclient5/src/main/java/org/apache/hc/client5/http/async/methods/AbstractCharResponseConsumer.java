@@ -57,7 +57,7 @@ public abstract class AbstractCharResponseConsumer<T> extends AbstractCharDataCo
             final ContentType contentType;
             try {
                 contentType = ContentType.parse(entityDetails.getContentType());
-            } catch (UnsupportedCharsetException ex) {
+            } catch (final UnsupportedCharsetException ex) {
                 throw new UnsupportedEncodingException(ex.getMessage());
             }
             Charset charset = contentType != null ? contentType.getCharset() : null;

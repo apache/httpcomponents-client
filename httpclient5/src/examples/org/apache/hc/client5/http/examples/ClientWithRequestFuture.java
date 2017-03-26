@@ -47,61 +47,61 @@ import org.apache.hc.core5.http.io.ResponseHandler;
 
 public class ClientWithRequestFuture {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         // the simplest way to create a HttpAsyncClientWithFuture
-        HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
+        final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
                 .setMaxConnPerRoute(5)
                 .setMaxConnTotal(5)
                 .build();
-        CloseableHttpClient httpclient = HttpClientBuilder.create()
+        final CloseableHttpClient httpclient = HttpClientBuilder.create()
                 .setConnectionManager(cm)
                 .build();
-        ExecutorService execService = Executors.newFixedThreadPool(5);
+        final ExecutorService execService = Executors.newFixedThreadPool(5);
         try (FutureRequestExecutionService requestExecService = new FutureRequestExecutionService(
                 httpclient, execService)) {
             // Because things are asynchronous, you must provide a ResponseHandler
-            ResponseHandler<Boolean> handler = new ResponseHandler<Boolean>() {
+            final ResponseHandler<Boolean> handler = new ResponseHandler<Boolean>() {
                 @Override
-                public Boolean handleResponse(ClassicHttpResponse response) throws IOException {
+                public Boolean handleResponse(final ClassicHttpResponse response) throws IOException {
                     // simply return true if the status was OK
                     return response.getCode() == HttpStatus.SC_OK;
                 }
             };
 
             // Simple request ...
-            HttpGet request1 = new HttpGet("http://httpbin.org/get");
-            HttpRequestFutureTask<Boolean> futureTask1 = requestExecService.execute(request1,
+            final HttpGet request1 = new HttpGet("http://httpbin.org/get");
+            final HttpRequestFutureTask<Boolean> futureTask1 = requestExecService.execute(request1,
                     HttpClientContext.create(), handler);
-            Boolean wasItOk1 = futureTask1.get();
+            final Boolean wasItOk1 = futureTask1.get();
             System.out.println("It was ok? " + wasItOk1);
 
             // Cancel a request
             try {
-                HttpGet request2 = new HttpGet("http://httpbin.org/get");
-                HttpRequestFutureTask<Boolean> futureTask2 = requestExecService.execute(request2,
+                final HttpGet request2 = new HttpGet("http://httpbin.org/get");
+                final HttpRequestFutureTask<Boolean> futureTask2 = requestExecService.execute(request2,
                         HttpClientContext.create(), handler);
                 futureTask2.cancel(true);
-                Boolean wasItOk2 = futureTask2.get();
+                final Boolean wasItOk2 = futureTask2.get();
                 System.out.println("It was cancelled so it should never print this: " + wasItOk2);
-            } catch (CancellationException e) {
+            } catch (final CancellationException e) {
                 System.out.println("We cancelled it, so this is expected");
             }
 
             // Request with a timeout
-            HttpGet request3 = new HttpGet("http://httpbin.org/get");
-            HttpRequestFutureTask<Boolean> futureTask3 = requestExecService.execute(request3,
+            final HttpGet request3 = new HttpGet("http://httpbin.org/get");
+            final HttpRequestFutureTask<Boolean> futureTask3 = requestExecService.execute(request3,
                     HttpClientContext.create(), handler);
-            Boolean wasItOk3 = futureTask3.get(10, TimeUnit.SECONDS);
+            final Boolean wasItOk3 = futureTask3.get(10, TimeUnit.SECONDS);
             System.out.println("It was ok? " + wasItOk3);
 
-            FutureCallback<Boolean> callback = new FutureCallback<Boolean>() {
+            final FutureCallback<Boolean> callback = new FutureCallback<Boolean>() {
                 @Override
-                public void completed(Boolean result) {
+                public void completed(final Boolean result) {
                     System.out.println("completed with " + result);
                 }
 
                 @Override
-                public void failed(Exception ex) {
+                public void failed(final Exception ex) {
                     System.out.println("failed with " + ex.getMessage());
                 }
 
@@ -112,12 +112,12 @@ public class ClientWithRequestFuture {
             };
 
             // Simple request with a callback
-            HttpGet request4 = new HttpGet("http://httpbin.org/get");
+            final HttpGet request4 = new HttpGet("http://httpbin.org/get");
             // using a null HttpContext here since it is optional
             // the callback will be called when the task completes, fails, or is cancelled
-            HttpRequestFutureTask<Boolean> futureTask4 = requestExecService.execute(request4,
+            final HttpRequestFutureTask<Boolean> futureTask4 = requestExecService.execute(request4,
                     HttpClientContext.create(), handler, callback);
-            Boolean wasItOk4 = futureTask4.get(10, TimeUnit.SECONDS);
+            final Boolean wasItOk4 = futureTask4.get(10, TimeUnit.SECONDS);
             System.out.println("It was ok? " + wasItOk4);
         }
     }

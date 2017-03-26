@@ -61,7 +61,7 @@ final class RelaxedLayeredConnectionSocketFactory implements LayeredConnectionSo
             }
 
             // blindly verify the host if in the trust list
-            for (String trustedHost : trustedHostsConfiguration.getTrustedHosts()) {
+            for (final String trustedHost : trustedHostsConfiguration.getTrustedHosts()) {
                 if (createMatcher(trustedHost).matches(target)) {
                     return socket;
                 }

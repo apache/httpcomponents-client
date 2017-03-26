@@ -80,7 +80,7 @@ public class DefaultRedirectStrategy<T extends HttpRequest> implements RedirectS
     public DefaultRedirectStrategy(final String... safeMethods) {
         super();
         this.safeMethods = new ConcurrentHashMap<>();
-        for (String safeMethod: safeMethods) {
+        for (final String safeMethod: safeMethods) {
             this.safeMethods.put(safeMethod.toUpperCase(Locale.ROOT), Boolean.TRUE);
         }
     }

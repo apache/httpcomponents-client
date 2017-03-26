@@ -41,15 +41,15 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
  */
 public class ClientAuthentication {
 
-    public static void main(String[] args) throws Exception {
-        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+    public static void main(final String[] args) throws Exception {
+        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
                 new AuthScope("httpbin.org", 80),
                 new UsernamePasswordCredentials("user", "passwd".toCharArray()));
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
                 .build()) {
-            HttpGet httpget = new HttpGet("http://httpbin.org/basic-auth/user/passwd");
+            final HttpGet httpget = new HttpGet("http://httpbin.org/basic-auth/user/passwd");
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             try (CloseableHttpResponse response = httpclient.execute(httpget)) {

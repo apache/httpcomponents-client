@@ -46,20 +46,20 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
  */
 public class ClientFormLogin {
 
-    public static void main(String[] args) throws Exception {
-        BasicCookieStore cookieStore = new BasicCookieStore();
+    public static void main(final String[] args) throws Exception {
+        final BasicCookieStore cookieStore = new BasicCookieStore();
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCookieStore(cookieStore)
                 .build()) {
-            HttpGet httpget = new HttpGet("https://someportal/");
+            final HttpGet httpget = new HttpGet("https://someportal/");
             try (CloseableHttpResponse response1 = httpclient.execute(httpget)) {
-                HttpEntity entity = response1.getEntity();
+                final HttpEntity entity = response1.getEntity();
 
                 System.out.println("Login form get: " + response1.getCode() + " " + response1.getReasonPhrase());
                 EntityUtils.consume(entity);
 
                 System.out.println("Initial set of cookies:");
-                List<Cookie> cookies = cookieStore.getCookies();
+                final List<Cookie> cookies = cookieStore.getCookies();
                 if (cookies.isEmpty()) {
                     System.out.println("None");
                 } else {
@@ -69,19 +69,19 @@ public class ClientFormLogin {
                 }
             }
 
-            HttpUriRequest login = RequestBuilder.post()
+            final HttpUriRequest login = RequestBuilder.post()
                     .setUri(new URI("https://someportal/"))
                     .addParameter("IDToken1", "username")
                     .addParameter("IDToken2", "password")
                     .build();
             try (CloseableHttpResponse response2 = httpclient.execute(login)) {
-                HttpEntity entity = response2.getEntity();
+                final HttpEntity entity = response2.getEntity();
 
                 System.out.println("Login form get: " + response2.getCode() + " " + response2.getReasonPhrase());
                 EntityUtils.consume(entity);
 
                 System.out.println("Post logon cookies:");
-                List<Cookie> cookies = cookieStore.getCookies();
+                final List<Cookie> cookies = cookieStore.getCookies();
                 if (cookies.isEmpty()) {
                     System.out.println("None");
                 } else {

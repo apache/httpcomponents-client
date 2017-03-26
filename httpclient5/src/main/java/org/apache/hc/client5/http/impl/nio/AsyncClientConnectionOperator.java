@@ -82,14 +82,14 @@ final class AsyncClientConnectionOperator {
         final InetAddress[] remoteAddresses;
         try {
             remoteAddresses = dnsResolver.resolve(host.getHostName());
-        } catch (UnknownHostException ex) {
+        } catch (final UnknownHostException ex) {
             future.failed(ex);
             return future;
         }
         final int port;
         try {
             port = schemePortResolver.resolve(host);
-        } catch (UnsupportedSchemeException ex) {
+        } catch (final UnsupportedSchemeException ex) {
             future.failed(ex);
             return future;
         }

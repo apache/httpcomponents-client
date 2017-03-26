@@ -257,7 +257,7 @@ public class DigestScheme implements AuthScheme, Serializable {
         Charset charset;
         try {
             charset = charsetName != null ? Charset.forName(charsetName) : StandardCharsets.ISO_8859_1;
-        } catch (UnsupportedCharsetException ex) {
+        } catch (final UnsupportedCharsetException ex) {
             charset = StandardCharsets.ISO_8859_1;
         }
 

@@ -101,7 +101,7 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
                 public void run() {
                     try {
                         ioReactor.execute();
-                    } catch (Exception ex) {
+                    } catch (final Exception ex) {
                         exceptionListener.onError(ex);
                     }
                 }

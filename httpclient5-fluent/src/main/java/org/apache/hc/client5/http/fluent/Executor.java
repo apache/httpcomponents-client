@@ -145,7 +145,7 @@ public class Executor {
         final HttpHost httpHost;
         try {
             httpHost = HttpHost.create(host);
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new IllegalArgumentException("Invalid host: " + host);
         }
         return auth(httpHost, creds);
@@ -170,7 +170,7 @@ public class Executor {
         final HttpHost httpHost;
         try {
             httpHost = HttpHost.create(host);
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new IllegalArgumentException("Invalid host: " + host);
         }
         return authPreemptive(httpHost);
@@ -195,7 +195,7 @@ public class Executor {
         final HttpHost httpHost;
         try {
             httpHost = HttpHost.create(proxy);
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new IllegalArgumentException("Invalid host: " + proxy);
         }
         return authPreemptiveProxy(httpHost);

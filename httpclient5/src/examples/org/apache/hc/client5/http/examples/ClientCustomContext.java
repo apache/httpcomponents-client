@@ -45,24 +45,24 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
  */
 public class ClientCustomContext {
 
-    public final static void main(String[] args) throws Exception {
+    public final static void main(final String[] args) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             // Create a local instance of cookie store
-            CookieStore cookieStore = new BasicCookieStore();
+            final CookieStore cookieStore = new BasicCookieStore();
 
             // Create local HTTP context
-            HttpClientContext localContext = HttpClientContext.create();
+            final HttpClientContext localContext = HttpClientContext.create();
             // Bind custom cookie store to the local context
             localContext.setCookieStore(cookieStore);
 
-            HttpGet httpget = new HttpGet("http://httpbin.org/cookies");
+            final HttpGet httpget = new HttpGet("http://httpbin.org/cookies");
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
 
             // Pass local context as a parameter
             try (CloseableHttpResponse response = httpclient.execute(httpget, localContext)) {
                 System.out.println("----------------------------------------");
                 System.out.println(response.getCode() + " " + response.getReasonPhrase());
-                List<Cookie> cookies = cookieStore.getCookies();
+                final List<Cookie> cookies = cookieStore.getCookies();
                 for (int i = 0; i < cookies.size(); i++) {
                     System.out.println("Local cookie: " + cookies.get(i));
                 }

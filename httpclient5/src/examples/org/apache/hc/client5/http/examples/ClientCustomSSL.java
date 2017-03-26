@@ -47,26 +47,26 @@ import org.apache.hc.core5.ssl.SSLContexts;
  */
 public class ClientCustomSSL {
 
-    public final static void main(String[] args) throws Exception {
+    public final static void main(final String[] args) throws Exception {
         // Trust own CA and all self-signed certs
-        SSLContext sslcontext = SSLContexts.custom()
+        final SSLContext sslcontext = SSLContexts.custom()
                 .loadTrustMaterial(new File("my.keystore"), "nopassword".toCharArray(),
                         new TrustSelfSignedStrategy())
                 .build();
         // Allow TLSv1.2 protocol only
-        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+        final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
                 sslcontext,
                 new String[] { "TLSv1.2" },
                 null,
                 SSLConnectionSocketFactory.getDefaultHostnameVerifier());
-        HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
+        final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(sslsf)
                 .build();
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)
                 .build()) {
 
-            HttpGet httpget = new HttpGet("https://httpbin.org/");
+            final HttpGet httpget = new HttpGet("https://httpbin.org/");
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
 

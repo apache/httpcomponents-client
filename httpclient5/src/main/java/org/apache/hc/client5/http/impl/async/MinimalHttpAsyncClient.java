@@ -265,7 +265,7 @@ class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
             if (released.compareAndSet(false, true)) {
                 try {
                     connectionEndpoint.close();
-                } catch (IOException ignore) {
+                } catch (final IOException ignore) {
                 }
                 connmgr.release(connectionEndpoint, null, -1L, TimeUnit.MILLISECONDS);
             }

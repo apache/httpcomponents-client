@@ -51,26 +51,26 @@ import org.apache.hc.core5.ssl.SSLContexts;
  */
 public class ClientCustomPublicSuffixList {
 
-    public final static void main(String[] args) throws Exception {
+    public final static void main(final String[] args) throws Exception {
 
         // Use PublicSuffixMatcherLoader to load public suffix list from a file,
         // resource or from an arbitrary URL
-        PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.load(
+        final PublicSuffixMatcher publicSuffixMatcher = PublicSuffixMatcherLoader.load(
                 new URL("https://publicsuffix.org/list/effective_tld_names.dat"));
 
         // Please use the publicsuffix.org URL to download the list no more than once per day !!!
         // Please consider making a local copy !!!
 
-        RFC6265CookieSpecProvider cookieSpecProvider = new RFC6265CookieSpecProvider(publicSuffixMatcher);
-        Lookup<CookieSpecProvider> cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
+        final RFC6265CookieSpecProvider cookieSpecProvider = new RFC6265CookieSpecProvider(publicSuffixMatcher);
+        final Lookup<CookieSpecProvider> cookieSpecRegistry = RegistryBuilder.<CookieSpecProvider>create()
                 .register(CookieSpecs.DEFAULT, cookieSpecProvider)
                 .register(CookieSpecs.STANDARD, cookieSpecProvider)
                 .register(CookieSpecs.STANDARD_STRICT, cookieSpecProvider)
                 .build();
-        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+        final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
                 SSLContexts.createDefault(),
                 new DefaultHostnameVerifier(publicSuffixMatcher));
-        HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
+        final HttpClientConnectionManager cm = PoolingHttpClientConnectionManagerBuilder.create()
                 .setSSLSocketFactory(sslsf)
                 .build();
         try (CloseableHttpClient httpclient = HttpClients.custom()
@@ -78,7 +78,7 @@ public class ClientCustomPublicSuffixList {
                 .setDefaultCookieSpecRegistry(cookieSpecRegistry)
                 .build()) {
 
-            HttpGet httpget = new HttpGet("https://httpbin.org/get");
+            final HttpGet httpget = new HttpGet("https://httpbin.org/get");
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
 

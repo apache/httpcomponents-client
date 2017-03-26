@@ -189,7 +189,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                     final TimeUnit tunit) throws InterruptedException, ExecutionException, TimeoutException {
                 try {
                     return new InternalConnectionEndpoint(route, getConnection(route, state));
-                } catch (IOException ex) {
+                } catch (final IOException ex) {
                     throw new ExecutionException(ex.getMessage(), ex);
                 }
             }

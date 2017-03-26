@@ -67,7 +67,7 @@ public abstract class AbstractAsyncResponseConsumer<T, E> implements AsyncRespon
                     try {
                         contentType = ContentType.parse(entityDetails.getContentType());
                         resultCallback.completed(buildResult(response, result, contentType));
-                    } catch (UnsupportedCharsetException ex) {
+                    } catch (final UnsupportedCharsetException ex) {
                         resultCallback.failed(ex);
                     }
                 }

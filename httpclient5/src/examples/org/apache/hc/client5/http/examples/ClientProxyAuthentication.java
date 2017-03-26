@@ -43,8 +43,8 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
  */
 public class ClientProxyAuthentication {
 
-    public static void main(String[] args) throws Exception {
-        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+    public static void main(final String[] args) throws Exception {
+        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
                 new AuthScope("localhost", 8888),
                 new UsernamePasswordCredentials("squid", "squid".toCharArray()));
@@ -53,13 +53,13 @@ public class ClientProxyAuthentication {
                 new UsernamePasswordCredentials("user", "passwd".toCharArray()));
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider).build()) {
-            HttpHost target = new HttpHost("httpbin.org", 80, "http");
-            HttpHost proxy = new HttpHost("localhost", 8888);
+            final HttpHost target = new HttpHost("httpbin.org", 80, "http");
+            final HttpHost proxy = new HttpHost("localhost", 8888);
 
-            RequestConfig config = RequestConfig.custom()
+            final RequestConfig config = RequestConfig.custom()
                 .setProxy(proxy)
                 .build();
-            HttpGet httpget = new HttpGet("/basic-auth/user/passwd");
+            final HttpGet httpget = new HttpGet("/basic-auth/user/passwd");
             httpget.setConfig(config);
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri() +

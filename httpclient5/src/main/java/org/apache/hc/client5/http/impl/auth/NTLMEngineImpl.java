@@ -874,7 +874,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                     cipher.init( Cipher.DECRYPT_MODE, new SecretKeySpec( sealingKey, "RC4" ) );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 throw new NTLMEngineException( e.getMessage(), e );
             }
@@ -1854,7 +1854,7 @@ final class NTLMEngineImpl implements NTLMEngine {
     static MessageDigest getMD5() {
         try {
             return MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
             throw new RuntimeException("MD5 message digest doesn't seem to exist - fatal error: "+ex.getMessage(), ex);
         }
     }

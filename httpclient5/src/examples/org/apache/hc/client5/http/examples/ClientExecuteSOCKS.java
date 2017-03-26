@@ -54,20 +54,20 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  */
 public class ClientExecuteSOCKS {
 
-    public static void main(String[] args)throws Exception {
-        Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
+    public static void main(final String[] args)throws Exception {
+        final Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
                 .register("http", new MyConnectionSocketFactory())
                 .build();
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(reg);
+        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(reg);
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)
                 .build()) {
-            InetSocketAddress socksaddr = new InetSocketAddress("mysockshost", 1234);
-            HttpClientContext context = HttpClientContext.create();
+            final InetSocketAddress socksaddr = new InetSocketAddress("mysockshost", 1234);
+            final HttpClientContext context = HttpClientContext.create();
             context.setAttribute("socks.address", socksaddr);
 
-            HttpHost target = new HttpHost("httpbin.org", 80, "http");
-            HttpGet request = new HttpGet("/get");
+            final HttpHost target = new HttpHost("httpbin.org", 80, "http");
+            final HttpGet request = new HttpGet("/get");
 
             System.out.println("Executing request " + request.getMethod() + " " + request.getUri() +
                     " via SOCKS proxy " + socksaddr);
@@ -83,8 +83,8 @@ public class ClientExecuteSOCKS {
 
         @Override
         public Socket createSocket(final HttpContext context) throws IOException {
-            InetSocketAddress socksaddr = (InetSocketAddress) context.getAttribute("socks.address");
-            Proxy proxy = new Proxy(Proxy.Type.SOCKS, socksaddr);
+            final InetSocketAddress socksaddr = (InetSocketAddress) context.getAttribute("socks.address");
+            final Proxy proxy = new Proxy(Proxy.Type.SOCKS, socksaddr);
             return new Socket(proxy);
         }
 
@@ -107,7 +107,7 @@ public class ClientExecuteSOCKS {
             }
             try {
                 sock.connect(remoteAddress, connectTimeout);
-            } catch (SocketTimeoutException ex) {
+            } catch (final SocketTimeoutException ex) {
                 throw new ConnectTimeoutException(ex, host, remoteAddress.getAddress());
             }
             return sock;

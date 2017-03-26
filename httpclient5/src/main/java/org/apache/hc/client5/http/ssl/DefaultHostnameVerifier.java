@@ -301,7 +301,7 @@ public final class DefaultHostnameVerifier implements HttpClientHostnameVerifier
                 return Collections.emptyList();
             }
             final List<SubjectName> result = new ArrayList<>();
-            for (List<?> entry: entries) {
+            for (final List<?> entry: entries) {
                 final Integer type = entry.size() >= 2 ? (Integer) entry.get(0) : null;
                 if (type != null) {
                     final String s = (String) entry.get(1);

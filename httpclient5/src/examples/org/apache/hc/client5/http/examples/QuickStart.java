@@ -42,9 +42,9 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 
 public class QuickStart {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpGet httpGet = new HttpGet("http://httpbin.org/get");
+            final HttpGet httpGet = new HttpGet("http://httpbin.org/get");
             // The underlying HTTP connection is still held by the response object
             // to allow the response content to be streamed directly from the network socket.
             // In order to ensure correct deallocation of system resources
@@ -54,21 +54,21 @@ public class QuickStart {
             // by the connection manager.
             try (CloseableHttpResponse response1 = httpclient.execute(httpGet)) {
                 System.out.println(response1.getCode() + " " + response1.getReasonPhrase());
-                HttpEntity entity1 = response1.getEntity();
+                final HttpEntity entity1 = response1.getEntity();
                 // do something useful with the response body
                 // and ensure it is fully consumed
                 EntityUtils.consume(entity1);
             }
 
-            HttpPost httpPost = new HttpPost("http://httpbin.org/post");
-            List<NameValuePair> nvps = new ArrayList<>();
+            final HttpPost httpPost = new HttpPost("http://httpbin.org/post");
+            final List<NameValuePair> nvps = new ArrayList<>();
             nvps.add(new BasicNameValuePair("username", "vip"));
             nvps.add(new BasicNameValuePair("password", "secret"));
             httpPost.setEntity(new UrlEncodedFormEntity(nvps));
 
             try (CloseableHttpResponse response2 = httpclient.execute(httpPost)) {
                 System.out.println(response2.getCode() + " " + response2.getReasonPhrase());
-                HttpEntity entity2 = response2.getEntity();
+                final HttpEntity entity2 = response2.getEntity();
                 // do something useful with the response body
                 // and ensure it is fully consumed
                 EntityUtils.consume(entity2);

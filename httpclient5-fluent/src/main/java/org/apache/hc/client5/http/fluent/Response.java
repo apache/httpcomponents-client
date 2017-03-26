@@ -90,7 +90,7 @@ public class Response {
         assertNotConsumed();
         try {
             return handler.handleResponse(this.response);
-        } catch (HttpException ex) {
+        } catch (final HttpException ex) {
             throw new ClientProtocolException(ex);
         } finally {
             dispose();

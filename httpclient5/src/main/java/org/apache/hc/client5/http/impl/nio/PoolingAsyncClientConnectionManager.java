@@ -229,7 +229,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                     log.debug("Connection " + ConnPoolSupport.getId(connection) + " can be kept alive " + s);
                 }
             }
-        } catch (RuntimeException ex) {
+        } catch (final RuntimeException ex) {
             reusable = false;
             throw ex;
         } finally {

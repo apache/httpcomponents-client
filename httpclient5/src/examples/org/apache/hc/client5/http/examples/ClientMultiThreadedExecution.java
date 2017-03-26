@@ -42,27 +42,27 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  */
 public class ClientMultiThreadedExecution {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         // Create an HttpClient with the ThreadSafeClientConnManager.
         // This connection manager must be used if more than one thread will
         // be using the HttpClient.
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         cm.setMaxTotal(100);
 
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)
                 .build()) {
             // create an array of URIs to perform GETs on
-            String[] urisToGet = {
+            final String[] urisToGet = {
                     "http://hc.apache.org/",
                     "http://hc.apache.org/httpcomponents-core-ga/",
                     "http://hc.apache.org/httpcomponents-client-ga/",
             };
 
             // create a thread for each URI
-            GetThread[] threads = new GetThread[urisToGet.length];
+            final GetThread[] threads = new GetThread[urisToGet.length];
             for (int i = 0; i < threads.length; i++) {
-                HttpGet httpget = new HttpGet(urisToGet[i]);
+                final HttpGet httpget = new HttpGet(urisToGet[i]);
                 threads[i] = new GetThread(httpclient, httpget, i + 1);
             }
 
@@ -89,7 +89,7 @@ public class ClientMultiThreadedExecution {
         private final HttpGet httpget;
         private final int id;
 
-        public GetThread(CloseableHttpClient httpClient, HttpGet httpget, int id) {
+        public GetThread(final CloseableHttpClient httpClient, final HttpGet httpget, final int id) {
             this.httpClient = httpClient;
             this.context = new BasicHttpContext();
             this.httpget = httpget;
@@ -106,13 +106,13 @@ public class ClientMultiThreadedExecution {
                 try (CloseableHttpResponse response = httpClient.execute(httpget, context)) {
                     System.out.println(id + " - get executed");
                     // get the response body as an array of bytes
-                    HttpEntity entity = response.getEntity();
+                    final HttpEntity entity = response.getEntity();
                     if (entity != null) {
-                        byte[] bytes = EntityUtils.toByteArray(entity);
+                        final byte[] bytes = EntityUtils.toByteArray(entity);
                         System.out.println(id + " - " + bytes.length + " bytes read");
                     }
                 }
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 System.out.println(id + " - error: " + e);
             }
         }

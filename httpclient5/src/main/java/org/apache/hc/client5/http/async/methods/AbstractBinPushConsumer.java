@@ -50,7 +50,7 @@ public abstract class AbstractBinPushConsumer extends AbstractBinDataConsumer im
             final ContentType contentType;
             try {
                 contentType = ContentType.parse(entityDetails.getContentType());
-            } catch (UnsupportedCharsetException ex) {
+            } catch (final UnsupportedCharsetException ex) {
                 throw new UnsupportedEncodingException(ex.getMessage());
             }
             start(promise, response, contentType);

@@ -152,7 +152,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                                     systemcreds = new PasswordAuthentication(proxyUser, proxyPassword != null ? proxyPassword.toCharArray() : new char[] {});
                                 }
                             }
-                        } catch (NumberFormatException ex) {
+                        } catch (final NumberFormatException ex) {
                         }
                     }
                 }

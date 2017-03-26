@@ -49,24 +49,24 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
  */
 public class ClientPreemptiveDigestAuthentication {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
 
             // Create AuthCache instance
-            AuthCache authCache = new BasicAuthCache();
+            final AuthCache authCache = new BasicAuthCache();
             // Generate DIGEST scheme object, initialize it and add it to the local auth cache
-            DigestScheme digestAuth = new DigestScheme();
+            final DigestScheme digestAuth = new DigestScheme();
             // Suppose we already know the realm name and the expected nonce value
             digestAuth.initPreemptive(new UsernamePasswordCredentials("user", "passwd".toCharArray()), "whatever", "realm");
 
-            HttpHost target = new HttpHost("httpbin.org", 80, "http");
+            final HttpHost target = new HttpHost("httpbin.org", 80, "http");
             authCache.put(target, digestAuth);
 
             // Add AuthCache to the execution context
-            HttpClientContext localContext = HttpClientContext.create();
+            final HttpClientContext localContext = HttpClientContext.create();
             localContext.setAuthCache(authCache);
 
-            HttpGet httpget = new HttpGet("http://httpbin.org/digest-auth/auth/user/passwd");
+            final HttpGet httpget = new HttpGet("http://httpbin.org/digest-auth/auth/user/passwd");
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             for (int i = 0; i < 3; i++) {

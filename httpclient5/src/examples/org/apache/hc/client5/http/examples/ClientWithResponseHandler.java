@@ -46,24 +46,24 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
  */
 public class ClientWithResponseHandler {
 
-    public final static void main(String[] args) throws Exception {
+    public final static void main(final String[] args) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpGet httpget = new HttpGet("http://httpbin.org/get");
+            final HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
 
             // Create a custom response handler
-            ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+            final ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
 
                 @Override
                 public String handleResponse(
                         final ClassicHttpResponse response) throws IOException {
-                    int status = response.getCode();
+                    final int status = response.getCode();
                     if (status >= HttpStatus.SC_SUCCESS && status < HttpStatus.SC_REDIRECTION) {
-                        HttpEntity entity = response.getEntity();
+                        final HttpEntity entity = response.getEntity();
                         try {
                             return entity != null ? EntityUtils.toString(entity) : null;
-                        } catch (ParseException ex) {
+                        } catch (final ParseException ex) {
                             throw new ClientProtocolException(ex);
                         }
                     } else {
@@ -72,7 +72,7 @@ public class ClientWithResponseHandler {
                 }
 
             };
-            String responseBody = httpclient.execute(httpget, responseHandler);
+            final String responseBody = httpclient.execute(httpget, responseHandler);
             System.out.println("----------------------------------------");
             System.out.println(responseBody);
         }

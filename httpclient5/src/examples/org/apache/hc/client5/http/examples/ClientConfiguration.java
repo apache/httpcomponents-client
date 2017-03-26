@@ -87,21 +87,21 @@ import org.apache.hc.core5.util.CharArrayBuffer;
  */
 public class ClientConfiguration {
 
-    public final static void main(String[] args) throws Exception {
+    public final static void main(final String[] args) throws Exception {
 
         // Use custom message parser / writer to customize the way HTTP
         // messages are parsed from and written out to the data stream.
-        HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory = new DefaultHttpResponseParserFactory() {
+        final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory = new DefaultHttpResponseParserFactory() {
 
             @Override
-            public HttpMessageParser<ClassicHttpResponse> create(H1Config h1Config) {
-                LineParser lineParser = new BasicLineParser() {
+            public HttpMessageParser<ClassicHttpResponse> create(final H1Config h1Config) {
+                final LineParser lineParser = new BasicLineParser() {
 
                     @Override
                     public Header parseHeader(final CharArrayBuffer buffer) {
                         try {
                             return super.parseHeader(buffer);
-                        } catch (ParseException ex) {
+                        } catch (final ParseException ex) {
                             return new BasicHeader(buffer.toString(), null);
                         }
                     }
@@ -111,15 +111,15 @@ public class ClientConfiguration {
             }
 
         };
-        HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory = new DefaultHttpRequestWriterFactory();
+        final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory = new DefaultHttpRequestWriterFactory();
 
         // Create HTTP/1.1 protocol configuration
-        H1Config h1Config = H1Config.custom()
+        final H1Config h1Config = H1Config.custom()
                 .setMaxHeaderCount(200)
                 .setMaxLineLength(2000)
                 .build();
         // Create connection configuration
-        ConnectionConfig connectionConfig = ConnectionConfig.custom()
+        final ConnectionConfig connectionConfig = ConnectionConfig.custom()
                 .setMalformedInputAction(CodingErrorAction.IGNORE)
                 .setUnmappableInputAction(CodingErrorAction.IGNORE)
                 .setCharset(StandardCharsets.UTF_8)
@@ -129,7 +129,7 @@ public class ClientConfiguration {
         // initialization of outgoing HTTP connections. Beside standard connection
         // configuration parameters HTTP connection factory can define message
         // parser / writer routines to be employed by individual connections.
-        HttpConnectionFactory<ManagedHttpClientConnection> connFactory = new ManagedHttpClientConnectionFactory(
+        final HttpConnectionFactory<ManagedHttpClientConnection> connFactory = new ManagedHttpClientConnectionFactory(
                 h1Config, connectionConfig, requestWriterFactory, responseParserFactory);
 
         // Client HTTP connection objects when fully initialized can be bound to
@@ -139,17 +139,17 @@ public class ClientConfiguration {
 
         // SSL context for secure connections can be created either based on
         // system or application specific properties.
-        SSLContext sslcontext = SSLContexts.createSystemDefault();
+        final SSLContext sslcontext = SSLContexts.createSystemDefault();
 
         // Create a registry of custom connection socket factories for supported
         // protocol schemes.
-        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+        final Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
             .register("http", PlainConnectionSocketFactory.INSTANCE)
             .register("https", new SSLConnectionSocketFactory(sslcontext))
             .build();
 
         // Use custom DNS resolver to override the system DNS resolution.
-        DnsResolver dnsResolver = new SystemDefaultDnsResolver() {
+        final DnsResolver dnsResolver = new SystemDefaultDnsResolver() {
 
             @Override
             public InetAddress[] resolve(final String host) throws UnknownHostException {
@@ -163,11 +163,11 @@ public class ClientConfiguration {
         };
 
         // Create a connection manager with custom configuration.
-        PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(
+        final PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(
                 socketFactoryRegistry, connFactory, dnsResolver);
 
         // Create socket configuration
-        SocketConfig socketConfig = SocketConfig.custom()
+        final SocketConfig socketConfig = SocketConfig.custom()
             .setTcpNoDelay(true)
             .build();
         // Configure the connection manager to use socket configuration either
@@ -183,11 +183,11 @@ public class ClientConfiguration {
         connManager.setMaxPerRoute(new HttpRoute(new HttpHost("somehost", 80)), 20);
 
         // Use custom cookie store if necessary.
-        CookieStore cookieStore = new BasicCookieStore();
+        final CookieStore cookieStore = new BasicCookieStore();
         // Use custom credentials provider if necessary.
-        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         // Create global request configuration
-        RequestConfig defaultRequestConfig = RequestConfig.custom()
+        final RequestConfig defaultRequestConfig = RequestConfig.custom()
             .setCookieSpec(CookieSpecs.DEFAULT)
             .setExpectContinueEnabled(true)
             .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
@@ -203,10 +203,10 @@ public class ClientConfiguration {
                 .setProxy(new HttpHost("myproxy", 8080))
                 .setDefaultRequestConfig(defaultRequestConfig)
                 .build()) {
-            HttpGet httpget = new HttpGet("http://httpbin.org/get");
+            final HttpGet httpget = new HttpGet("http://httpbin.org/get");
             // Request configuration can be overridden at the request level.
             // They will take precedence over the one set at the client level.
-            RequestConfig requestConfig = RequestConfig.copy(defaultRequestConfig)
+            final RequestConfig requestConfig = RequestConfig.copy(defaultRequestConfig)
                     .setSocketTimeout(5000)
                     .setConnectTimeout(5000)
                     .setConnectionRequestTimeout(5000)
@@ -215,7 +215,7 @@ public class ClientConfiguration {
             httpget.setConfig(requestConfig);
 
             // Execution context can be customized locally.
-            HttpClientContext context = HttpClientContext.create();
+            final HttpClientContext context = HttpClientContext.create();
             // Contextual attributes set the local context level will take
             // precedence over those set at the client level.
             context.setCookieStore(cookieStore);

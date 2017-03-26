@@ -46,20 +46,20 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
  */
 public class ClientPreemptiveBasicAuthentication {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
 
             // Generate BASIC scheme object and add it to the local auth cache
-            BasicScheme basicAuth = new BasicScheme();
+            final BasicScheme basicAuth = new BasicScheme();
             basicAuth.initPreemptive(new UsernamePasswordCredentials("user", "passwd".toCharArray()));
 
-            HttpHost target = new HttpHost("httpbin.org", 80, "http");
+            final HttpHost target = new HttpHost("httpbin.org", 80, "http");
 
             // Add AuthCache to the execution context
-            HttpClientContext localContext = HttpClientContext.create();
+            final HttpClientContext localContext = HttpClientContext.create();
             localContext.resetAuthExchange(target, basicAuth);
 
-            HttpGet httpget = new HttpGet("http://httpbin.org/hidden-basic-auth/user/passwd");
+            final HttpGet httpget = new HttpGet("http://httpbin.org/hidden-basic-auth/user/passwd");
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             for (int i = 0; i < 3; i++) {

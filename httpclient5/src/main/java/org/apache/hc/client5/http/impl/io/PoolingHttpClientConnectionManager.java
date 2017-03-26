@@ -268,7 +268,7 @@ public class PoolingHttpClientConnectionManager
                             boolean stale;
                             try {
                                 stale = conn.isStale();
-                            } catch (IOException ignore) {
+                            } catch (final IOException ignore) {
                                 stale = true;
                             }
                             if (stale) {
@@ -292,7 +292,7 @@ public class PoolingHttpClientConnectionManager
                         this.endpoint = new InternalConnectionEndpoint(poolEntry);
                     }
                     return this.endpoint;
-                } catch (Exception ex) {
+                } catch (final Exception ex) {
                     pool.release(poolEntry, false);
                     throw new ExecutionException(ex.getMessage(), ex);
                 }
@@ -333,7 +333,7 @@ public class PoolingHttpClientConnectionManager
                     this.log.debug("Connection " + ConnPoolSupport.getId(conn) + " can be kept alive " + s);
                 }
             }
-        } catch (RuntimeException ex) {
+        } catch (final RuntimeException ex) {
             reusable = false;
             throw ex;
         } finally {

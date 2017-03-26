@@ -90,7 +90,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
         URI requestURI = null;
         try {
             requestURI = request.getUri();
-        } catch (URISyntaxException ignore) {
+        } catch (final URISyntaxException ignore) {
         }
         if (requestURI != null && requestURI.isAbsolute()) {
             target = URIUtils.extractHost(requestURI);

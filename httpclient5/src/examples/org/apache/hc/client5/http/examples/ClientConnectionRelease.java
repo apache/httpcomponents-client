@@ -42,9 +42,9 @@ import org.apache.hc.core5.http.HttpEntity;
  */
 public class ClientConnectionRelease {
 
-    public final static void main(String[] args) throws Exception {
+    public final static void main(final String[] args) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpGet httpget = new HttpGet("http://httpbin.org/get");
+            final HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
             System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             try (CloseableHttpResponse response = httpclient.execute(httpget)) {
@@ -52,7 +52,7 @@ public class ClientConnectionRelease {
                 System.out.println(response.getCode() + " " + response.getReasonPhrase());
 
                 // Get hold of the response entity
-                HttpEntity entity = response.getEntity();
+                final HttpEntity entity = response.getEntity();
 
                 // If the response does not enclose an entity, there is no need
                 // to bother about connection release
@@ -60,7 +60,7 @@ public class ClientConnectionRelease {
                     try (InputStream instream = entity.getContent()) {
                         instream.read();
                         // do something useful with the response
-                    } catch (IOException ex) {
+                    } catch (final IOException ex) {
                         // In case of an IOException the connection will be released
                         // back to the connection manager automatically
                         throw ex;

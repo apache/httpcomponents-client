@@ -92,7 +92,7 @@ class CacheKeyGenerator {
                 uri = URIUtils.rewriteURI(uri, host);
             }
             return normalize(uri).toASCIIString();
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             return req.getRequestUri();
         }
     }
@@ -103,7 +103,7 @@ class CacheKeyGenerator {
         }
         try {
             return normalize(url.toURI()).toASCIIString();
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             return url.toString();
         }
     }

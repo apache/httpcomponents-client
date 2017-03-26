@@ -184,7 +184,7 @@ public class BasicScheme implements AuthScheme, Serializable {
         in.defaultReadObject();
         try {
             this.charset = Charset.forName(in.readUTF());
-        } catch (UnsupportedCharsetException ex) {
+        } catch (final UnsupportedCharsetException ex) {
             this.charset = StandardCharsets.US_ASCII;
         }
     }

@@ -209,7 +209,7 @@ public class CredSspScheme implements AuthScheme
             sslContext.init( null, new TrustManager[]
                 { tm }, null );
         }
-        catch ( KeyManagementException e )
+        catch ( final KeyManagementException e )
         {
             throw new RuntimeException( "SSL Context initialization error: " + e.getMessage(), e );
         }
@@ -409,11 +409,11 @@ public class CredSspScheme implements AuthScheme
         {
             peerCertificates = sslEngine.getSession().getPeerCertificates();
         }
-        catch ( SSLPeerUnverifiedException e )
+        catch ( final SSLPeerUnverifiedException e )
         {
             throw new AuthenticationException( e.getMessage(), e );
         }
-        for ( Certificate peerCertificate : peerCertificates )
+        for ( final Certificate peerCertificate : peerCertificates )
         {
             if ( !( peerCertificate instanceof X509Certificate ) )
             {
@@ -535,7 +535,7 @@ public class CredSspScheme implements AuthScheme
         {
             return ntlmOutgoingHandle.signAndEncryptMessage( authInfo );
         }
-        catch ( NTLMEngineException e )
+        catch ( final NTLMEngineException e )
         {
             throw new AuthenticationException( e.getMessage(), e );
         }
@@ -607,7 +607,7 @@ public class CredSspScheme implements AuthScheme
             buf.get( subjectPublicKey );
             return subjectPublicKey;
         }
-        catch ( MalformedChallengeException e )
+        catch ( final MalformedChallengeException e )
         {
             throw new AuthenticationException( e.getMessage(), e );
         }
@@ -620,7 +620,7 @@ public class CredSspScheme implements AuthScheme
         {
             getSSLEngine().beginHandshake();
         }
-        catch ( SSLException e )
+        catch ( final SSLException e )
         {
             throw new AuthenticationException( "SSL Engine error: " + e.getMessage(), e );
         }
@@ -675,7 +675,7 @@ public class CredSspScheme implements AuthScheme
                 throw new AuthenticationException( "SSL Engine error status: " + engineResult.getStatus() );
             }
         }
-        catch ( SSLException e )
+        catch ( final SSLException e )
         {
             throw new AuthenticationException( "SSL Engine wrap error: " + e.getMessage(), e );
         }
@@ -725,7 +725,7 @@ public class CredSspScheme implements AuthScheme
             }
 
         }
-        catch ( SSLException e )
+        catch ( final SSLException e )
         {
             throw new MalformedChallengeException( "SSL Engine unwrap error: " + e.getMessage(), e );
         }

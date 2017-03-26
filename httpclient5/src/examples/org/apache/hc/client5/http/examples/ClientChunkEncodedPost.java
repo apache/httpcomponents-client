@@ -42,17 +42,17 @@ import org.apache.hc.core5.http.io.entity.InputStreamEntity;
  */
 public class ClientChunkEncodedPost {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         if (args.length != 1)  {
             System.out.println("File path not given");
             System.exit(1);
         }
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpPost httppost = new HttpPost("http://httpbin.org/post");
+            final HttpPost httppost = new HttpPost("http://httpbin.org/post");
 
-            File file = new File(args[0]);
+            final File file = new File(args[0]);
 
-            InputStreamEntity reqEntity = new InputStreamEntity(
+            final InputStreamEntity reqEntity = new InputStreamEntity(
                     new FileInputStream(file), -1, ContentType.APPLICATION_OCTET_STREAM);
             reqEntity.setChunked(true);
             // It may be more appropriate to use FileEntity class in this particular
