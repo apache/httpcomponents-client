@@ -284,14 +284,13 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
     static HostNameType determineHostFormat(final String host) {
         if (InetAddressUtils.isIPv4Address(host)) {
             return HostNameType.IPv4;
-        } else {
-            String s = host;
-            if (s.startsWith("[") && s.endsWith("]")) {
-                s = host.substring(1, host.length() - 1);
-            }
-            if (InetAddressUtils.isIPv6Address(s)) {
-                return HostNameType.IPv6;
-            }
+        }
+        String s = host;
+        if (s.startsWith("[") && s.endsWith("]")) {
+            s = host.substring(1, host.length() - 1);
+        }
+        if (InetAddressUtils.isIPv6Address(s)) {
+            return HostNameType.IPv6;
         }
         return HostNameType.DNS;
     }
@@ -303,7 +302,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                 return Collections.emptyList();
             }
             final List<SubjectName> result = new ArrayList<SubjectName>();
-            for (final List<?> entry: entries) {
+            for (final List<?> entry : entries) {
                 final Integer type = entry.size() >= 2 ? (Integer) entry.get(0) : null;
                 if (type != null) {
                     final String s = (String) entry.get(1);
