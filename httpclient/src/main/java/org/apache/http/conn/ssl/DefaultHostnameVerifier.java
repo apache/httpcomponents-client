@@ -305,8 +305,12 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
             for (final List<?> entry : entries) {
                 final Integer type = entry.size() >= 2 ? (Integer) entry.get(0) : null;
                 if (type != null) {
-                    final String s = (String) entry.get(1);
-                    result.add(new SubjectName(s, type));
+                    final Object o = entry.get(1);
+                    if (o instanceof String) {
+                        result.add(new SubjectName((String) o, type.intValue()));
+                    } else if (o instanceof byte[]) {
+                        // TODO ASN.1 DER encoded form
+                    }
                 }
             }
             return result;
