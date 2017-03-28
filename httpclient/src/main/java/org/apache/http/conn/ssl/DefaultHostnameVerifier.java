@@ -302,7 +302,7 @@ public final class DefaultHostnameVerifier implements HostnameVerifier {
                 return Collections.emptyList();
             }
             final List<SubjectName> result = new ArrayList<SubjectName>();
-            for (final List<?> entry: entries) {
+            for (final List<?> entry : entries) {
                 final Integer type = entry.size() >= 2 ? (Integer) entry.get(0) : null;
                 if (type != null) {
                     final String s = (String) entry.get(1);
