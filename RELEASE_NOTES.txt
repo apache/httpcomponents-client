@@ -19,6 +19,12 @@ Changelog:
 * [HTTPCLIENT-1817] Add a "Trust All" TrustStrategy implementation.
   Contributed by Gary Gregory <ggregory at apache.org>
 
+* [HTTPCLIENT-1817] Add a "Trust All" TrustStrategy implementation.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* [HTTPCLIENT-1836] DefaultHostnameVerifier#getSubjectAltNames(X509Certificate) throws java.lang.ClassCastException.
+  Contributed by Gary Gregory <ggregory at apache.org>, Ilian Iliev <ilian_iliev at yahoo.com>
+
 Release 5.0-ALPHA1
 -------------------
 
