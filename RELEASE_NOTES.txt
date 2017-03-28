@@ -1,7 +1,7 @@
-Release 4.5.4
+Release 4.6.0-alpha1
 -------------------
 
-HttpClient 4.5.4 (GA) is a maintenance release that fixes a number of defects found since 4.5.3.
+HttpClient 4.6.0-alpha1 (GA) is a minor release that fixes a number of defects found since 4.5.3 and adds new small features.
 
 Please note that as of 4.4 HttpClient requires Java 1.6 or newer.
 
