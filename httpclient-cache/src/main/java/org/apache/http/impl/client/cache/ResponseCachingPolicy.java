@@ -126,7 +126,7 @@ class ResponseCachingPolicy {
 
         final Header contentLength = response.getFirstHeader(HTTP.CONTENT_LEN);
         if (contentLength != null) {
-            final int contentLengthValue = Integer.parseInt(contentLength.getValue());
+            final long contentLengthValue = Long.parseLong(contentLength.getValue());
             if (contentLengthValue > this.maxObjectSizeBytes) {
                 return false;
             }
