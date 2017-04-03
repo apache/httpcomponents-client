@@ -26,27 +26,15 @@
  */
 package org.apache.http.impl.client;
 
-import java.util.Locale;
-
-import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.config.AuthSchemes;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.impl.auth.BasicSchemeFactory;
-import org.apache.http.impl.auth.DigestSchemeFactory;
-import org.apache.http.impl.auth.win.WindowsCredentialsProvider;
-import org.apache.http.impl.auth.win.WindowsNTLMSchemeFactory;
-import org.apache.http.impl.auth.win.WindowsNegotiateSchemeFactory;
-
-import com.sun.jna.platform.win32.Sspi;
-
 /**
  * Factory methods for {@link CloseableHttpClient} instances configured to use integrated
  * Windows authentication by default.
  *
  * @since 4.4
+ *
+ * @deprecated Use {@link org.apache.http.impl.client.win.WinHttpClients}
  */
+@Deprecated
 public class WinHttpClients {
 
     private WinHttpClients() {
@@ -54,41 +42,11 @@ public class WinHttpClients {
     }
 
     public static boolean isWinAuthAvailable() {
-        String os = System.getProperty("os.name");
-        os = os != null ? os.toLowerCase(Locale.ROOT) : null;
-        if (os != null && os.contains("windows")) {
-            try {
-                return Sspi.MAX_TOKEN_SIZE > 0;
-            } catch (final Exception ignore) { // Likely ClassNotFound
-                return false;
-            }
-        }
-        return false;
+        return org.apache.http.impl.client.win.WinHttpClients.isWinAuthAvailable();
     }
 
-    private static HttpClientBuilder createBuilder() {
-        if (isWinAuthAvailable()) {
-            final Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-                    .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-                    .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
-                    .register(AuthSchemes.NTLM, new WindowsNTLMSchemeFactory(null))
-                    .register(AuthSchemes.SPNEGO, new WindowsNegotiateSchemeFactory(null))
-                    .build();
-            final CredentialsProvider credsProvider = new WindowsCredentialsProvider(new SystemDefaultCredentialsProvider());
-            return HttpClientBuilder.create()
-                    .setDefaultCredentialsProvider(credsProvider)
-                    .setDefaultAuthSchemeRegistry(authSchemeRegistry);
-        } else {
-            return HttpClientBuilder.create();
-        }
-    }
-
-    /**
-     * Creates builder object for construction of custom
-     * {@link CloseableHttpClient} instances.
-     */
     public static HttpClientBuilder custom() {
-        return createBuilder();
+        return org.apache.http.impl.client.win.WinHttpClients.custom();
     }
 
     /**
@@ -96,7 +54,7 @@ public class WinHttpClients {
      * configuration.
      */
     public static CloseableHttpClient createDefault() {
-        return createBuilder().build();
+        return org.apache.http.impl.client.win.WinHttpClients.custom().build();
     }
 
     /**
@@ -104,8 +62,7 @@ public class WinHttpClients {
      * configuration based on system properties.
      */
     public static CloseableHttpClient createSystem() {
-        return createBuilder().useSystemProperties().build();
+        return org.apache.http.impl.client.win.WinHttpClients.custom().useSystemProperties().build();
     }
-
 
 }
