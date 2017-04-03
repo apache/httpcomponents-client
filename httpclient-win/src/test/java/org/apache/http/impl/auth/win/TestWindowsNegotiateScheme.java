@@ -49,7 +49,7 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
-import org.apache.http.impl.client.WinHttpClients;
+import org.apache.http.impl.client.win.WinHttpClients;
 import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
