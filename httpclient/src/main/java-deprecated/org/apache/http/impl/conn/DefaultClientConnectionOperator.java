@@ -252,7 +252,7 @@ public class DefaultClientConnectionOperator implements ClientConnectionOperator
      *
      * @param host host name to resolve
      * @return array of IP addresses
-     * @exception  UnknownHostException  if no IP address for the host could be determined.
+     * @throws  UnknownHostException  if no IP address for the host could be determined.
      *
      * @see DnsResolver
      * @see SystemDefaultDnsResolver
