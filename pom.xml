@@ -69,6 +69,7 @@
     <maven.compiler.target>1.7</maven.compiler.target>
     <httpcore.version>5.0-alpha2</httpcore.version>
     <log4j.version>2.8</log4j.version>
+    <dec.version>0.1.1</dec.version>
     <commons-codec.version>1.10</commons-codec.version>
     <ehcache.version>2.6.11</ehcache.version>
     <memcached.version>2.12.0</memcached.version>
@@ -108,6 +109,11 @@
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
         <version>${commons-codec.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.brotli</groupId>
+        <artifactId>dec</artifactId>
+        <version>${dec.version}</version>
       </dependency>
       <dependency>
         <groupId>net.sf.ehcache</groupId>

@@ -46,6 +46,7 @@ import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.ParserCursor;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.brotli.dec.BrotliInputStream;
 
 /**
  * {@link HttpResponseInterceptor} responsible for processing Content-Encoding
@@ -75,6 +76,15 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
         }
 
     };
+    
+    private final static InputStreamFactory BROTLI = new InputStreamFactory() {
+
+        @Override
+        public InputStream create(final InputStream instream) throws IOException {
+            return new BrotliInputStream(instream);
+        }
+
+    };
 
     private final Lookup<InputStreamFactory> decoderRegistry;
     private final boolean ignoreUnknown;
@@ -88,6 +98,7 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
                     .register("gzip", GZIP)
                     .register("x-gzip", GZIP)
                     .register("deflate", DEFLATE)
+                    .register("br", BROTLI)
                     .build();
         this.ignoreUnknown = ignoreUnknown;
     }
