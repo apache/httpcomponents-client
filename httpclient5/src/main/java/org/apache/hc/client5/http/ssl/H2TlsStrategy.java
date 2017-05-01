@@ -131,7 +131,7 @@ public class H2TlsStrategy implements TlsStrategy {
             final SocketAddress localAddress,
             final SocketAddress remoteAddress,
             final Object attachment) {
-        tlsSession.startTls(sslContext, sslBufferManagement, H2TlsSupport.enforceRequirements(null, new SSLSessionInitializer() {
+        tlsSession.startTls(sslContext, sslBufferManagement, H2TlsSupport.enforceRequirements(attachment, new SSLSessionInitializer() {
 
             @Override
             public void initialize(final NamedEndpoint endpoint, final SSLEngine sslEngine) {

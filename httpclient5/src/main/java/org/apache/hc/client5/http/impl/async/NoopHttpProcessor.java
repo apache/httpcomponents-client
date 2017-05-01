@@ -24,30 +24,30 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.async.methods;
 
-import org.apache.hc.client5.http.config.Configurable;
-import org.apache.hc.client5.http.config.RequestConfig;
+package org.apache.hc.client5.http.impl.async;
+
+import java.io.IOException;
+
+import org.apache.hc.core5.http.EntityDetails;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.nio.AsyncEntityProducer;
-import org.apache.hc.core5.http.nio.BasicRequestProducer;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
 
-public class DefaultAsyncRequestProducer extends BasicRequestProducer implements Configurable {
+final class NoopHttpProcessor implements HttpProcessor {
 
-    private final RequestConfig config;
+    static final NoopHttpProcessor INSTANCE = new NoopHttpProcessor();
 
-    public DefaultAsyncRequestProducer(final HttpRequest request, final AsyncEntityProducer entityProducer, final RequestConfig config) {
-        super(request, entityProducer);
-        this.config = config;
-    }
-
-    public DefaultAsyncRequestProducer(final HttpRequest request, final AsyncEntityProducer entityProducer) {
-        this(request, entityProducer, null);
+    @Override
+    public void process(
+            final HttpRequest request, final EntityDetails entity, final HttpContext context) throws HttpException, IOException {
     }
 
     @Override
-    public RequestConfig getConfig() {
-        return config;
+    public void process(
+            final HttpResponse response, final EntityDetails entity, final HttpContext context) throws HttpException, IOException {
     }
 
 }

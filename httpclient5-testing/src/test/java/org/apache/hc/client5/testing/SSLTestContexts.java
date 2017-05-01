@@ -24,30 +24,29 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.async.methods;
 
-import org.apache.hc.client5.http.config.Configurable;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.nio.AsyncEntityProducer;
-import org.apache.hc.core5.http.nio.BasicRequestProducer;
+package org.apache.hc.client5.testing;
 
-public class DefaultAsyncRequestProducer extends BasicRequestProducer implements Configurable {
+import javax.net.ssl.SSLContext;
 
-    private final RequestConfig config;
+import org.apache.hc.core5.ssl.SSLContexts;
 
-    public DefaultAsyncRequestProducer(final HttpRequest request, final AsyncEntityProducer entityProducer, final RequestConfig config) {
-        super(request, entityProducer);
-        this.config = config;
+public class SSLTestContexts {
+
+    public static SSLContext createServerSSLContext() throws Exception {
+        return SSLContexts.custom()
+                .loadTrustMaterial(SSLTestContexts.class.getResource("/test.keystore"),
+                        "nopassword".toCharArray())
+                .loadKeyMaterial(SSLTestContexts.class.getResource("/test.keystore"),
+                        "nopassword".toCharArray(), "nopassword".toCharArray())
+                .build();
     }
 
-    public DefaultAsyncRequestProducer(final HttpRequest request, final AsyncEntityProducer entityProducer) {
-        this(request, entityProducer, null);
-    }
-
-    @Override
-    public RequestConfig getConfig() {
-        return config;
+    public static SSLContext createClientSSLContext() throws Exception {
+        return SSLContexts.custom()
+                .loadTrustMaterial(SSLTestContexts.class.getResource("/test.keystore"),
+                        "nopassword".toCharArray())
+                .build();
     }
 
 }

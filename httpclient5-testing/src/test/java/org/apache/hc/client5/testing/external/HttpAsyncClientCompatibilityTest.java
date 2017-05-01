@@ -52,7 +52,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.TextUtils;
@@ -167,13 +166,10 @@ public class HttpAsyncClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
-            final Future<AsyncClientEndpoint> leaseFuture = client.lease(target, null);
-            final AsyncClientEndpoint clientEndpoint = leaseFuture.get(20, TimeUnit.SECONDS);
-
             final String[] requestUris = new String[] {"/", "/news.html", "/status.html"};
             for (String requestUri: requestUris) {
                 final SimpleHttpRequest httpGet = new SimpleHttpRequest("GET", target, requestUri, null, null);
-                final Future<SimpleHttpResponse> future = clientEndpoint.execute(new SimpleRequestProducer(httpGet), new SimpleResponseConsumer(), null);
+                final Future<SimpleHttpResponse> future = client.execute(new SimpleRequestProducer(httpGet), new SimpleResponseConsumer(), null);
                 try {
                     final SimpleHttpResponse response = future.get(5, TimeUnit.SECONDS);
                     final int code = response.getCode();

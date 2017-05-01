@@ -60,7 +60,7 @@ public interface AsyncClientConnectionManager extends Closeable {
      * {@link AsyncConnectionEndpoint#isConnected() disconnected}. The consumer
      * of the endpoint is responsible for fully establishing the route to
      * the endpoint target by calling {@link #connect(AsyncConnectionEndpoint,
-     * ConnectionInitiator, TimeValue, HttpContext, FutureCallback)}
+     * ConnectionInitiator, TimeValue, Object, HttpContext, FutureCallback)}
      * in order to connect directly to the target or to the first proxy hop,
      * and optionally calling {@link #upgrade(AsyncConnectionEndpoint, HttpContext)}
      * method to upgrade the underlying transport to Transport Layer Security
@@ -100,12 +100,14 @@ public interface AsyncClientConnectionManager extends Closeable {
      * @param endpoint      the managed endpoint.
      * @param connectTimeout connect timeout.
      * @param context the actual HTTP context.
+     * @param attachment connect request attachment.
      * @param callback result callback.
      */
     Future<AsyncConnectionEndpoint> connect(
             AsyncConnectionEndpoint endpoint,
             ConnectionInitiator connectionInitiator,
             TimeValue connectTimeout,
+            Object attachment,
             HttpContext context,
             FutureCallback<AsyncConnectionEndpoint> callback);
 

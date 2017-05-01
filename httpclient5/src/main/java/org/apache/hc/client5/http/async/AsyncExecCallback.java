@@ -24,29 +24,21 @@
  * <http://www.apache.org/>.
  *
  */
+package org.apache.hc.client5.http.async;
 
-package org.apache.hc.client5.testing.sync;
+import java.io.IOException;
 
-import javax.net.ssl.SSLContext;
+import org.apache.hc.core5.http.EntityDetails;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 
-import org.apache.hc.core5.ssl.SSLContexts;
+public interface AsyncExecCallback {
 
-public class SSLTestContexts {
+    AsyncDataConsumer handleResponse(HttpResponse response, EntityDetails entityDetails) throws HttpException, IOException;
 
-    public static SSLContext createServerSSLContext() throws Exception {
-        return SSLContexts.custom()
-                .loadTrustMaterial(SSLTestContexts.class.getResource("/test.keystore"),
-                        "nopassword".toCharArray())
-                .loadKeyMaterial(SSLTestContexts.class.getResource("/test.keystore"),
-                        "nopassword".toCharArray(), "nopassword".toCharArray())
-                .build();
-    }
+    void completed();
 
-    public static SSLContext createClientSSLContext() throws Exception {
-        return SSLContexts.custom()
-                .loadTrustMaterial(SSLTestContexts.class.getResource("/test.keystore"),
-                        "nopassword".toCharArray())
-                .build();
-    }
+    void failed(Exception cause);
 
 }

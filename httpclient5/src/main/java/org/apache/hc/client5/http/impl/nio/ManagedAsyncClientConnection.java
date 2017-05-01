@@ -39,6 +39,7 @@ import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOEventHandler;
@@ -85,7 +86,7 @@ final class ManagedAsyncClientConnection implements Identifiable, HttpConnection
             if (log.isDebugEnabled()) {
                 log.debug(getId() + ": Close connection");
             }
-            ioSession.close();
+            ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
         }
     }
 

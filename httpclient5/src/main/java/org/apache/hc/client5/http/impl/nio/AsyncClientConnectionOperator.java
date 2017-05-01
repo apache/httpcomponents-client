@@ -74,6 +74,7 @@ final class AsyncClientConnectionOperator {
             final HttpHost host,
             final SocketAddress localAddress,
             final TimeValue connectTimeout,
+            final Object attachment,
             final FutureCallback<ManagedAsyncClientConnection> callback) {
         Args.notNull(connectionInitiator, "Connection initiator");
         Args.notNull(host, "Host");
@@ -104,7 +105,8 @@ final class AsyncClientConnectionOperator {
                         host,
                         remoteAddress,
                         localAddress,
-                        null, new SessionRequestCallback() {
+                        attachment,
+                        new SessionRequestCallback() {
 
                             @Override
                             public void completed(final SessionRequest request) {
@@ -116,7 +118,7 @@ final class AsyncClientConnectionOperator {
                                             host,
                                             session.getLocalAddress(),
                                             session.getRemoteAddress(),
-                                            null);
+                                            request.getAttachment());
                                 }
                                 future.completed(connection);
                             }

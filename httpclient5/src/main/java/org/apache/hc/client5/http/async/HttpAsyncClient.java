@@ -30,8 +30,6 @@ import java.util.concurrent.Future;
 
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Supplier;
-import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
@@ -46,17 +44,6 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * @since 4.0
  */
 public interface HttpAsyncClient {
-
-    /**
-     * Leases {@link AsyncClientEndpoint} for the given {@link HttpHost}.
-     * <p>
-     * The endpoint MUST be released back when no longer used by calling
-     * {@link AsyncClientEndpoint#releaseAndReuse()} or {@link AsyncClientEndpoint#releaseAndDiscard()}
-     */
-    Future<AsyncClientEndpoint> lease(
-            HttpHost host,
-            HttpContext context,
-            FutureCallback<AsyncClientEndpoint> callback);
 
     /**
      * Initiates asynchronous HTTP request execution using the given context.

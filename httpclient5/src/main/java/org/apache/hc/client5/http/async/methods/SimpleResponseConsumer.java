@@ -29,6 +29,7 @@ package org.apache.hc.client5.http.async.methods;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityConsumer;
+import org.apache.hc.core5.http.nio.support.AbstractAsyncResponseConsumer;
 
 public final class SimpleResponseConsumer extends AbstractAsyncResponseConsumer<SimpleHttpResponse, String> {
 

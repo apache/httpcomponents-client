@@ -34,12 +34,12 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
-import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.TimeValue;
@@ -55,10 +55,7 @@ public class AsyncClientHttp1Pipelining {
                 .setSoTimeout(TimeValue.ofSeconds(5))
                 .build();
 
-        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
-                .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_1)
-                .setIOReactorConfig(ioReactorConfig)
-                .build();
+        final MinimalHttpAsyncClient client = HttpAsyncClients.createMinimal(H1Config.DEFAULT, ioReactorConfig);
 
         client.start();
 
@@ -70,7 +67,7 @@ public class AsyncClientHttp1Pipelining {
 
             final CountDownLatch latch = new CountDownLatch(requestUris.length);
             for (final String requestUri: requestUris) {
-                final SimpleHttpRequest request = new SimpleHttpRequest("GET", target, requestUri, null, null);
+                final SimpleHttpRequest request = SimpleHttpRequest.get(target, requestUri);
                 endpoint.execute(
                         new SimpleRequestProducer(request),
                         new SimpleResponseConsumer(),

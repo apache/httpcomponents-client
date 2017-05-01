@@ -30,9 +30,11 @@ package org.apache.hc.client5.testing.sync;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
+import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.client5.testing.classic.EchoHandler;
 import org.apache.hc.client5.testing.classic.RandomHandler;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.URIScheme;
 import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
@@ -46,9 +48,7 @@ import org.junit.Before;
  */
 public abstract class LocalServerTestBase {
 
-    public enum ProtocolScheme { http, https };
-
-    protected final ProtocolScheme scheme;
+    protected final URIScheme scheme;
 
     protected ServerBootstrap serverBootstrap;
     protected HttpServer server;
@@ -56,12 +56,12 @@ public abstract class LocalServerTestBase {
     protected HttpClientBuilder clientBuilder;
     protected CloseableHttpClient httpclient;
 
-    public LocalServerTestBase(final ProtocolScheme scheme) {
+    public LocalServerTestBase(final URIScheme scheme) {
         this.scheme = scheme;
     }
 
     public LocalServerTestBase() {
-        this(ProtocolScheme.http);
+        this(URIScheme.HTTP);
     }
 
     public String getSchemeName() {
@@ -77,7 +77,7 @@ public abstract class LocalServerTestBase {
                 .setSocketConfig(socketConfig)
                 .registerHandler("/echo/*", new EchoHandler())
                 .registerHandler("/random/*", new RandomHandler());
-        if (this.scheme.equals(ProtocolScheme.https)) {
+        if (this.scheme.equals(URIScheme.HTTPS)) {
             this.serverBootstrap.setSslContext(SSLTestContexts.createServerSSLContext());
         }
 

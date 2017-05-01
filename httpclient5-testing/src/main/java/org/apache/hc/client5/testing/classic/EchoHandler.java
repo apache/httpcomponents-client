@@ -65,11 +65,10 @@ public class EchoHandler implements HttpRequestHandler {
 
         final String method = request.getMethod().toUpperCase(Locale.ROOT);
         if (!"GET".equals(method) &&
-            !"POST".equals(method) &&
-            !"PUT".equals(method)
-            ) {
-            throw new MethodNotSupportedException
-                (method + " not supported by " + getClass().getName());
+                !"HEAD".equals(method) &&
+                !"POST".equals(method) &&
+                !"PUT".equals(method)) {
+            throw new MethodNotSupportedException(method + " not supported by " + getClass().getName());
         }
 
         HttpEntity entity = request.getEntity();

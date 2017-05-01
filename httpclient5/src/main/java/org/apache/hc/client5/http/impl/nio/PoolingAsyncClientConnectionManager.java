@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.DnsResolver;
@@ -151,10 +152,14 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
                 route, state, timeout, new FutureCallback<PoolEntry<HttpRoute, ManagedAsyncClientConnection>>() {
 
                     void leaseCompleted(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry) {
-                        resultFuture.completed(new InternalConnectionEndpoint(poolEntry));
                         if (log.isDebugEnabled()) {
                             log.debug("Connection leased: " + ConnPoolSupport.formatStats(poolEntry.getConnection(), route, state, pool));
                         }
+                        final AsyncConnectionEndpoint endpoint = new InternalConnectionEndpoint(poolEntry);
+                        if (log.isDebugEnabled()) {
+                            log.debug(ConnPoolSupport.getId(endpoint) + ": acquired " + ConnPoolSupport.getId(poolEntry.getConnection()));
+                        }
+                        resultFuture.completed(endpoint);
                     }
 
                     @Override
@@ -209,6 +214,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         if (entry == null) {
             return;
         }
+        if (log.isDebugEnabled()) {
+            log.debug(ConnPoolSupport.getId(endpoint) + ": endpoint discarded");
+        }
         final ManagedAsyncClientConnection connection = entry.getConnection();
         boolean reusable = connection != null && connection.isOpen();
         try {
@@ -242,6 +250,7 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
             final AsyncConnectionEndpoint endpoint,
             final ConnectionInitiator connectionInitiator,
             final TimeValue timeout,
+            final Object attachment,
             final HttpContext context,
             final FutureCallback<AsyncConnectionEndpoint> callback) {
         Args.notNull(endpoint, "Endpoint");
@@ -263,12 +272,19 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         }
         final InetSocketAddress localAddress = route.getLocalSocketAddress();
         final Future<ManagedAsyncClientConnection> connectFuture = connectionOperator.connect(
-                connectionInitiator, host, localAddress, timeout, new FutureCallback<ManagedAsyncClientConnection>() {
+                connectionInitiator, host, localAddress, timeout, attachment, new FutureCallback<ManagedAsyncClientConnection>() {
 
                     @Override
                     public void completed(final ManagedAsyncClientConnection connection) {
-                        poolEntry.assignConnection(connection);
-                        resultFuture.completed(new InternalConnectionEndpoint(poolEntry));
+                        try {
+                            if (log.isDebugEnabled()) {
+                                log.debug(ConnPoolSupport.getId(internalEndpoint) + ": connected " + ConnPoolSupport.getId(connection));
+                            }
+                            poolEntry.assignConnection(connection);
+                            resultFuture.completed(internalEndpoint);
+                        } catch (final RuntimeException ex) {
+                            resultFuture.failed(ex);
+                        }
                     }
 
                     @Override
@@ -294,7 +310,11 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
         final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = internalEndpoint.getValidatedPoolEntry();
         final HttpRoute route = poolEntry.getRoute();
+        final ManagedAsyncClientConnection connection = poolEntry.getConnection();
         connectionOperator.upgrade(poolEntry.getConnection(), route.getTargetHost());
+        if (log.isDebugEnabled()) {
+            log.debug(ConnPoolSupport.getId(internalEndpoint) + ": upgraded " + ConnPoolSupport.getId(connection));
+        }
     }
 
     @Override
@@ -362,19 +382,21 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         this.validateAfterInactivity = validateAfterInactivity;
     }
 
+    private static final AtomicLong COUNT = new AtomicLong(0);
+
     class InternalConnectionEndpoint extends AsyncConnectionEndpoint implements Identifiable {
 
         private final AtomicReference<PoolEntry<HttpRoute, ManagedAsyncClientConnection>> poolEntryRef;
+        private final String id;
 
         InternalConnectionEndpoint(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry) {
             this.poolEntryRef = new AtomicReference<>(poolEntry);
+            this.id = "ep-" + Long.toHexString(COUNT.incrementAndGet());
         }
 
         @Override
         public String getId() {
-            final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = poolEntryRef.get();
-            final ManagedAsyncClientConnection connection = poolEntry != null ? poolEntry.getConnection() : null;
-            return ConnPoolSupport.getId(connection);
+            return id;
         }
 
         PoolEntry<HttpRoute, ManagedAsyncClientConnection> getPoolEntry() {
@@ -400,6 +422,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         public void shutdown() throws IOException {
             final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = poolEntryRef.get();
             if (poolEntry != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug(id + ": shutdown " + ShutdownType.IMMEDIATE);
+                }
                 poolEntry.discardConnection(ShutdownType.IMMEDIATE);
             }
         }
@@ -408,6 +433,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         public void close() throws IOException {
             final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = poolEntryRef.get();
             if (poolEntry != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug(id + ": shutdown " + ShutdownType.GRACEFUL);
+                }
                 poolEntry.discardConnection(ShutdownType.GRACEFUL);
             }
         }
@@ -416,10 +444,18 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         public boolean isConnected() {
             final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = poolEntryRef.get();
             if (poolEntry == null) {
-                throw new ConnectionShutdownException();
+                return false;
             }
             final ManagedAsyncClientConnection connection = poolEntry.getConnection();
-            return connection != null && connection.isOpen();
+            if (connection == null) {
+                return false;
+            } else {
+                if (!connection.isOpen()) {
+                    poolEntry.discardConnection(ShutdownType.IMMEDIATE);
+                    return false;
+                }
+                return true;
+            }
         }
 
         @Override
@@ -430,6 +466,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
         @Override
         public void execute(final AsyncClientExchangeHandler exchangeHandler, final HttpContext context) {
             final ManagedAsyncClientConnection connection = getValidatedPoolEntry().getConnection();
+            if (log.isDebugEnabled()) {
+                log.debug(id + ": executing exchange " + ConnPoolSupport.getId(exchangeHandler) + " over " + ConnPoolSupport.getId(connection));
+            }
             connection.submitCommand(new ExecutionCommand(exchangeHandler, context));
         }
 

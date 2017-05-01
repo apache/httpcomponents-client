@@ -32,20 +32,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ExceptionListener;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
-import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.ExceptionEvent;
-import org.apache.hc.core5.reactor.IOEventHandlerFactory;
-import org.apache.hc.core5.reactor.IOReactorConfig;
-import org.apache.hc.core5.reactor.IOReactorException;
 import org.apache.hc.core5.reactor.IOReactorStatus;
-import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -62,31 +56,20 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
     private final ExecutorService executorService;
     private final AtomicReference<Status> status;
 
-    public AbstractHttpAsyncClientBase(
-            final IOEventHandlerFactory eventHandlerFactory,
+    AbstractHttpAsyncClientBase(
+            final DefaultConnectingIOReactor ioReactor,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
-            final IOReactorConfig reactorConfig,
-            final ThreadFactory threadFactory,
-            final ThreadFactory workerThreadFactory) throws IOReactorException {
+            final ThreadFactory threadFactory) {
         super();
-        this.ioReactor = new DefaultConnectingIOReactor(
-                eventHandlerFactory,
-                reactorConfig,
-                workerThreadFactory,
-                new Callback<IOSession>() {
-
-                    @Override
-                    public void execute(final IOSession ioSession) {
-                        ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
-                    }
-
-                });
+        this.ioReactor = ioReactor;
         this.pushConsumerRegistry = pushConsumerRegistry;
         this.exceptionListener = new ExceptionListener() {
+
             @Override
             public void onError(final Exception ex) {
                 log.error(ex.getMessage(), ex);
             }
+
         };
         this.executorService = Executors.newSingleThreadExecutor(threadFactory);
         this.status = new AtomicReference<>(Status.READY);
@@ -144,11 +127,17 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
 
     @Override
     public final void initiateShutdown() {
+        if (log.isDebugEnabled()) {
+            log.debug("Initiating shutdown");
+        }
         ioReactor.initiateShutdown();
     }
 
     @Override
     public final void shutdown(final ShutdownType shutdownType) {
+        if (log.isDebugEnabled()) {
+            log.debug("Shutdown " + shutdownType);
+        }
         ioReactor.initiateShutdown();
         ioReactor.shutdown(shutdownType);
     }

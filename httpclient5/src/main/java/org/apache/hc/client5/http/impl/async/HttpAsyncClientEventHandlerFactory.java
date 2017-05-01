@@ -33,7 +33,6 @@ import java.util.List;
 
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
 import org.apache.hc.client5.http.impl.logging.LogAppendable;
-import org.apache.hc.client5.http.impl.logging.LoggingIOEventHandler;
 import org.apache.hc.client5.http.impl.logging.LoggingIOSession;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -78,7 +77,7 @@ import org.apache.logging.log4j.Logger;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
-    private final Logger streamLog = LogManager.getLogger(ClientHttpProtocolNegotiator.class);
+    private final Logger streamLog = LogManager.getLogger(InternalHttpAsyncClient.class);
     private final Logger wireLog = LogManager.getLogger("org.apache.hc.client5.http.wire");
     private final Logger headerLog = LogManager.getLogger("org.apache.hc.client5.http.headers");
     private final Logger frameLog = LogManager.getLogger("org.apache.hc.client5.http2.frame");
@@ -282,15 +281,12 @@ public class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory
 
                     });
             final LoggingIOSession loggingIOSession = new LoggingIOSession(ioSession, id, sessionLog, wireLog);
-            return new LoggingIOEventHandler(
-                    new ClientHttpProtocolNegotiator(
+            return new ClientHttpProtocolNegotiator(
                             loggingIOSession,
                             http1StreamHandlerFactory,
                             http2StreamHandlerFactory,
                             attachment instanceof HttpVersionPolicy ? (HttpVersionPolicy) attachment : versionPolicy,
-                            connectionListener),
-                    id,
-                    streamLog);
+                            connectionListener);
         } else {
             final ClientHttp1StreamDuplexerFactory http1StreamHandlerFactory = new ClientHttp1StreamDuplexerFactory(
                     httpProcessor,

@@ -27,8 +27,8 @@
 package org.apache.hc.client5.testing.sync;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,7 +45,6 @@ import org.apache.hc.client5.http.sync.methods.HttpPost;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -59,7 +58,7 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.net.URIBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -86,25 +85,25 @@ public class TestRedirects extends LocalServerTestBase {
                 final ClassicHttpRequest request,
                 final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final EndpointDetails endpointDetails = (EndpointDetails) context.getAttribute(HttpCoreContext.CONNECTION_ENDPOINT);
-            final InetSocketAddress socketAddress = (InetSocketAddress) endpointDetails.getLocalAddress();
-            String localhost = socketAddress.getHostName();
-            if (localhost.equals("127.0.0.1")) {
-                localhost = "localhost";
-            }
-            final int port = socketAddress.getPort();
-            final String uri = request.getRequestUri();
-            if (uri.equals("/oldlocation/")) {
-                response.setCode(this.statuscode);
-                response.addHeader(new BasicHeader("Location",
-                        "http://" + localhost + ":" + port + "/newlocation/"));
-                response.addHeader(new BasicHeader("Connection", "close"));
-            } else if (uri.equals("/newlocation/")) {
-                response.setCode(HttpStatus.SC_OK);
-                final StringEntity entity = new StringEntity("Successful redirect");
-                response.setEntity(entity);
-            } else {
-                response.setCode(HttpStatus.SC_NOT_FOUND);
+
+            try {
+                final URI requestURI = request.getUri();
+                final String path = requestURI.getPath();
+                if (path.equals("/oldlocation/")) {
+                    response.setCode(this.statuscode);
+                    response.addHeader(new BasicHeader("Location",
+                            new URIBuilder(requestURI).setPath("/newlocation/").build()));
+                    response.addHeader(new BasicHeader("Connection", "close"));
+                } else if (path.equals("/newlocation/")) {
+                    response.setCode(HttpStatus.SC_OK);
+                    final StringEntity entity = new StringEntity("Successful redirect");
+                    response.setEntity(entity);
+                } else {
+                    response.setCode(HttpStatus.SC_NOT_FOUND);
+                }
+
+            } catch (URISyntaxException ex) {
+                throw new ProtocolException(ex.getMessage(), ex);
             }
         }
 

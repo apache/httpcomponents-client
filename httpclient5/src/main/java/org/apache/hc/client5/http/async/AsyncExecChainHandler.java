@@ -24,30 +24,21 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.async.methods;
+package org.apache.hc.client5.http.async;
 
-import org.apache.hc.client5.http.config.Configurable;
-import org.apache.hc.client5.http.config.RequestConfig;
+import java.io.IOException;
+
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
-import org.apache.hc.core5.http.nio.BasicRequestProducer;
 
-public class DefaultAsyncRequestProducer extends BasicRequestProducer implements Configurable {
+public interface AsyncExecChainHandler {
 
-    private final RequestConfig config;
-
-    public DefaultAsyncRequestProducer(final HttpRequest request, final AsyncEntityProducer entityProducer, final RequestConfig config) {
-        super(request, entityProducer);
-        this.config = config;
-    }
-
-    public DefaultAsyncRequestProducer(final HttpRequest request, final AsyncEntityProducer entityProducer) {
-        this(request, entityProducer, null);
-    }
-
-    @Override
-    public RequestConfig getConfig() {
-        return config;
-    }
+    void execute(
+            HttpRequest request,
+            AsyncEntityProducer entityProducer,
+            AsyncExecChain.Scope scope,
+            AsyncExecChain chain,
+            AsyncExecCallback asyncExecCallback) throws HttpException, IOException;
 
 }

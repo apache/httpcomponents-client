@@ -30,8 +30,6 @@ import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
-import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
@@ -61,10 +59,10 @@ public class AsyncClientHttpExchange {
         final String[] requestUris = new String[] {"/", "/ip", "/user-agent", "/headers"};
 
         for (final String requestUri: requestUris) {
-            final SimpleHttpRequest request = new SimpleHttpRequest("GET", target, requestUri, null, null);
+            final SimpleHttpRequest httpget = SimpleHttpRequest.get(target, requestUri);
+            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             final Future<SimpleHttpResponse> future = client.execute(
-                    new SimpleRequestProducer(request),
-                    new SimpleResponseConsumer(),
+                    httpget,
                     new FutureCallback<SimpleHttpResponse>() {
 
                         @Override

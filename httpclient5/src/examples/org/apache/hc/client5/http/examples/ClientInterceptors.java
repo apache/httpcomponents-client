@@ -97,14 +97,17 @@ public class ClientInterceptors {
 
                 })
                 .build()) {
-            final HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
-            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
+            for (int i = 0; i < 20; i++) {
+                final HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
-            try (CloseableHttpResponse response = httpclient.execute(httpget)) {
-                System.out.println("----------------------------------------");
-                System.out.println(response.getCode() + " " + response.getReasonPhrase());
-                System.out.println(EntityUtils.toString(response.getEntity()));
+                System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
+
+                try (CloseableHttpResponse response = httpclient.execute(httpget)) {
+                    System.out.println("----------------------------------------");
+                    System.out.println(response.getCode() + " " + response.getReasonPhrase());
+                    System.out.println(EntityUtils.toString(response.getEntity()));
+                }
             }
         }
     }

@@ -26,14 +26,19 @@
  */
 package org.apache.hc.client5.http.async.methods;
 
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
 import org.apache.hc.core5.util.Args;
 
 public final class SimpleRequestProducer extends DefaultAsyncRequestProducer {
 
-    public SimpleRequestProducer(final SimpleHttpRequest request) {
+    public SimpleRequestProducer(final SimpleHttpRequest request, final RequestConfig requestConfig) {
         super(Args.notNull(request, "Request"), request.getBody() != null ?
-                new StringAsyncEntityProducer(request.getBody(), request.getContentType()) : null);
+                new StringAsyncEntityProducer(request.getBody(), request.getContentType()) : null, requestConfig);
+    }
+
+    public SimpleRequestProducer(final SimpleHttpRequest request) {
+        this(request, null);
     }
 
 }

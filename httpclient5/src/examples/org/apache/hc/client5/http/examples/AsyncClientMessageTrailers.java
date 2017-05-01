@@ -24,30 +24,40 @@
  * <http://www.apache.org/>.
  *
  */
+
 package org.apache.hc.client5.http.examples;
 
+import java.io.IOException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.AsyncExecCallback;
+import org.apache.hc.client5.http.async.AsyncExecChain;
+import org.apache.hc.client5.http.async.AsyncExecChainHandler;
+import org.apache.hc.client5.http.async.methods.AsyncRequestBuilder;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.impl.sync.ChainElements;
 import org.apache.hc.core5.concurrent.FutureCallback;
-import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.nio.AsyncEntityProducer;
+import org.apache.hc.core5.http.nio.AsyncRequestProducer;
+import org.apache.hc.core5.http.nio.entity.DigestingEntityProducer;
+import org.apache.hc.core5.http.nio.entity.StringAsyncEntityProducer;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
- * Example demonstrating how to evict expired and idle connections
- * from the connection pool.
+ * This example demonstrates how to use a custom execution interceptor
+ * to add trailers to all outgoing request enclosing an entity.
  */
-public class AsyncClientConnectionEviction {
+public class AsyncClientMessageTrailers {
 
-    public static void main(final String[] args) throws Exception {
+    public final static void main(final String[] args) throws Exception {
 
         final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
                 .setSoTimeout(TimeValue.ofSeconds(5))
@@ -55,71 +65,59 @@ public class AsyncClientConnectionEviction {
 
         final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
                 .setIOReactorConfig(ioReactorConfig)
-                .evictExpiredConnections()
-                .evictIdleConnections(TimeValue.ofSeconds(10))
+                .addExecInterceptorAfter(ChainElements.PROTOCOL.name(), "custom", new AsyncExecChainHandler() {
+
+                    @Override
+                    public void execute(
+                            final HttpRequest request,
+                            final AsyncEntityProducer entityProducer,
+                            final AsyncExecChain.Scope scope,
+                            final AsyncExecChain chain,
+                            final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
+                        // Send MD5 hash in a trailer by decorating the original entity producer
+                        chain.proceed(
+                                request,
+                                entityProducer != null ? new DigestingEntityProducer("MD5", entityProducer) : null,
+                                scope,
+                                asyncExecCallback);
+                    }
+
+                })
                 .build();
 
         client.start();
 
-        final HttpHost target = new HttpHost("httpbin.org");
-
-        final SimpleHttpRequest request = SimpleHttpRequest.get(target, "/");
-        final Future<SimpleHttpResponse> future1 = client.execute(
-                new SimpleRequestProducer(request),
+        final String requestUri = "http://httpbin.org/post";
+        final AsyncRequestProducer requestProducer = AsyncRequestBuilder.post(requestUri)
+                .setEntity(new StringAsyncEntityProducer("some stuff", ContentType.TEXT_PLAIN))
+                .build();
+        final Future<SimpleHttpResponse> future = client.execute(
+                requestProducer,
                 new SimpleResponseConsumer(),
                 new FutureCallback<SimpleHttpResponse>() {
 
                     @Override
                     public void completed(final SimpleHttpResponse response) {
-                        System.out.println(request.getRequestUri() + "->" + response.getCode());
+                        System.out.println(requestUri + "->" + response.getCode());
                         System.out.println(response.getBody());
                     }
 
                     @Override
                     public void failed(final Exception ex) {
-                        System.out.println(request.getRequestUri() + "->" + ex);
+                        System.out.println(requestUri + "->" + ex);
                     }
 
                     @Override
                     public void cancelled() {
-                        System.out.println(request.getRequestUri() + " cancelled");
+                        System.out.println(requestUri + " cancelled");
                     }
 
                 });
-
-        future1.get();
-
-        Thread.sleep(TimeUnit.SECONDS.toMillis(30));
-
-        // Previous connection should get evicted from the pool by now
-
-        final Future<SimpleHttpResponse> future2 = client.execute(
-                new SimpleRequestProducer(request),
-                new SimpleResponseConsumer(),
-                new FutureCallback<SimpleHttpResponse>() {
-
-                    @Override
-                    public void completed(final SimpleHttpResponse response) {
-                        System.out.println(request.getRequestUri() + "->" + response.getCode());
-                        System.out.println(response.getBody());
-                    }
-
-                    @Override
-                    public void failed(final Exception ex) {
-                        System.out.println(request.getRequestUri() + "->" + ex);
-                    }
-
-                    @Override
-                    public void cancelled() {
-                        System.out.println(request.getRequestUri() + " cancelled");
-                    }
-
-                });
-
-        future2.get();
+        future.get();
 
         System.out.println("Shutting down");
         client.shutdown(ShutdownType.GRACEFUL);
     }
 
 }
+

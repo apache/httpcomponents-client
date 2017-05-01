@@ -34,12 +34,11 @@ import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
 import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
-import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.client5.http.impl.async.MinimalHttpAsyncClient;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
-import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOReactorConfig;
@@ -57,15 +56,7 @@ public class AsyncClientHttp2Multiplexing {
                 .setSoTimeout(TimeValue.ofSeconds(5))
                 .build();
 
-        final H2Config h2Config = H2Config.custom()
-                .setPushEnabled(false)
-                .build();
-
-        final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
-                .setIOReactorConfig(ioReactorConfig)
-                .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_2)
-                .setH2Config(h2Config)
-                .build();
+        final MinimalHttpAsyncClient client = HttpAsyncClients.createMinimal(H2Config.DEFAULT, ioReactorConfig);
 
         client.start();
 
@@ -77,7 +68,7 @@ public class AsyncClientHttp2Multiplexing {
 
             final CountDownLatch latch = new CountDownLatch(requestUris.length);
             for (final String requestUri: requestUris) {
-                final SimpleHttpRequest request = new SimpleHttpRequest("GET", target, requestUri, null, null);
+                final SimpleHttpRequest request = SimpleHttpRequest.get(target, requestUri);
                 endpoint.execute(
                         new SimpleRequestProducer(request),
                         new SimpleResponseConsumer(),

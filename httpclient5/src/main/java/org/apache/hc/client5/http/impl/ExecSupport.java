@@ -27,6 +27,7 @@
 package org.apache.hc.client5.http.impl;
 
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -42,6 +43,12 @@ import org.apache.hc.core5.http.message.BasicHttpResponse;
 
 public final class ExecSupport {
 
+    private static final AtomicLong COUNT = new AtomicLong(0);
+
+    public static long getNextExecNumber() {
+        return COUNT.incrementAndGet();
+    }
+
     private static void copyMessageProperties(final HttpMessage original, final HttpMessage copy) {
         copy.setVersion(original.getVersion());
         for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
@@ -54,6 +61,7 @@ public final class ExecSupport {
         if (copy.getVersion() == null) {
             copy.setVersion(HttpVersion.DEFAULT);
         }
+        copy.setScheme(original.getScheme());
         copy.setAuthority(original.getAuthority());
     }
 

@@ -34,6 +34,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.ConnPoolSupport;
+import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -41,32 +43,54 @@ import org.apache.hc.core5.concurrent.BasicFuture;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
+import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
+import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOReactorException;
+import org.apache.hc.core5.reactor.IOSession;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TimeValue;
 
-class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
+public class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
 
     private final AsyncClientConnectionManager connmgr;
+    private final HttpVersionPolicy versionPolicy;
 
-    public MinimalHttpAsyncClient(
+    MinimalHttpAsyncClient(
             final IOEventHandlerFactory eventHandlerFactory,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
+            final HttpVersionPolicy versionPolicy,
             final IOReactorConfig reactorConfig,
             final ThreadFactory threadFactory,
             final ThreadFactory workerThreadFactory,
             final AsyncClientConnectionManager connmgr) throws IOReactorException {
-        super(eventHandlerFactory, pushConsumerRegistry, reactorConfig, threadFactory, workerThreadFactory);
+        super(new DefaultConnectingIOReactor(
+                eventHandlerFactory,
+                reactorConfig,
+                workerThreadFactory,
+                new Callback<IOSession>() {
+
+                    @Override
+                    public void execute(final IOSession ioSession) {
+                        ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
+                    }
+
+                }),
+                pushConsumerRegistry,
+                threadFactory);
+        this.versionPolicy = versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE;
         this.connmgr = connmgr;
     }
 
@@ -77,8 +101,7 @@ class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
             final FutureCallback<AsyncConnectionEndpoint> callback) {
         final ComplexFuture<AsyncConnectionEndpoint> resultFuture = new ComplexFuture<>(callback);
         final Future<AsyncConnectionEndpoint> leaseFuture = connmgr.lease(
-                new HttpRoute(host), null,
-                connectTimeout,
+                new HttpRoute(host), null, connectTimeout,
                 new FutureCallback<AsyncConnectionEndpoint>() {
 
                     @Override
@@ -90,6 +113,7 @@ class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                                     connectionEndpoint,
                                     getConnectionInitiator(),
                                     connectTimeout,
+                                    versionPolicy,
                                     clientContext,
                                     new FutureCallback<AsyncConnectionEndpoint>() {
 
@@ -128,7 +152,12 @@ class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
         return resultFuture;
     }
 
-    @Override
+    public final Future<AsyncClientEndpoint> lease(
+            final HttpHost host,
+            final FutureCallback<AsyncClientEndpoint> callback) {
+        return lease(host, HttpClientContext.create(), callback);
+    }
+
     public Future<AsyncClientEndpoint> lease(
             final HttpHost host,
             final HttpContext context,
@@ -253,7 +282,14 @@ class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
         @Override
         public void execute(final AsyncClientExchangeHandler exchangeHandler, final HttpContext context) {
             Asserts.check(!released.get(), "Endpoint has already been released");
-            connectionEndpoint.execute(exchangeHandler, context);
+
+            final String exchangeId = Long.toHexString(ExecSupport.getNextExecNumber());
+            if (log.isDebugEnabled()) {
+                log.debug(ConnPoolSupport.getId(connectionEndpoint) + ": executing message exchange " + exchangeId);
+            }
+            connectionEndpoint.execute(
+                    log.isDebugEnabled() ? new LoggingAsyncClientExchangeHandler(log, exchangeId, exchangeHandler) : exchangeHandler,
+                    context);
         }
 
         @Override

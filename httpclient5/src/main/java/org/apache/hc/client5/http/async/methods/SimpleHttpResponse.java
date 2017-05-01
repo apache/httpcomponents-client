@@ -62,6 +62,10 @@ public final class SimpleHttpResponse extends HttpResponseWrapper {
         this.contentType = contentType;
     }
 
+    public SimpleHttpResponse(final int code) {
+        this(code, null, null);
+    }
+
     public String getBody() {
         return body;
     }

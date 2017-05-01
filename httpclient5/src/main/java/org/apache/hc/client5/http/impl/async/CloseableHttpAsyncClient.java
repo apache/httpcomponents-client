@@ -31,16 +31,20 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import org.apache.hc.client5.http.async.HttpAsyncClient;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
+import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.concurrent.BasicFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Supplier;
-import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.ExceptionEvent;
 import org.apache.hc.core5.reactor.IOReactorStatus;
@@ -66,12 +70,6 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
 
     public abstract void shutdown(ShutdownType shutdownType);
 
-    public final Future<AsyncClientEndpoint> lease(
-            final HttpHost host,
-            final FutureCallback<AsyncClientEndpoint> callback) {
-        return lease(host, HttpClientContext.create(), callback);
-    }
-
     public final <T> Future<T> execute(
             final AsyncRequestProducer requestProducer,
             final AsyncResponseConsumer<T> responseConsumer,
@@ -81,6 +79,38 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
 
     public final void register(final String uriPattern, final Supplier<AsyncPushConsumer> supplier) {
         register(null, uriPattern, supplier);
+    }
+
+    public final Future<SimpleHttpResponse> execute(
+            final SimpleHttpRequest request,
+            final HttpContext context,
+            final FutureCallback<SimpleHttpResponse> callback) {
+        final BasicFuture<SimpleHttpResponse> future = new BasicFuture<>(callback);
+        execute(new SimpleRequestProducer(request), new SimpleResponseConsumer(), context, new FutureCallback<SimpleHttpResponse>() {
+
+            @Override
+            public void completed(final SimpleHttpResponse response) {
+                future.completed(response);
+            }
+
+            @Override
+            public void failed(final Exception ex) {
+                future.failed(ex);
+            }
+
+            @Override
+            public void cancelled() {
+                future.cancel(true);
+            }
+
+        });
+        return future;
+    }
+
+    public final Future<SimpleHttpResponse> execute(
+            final SimpleHttpRequest request,
+            final FutureCallback<SimpleHttpResponse> callback) {
+        return execute(request, HttpClientContext.create(), callback);
     }
 
 }

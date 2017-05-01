@@ -30,14 +30,16 @@ package org.apache.hc.client5.testing.classic;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.MethodNotSupportedException;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.AbstractHttpEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -68,51 +70,40 @@ public class RandomHandler implements HttpRequestHandler {
                        final HttpContext context)
         throws HttpException, IOException {
 
-        final String method = request.getMethod().toUpperCase(Locale.ROOT);
-        if (!"GET".equals(method) && !"HEAD".equals(method)) {
-            throw new MethodNotSupportedException
-                (method + " not supported by " + getClass().getName());
+        final String method = request.getMethod();
+        if (!"GET".equalsIgnoreCase(method) &&
+                !"HEAD".equalsIgnoreCase(method) &&
+                !"POST".equalsIgnoreCase(method) &&
+                !"PUT".equalsIgnoreCase(method)) {
+            throw new MethodNotSupportedException(method + " not supported by " + getClass().getName());
         }
-
-        final String uri = request.getRequestUri();
-        final int  slash = uri.lastIndexOf('/');
-        int length = -1;
-        if (slash < uri.length()-1) {
-            try {
-                // no more than Integer, 2 GB ought to be enough for anybody
-                length = Integer.parseInt(uri.substring(slash+1));
-
-                if (length < 0) {
-                    response.setCode(HttpStatus.SC_BAD_REQUEST);
-                    response.setReasonPhrase("LENGTH " + length);
+        final URI uri;
+        try {
+            uri = request.getUri();
+        } catch (URISyntaxException ex) {
+            throw new ProtocolException(ex.getMessage(), ex);
+        }
+        final String path = uri.getPath();
+        final int slash = path.lastIndexOf('/');
+        if (slash != -1) {
+            final String payload = path.substring(slash + 1, path.length());
+            final long n;
+            if (!payload.isEmpty()) {
+                try {
+                    n = Long.parseLong(payload);
+                } catch (final NumberFormatException ex) {
+                    throw new ProtocolException("Invalid request path: " + path);
                 }
-            } catch (final NumberFormatException nfx) {
-                response.setCode(HttpStatus.SC_BAD_REQUEST);
-                response.setReasonPhrase(nfx.toString());
-            }
-        } else {
-            // random length, but make sure at least something is sent
-            length = 1 + (int)(Math.random() * 79.0);
-        }
-
-        if (length >= 0) {
-
-            response.setCode(HttpStatus.SC_OK);
-
-            if (!"HEAD".equals(method)) {
-                final RandomEntity entity = new RandomEntity(length);
-                entity.setContentType("text/plain; charset=US-ASCII");
-                response.setEntity(entity);
             } else {
-                response.setHeader("Content-Type",
-                                   "text/plain; charset=US-ASCII");
-                response.setHeader("Content-Length",
-                                   String.valueOf(length));
+                // random length, but make sure at least something is sent
+                n = 1 + (int)(Math.random() * 79.0);
             }
+            response.setCode(HttpStatus.SC_OK);
+            response.setEntity(new RandomEntity(n));
+        } else {
+            throw new ProtocolException("Invalid request path: " + path);
         }
-
-    } // handle
-
+    }
 
     /**
      * An entity that generates random data.

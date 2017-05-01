@@ -47,6 +47,7 @@ import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.Logger;
 
@@ -89,6 +90,7 @@ class ExecRuntimeImpl implements ExecRuntime, Cancellable {
 
     @Override
     public void acquireConnection(final HttpRoute route, final Object object, final HttpClientContext context) throws IOException {
+        Args.notNull(route, "Route");
         if (endpointRef.get() == null) {
             final LeaseRequest connRequest = manager.lease(route, object);
             state = object;
@@ -104,9 +106,7 @@ class ExecRuntimeImpl implements ExecRuntime, Cancellable {
                 final TimeValue timeout = requestConfig.getConnectionRequestTimeout();
                 final ConnectionEndpoint connectionEndpoint = connRequest.get(timeout.getDuration(), timeout.getTimeUnit());
                 endpointRef.set(connectionEndpoint);
-                if (!connectionEndpoint.isConnected()) {
-                    reusable = false;
-                }
+                reusable = connectionEndpoint.isConnected();
                 if (cancellableAware != null) {
                     cancellableAware.setCancellable(this);
                 }
@@ -165,6 +165,7 @@ class ExecRuntimeImpl implements ExecRuntime, Cancellable {
         final ConnectionEndpoint endpoint = endpointRef.get();
         if (endpoint != null) {
             endpoint.close();
+            log.debug("Disconnected");
         }
     }
 

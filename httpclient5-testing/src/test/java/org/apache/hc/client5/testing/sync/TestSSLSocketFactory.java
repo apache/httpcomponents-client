@@ -47,6 +47,7 @@ import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
+import org.apache.hc.client5.testing.SSLTestContexts;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
 import org.apache.hc.core5.http.impl.bootstrap.SSLServerSetupHandler;

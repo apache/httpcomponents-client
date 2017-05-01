@@ -66,6 +66,13 @@ public class HttpAsyncClients {
     }
 
     /**
+     * Creates {@link CloseableHttpAsyncClient} instance with default configuration.
+     */
+    public static CloseableHttpAsyncClient createDefault() {
+        return HttpAsyncClientBuilder.create().build();
+    }
+
+    /**
      * Creates {@link CloseableHttpAsyncClient} instance with default
      * configuration and system properties.
      */
@@ -85,12 +92,15 @@ public class HttpAsyncClients {
     private static MinimalHttpAsyncClient createMinimalImpl(
             final IOEventHandlerFactory eventHandlerFactory,
             final AsyncPushConsumerRegistry pushConsumerRegistry,
+            final HttpVersionPolicy versionPolicy,
+            final IOReactorConfig ioReactorConfig,
             final AsyncClientConnectionManager connmgr) {
         try {
             return new MinimalHttpAsyncClient(
                     eventHandlerFactory,
                     pushConsumerRegistry,
-                    IOReactorConfig.DEFAULT,
+                    versionPolicy,
+                    ioReactorConfig,
                     new DefaultThreadFactory("httpclient-main", true),
                     new DefaultThreadFactory("httpclient-dispatch", true),
                     connmgr);
@@ -99,10 +109,15 @@ public class HttpAsyncClients {
         }
     }
 
+    /**
+     * Creates {@link MinimalHttpAsyncClient} instance that provides
+     * essential HTTP/1.1 and HTTP/2 message transport only.
+     */
     public static MinimalHttpAsyncClient createMinimal(
             final HttpVersionPolicy versionPolicy,
             final H2Config h2Config,
             final H1Config h1Config,
+            final IOReactorConfig ioReactorConfig,
             final AsyncClientConnectionManager connmgr) {
         return createMinimalImpl(
                 new HttpAsyncClientEventHandlerFactory(
@@ -114,30 +129,80 @@ public class HttpAsyncClients {
                         CharCodingConfig.DEFAULT,
                         DefaultConnectionReuseStrategy.INSTANCE),
                 new AsyncPushConsumerRegistry(),
+                versionPolicy,
+                ioReactorConfig,
                 connmgr);
     }
 
     /**
-     * Creates {@link CloseableHttpAsyncClient} instance that provides
+     * Creates {@link MinimalHttpAsyncClient} instance that provides
      * essential HTTP/1.1 and HTTP/2 message transport only.
      */
-    public static CloseableHttpAsyncClient createMinimal() {
-        return createMinimal(
-                HttpVersionPolicy.NEGOTIATE,
-                H2Config.DEFAULT,
-                H1Config.DEFAULT,
+    public static MinimalHttpAsyncClient createMinimal(
+            final HttpVersionPolicy versionPolicy,
+            final H2Config h2Config,
+            final H1Config h1Config,
+            final IOReactorConfig ioReactorConfig) {
+        return createMinimal(versionPolicy, h2Config, h1Config, ioReactorConfig,
                 PoolingAsyncClientConnectionManagerBuilder.create().build());
     }
 
     /**
-     * Creates {@link CloseableHttpAsyncClient} instance that provides
+     * Creates {@link MinimalHttpAsyncClient} instance that provides
      * essential HTTP/1.1 and HTTP/2 message transport only.
      */
-    public static CloseableHttpAsyncClient createMinimal(final AsyncClientConnectionManager connManager) {
+    public static MinimalHttpAsyncClient createMinimal(
+            final HttpVersionPolicy versionPolicy,
+            final H2Config h2Config,
+            final H1Config h1Config) {
+        return createMinimal(versionPolicy, h2Config, h1Config, IOReactorConfig.DEFAULT);
+    }
+
+    /**
+     * Creates {@link MinimalHttpAsyncClient} instance that provides
+     * essential HTTP/1.1 and HTTP/2 message transport only.
+     */
+    public static MinimalHttpAsyncClient createMinimal() {
+        return createMinimal(
+                HttpVersionPolicy.NEGOTIATE,
+                H2Config.DEFAULT,
+                H1Config.DEFAULT);
+    }
+
+    /**
+     * Creates {@link MinimalHttpAsyncClient} instance that provides
+     * essential HTTP/1.1 transport only.
+     */
+    public static MinimalHttpAsyncClient createMinimal(final H1Config h1Config, final IOReactorConfig ioReactorConfig) {
+        return createMinimal(
+                HttpVersionPolicy.FORCE_HTTP_1,
+                H2Config.DEFAULT,
+                h1Config,
+                ioReactorConfig);
+    }
+
+    /**
+     * Creates {@link MinimalHttpAsyncClient} instance that provides
+     * essential HTTP/2 transport only.
+     */
+    public static MinimalHttpAsyncClient createMinimal(final H2Config h2Config, final IOReactorConfig ioReactorConfig) {
+        return createMinimal(
+                HttpVersionPolicy.FORCE_HTTP_2,
+                h2Config,
+                H1Config.DEFAULT,
+                ioReactorConfig);
+    }
+
+    /**
+     * Creates {@link MinimalHttpAsyncClient} instance that provides
+     * essential HTTP/1.1 and HTTP/2 message transport only.
+     */
+    public static MinimalHttpAsyncClient createMinimal(final AsyncClientConnectionManager connManager) {
         return createMinimal(
                 HttpVersionPolicy.NEGOTIATE,
                 H2Config.DEFAULT,
                 H1Config.DEFAULT,
+                IOReactorConfig.DEFAULT,
                 connManager);
     }
 

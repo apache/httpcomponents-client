@@ -37,22 +37,31 @@ import java.util.List;
 
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.DefaultUserTokenHandler;
 import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
+import org.apache.hc.client5.http.impl.NamedElementChain;
 import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.impl.protocol.DefaultRedirectStrategy;
 import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
+import org.apache.hc.client5.http.impl.sync.ChainElements;
+import org.apache.hc.client5.http.impl.sync.DefaultHttpRequestRetryHandler;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
+import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
 import org.apache.hc.client5.http.protocol.UserTokenHandler;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.client5.http.sync.HttpRequestRetryHandler;
+import org.apache.hc.core5.annotation.Internal;
 import org.apache.hc.core5.concurrent.DefaultThreadFactory;
+import org.apache.hc.core5.function.Callback;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -66,8 +75,8 @@ import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
+import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
@@ -75,10 +84,14 @@ import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.http2.protocol.H2RequestConnControl;
 import org.apache.hc.core5.http2.protocol.H2RequestContent;
 import org.apache.hc.core5.http2.protocol.H2RequestTargetHost;
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.pool.ConnPoolControl;
+import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOReactorException;
+import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
 
@@ -108,6 +121,54 @@ import org.apache.hc.core5.util.VersionInfo;
  */
 public class HttpAsyncClientBuilder {
 
+    private static class RequestInterceptorEntry {
+
+        enum Postion { FIRST, LAST }
+
+        final RequestInterceptorEntry.Postion postion;
+        final HttpRequestInterceptor interceptor;
+
+        private RequestInterceptorEntry(final RequestInterceptorEntry.Postion postion, final HttpRequestInterceptor interceptor) {
+            this.postion = postion;
+            this.interceptor = interceptor;
+        }
+    }
+
+    private static class ResponseInterceptorEntry {
+
+        enum Postion { FIRST, LAST }
+
+        final ResponseInterceptorEntry.Postion postion;
+        final HttpResponseInterceptor interceptor;
+
+        private ResponseInterceptorEntry(final ResponseInterceptorEntry.Postion postion, final HttpResponseInterceptor interceptor) {
+            this.postion = postion;
+            this.interceptor = interceptor;
+        }
+    }
+
+    private static class ExecInterceptorEntry {
+
+        enum Postion { BEFORE, AFTER, REPLACE }
+
+        final ExecInterceptorEntry.Postion postion;
+        final String name;
+        final AsyncExecChainHandler interceptor;
+        final String existing;
+
+        private ExecInterceptorEntry(
+                final ExecInterceptorEntry.Postion postion,
+                final String name,
+                final AsyncExecChainHandler interceptor,
+                final String existing) {
+            this.postion = postion;
+            this.name = name;
+            this.interceptor = interceptor;
+            this.existing = existing;
+        }
+
+    }
+
     private HttpVersionPolicy versionPolicy;
     private AsyncClientConnectionManager connManager;
     private boolean connManagerShared;
@@ -116,16 +177,19 @@ public class HttpAsyncClientBuilder {
     private H2Config h2Config;
     private CharCodingConfig charCodingConfig;
     private SchemePortResolver schemePortResolver;
-    private ConnectionReuseStrategy reuseStrategy;
     private ConnectionKeepAliveStrategy keepAliveStrategy;
     private UserTokenHandler userTokenHandler;
 
-    private LinkedList<HttpRequestInterceptor> requestFirst;
-    private LinkedList<HttpRequestInterceptor> requestLast;
-    private LinkedList<HttpResponseInterceptor> responseFirst;
-    private LinkedList<HttpResponseInterceptor> responseLast;
+    private LinkedList<RequestInterceptorEntry> requestInterceptors;
+    private LinkedList<ResponseInterceptorEntry> responseInterceptors;
+    private LinkedList<ExecInterceptorEntry> execInterceptors;
 
     private HttpRoutePlanner routePlanner;
+    private RedirectStrategy redirectStrategy;
+    private HttpRequestRetryHandler retryHandler;
+
+    private ConnectionReuseStrategy reuseStrategy;
+
     private String userAgent;
     private HttpHost proxy;
     private Collection<? extends Header> defaultHeaders;
@@ -135,6 +199,8 @@ public class HttpAsyncClientBuilder {
     private TimeValue maxIdleTime;
 
     private boolean systemProperties;
+    private boolean automaticRetriesDisabled;
+    private boolean redirectHandlingDisabled;
     private boolean connectionStateDisabled;
 
     private List<Closeable> closeables;
@@ -213,6 +279,8 @@ public class HttpAsyncClientBuilder {
 
     /**
      * Assigns {@link ConnectionReuseStrategy} instance.
+     * <p>
+     * Please note this strategy applies to HTTP/1.0 and HTTP/1.1 connections only
      */
     public final HttpAsyncClientBuilder setConnectionReuseStrategy(final ConnectionReuseStrategy reuseStrategy) {
         this.reuseStrategy = reuseStrategy;
@@ -240,10 +308,114 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Disables connection state tracking.
+     * Adds this protocol interceptor to the head of the protocol processing list.
      */
-    public final HttpAsyncClientBuilder disableConnectionState() {
-        connectionStateDisabled = true;
+    public final HttpAsyncClientBuilder addRequestInterceptorFirst(final HttpResponseInterceptor interceptor) {
+        Args.notNull(interceptor, "Interceptor");
+        if (responseInterceptors == null) {
+            responseInterceptors = new LinkedList<>();
+        }
+        responseInterceptors.add(new ResponseInterceptorEntry(ResponseInterceptorEntry.Postion.FIRST, interceptor));
+        return this;
+    }
+
+    /**
+     * Adds this protocol interceptor to the tail of the protocol processing list.
+     */
+    public final HttpAsyncClientBuilder addResponseInterceptorLast(final HttpResponseInterceptor interceptor) {
+        Args.notNull(interceptor, "Interceptor");
+        if (responseInterceptors == null) {
+            responseInterceptors = new LinkedList<>();
+        }
+        responseInterceptors.add(new ResponseInterceptorEntry(ResponseInterceptorEntry.Postion.LAST, interceptor));
+        return this;
+    }
+
+    /**
+     * Adds this execution interceptor before an existing interceptor.
+     */
+    public final HttpAsyncClientBuilder addExecInterceptorBefore(final String existing, final String name, final AsyncExecChainHandler interceptor) {
+        Args.notBlank(existing, "Existing");
+        Args.notBlank(name, "Name");
+        Args.notNull(interceptor, "Interceptor");
+        if (execInterceptors == null) {
+            execInterceptors = new LinkedList<>();
+        }
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.BEFORE, name, interceptor, existing));
+        return this;
+    }
+
+    /**
+     * Adds this execution interceptor after interceptor with the given name.
+     */
+    public final HttpAsyncClientBuilder addExecInterceptorAfter(final String existing, final String name, final AsyncExecChainHandler interceptor) {
+        Args.notBlank(existing, "Existing");
+        Args.notBlank(name, "Name");
+        Args.notNull(interceptor, "Interceptor");
+        if (execInterceptors == null) {
+            execInterceptors = new LinkedList<>();
+        }
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.AFTER, name, interceptor, existing));
+        return this;
+    }
+
+    /**
+     * Replace an existing interceptor with the given name with new interceptor.
+     */
+    public final HttpAsyncClientBuilder replaceExecInterceptor(final String existing, final AsyncExecChainHandler interceptor) {
+        Args.notBlank(existing, "Existing");
+        Args.notNull(interceptor, "Interceptor");
+        if (execInterceptors == null) {
+            execInterceptors = new LinkedList<>();
+        }
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.REPLACE, existing, interceptor, existing));
+        return this;
+    }
+
+    /**
+     * Adds this protocol interceptor to the head of the protocol processing list.
+     */
+    public final HttpAsyncClientBuilder addRequestInterceptorFirst(final HttpRequestInterceptor interceptor) {
+        Args.notNull(interceptor, "Interceptor");
+        if (requestInterceptors == null) {
+            requestInterceptors = new LinkedList<>();
+        }
+        requestInterceptors.add(new RequestInterceptorEntry(RequestInterceptorEntry.Postion.FIRST, interceptor));
+        return this;
+    }
+
+    /**
+     * Adds this protocol interceptor to the tail of the protocol processing list.
+     */
+    public final HttpAsyncClientBuilder addResponseInterceptorLast(final HttpRequestInterceptor interceptor) {
+        Args.notNull(interceptor, "Interceptor");
+        if (requestInterceptors == null) {
+            requestInterceptors = new LinkedList<>();
+        }
+        requestInterceptors.add(new RequestInterceptorEntry(RequestInterceptorEntry.Postion.LAST, interceptor));
+        return this;
+    }
+
+    /**
+     * Assigns {@link HttpRequestRetryHandler} instance.
+     * <p>
+     * Please note this value can be overridden by the {@link #disableAutomaticRetries()}
+     * method.
+     */
+    public final HttpAsyncClientBuilder setRetryHandler(final HttpRequestRetryHandler retryHandler) {
+        this.retryHandler = retryHandler;
+        return this;
+    }
+
+    /**
+     * Assigns {@link RedirectStrategy} instance.
+     * <p>
+     * Please note this value can be overridden by the {@link #disableRedirectHandling()}
+     * method.
+     * </p>
+     */
+    public HttpAsyncClientBuilder setRedirectStrategy(final RedirectStrategy redirectStrategy) {
+        this.redirectStrategy = redirectStrategy;
         return this;
     }
 
@@ -268,62 +440,6 @@ public class HttpAsyncClientBuilder {
      */
     public final HttpAsyncClientBuilder setDefaultHeaders(final Collection<? extends Header> defaultHeaders) {
         this.defaultHeaders = defaultHeaders;
-        return this;
-    }
-
-    /**
-     * Adds this protocol interceptor to the head of the protocol processing list.
-     */
-    public final HttpAsyncClientBuilder addInterceptorFirst(final HttpResponseInterceptor itcp) {
-        if (itcp == null) {
-            return this;
-        }
-        if (responseFirst == null) {
-            responseFirst = new LinkedList<>();
-        }
-        responseFirst.addFirst(itcp);
-        return this;
-    }
-
-    /**
-     * Adds this protocol interceptor to the tail of the protocol processing list.
-     */
-    public final HttpAsyncClientBuilder addInterceptorLast(final HttpResponseInterceptor itcp) {
-        if (itcp == null) {
-            return this;
-        }
-        if (responseLast == null) {
-            responseLast = new LinkedList<>();
-        }
-        responseLast.addLast(itcp);
-        return this;
-    }
-
-    /**
-     * Adds this protocol interceptor to the head of the protocol processing list.
-     */
-    public final HttpAsyncClientBuilder addInterceptorFirst(final HttpRequestInterceptor itcp) {
-        if (itcp == null) {
-            return this;
-        }
-        if (requestFirst == null) {
-            requestFirst = new LinkedList<>();
-        }
-        requestFirst.addFirst(itcp);
-        return this;
-    }
-
-    /**
-     * Adds this protocol interceptor to the tail of the protocol processing list.
-     */
-    public final HttpAsyncClientBuilder addInterceptorLast(final HttpRequestInterceptor itcp) {
-        if (itcp == null) {
-            return this;
-        }
-        if (requestLast == null) {
-            requestLast = new LinkedList<>();
-        }
-        requestLast.addLast(itcp);
         return this;
     }
 
@@ -362,6 +478,30 @@ public class HttpAsyncClientBuilder {
      */
     public final HttpAsyncClientBuilder useSystemProperties() {
         this.systemProperties = true;
+        return this;
+    }
+
+    /**
+     * Disables connection state tracking.
+     */
+    public final HttpAsyncClientBuilder disableConnectionState() {
+        connectionStateDisabled = true;
+        return this;
+    }
+
+    /**
+     * Disables automatic redirect handling.
+     */
+    public final HttpAsyncClientBuilder disableRedirectHandling() {
+        redirectHandlingDisabled = true;
+        return this;
+    }
+
+    /**
+     * Disables automatic request recovery and re-execution.
+     */
+    public final HttpAsyncClientBuilder disableAutomaticRetries() {
+        automaticRetriesDisabled = true;
         return this;
     }
 
@@ -407,8 +547,20 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
+     * Request exec chain customization and extension.
+     * <p>
      * For internal use.
      */
+    @Internal
+    protected void customizeExecChain(final NamedElementChain<AsyncExecChainHandler> execChainDefinition) {
+    }
+
+    /**
+     * Adds to the list of {@link Closeable} resources to be managed by the client.
+     * <p>
+     * For internal use.
+     */
+    @Internal
     protected void addCloseable(final Closeable closeable) {
         if (closeable == null) {
             return;
@@ -439,6 +591,11 @@ public class HttpAsyncClientBuilder {
             }
         }
 
+        final NamedElementChain<AsyncExecChainHandler> execChainDefinition = new NamedElementChain<>();
+        execChainDefinition.addLast(
+                new AsyncMainClientExec(keepAliveStrategyCopy, userTokenHandlerCopy),
+                ChainElements.MAIN_TRANSPORT.name());
+
         String userAgentCopy = this.userAgent;
         if (userAgentCopy == null) {
             if (systemProperties) {
@@ -451,14 +608,18 @@ public class HttpAsyncClientBuilder {
         }
 
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();
-        if (requestFirst != null) {
-            for (final HttpRequestInterceptor i: requestFirst) {
-                b.addFirst(i);
+        if (requestInterceptors != null) {
+            for (final RequestInterceptorEntry entry: requestInterceptors) {
+                if (entry.postion == RequestInterceptorEntry.Postion.FIRST) {
+                    b.addFirst(entry.interceptor);
+                }
             }
         }
-        if (responseFirst != null) {
-            for (final HttpResponseInterceptor i: responseFirst) {
-                b.addFirst(i);
+        if (responseInterceptors != null) {
+            for (final ResponseInterceptorEntry entry: responseInterceptors) {
+                if (entry.postion == ResponseInterceptorEntry.Postion.FIRST) {
+                    b.addFirst(entry.interceptor);
+                }
             }
         }
         b.addAll(
@@ -468,17 +629,35 @@ public class HttpAsyncClientBuilder {
                 new H2RequestConnControl(),
                 new RequestUserAgent(userAgentCopy),
                 new RequestExpectContinue());
-        if (requestLast != null) {
-            for (final HttpRequestInterceptor i: requestLast) {
-                b.addLast(i);
+        if (requestInterceptors != null) {
+            for (final RequestInterceptorEntry entry: requestInterceptors) {
+                if (entry.postion == RequestInterceptorEntry.Postion.LAST) {
+                    b.addFirst(entry.interceptor);
+                }
             }
         }
-        if (responseLast != null) {
-            for (final HttpResponseInterceptor i: responseLast) {
-                b.addLast(i);
+        if (responseInterceptors != null) {
+            for (final ResponseInterceptorEntry entry: responseInterceptors) {
+                if (entry.postion == ResponseInterceptorEntry.Postion.LAST) {
+                    b.addFirst(entry.interceptor);
+                }
             }
         }
-        final HttpProcessor httpProcessor = b.build();
+
+        execChainDefinition.addFirst(
+                new AsyncProtocolExec(b.build()),
+                ChainElements.PROTOCOL.name());
+
+        // Add request retry executor, if not disabled
+        if (!automaticRetriesDisabled) {
+            HttpRequestRetryHandler retryHandlerCopy = this.retryHandler;
+            if (retryHandlerCopy == null) {
+                retryHandlerCopy = DefaultHttpRequestRetryHandler.INSTANCE;
+            }
+            execChainDefinition.addFirst(
+                    new AsyncRetryExec(retryHandlerCopy),
+                    ChainElements.RETRY_IO_ERROR.name());
+        }
 
         HttpRoutePlanner routePlannerCopy = this.routePlanner;
         if (routePlannerCopy == null) {
@@ -495,6 +674,18 @@ public class HttpAsyncClientBuilder {
                 routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
             }
         }
+
+        // Add redirect executor, if not disabled
+        if (!redirectHandlingDisabled) {
+            RedirectStrategy redirectStrategyCopy = this.redirectStrategy;
+            if (redirectStrategyCopy == null) {
+                redirectStrategyCopy = DefaultRedirectStrategy.INSTANCE;
+            }
+            execChainDefinition.addFirst(
+                    new AsyncRedirectExec(routePlannerCopy, redirectStrategyCopy),
+                    ChainElements.REDIRECT.name());
+        }
+
         List<Closeable> closeablesCopy = closeables != null ? new ArrayList<>(closeables) : null;
         if (!this.connManagerShared) {
             if (closeablesCopy == null) {
@@ -538,7 +729,7 @@ public class HttpAsyncClientBuilder {
         }
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         final IOEventHandlerFactory ioEventHandlerFactory = new HttpAsyncClientEventHandlerFactory(
-                httpProcessor,
+                NoopHttpProcessor.INSTANCE,
                 new HandlerFactory<AsyncPushConsumer>() {
 
                     @Override
@@ -552,22 +743,56 @@ public class HttpAsyncClientBuilder {
                 h1Config != null ? h1Config : H1Config.DEFAULT,
                 charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT,
                 reuseStrategyCopy);
+        final DefaultConnectingIOReactor ioReactor;
         try {
-            return new InternalHttpAsyncClient(
+            ioReactor = new DefaultConnectingIOReactor(
                     ioEventHandlerFactory,
-                    pushConsumerRegistry,
                     ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
-                    new DefaultThreadFactory("httpclient-main", true),
                     new DefaultThreadFactory("httpclient-dispatch", true),
-                    connManagerCopy,
-                    routePlannerCopy,
-                    keepAliveStrategyCopy,
-                    userTokenHandlerCopy,
-                    defaultRequestConfig,
-                    closeablesCopy);
+                    new Callback<IOSession>() {
+
+                        @Override
+                        public void execute(final IOSession ioSession) {
+                            ioSession.addFirst(new ShutdownCommand(ShutdownType.GRACEFUL));
+                        }
+
+                    });
         } catch (final IOReactorException ex) {
             throw new IllegalStateException(ex.getMessage(), ex);
         }
+
+        if (execInterceptors != null) {
+            for (final ExecInterceptorEntry entry: execInterceptors) {
+                switch (entry.postion) {
+                    case AFTER:
+                        execChainDefinition.addAfter(entry.existing, entry.interceptor, entry.name);
+                        break;
+                    case BEFORE:
+                        execChainDefinition.addBefore(entry.existing, entry.interceptor, entry.name);
+                        break;
+                }
+            }
+        }
+
+        customizeExecChain(execChainDefinition);
+
+        NamedElementChain<AsyncExecChainHandler>.Node current = execChainDefinition.getLast();
+        AsyncExecChainElement execChain = null;
+        while (current != null) {
+            execChain = new AsyncExecChainElement(current.getValue(), execChain);
+            current = current.getPrevious();
+        }
+
+        return new InternalHttpAsyncClient(
+                ioReactor,
+                execChain,
+                pushConsumerRegistry,
+                new DefaultThreadFactory("httpclient-main", true),
+                connManagerCopy,
+                routePlannerCopy,
+                versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE,
+                defaultRequestConfig,
+                closeablesCopy);
     }
 
 }
