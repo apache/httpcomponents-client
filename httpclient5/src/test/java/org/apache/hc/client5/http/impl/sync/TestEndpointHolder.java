@@ -26,11 +26,10 @@
  */
 package org.apache.hc.client5.http.impl.sync;
 
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
@@ -63,29 +62,14 @@ public class TestEndpointHolder {
 
         Assert.assertTrue(connHolder.isReleased());
 
-        Mockito.verify(endpoint).shutdown();
-        Mockito.verify(mgr).release(endpoint, null, 0, TimeUnit.MILLISECONDS);
+        Mockito.verify(endpoint).shutdown(ShutdownType.IMMEDIATE);
+        Mockito.verify(mgr).release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
 
         connHolder.abortConnection();
 
-        Mockito.verify(endpoint, Mockito.times(1)).shutdown();
+        Mockito.verify(endpoint, Mockito.times(1)).shutdown(ShutdownType.IMMEDIATE);
         Mockito.verify(mgr, Mockito.times(1)).release(
-                Mockito.<ConnectionEndpoint>any(),
-                Mockito.anyObject(),
-                Mockito.anyLong(),
-                Mockito.<TimeUnit>any());
-    }
-
-    @Test
-    public void testAbortConnectionIOError() throws Exception {
-        Mockito.doThrow(new IOException()).when(endpoint).shutdown();
-
-        connHolder.abortConnection();
-
-        Assert.assertTrue(connHolder.isReleased());
-
-        Mockito.verify(endpoint).shutdown();
-        Mockito.verify(mgr).release(endpoint, null, 0, TimeUnit.MILLISECONDS);
+                Mockito.<ConnectionEndpoint>any(), Mockito.anyObject(), Mockito.<TimeValue>any());
     }
 
     @Test
@@ -94,23 +78,20 @@ public class TestEndpointHolder {
 
         Assert.assertTrue(connHolder.isReleased());
 
-        Mockito.verify(endpoint).shutdown();
-        Mockito.verify(mgr).release(endpoint, null, 0, TimeUnit.MILLISECONDS);
+        Mockito.verify(endpoint).shutdown(ShutdownType.IMMEDIATE);
+        Mockito.verify(mgr).release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
 
         Assert.assertFalse(connHolder.cancel());
 
-        Mockito.verify(endpoint, Mockito.times(1)).shutdown();
+        Mockito.verify(endpoint, Mockito.times(1)).shutdown(ShutdownType.IMMEDIATE);
         Mockito.verify(mgr, Mockito.times(1)).release(
-                Mockito.<ConnectionEndpoint>any(),
-                Mockito.anyObject(),
-                Mockito.anyLong(),
-                Mockito.<TimeUnit>any());
+                Mockito.<ConnectionEndpoint>any(), Mockito.anyObject(), Mockito.<TimeValue>any());
     }
 
     @Test
     public void testReleaseConnectionReusable() throws Exception {
         connHolder.setState("some state");
-        connHolder.setValidFor(100, TimeUnit.SECONDS);
+        connHolder.setValidFor(TimeValue.ofSeconds(100));
         connHolder.markReusable();
 
         connHolder.releaseConnection();
@@ -118,21 +99,18 @@ public class TestEndpointHolder {
         Assert.assertTrue(connHolder.isReleased());
 
         Mockito.verify(endpoint, Mockito.never()).close();
-        Mockito.verify(mgr).release(endpoint, "some state", 100000, TimeUnit.MILLISECONDS);
+        Mockito.verify(mgr).release(endpoint, "some state", TimeValue.ofSeconds(100));
 
         connHolder.releaseConnection();
 
         Mockito.verify(mgr, Mockito.times(1)).release(
-                Mockito.<ConnectionEndpoint>any(),
-                Mockito.anyObject(),
-                Mockito.anyLong(),
-                Mockito.<TimeUnit>any());
+                Mockito.<ConnectionEndpoint>any(), Mockito.anyObject(), Mockito.<TimeValue>any());
     }
 
     @Test
     public void testReleaseConnectionNonReusable() throws Exception {
         connHolder.setState("some state");
-        connHolder.setValidFor(100, TimeUnit.SECONDS);
+        connHolder.setValidFor(TimeValue.ofSeconds(100));
         connHolder.markNonReusable();
 
         connHolder.releaseConnection();
@@ -140,15 +118,12 @@ public class TestEndpointHolder {
         Assert.assertTrue(connHolder.isReleased());
 
         Mockito.verify(endpoint, Mockito.times(1)).close();
-        Mockito.verify(mgr).release(endpoint, null, 0, TimeUnit.MILLISECONDS);
+        Mockito.verify(mgr).release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
 
         connHolder.releaseConnection();
 
         Mockito.verify(mgr, Mockito.times(1)).release(
-                Mockito.<ConnectionEndpoint>any(),
-                Mockito.anyObject(),
-                Mockito.anyLong(),
-                Mockito.<TimeUnit>any());
+                Mockito.<ConnectionEndpoint>any(), Mockito.anyObject(), Mockito.<TimeValue>any());
     }
 
 }

@@ -44,11 +44,14 @@ import javax.net.ssl.SSLSession;
 import javax.security.auth.x500.X500Principal;
 
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
-import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.http2.ssl.H2TlsSupport;
+import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.reactor.ssl.SSLBufferManagement;
 import org.apache.hc.core5.reactor.ssl.SSLSessionInitializer;
 import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
+import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Args;
@@ -61,7 +64,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 5.0
  */
-public class SSLUpgradeStrategy implements TlsStrategy {
+public class H2TlsStrategy implements TlsStrategy {
 
     private static String[] split(final String s) {
         if (TextUtils.isBlank(s)) {
@@ -75,13 +78,13 @@ public class SSLUpgradeStrategy implements TlsStrategy {
     }
 
     public static TlsStrategy getDefault() {
-        return new SSLUpgradeStrategy(
+        return new H2TlsStrategy(
                 SSLContexts.createDefault(),
                 getDefaultHostnameVerifier());
     }
 
     public static TlsStrategy getSystemDefault() {
-        return new SSLUpgradeStrategy(
+        return new H2TlsStrategy(
                 SSLContexts.createSystemDefault(),
                 split(System.getProperty("https.protocols")),
                 split(System.getProperty("https.cipherSuites")),
@@ -97,7 +100,7 @@ public class SSLUpgradeStrategy implements TlsStrategy {
     private final SSLBufferManagement sslBufferManagement;
     private final HostnameVerifier hostnameVerifier;
 
-    public SSLUpgradeStrategy(
+    public H2TlsStrategy(
             final SSLContext sslContext,
             final String[] supportedProtocols,
             final String[] supportedCipherSuites,
@@ -111,65 +114,54 @@ public class SSLUpgradeStrategy implements TlsStrategy {
         this.hostnameVerifier = hostnameVerifier != null ? hostnameVerifier : getDefaultHostnameVerifier();
     }
 
-    public SSLUpgradeStrategy(
+    public H2TlsStrategy(
             final SSLContext sslcontext,
             final HostnameVerifier hostnameVerifier) {
         this(sslcontext, null, null, SSLBufferManagement.STATIC, hostnameVerifier);
     }
 
-    public SSLUpgradeStrategy(final SSLContext sslcontext) {
+    public H2TlsStrategy(final SSLContext sslcontext) {
         this(sslcontext, getDefaultHostnameVerifier());
     }
 
     @Override
-    public void upgrade(
+    public boolean upgrade(
             final TransportSecurityLayer tlsSession,
-            final String hostname,
+            final HttpHost host,
             final SocketAddress localAddress,
             final SocketAddress remoteAddress,
-            final String... parameters) {
-        tlsSession.start(sslContext, sslBufferManagement, new SSLSessionInitializer() {
+            final Object attachment) {
+        tlsSession.startTls(sslContext, sslBufferManagement, H2TlsSupport.enforceRequirements(null, new SSLSessionInitializer() {
 
             @Override
-            public void initialize(final SSLEngine sslengine) throws SSLException {
+            public void initialize(final NamedEndpoint endpoint, final SSLEngine sslEngine) {
                 if (supportedProtocols != null) {
-                    sslengine.setEnabledProtocols(supportedProtocols);
-                } else {
-                    // If supported protocols are not explicitly set, remove all SSL protocol versions
-                    final String[] allProtocols = sslengine.getEnabledProtocols();
-                    final List<String> enabledProtocols = new ArrayList<>(allProtocols.length);
-                    for (final String protocol: allProtocols) {
-                        if (!protocol.startsWith("SSL")) {
-                            enabledProtocols.add(protocol);
-                        }
-                    }
-                    if (!enabledProtocols.isEmpty()) {
-                        sslengine.setEnabledProtocols(enabledProtocols.toArray(new String[enabledProtocols.size()]));
-                    }
+                    sslEngine.setEnabledProtocols(supportedProtocols);
                 }
                 if (supportedCipherSuites != null) {
-                    sslengine.setEnabledCipherSuites(supportedCipherSuites);
+                    sslEngine.setEnabledCipherSuites(supportedCipherSuites);
                 }
-                initializeEngine(sslengine);
+                initializeEngine(sslEngine);
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Enabled protocols: " + Arrays.asList(sslengine.getEnabledProtocols()));
-                    log.debug("Enabled cipher suites:" + Arrays.asList(sslengine.getEnabledCipherSuites()));
+                    log.debug("Enabled protocols: " + Arrays.asList(sslEngine.getEnabledProtocols()));
+                    log.debug("Enabled cipher suites:" + Arrays.asList(sslEngine.getEnabledCipherSuites()));
                 }
             }
 
-        }, new SSLSessionVerifier() {
+        }), new SSLSessionVerifier() {
 
             @Override
-            public void verify(final IOSession iosession, final SSLSession sslsession) throws SSLException {
-                // TODO: fix after upgrading to HttpCore 5.0a3
-                verifySession(hostname, sslsession);
+            public TlsDetails verify(final NamedEndpoint endpoint, final SSLEngine sslEngine) throws SSLException {
+                verifySession(endpoint.getHostName(), sslEngine.getSession());
+                return createTlsDetails(sslEngine);
             }
 
         });
+        return true;
     }
 
-    protected void initializeEngine(final SSLEngine engine) {
+    protected void initializeEngine(final SSLEngine sslEngine) {
     }
 
     protected void verifySession(
@@ -226,6 +218,10 @@ public class SSLUpgradeStrategy implements TlsStrategy {
             throw new SSLPeerUnverifiedException("Certificate for <" + hostname + "> doesn't match any " +
                     "of the subject alternative names: " + subjectAlts);
         }
+    }
+
+    protected TlsDetails createTlsDetails(final SSLEngine sslEngine) {
+        return null;
     }
 
 }

@@ -34,26 +34,26 @@ import java.nio.channels.ByteChannel;
 import java.nio.channels.SelectionKey;
 
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOEventHandler;
-import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.reactor.TlsCapableIOSession;
 import org.apache.hc.core5.reactor.ssl.SSLBufferManagement;
 import org.apache.hc.core5.reactor.ssl.SSLSessionInitializer;
 import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
-import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
+import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.logging.log4j.Logger;
 
-public class LoggingIOSession implements IOSession, TransportSecurityLayer {
+public class LoggingIOSession implements TlsCapableIOSession {
 
     private final Logger log;
     private final Wire wirelog;
     private final String id;
-    private final IOSession session;
+    private final TlsCapableIOSession session;
     private final ByteChannel channel;
 
-    public LoggingIOSession(final IOSession session, final String id, final Logger log, final Logger wirelog) {
+    public LoggingIOSession(final TlsCapableIOSession session, final String id, final Logger log, final Logger wirelog) {
         super();
         this.session = session;
         this.id = id;
@@ -62,8 +62,13 @@ public class LoggingIOSession implements IOSession, TransportSecurityLayer {
         this.channel = new LoggingByteChannel();
     }
 
-    public LoggingIOSession(final IOSession session, final String id, final Logger log) {
+    public LoggingIOSession(final TlsCapableIOSession session, final String id, final Logger log) {
         this(session, id, log, null);
+    }
+
+    @Override
+    public String getId() {
+        return session.getId();
     }
 
     @Override
@@ -163,11 +168,11 @@ public class LoggingIOSession implements IOSession, TransportSecurityLayer {
     }
 
     @Override
-    public void shutdown() {
+    public void shutdown(final ShutdownType shutdownType) {
         if (this.log.isDebugEnabled()) {
-            this.log.debug(this.id + " " + this.session + ": Shutdown");
+            this.log.debug(this.id + " " + this.session + ": Shutdown " + shutdownType);
         }
-        this.session.shutdown();
+        this.session.shutdown(shutdownType);
     }
 
     @Override
@@ -194,25 +199,17 @@ public class LoggingIOSession implements IOSession, TransportSecurityLayer {
     }
 
     @Override
-    public void start(
+    public void startTls(
             final SSLContext sslContext,
             final SSLBufferManagement sslBufferManagement,
             final SSLSessionInitializer initializer,
             final SSLSessionVerifier verifier) throws UnsupportedOperationException {
-        if (session instanceof TransportSecurityLayer) {
-            ((TransportSecurityLayer) session).start(sslContext, sslBufferManagement, initializer, verifier);
-        } else {
-            throw new UnsupportedOperationException();
-        }
+        session.startTls(sslContext, sslBufferManagement, initializer, verifier);
     }
 
     @Override
-    public SSLSession getSSLSession() {
-        if (session instanceof TransportSecurityLayer) {
-            return ((TransportSecurityLayer) session).getSSLSession();
-        } else {
-            return null;
-        }
+    public TlsDetails getTlsDetails() {
+        return session.getTlsDetails();
     }
 
     @Override

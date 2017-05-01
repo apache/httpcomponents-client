@@ -60,7 +60,8 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.config.ConnectionConfig;
+import org.apache.hc.core5.http.config.CharCodingConfig;
+import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
@@ -84,7 +85,6 @@ import org.apache.hc.core5.util.Args;
 public class ProxyClient {
 
     private final HttpConnectionFactory<ManagedHttpClientConnection> connFactory;
-    private final ConnectionConfig connectionConfig;
     private final RequestConfig requestConfig;
     private final HttpProcessor httpProcessor;
     private final HttpRequestExecutor requestExec;
@@ -95,15 +95,15 @@ public class ProxyClient {
     private final ConnectionReuseStrategy reuseStrategy;
 
     /**
-     * @since 4.3
+     * @since 5.0
      */
     public ProxyClient(
             final HttpConnectionFactory<ManagedHttpClientConnection> connFactory,
-            final ConnectionConfig connectionConfig,
+            final H1Config h1Config,
+            final CharCodingConfig charCodingConfig,
             final RequestConfig requestConfig) {
         super();
-        this.connFactory = connFactory != null ? connFactory : ManagedHttpClientConnectionFactory.INSTANCE;
-        this.connectionConfig = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
+        this.connFactory = connFactory != null ? connFactory : new ManagedHttpClientConnectionFactory(h1Config, charCodingConfig, null, null);
         this.requestConfig = requestConfig != null ? requestConfig : RequestConfig.DEFAULT;
         this.httpProcessor = new DefaultHttpProcessor(
                 new RequestTargetHost(), new RequestClientConnControl(), new RequestUserAgent());
@@ -125,11 +125,11 @@ public class ProxyClient {
      * @since 4.3
      */
     public ProxyClient(final RequestConfig requestConfig) {
-        this(null, null, requestConfig);
+        this(null, null, null, requestConfig);
     }
 
     public ProxyClient() {
-        this(null, null, null);
+        this(null, null, null, null);
     }
 
     public Socket tunnel(
@@ -158,7 +158,6 @@ public class ProxyClient {
         credsProvider.setCredentials(new AuthScope(proxy), credentials);
 
         // Populate the execution context
-        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
         context.setAttribute(HttpCoreContext.HTTP_REQUEST, connect);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, credsProvider);

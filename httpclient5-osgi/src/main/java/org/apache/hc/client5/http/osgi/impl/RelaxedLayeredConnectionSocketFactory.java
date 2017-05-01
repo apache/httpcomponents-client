@@ -36,6 +36,7 @@ import org.apache.hc.client5.http.osgi.services.TrustedHostsConfiguration;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 
 final class RelaxedLayeredConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
@@ -78,7 +79,7 @@ final class RelaxedLayeredConnectionSocketFactory implements LayeredConnectionSo
     }
 
     @Override
-    public Socket connectSocket(final int connectTimeout,
+    public Socket connectSocket(final TimeValue connectTimeout,
                                 final Socket sock,
                                 final HttpHost host,
                                 final InetSocketAddress remoteAddress,

@@ -27,16 +27,15 @@
 
 package org.apache.hc.client5.http.impl.nio;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
-import org.apache.hc.client5.http.ssl.SSLUpgradeStrategy;
+import org.apache.hc.client5.http.ssl.H2TlsStrategy;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.nio.ssl.TlsStrategy;
 import org.apache.hc.core5.pool.ConnPoolListener;
 import org.apache.hc.core5.pool.ConnPoolPolicy;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Builder for {@link PoolingAsyncClientConnectionManager} instances.
@@ -77,9 +76,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     private int maxConnTotal = 0;
     private int maxConnPerRoute = 0;
 
-    private long connTimeToLive = -1;
-    private TimeUnit connTimeToLiveTimeUnit = TimeUnit.MILLISECONDS;
-    private int validateAfterInactivity = 2000;
+    private TimeValue timeToLive;
+    private TimeValue validateAfterInactivity;
 
     public static PoolingAsyncClientConnectionManagerBuilder create() {
         return new PoolingAsyncClientConnectionManagerBuilder();
@@ -149,9 +147,8 @@ public class PoolingAsyncClientConnectionManagerBuilder {
     /**
      * Sets maximum time to live for persistent connections
      */
-    public final PoolingAsyncClientConnectionManagerBuilder setConnectionTimeToLive(final long connTimeToLive, final TimeUnit connTimeToLiveTimeUnit) {
-        this.connTimeToLive = connTimeToLive;
-        this.connTimeToLiveTimeUnit = connTimeToLiveTimeUnit;
+    public final PoolingAsyncClientConnectionManagerBuilder setConnectionTimeToLive(final TimeValue timeToLive) {
+        this.timeToLive = timeToLive;
         return this;
     }
 
@@ -161,7 +158,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
      *
      * @see org.apache.hc.core5.http.io.HttpClientConnection#isStale()
      */
-    public final PoolingAsyncClientConnectionManagerBuilder setValidateAfterInactivity(final int validateAfterInactivity) {
+    public final PoolingAsyncClientConnectionManagerBuilder setValidateAfterInactivity(final TimeValue validateAfterInactivity) {
         this.validateAfterInactivity = validateAfterInactivity;
         return this;
     }
@@ -181,13 +178,12 @@ public class PoolingAsyncClientConnectionManagerBuilder {
                 RegistryBuilder.<TlsStrategy>create()
                         .register("https", tlsStrategy != null ? tlsStrategy :
                                 (systemProperties ?
-                                        SSLUpgradeStrategy.getSystemDefault() :
-                                        SSLUpgradeStrategy.getDefault()))
+                                        H2TlsStrategy.getSystemDefault() :
+                                        H2TlsStrategy.getDefault()))
                         .build(),
                 schemePortResolver,
                 dnsResolver,
-                connTimeToLive,
-                connTimeToLiveTimeUnit != null ? connTimeToLiveTimeUnit : TimeUnit.MILLISECONDS,
+                timeToLive,
                 connPoolPolicy,
                 connPoolListener);
         poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);

@@ -46,8 +46,8 @@ import org.apache.hc.client5.http.sync.methods.HttpPost;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
@@ -87,8 +87,8 @@ public class TestRedirects extends LocalServerTestBase {
                 final ClassicHttpRequest request,
                 final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final HttpConnection conn = (HttpConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
-            final InetSocketAddress socketAddress = (InetSocketAddress) conn.getLocalAddress();
+            final EndpointDetails endpointDetails = (EndpointDetails) context.getAttribute(HttpCoreContext.CONNECTION_ENDPOINT);
+            final InetSocketAddress socketAddress = (InetSocketAddress) endpointDetails.getLocalAddress();
             String localhost = socketAddress.getHostName();
             if (localhost.equals("127.0.0.1")) {
                 localhost = "localhost";

@@ -38,6 +38,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
+import org.apache.hc.core5.http.nio.entity.AbstractCharDataConsumer;
 
 public abstract class AbstractCharPushConsumer extends AbstractCharDataConsumer implements AsyncPushConsumer {
 
@@ -59,7 +60,7 @@ public abstract class AbstractCharPushConsumer extends AbstractCharDataConsumer 
             if (charset == null) {
                 charset = StandardCharsets.US_ASCII;
             }
-            setCharsetDecoder(charset.newDecoder());
+            setCharset(charset);
             start(promise, response, contentType);
         } else {
             start(promise, response, null);

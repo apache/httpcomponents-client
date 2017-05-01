@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.impl.sync;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
@@ -60,6 +59,7 @@ import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -123,8 +123,8 @@ public class MinimalClientExec implements ClientExecChain {
 
         final ConnectionEndpoint endpoint;
         try {
-            final int timeout = config.getConnectionRequestTimeout();
-            endpoint = connRequest.get(timeout > 0 ? timeout : 0, TimeUnit.MILLISECONDS);
+            final TimeValue timeout = config.getConnectionRequestTimeout();
+            endpoint = connRequest.get(timeout.getDuration(), timeout.getTimeUnit());
         } catch(final TimeoutException ex) {
             throw new ConnectionRequestTimeoutException(ex.getMessage());
         } catch(final InterruptedException interrupted) {
@@ -148,16 +148,11 @@ public class MinimalClientExec implements ClientExecChain {
                 execAware.setCancellable(endpointHolder);
             }
             if (!endpoint.isConnected()) {
-                final int timeout = config.getConnectTimeout();
-                this.connManager.connect(
-                        endpoint,
-                        timeout > 0 ? timeout : 0,
-                        TimeUnit.MILLISECONDS,
-                        context);
+                this.connManager.connect(endpoint, config.getConnectTimeout(), context);
             }
-            final int timeout = config.getSocketTimeout();
-            if (timeout >= 0) {
-                endpoint.setSocketTimeout(timeout);
+            final TimeValue timeout = config.getSocketTimeout();
+            if (TimeValue.isNonNegative(timeout)) {
+                endpoint.setSocketTimeout(timeout.toMillisIntBound());
             }
 
             context.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
@@ -170,8 +165,8 @@ public class MinimalClientExec implements ClientExecChain {
             // The connection is in or can be brought to a re-usable state.
             if (reuseStrategy.keepAlive(request, response, context)) {
                 // Set the idle duration of this connection
-                final long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
-                endpointHolder.setValidFor(duration, TimeUnit.MILLISECONDS);
+                final TimeValue duration = keepAliveStrategy.getKeepAliveDuration(response, context);
+                endpointHolder.setValidFor(duration);
                 endpointHolder.markReusable();
             } else {
                 endpointHolder.markNonReusable();

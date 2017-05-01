@@ -34,7 +34,6 @@ import java.util.concurrent.TimeoutException;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.hc.client5.http.async.AsyncClientEndpoint;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
@@ -48,12 +47,13 @@ import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManager;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.ssl.SSLUpgradeStrategy;
+import org.apache.hc.client5.http.ssl.H2TlsStrategy;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http2.config.H2Config;
+import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.TextUtils;
 
@@ -104,13 +104,10 @@ public class HttpAsyncClientCompatibilityTest {
         final SSLContext sslContext = SSLContexts.custom()
                 .loadTrustMaterial(getClass().getResource("/test-ca.keystore"), "nopassword".toCharArray()).build();
         this.connManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .setTlsStrategy(new SSLUpgradeStrategy(sslContext))
+                .setTlsStrategy(new H2TlsStrategy(sslContext))
                 .build();
         this.client = HttpAsyncClients.custom()
-                .setProtocolVersion(this.protocolVersion)
-                .setH2Config(H2Config.custom()
-                        .setSettingAckNeeded(false)
-                        .build())
+                .setVersionPolicy(this.protocolVersion == HttpVersion.HTTP_2 ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
                 .setConnectionManager(this.connManager)
                 .setDefaultRequestConfig(requestConfig)
                 .build();

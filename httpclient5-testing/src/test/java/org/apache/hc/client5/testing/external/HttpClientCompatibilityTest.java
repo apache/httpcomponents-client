@@ -27,7 +27,6 @@
 package org.apache.hc.client5.testing.external;
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
@@ -53,6 +52,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.TextUtils;
+import org.apache.hc.core5.util.TimeValue;
 
 public class HttpClientCompatibilityTest {
 
@@ -157,7 +157,7 @@ public class HttpClientCompatibilityTest {
         }
         // Basic GET requests
         {
-            connManager.closeIdle(0, TimeUnit.MILLISECONDS);
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
             final String[] requestUris = new String[] {"/", "/news.html", "/status.html"};
@@ -178,7 +178,7 @@ public class HttpClientCompatibilityTest {
         }
         // Wrong target auth scope
         {
-            connManager.closeIdle(0, TimeUnit.MILLISECONDS);
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
             credentialsProvider.setCredentials(
                     new AuthScope("otherhost", AuthScope.ANY_PORT, "Restricted Files"),
                     new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
@@ -200,7 +200,7 @@ public class HttpClientCompatibilityTest {
         }
         // Wrong target credentials
         {
-            connManager.closeIdle(0, TimeUnit.MILLISECONDS);
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
             credentialsProvider.setCredentials(
                     new AuthScope(target),
                     new UsernamePasswordCredentials("testuser", "wrong password".toCharArray()));
@@ -222,7 +222,7 @@ public class HttpClientCompatibilityTest {
         }
         // Correct target credentials
         {
-            connManager.closeIdle(0, TimeUnit.MILLISECONDS);
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
             credentialsProvider.setCredentials(
                     new AuthScope(target),
                     new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
@@ -244,7 +244,7 @@ public class HttpClientCompatibilityTest {
         }
         // Correct target credentials (no keep-alive)
         {
-            connManager.closeIdle(0, TimeUnit.MILLISECONDS);
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
             credentialsProvider.setCredentials(
                     new AuthScope(target),
                     new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));

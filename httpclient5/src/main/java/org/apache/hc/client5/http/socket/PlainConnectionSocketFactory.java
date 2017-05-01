@@ -35,6 +35,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * The default class for creating plain (unencrypted) sockets.
@@ -61,7 +62,7 @@ public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
 
     @Override
     public Socket connectSocket(
-            final int connectTimeout,
+            final TimeValue connectTimeout,
             final Socket socket,
             final HttpHost host,
             final InetSocketAddress remoteAddress,
@@ -72,7 +73,7 @@ public class PlainConnectionSocketFactory implements ConnectionSocketFactory {
             sock.bind(localAddress);
         }
         try {
-            sock.connect(remoteAddress, connectTimeout);
+            sock.connect(remoteAddress, TimeValue.isPositive(connectTimeout) ? connectTimeout.toMillisIntBound() : 0);
         } catch (final IOException ex) {
             try {
                 sock.close();

@@ -54,13 +54,13 @@ import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.impl.sync.ClientExecChain;
+import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.client5.http.sync.methods.HttpOptions;
 import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
-import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -1409,7 +1409,6 @@ public abstract class TestCachingExecChain {
         final HttpClientContext ctx = HttpClientContext.create();
         impl.execute(request, context, null);
         impl.execute(request, ctx, null);
-        assertNull(ctx.getConnection());
     }
 
     @Test

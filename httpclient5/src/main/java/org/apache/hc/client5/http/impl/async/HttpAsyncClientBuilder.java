@@ -30,19 +30,16 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ProxySelector;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
-import org.apache.hc.client5.http.impl.DefaultThreadFactory;
 import org.apache.hc.client5.http.impl.DefaultUserTokenHandler;
 import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
@@ -55,6 +52,7 @@ import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
 import org.apache.hc.client5.http.protocol.UserTokenHandler;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -63,8 +61,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.config.ConnectionConfig;
+import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
@@ -73,6 +70,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.http2.protocol.H2RequestConnControl;
 import org.apache.hc.core5.http2.protocol.H2RequestContent;
@@ -81,6 +79,7 @@ import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
 import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOReactorException;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
 
 /**
@@ -109,12 +108,13 @@ import org.apache.hc.core5.util.VersionInfo;
  */
 public class HttpAsyncClientBuilder {
 
-    private HttpVersion protocolVersion;
+    private HttpVersionPolicy versionPolicy;
     private AsyncClientConnectionManager connManager;
     private boolean connManagerShared;
     private IOReactorConfig ioReactorConfig;
     private H1Config h1Config;
     private H2Config h2Config;
+    private CharCodingConfig charCodingConfig;
     private SchemePortResolver schemePortResolver;
     private ConnectionReuseStrategy reuseStrategy;
     private ConnectionKeepAliveStrategy keepAliveStrategy;
@@ -132,8 +132,7 @@ public class HttpAsyncClientBuilder {
     private RequestConfig defaultRequestConfig;
     private boolean evictExpiredConnections;
     private boolean evictIdleConnections;
-    private long maxIdleTime;
-    private TimeUnit maxIdleTimeUnit;
+    private TimeValue maxIdleTime;
 
     private boolean systemProperties;
     private boolean connectionStateDisabled;
@@ -149,10 +148,26 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Sets HTTP protocol version.
+     * Sets HTTP protocol version policy.
      */
-    public final HttpAsyncClientBuilder setProtocolVersion(final HttpVersion protocolVersion) {
-        this.protocolVersion = protocolVersion;
+    public final HttpAsyncClientBuilder setVersionPolicy(final HttpVersionPolicy versionPolicy) {
+        this.versionPolicy = versionPolicy;
+        return this;
+    }
+
+    /**
+     * Sets {@link H1Config} configuration.
+     */
+    public final HttpAsyncClientBuilder setH1Config(final H1Config h1Config) {
+        this.h1Config = h1Config;
+        return this;
+    }
+
+    /**
+     * Sets {@link H2Config} configuration.
+     */
+    public final HttpAsyncClientBuilder setH2Config(final H2Config h2Config) {
+        this.h2Config = h2Config;
         return this;
     }
 
@@ -189,32 +204,15 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
-     * Sets {@link H1Config} configuration.
-     * <p>
-     * Please note this setting applies only if {@link #setProtocolVersion(HttpVersion)} is
-     * set to {@code HTTP/1.1} or below.
+     * Sets {@link CharCodingConfig} configuration.
      */
-    public final HttpAsyncClientBuilder setH1Config(final H1Config h1Config) {
-        this.h1Config = h1Config;
-        return this;
-    }
-
-    /**
-     * Sets {@link H2Config} configuration.
-     * <p>
-     * Please note this setting applies only if {@link #setProtocolVersion(HttpVersion)} is
-     * set to {@code HTTP/2} or above.
-     */
-    public final HttpAsyncClientBuilder setH2Config(final H2Config h2Config) {
-        this.h2Config = h2Config;
+    public final HttpAsyncClientBuilder setCharCodingConfig(final CharCodingConfig charCodingConfig) {
+        this.charCodingConfig = charCodingConfig;
         return this;
     }
 
     /**
      * Assigns {@link ConnectionReuseStrategy} instance.
-     * <p>
-     * Please note this setting applies only if {@link #setProtocolVersion(HttpVersion)} is
-     * set to {@code HTTP/1.1} or below.
      */
     public final HttpAsyncClientBuilder setConnectionReuseStrategy(final ConnectionReuseStrategy reuseStrategy) {
         this.reuseStrategy = reuseStrategy;
@@ -396,17 +394,15 @@ public class HttpAsyncClientBuilder {
      * use a shared connection manager.
      *
      * @see #setConnectionManagerShared(boolean)
-     * @see ConnPoolControl#closeIdle(long, TimeUnit)
+     * @see ConnPoolControl#closeIdle(TimeValue)
      *
      * @param maxIdleTime maximum time persistent connections can stay idle while kept alive
      * in the connection pool. Connections whose inactivity period exceeds this value will
      * get closed and evicted from the pool.
-     * @param maxIdleTimeUnit time unit for the above parameter.
      */
-    public final HttpAsyncClientBuilder evictIdleConnections(final long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
+    public final HttpAsyncClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
         this.evictIdleConnections = true;
         this.maxIdleTime = maxIdleTime;
-        this.maxIdleTimeUnit = maxIdleTimeUnit;
         return this;
     }
 
@@ -507,8 +503,7 @@ public class HttpAsyncClientBuilder {
             if (evictExpiredConnections || evictIdleConnections) {
                 if (connManagerCopy instanceof ConnPoolControl) {
                     final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor((ConnPoolControl<?>) connManagerCopy,
-                            maxIdleTime > 0 ? maxIdleTime : 10, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS,
-                            maxIdleTime, maxIdleTimeUnit);
+                            maxIdleTime,  maxIdleTime);
                     closeablesCopy.add(new Closeable() {
 
                         @Override
@@ -522,47 +517,41 @@ public class HttpAsyncClientBuilder {
             }
             closeablesCopy.add(connManagerCopy);
         }
-        final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
-        final IOEventHandlerFactory ioEventHandlerFactory;
-        if (protocolVersion != null && protocolVersion.greaterEquals(HttpVersion.HTTP_2)) {
-            ioEventHandlerFactory = new DefaultAsyncHttp2ClientEventHandlerFactory(
-                    httpProcessor,
-                    new HandlerFactory<AsyncPushConsumer>() {
-
-                        @Override
-                        public AsyncPushConsumer create(final HttpRequest request) throws HttpException {
-                            return pushConsumerRegistry.get(request);
-                        }
-
-                    },
-                    StandardCharsets.US_ASCII,
-                    h2Config != null ? h2Config : H2Config.DEFAULT);
-        } else {
-            ConnectionReuseStrategy reuseStrategyCopy = this.reuseStrategy;
-            if (reuseStrategyCopy == null) {
-                if (systemProperties) {
-                    final String s = System.getProperty("http.keepAlive", "true");
-                    if ("true".equalsIgnoreCase(s)) {
-                        reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
-                    } else {
-                        reuseStrategyCopy = new ConnectionReuseStrategy() {
-                            @Override
-                            public boolean keepAlive(
-                                    final HttpRequest request, final HttpResponse response, final HttpContext context) {
-                                return false;
-                            }
-                        };
-                    }
-                } else {
+        ConnectionReuseStrategy reuseStrategyCopy = this.reuseStrategy;
+        if (reuseStrategyCopy == null) {
+            if (systemProperties) {
+                final String s = System.getProperty("http.keepAlive", "true");
+                if ("true".equalsIgnoreCase(s)) {
                     reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
+                } else {
+                    reuseStrategyCopy = new ConnectionReuseStrategy() {
+                        @Override
+                        public boolean keepAlive(
+                                final HttpRequest request, final HttpResponse response, final HttpContext context) {
+                            return false;
+                        }
+                    };
                 }
+            } else {
+                reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
             }
-            ioEventHandlerFactory = new DefaultAsyncHttp1ClientEventHandlerFactory(
-                    httpProcessor,
-                    h1Config != null ? h1Config : H1Config.DEFAULT,
-                    ConnectionConfig.DEFAULT,
-                    reuseStrategyCopy);
         }
+        final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
+        final IOEventHandlerFactory ioEventHandlerFactory = new HttpAsyncClientEventHandlerFactory(
+                httpProcessor,
+                new HandlerFactory<AsyncPushConsumer>() {
+
+                    @Override
+                    public AsyncPushConsumer create(final HttpRequest request) throws HttpException {
+                        return pushConsumerRegistry.get(request);
+                    }
+
+                },
+                versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE,
+                h2Config != null ? h2Config : H2Config.DEFAULT,
+                h1Config != null ? h1Config : H1Config.DEFAULT,
+                charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT,
+                reuseStrategyCopy);
         try {
             return new InternalHttpAsyncClient(
                     ioEventHandlerFactory,

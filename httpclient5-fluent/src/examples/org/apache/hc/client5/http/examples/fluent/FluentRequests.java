@@ -30,9 +30,10 @@ import java.io.File;
 
 import org.apache.hc.client5.http.fluent.Form;
 import org.apache.hc.client5.http.fluent.Request;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * This example demonstrates basics of request execution with the HttpClient fluent API.
@@ -42,8 +43,8 @@ public class FluentRequests {
     public static void main(String[] args)throws Exception {
         // Execute a GET with timeout settings and return response content as String.
         Request.Get("http://somehost/")
-                .connectTimeout(1000)
-                .socketTimeout(1000)
+                .connectTimeout(TimeValue.ofSeconds(1))
+                .socketTimeout(TimeValue.ofSeconds(1))
                 .execute().returnContent().asString();
 
         // Execute a POST with the 'expect-continue' handshake, using HTTP/1.1,

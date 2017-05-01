@@ -28,11 +28,11 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.pool.PoolStats;
+import org.apache.hc.core5.util.TimeValue;
 
 public final class MockConnPoolControl implements ConnPoolControl<HttpRoute> {
 
@@ -94,7 +94,7 @@ public final class MockConnPoolControl implements ConnPoolControl<HttpRoute> {
     }
 
     @Override
-    public void closeIdle(final long idletime, final TimeUnit tunit) {
+    public void closeIdle(final TimeValue idletime) {
     }
 
     @Override

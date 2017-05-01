@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.io;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 import org.apache.hc.core5.annotation.Contract;
@@ -37,6 +36,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.GracefullyCloseable;
 
 /**
  * Client connection endpoint that can be used to execute message exchanges.
@@ -44,7 +44,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.SAFE)
-public abstract class ConnectionEndpoint implements Closeable {
+public abstract class ConnectionEndpoint implements GracefullyCloseable {
 
     public abstract ClassicHttpResponse execute(
             ClassicHttpRequest request,
@@ -54,7 +54,5 @@ public abstract class ConnectionEndpoint implements Closeable {
     public abstract boolean isConnected();
 
     public abstract void setSocketTimeout(int timeout);
-
-    public abstract void shutdown() throws IOException;
 
 }

@@ -37,7 +37,9 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOReactorConfig;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Example demonstrating how to evict expired and idle connections
@@ -48,14 +50,13 @@ public class AsyncClientConnectionEviction {
     public static void main(final String[] args) throws Exception {
 
         final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setConnectTimeout(5000)
-                .setSoTimeout(5000)
+                .setSoTimeout(TimeValue.ofSeconds(5))
                 .build();
 
         final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
                 .setIOReactorConfig(ioReactorConfig)
                 .evictExpiredConnections()
-                .evictIdleConnections(10, TimeUnit.SECONDS)
+                .evictIdleConnections(TimeValue.ofSeconds(10))
                 .build();
 
         client.start();
@@ -118,7 +119,7 @@ public class AsyncClientConnectionEviction {
         future2.get();
 
         System.out.println("Shutting down");
-        client.shutdown(5, TimeUnit.SECONDS);
+        client.shutdown(ShutdownType.GRACEFUL);
     }
 
 }

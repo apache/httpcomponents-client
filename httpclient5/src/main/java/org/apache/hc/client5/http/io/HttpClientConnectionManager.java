@@ -28,10 +28,10 @@ package org.apache.hc.client5.http.io;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Represents a manager of persistent client connections.
@@ -57,7 +57,7 @@ public interface HttpClientConnectionManager extends Closeable {
      * Please note that newly allocated endpoints can be leased
      * {@link ConnectionEndpoint#isConnected() disconnected}. The consumer of the endpoint
      * is responsible for fully establishing the route to the endpoint target
-     * by calling {@link #connect(ConnectionEndpoint, long, TimeUnit, HttpContext)}
+     * by calling {@link #connect(ConnectionEndpoint, TimeValue, HttpContext)}
      * in order to connect directly to the target or to the first proxy hop,
      * and optionally calling {@link #upgrade(ConnectionEndpoint, HttpContext)} method
      * to upgrade the underlying transport to Transport Layer Security after having
@@ -79,11 +79,8 @@ public interface HttpClientConnectionManager extends Closeable {
      * @param endpoint      the managed endpoint.
      * @param newState      the new connection state of {@code null} if state-less.
      * @param validDuration the duration of time this connection is valid for reuse.
-     * @param timeUnit the time unit.
-     *
-     * @see #closeExpired()
      */
-    void release(ConnectionEndpoint endpoint, Object newState, long validDuration, TimeUnit timeUnit);
+    void release(ConnectionEndpoint endpoint, Object newState, TimeValue validDuration);
 
     /**
      * Connects the endpoint to the initial hop (connection target in case
@@ -92,15 +89,10 @@ public interface HttpClientConnectionManager extends Closeable {
      *
      * @param endpoint      the managed endpoint.
      * @param connectTimeout connect timeout.
-     * @param timeUnit the time unit.
      * @param context the actual HTTP context.
      * @throws IOException
      */
-    void connect(
-            ConnectionEndpoint endpoint,
-            long connectTimeout,
-            TimeUnit timeUnit,
-            HttpContext context) throws IOException;
+    void connect(ConnectionEndpoint endpoint, TimeValue connectTimeout, HttpContext context) throws IOException;
 
     /**
      * Upgrades the endpoint's underlying transport to Transport Layer Security.
@@ -109,8 +101,6 @@ public interface HttpClientConnectionManager extends Closeable {
      * @param context the actual HTTP context.
      * @throws IOException
      */
-    void upgrade(
-            ConnectionEndpoint endpoint,
-            HttpContext context) throws IOException;
+    void upgrade(ConnectionEndpoint endpoint, HttpContext context) throws IOException;
 
 }

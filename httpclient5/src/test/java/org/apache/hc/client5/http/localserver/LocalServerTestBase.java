@@ -27,15 +27,15 @@
 
 package org.apache.hc.client5.http.localserver;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.SocketConfig;
-import org.apache.hc.core5.http.impl.io.bootstrap.HttpServer;
-import org.apache.hc.core5.http.impl.io.bootstrap.ServerBootstrap;
+import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
+import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
+import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.After;
 import org.junit.Before;
 
@@ -69,7 +69,7 @@ public abstract class LocalServerTestBase {
     @Before
     public void setUp() throws Exception {
         final SocketConfig socketConfig = SocketConfig.custom()
-                .setSoTimeout(15000)
+                .setSoTimeout(TimeValue.ofSeconds(15))
                 .build();
         this.serverBootstrap = ServerBootstrap.bootstrap()
                 .setSocketConfig(socketConfig)
@@ -91,7 +91,7 @@ public abstract class LocalServerTestBase {
             this.httpclient.close();
         }
         if (this.server != null) {
-            this.server.shutdown(10, TimeUnit.SECONDS);
+            this.server.shutdown(ShutdownType.GRACEFUL);
         }
     }
 

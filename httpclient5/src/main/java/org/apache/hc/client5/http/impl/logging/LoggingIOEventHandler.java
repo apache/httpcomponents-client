@@ -30,9 +30,12 @@ package org.apache.hc.client5.http.impl.logging;
 import java.io.IOException;
 import java.net.SocketAddress;
 
-import org.apache.hc.core5.http.HttpConnectionMetrics;
+import javax.net.ssl.SSLSession;
+
+import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.ProtocolVersion;
 import org.apache.hc.core5.http.impl.nio.HttpConnectionEventHandler;
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOSession;
 import org.apache.logging.log4j.Logger;
 
@@ -98,8 +101,13 @@ public class LoggingIOEventHandler implements HttpConnectionEventHandler {
     }
 
     @Override
-    public HttpConnectionMetrics getMetrics() {
-        return handler.getMetrics();
+    public SSLSession getSSLSession() {
+        return handler.getSSLSession();
+    }
+
+    @Override
+    public EndpointDetails getEndpointDetails() {
+        return handler.getEndpointDetails();
     }
 
     @Override
@@ -144,11 +152,11 @@ public class LoggingIOEventHandler implements HttpConnectionEventHandler {
     }
 
     @Override
-    public void shutdown() throws IOException {
+    public void shutdown(final ShutdownType shutdownType) {
         if (log.isDebugEnabled()) {
-            log.debug(id + " shutdown");
+            log.debug(id + " shutdown " + shutdownType);
         }
-        handler.shutdown();
+        handler.shutdown(shutdownType);
     }
 
 }

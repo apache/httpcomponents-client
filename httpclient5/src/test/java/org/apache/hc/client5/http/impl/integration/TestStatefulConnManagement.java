@@ -36,7 +36,7 @@ import org.apache.hc.client5.http.protocol.UserTokenHandler;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.HttpConnection;
+import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpStatus;
@@ -174,8 +174,8 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
                             this.context);
                     this.count++;
 
-                    final HttpConnection conn = this.context.getConnection();
-                    final String connuid = Integer.toHexString(System.identityHashCode(conn));
+                    final EndpointDetails endpointDetails = this.context.getEndpointDetails();
+                    final String connuid = Integer.toHexString(System.identityHashCode(endpointDetails));
                     this.context.setAttribute("r" + r, connuid);
                     EntityUtils.consume(response.getEntity());
                 }

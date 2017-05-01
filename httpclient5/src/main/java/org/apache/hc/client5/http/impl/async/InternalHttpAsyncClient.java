@@ -32,14 +32,12 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.async.AsyncClientEndpoint;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
@@ -58,6 +56,7 @@ import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
+import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
@@ -70,6 +69,7 @@ import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOReactorException;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
+import org.apache.hc.core5.util.TimeValue;
 
 class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
 
@@ -123,7 +123,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
             final HttpClientContext clientContext,
             final FutureCallback<AsyncConnectionEndpoint> callback) {
         final RequestConfig requestConfig = clientContext.getRequestConfig();
-        connmgr.lease(route, userToken, requestConfig.getConnectTimeout(), TimeUnit.MILLISECONDS,
+        connmgr.lease(route, userToken, requestConfig.getConnectTimeout(),
                 new FutureCallback<AsyncConnectionEndpoint>() {
 
                     @Override
@@ -134,7 +134,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                             connmgr.connect(
                                     connectionEndpoint,
                                     getConnectionInitiator(),
-                                    requestConfig.getConnectTimeout(), TimeUnit.MILLISECONDS,
+                                    requestConfig.getConnectTimeout(),
                                     clientContext,
                                     new FutureCallback<AsyncConnectionEndpoint>() {
 
@@ -233,20 +233,23 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                 @Override
                 public void completed(final AsyncConnectionEndpoint connectionEndpoint) {
                     final InternalAsyncClientEndpoint endpoint = new InternalAsyncClientEndpoint(route, connectionEndpoint);
-                    endpoint.executeAndRelease(requestProducer, responseConsumer, clientContext, new FutureCallback<T>() {
+                    endpoint.execute(requestProducer, responseConsumer, clientContext, new FutureCallback<T>() {
 
                         @Override
                         public void completed(final T result) {
+                            endpoint.releaseAndReuse();
                             future.completed(result);
                         }
 
                         @Override
                         public void failed(final Exception ex) {
+                            endpoint.releaseAndDiscard();
                             future.failed(ex);
                         }
 
                         @Override
                         public void cancelled() {
+                            endpoint.releaseAndDiscard();
                             future.cancel();
                         }
 
@@ -283,14 +286,14 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
         private final AsyncConnectionEndpoint connectionEndpoint;
         private final AtomicBoolean reusable;
         private final AtomicReference<Object> userTokenRef;
-        private final AtomicLong keepAlive;
+        private final AtomicReference<TimeValue> keepAliveRef;
         private final AtomicBoolean released;
 
         InternalAsyncClientEndpoint(final HttpRoute route, final AsyncConnectionEndpoint connectionEndpoint) {
             this.route = route;
             this.connectionEndpoint = connectionEndpoint;
             this.reusable = new AtomicBoolean(true);
-            this.keepAlive = new AtomicLong(Long.MAX_VALUE);
+            this.keepAliveRef = new AtomicReference<>(TimeValue.NEG_ONE_MILLISECONDS);
             this.userTokenRef = new AtomicReference<>(null);
             this.released = new AtomicBoolean(false);
         }
@@ -353,7 +356,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                     }
                     exchangeHandler.consumeResponse(response, entityDetails);
 
-                    keepAlive.set(keepAliveStrategy.getKeepAliveDuration(response, context));
+                    keepAliveRef.set(keepAliveStrategy.getKeepAliveDuration(response, context));
 
                     if (entityDetails == null) {
                         updateState();
@@ -429,9 +432,9 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
             if (released.compareAndSet(false, true)) {
                 if (!reusable.get()) {
                     closeEndpoint();
-                    connmgr.release(connectionEndpoint, null, -1L, TimeUnit.MILLISECONDS);
+                    connmgr.release(connectionEndpoint, null, TimeValue.NEG_ONE_MILLISECONDS);
                 } else {
-                    connmgr.release(connectionEndpoint, userTokenRef.get(), keepAlive.get(), TimeUnit.MILLISECONDS);
+                    connmgr.release(connectionEndpoint, userTokenRef.get(), keepAliveRef.get());
                 }
             }
         }
@@ -440,7 +443,7 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
         public void releaseAndDiscard() {
             if (released.compareAndSet(false, true)) {
                 closeEndpoint();
-                connmgr.release(connectionEndpoint, null, -1L, TimeUnit.MILLISECONDS);
+                connmgr.release(connectionEndpoint, null, TimeValue.NEG_ONE_MILLISECONDS);
             }
         }
 

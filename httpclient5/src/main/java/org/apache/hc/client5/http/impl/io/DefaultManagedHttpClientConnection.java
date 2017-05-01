@@ -39,7 +39,6 @@ import javax.net.ssl.SSLSocket;
 
 import org.apache.hc.client5.http.impl.logging.LoggingSocketHolder;
 import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
-import org.apache.hc.client5.http.utils.Identifiable;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentLengthStrategy;
@@ -51,6 +50,8 @@ import org.apache.hc.core5.http.io.HttpMessageParserFactory;
 import org.apache.hc.core5.http.io.HttpMessageWriterFactory;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
+import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.util.Identifiable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -70,7 +71,6 @@ public class DefaultManagedHttpClientConnection
 
     public DefaultManagedHttpClientConnection(
             final String id,
-            final int buffersize,
             final CharsetDecoder chardecoder,
             final CharsetEncoder charencoder,
             final H1Config h1Config,
@@ -78,16 +78,13 @@ public class DefaultManagedHttpClientConnection
             final ContentLengthStrategy outgoingContentStrategy,
             final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
-        super(buffersize, chardecoder, charencoder, h1Config, incomingContentStrategy, outgoingContentStrategy,
-                requestWriterFactory, responseParserFactory);
+        super(h1Config, chardecoder, charencoder, incomingContentStrategy, outgoingContentStrategy, requestWriterFactory, responseParserFactory);
         this.id = id;
         this.closed = new AtomicBoolean();
     }
 
-    public DefaultManagedHttpClientConnection(
-            final String id,
-            final int buffersize) {
-        this(id, buffersize, null, null, null, null, null, null, null);
+    public DefaultManagedHttpClientConnection(final String id) {
+        this(id, null, null, null, null, null, null, null);
     }
 
     @Override
@@ -141,12 +138,12 @@ public class DefaultManagedHttpClientConnection
     }
 
     @Override
-    public void shutdown() throws IOException {
+    public void shutdown(final ShutdownType shutdownType) {
         if (this.closed.compareAndSet(false, true)) {
             if (this.log.isDebugEnabled()) {
-                this.log.debug(this.id + ": Shutdown connection");
+                this.log.debug(this.id + ": Shutdown connection " + shutdownType);
             }
-            super.shutdown();
+            super.shutdown(shutdownType);
         }
     }
 

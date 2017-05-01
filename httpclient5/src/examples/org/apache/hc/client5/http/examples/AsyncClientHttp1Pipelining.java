@@ -30,7 +30,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.async.AsyncClientEndpoint;
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
 import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
@@ -39,8 +38,11 @@ import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOReactorConfig;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * This example demonstrates pipelined execution of multiple HTTP/1.1 message exchanges.
@@ -50,12 +52,11 @@ public class AsyncClientHttp1Pipelining {
     public static void main(final String[] args) throws Exception {
 
         final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setConnectTimeout(5000)
-                .setSoTimeout(5000)
+                .setSoTimeout(TimeValue.ofSeconds(5))
                 .build();
 
         final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
-                .setProtocolVersion(HttpVersion.HTTP_1_1)
+                .setVersionPolicy(HttpVersionPolicy.FORCE_HTTP_1)
                 .setIOReactorConfig(ioReactorConfig)
                 .build();
 
@@ -102,7 +103,7 @@ public class AsyncClientHttp1Pipelining {
         }
 
         System.out.println("Shutting down");
-        client.shutdown(5, TimeUnit.SECONDS);
+        client.shutdown(ShutdownType.GRACEFUL);
     }
 
 }

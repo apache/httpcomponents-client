@@ -32,6 +32,7 @@ import static org.junit.Assert.assertNull;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
@@ -48,8 +49,8 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.MethodNotSupportedException;
 import org.apache.hc.core5.http.config.SocketConfig;
-import org.apache.hc.core5.http.impl.io.bootstrap.HttpServer;
-import org.apache.hc.core5.http.impl.io.bootstrap.ServerBootstrap;
+import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
+import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
@@ -78,7 +79,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
     public void start() throws Exception  {
         this.localServer = ServerBootstrap.bootstrap()
                 .setSocketConfig(SocketConfig.custom()
-                        .setSoTimeout(5000)
+                        .setSoTimeout(5, TimeUnit.SECONDS)
                         .build())
                 .registerHandler(url + "*", new EchoViaHeaderHandler())
                 .create();
@@ -97,9 +98,9 @@ public class TestStaleWhileRevalidationReleasesConnection {
                 .build();
 
         final RequestConfig config = RequestConfig.custom()
-                .setSocketTimeout(10000)
-                .setConnectTimeout(10000)
-                .setConnectionRequestTimeout(1000)
+                .setSocketTimeout(10, TimeUnit.SECONDS)
+                .setConnectTimeout(10, TimeUnit.SECONDS)
+                .setConnectionRequestTimeout(1, TimeUnit.SECONDS)
                 .build();
 
         client = CachingHttpClientBuilder.create()

@@ -41,7 +41,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentLengthStrategy;
-import org.apache.hc.core5.http.config.ConnectionConfig;
+import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.DefaultContentLengthStrategy;
 import org.apache.hc.core5.http.impl.io.DefaultHttpRequestWriterFactory;
@@ -61,7 +61,7 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
     public static final ManagedHttpClientConnectionFactory INSTANCE = new ManagedHttpClientConnectionFactory();
 
     private final H1Config h1Config;
-    private final ConnectionConfig connectionConfig;
+    private final CharCodingConfig charCodingConfig;
     private final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory;
     private final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory;
     private final ContentLengthStrategy incomingContentStrategy;
@@ -69,14 +69,14 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
 
     public ManagedHttpClientConnectionFactory(
             final H1Config h1Config,
-            final ConnectionConfig connectionConfig,
+            final CharCodingConfig charCodingConfig,
             final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory,
             final ContentLengthStrategy incomingContentStrategy,
             final ContentLengthStrategy outgoingContentStrategy) {
         super();
         this.h1Config = h1Config != null ? h1Config : H1Config.DEFAULT;
-        this.connectionConfig = connectionConfig != null ? connectionConfig : ConnectionConfig.DEFAULT;
+        this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
         this.requestWriterFactory = requestWriterFactory != null ? requestWriterFactory :
                 DefaultHttpRequestWriterFactory.INSTANCE;
         this.responseParserFactory = responseParserFactory != null ? responseParserFactory :
@@ -89,17 +89,17 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
 
     public ManagedHttpClientConnectionFactory(
             final H1Config h1Config,
-            final ConnectionConfig connectionConfig,
+            final CharCodingConfig charCodingConfig,
             final HttpMessageWriterFactory<ClassicHttpRequest> requestWriterFactory,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
-        this(h1Config, connectionConfig, requestWriterFactory, responseParserFactory, null, null);
+        this(h1Config, charCodingConfig, requestWriterFactory, responseParserFactory, null, null);
     }
 
     public ManagedHttpClientConnectionFactory(
             final H1Config h1Config,
-            final ConnectionConfig connectionConfig,
+            final CharCodingConfig charCodingConfig,
             final HttpMessageParserFactory<ClassicHttpResponse> responseParserFactory) {
-        this(h1Config, connectionConfig, null, responseParserFactory);
+        this(h1Config, charCodingConfig, null, responseParserFactory);
     }
 
     public ManagedHttpClientConnectionFactory() {
@@ -110,11 +110,11 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
     public ManagedHttpClientConnection createConnection(final Socket socket) throws IOException {
         CharsetDecoder chardecoder = null;
         CharsetEncoder charencoder = null;
-        final Charset charset = this.connectionConfig.getCharset();
-        final CodingErrorAction malformedInputAction = this.connectionConfig.getMalformedInputAction() != null ?
-                this.connectionConfig.getMalformedInputAction() : CodingErrorAction.REPORT;
-        final CodingErrorAction unmappableInputAction = this.connectionConfig.getUnmappableInputAction() != null ?
-                this.connectionConfig.getUnmappableInputAction() : CodingErrorAction.REPORT;
+        final Charset charset = this.charCodingConfig.getCharset();
+        final CodingErrorAction malformedInputAction = this.charCodingConfig.getMalformedInputAction() != null ?
+                this.charCodingConfig.getMalformedInputAction() : CodingErrorAction.REPORT;
+        final CodingErrorAction unmappableInputAction = this.charCodingConfig.getUnmappableInputAction() != null ?
+                this.charCodingConfig.getUnmappableInputAction() : CodingErrorAction.REPORT;
         if (charset != null) {
             chardecoder = charset.newDecoder();
             chardecoder.onMalformedInput(malformedInputAction);
@@ -126,7 +126,6 @@ public class ManagedHttpClientConnectionFactory implements HttpConnectionFactory
         final String id = "http-outgoing-" + Long.toString(COUNTER.getAndIncrement());
         final DefaultManagedHttpClientConnection conn = new DefaultManagedHttpClientConnection(
                 id,
-                connectionConfig.getBufferSize(),
                 chardecoder,
                 charencoder,
                 h1Config,

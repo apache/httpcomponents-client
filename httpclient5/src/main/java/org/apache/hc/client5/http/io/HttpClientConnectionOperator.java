@@ -33,6 +33,7 @@ import java.net.InetSocketAddress;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Connection operator that performs connection connect and upgrade operations. Usually, components
@@ -49,7 +50,7 @@ public interface HttpClientConnectionOperator {
             ManagedHttpClientConnection conn,
             HttpHost host,
             InetSocketAddress localAddress,
-            int connectTimeout,
+            TimeValue connectTimeout,
             SocketConfig socketConfig,
             HttpContext context) throws IOException;
 

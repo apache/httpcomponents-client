@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
@@ -56,6 +55,7 @@ import org.apache.hc.client5.http.ssl.SSLInitializationException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * An Executor for fluent requests.
@@ -91,7 +91,7 @@ public class Executor {
         CONNMGR = new PoolingHttpClientConnectionManager(sfr);
         CONNMGR.setDefaultMaxPerRoute(100);
         CONNMGR.setMaxTotal(200);
-        CONNMGR.setValidateAfterInactivity(1000);
+        CONNMGR.setValidateAfterInactivity(TimeValue.ofSeconds(1));
         CLIENT = HttpClientBuilder.create()
                 .setConnectionManager(CONNMGR)
                 .build();
@@ -252,7 +252,7 @@ public class Executor {
      * or discarded using {@link Response#discardContent()}, otherwise the
      * connection used for the request might not be released to the pool.
      *
-     * @see Response#handleResponse(org.apache.hc.client5.http.sync.ResponseHandler)
+     * @see Response#handleResponse(org.apache.hc.core5.http.io.ResponseHandler)
      * @see Response#discardContent()
      */
     public Response execute(
@@ -275,7 +275,7 @@ public class Executor {
      * @since 4.4
      */
     public static void closeIdleConnections() {
-        CONNMGR.closeIdle(0, TimeUnit.MICROSECONDS);
+        CONNMGR.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
     }
 
 }

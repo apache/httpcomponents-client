@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.http.examples;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
@@ -35,6 +33,7 @@ import org.apache.hc.client5.http.impl.sync.HttpClients;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.pool.PoolStats;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Example demonstrating how to evict expired and idle connections
@@ -48,7 +47,7 @@ public class ClientEvictExpiredConnections {
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setConnectionManager(cm)
                 .evictExpiredConnections()
-                .evictIdleConnections(5L, TimeUnit.SECONDS)
+                .evictIdleConnections(TimeValue.ofSeconds(5))
                 .build()) {
             // create an array of URIs to perform GETs on
             final String[] urisToGet = {

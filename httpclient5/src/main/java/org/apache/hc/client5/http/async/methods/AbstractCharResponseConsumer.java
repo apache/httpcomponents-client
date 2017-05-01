@@ -38,6 +38,7 @@ import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
+import org.apache.hc.core5.http.nio.entity.AbstractCharDataConsumer;
 
 public abstract class AbstractCharResponseConsumer<T> extends AbstractCharDataConsumer implements AsyncResponseConsumer<T> {
 
@@ -64,7 +65,7 @@ public abstract class AbstractCharResponseConsumer<T> extends AbstractCharDataCo
             if (charset == null) {
                 charset = StandardCharsets.US_ASCII;
             }
-            setCharsetDecoder(charset.newDecoder());
+            setCharset(charset);
             start(response, contentType);
         } else {
             start(response, null);

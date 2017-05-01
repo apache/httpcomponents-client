@@ -56,6 +56,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -254,7 +255,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
 
     @Override
     public Socket connectSocket(
-            final int connectTimeout,
+            final TimeValue connectTimeout,
             final Socket socket,
             final HttpHost host,
             final InetSocketAddress remoteAddress,
@@ -267,13 +268,13 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             sock.bind(localAddress);
         }
         try {
-            if (connectTimeout > 0 && sock.getSoTimeout() == 0) {
-                sock.setSoTimeout(connectTimeout);
+            if (TimeValue.isPositive(connectTimeout) && sock.getSoTimeout() == 0) {
+                sock.setSoTimeout(connectTimeout.toMillisIntBound());
             }
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connecting socket to " + remoteAddress + " with timeout " + connectTimeout);
             }
-            sock.connect(remoteAddress, connectTimeout);
+            sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisIntBound() : 0);
         } catch (final IOException ex) {
             try {
                 sock.close();

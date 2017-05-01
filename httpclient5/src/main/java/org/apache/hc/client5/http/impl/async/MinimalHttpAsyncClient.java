@@ -29,22 +29,21 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.IOException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.async.AsyncClientEndpoint;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.ComplexFuture;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.nio.AsyncConnectionEndpoint;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.concurrent.BasicFuture;
 import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.concurrent.ComplexFuture;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
@@ -54,6 +53,7 @@ import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOReactorException;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
+import org.apache.hc.core5.util.TimeValue;
 
 class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
 
@@ -72,13 +72,13 @@ class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
 
     private Future<AsyncConnectionEndpoint> leaseEndpoint(
             final HttpHost host,
-            final int connectTimeout,
+            final TimeValue connectTimeout,
             final HttpClientContext clientContext,
             final FutureCallback<AsyncConnectionEndpoint> callback) {
         final ComplexFuture<AsyncConnectionEndpoint> resultFuture = new ComplexFuture<>(callback);
         final Future<AsyncConnectionEndpoint> leaseFuture = connmgr.lease(
                 new HttpRoute(host), null,
-                connectTimeout, TimeUnit.MILLISECONDS,
+                connectTimeout,
                 new FutureCallback<AsyncConnectionEndpoint>() {
 
                     @Override
@@ -89,7 +89,7 @@ class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                             final Future<AsyncConnectionEndpoint> connectFuture = connmgr.connect(
                                     connectionEndpoint,
                                     getConnectionInitiator(),
-                                    connectTimeout, TimeUnit.MILLISECONDS,
+                                    connectTimeout,
                                     clientContext,
                                     new FutureCallback<AsyncConnectionEndpoint>() {
 
@@ -187,20 +187,23 @@ class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                     @Override
                     public void completed(final AsyncConnectionEndpoint connectionEndpoint) {
                         final InternalAsyncClientEndpoint endpoint = new InternalAsyncClientEndpoint(connectionEndpoint);
-                        endpoint.executeAndRelease(requestProducer, responseConsumer, clientContext, new FutureCallback<T>() {
+                        endpoint.execute(requestProducer, responseConsumer, clientContext, new FutureCallback<T>() {
 
                             @Override
                             public void completed(final T result) {
+                                endpoint.releaseAndReuse();
                                 resultFuture.completed(result);
                             }
 
                             @Override
                             public void failed(final Exception ex) {
+                                endpoint.releaseAndDiscard();
                                 resultFuture.failed(ex);
                             }
 
                             @Override
                             public void cancelled() {
+                                endpoint.releaseAndDiscard();
                                 resultFuture.cancel();
                             }
 
@@ -256,7 +259,7 @@ class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
         @Override
         public void releaseAndReuse() {
             if (released.compareAndSet(false, true)) {
-                connmgr.release(connectionEndpoint, null, Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+                connmgr.release(connectionEndpoint, null, TimeValue.NEG_ONE_MILLISECONDS);
             }
         }
 
@@ -267,7 +270,7 @@ class MinimalHttpAsyncClient extends AbstractHttpAsyncClientBase {
                     connectionEndpoint.close();
                 } catch (final IOException ignore) {
                 }
-                connmgr.release(connectionEndpoint, null, -1L, TimeUnit.MILLISECONDS);
+                connmgr.release(connectionEndpoint, null, TimeValue.ZERO_MILLISECONDS);
             }
         }
 

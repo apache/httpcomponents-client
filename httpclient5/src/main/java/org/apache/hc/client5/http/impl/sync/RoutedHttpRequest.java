@@ -160,6 +160,9 @@ public class RoutedHttpRequest extends HeaderGroup implements ClassicHttpRequest
                 buf.append(":").append(this.authority.getPort());
             }
         }
+        if (buf.length() > 0 && this.path != null && !this.path.startsWith("/")) {
+            buf.append("/");
+        }
         buf.append(this.path != null ? this.path : "/");
         return buf.toString();
     }

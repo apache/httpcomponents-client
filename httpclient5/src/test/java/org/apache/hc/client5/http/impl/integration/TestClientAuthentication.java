@@ -59,8 +59,8 @@ import org.apache.hc.client5.http.sync.methods.HttpPost;
 import org.apache.hc.client5.http.sync.methods.HttpPut;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HeaderElements;
-import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -512,8 +512,8 @@ public class TestClientAuthentication extends LocalServerTestBase {
                 final ClassicHttpRequest request,
                 final ClassicHttpResponse response,
                 final HttpContext context) throws HttpException, IOException {
-            final HttpConnection conn = (HttpConnection) context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
-            final InetSocketAddress socketAddress = (InetSocketAddress) conn.getLocalAddress();
+            final EndpointDetails endpoint = (EndpointDetails) context.getAttribute(HttpCoreContext.CONNECTION_ENDPOINT);
+            final InetSocketAddress socketAddress = (InetSocketAddress) endpoint.getLocalAddress();
             final String localhost = socketAddress.getHostName();
             final int port = socketAddress.getPort();
             response.setCode(HttpStatus.SC_MOVED_PERMANENTLY);

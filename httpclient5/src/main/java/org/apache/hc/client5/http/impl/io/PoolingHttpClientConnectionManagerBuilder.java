@@ -27,8 +27,6 @@
 
 package org.apache.hc.client5.http.impl.io;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -42,6 +40,7 @@ import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.pool.ConnPoolListener;
 import org.apache.hc.core5.pool.ConnPoolPolicy;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Builder for {@link PoolingHttpClientConnectionManager} instances.
@@ -84,9 +83,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
     private int maxConnTotal = 0;
     private int maxConnPerRoute = 0;
 
-    private long connTimeToLive = -1;
-    private TimeUnit connTimeToLiveTimeUnit = TimeUnit.MILLISECONDS;
-    private int validateAfterInactivity = 2000;
+    private TimeValue timeToLive;
+    private TimeValue validateAfterInactivity;
 
     public static PoolingHttpClientConnectionManagerBuilder create() {
         return new PoolingHttpClientConnectionManagerBuilder();
@@ -173,9 +171,8 @@ public class PoolingHttpClientConnectionManagerBuilder {
     /**
      * Sets maximum time to live for persistent connections
      */
-    public final PoolingHttpClientConnectionManagerBuilder setConnectionTimeToLive(final long connTimeToLive, final TimeUnit connTimeToLiveTimeUnit) {
-        this.connTimeToLive = connTimeToLive;
-        this.connTimeToLiveTimeUnit = connTimeToLiveTimeUnit;
+    public final PoolingHttpClientConnectionManagerBuilder setConnectionTimeToLive(final TimeValue timeToLive) {
+        this.timeToLive = timeToLive;
         return this;
     }
 
@@ -185,7 +182,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
      *
      * @see org.apache.hc.core5.http.io.HttpClientConnection#isStale()
      */
-    public final PoolingHttpClientConnectionManagerBuilder setValidateAfterInactivity(final int validateAfterInactivity) {
+    public final PoolingHttpClientConnectionManagerBuilder setValidateAfterInactivity(final TimeValue validateAfterInactivity) {
         this.validateAfterInactivity = validateAfterInactivity;
         return this;
     }
@@ -214,8 +211,7 @@ public class PoolingHttpClientConnectionManagerBuilder {
                 dnsResolver,
                 connPoolPolicy,
                 connPoolListener,
-                connTimeToLive,
-                connTimeToLiveTimeUnit != null ? connTimeToLiveTimeUnit : TimeUnit.MILLISECONDS);
+                timeToLive != null ? timeToLive : TimeValue.NEG_ONE_MILLISECONDS);
         poolingmgr.setValidateAfterInactivity(this.validateAfterInactivity);
         if (defaultSocketConfig != null) {
             poolingmgr.setDefaultSocketConfig(defaultSocketConfig);

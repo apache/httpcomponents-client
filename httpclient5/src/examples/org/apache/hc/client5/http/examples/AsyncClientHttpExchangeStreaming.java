@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.examples;
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.async.methods.AbstractCharResponseConsumer;
 import org.apache.hc.client5.http.async.methods.AsyncRequestBuilder;
@@ -40,7 +39,9 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.StatusLine;
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.IOReactorConfig;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Example of asynchronous HTTP/1.1 request execution with response streaming.
@@ -50,8 +51,7 @@ public class AsyncClientHttpExchangeStreaming {
     public static void main(final String[] args) throws Exception {
 
         final IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
-                .setConnectTimeout(5000)
-                .setSoTimeout(5000)
+                .setSoTimeout(TimeValue.ofSeconds(5))
                 .build();
 
         final CloseableHttpAsyncClient client = HttpAsyncClients.custom()
@@ -96,6 +96,11 @@ public class AsyncClientHttpExchangeStreaming {
                         }
 
                         @Override
+                        public Void getResult() {
+                            return null;
+                        }
+
+                        @Override
                         public void failed(final Exception cause) {
                             System.out.println(requestUri + "->" + cause);
                         }
@@ -109,7 +114,7 @@ public class AsyncClientHttpExchangeStreaming {
         }
 
         System.out.println("Shutting down");
-        client.shutdown(5, TimeUnit.SECONDS);
+        client.shutdown(ShutdownType.GRACEFUL);
     }
 
 }

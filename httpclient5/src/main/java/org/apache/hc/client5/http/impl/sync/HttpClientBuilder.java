@@ -103,6 +103,7 @@ import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
 import org.apache.hc.core5.pool.ConnPoolControl;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.VersionInfo;
 
 /**
@@ -163,8 +164,7 @@ public class HttpClientBuilder {
     private RequestConfig defaultRequestConfig;
     private boolean evictExpiredConnections;
     private boolean evictIdleConnections;
-    private long maxIdleTime;
-    private TimeUnit maxIdleTimeUnit;
+    private TimeValue maxIdleTime;
 
     private boolean systemProperties;
     private boolean redirectHandlingDisabled;
@@ -574,19 +574,17 @@ public class HttpClientBuilder {
      * use a shared connection manager.
      *
      * @see #setConnectionManagerShared(boolean)
-     * @see ConnPoolControl#closeIdle(long, TimeUnit)
+     * @see ConnPoolControl#closeIdle(TimeValue)
      *
      * @param maxIdleTime maximum time persistent connections can stay idle while kept alive
      * in the connection pool. Connections whose inactivity period exceeds this value will
      * get closed and evicted from the pool.
-     * @param maxIdleTimeUnit time unit for the above parameter.
      *
      * @since 4.4
      */
-    public final HttpClientBuilder evictIdleConnections(final long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
+    public final HttpClientBuilder evictIdleConnections(final TimeValue maxIdleTime) {
         this.evictIdleConnections = true;
         this.maxIdleTime = maxIdleTime;
-        this.maxIdleTimeUnit = maxIdleTimeUnit;
         return this;
     }
 
@@ -867,8 +865,7 @@ public class HttpClientBuilder {
             if (evictExpiredConnections || evictIdleConnections) {
                 if (connManagerCopy instanceof ConnPoolControl) {
                     final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor((ConnPoolControl<?>) connManagerCopy,
-                            maxIdleTime > 0 ? maxIdleTime : 10, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS,
-                            maxIdleTime, maxIdleTimeUnit);
+                            maxIdleTime, maxIdleTime);
                     closeablesCopy.add(new Closeable() {
 
                         @Override

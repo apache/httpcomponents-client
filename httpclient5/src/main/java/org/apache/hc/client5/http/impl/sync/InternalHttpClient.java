@@ -156,7 +156,7 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                     RoutedHttpRequest.adapt(request, route), localcontext, execAware);
             return CloseableHttpResponse.adapt(response);
         } catch (final HttpException httpException) {
-            throw new ClientProtocolException(httpException);
+            throw new ClientProtocolException(httpException.getMessage(), httpException);
         }
     }
 

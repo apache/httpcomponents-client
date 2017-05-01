@@ -35,19 +35,20 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
-import org.apache.hc.client5.http.ssl.H2TlsSupport;
-import org.apache.hc.client5.http.utils.Identifiable;
+import org.apache.hc.core5.http.EndpointDetails;
 import org.apache.hc.core5.http.HttpConnection;
-import org.apache.hc.core5.http.HttpConnectionMetrics;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.Command;
 import org.apache.hc.core5.reactor.IOEventHandler;
-import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.reactor.TlsCapableIOSession;
 import org.apache.hc.core5.reactor.ssl.SSLBufferManagement;
 import org.apache.hc.core5.reactor.ssl.SSLSessionInitializer;
 import org.apache.hc.core5.reactor.ssl.SSLSessionVerifier;
+import org.apache.hc.core5.reactor.ssl.TlsDetails;
 import org.apache.hc.core5.reactor.ssl.TransportSecurityLayer;
+import org.apache.hc.core5.util.Identifiable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -55,10 +56,10 @@ final class ManagedAsyncClientConnection implements Identifiable, HttpConnection
 
     private final Logger log = LogManager.getLogger(getClass());
 
-    private final IOSession ioSession;
+    private final TlsCapableIOSession ioSession;
     private final AtomicBoolean closed;
 
-    public ManagedAsyncClientConnection(final IOSession ioSession) {
+    public ManagedAsyncClientConnection(final TlsCapableIOSession ioSession) {
         this.ioSession = ioSession;
         this.closed = new AtomicBoolean();
     }
@@ -69,12 +70,12 @@ final class ManagedAsyncClientConnection implements Identifiable, HttpConnection
     }
 
     @Override
-    public void shutdown() throws IOException {
+    public void shutdown(final ShutdownType shutdownType) {
         if (this.closed.compareAndSet(false, true)) {
             if (log.isDebugEnabled()) {
-                log.debug(getId() + ": Shutdown connection");
+                log.debug(getId() + ": Shutdown connection " + shutdownType);
             }
-            ioSession.shutdown();
+            ioSession.shutdown(shutdownType);
         }
     }
 
@@ -114,10 +115,10 @@ final class ManagedAsyncClientConnection implements Identifiable, HttpConnection
     }
 
     @Override
-    public HttpConnectionMetrics getMetrics() {
+    public EndpointDetails getEndpointDetails() {
         final IOEventHandler handler = ioSession.getHandler();
         if (handler instanceof HttpConnection) {
-            return ((HttpConnection) handler).getMetrics();
+            return ((HttpConnection) handler).getEndpointDetails();
         } else {
             return null;
         }
@@ -134,7 +135,7 @@ final class ManagedAsyncClientConnection implements Identifiable, HttpConnection
     }
 
     @Override
-    public void start(
+    public void startTls(
             final SSLContext sslContext,
             final SSLBufferManagement sslBufferManagement,
             final SSLSessionInitializer initializer,
@@ -142,31 +143,18 @@ final class ManagedAsyncClientConnection implements Identifiable, HttpConnection
         if (log.isDebugEnabled()) {
             log.debug(getId() + ": start TLS");
         }
-        if (ioSession instanceof TransportSecurityLayer) {
-            final IOEventHandler handler = ioSession.getHandler();
-            final ProtocolVersion protocolVersion;
-            if (handler instanceof HttpConnection) {
-                protocolVersion = ((HttpConnection) handler).getProtocolVersion();
-            } else {
-                protocolVersion = null;
-            }
-            ((TransportSecurityLayer) ioSession).start(
-                    sslContext,
-                    sslBufferManagement,
-                    HttpVersion.HTTP_2.greaterEquals(protocolVersion) ? H2TlsSupport.decorateInitializer(initializer) : initializer,
-                    verifier);
-        } else {
-            throw new UnsupportedOperationException();
-        }
+        ioSession.startTls(sslContext, sslBufferManagement, initializer, verifier);
+    }
+
+    @Override
+    public TlsDetails getTlsDetails() {
+        return ioSession.getTlsDetails();
     }
 
     @Override
     public SSLSession getSSLSession() {
-        if (ioSession instanceof TransportSecurityLayer) {
-            return ((TransportSecurityLayer) ioSession).getSSLSession();
-        } else {
-            return null;
-        }
+        final TlsDetails tlsDetails = ioSession.getTlsDetails();
+        return tlsDetails != null ? tlsDetails.getSSLSession() : null;
     }
 
     public void submitPriorityCommand(final Command command) {

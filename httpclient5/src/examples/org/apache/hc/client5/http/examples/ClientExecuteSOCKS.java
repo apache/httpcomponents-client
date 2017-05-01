@@ -46,6 +46,7 @@ import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * How to send a request via SOCKS proxy.
@@ -90,7 +91,7 @@ public class ClientExecuteSOCKS {
 
         @Override
         public Socket connectSocket(
-                final int connectTimeout,
+                final TimeValue connectTimeout,
                 final Socket socket,
                 final HttpHost host,
                 final InetSocketAddress remoteAddress,
@@ -106,7 +107,7 @@ public class ClientExecuteSOCKS {
                 sock.bind(localAddress);
             }
             try {
-                sock.connect(remoteAddress, connectTimeout);
+                sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisIntBound() : 0);
             } catch (final SocketTimeoutException ex) {
                 throw new ConnectTimeoutException(ex, host, remoteAddress.getAddress());
             }

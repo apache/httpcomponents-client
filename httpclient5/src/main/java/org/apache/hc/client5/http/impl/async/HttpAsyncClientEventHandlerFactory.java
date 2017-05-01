@@ -28,7 +28,7 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hc.client5.http.impl.ConnPoolSupport;
@@ -38,20 +38,36 @@ import org.apache.hc.client5.http.impl.logging.LoggingIOSession;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ConnectionClosedException;
+import org.apache.hc.core5.http.ConnectionReuseStrategy;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpConnection;
+import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.config.CharCodingConfig;
+import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.ConnectionListener;
+import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
+import org.apache.hc.core5.http.impl.Http1StreamListener;
+import org.apache.hc.core5.http.impl.nio.ClientHttp1StreamDuplexerFactory;
+import org.apache.hc.core5.http.impl.nio.DefaultHttpRequestWriterFactory;
+import org.apache.hc.core5.http.impl.nio.DefaultHttpResponseParserFactory;
+import org.apache.hc.core5.http.message.RequestLine;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
+import org.apache.hc.core5.http.nio.NHttpMessageParserFactory;
+import org.apache.hc.core5.http.nio.NHttpMessageWriterFactory;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.http2.frame.FramePrinter;
 import org.apache.hc.core5.http2.frame.RawFrame;
+import org.apache.hc.core5.http2.impl.nio.ClientHttp2StreamMultiplexerFactory;
 import org.apache.hc.core5.http2.impl.nio.ClientHttpProtocolNegotiator;
 import org.apache.hc.core5.http2.impl.nio.Http2StreamListener;
 import org.apache.hc.core5.reactor.IOEventHandler;
 import org.apache.hc.core5.reactor.IOEventHandlerFactory;
-import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.reactor.TlsCapableIOSession;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -60,7 +76,7 @@ import org.apache.logging.log4j.Logger;
  * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class DefaultAsyncHttp2ClientEventHandlerFactory implements IOEventHandlerFactory {
+public class HttpAsyncClientEventHandlerFactory implements IOEventHandlerFactory {
 
     private final Logger streamLog = LogManager.getLogger(ClientHttpProtocolNegotiator.class);
     private final Logger wireLog = LogManager.getLogger("org.apache.hc.client5.http.wire");
@@ -71,22 +87,35 @@ public class DefaultAsyncHttp2ClientEventHandlerFactory implements IOEventHandle
 
     private final HttpProcessor httpProcessor;
     private final HandlerFactory<AsyncPushConsumer> exchangeHandlerFactory;
-    private final Charset charset;
+    private final HttpVersionPolicy versionPolicy;
     private final H2Config h2Config;
+    private final H1Config h1Config;
+    private final CharCodingConfig charCodingConfig;
+    private final ConnectionReuseStrategy http1ConnectionReuseStrategy;
+    private final NHttpMessageParserFactory<HttpResponse> http1ResponseParserFactory;
+    private final NHttpMessageWriterFactory<HttpRequest> http1RequestWriterFactory;
 
-    DefaultAsyncHttp2ClientEventHandlerFactory(
+    HttpAsyncClientEventHandlerFactory(
             final HttpProcessor httpProcessor,
             final HandlerFactory<AsyncPushConsumer> exchangeHandlerFactory,
-            final Charset charset,
-            final H2Config h2Config) {
+            final HttpVersionPolicy versionPolicy,
+            final H2Config h2Config,
+            final H1Config h1Config,
+            final CharCodingConfig charCodingConfig,
+            final ConnectionReuseStrategy connectionReuseStrategy) {
         this.httpProcessor = Args.notNull(httpProcessor, "HTTP processor");
         this.exchangeHandlerFactory = exchangeHandlerFactory;
-        this.charset = charset;
-        this.h2Config = h2Config;
+        this.versionPolicy = versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE;
+        this.h2Config = h2Config != null ? h2Config : H2Config.DEFAULT;
+        this.h1Config = h1Config != null ? h1Config : H1Config.DEFAULT;
+        this.charCodingConfig = charCodingConfig != null ? charCodingConfig : CharCodingConfig.DEFAULT;
+        this.http1ConnectionReuseStrategy = connectionReuseStrategy != null ? connectionReuseStrategy : DefaultConnectionReuseStrategy.INSTANCE;
+        this.http1ResponseParserFactory = new DefaultHttpResponseParserFactory(h1Config);
+        this.http1RequestWriterFactory = DefaultHttpRequestWriterFactory.INSTANCE;
     }
 
     @Override
-    public IOEventHandler createHandler(final IOSession ioSession) {
+    public IOEventHandler createHandler(final TlsCapableIOSession ioSession, final Object attachment) {
         final Logger sessionLog = LogManager.getLogger(ioSession.getClass());
         if (sessionLog.isDebugEnabled()
                 || streamLog.isDebugEnabled()
@@ -96,34 +125,79 @@ public class DefaultAsyncHttp2ClientEventHandlerFactory implements IOEventHandle
                 || framePayloadLog.isDebugEnabled()
                 || flowCtrlLog.isDebugEnabled()) {
             final String id = ConnPoolSupport.getId(ioSession);
-            return new LoggingIOEventHandler(new DefaultAsyncHttpClientProtocolNegotiator(
-                    new LoggingIOSession(ioSession, id, sessionLog, wireLog),
-                    httpProcessor, exchangeHandlerFactory, charset, h2Config,
-                    new ConnectionListener() {
+            final ConnectionListener connectionListener = new ConnectionListener() {
+
+                @Override
+                public void onConnect(final HttpConnection connection) {
+                    if (streamLog.isDebugEnabled()) {
+                        streamLog.debug(id + ": " + connection + " connected");
+                    }
+                }
+
+                @Override
+                public void onDisconnect(final HttpConnection connection) {
+                    if (streamLog.isDebugEnabled()) {
+                        streamLog.debug(id + ": " + connection + " disconnected");
+                    }
+                }
+
+                @Override
+                public void onError(final HttpConnection connection, final Exception ex) {
+                    if (ex instanceof ConnectionClosedException) {
+                        return;
+                    }
+                    streamLog.error(id + ": " + ex.getMessage(), ex);
+                }
+
+            };
+            final ClientHttp1StreamDuplexerFactory http1StreamHandlerFactory = new ClientHttp1StreamDuplexerFactory(
+                    httpProcessor,
+                    h1Config,
+                    charCodingConfig,
+                    http1ConnectionReuseStrategy,
+                    http1ResponseParserFactory,
+                    http1RequestWriterFactory,
+                    connectionListener,
+                    new Http1StreamListener() {
 
                         @Override
-                        public void onConnect(final HttpConnection connection) {
+                        public void onRequestHead(final HttpConnection connection, final HttpRequest request) {
+                            if (headerLog.isDebugEnabled()) {
+                                headerLog.debug(id + " >> " + new RequestLine(request));
+                                for (final Iterator<Header> it = request.headerIterator(); it.hasNext(); ) {
+                                    headerLog.debug(id + " >> " + it.next());
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onResponseHead(final HttpConnection connection, final HttpResponse response) {
+                            if (headerLog.isDebugEnabled()) {
+                                headerLog.debug(id + " << " + new StatusLine(response));
+                                for (final Iterator<Header> it = response.headerIterator(); it.hasNext(); ) {
+                                    headerLog.debug(id + " << " + it.next());
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onExchangeComplete(final HttpConnection connection, final boolean keepAlive) {
                             if (streamLog.isDebugEnabled()) {
-                                streamLog.debug(id + ": " + connection + " connected");
+                                if (keepAlive) {
+                                    streamLog.debug(id + " Connection is kept alive");
+                                } else {
+                                    streamLog.debug(id + " Connection is not kept alive");
+                                }
                             }
                         }
 
-                        @Override
-                        public void onDisconnect(final HttpConnection connection) {
-                            if (streamLog.isDebugEnabled()) {
-                                streamLog.debug(id + ": " + connection + " disconnected");
-                            }
-                        }
-
-                        @Override
-                        public void onError(final HttpConnection connection, final Exception ex) {
-                            if (ex instanceof ConnectionClosedException) {
-                                return;
-                            }
-                            streamLog.error(id + ": " + ex.getMessage(), ex);
-                        }
-
-                    },
+                    });
+            final ClientHttp2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientHttp2StreamMultiplexerFactory(
+                    httpProcessor,
+                    exchangeHandlerFactory,
+                    h2Config,
+                    charCodingConfig,
+                    connectionListener,
                     new Http2StreamListener() {
 
                         final FramePrinter framePrinter = new FramePrinter();
@@ -206,12 +280,39 @@ public class DefaultAsyncHttp2ClientEventHandlerFactory implements IOEventHandle
                             }
                         }
 
-            }), id, streamLog);
+                    });
+            final LoggingIOSession loggingIOSession = new LoggingIOSession(ioSession, id, sessionLog, wireLog);
+            return new LoggingIOEventHandler(
+                    new ClientHttpProtocolNegotiator(
+                            loggingIOSession,
+                            http1StreamHandlerFactory,
+                            http2StreamHandlerFactory,
+                            attachment instanceof HttpVersionPolicy ? (HttpVersionPolicy) attachment : versionPolicy,
+                            connectionListener),
+                    id,
+                    streamLog);
         } else {
-            return new DefaultAsyncHttpClientProtocolNegotiator(ioSession,
-                    httpProcessor, exchangeHandlerFactory, charset, h2Config, null, null);
+            final ClientHttp1StreamDuplexerFactory http1StreamHandlerFactory = new ClientHttp1StreamDuplexerFactory(
+                    httpProcessor,
+                    h1Config,
+                    charCodingConfig,
+                    http1ConnectionReuseStrategy,
+                    http1ResponseParserFactory,
+                    http1RequestWriterFactory,
+                    null, null);
+            final ClientHttp2StreamMultiplexerFactory http2StreamHandlerFactory = new ClientHttp2StreamMultiplexerFactory(
+                    httpProcessor,
+                    exchangeHandlerFactory,
+                    h2Config,
+                    charCodingConfig,
+                    null, null);
+            return new ClientHttpProtocolNegotiator(
+                    ioSession,
+                    http1StreamHandlerFactory,
+                    http2StreamHandlerFactory,
+                    attachment instanceof HttpVersionPolicy ? (HttpVersionPolicy) attachment : versionPolicy,
+                    null);
         }
-
    }
 
 }

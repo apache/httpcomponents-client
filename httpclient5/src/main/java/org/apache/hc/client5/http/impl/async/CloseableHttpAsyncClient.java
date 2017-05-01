@@ -29,9 +29,7 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.Closeable;
 import java.util.List;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.client5.http.async.AsyncClientEndpoint;
 import org.apache.hc.client5.http.async.HttpAsyncClient;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.annotation.Contract;
@@ -39,11 +37,14 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.nio.AsyncClientEndpoint;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
 import org.apache.hc.core5.http.nio.AsyncResponseConsumer;
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.ExceptionEvent;
 import org.apache.hc.core5.reactor.IOReactorStatus;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Base implementation of {@link HttpAsyncClient} that also implements {@link Closeable}.
@@ -59,11 +60,11 @@ public abstract class CloseableHttpAsyncClient implements HttpAsyncClient, Close
 
     public abstract List<ExceptionEvent> getAuditLog();
 
-    public abstract void awaitShutdown(long deadline, TimeUnit timeUnit) throws InterruptedException;
+    public abstract void awaitShutdown(TimeValue waitTime) throws InterruptedException;
 
     public abstract void initiateShutdown();
 
-    public abstract void shutdown(long graceTime, TimeUnit timeUnit);
+    public abstract void shutdown(ShutdownType shutdownType);
 
     public final Future<AsyncClientEndpoint> lease(
             final HttpHost host,

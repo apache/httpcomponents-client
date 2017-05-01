@@ -30,7 +30,6 @@ package org.apache.hc.client5.http.impl.sync;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
@@ -72,10 +71,10 @@ import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.RequestLine;
 import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -177,8 +176,8 @@ public class MainClientExec implements ClientExecChain {
 
         final ConnectionEndpoint endpoint;
         try {
-            final int timeout = config.getConnectionRequestTimeout();
-            endpoint = leaseRequest.get(timeout > 0 ? timeout : 0, TimeUnit.MILLISECONDS);
+            final TimeValue timeout = config.getConnectionRequestTimeout();
+            endpoint = leaseRequest.get(timeout.getDuration(), timeout.getTimeUnit());
         } catch(final TimeoutException ex) {
             throw new ConnectionRequestTimeoutException(ex.getMessage());
         } catch(final InterruptedException interrupted) {
@@ -191,8 +190,6 @@ public class MainClientExec implements ClientExecChain {
             }
             throw new RequestAbortedException("Request execution failed", cause);
         }
-
-        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, endpoint);
 
         final EndpointHolder endpointHolder = new EndpointHolder(this.log, this.connManager, endpoint);
         try {
@@ -230,9 +227,9 @@ public class MainClientExec implements ClientExecChain {
                         break;
                     }
                 }
-                final int timeout = config.getSocketTimeout();
-                if (timeout >= 0) {
-                    endpoint.setSocketTimeout(timeout);
+                final TimeValue timeout = config.getSocketTimeout();
+                if (TimeValue.isPositive(timeout)) {
+                    endpoint.setSocketTimeout(timeout.toMillisIntBound());
                 }
 
                 if (execAware != null && execAware.isAborted()) {
@@ -263,17 +260,17 @@ public class MainClientExec implements ClientExecChain {
                 // The connection is in or can be brought to a re-usable state.
                 if (reuseStrategy.keepAlive(request, response, context)) {
                     // Set the idle duration of this connection
-                    final long duration = keepAliveStrategy.getKeepAliveDuration(response, context);
+                    final TimeValue duration = keepAliveStrategy.getKeepAliveDuration(response, context);
                     if (this.log.isDebugEnabled()) {
                         final String s;
-                        if (duration > 0) {
-                            s = "for " + duration + " " + TimeUnit.MILLISECONDS;
+                        if (duration != null) {
+                            s = "for " + duration;
                         } else {
                             s = "indefinitely";
                         }
                         this.log.debug("Connection can be kept alive " + s);
                     }
-                    endpointHolder.setValidFor(duration, TimeUnit.MILLISECONDS);
+                    endpointHolder.setValidFor(duration);
                     endpointHolder.markReusable();
                 } else {
                     endpointHolder.markNonReusable();
@@ -356,7 +353,7 @@ public class MainClientExec implements ClientExecChain {
             final HttpRequest request,
             final HttpClientContext context) throws HttpException, IOException {
         final RequestConfig config = context.getRequestConfig();
-        final int timeout = config.getConnectTimeout();
+        final TimeValue timeout = config.getConnectTimeout();
         final RouteTracker tracker = new RouteTracker(route);
         int step;
         do {
@@ -366,19 +363,11 @@ public class MainClientExec implements ClientExecChain {
             switch (step) {
 
             case HttpRouteDirector.CONNECT_TARGET:
-                this.connManager.connect(
-                        endpoint,
-                        timeout > 0 ? timeout : 0,
-                        TimeUnit.MILLISECONDS,
-                        context);
+                this.connManager.connect(endpoint, timeout, context);
                 tracker.connectTarget(route.isSecure());
                 break;
             case HttpRouteDirector.CONNECT_PROXY:
-                this.connManager.connect(
-                        endpoint,
-                        timeout > 0 ? timeout : 0,
-                        TimeUnit.MILLISECONDS,
-                        context);
+                this.connManager.connect(endpoint, timeout, context);
                 final HttpHost proxy  = route.getProxyHost();
                 tracker.connectProxy(proxy, false);
                 break;
@@ -432,7 +421,6 @@ public class MainClientExec implements ClientExecChain {
             final HttpClientContext context) throws HttpException, IOException {
 
         final RequestConfig config = context.getRequestConfig();
-        final int timeout = config.getConnectTimeout();
 
         final HttpHost target = route.getTargetHost();
         final HttpHost proxy = route.getProxyHost();
@@ -440,18 +428,14 @@ public class MainClientExec implements ClientExecChain {
         ClassicHttpResponse response = null;
 
         final String authority = target.toHostString();
-        final ClassicHttpRequest connect = new BasicClassicHttpRequest("CONNECT", authority);
+        final ClassicHttpRequest connect = new BasicClassicHttpRequest("CONNECT", target, authority);
         connect.setVersion(HttpVersion.HTTP_1_1);
 
         this.requestExecutor.preProcess(connect, this.proxyHttpProcessor, context);
 
         while (response == null) {
             if (!endpoint.isConnected()) {
-                this.connManager.connect(
-                        endpoint,
-                        timeout > 0 ? timeout : 0,
-                        TimeUnit.MILLISECONDS,
-                        context);
+                this.connManager.connect(endpoint, config.getConnectTimeout(), context);
             }
 
             connect.removeHeaders(HttpHeaders.PROXY_AUTHORIZATION);

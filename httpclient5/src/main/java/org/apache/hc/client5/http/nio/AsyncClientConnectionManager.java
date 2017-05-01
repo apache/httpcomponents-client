@@ -28,12 +28,12 @@ package org.apache.hc.client5.http.nio;
 
 import java.io.Closeable;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Represents a manager of persistent non-blocking client connections.
@@ -60,7 +60,7 @@ public interface AsyncClientConnectionManager extends Closeable {
      * {@link AsyncConnectionEndpoint#isConnected() disconnected}. The consumer
      * of the endpoint is responsible for fully establishing the route to
      * the endpoint target by calling {@link #connect(AsyncConnectionEndpoint,
-     * ConnectionInitiator, long, TimeUnit, HttpContext, FutureCallback)}
+     * ConnectionInitiator, TimeValue, HttpContext, FutureCallback)}
      * in order to connect directly to the target or to the first proxy hop,
      * and optionally calling {@link #upgrade(AsyncConnectionEndpoint, HttpContext)}
      * method to upgrade the underlying transport to Transport Layer Security
@@ -71,14 +71,12 @@ public interface AsyncClientConnectionManager extends Closeable {
      * @param state expected state of the connection or {@code null}
      *              if the connection is not expected to carry any state.
      * @param timeout lease request timeout.
-     * @param timeUnit time unit.
      * @param callback result callback.
      */
     Future<AsyncConnectionEndpoint> lease(
             HttpRoute route,
             Object state,
-            long timeout,
-            TimeUnit timeUnit,
+            TimeValue timeout,
             FutureCallback<AsyncConnectionEndpoint> callback);
 
     /**
@@ -91,9 +89,8 @@ public interface AsyncClientConnectionManager extends Closeable {
      * @param endpoint      the managed endpoint.
      * @param newState      the new connection state of {@code null} if state-less.
      * @param validDuration the duration of time this connection is valid for reuse.
-     * @param timeUnit the time unit.
      */
-    void release(AsyncConnectionEndpoint endpoint, Object newState, long validDuration, TimeUnit timeUnit);
+    void release(AsyncConnectionEndpoint endpoint, Object newState, TimeValue validDuration);
 
     /**
      * Connects the endpoint to the initial hop (connection target in case
@@ -102,15 +99,13 @@ public interface AsyncClientConnectionManager extends Closeable {
      *
      * @param endpoint      the managed endpoint.
      * @param connectTimeout connect timeout.
-     * @param timeUnit time unit.
      * @param context the actual HTTP context.
      * @param callback result callback.
      */
     Future<AsyncConnectionEndpoint> connect(
             AsyncConnectionEndpoint endpoint,
             ConnectionInitiator connectionInitiator,
-            long connectTimeout,
-            TimeUnit timeUnit,
+            TimeValue connectTimeout,
             HttpContext context,
             FutureCallback<AsyncConnectionEndpoint> callback);
 

@@ -29,7 +29,6 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
@@ -37,6 +36,8 @@ import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.Logger;
 
 /**
@@ -54,7 +55,7 @@ class EndpointHolder implements Cancellable, Closeable {
     private final AtomicBoolean released;
     private volatile boolean reusable;
     private volatile Object state;
-    private volatile long validDuration;
+    private volatile TimeValue validDuration;
 
     public EndpointHolder(
             final Logger log,
@@ -83,15 +84,15 @@ class EndpointHolder implements Cancellable, Closeable {
         this.state = state;
     }
 
-    public void setValidFor(final long duration, final TimeUnit tunit) {
-        this.validDuration = (tunit != null ? tunit : TimeUnit.MILLISECONDS).toMillis(duration);
+    public void setValidFor(final TimeValue validDuration) {
+        this.validDuration = validDuration;
     }
 
     private void releaseConnection(final boolean reusable) {
         if (this.released.compareAndSet(false, true)) {
             synchronized (this.endpoint) {
                 if (reusable) {
-                    this.manager.release(this.endpoint, this.state, this.validDuration, TimeUnit.MILLISECONDS);
+                    this.manager.release(this.endpoint, this.state, this.validDuration);
                 } else {
                     try {
                         this.endpoint.close();
@@ -101,7 +102,7 @@ class EndpointHolder implements Cancellable, Closeable {
                             this.log.debug(ex.getMessage(), ex);
                         }
                     } finally {
-                        this.manager.release(this.endpoint, null, 0, TimeUnit.MILLISECONDS);
+                        this.manager.release(this.endpoint, null, TimeValue.ZERO_MILLISECONDS);
                     }
                 }
             }
@@ -116,14 +117,10 @@ class EndpointHolder implements Cancellable, Closeable {
         if (this.released.compareAndSet(false, true)) {
             synchronized (this.endpoint) {
                 try {
-                    this.endpoint.shutdown();
+                    this.endpoint.shutdown(ShutdownType.IMMEDIATE);
                     log.debug("Connection discarded");
-                } catch (final IOException ex) {
-                    if (this.log.isDebugEnabled()) {
-                        this.log.debug(ex.getMessage(), ex);
-                    }
                 } finally {
-                    this.manager.release(this.endpoint, null, 0, TimeUnit.MILLISECONDS);
+                    this.manager.release(this.endpoint, null, TimeValue.ZERO_MILLISECONDS);
                 }
             }
         }

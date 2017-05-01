@@ -61,7 +61,7 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.ParseException;
-import org.apache.hc.core5.http.config.ConnectionConfig;
+import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
@@ -80,6 +80,7 @@ import org.apache.hc.core5.http.message.BasicLineParser;
 import org.apache.hc.core5.http.message.LineParser;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.CharArrayBuffer;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * This example demonstrates how to customize and configure the most common aspects
@@ -119,7 +120,7 @@ public class ClientConfiguration {
                 .setMaxLineLength(2000)
                 .build();
         // Create connection configuration
-        final ConnectionConfig connectionConfig = ConnectionConfig.custom()
+        final CharCodingConfig connectionConfig = CharCodingConfig.custom()
                 .setMalformedInputAction(CodingErrorAction.IGNORE)
                 .setUnmappableInputAction(CodingErrorAction.IGNORE)
                 .setCharset(StandardCharsets.UTF_8)
@@ -174,7 +175,7 @@ public class ClientConfiguration {
         // by default or for a specific host.
         connManager.setDefaultSocketConfig(socketConfig);
         // Validate connections after 1 sec of inactivity
-        connManager.setValidateAfterInactivity(1000);
+        connManager.setValidateAfterInactivity(TimeValue.ofSeconds(10));
 
         // Configure total max or per route limits for persistent connections
         // that can be kept in the pool or leased by the connection manager.
@@ -207,9 +208,9 @@ public class ClientConfiguration {
             // Request configuration can be overridden at the request level.
             // They will take precedence over the one set at the client level.
             final RequestConfig requestConfig = RequestConfig.copy(defaultRequestConfig)
-                    .setSocketTimeout(5000)
-                    .setConnectTimeout(5000)
-                    .setConnectionRequestTimeout(5000)
+                    .setSocketTimeout(TimeValue.ofSeconds(5))
+                    .setConnectTimeout(TimeValue.ofSeconds(5))
+                    .setConnectionRequestTimeout(TimeValue.ofSeconds(5))
                     .setProxy(new HttpHost("myotherproxy", 8080))
                     .build();
             httpget.setConfig(requestConfig);

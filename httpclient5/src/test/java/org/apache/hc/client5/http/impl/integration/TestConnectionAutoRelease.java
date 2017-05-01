@@ -30,6 +30,8 @@ package org.apache.hc.client5.http.impl.integration;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.Socket;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -38,18 +40,18 @@ import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
-import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.MalformedChunkCodingException;
+import org.apache.hc.core5.http.config.CharCodingConfig;
+import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.io.DefaultBHttpServerConnection;
-import org.apache.hc.core5.http.io.HttpRequestHandler;
-import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
+import org.apache.hc.core5.http.impl.io.DefaultBHttpServerConnectionFactory;
+import org.apache.hc.core5.http.io.SessionOutputBuffer;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -86,7 +88,7 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         final LeaseRequest connreq2 = this.connManager.lease(new HttpRoute(target), null);
         final ConnectionEndpoint endpoint = connreq2.get(250, TimeUnit.MILLISECONDS);
 
-        this.connManager.release(endpoint, null, -1, null);
+        this.connManager.release(endpoint, null, TimeValue.NEG_ONE_MILLISECONDS);
     }
 
     @Test
@@ -121,7 +123,7 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         final LeaseRequest connreq2 = this.connManager.lease(new HttpRoute(target), null);
         final ConnectionEndpoint endpoint = connreq2.get(250, TimeUnit.MILLISECONDS);
 
-        this.connManager.release(endpoint, null, -1, null);
+        this.connManager.release(endpoint, null, TimeValue.NEG_ONE_MILLISECONDS);
     }
 
     @Test
@@ -156,42 +158,34 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         final LeaseRequest connreq2 = this.connManager.lease(new HttpRoute(target), null);
         final ConnectionEndpoint endpoint = connreq2.get(250, TimeUnit.MILLISECONDS);
 
-        this.connManager.release(endpoint, null, -1, null);
+        this.connManager.release(endpoint, null, TimeValue.NEG_ONE_MILLISECONDS);
     }
 
     @Test
     public void testReleaseOnIOException() throws Exception {
-        this.serverBootstrap.registerHandler("/dropdead", new HttpRequestHandler() {
+        serverBootstrap.setConnectionFactory(new DefaultBHttpServerConnectionFactory(null, H1Config.DEFAULT, CharCodingConfig.DEFAULT) {
 
             @Override
-            public void handle(
-                    final ClassicHttpRequest request,
-                    final ClassicHttpResponse response,
-                    final HttpContext context) throws HttpException, IOException {
-                final BasicHttpEntity entity = new BasicHttpEntity() {
+            public DefaultBHttpServerConnection createConnection(final Socket socket) throws IOException {
+                final DefaultBHttpServerConnection conn = new DefaultBHttpServerConnection(null, H1Config.DEFAULT) {
 
                     @Override
-                    public void writeTo(
-                            final OutputStream outstream) throws IOException {
-                        final byte[] tmp = new byte[5];
-                        outstream.write(tmp);
-                        outstream.flush();
-
-                        // do something comletely ugly in order to trigger
-                        // MalformedChunkCodingException
-                        final DefaultBHttpServerConnection conn = (DefaultBHttpServerConnection)
-                                context.getAttribute(HttpCoreContext.HTTP_CONNECTION);
+                    protected OutputStream createContentOutputStream(
+                            final long len,
+                            final SessionOutputBuffer buffer,
+                            final OutputStream outputStream,
+                            final Supplier<List<? extends Header>> trailers) {
                         try {
-                            conn.sendResponseHeader(response);
-                        } catch (final HttpException ignore) {
+                            buffer.flush(outputStream);
+                            outputStream.close();
+                        } catch (final IOException ignore) {
                         }
+                        return super.createContentOutputStream(len, buffer, outputStream, trailers);
                     }
-
                 };
-                entity.setChunked(true);
-                response.setEntity(entity);
+                conn.bind(socket);
+                return conn;
             }
-
         });
 
         this.connManager.setDefaultMaxPerRoute(1);
@@ -203,7 +197,7 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         final HttpHost target = start();
 
         // Get some random data
-        final HttpGet httpget = new HttpGet("/dropdead");
+        final HttpGet httpget = new HttpGet("/random/1024");
         final ClassicHttpResponse response = this.httpclient.execute(target, httpget);
 
         final LeaseRequest connreq1 = this.connManager.lease(new HttpRoute(target), null);
@@ -218,8 +212,8 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         // Read the content
         try {
             EntityUtils.toByteArray(e);
-            Assert.fail("MalformedChunkCodingException should have been thrown");
-        } catch (final MalformedChunkCodingException expected) {
+            Assert.fail("IOException should have been thrown");
+        } catch (final IOException expected) {
 
         }
 
@@ -230,7 +224,7 @@ public class TestConnectionAutoRelease extends LocalServerTestBase {
         final LeaseRequest connreq2 = this.connManager.lease(new HttpRoute(target), null);
         final ConnectionEndpoint endpoint = connreq2.get(250, TimeUnit.MILLISECONDS);
 
-        this.connManager.release(endpoint, null, -1, null);
+        this.connManager.release(endpoint, null, TimeValue.NEG_ONE_MILLISECONDS);
     }
 
 }

@@ -30,6 +30,7 @@ package org.apache.hc.client5.http.impl;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.core5.pool.ConnPoolControl;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -43,13 +44,13 @@ public class TestIdleConnectionEvictor {
     public void testEvictExpiredAndIdle() throws Exception {
         final ConnPoolControl<?> cm = Mockito.mock(ConnPoolControl.class);
         final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
-                500, TimeUnit.MILLISECONDS, 3, TimeUnit.SECONDS);
+                TimeValue.ofMillis(500), TimeValue.ofSeconds(3));
         connectionEvictor.start();
 
         Thread.sleep(1000);
 
         Mockito.verify(cm, Mockito.atLeast(1)).closeExpired();
-        Mockito.verify(cm, Mockito.atLeast(1)).closeIdle(3000, TimeUnit.MILLISECONDS);
+        Mockito.verify(cm, Mockito.atLeast(1)).closeIdle(TimeValue.ofSeconds(3));
 
         Assert.assertTrue(connectionEvictor.isRunning());
 
@@ -62,13 +63,13 @@ public class TestIdleConnectionEvictor {
     public void testEvictExpiredOnly() throws Exception {
         final ConnPoolControl<?> cm = Mockito.mock(ConnPoolControl.class);
         final IdleConnectionEvictor connectionEvictor = new IdleConnectionEvictor(cm,
-                500, TimeUnit.MILLISECONDS, 0, TimeUnit.SECONDS);
+                TimeValue.ofMillis(500), null);
         connectionEvictor.start();
 
         Thread.sleep(1000);
 
         Mockito.verify(cm, Mockito.atLeast(1)).closeExpired();
-        Mockito.verify(cm, Mockito.never()).closeIdle(Mockito.anyLong(), Mockito.<TimeUnit>any());
+        Mockito.verify(cm, Mockito.never()).closeIdle(Mockito.<TimeValue>any());
 
         Assert.assertTrue(connectionEvictor.isRunning());
 

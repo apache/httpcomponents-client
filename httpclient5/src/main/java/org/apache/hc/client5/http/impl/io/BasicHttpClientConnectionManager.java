@@ -60,9 +60,11 @@ import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.LangUtils;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -219,13 +221,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     private synchronized void shutdownConnection() {
         if (this.conn != null) {
             this.log.debug("Shutting down connection");
-            try {
-                this.conn.shutdown();
-            } catch (final IOException iox) {
-                if (this.log.isDebugEnabled()) {
-                    this.log.debug("I/O exception shutting down connection", iox);
-                }
-            }
+            this.conn.shutdown(ShutdownType.GRACEFUL);
             this.conn = null;
         }
     }
@@ -267,11 +263,8 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     @Override
-    public synchronized void release(
-            final ConnectionEndpoint endpoint,
-            final Object state,
-            final long keepalive, final TimeUnit tunit) {
-        Args.notNull(endpoint, "Endpoint");
+    public synchronized void release(final ConnectionEndpoint endpoint, final Object state, final TimeValue keepAlive) {
+        Args.notNull(endpoint, "Managed endpoint");
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
         final ManagedHttpClientConnection conn = internalEndpoint.detach();
         if (conn != null && this.log.isDebugEnabled()) {
@@ -281,26 +274,29 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
             return;
         }
         try {
+            if (keepAlive == null) {
+                this.conn.shutdown(ShutdownType.GRACEFUL);
+            }
             this.updated = System.currentTimeMillis();
             if (!this.conn.isOpen()) {
                 this.conn = null;
                 this.route = null;
                 this.conn = null;
                 this.expiry = Long.MAX_VALUE;
+                if (this.log.isDebugEnabled()) {
+                    this.log.debug("Connection is not kept alive");
+                }
             } else {
                 this.state = state;
-                if (this.log.isDebugEnabled()) {
-                    final String s;
-                    if (keepalive > 0) {
-                        s = "for " + keepalive + " " + tunit;
-                    } else {
-                        s = "indefinitely";
+                if (TimeValue.isPositive(keepAlive)) {
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug("Connection can be kept alive for " + keepAlive);
                     }
-                    this.log.debug("Connection can be kept alive " + s);
-                }
-                if (keepalive > 0) {
-                    this.expiry = this.updated + tunit.toMillis(keepalive);
+                    this.expiry = this.updated + keepAlive.toMillis();
                 } else {
+                    if (this.log.isDebugEnabled()) {
+                        this.log.debug("Connection can be kept alive indefinitely");
+                    }
                     this.expiry = Long.MAX_VALUE;
                 }
             }
@@ -310,11 +306,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
     }
 
     @Override
-    public void connect(
-            final ConnectionEndpoint endpoint,
-            final long connectTimeout,
-            final TimeUnit timeUnit,
-            final HttpContext context) throws IOException {
+    public void connect(final ConnectionEndpoint endpoint, final TimeValue connectTimeout, final HttpContext context) throws IOException {
         Args.notNull(endpoint, "Endpoint");
 
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
@@ -332,7 +324,7 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
                 internalEndpoint.getConnection(),
                 host,
                 route.getLocalSocketAddress(),
-                (int) (timeUnit != null ? timeUnit : TimeUnit.MILLISECONDS).toMillis(connectTimeout),
+                connectTimeout,
                 this.socketConfig,
                 context);
     }
@@ -415,10 +407,10 @@ public class BasicHttpClientConnectionManager implements HttpClientConnectionMan
         }
 
         @Override
-        public void shutdown() throws IOException {
+        public void shutdown(final ShutdownType shutdownType) {
             final ManagedHttpClientConnection conn = detach();
             if (conn != null) {
-                conn.shutdown();
+                conn.shutdown(shutdownType);
             }
         }
 

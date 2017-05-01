@@ -77,6 +77,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -136,9 +137,9 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(123)
-                .setSocketTimeout(234)
-                .setConnectionRequestTimeout(345)
+                .setConnectTimeout(123, TimeUnit.MILLISECONDS)
+                .setSocketTimeout(234, TimeUnit.MILLISECONDS)
+                .setConnectionRequestTimeout(345, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
         final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
@@ -153,11 +154,11 @@ public class TestMainClientExec {
         Mockito.verify(connRequest).get(345, TimeUnit.MILLISECONDS);
         Mockito.verify(execAware, Mockito.times(1)).setCancellable(connRequest);
         Mockito.verify(execAware, Mockito.times(2)).setCancellable(Mockito.<Cancellable>any());
-        Mockito.verify(connManager).connect(endpoint, 123, TimeUnit.MILLISECONDS, context);
+        Mockito.verify(connManager).connect(endpoint, TimeValue.ofMillis(123), context);
         Mockito.verify(endpoint).setSocketTimeout(234);
         Mockito.verify(endpoint, Mockito.times(1)).execute(request, requestExecutor, context);
         Mockito.verify(endpoint, Mockito.times(1)).close();
-        Mockito.verify(connManager).release(endpoint, null, 0, TimeUnit.MILLISECONDS);
+        Mockito.verify(connManager).release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
 
         Assert.assertNull(context.getUserToken());
         Assert.assertNotNull(finalResponse);
@@ -169,7 +170,7 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectionRequestTimeout(345)
+                .setConnectionRequestTimeout(345, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
         final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
@@ -186,13 +187,13 @@ public class TestMainClientExec {
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
         Mockito.when(keepAliveStrategy.getKeepAliveDuration(
                 Mockito.same(response),
-                Mockito.<HttpClientContext>any())).thenReturn(678L);
+                Mockito.<HttpClientContext>any())).thenReturn(TimeValue.ofMillis(678L));
 
         final ClassicHttpResponse finalResponse = mainClientExec.execute(request, context, execAware);
         Mockito.verify(connManager).lease(route, null);
         Mockito.verify(connRequest).get(345, TimeUnit.MILLISECONDS);
         Mockito.verify(endpoint, Mockito.times(1)).execute(request, requestExecutor, context);
-        Mockito.verify(connManager).release(endpoint, null, 678L, TimeUnit.MILLISECONDS);
+        Mockito.verify(connManager).release(endpoint, null, TimeValue.ofMillis(678L));
         Mockito.verify(endpoint, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
@@ -204,7 +205,7 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectionRequestTimeout(345)
+                .setConnectionRequestTimeout(345, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
         final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
@@ -219,6 +220,9 @@ public class TestMainClientExec {
                 Mockito.same(request),
                 Mockito.same(response),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
+        Mockito.when(keepAliveStrategy.getKeepAliveDuration(
+                Mockito.same(response),
+                Mockito.<HttpClientContext>any())).thenReturn(TimeValue.ofMinutes(1));
         Mockito.when(userTokenHandler.getUserToken(
                 Mockito.same(route),
                 Mockito.<HttpClientContext>any())).thenReturn("this and that");
@@ -227,7 +231,7 @@ public class TestMainClientExec {
         Mockito.verify(connManager).lease(route, null);
         Mockito.verify(connRequest).get(345, TimeUnit.MILLISECONDS);
         Mockito.verify(endpoint, Mockito.times(1)).execute(request, requestExecutor, context);
-        Mockito.verify(connManager).release(endpoint, "this and that", 0, TimeUnit.MILLISECONDS);
+        Mockito.verify(connManager).release(endpoint, "this and that", TimeValue.ofMinutes(1));
         Mockito.verify(endpoint, Mockito.never()).close();
 
         Assert.assertEquals("this and that", context.getUserToken());
@@ -238,7 +242,7 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectionRequestTimeout(345)
+                .setConnectionRequestTimeout(345, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
         final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
@@ -265,8 +269,7 @@ public class TestMainClientExec {
         Mockito.verify(connManager, Mockito.never()).release(
                 Mockito.same(endpoint),
                 Mockito.any(),
-                Mockito.anyInt(),
-                Mockito.<TimeUnit>any());
+                Mockito.<TimeValue>any());
         Mockito.verify(endpoint, Mockito.never()).close();
 
         Assert.assertNotNull(finalResponse);
@@ -274,7 +277,7 @@ public class TestMainClientExec {
         finalResponse.close();
 
         Mockito.verify(connManager, Mockito.times(1)).release(
-                endpoint, null, 0, TimeUnit.MILLISECONDS);
+                endpoint, null, TimeValue.ZERO_MILLISECONDS);
         Mockito.verify(endpoint, Mockito.times(1)).close();
     }
 
@@ -282,7 +285,7 @@ public class TestMainClientExec {
     public void testSocketTimeoutExistingConnection() throws Exception {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
-        final RequestConfig config = RequestConfig.custom().setSocketTimeout(3000).build();
+        final RequestConfig config = RequestConfig.custom().setSocketTimeout(3000, TimeUnit.MILLISECONDS).build();
         final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
         context.setRequestConfig(config);
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
@@ -333,7 +336,7 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectionRequestTimeout(345)
+                .setConnectionRequestTimeout(345, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
         final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
@@ -347,8 +350,7 @@ public class TestMainClientExec {
             Mockito.verify(execAware, Mockito.times(2)).setCancellable(Mockito.<Cancellable>any());
             Mockito.verify(connManager, Mockito.never()).connect(
                     Mockito.same(endpoint),
-                    Mockito.anyInt(),
-                    Mockito.<TimeUnit>any(),
+                    Mockito.<TimeValue>any(),
                     Mockito.<HttpContext>any());
             throw ex;
         }
@@ -359,8 +361,8 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(567)
-                .setConnectionRequestTimeout(345)
+                .setConnectTimeout(567, TimeUnit.MILLISECONDS)
+                .setConnectionRequestTimeout(345, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
         final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
@@ -371,7 +373,7 @@ public class TestMainClientExec {
             mainClientExec.execute(request, context, execAware);
         } catch (final IOException ex) {
             Mockito.verify(connRequest, Mockito.times(1)).get(345, TimeUnit.MILLISECONDS);
-            Mockito.verify(connManager, Mockito.times(1)).connect(endpoint, 567, TimeUnit.MILLISECONDS, context);
+            Mockito.verify(connManager, Mockito.times(1)).connect(endpoint, TimeValue.ofMillis(567), context);
             Mockito.verify(requestExecutor, Mockito.never()).execute(
                     Mockito.same(request),
                     Mockito.<HttpClientConnection>any(),
@@ -567,7 +569,7 @@ public class TestMainClientExec {
         try {
             mainClientExec.execute(request, context, execAware);
         } catch (final Exception ex) {
-            Mockito.verify(connManager).release(endpoint, null, 0, TimeUnit.MILLISECONDS);
+            Mockito.verify(connManager).release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
 
             throw ex;
         }
@@ -587,7 +589,7 @@ public class TestMainClientExec {
         try {
             mainClientExec.execute(request, context, execAware);
         } catch (final Exception ex) {
-            Mockito.verify(connManager).release(endpoint, null, 0, TimeUnit.MILLISECONDS);
+            Mockito.verify(connManager).release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
 
             throw ex;
         }
@@ -607,7 +609,7 @@ public class TestMainClientExec {
         try {
             mainClientExec.execute(request, context, execAware);
         } catch (final Exception ex) {
-            Mockito.verify(connManager).release(endpoint, null, 0, TimeUnit.MILLISECONDS);
+            Mockito.verify(connManager).release(endpoint, null, TimeValue.ZERO_MILLISECONDS);
 
             throw ex;
         }
@@ -618,7 +620,7 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(567)
+                .setConnectTimeout(567, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
         final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
@@ -627,7 +629,7 @@ public class TestMainClientExec {
 
         mainClientExec.establishRoute(endpoint, route, request, context);
 
-        Mockito.verify(connManager).connect(endpoint, 567, TimeUnit.MILLISECONDS, context);
+        Mockito.verify(connManager).connect(endpoint, TimeValue.ofMillis(567), context);
     }
 
     @Test
@@ -635,7 +637,7 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target, null, proxy, false);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(567)
+                .setConnectTimeout(567, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
         final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
@@ -644,7 +646,7 @@ public class TestMainClientExec {
 
         mainClientExec.establishRoute(endpoint, route, request, context);
 
-        Mockito.verify(connManager).connect(endpoint, 567, TimeUnit.MILLISECONDS, context);
+        Mockito.verify(connManager).connect(endpoint, TimeValue.ofMillis(567), context);
     }
 
     @Test
@@ -652,7 +654,7 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(321)
+                .setConnectTimeout(321, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
         final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
@@ -666,7 +668,7 @@ public class TestMainClientExec {
 
         mainClientExec.establishRoute(endpoint, route, request, context);
 
-        Mockito.verify(connManager).connect(endpoint, 321, TimeUnit.MILLISECONDS, context);
+        Mockito.verify(connManager).connect(endpoint, TimeValue.ofMillis(321), context);
         final ArgumentCaptor<ClassicHttpRequest> reqCaptor = ArgumentCaptor.forClass(ClassicHttpRequest.class);
         Mockito.verify(endpoint).execute(
                 reqCaptor.capture(),
@@ -724,7 +726,7 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(567)
+                .setConnectTimeout(567, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
         final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
@@ -757,7 +759,7 @@ public class TestMainClientExec {
 
         mainClientExec.establishRoute(endpoint, route, request, context);
 
-        Mockito.verify(connManager).connect(endpoint, 567, TimeUnit.MILLISECONDS, context);
+        Mockito.verify(connManager).connect(endpoint, TimeValue.ofMillis(567), context);
         Mockito.verify(instream1).close();
     }
 
@@ -766,7 +768,7 @@ public class TestMainClientExec {
         final HttpRoute route = new HttpRoute(target, null, proxy, true);
         final HttpClientContext context = new HttpClientContext();
         final RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(567)
+                .setConnectTimeout(567, TimeUnit.MILLISECONDS)
                 .build();
         context.setRequestConfig(config);
         final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("http://bar/test"), route);
@@ -799,7 +801,7 @@ public class TestMainClientExec {
 
         mainClientExec.establishRoute(endpoint, route, request, context);
 
-        Mockito.verify(connManager).connect(endpoint, 567, TimeUnit.MILLISECONDS, context);
+        Mockito.verify(connManager).connect(endpoint, TimeValue.ofMillis(567), context);
         Mockito.verify(instream1, Mockito.never()).close();
         Mockito.verify(endpoint).close();
     }

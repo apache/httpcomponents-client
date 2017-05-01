@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hc.core5.function.Callback;
@@ -38,7 +37,7 @@ import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ExceptionListener;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
-import org.apache.hc.core5.http.nio.command.ShutdownType;
+import org.apache.hc.core5.io.ShutdownType;
 import org.apache.hc.core5.reactor.ConnectionInitiator;
 import org.apache.hc.core5.reactor.DefaultConnectingIOReactor;
 import org.apache.hc.core5.reactor.ExceptionEvent;
@@ -47,6 +46,7 @@ import org.apache.hc.core5.reactor.IOReactorConfig;
 import org.apache.hc.core5.reactor.IOReactorException;
 import org.apache.hc.core5.reactor.IOReactorStatus;
 import org.apache.hc.core5.reactor.IOSession;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -138,8 +138,8 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
     }
 
     @Override
-    public final void awaitShutdown(final long deadline, final TimeUnit timeUnit) throws InterruptedException {
-        ioReactor.awaitShutdown(deadline, timeUnit);
+    public final void awaitShutdown(final TimeValue waitTime) throws InterruptedException {
+        ioReactor.awaitShutdown(waitTime);
     }
 
     @Override
@@ -148,14 +148,14 @@ abstract class AbstractHttpAsyncClientBase extends CloseableHttpAsyncClient {
     }
 
     @Override
-    public final void shutdown(final long graceTime, final TimeUnit timeUnit) {
+    public final void shutdown(final ShutdownType shutdownType) {
         ioReactor.initiateShutdown();
-        ioReactor.shutdown(graceTime, timeUnit);
+        ioReactor.shutdown(shutdownType);
     }
 
     @Override
     public void close() {
-        shutdown(5, TimeUnit.SECONDS);
+        shutdown(ShutdownType.GRACEFUL);
     }
 
 }

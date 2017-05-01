@@ -33,6 +33,7 @@ import java.net.Socket;
 
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * A factory for creating and connecting connection sockets.
@@ -43,7 +44,7 @@ public interface ConnectionSocketFactory {
 
     /**
      * Creates new, unconnected socket. The socket should subsequently be passed to
-     * {@link #connectSocket(int, Socket, HttpHost, InetSocketAddress, InetSocketAddress,
+     * {@link #connectSocket(TimeValue, Socket, HttpHost, InetSocketAddress, InetSocketAddress,
      *    HttpContext) connectSocket} method.
      *
      * @return  a new socket
@@ -70,7 +71,7 @@ public interface ConnectionSocketFactory {
      * @throws IOException if an I/O error occurs
      */
     Socket connectSocket(
-        int connectTimeout,
+        TimeValue connectTimeout,
         Socket sock,
         HttpHost host,
         InetSocketAddress remoteAddress,

@@ -30,8 +30,10 @@ package org.apache.hc.client5.http.impl;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.hc.core5.concurrent.DefaultThreadFactory;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * This class maintains a background thread to enforce an eviction policy for expired / idle
@@ -43,52 +45,36 @@ public final class IdleConnectionEvictor {
 
     private final ThreadFactory threadFactory;
     private final Thread thread;
-    private final long sleepTimeMs;
-    private final long maxIdleTimeMs;
 
-    private volatile Exception exception;
-
-    public IdleConnectionEvictor(
-            final ConnPoolControl<?> connectionManager,
-            final ThreadFactory threadFactory,
-            final long sleepTime, final TimeUnit sleepTimeUnit,
-            final long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
+    public IdleConnectionEvictor(final ConnPoolControl<?> connectionManager, final ThreadFactory threadFactory,
+                                 final TimeValue sleepTime, final TimeValue maxIdleTime) {
         Args.notNull(connectionManager, "Connection manager");
         this.threadFactory = threadFactory != null ? threadFactory : new DefaultThreadFactory("idle-connection-evictor", true);
-        this.sleepTimeMs = sleepTimeUnit != null ? sleepTimeUnit.toMillis(sleepTime) : sleepTime;
-        this.maxIdleTimeMs = maxIdleTimeUnit != null ? maxIdleTimeUnit.toMillis(maxIdleTime) : maxIdleTime;
+        final TimeValue localSleepTime = sleepTime != null ? sleepTime : TimeValue.ofSeconds(5);
         this.thread = this.threadFactory.newThread(new Runnable() {
             @Override
             public void run() {
                 try {
                     while (!Thread.currentThread().isInterrupted()) {
-                        Thread.sleep(sleepTimeMs);
+                        Thread.sleep(localSleepTime.toMillis());
                         connectionManager.closeExpired();
-                        if (maxIdleTimeMs > 0) {
-                            connectionManager.closeIdle(maxIdleTimeMs, TimeUnit.MILLISECONDS);
+                        if (maxIdleTime != null) {
+                            connectionManager.closeIdle(maxIdleTime);
                         }
                     }
-                } catch (final Exception ex) {
-                    exception = ex;
+                } catch (final Exception ignore) {
                 }
 
             }
         });
     }
 
-    public IdleConnectionEvictor(
-            final ConnPoolControl<?> connectionManager,
-            final long sleepTime, final TimeUnit sleepTimeUnit,
-            final long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
-        this(connectionManager, null, sleepTime, sleepTimeUnit, maxIdleTime, maxIdleTimeUnit);
+    public IdleConnectionEvictor(final ConnPoolControl<?> connectionManager, final TimeValue sleepTime, final TimeValue maxIdleTime) {
+        this(connectionManager, null, sleepTime, maxIdleTime);
     }
 
-    public IdleConnectionEvictor(
-            final ConnPoolControl<?> connectionManager,
-            final long maxIdleTime, final TimeUnit maxIdleTimeUnit) {
-        this(connectionManager, null,
-                maxIdleTime > 0 ? maxIdleTime : 5, maxIdleTimeUnit != null ? maxIdleTimeUnit : TimeUnit.SECONDS,
-                maxIdleTime, maxIdleTimeUnit);
+    public IdleConnectionEvictor(final ConnPoolControl<?> connectionManager, final TimeValue maxIdleTime) {
+        this(connectionManager, null, maxIdleTime, maxIdleTime);
     }
 
     public void start() {

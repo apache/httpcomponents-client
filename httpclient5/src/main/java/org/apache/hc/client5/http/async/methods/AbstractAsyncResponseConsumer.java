@@ -46,6 +46,8 @@ public abstract class AbstractAsyncResponseConsumer<T, E> implements AsyncRespon
 
     private final AsyncEntityConsumer<E> entityConsumer;
 
+    private volatile T result;
+
     public AbstractAsyncResponseConsumer(final AsyncEntityConsumer<E> entityConsumer) {
         Args.notNull(entityConsumer, "Entity consumer");
         this.entityConsumer = entityConsumer;
@@ -62,11 +64,12 @@ public abstract class AbstractAsyncResponseConsumer<T, E> implements AsyncRespon
             entityConsumer.streamStart(entityDetails, new FutureCallback<E>() {
 
                 @Override
-                public void completed(final E result) {
+                public void completed(final E entity) {
                     final ContentType contentType;
                     try {
                         contentType = ContentType.parse(entityDetails.getContentType());
-                        resultCallback.completed(buildResult(response, result, contentType));
+                        result = buildResult(response, entity, contentType);
+                        resultCallback.completed(result);
                     } catch (final UnsupportedCharsetException ex) {
                         resultCallback.failed(ex);
                     }
@@ -103,6 +106,11 @@ public abstract class AbstractAsyncResponseConsumer<T, E> implements AsyncRespon
     @Override
     public final void streamEnd(final List<? extends Header> trailers) throws HttpException, IOException {
         entityConsumer.streamEnd(trailers);
+    }
+
+    @Override
+    public T getResult() {
+        return result;
     }
 
     @Override

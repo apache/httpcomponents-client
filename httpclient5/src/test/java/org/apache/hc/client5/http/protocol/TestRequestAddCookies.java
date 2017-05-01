@@ -189,7 +189,7 @@ public class TestRequestAddCookies {
         final HttpRequest request = new BasicHttpRequest("GET", "/");
 
         final HttpClientContext context = HttpClientContext.create();
-        context.setAttribute(HttpCoreContext.HTTP_CONNECTION, null);
+        context.setAttribute(HttpCoreContext.CONNECTION_ENDPOINT, null);
         context.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, this.cookieSpecRegistry);
 

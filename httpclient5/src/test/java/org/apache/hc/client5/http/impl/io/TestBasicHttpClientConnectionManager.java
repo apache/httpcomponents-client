@@ -46,6 +46,8 @@ import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.ShutdownType;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,7 +96,7 @@ public class TestBasicHttpClientConnectionManager {
         Assert.assertNotNull(endpoint1);
         Assert.assertFalse(endpoint1.isConnected());
 
-        mgr.release(endpoint1, null, 100, TimeUnit.MILLISECONDS);
+        mgr.release(endpoint1, null, TimeValue.ofMillis(100));
 
         Assert.assertNull(mgr.getRoute());
         Assert.assertNull(mgr.getState());
@@ -122,7 +124,7 @@ public class TestBasicHttpClientConnectionManager {
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
 
-        mgr.release(endpoint1, null, 10000, TimeUnit.MILLISECONDS);
+        mgr.release(endpoint1, null, TimeValue.ofMillis(100));
 
         Assert.assertEquals(route, mgr.getRoute());
         Assert.assertEquals(null, mgr.getState());
@@ -150,7 +152,7 @@ public class TestBasicHttpClientConnectionManager {
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
 
-        mgr.release(endpoint1, "some other state", 10000, TimeUnit.MILLISECONDS);
+        mgr.release(endpoint1, "some other state", TimeValue.ofMillis(10000));
 
         Assert.assertEquals(route, mgr.getRoute());
         Assert.assertEquals("some other state", mgr.getState());
@@ -178,7 +180,7 @@ public class TestBasicHttpClientConnectionManager {
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
-        mgr.release(endpoint1, null, 0, TimeUnit.MILLISECONDS);
+        mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECONDS);
 
         Assert.assertEquals(route1, mgr.getRoute());
         Assert.assertEquals(null, mgr.getState());
@@ -209,7 +211,7 @@ public class TestBasicHttpClientConnectionManager {
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
-        mgr.release(endpoint1, null, 10, TimeUnit.MILLISECONDS);
+        mgr.release(endpoint1, null, TimeValue.ofMillis(10));
 
         Assert.assertEquals(route, mgr.getRoute());
         Assert.assertEquals(null, mgr.getState());
@@ -227,13 +229,13 @@ public class TestBasicHttpClientConnectionManager {
 
     @Test(expected=IllegalArgumentException.class)
     public void testReleaseInvalidArg() throws Exception {
-        mgr.release(null, null, 0, TimeUnit.MILLISECONDS);
+        mgr.release(null, null, TimeValue.NEG_ONE_MILLISECONDS);
     }
 
     @Test(expected=IllegalStateException.class)
     public void testReleaseAnotherConnection() throws Exception {
         final ConnectionEndpoint wrongCon = Mockito.mock(ConnectionEndpoint.class);
-        mgr.release(wrongCon, null, 0, TimeUnit.MILLISECONDS);
+        mgr.release(wrongCon, null, TimeValue.NEG_ONE_MILLISECONDS);
     }
 
     @Test
@@ -251,11 +253,11 @@ public class TestBasicHttpClientConnectionManager {
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE);
 
-        mgr.release(endpoint1, null, 0, TimeUnit.MILLISECONDS);
+        mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECONDS);
 
         mgr.close();
 
-        Mockito.verify(conn, Mockito.times(1)).shutdown();
+        Mockito.verify(conn, Mockito.times(1)).shutdown(ShutdownType.GRACEFUL);
 
         try {
             final LeaseRequest connRequest2 = mgr.lease(route, null);
@@ -269,7 +271,7 @@ public class TestBasicHttpClientConnectionManager {
         mgr.closeIdle(0L, TimeUnit.MILLISECONDS);
         mgr.close();
 
-        Mockito.verify(conn, Mockito.times(1)).shutdown();
+        Mockito.verify(conn, Mockito.times(1)).shutdown(ShutdownType.GRACEFUL);
     }
 
     @Test
@@ -287,7 +289,7 @@ public class TestBasicHttpClientConnectionManager {
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
-        mgr.release(endpoint1, null, 10, TimeUnit.MILLISECONDS);
+        mgr.release(endpoint1, null, TimeValue.ofMillis(10));
 
         Assert.assertEquals(route, mgr.getRoute());
         Assert.assertEquals(null, mgr.getState());
@@ -314,7 +316,7 @@ public class TestBasicHttpClientConnectionManager {
 
         Mockito.when(conn.isOpen()).thenReturn(Boolean.TRUE, Boolean.FALSE);
 
-        mgr.release(endpoint1, null, 0, TimeUnit.MILLISECONDS);
+        mgr.release(endpoint1, null, TimeValue.NEG_ONE_MILLISECONDS);
 
         Assert.assertEquals(route, mgr.getRoute());
         Assert.assertEquals(null, mgr.getState());
@@ -336,7 +338,7 @@ public class TestBasicHttpClientConnectionManager {
         final LeaseRequest connRequest1 = mgr.lease(route, null);
         final ConnectionEndpoint endpoint1 = connRequest1.get(0, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(endpoint1);
-        mgr.release(endpoint1, null, 100, TimeUnit.MILLISECONDS);
+        mgr.release(endpoint1, null, TimeValue.ofMillis(100));
 
         mgr.getConnection(route, null);
         mgr.getConnection(route, null);
@@ -365,19 +367,19 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(plainSocketFactory);
         Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
-                Mockito.anyInt(),
+                Mockito.<TimeValue>any(),
                 Mockito.eq(socket),
                 Mockito.<HttpHost>any(),
                 Mockito.<InetSocketAddress>any(),
                 Mockito.<InetSocketAddress>any(),
                 Mockito.<HttpContext>any())).thenReturn(socket);
 
-        mgr.connect(endpoint1, 123, TimeUnit.MILLISECONDS, context);
+        mgr.connect(endpoint1, TimeValue.ofMillis(123), context);
 
         Mockito.verify(dnsResolver, Mockito.times(1)).resolve("somehost");
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(target);
         Mockito.verify(plainSocketFactory, Mockito.times(1)).createSocket(context);
-        Mockito.verify(plainSocketFactory, Mockito.times(1)).connectSocket(123, socket, target,
+        Mockito.verify(plainSocketFactory, Mockito.times(1)).connectSocket(TimeValue.ofMillis(123), socket, target,
                 new InetSocketAddress(remote, 8443),
                 new InetSocketAddress(local, 0), context);
     }
@@ -408,19 +410,19 @@ public class TestBasicHttpClientConnectionManager {
         Mockito.when(socketFactoryRegistry.lookup("https")).thenReturn(sslSocketFactory);
         Mockito.when(plainSocketFactory.createSocket(Mockito.<HttpContext>any())).thenReturn(socket);
         Mockito.when(plainSocketFactory.connectSocket(
-                Mockito.anyInt(),
+                Mockito.<TimeValue>any(),
                 Mockito.eq(socket),
                 Mockito.<HttpHost>any(),
                 Mockito.<InetSocketAddress>any(),
                 Mockito.<InetSocketAddress>any(),
                 Mockito.<HttpContext>any())).thenReturn(socket);
 
-        mgr.connect(endpoint1, 123, TimeUnit.MILLISECONDS, context);
+        mgr.connect(endpoint1, TimeValue.ofMillis(123), context);
 
         Mockito.verify(dnsResolver, Mockito.times(1)).resolve("someproxy");
         Mockito.verify(schemePortResolver, Mockito.times(1)).resolve(proxy);
         Mockito.verify(plainSocketFactory, Mockito.times(1)).createSocket(context);
-        Mockito.verify(plainSocketFactory, Mockito.times(1)).connectSocket(123, socket, proxy,
+        Mockito.verify(plainSocketFactory, Mockito.times(1)).connectSocket(TimeValue.ofMillis(123), socket, proxy,
                 new InetSocketAddress(remote, 8080),
                 new InetSocketAddress(local, 0), context);
 

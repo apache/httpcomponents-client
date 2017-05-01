@@ -33,12 +33,10 @@ import javax.net.ssl.SSLSession;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
-import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.UserTokenHandler;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.HttpConnection;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -77,12 +75,9 @@ public class DefaultUserTokenHandler implements UserTokenHandler {
         }
 
         if (userPrincipal == null) {
-            final HttpConnection conn = clientContext.getConnection();
-            if (conn.isOpen() && conn instanceof ManagedHttpClientConnection) {
-                final SSLSession sslsession = ((ManagedHttpClientConnection) conn).getSSLSession();
-                if (sslsession != null) {
-                    userPrincipal = sslsession.getLocalPrincipal();
-                }
+            final SSLSession sslSession = clientContext.getSSLSession();
+            if (sslSession != null) {
+                userPrincipal = sslSession.getLocalPrincipal();
             }
         }
 

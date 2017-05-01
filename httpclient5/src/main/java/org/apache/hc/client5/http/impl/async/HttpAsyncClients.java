@@ -27,22 +27,16 @@
 
 package org.apache.hc.client5.http.impl.async;
 
-import java.nio.charset.StandardCharsets;
-
-import org.apache.hc.client5.http.impl.DefaultThreadFactory;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.config.ConnectionConfig;
+import org.apache.hc.core5.concurrent.DefaultThreadFactory;
+import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.H1Config;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
-import org.apache.hc.core5.http.nio.AsyncPushConsumer;
-import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
+import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.http2.config.H2Config;
 import org.apache.hc.core5.http2.protocol.H2RequestConnControl;
 import org.apache.hc.core5.http2.protocol.H2RequestContent;
@@ -72,42 +66,11 @@ public class HttpAsyncClients {
     }
 
     /**
-     * Creates HTTP/1.1 {@link CloseableHttpAsyncClient} instance with default
-     * configuration.
-     */
-    public static CloseableHttpAsyncClient createDefault() {
-        return HttpAsyncClientBuilder.create().build();
-    }
-
-    /**
-     * Creates HTTP/2 {@link CloseableHttpAsyncClient} instance with the given
-     * configuration.
-     */
-    public static CloseableHttpAsyncClient createDefault(final H2Config config) {
-        return HttpAsyncClientBuilder.create()
-                .setProtocolVersion(HttpVersion.HTTP_2)
-                .setH2Config(config)
-                .build();
-    }
-
-    /**
-     * Creates HTTP/1.1 {@link CloseableHttpAsyncClient} instance with default
+     * Creates {@link CloseableHttpAsyncClient} instance with default
      * configuration and system properties.
      */
     public static CloseableHttpAsyncClient createSystem() {
         return HttpAsyncClientBuilder.create().useSystemProperties().build();
-    }
-
-    /**
-     * Creates HTTP/2 {@link CloseableHttpAsyncClient} instance with the given
-     * configuration and system properties.
-     */
-    public static CloseableHttpAsyncClient createSystem(final H2Config config) {
-        return HttpAsyncClientBuilder.create()
-                .useSystemProperties()
-                .setProtocolVersion(HttpVersion.HTTP_2)
-                .setH2Config(config)
-                .build();
     }
 
     private static HttpProcessor createMinimalProtocolProcessor() {
@@ -136,72 +99,46 @@ public class HttpAsyncClients {
         }
     }
 
-    private static MinimalHttpAsyncClient createMinimalImpl(
+    public static MinimalHttpAsyncClient createMinimal(
+            final HttpVersionPolicy versionPolicy,
+            final H2Config h2Config,
             final H1Config h1Config,
             final AsyncClientConnectionManager connmgr) {
         return createMinimalImpl(
-                new DefaultAsyncHttp1ClientEventHandlerFactory(
+                new HttpAsyncClientEventHandlerFactory(
                         createMinimalProtocolProcessor(),
+                        null,
+                        versionPolicy,
+                        h2Config,
                         h1Config,
-                        ConnectionConfig.DEFAULT,
+                        CharCodingConfig.DEFAULT,
                         DefaultConnectionReuseStrategy.INSTANCE),
                 new AsyncPushConsumerRegistry(),
                 connmgr);
     }
 
-    private static MinimalHttpAsyncClient createMinimalImpl(
-            final H2Config h2Config,
-            final AsyncClientConnectionManager connmgr) {
-        final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
-        return createMinimalImpl(
-                new DefaultAsyncHttp2ClientEventHandlerFactory(
-                        createMinimalProtocolProcessor(),
-                        new HandlerFactory<AsyncPushConsumer>() {
-
-                            @Override
-                            public AsyncPushConsumer create(final HttpRequest request) throws HttpException {
-                                return pushConsumerRegistry.get(request);
-                            }
-
-                        },
-                        StandardCharsets.US_ASCII,
-                        h2Config),
-                pushConsumerRegistry,
-                connmgr);
-    }
-
     /**
      * Creates {@link CloseableHttpAsyncClient} instance that provides
-     * essential HTTP/1.1 message transport only.
+     * essential HTTP/1.1 and HTTP/2 message transport only.
      */
     public static CloseableHttpAsyncClient createMinimal() {
-        return createMinimalImpl(H1Config.DEFAULT, PoolingAsyncClientConnectionManagerBuilder.create().build());
+        return createMinimal(
+                HttpVersionPolicy.NEGOTIATE,
+                H2Config.DEFAULT,
+                H1Config.DEFAULT,
+                PoolingAsyncClientConnectionManagerBuilder.create().build());
     }
 
     /**
      * Creates {@link CloseableHttpAsyncClient} instance that provides
-     * essential HTTP/1.1 message transport only.
+     * essential HTTP/1.1 and HTTP/2 message transport only.
      */
     public static CloseableHttpAsyncClient createMinimal(final AsyncClientConnectionManager connManager) {
-        return createMinimalImpl(H1Config.DEFAULT, connManager);
-    }
-
-    /**
-     * Creates {@link CloseableHttpAsyncClient} instance that provides
-     * essential HTTP/2 message transport only.
-     */
-    public static CloseableHttpAsyncClient createMinimal(final H2Config h2Config) {
-        return createMinimal(h2Config, PoolingAsyncClientConnectionManagerBuilder.create().build());
-    }
-
-    /**
-     * Creates {@link CloseableHttpAsyncClient} instance that provides
-     * essential HTTP/2 message transport only.
-     */
-    public static CloseableHttpAsyncClient createMinimal(
-            final H2Config h2Config,
-            final AsyncClientConnectionManager connManager) {
-        return createMinimalImpl(h2Config, connManager);
+        return createMinimal(
+                HttpVersionPolicy.NEGOTIATE,
+                H2Config.DEFAULT,
+                H1Config.DEFAULT,
+                connManager);
     }
 
 }

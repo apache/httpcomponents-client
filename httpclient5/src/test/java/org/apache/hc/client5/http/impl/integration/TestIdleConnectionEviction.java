@@ -27,8 +27,6 @@
 
 package org.apache.hc.client5.http.impl.integration;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
@@ -38,6 +36,7 @@ import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.Test;
 
 public class TestIdleConnectionEviction extends LocalServerTestBase {
@@ -49,8 +48,7 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
 
         final HttpHost target = start();
 
-        final IdleConnectionEvictor idleConnectionMonitor = new IdleConnectionEvictor(
-                this.connManager, 50, TimeUnit.MILLISECONDS);
+        final IdleConnectionEvictor idleConnectionMonitor = new IdleConnectionEvictor(this.connManager, TimeValue.ofMillis(50));
         idleConnectionMonitor.start();
 
         final HttpGet httpget = new HttpGet("/random/1024");
