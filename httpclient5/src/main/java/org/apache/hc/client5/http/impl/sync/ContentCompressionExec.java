@@ -24,40 +24,49 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.protocol;
+
+package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.entity.DecompressingEntity;
 import org.apache.hc.client5.http.entity.DeflateInputStream;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecChainHandler;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.EntityDetails;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HeaderElement;
+import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.HttpResponseInterceptor;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.message.BasicHeaderValueParser;
 import org.apache.hc.core5.http.message.ParserCursor;
-import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.Args;
 
 /**
- * {@link HttpResponseInterceptor} responsible for processing Content-Encoding
- * responses.
+ * Request executor in the request execution chain that is responsible
+ * for automatic response content decompression.
  * <p>
- * Instances of this class are stateless and immutable, therefore threadsafe.
+ * Further responsibilities such as communication with the opposite
+ * endpoint is delegated to the next executor in the request execution
+ * chain.
  *
- * @since 4.1
- *
+ * @since 5.0
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class ResponseContentEncoding implements HttpResponseInterceptor {
+public final class ContentCompressionExec implements ExecChainHandler {
 
     private final static InputStreamFactory GZIP = new InputStreamFactory() {
 
@@ -76,34 +85,26 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
 
     };
 
+    private final List<String> acceptEncoding;
     private final Lookup<InputStreamFactory> decoderRegistry;
     private final boolean ignoreUnknown;
 
-    /**
-     * @since 4.5
-     */
-    public ResponseContentEncoding(final Lookup<InputStreamFactory> decoderRegistry, final boolean ignoreUnknown) {
+    public ContentCompressionExec(
+            final List<String> acceptEncoding,
+            final Lookup<InputStreamFactory> decoderRegistry,
+            final boolean ignoreUnknown) {
+        this.acceptEncoding = acceptEncoding != null ? acceptEncoding : Arrays.asList("gzip", "x-gzip", "deflate");
         this.decoderRegistry = decoderRegistry != null ? decoderRegistry :
-            RegistryBuilder.<InputStreamFactory>create()
-                    .register("gzip", GZIP)
-                    .register("x-gzip", GZIP)
-                    .register("deflate", DEFLATE)
-                    .build();
+                RegistryBuilder.<InputStreamFactory>create()
+                        .register("gzip", GZIP)
+                        .register("x-gzip", GZIP)
+                        .register("deflate", DEFLATE)
+                        .build();
         this.ignoreUnknown = ignoreUnknown;
     }
 
-    /**
-     * @since 4.5
-     */
-    public ResponseContentEncoding(final boolean ignoreUnknown) {
-        this(null, ignoreUnknown);
-    }
-
-    /**
-     * @since 4.4
-     */
-    public ResponseContentEncoding(final Lookup<InputStreamFactory> decoderRegistry) {
-        this(decoderRegistry, true);
+    public ContentCompressionExec(final boolean ignoreUnknown) {
+        this(null, null, ignoreUnknown);
     }
 
     /**
@@ -114,18 +115,30 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
      * <li>deflate - see {@link DeflateInputStream}</li>
      * </ul>
      */
-    public ResponseContentEncoding() {
-        this(null);
+    public ContentCompressionExec() {
+        this(null, null, true);
     }
 
-    @Override
-    public void process(
-            final HttpResponse response,
-            final EntityDetails entity,
-            final HttpContext context) throws HttpException, IOException {
 
-        final HttpClientContext clientContext = HttpClientContext.adapt(context);
+    @Override
+    public ClassicHttpResponse execute(
+            final ClassicHttpRequest request,
+            final ExecChain.Scope scope,
+            final ExecChain chain) throws IOException, HttpException {
+        Args.notNull(request, "HTTP request");
+        Args.notNull(scope, "Scope");
+
+        final HttpClientContext clientContext = scope.clientContext;
         final RequestConfig requestConfig = clientContext.getRequestConfig();
+
+        /* Signal support for Accept-Encoding transfer encodings. */
+        if (!request.containsHeader(HttpHeaders.ACCEPT_ENCODING) && requestConfig.isContentCompressionEnabled()) {
+            request.addHeader(HttpHeaders.ACCEPT_ENCODING, acceptEncoding);
+        }
+
+        final ClassicHttpResponse response = chain.proceed(request, scope);
+
+        final HttpEntity entity = response.getEntity();
         // entity can be null in case of 304 Not Modified, 204 No Content or similar
         // check for zero length entity.
         if (requestConfig.isContentCompressionEnabled() && entity != null && entity.getContentLength() != 0) {
@@ -137,10 +150,10 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
                     final String codecname = codec.getName().toLowerCase(Locale.ROOT);
                     final InputStreamFactory decoderFactory = decoderRegistry.lookup(codecname);
                     if (decoderFactory != null) {
-//                        response.setEntity(new DecompressingEntity(response.getEntity(), decoderFactory));
-//                        response.removeHeaders("Content-Length");
-//                        response.removeHeaders("Content-Encoding");
-//                        response.removeHeaders("Content-MD5");
+                        response.setEntity(new DecompressingEntity(response.getEntity(), decoderFactory));
+                        response.removeHeaders(HttpHeaders.CONTENT_LENGTH);
+                        response.removeHeaders(HttpHeaders.CONTENT_ENCODING);
+                        response.removeHeaders(HttpHeaders.CONTENT_MD5);
                     } else {
                         if (!"identity".equals(codecname) && !ignoreUnknown) {
                             throw new HttpException("Unsupported Content-Encoding: " + codec.getName());
@@ -149,6 +162,7 @@ public class ResponseContentEncoding implements HttpResponseInterceptor {
                 }
             }
         }
+        return response;
     }
 
 }

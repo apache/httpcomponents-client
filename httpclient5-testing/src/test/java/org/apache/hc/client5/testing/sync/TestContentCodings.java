@@ -57,7 +57,6 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -65,7 +64,6 @@ import org.junit.Test;
  * require no intervention from the user of HttpClient, but we still want to let clients do their
  * own thing if they so wish.
  */
-@Ignore(value = "Disabled until content coding is fixed")
 public class TestContentCodings extends LocalServerTestBase {
 
     /**

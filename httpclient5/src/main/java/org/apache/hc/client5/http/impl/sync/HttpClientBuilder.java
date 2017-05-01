@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.net.ProxySelector;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -71,13 +71,11 @@ import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.AuthenticationStrategy;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
-import org.apache.hc.client5.http.protocol.RequestAcceptEncoding;
 import org.apache.hc.client5.http.protocol.RequestAddCookies;
 import org.apache.hc.client5.http.protocol.RequestAuthCache;
 import org.apache.hc.client5.http.protocol.RequestClientConnControl;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
-import org.apache.hc.client5.http.protocol.ResponseContentEncoding;
 import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.protocol.UserTokenHandler;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
@@ -95,6 +93,7 @@ import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
@@ -205,7 +204,7 @@ public class HttpClientBuilder {
     private ServiceUnavailableRetryStrategy serviceUnavailStrategy;
     private Lookup<AuthSchemeProvider> authSchemeRegistry;
     private Lookup<CookieSpecProvider> cookieSpecRegistry;
-    private Map<String, InputStreamFactory> contentDecoderMap;
+    private LinkedHashMap<String, InputStreamFactory> contentDecoderMap;
     private CookieStore cookieStore;
     private CredentialsProvider credentialsProvider;
     private String userAgent;
@@ -602,7 +601,7 @@ public class HttpClientBuilder {
      * to be used for automatic content decompression.
      */
     public final HttpClientBuilder setContentDecoderRegistry(
-            final Map<String, InputStreamFactory> contentDecoderMap) {
+            final LinkedHashMap<String, InputStreamFactory> contentDecoderMap) {
         this.contentDecoderMap = contentDecoderMap;
         return this;
     }
@@ -794,31 +793,11 @@ public class HttpClientBuilder {
         if (!cookieManagementDisabled) {
             b.add(new RequestAddCookies());
         }
-        if (!contentCompressionDisabled) {
-            if (contentDecoderMap != null) {
-                final List<String> encodings = new ArrayList<>(contentDecoderMap.keySet());
-                Collections.sort(encodings);
-                b.add(new RequestAcceptEncoding(encodings));
-            } else {
-                b.add(new RequestAcceptEncoding());
-            }
-        }
         if (!authCachingDisabled) {
             b.add(new RequestAuthCache());
         }
         if (!cookieManagementDisabled) {
             b.add(new ResponseProcessCookies());
-        }
-        if (!contentCompressionDisabled) {
-            if (contentDecoderMap != null) {
-                final RegistryBuilder<InputStreamFactory> b2 = RegistryBuilder.create();
-                for (final Map.Entry<String, InputStreamFactory> entry: contentDecoderMap.entrySet()) {
-                    b2.register(entry.getKey(), entry.getValue());
-                }
-                b.add(new ResponseContentEncoding(b2.build()));
-            } else {
-                b.add(new ResponseContentEncoding());
-            }
         }
         if (requestInterceptors != null) {
             for (final RequestInterceptorEntry entry: requestInterceptors) {
@@ -882,6 +861,24 @@ public class HttpClientBuilder {
             execChainDefinition.addFirst(
                     new RedirectExec(routePlannerCopy, redirectStrategyCopy),
                     ChainElements.REDIRECT.name());
+        }
+
+        if (!contentCompressionDisabled) {
+            if (contentDecoderMap != null) {
+                final List<String> encodings = new ArrayList<>(contentDecoderMap.keySet());
+                final RegistryBuilder<InputStreamFactory> b2 = RegistryBuilder.create();
+                for (final Map.Entry<String, InputStreamFactory> entry: contentDecoderMap.entrySet()) {
+                    b2.register(entry.getKey(), entry.getValue());
+                }
+                final Registry<InputStreamFactory> decoderRegistry = b2.build();
+                execChainDefinition.addFirst(
+                        new ContentCompressionExec(encodings, decoderRegistry, true),
+                        ChainElements.REDIRECT.name());
+            } else {
+                execChainDefinition.addFirst(
+                        new ContentCompressionExec(true),
+                        ChainElements.REDIRECT.name());
+            }
         }
 
         // Optionally, add connection back-off executor

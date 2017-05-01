@@ -24,46 +24,80 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.protocol;
+package org.apache.hc.client5.http.impl.sync;
 
+import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.DecompressingEntity;
 import org.apache.hc.client5.http.entity.GzipDecompressingEntity;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecRuntime;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpResponseInterceptor;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 
-@Ignore
-public class TestResponseContentEncoding {
+@RunWith(MockitoJUnitRunner.class)
+public class TestContentCompressionExec {
+
+    @Mock
+    private ExecRuntime execRuntime;
+    @Mock
+    private ExecChain execChain;
+    @Mock
+    private ClassicHttpRequest originaRequest;
+
+    private HttpClientContext context;
+    private HttpHost host;
+    private ExecChain.Scope scope;
+    private ContentCompressionExec impl;
+
+    @Before
+    public void setup() {
+        host = new HttpHost("somehost", 80);
+        context = HttpClientContext.create();
+        scope = new ExecChain.Scope(new HttpRoute(host), originaRequest, execRuntime, context);
+        impl = new ContentCompressionExec();
+    }
+
 
     @Test
     public void testContentEncodingNoEntity() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(StandardMethods.GET.name(), host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
-        final HttpContext context = new BasicHttpContext();
 
-        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
-        interceptor.process(response, response.getEntity(), context);
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
+
+        impl.execute(request, scope, execChain);
+
         final HttpEntity entity = response.getEntity();
         Assert.assertNull(entity);
     }
 
     @Test
     public void testNoContentEncoding() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(StandardMethods.GET.name(), host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final StringEntity original = new StringEntity("plain stuff");
         response.setEntity(original);
-        final HttpContext context = new BasicHttpContext();
 
-        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
-        interceptor.process(response, response.getEntity(), context);
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
+
+        impl.execute(request, scope, execChain);
+
         final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity instanceof StringEntity);
@@ -71,14 +105,16 @@ public class TestResponseContentEncoding {
 
     @Test
     public void testGzipContentEncoding() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(StandardMethods.GET.name(), host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final StringEntity original = new StringEntity("encoded stuff");
         original.setContentEncoding("GZip");
         response.setEntity(original);
-        final HttpContext context = new BasicHttpContext();
 
-        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
-        interceptor.process(response, response.getEntity(), context);
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
+
+        impl.execute(request, scope, execChain);
+
         final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity instanceof DecompressingEntity);
@@ -86,14 +122,16 @@ public class TestResponseContentEncoding {
 
     @Test
     public void testGzipContentEncodingZeroLength() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(StandardMethods.GET.name(), host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final StringEntity original = new StringEntity("");
         original.setContentEncoding("GZip");
         response.setEntity(original);
-        final HttpContext context = new BasicHttpContext();
 
-        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
-        interceptor.process(response, response.getEntity(), context);
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
+
+        impl.execute(request, scope, execChain);
+
         final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity instanceof StringEntity);
@@ -101,14 +139,16 @@ public class TestResponseContentEncoding {
 
     @Test
     public void testXGzipContentEncoding() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(StandardMethods.GET.name(), host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final StringEntity original = new StringEntity("encoded stuff");
         original.setContentEncoding("x-gzip");
         response.setEntity(original);
-        final HttpContext context = new BasicHttpContext();
 
-        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
-        interceptor.process(response, response.getEntity(), context);
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
+
+        impl.execute(request, scope, execChain);
+
         final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity instanceof DecompressingEntity);
@@ -116,14 +156,16 @@ public class TestResponseContentEncoding {
 
     @Test
     public void testDeflateContentEncoding() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(StandardMethods.GET.name(), host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final StringEntity original = new StringEntity("encoded stuff");
         original.setContentEncoding("deFlaTe");
         response.setEntity(original);
-        final HttpContext context = new BasicHttpContext();
 
-        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
-        interceptor.process(response, response.getEntity(), context);
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
+
+        impl.execute(request, scope, execChain);
+
         final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity instanceof DecompressingEntity);
@@ -131,14 +173,16 @@ public class TestResponseContentEncoding {
 
     @Test
     public void testIdentityContentEncoding() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(StandardMethods.GET.name(), host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final StringEntity original = new StringEntity("encoded stuff");
         original.setContentEncoding("identity");
         response.setEntity(original);
-        final HttpContext context = new BasicHttpContext();
 
-        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
-        interceptor.process(response, response.getEntity(), context);
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
+
+        impl.execute(request, scope, execChain);
+
         final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertTrue(entity instanceof StringEntity);
@@ -146,18 +190,22 @@ public class TestResponseContentEncoding {
 
     @Test(expected=HttpException.class)
     public void testUnknownContentEncoding() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(StandardMethods.GET.name(), host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final StringEntity original = new StringEntity("encoded stuff");
         original.setContentEncoding("whatever");
         response.setEntity(original);
-        final HttpContext context = new BasicHttpContext();
 
-        final HttpResponseInterceptor interceptor = new ResponseContentEncoding(false);
-        interceptor.process(response, response.getEntity(), context);
+        impl = new ContentCompressionExec(false);
+
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
+
+        impl.execute(request, scope, execChain);
     }
 
     @Test
     public void testContentEncodingRequestParameter() throws Exception {
+        final ClassicHttpRequest request = new BasicClassicHttpRequest(StandardMethods.GET.name(), host, "/");
         final ClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
         final StringEntity original = new StringEntity("encoded stuff");
         original.setContentEncoding("GZip");
@@ -167,11 +215,12 @@ public class TestResponseContentEncoding {
                 .setContentCompressionEnabled(false)
                 .build();
 
-        final HttpContext context = new BasicHttpContext();
         context.setAttribute(HttpClientContext.REQUEST_CONFIG, config);
 
-        final HttpResponseInterceptor interceptor = new ResponseContentEncoding();
-        interceptor.process(response, response.getEntity(), context);
+        Mockito.when(execChain.proceed(request, scope)).thenReturn(response);
+
+        impl.execute(request, scope, execChain);
+
         final HttpEntity entity = response.getEntity();
         Assert.assertNotNull(entity);
         Assert.assertFalse(entity instanceof GzipDecompressingEntity);
