@@ -40,6 +40,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.NoHttpResponseException;
 import org.apache.hc.core5.util.Args;
@@ -99,7 +100,8 @@ final class RetryExec implements ExecChainHandler {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug(ex.getMessage(), ex);
                     }
-                    if (!RequestEntityProxy.isRepeatable(request)) {
+                    final HttpEntity entity = request.getEntity();
+                    if (entity != null && !entity.isRepeatable()) {
                         this.log.debug("Cannot retry non-repeatable request");
                         throw new NonRepeatableRequestException("Cannot retry request " +
                                 "with a non-repeatable request entity", ex);

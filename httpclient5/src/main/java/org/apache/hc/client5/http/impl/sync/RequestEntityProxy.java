@@ -55,20 +55,6 @@ class RequestEntityProxy implements HttpEntity  {
         return entity instanceof RequestEntityProxy;
     }
 
-    static boolean isRepeatable(final ClassicHttpRequest request) {
-        final HttpEntity entity = request.getEntity();
-        if (entity != null) {
-            if (isEnhanced(entity)) {
-                final RequestEntityProxy proxy = (RequestEntityProxy) entity;
-                if (!proxy.isConsumed()) {
-                    return true;
-                }
-            }
-            return entity.isRepeatable();
-        }
-        return true;
-    }
-
     private final HttpEntity original;
     private boolean consumed = false;
 
@@ -87,7 +73,11 @@ class RequestEntityProxy implements HttpEntity  {
 
     @Override
     public boolean isRepeatable() {
-        return original.isRepeatable();
+        if (!consumed) {
+            return true;
+        } else {
+            return original.isRepeatable();
+        }
     }
 
     @Override

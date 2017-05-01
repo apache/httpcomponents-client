@@ -99,6 +99,7 @@ import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestContent;
 import org.apache.hc.core5.http.protocol.RequestTargetHost;
@@ -725,6 +726,7 @@ public class HttpClientBuilder {
                 reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
             }
         }
+
         ConnectionKeepAliveStrategy keepAliveStrategyCopy = this.keepAliveStrategy;
         if (keepAliveStrategyCopy == null) {
             keepAliveStrategyCopy = DefaultConnectionKeepAliveStrategy.INSTANCE;
@@ -759,14 +761,14 @@ public class HttpClientBuilder {
 
         final NamedElementChain<ExecChainHandler> execChainDefinition = new NamedElementChain<>();
         execChainDefinition.addLast(
-                new MainClientExec(
-                        reuseStrategyCopy,
-                        keepAliveStrategyCopy,
-                        new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
-                        targetAuthStrategyCopy,
-                        proxyAuthStrategyCopy,
-                        userTokenHandlerCopy),
+                new MainClientExec(reuseStrategyCopy, keepAliveStrategyCopy, userTokenHandlerCopy),
                 ChainElements.MAIN_TRANSPORT.name());
+        execChainDefinition.addFirst(
+                new ConnectExec(
+                        reuseStrategyCopy,
+                        new DefaultHttpProcessor(new RequestTargetHost(), new RequestUserAgent(userAgentCopy)),
+                        proxyAuthStrategyCopy),
+                ChainElements.CONNECT.name());
 
         final HttpProcessorBuilder b = HttpProcessorBuilder.create();
         if (requestInterceptors != null) {
@@ -813,8 +815,9 @@ public class HttpClientBuilder {
                 }
             }
         }
+        final HttpProcessor httpProcessor = b.build();
         execChainDefinition.addFirst(
-                new ProtocolExec(b.build()),
+                new ProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy),
                 ChainElements.PROTOCOL.name());
 
         // Add request retry executor, if not disabled
