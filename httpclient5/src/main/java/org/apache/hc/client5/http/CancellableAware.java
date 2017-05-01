@@ -24,34 +24,25 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.auth;
+
+package org.apache.hc.client5.http;
+
+import org.apache.hc.core5.concurrent.Cancellable;
 
 /**
- * Abstract store of authentication credentials.
- * <p>
- * Implementations of this interface must be thread-safe. Access to shared
- * data must be synchronized as methods of this interface may be executed
- * from multiple threads.
+ * This interface represents an object that can be made aware of
+ * long running, potentially blocking processes.
  *
- * @since 4.0
+ * @since 5.0
  */
-public interface CredentialsStore extends CredentialsProvider {
+public interface CancellableAware {
 
     /**
-     * Sets the {@link Credentials credentials} for the given authentication
-     * scope. Any previous credentials for the given scope will be overwritten.
-     *
-     * @param authscope the {@link AuthScope authentication scope}
-     * @param credentials the authentication {@link Credentials credentials}
-     * for the given scope.
-     *
-     * @see #getCredentials(AuthScope, org.apache.hc.core5.http.protocol.HttpContext)
+     * Sets {@link Cancellable} for the ongoing operation.
      */
-    void setCredentials(AuthScope authscope, Credentials credentials);
+    void setCancellable(Cancellable cancellable);
 
-    /**
-     * Clears all credentials.
-     */
-    void clear();
+    boolean isCancelled();
 
 }
+

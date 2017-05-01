@@ -32,10 +32,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
-import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
@@ -109,7 +109,7 @@ class RequestProtocolCompliance {
      * @param request the request to check for compliance
      * @throws ClientProtocolException when we have trouble making the request compliant
      */
-    public void makeRequestCompliant(final RoutedHttpRequest request)
+    public void makeRequestCompliant(final ClassicHttpRequest request)
         throws ClientProtocolException {
 
         if (requestMustNotHaveEntity(request)) {
@@ -180,7 +180,7 @@ class RequestProtocolCompliance {
         request.setHeader(HeaderConstants.MAX_FORWARDS, Integer.toString(currentMaxForwards - 1));
     }
 
-    private void verifyOPTIONSRequestWithBodyHasContentType(final RoutedHttpRequest request) {
+    private void verifyOPTIONSRequestWithBodyHasContentType(final ClassicHttpRequest request) {
         if (!HeaderConstants.OPTIONS_METHOD.equals(request.getMethod())) {
             return;
         }
@@ -188,7 +188,7 @@ class RequestProtocolCompliance {
         addContentTypeHeaderIfMissing(request);
     }
 
-    private void addContentTypeHeaderIfMissing(final RoutedHttpRequest request) {
+    private void addContentTypeHeaderIfMissing(final ClassicHttpRequest request) {
         final HttpEntity entity = request.getEntity();
         if (entity != null && entity.getContentType() == null) {
             final HttpEntityWrapper entityWrapper = new HttpEntityWrapper(entity) {
@@ -203,7 +203,7 @@ class RequestProtocolCompliance {
         }
     }
 
-    private void verifyRequestWithExpectContinueFlagHas100continueHeader(final RoutedHttpRequest request) {
+    private void verifyRequestWithExpectContinueFlagHas100continueHeader(final ClassicHttpRequest request) {
         if (request.containsHeader(HttpHeaders.EXPECT) && request.getEntity() != null) {
             add100ContinueHeaderIfMissing(request);
         } else {

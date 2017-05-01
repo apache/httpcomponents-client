@@ -38,13 +38,9 @@ import org.apache.hc.client5.http.protocol.CircularRedirectException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
-import org.apache.hc.client5.http.sync.methods.HttpGet;
-import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
-import org.apache.hc.client5.http.sync.methods.RequestBuilder;
 import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
-import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -69,7 +65,7 @@ import org.apache.logging.log4j.Logger;
  * @since 4.1
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class DefaultRedirectStrategy<T extends HttpRequest> implements RedirectStrategy {
+public class DefaultRedirectStrategy implements RedirectStrategy {
 
     private final Logger log = LogManager.getLogger(getClass());
 
@@ -112,6 +108,7 @@ public class DefaultRedirectStrategy<T extends HttpRequest> implements RedirectS
         }
     }
 
+    @Override
     public URI getLocationURI(
             final HttpRequest request,
             final HttpResponse response,
@@ -176,29 +173,6 @@ public class DefaultRedirectStrategy<T extends HttpRequest> implements RedirectS
             return b.build();
         } catch (final URISyntaxException ex) {
             throw new ProtocolException("Invalid redirect URI: " + location, ex);
-        }
-    }
-
-    @Override
-    public HttpUriRequest getRedirect(
-            final ClassicHttpRequest request,
-            final HttpResponse response,
-            final HttpContext context) throws HttpException {
-        final URI uri = getLocationURI(request, response, context);
-        final int statusCode = response.getCode();
-        switch (statusCode) {
-            case HttpStatus.SC_MOVED_PERMANENTLY:
-            case HttpStatus.SC_MOVED_TEMPORARILY:
-            case HttpStatus.SC_SEE_OTHER:
-                final String method = request.getMethod().toUpperCase(Locale.ROOT);
-                if (!this.safeMethods.containsKey(method)) {
-                    final HttpGet httpGet = new HttpGet(uri);
-                    httpGet.setHeaders(request.getAllHeaders());
-                    return httpGet;
-                }
-            case HttpStatus.SC_TEMPORARY_REDIRECT:
-            default:
-                return RequestBuilder.copy(request).setUri(uri).build();
         }
     }
 

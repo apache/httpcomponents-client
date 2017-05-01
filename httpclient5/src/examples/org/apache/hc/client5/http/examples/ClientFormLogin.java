@@ -35,8 +35,8 @@ import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
-import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
 import org.apache.hc.client5.http.sync.methods.RequestBuilder;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
@@ -69,7 +69,7 @@ public class ClientFormLogin {
                 }
             }
 
-            final HttpUriRequest login = RequestBuilder.post()
+            final ClassicHttpRequest login = RequestBuilder.post()
                     .setUri(new URI("https://someportal/"))
                     .addParameter("IDToken1", "username")
                     .addParameter("IDToken2", "password")

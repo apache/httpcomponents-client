@@ -27,11 +27,11 @@
 
 package org.apache.hc.client5.http.impl.sync;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Locale;
 
+import org.apache.hc.client5.http.sync.ExecRuntime;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
@@ -47,9 +47,9 @@ import org.apache.hc.core5.util.Args;
 public final class CloseableHttpResponse implements ClassicHttpResponse {
 
     private final ClassicHttpResponse response;
-    private final Closeable closeable;
+    private final ExecRuntime execRuntime;
 
-    public static CloseableHttpResponse adapt(final ClassicHttpResponse response) {
+    static CloseableHttpResponse adapt(final ClassicHttpResponse response) {
         if (response == null) {
             return null;
         }
@@ -60,9 +60,9 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
         }
     }
 
-    public CloseableHttpResponse(final ClassicHttpResponse response, final Closeable closeable) {
+    CloseableHttpResponse(final ClassicHttpResponse response, final ExecRuntime execRuntime) {
         this.response = Args.notNull(response, "Response");
-        this.closeable = closeable;
+        this.execRuntime = execRuntime;
     }
 
     @Override
@@ -197,12 +197,15 @@ public final class CloseableHttpResponse implements ClassicHttpResponse {
 
     @Override
     public void close() throws IOException {
-        try {
-            response.close();
-        } finally {
-            if (closeable != null) {
-                closeable.close();
+        if (execRuntime != null) {
+            try {
+                response.close();
+                execRuntime.disconnect();
+            } finally {
+                execRuntime.discardConnection();
             }
+        } else {
+            response.close();
         }
     }
 

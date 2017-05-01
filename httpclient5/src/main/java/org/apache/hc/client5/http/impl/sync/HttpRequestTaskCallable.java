@@ -30,14 +30,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.sync.HttpClient;
-import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.io.ResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 class HttpRequestTaskCallable<V> implements Callable<V> {
 
-    private final HttpUriRequest request;
+    private final ClassicHttpRequest request;
     private final HttpClient httpclient;
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
@@ -53,7 +53,7 @@ class HttpRequestTaskCallable<V> implements Callable<V> {
 
     HttpRequestTaskCallable(
             final HttpClient httpClient,
-            final HttpUriRequest request,
+            final ClassicHttpRequest request,
             final HttpContext context,
             final ResponseHandler<V> responseHandler,
             final FutureCallback<V> callback,

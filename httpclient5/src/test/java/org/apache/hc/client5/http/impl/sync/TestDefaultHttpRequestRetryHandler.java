@@ -31,7 +31,6 @@ import java.net.UnknownHostException;
 
 import org.apache.hc.client5.http.ConnectTimeoutException;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
-import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -41,7 +40,7 @@ public class TestDefaultHttpRequestRetryHandler {
 
     @Test
     public void noRetryOnConnectTimeout() throws Exception {
-        final HttpUriRequest request = new HttpGet("/");
+        final HttpGet request = new HttpGet("/");
 
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
         Assert.assertEquals(3, retryHandler.getRetryCount());
@@ -51,7 +50,7 @@ public class TestDefaultHttpRequestRetryHandler {
 
     @Test
     public void noRetryOnUnknownHost() throws Exception {
-        final HttpUriRequest request = new HttpGet("/");
+        final HttpGet request = new HttpGet("/");
 
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
@@ -60,7 +59,7 @@ public class TestDefaultHttpRequestRetryHandler {
 
     @Test
     public void noRetryOnAbortedRequests() throws Exception{
-        final HttpUriRequest request = new HttpGet("/");
+        final HttpGet request = new HttpGet("/");
         request.abort();
 
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
@@ -70,7 +69,7 @@ public class TestDefaultHttpRequestRetryHandler {
 
     @Test
     public void retryOnNonAbortedRequests() throws Exception{
-        final HttpUriRequest request = new HttpGet("/");
+        final HttpGet request = new HttpGet("/");
 
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 
@@ -79,7 +78,7 @@ public class TestDefaultHttpRequestRetryHandler {
 
     @Test
     public void noRetryOnConnectionTimeout() throws Exception{
-        final HttpUriRequest request = new HttpGet("/");
+        final HttpGet request = new HttpGet("/");
 
         final DefaultHttpRequestRetryHandler retryHandler = new DefaultHttpRequestRetryHandler();
 

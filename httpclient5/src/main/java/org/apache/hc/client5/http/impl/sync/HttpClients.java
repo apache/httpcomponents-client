@@ -68,7 +68,7 @@ public class HttpClients {
      * Creates {@link CloseableHttpClient} instance that implements
      * the most basic HTTP protocol support.
      */
-    public static CloseableHttpClient createMinimal() {
+    public static MinimalHttpClient createMinimal() {
         return new MinimalHttpClient(new PoolingHttpClientConnectionManager());
     }
 
@@ -76,7 +76,7 @@ public class HttpClients {
      * Creates {@link CloseableHttpClient} instance that implements
      * the most basic HTTP protocol support.
      */
-    public static CloseableHttpClient createMinimal(final HttpClientConnectionManager connManager) {
+    public static MinimalHttpClient createMinimal(final HttpClientConnectionManager connManager) {
         return new MinimalHttpClient(connManager);
     }
 

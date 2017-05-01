@@ -32,7 +32,7 @@ import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.localserver.LocalServerTestBase;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
-import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
@@ -73,7 +73,7 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
 
         private final CloseableHttpClient httpclient;
         private final HttpHost target;
-        private final HttpUriRequest request;
+        private final ClassicHttpRequest request;
         private final int count;
 
         private volatile Exception ex;
@@ -81,7 +81,7 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
         public WorkerThread(
                 final CloseableHttpClient httpclient,
                 final HttpHost target,
-                final HttpUriRequest request,
+                final ClassicHttpRequest request,
                 final int count) {
             super();
             this.httpclient = httpclient;
@@ -97,7 +97,6 @@ public class TestIdleConnectionEviction extends LocalServerTestBase {
                     final ClassicHttpResponse response = this.httpclient.execute(this.target, this.request);
                     final int status = response.getCode();
                     if (status != 200) {
-                        this.request.abort();
                         throw new ClientProtocolException("Unexpected status code: " + status);
                     }
                     EntityUtils.consume(response.getEntity());

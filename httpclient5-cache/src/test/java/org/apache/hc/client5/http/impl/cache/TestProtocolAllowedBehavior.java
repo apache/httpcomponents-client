@@ -29,8 +29,8 @@ package org.apache.hc.client5.http.impl.cache;
 import java.net.SocketTimeoutException;
 import java.util.Date;
 
-import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
@@ -46,8 +46,7 @@ public class TestProtocolAllowedBehavior extends AbstractProtocolTest {
     @Test
     public void testNonSharedCacheReturnsStaleResponseWhenRevalidationFailsForProxyRevalidate()
         throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET","/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET","/");
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         originResponse.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
@@ -56,15 +55,14 @@ public class TestProtocolAllowedBehavior extends AbstractProtocolTest {
 
         backendExpectsAnyRequest().andReturn(originResponse);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET","/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET","/");
 
         backendExpectsAnyRequest().andThrow(new SocketTimeoutException());
 
         replayMocks();
         behaveAsNonSharedCache();
-        impl.execute(req1, context, null);
-        final HttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final HttpResponse result = execute(req2);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_OK, result.getCode());
@@ -73,19 +71,17 @@ public class TestProtocolAllowedBehavior extends AbstractProtocolTest {
     @Test
     public void testNonSharedCacheMayCacheResponsesWithCacheControlPrivate()
         throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET","/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET","/");
         originResponse.setHeader("Cache-Control","private,max-age=3600");
 
         backendExpectsAnyRequest().andReturn(originResponse);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET","/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET","/");
 
         replayMocks();
         behaveAsNonSharedCache();
-        impl.execute(req1, context, null);
-        final HttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final HttpResponse result = execute(req2);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_OK, result.getCode());

@@ -38,9 +38,7 @@ import java.util.regex.Pattern;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
+import org.apache.hc.client5.http.sync.ExecChain;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -78,13 +76,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testCacheMissOnGETUsesOriginResponse() throws Exception {
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(request),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
@@ -106,17 +103,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         // tunnel behavior: I don't muck with request or response in
         // any way
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/foo"), route);
+        request = new BasicClassicHttpRequest("GET", "/foo");
         request.setVersion(new ProtocolVersion("HTTP", 2, 13));
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(request),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
         Assert.assertSame(originResponse, result);
@@ -125,22 +121,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testHigher1_XProtocolVersionsDowngradeTo1_1() throws Exception {
 
-        request = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/foo"), route);
+        request = new BasicClassicHttpRequest("GET", "/foo");
         request.setVersion(new ProtocolVersion("HTTP", 1, 2));
 
-        final RoutedHttpRequest downgraded = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/foo"), route);
+        final ClassicHttpRequest downgraded = new BasicClassicHttpRequest("GET", "/foo");
         downgraded.setVersion(HttpVersion.HTTP_1_1);
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(downgraded),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
@@ -158,21 +151,18 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testRequestsWithLowerProtocolVersionsGetUpgradedTo1_1() throws Exception {
 
-        request = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/foo"), route);
+        request = new BasicClassicHttpRequest("GET", "/foo");
         request.setVersion(new ProtocolVersion("HTTP", 1, 0));
-        final RoutedHttpRequest upgraded = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/foo"), route);
+        final ClassicHttpRequest upgraded = new BasicClassicHttpRequest("GET", "/foo");
         upgraded.setVersion(HttpVersion.HTTP_1_1);
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(upgraded),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(originResponse, result));
@@ -197,13 +187,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         // not testing this internal behavior in this test, just want
         // to check the protocol version that comes out the other end
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
         Assert.assertEquals(HttpVersion.HTTP_1_1, result.getVersion());
@@ -211,18 +200,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testResponseToA1_0RequestShouldUse1_1() throws Exception {
-        request = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/foo"), route);
+        request = new BasicClassicHttpRequest("GET", "/foo");
         request.setVersion(new ProtocolVersion("HTTP", 1, 0));
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
         Assert.assertEquals(HttpVersion.HTTP_1_1, result.getVersion());
@@ -234,26 +221,23 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testForwardsUnknownHeadersOnRequestsFromHigherProtocolVersions() throws Exception {
-        request = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/foo"), route);
+        request = new BasicClassicHttpRequest("GET", "/foo");
         request.setVersion(new ProtocolVersion("HTTP", 1, 2));
         request.removeHeaders("Connection");
         request.addHeader("X-Unknown-Header", "some-value");
 
-        final RoutedHttpRequest downgraded = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/foo"), route);
+        final ClassicHttpRequest downgraded = new BasicClassicHttpRequest("GET", "/foo");
         downgraded.setVersion(HttpVersion.HTTP_1_1);
         downgraded.removeHeaders("Connection");
         downgraded.addHeader("X-Unknown-Header", "some-value");
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(downgraded),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        impl.execute(request, context, null);
+        execute(request);
 
         verifyMocks();
     }
@@ -269,16 +253,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final ClassicHttpRequest originalRequest = new BasicClassicHttpRequest("GET", "/foo");
         originalRequest.setVersion(new ProtocolVersion("HTTP", 1, 0));
-        request = RoutedHttpRequest.adapt(originalRequest, route);
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(originalRequest);
 
         verifyMocks();
 
@@ -299,18 +281,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * these field values when a message is forwarded."
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
      */
-    private void testOrderOfMultipleHeadersIsPreservedOnRequests(final String h, final RoutedHttpRequest request)
-            throws Exception {
-        final Capture<RoutedHttpRequest> reqCapture = new Capture<>();
+    private void testOrderOfMultipleHeadersIsPreservedOnRequests(final String h, final ClassicHttpRequest request) throws Exception {
+        final Capture<ClassicHttpRequest> reqCapture = new Capture<>();
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(reqCapture),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        impl.execute(request, context, null);
+        execute(request);
 
         verifyMocks();
 
@@ -359,7 +339,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         put.addHeader("Allow", "GET, HEAD");
         put.addHeader("Allow", "DELETE");
         put.addHeader("Content-Length", "128");
-        testOrderOfMultipleHeadersIsPreservedOnRequests("Allow", RoutedHttpRequest.adapt(put, route));
+        testOrderOfMultipleHeadersIsPreservedOnRequests("Allow", put);
     }
 
     @Test
@@ -376,7 +356,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         post.addHeader("Content-Encoding", "gzip");
         post.addHeader("Content-Encoding", "compress");
         post.addHeader("Content-Length", "128");
-        testOrderOfMultipleHeadersIsPreservedOnRequests("Content-Encoding", RoutedHttpRequest.adapt(post, route));
+        testOrderOfMultipleHeadersIsPreservedOnRequests("Content-Encoding", post);
     }
 
     @Test
@@ -386,7 +366,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         post.addHeader("Content-Language", "mi");
         post.addHeader("Content-Language", "en");
         post.addHeader("Content-Length", "128");
-        testOrderOfMultipleHeadersIsPreservedOnRequests("Content-Language", RoutedHttpRequest.adapt(post, route));
+        testOrderOfMultipleHeadersIsPreservedOnRequests("Content-Language", post);
     }
 
     @Test
@@ -396,7 +376,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         post.addHeader("Expect", "100-continue");
         post.addHeader("Expect", "x-expect=true");
         post.addHeader("Content-Length", "128");
-        testOrderOfMultipleHeadersIsPreservedOnRequests("Expect", RoutedHttpRequest.adapt(post, route));
+        testOrderOfMultipleHeadersIsPreservedOnRequests("Expect", post);
     }
 
     @Test
@@ -422,13 +402,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     private void testOrderOfMultipleHeadersIsPreservedOnResponses(final String h) throws Exception {
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
 
@@ -507,14 +486,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setEntity(body);
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        impl.execute(request, context, null);
+        execute(request);
 
         // in particular, there were no storage calls on the cache
         verifyMocks();
@@ -548,16 +526,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testUnknownHeadersOnRequestsAreForwarded() throws Exception {
         request.addHeader("X-Unknown-Header", "blahblah");
-        final Capture<RoutedHttpRequest> reqCap = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(reqCap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        impl.execute(request, context, null);
+        execute(request);
 
         verifyMocks();
         final ClassicHttpRequest forwarded = reqCap.getValue();
@@ -570,14 +547,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testUnknownHeadersOnResponsesAreForwarded() throws Exception {
         originResponse.addHeader("X-Unknown-Header", "blahblah");
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
         final Header[] hdrs = result.getHeaders("X-Unknown-Header");
@@ -599,21 +575,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         post.setHeader("Content-Length", "128");
         post.setEntity(new BasicHttpEntity());
 
-        final Capture<RoutedHttpRequest> reqCap = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(reqCap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        impl.execute(RoutedHttpRequest.adapt(post, route), context, null);
+        execute(post);
 
         verifyMocks();
 
-        final RoutedHttpRequest forwarded = reqCap.getValue();
+        final ClassicHttpRequest forwarded = reqCap.getValue();
         boolean foundExpect = false;
         final Iterator<HeaderElement> it = MessageSupport.iterate(forwarded, HttpHeaders.EXPECT);
         while (it.hasNext()) {
@@ -634,27 +609,25 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3
      */
     @Test
-    public void testRequestsNotExpecting100ContinueBehaviorShouldNotSetExpectContinueHeader()
-            throws Exception {
+    public void testRequestsNotExpecting100ContinueBehaviorShouldNotSetExpectContinueHeader() throws Exception {
         final BasicClassicHttpRequest post = new BasicClassicHttpRequest("POST", "/");
         post.setHeader("Content-Length", "128");
         post.setEntity(new BasicHttpEntity());
 
-        final Capture<RoutedHttpRequest> reqCap = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(reqCap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        impl.execute(RoutedHttpRequest.adapt(post, route), context, null);
+        execute(post);
 
         verifyMocks();
 
-        final RoutedHttpRequest forwarded = reqCap.getValue();
+        final ClassicHttpRequest forwarded = reqCap.getValue();
         boolean foundExpect = false;
         final Iterator<HeaderElement> it = MessageSupport.iterate(forwarded, HttpHeaders.EXPECT);
         while (it.hasNext()) {
@@ -677,15 +650,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testExpect100ContinueIsNotSentIfThereIsNoRequestBody() throws Exception {
         request.addHeader("Expect", "100-continue");
-        final Capture<RoutedHttpRequest> reqCap = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(reqCap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(request, context, null);
+        execute(request);
         verifyMocks();
         final ClassicHttpRequest forwarded = reqCap.getValue();
         boolean foundExpectContinue = false;
@@ -731,8 +703,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec8.html#sec8.2.3
      */
     @Test
-    public void test100ContinueResponsesAreNotForwardedTo1_0ClientsWhoDidNotAskForThem()
-            throws Exception {
+    public void test100ContinueResponsesAreNotForwardedTo1_0ClientsWhoDidNotAskForThem() throws Exception {
 
         final BasicClassicHttpRequest post = new BasicClassicHttpRequest("POST", "/");
         post.setVersion(new ProtocolVersion("HTTP", 1, 0));
@@ -741,16 +712,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         originResponse = new BasicClassicHttpResponse(100, "Continue");
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
         try {
             // if a 100 response gets up to us from the HttpClient
             // backend, we can't really handle it at that point
-            impl.execute(RoutedHttpRequest.adapt(post, route), context, null);
+            execute(post);
             Assert.fail("should have thrown an exception");
         } catch (final ClientProtocolException expected) {
         }
@@ -766,18 +736,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testResponsesToOPTIONSAreNotCacheable() throws Exception {
         emptyMockCacheExpectsNoPuts();
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("OPTIONS", "/"), route);
+        request = new BasicClassicHttpRequest("OPTIONS", "/");
         originResponse.addHeader("Cache-Control", "max-age=3600");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        impl.execute(request, context, null);
+        execute(request);
 
         verifyMocks();
     }
@@ -791,18 +760,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void test200ResponseToOPTIONSWithNoBodyShouldIncludeContentLengthZero() throws Exception {
 
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("OPTIONS", "/"), route);
+        request = new BasicClassicHttpRequest("OPTIONS", "/");
         originResponse.setEntity(null);
         originResponse.setHeader("Content-Length", "0");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
         final Header contentLength = result.getFirstHeader("Content-Length");
@@ -820,13 +788,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.2
      */
     @Test
-    public void testDoesNotForwardOPTIONSWhenMaxForwardsIsZeroOnAbsoluteURIRequest()
-            throws Exception {
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("OPTIONS", "*"), route);
+    public void testDoesNotForwardOPTIONSWhenMaxForwardsIsZeroOnAbsoluteURIRequest() throws Exception {
+        request = new BasicClassicHttpRequest("OPTIONS", "*");
         request.setHeader("Max-Forwards", "0");
 
         replayMocks();
-        impl.execute(request, context, null);
+        execute(request);
         verifyMocks();
     }
 
@@ -839,19 +806,18 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testDecrementsMaxForwardsWhenForwardingOPTIONSRequest() throws Exception {
 
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("OPTIONS", "*"), route);
+        request = new BasicClassicHttpRequest("OPTIONS", "*");
         request.setHeader("Max-Forwards", "7");
 
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(cap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(request, context, null);
+        execute(request);
         verifyMocks();
 
         final ClassicHttpRequest captured = cap.getValue();
@@ -866,16 +832,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testDoesNotAddAMaxForwardsHeaderToForwardedOPTIONSRequests() throws Exception {
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("OPTIONS", "/"), route);
-        final Capture<RoutedHttpRequest> reqCap = new Capture<>();
+        request = new BasicClassicHttpRequest("OPTIONS", "/");
+        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(reqCap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(request, context, null);
+        execute(request);
         verifyMocks();
 
         final ClassicHttpRequest forwarded = reqCap.getValue();
@@ -890,16 +855,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testResponseToAHEADRequestMustNotHaveABody() throws Exception {
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("HEAD", "/"), route);
+        request = new BasicClassicHttpRequest("HEAD", "/");
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
 
@@ -918,55 +882,48 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             final String oldVal, final String newVal) throws Exception {
 
         // put something cacheable in the cache
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.addHeader("Cache-Control", "max-age=3600");
         resp1.setHeader(eHeader, oldVal);
 
         // get a head that penetrates the cache
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("HEAD", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("HEAD", "/");
         req2.addHeader("Cache-Control", "no-cache");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setEntity(null);
         resp2.setHeader(eHeader, newVal);
 
         // next request doesn't tolerate stale entry
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
         req3.addHeader("Cache-Control", "max-stale=0");
         final ClassicHttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader(eHeader, newVal);
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(req1),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(req2),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp3);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp3);
 
         replayMocks();
 
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        execute(req3);
 
         verifyMocks();
     }
 
     @Test
-    public void testHEADResponseWithUpdatedContentLengthFieldMakeACacheEntryStale()
-            throws Exception {
+    public void testHEADResponseWithUpdatedContentLengthFieldMakeACacheEntryStale() throws Exception {
         testHEADResponseWithUpdatedEntityFieldsMakeACacheEntryStale("Content-Length", "128", "127");
     }
 
@@ -1010,14 +967,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.removeHeaders("Expires");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        impl.execute(RoutedHttpRequest.adapt(post, route), context, null);
+        execute(post);
 
         verifyMocks();
     }
@@ -1038,14 +994,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setHeader("Cache-Control", "max-age=3600");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        impl.execute(RoutedHttpRequest.adapt(put, route), context, null);
+        execute(put);
 
         verifyMocks();
     }
@@ -1059,18 +1014,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testResponsesToDELETEsAreNotCached() throws Exception {
         emptyMockCacheExpectsNoPuts();
 
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("DELETE", "/"), route);
+        request = new BasicClassicHttpRequest("DELETE", "/");
         originResponse.setHeader("Cache-Control", "max-age=3600");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        impl.execute(request, context, null);
+        execute(request);
 
         verifyMocks();
     }
@@ -1086,16 +1040,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         trace.setEntity(HttpTestUtils.makeBody(entityLength));
         trace.setHeader("Content-Length", Integer.toString(entityLength));
 
-        final Capture<RoutedHttpRequest> reqCap = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(reqCap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(RoutedHttpRequest.adapt(trace, route), context, null);
+        execute(trace);
         verifyMocks();
 
         final ClassicHttpRequest bodyReq = reqCap.getValue();
@@ -1111,18 +1064,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void testResponsesToTRACEsAreNotCached() throws Exception {
         emptyMockCacheExpectsNoPuts();
 
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("TRACE", "/"), route);
+        request = new BasicClassicHttpRequest("TRACE", "/");
         originResponse.setHeader("Cache-Control", "max-age=3600");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        impl.execute(request, context, null);
+        execute(request);
 
         verifyMocks();
     }
@@ -1139,14 +1091,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
 
@@ -1164,14 +1115,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
 
@@ -1198,24 +1148,21 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.7
      */
     @Test
-    public void test206ResponseGeneratedFromCacheMustHaveContentRangeOrMultipartByteRangesContentType()
-            throws Exception {
+    public void test206ResponseGeneratedFromCacheMustHaveContentRangeOrMultipartByteRangesContentType() throws Exception {
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Range", "bytes=0-50");
 
         backendExpectsAnyRequestAndReturn(resp1).times(1, 2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         if (HttpStatus.SC_PARTIAL_CONTENT == result.getCode()) {
@@ -1230,24 +1177,21 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void test206ResponseGeneratedFromCacheMustHaveABodyThatMatchesContentLengthHeaderIfPresent()
-            throws Exception {
+    public void test206ResponseGeneratedFromCacheMustHaveABodyThatMatchesContentLengthHeaderIfPresent() throws Exception {
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Range", "bytes=0-50");
 
         backendExpectsAnyRequestAndReturn(resp1).times(1, 2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         if (HttpStatus.SC_PARTIAL_CONTENT == result.getCode()) {
@@ -1267,21 +1211,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void test206ResponseGeneratedFromCacheMustHaveDateHeader() throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Range", "bytes=0-50");
 
         backendExpectsAnyRequestAndReturn(resp1).times(1, 2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         if (HttpStatus.SC_PARTIAL_CONTENT == result.getCode()) {
@@ -1300,14 +1242,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.removeHeaders("Date");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         Assert.assertTrue(result.getCode() != HttpStatus.SC_PARTIAL_CONTENT
                 || result.getFirstHeader("Date") != null);
 
@@ -1316,22 +1257,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void test206ContainsETagIfA200ResponseWouldHaveIncludedIt() throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.addHeader("ETag", "\"etag1\"");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.addHeader("Range", "bytes=0-50");
 
         backendExpectsAnyRequest().andReturn(originResponse).times(1, 2);
 
         replayMocks();
 
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
 
         verifyMocks();
 
@@ -1342,22 +1281,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void test206ContainsContentLocationIfA200ResponseWouldHaveIncludedIt() throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.addHeader("Content-Location", "http://foo.example.com/other/url");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.addHeader("Range", "bytes=0-50");
 
         backendExpectsAnyRequest().andReturn(originResponse).times(1, 2);
 
         replayMocks();
 
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
 
         verifyMocks();
 
@@ -1369,8 +1306,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void test206ResponseIncludesVariantHeadersIfValueMightDiffer() throws Exception {
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.addHeader("Accept-Encoding", "gzip");
 
         final Date now = new Date();
@@ -1379,8 +1315,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.addHeader("Expires", DateUtils.formatDate(inOneHour));
         originResponse.addHeader("Vary", "Accept-Encoding");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.addHeader("Cache-Control", "no-cache");
         req2.addHeader("Accept-Encoding", "gzip");
         final Date nextSecond = new Date(now.getTime() + 1000L);
@@ -1392,8 +1327,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse2.setHeader("Expires", DateUtils.formatDate(inTwoHoursPlusASec));
         originResponse2.setHeader("Vary", "Accept-Encoding");
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
         req3.addHeader("Range", "bytes=0-50");
         req3.addHeader("Accept-Encoding", "gzip");
 
@@ -1402,9 +1336,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        final ClassicHttpResponse result = impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        final ClassicHttpResponse result = execute(req3);
 
         verifyMocks();
 
@@ -1424,11 +1358,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.7
      */
     @Test
-    public void test206ResponseToConditionalRangeRequestDoesNotIncludeOtherEntityHeaders()
-            throws Exception {
+    public void test206ResponseToConditionalRangeRequestDoesNotIncludeOtherEntityHeaders() throws Exception {
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
         final Date now = new Date();
         final Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
@@ -1443,8 +1375,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.addHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
         originResponse.addHeader("ETag", "W/\"weak-tag\"");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.addHeader("If-Range", "W/\"weak-tag\"");
         req2.addHeader("Range", "bytes=0-50");
 
@@ -1452,8 +1383,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
 
         verifyMocks();
 
@@ -1474,11 +1405,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.7
      */
     @Test
-    public void test206ResponseToIfRangeWithStrongValidatorReturnsAllEntityHeaders()
-            throws Exception {
+    public void test206ResponseToIfRangeWithStrongValidatorReturnsAllEntityHeaders() throws Exception {
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
         final Date now = new Date();
         final Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
@@ -1492,8 +1421,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.addHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
         originResponse.addHeader("ETag", "\"strong-tag\"");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.addHeader("If-Range", "\"strong-tag\"");
         req2.addHeader("Range", "bytes=0-50");
 
@@ -1501,8 +1429,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
 
         verifyMocks();
 
@@ -1526,13 +1454,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.7
      */
     @Test
-    public void test206ResponseIsNotCombinedWithPreviousContentIfETagDoesNotMatch()
-            throws Exception {
+    public void test206ResponseIsNotCombinedWithPreviousContentIfETagDoesNotMatch() throws Exception {
 
         final Date now = new Date();
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("ETag", "\"etag1\"");
@@ -1542,8 +1468,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         }
         resp1.setEntity(new ByteArrayEntity(bytes1));
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control", "no-cache");
         req2.setHeader("Range", "bytes=0-50");
 
@@ -1561,8 +1486,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp2.setEntity(new ByteArrayEntity(bytes2));
 
         final Date inTwoSeconds = new Date(now.getTime() + 2000L);
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader("Date", DateUtils.formatDate(inTwoSeconds));
         resp3.setHeader("Cache-Control", "max-age=3600");
@@ -1574,25 +1498,22 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp3.setEntity(new ByteArrayEntity(bytes3));
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp1);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp1);
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp2);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp2);
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp3).times(0, 1);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp3).times(0, 1);
         replayMocks();
 
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        final ClassicHttpResponse result = impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        final ClassicHttpResponse result = execute(req3);
 
         verifyMocks();
 
@@ -1613,13 +1534,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void test206ResponseIsNotCombinedWithPreviousContentIfLastModifiedDoesNotMatch()
-            throws Exception {
+    public void test206ResponseIsNotCombinedWithPreviousContentIfLastModifiedDoesNotMatch() throws Exception {
 
         final Date now = new Date();
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         final Date oneHourAgo = new Date(now.getTime() - 3600L);
         resp1.setHeader("Cache-Control", "max-age=3600");
@@ -1630,8 +1549,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         }
         resp1.setEntity(new ByteArrayEntity(bytes1));
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control", "no-cache");
         req2.setHeader("Range", "bytes=0-50");
 
@@ -1649,8 +1567,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp2.setEntity(new ByteArrayEntity(bytes2));
 
         final Date inTwoSeconds = new Date(now.getTime() + 2000L);
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader("Date", DateUtils.formatDate(inTwoSeconds));
         resp3.setHeader("Cache-Control", "max-age=3600");
@@ -1662,25 +1579,22 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp3.setEntity(new ByteArrayEntity(bytes3));
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp1);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp1);
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp2);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp2);
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp3).times(0, 1);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp3).times(0, 1);
         replayMocks();
 
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        final ClassicHttpResponse result = impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        final ClassicHttpResponse result = execute(req3);
 
         verifyMocks();
 
@@ -1707,14 +1621,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.7
      */
     @Test
-    public void test206ResponsesAreNotCachedIfTheCacheDoesNotSupportRangeAndContentRangeHeaders()
-            throws Exception {
+    public void test206ResponsesAreNotCachedIfTheCacheDoesNotSupportRangeAndContentRangeHeaders() throws Exception {
 
         if (!supportsRangeAndContentRangeHeaders(impl)) {
             emptyMockCacheExpectsNoPuts();
 
-            request = RoutedHttpRequest.adapt(
-                    new BasicClassicHttpRequest("GET", "/"), route);
+            request = new BasicClassicHttpRequest("GET", "/");
             request.addHeader("Range", "bytes=0-50");
 
             originResponse = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT,"Partial Content");
@@ -1725,13 +1637,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             originResponse.setEntity(new ByteArrayEntity(bytes));
 
             EasyMock.expect(
-                    mockBackend.execute(
-                            EasyMock.isA(RoutedHttpRequest.class),
-                            EasyMock.isA(HttpClientContext.class),
-                            EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                    mockExecChain.proceed(
+                            EasyMock.isA(ClassicHttpRequest.class),
+                            EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
             replayMocks();
-            impl.execute(request, context, null);
+            execute(request);
             verifyMocks();
         }
     }
@@ -1746,7 +1657,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void test303ResponsesAreNotCached() throws Exception {
         emptyMockCacheExpectsNoPuts();
 
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/"), route);
+        request = new BasicClassicHttpRequest("GET", "/");
 
         originResponse = new BasicClassicHttpResponse(HttpStatus.SC_SEE_OTHER, "See Other");
         originResponse.setHeader("Date", DateUtils.formatDate(new Date()));
@@ -1757,13 +1668,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(request, context, null);
+        execute(request);
         verifyMocks();
     }
 
@@ -1784,14 +1694,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
 
@@ -1806,8 +1715,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
      */
     @Test
-    public void test304ResponseWithDateHeaderForwardedFromOriginIncludesDateHeader()
-            throws Exception {
+    public void test304ResponseWithDateHeaderForwardedFromOriginIncludesDateHeader() throws Exception {
 
         request.setHeader("If-None-Match", "\"etag\"");
 
@@ -1817,13 +1725,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setHeader("ETag", "\"etag\"");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Date"));
@@ -1832,24 +1739,21 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void test304ResponseGeneratedFromCacheIncludesDateHeader() throws Exception {
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("ETag", "\"etag\"");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("If-None-Match", "\"etag\"");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse).times(1, 2);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse).times(1, 2);
         replayMocks();
 
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
 
         verifyMocks();
         if (result.getCode() == HttpStatus.SC_NOT_MODIFIED) {
@@ -1866,24 +1770,21 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void test304ResponseGeneratedFromCacheIncludesEtagIfOriginResponseDid() throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("ETag", "\"etag\"");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("If-None-Match", "\"etag\"");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse).times(1, 2);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse).times(1, 2);
         replayMocks();
 
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
 
         verifyMocks();
         if (result.getCode() == HttpStatus.SC_NOT_MODIFIED) {
@@ -1892,27 +1793,23 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void test304ResponseGeneratedFromCacheIncludesContentLocationIfOriginResponseDid()
-            throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+    public void test304ResponseGeneratedFromCacheIncludesContentLocationIfOriginResponseDid() throws Exception {
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         originResponse.setHeader("Cache-Control", "max-age=3600");
         originResponse.setHeader("Content-Location", "http://foo.example.com/other");
         originResponse.setHeader("ETag", "\"etag\"");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("If-None-Match", "\"etag\"");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse).times(1, 2);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse).times(1, 2);
         replayMocks();
 
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
 
         verifyMocks();
         if (result.getCode() == HttpStatus.SC_NOT_MODIFIED) {
@@ -1928,14 +1825,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
      */
     @Test
-    public void test304ResponseGeneratedFromCacheIncludesExpiresCacheControlAndOrVaryIfResponseMightDiffer()
-            throws Exception {
+    public void test304ResponseGeneratedFromCacheIncludesExpiresCacheControlAndOrVaryIfResponseMightDiffer() throws Exception {
 
         final Date now = new Date();
         final Date inTwoHours = new Date(now.getTime() + 2 * 3600 * 1000L);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Accept-Encoding", "gzip");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -1945,8 +1840,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp1.setHeader("Vary", "Accept-Encoding");
         resp1.setEntity(HttpTestUtils.makeBody(entityLength));
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Accept-Encoding", "gzip");
         req1.setHeader("Cache-Control", "no-cache");
 
@@ -1957,26 +1851,23 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp2.setHeader("Vary", "Accept-Encoding");
         resp2.setEntity(HttpTestUtils.makeBody(entityLength));
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
         req3.setHeader("Accept-Encoding", "gzip");
         req3.setHeader("If-None-Match", "\"v2\"");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp1);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp1);
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp2).times(1, 2);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp2).times(1, 2);
         replayMocks();
 
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        final ClassicHttpResponse result = impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        final ClassicHttpResponse result = execute(req3);
 
         verifyMocks();
 
@@ -1995,14 +1886,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
      */
     @Test
-    public void test304GeneratedFromCacheOnWeakValidatorDoesNotIncludeOtherEntityHeaders()
-            throws Exception {
+    public void test304GeneratedFromCacheOnWeakValidatorDoesNotIncludeOtherEntityHeaders() throws Exception {
 
         final Date now = new Date();
         final Date oneHourAgo = new Date(now.getTime() - 3600 * 1000L);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "W/\"v1\"");
@@ -2015,19 +1904,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp1.setHeader("Last-Modified", DateUtils.formatDate(oneHourAgo));
         resp1.setHeader("Cache-Control", "max-age=7200");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("If-None-Match", "W/\"v1\"");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp1).times(1, 2);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp1).times(1, 2);
         replayMocks();
 
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
 
         verifyMocks();
 
@@ -2049,21 +1936,18 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
      */
     @Test
-    public void testNotModifiedOfNonCachedEntityShouldRevalidateWithUnconditionalGET()
-            throws Exception {
+    public void testNotModifiedOfNonCachedEntityShouldRevalidateWithUnconditionalGET() throws Exception {
 
         final Date now = new Date();
 
         // load cache with cacheable entry
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "\"etag1\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
         // force a revalidation
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control", "max-age=0,max-stale=0");
 
         // updated ETag provided to a conditional revalidation
@@ -2074,39 +1958,34 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp2.setHeader("ETag", "\"etag2\"");
 
         // conditional validation uses If-None-Match
-        final RoutedHttpRequest conditionalValidation = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest conditionalValidation = new BasicClassicHttpRequest("GET", "/");
         conditionalValidation.setHeader("If-None-Match", "\"etag1\"");
 
         // unconditional validation doesn't use If-None-Match
-        final RoutedHttpRequest unconditionalValidation = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest unconditionalValidation = new BasicClassicHttpRequest("GET", "/");
         // new response to unconditional validation provides new body
         final ClassicHttpResponse resp3 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag", "\"etag2\"");
         resp1.setHeader("Cache-Control", "max-age=3600");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp1);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp1);
         // this next one will happen once if the cache tries to
         // conditionally validate, zero if it goes full revalidation
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(conditionalValidation),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp2).times(0, 1);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp2).times(0, 1);
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(unconditionalValidation),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp3);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp3);
         replayMocks();
 
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
+        execute(req1);
+        execute(req2);
 
         verifyMocks();
     }
@@ -2124,23 +2003,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         final Date now = new Date();
         final Date inFiveSeconds = new Date(now.getTime() + 5000L);
 
-        final RoutedHttpRequest initialRequest = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest initialRequest = new BasicClassicHttpRequest("GET", "/");
 
         final ClassicHttpResponse cachedResponse = HttpTestUtils.make200Response();
         cachedResponse.setHeader("Cache-Control", "max-age=3600");
         cachedResponse.setHeader("ETag", "\"etag\"");
 
-        final RoutedHttpRequest secondRequest = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest secondRequest = new BasicClassicHttpRequest("GET", "/");
         secondRequest.setHeader("Cache-Control", "max-age=0,max-stale=0");
 
-        final RoutedHttpRequest conditionalValidationRequest = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest conditionalValidationRequest = new BasicClassicHttpRequest("GET", "/");
         conditionalValidationRequest.setHeader("If-None-Match", "\"etag\"");
 
-        final RoutedHttpRequest unconditionalValidationRequest = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest unconditionalValidationRequest = new BasicClassicHttpRequest("GET", "/");
 
         // to be used if the cache generates a conditional validation
         final ClassicHttpResponse conditionalResponse = HttpTestUtils.make304Response();
@@ -2154,29 +2029,26 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         unconditionalResponse.setHeader("Date", DateUtils.formatDate(inFiveSeconds));
         unconditionalResponse.setHeader("ETag", "\"etag\"");
 
-        final Capture<RoutedHttpRequest> cap1 = new Capture<>();
-        final Capture<RoutedHttpRequest> cap2 = new Capture<>();
+        final Capture<ClassicHttpRequest> cap1 = new Capture<>();
+        final Capture<ClassicHttpRequest> cap2 = new Capture<>();
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(cachedResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(cachedResponse);
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.and(eqRequest(conditionalValidationRequest), EasyMock.capture(cap1)),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(conditionalResponse).times(0, 1);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(conditionalResponse).times(0, 1);
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.and(eqRequest(unconditionalValidationRequest), EasyMock.capture(cap2)),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(unconditionalResponse).times(0, 1);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(unconditionalResponse).times(0, 1);
 
         replayMocks();
 
-        impl.execute(initialRequest, context, null);
-        final ClassicHttpResponse result = impl.execute(secondRequest, context, null);
+        execute(initialRequest);
+        final ClassicHttpResponse result = execute(secondRequest);
 
         verifyMocks();
 
@@ -2203,13 +2075,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setHeader("WWW-Authenticate", "x-scheme x-param");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         if (result.getCode() == 401) {
             Assert.assertNotNull(result.getFirstHeader("WWW-Authenticate"));
         }
@@ -2232,7 +2103,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         if (result.getCode() == 405) {
             Assert.assertNotNull(result.getFirstHeader("Allow"));
         }
@@ -2253,13 +2124,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setHeader("Proxy-Authenticate", "x-scheme x-param");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         if (result.getCode() == 407) {
             Assert.assertNotNull(result.getFirstHeader("Proxy-Authenticate"));
         }
@@ -2278,13 +2148,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse = new BasicClassicHttpResponse(416, "Requested Range Not Satisfiable");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         if (result.getCode() == 416) {
@@ -2297,36 +2166,32 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testMustNotUseMultipartByteRangeContentTypeOnCacheGenerated416Responses()
-            throws Exception {
+    public void testMustNotUseMultipartByteRangeContentTypeOnCacheGenerated416Responses() throws Exception {
 
         originResponse.setEntity(HttpTestUtils.makeBody(entityLength));
         originResponse.setHeader("Content-Length", "128");
         originResponse.setHeader("Cache-Control", "max-age=3600");
 
-        final RoutedHttpRequest rangeReq = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest rangeReq = new BasicClassicHttpRequest("GET", "/");
         rangeReq.setHeader("Range", "bytes=1000-1200");
 
         final ClassicHttpResponse orig416 = new BasicClassicHttpResponse(416,
                 "Requested Range Not Satisfiable");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         // cache may 416 me right away if it understands byte ranges,
         // ok to delegate to origin though
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(orig416).times(0, 1);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(orig416).times(0, 1);
 
         replayMocks();
-        impl.execute(request, context, null);
-        final ClassicHttpResponse result = impl.execute(rangeReq, context, null);
+        execute(request);
+        final ClassicHttpResponse result = execute(rangeReq);
         verifyMocks();
 
         // might have gotten a 416 from the origin or the cache
@@ -2387,13 +2252,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingExec(mockBackend, mockCache, config);
+        impl = new CachingExec(mockCache, config);
 
-        request = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/thing"), route);
+        request = new BasicClassicHttpRequest("GET", "/thing");
 
-        final RoutedHttpRequest validate = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/thing"), route);
+        final ClassicHttpRequest validate = new BasicClassicHttpRequest("GET", "/thing");
         validate.setHeader("If-None-Match", "\"etag\"");
 
         final ClassicHttpResponse notModified = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
@@ -2406,10 +2269,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
                 mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request)))
                 .andReturn(entry);
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(validate),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(notModified);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(notModified);
         EasyMock.expect(mockCache.updateCacheEntry(
                 EasyMock.eq(host),
                 eqRequest(request),
@@ -2420,7 +2282,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             .andReturn(HttpTestUtils.makeCacheEntry());
 
         replayMocks();
-        impl.execute(request, context, null);
+        execute(request);
         verifyMocks();
     }
 
@@ -2443,14 +2305,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingExec(mockBackend, mockCache, config);
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/thing"), route);
+        impl = new CachingExec(mockCache, config);
+        request = new BasicClassicHttpRequest("GET", "/thing");
 
         mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host), eqRequest(request));
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         Assert.assertEquals(200, result.getCode());
@@ -2471,8 +2333,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
      */
     @Test
-    public void testMustServeAppropriateErrorOrWarningIfNoOriginCommunicationPossible()
-            throws Exception {
+    public void testMustServeAppropriateErrorOrWarningIfNoOriginCommunicationPossible() throws Exception {
 
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
@@ -2491,21 +2352,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingExec(mockBackend, mockCache, config);
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/thing"), route);
+        impl = new CachingExec(mockCache, config);
+        request = new BasicClassicHttpRequest("GET", "/thing");
 
         mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host), eqRequest(request));
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andThrow(
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andThrow(
                 new IOException("can't talk to origin!")).anyTimes();
 
         replayMocks();
 
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
 
         verifyMocks();
 
@@ -2546,7 +2406,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 25 * 1000L);
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "\"etag\"");
@@ -2554,10 +2414,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp1.setHeader("Warning", "110 squid \"stale stuff\"");
         resp1.setHeader("Via", "1.1 fred");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
-        final RoutedHttpRequest validate = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest validate = new BasicClassicHttpRequest("GET", "/");
         validate.setHeader("If-None-Match", "\"etag\"");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED,
@@ -2569,20 +2428,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(validate),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp2);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
 
         replayMocks();
 
-        final ClassicHttpResponse stale = impl.execute(req1, context, null);
+        final ClassicHttpResponse stale = execute(req1);
         Assert.assertNotNull(stale.getFirstHeader("Warning"));
 
-        final ClassicHttpResponse result1 = impl.execute(req2, context, null);
-        final ClassicHttpResponse result2 = impl.execute(req3, context, null);
+        final ClassicHttpResponse result1 = execute(req2);
+        final ClassicHttpResponse result2 = execute(req3);
 
         verifyMocks();
 
@@ -2615,7 +2473,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     public void test2xxWarningsAreNotDeletedAfterSuccessfulRevalidation() throws Exception {
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "\"etag\"");
@@ -2623,10 +2481,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp1.setHeader("Via", "1.1 xproxy");
         resp1.setHeader("Warning", "214 xproxy \"transformed stuff\"");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
-        final RoutedHttpRequest validate = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest validate = new BasicClassicHttpRequest("GET", "/");
         validate.setHeader("If-None-Match", "\"etag\"");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED,
@@ -2636,23 +2493,22 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp2.setHeader("ETag", "\"etag\"");
         resp1.setHeader("Via", "1.1 xproxy");
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(validate),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp2);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp2);
 
         replayMocks();
 
-        final ClassicHttpResponse stale = impl.execute(req1, context, null);
+        final ClassicHttpResponse stale = execute(req1);
         Assert.assertNotNull(stale.getFirstHeader("Warning"));
 
-        final ClassicHttpResponse result1 = impl.execute(req2, context, null);
-        final ClassicHttpResponse result2 = impl.execute(req3, context, null);
+        final ClassicHttpResponse result1 = execute(req2);
+        final ClassicHttpResponse result2 = execute(req3);
 
         verifyMocks();
 
@@ -2705,14 +2561,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(tenSecondsAgo, eightSecondsAgo, hdrs, bytes);
 
-        impl = new CachingExec(mockBackend, mockCache, config);
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/thing"), route);
+        impl = new CachingExec(mockCache, config);
+        request = new BasicClassicHttpRequest("GET", "/thing");
 
         mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host), eqRequest(request));
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         Assert.assertEquals(200, result.getCode());
@@ -2756,10 +2612,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final HttpCacheEntry entry = HttpTestUtils.makeCacheEntry(requestTime, responseTime, hdrs, bytes);
 
-        impl = new CachingExec(mockBackend, mockCache, config);
+        impl = new CachingExec(mockCache, config);
 
-        request = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/thing"), route);
+        request = new BasicClassicHttpRequest("GET", "/thing");
 
         final ClassicHttpResponse validated = HttpTestUtils.make200Response();
         validated.setHeader("Cache-Control", "public");
@@ -2769,31 +2624,30 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final ClassicHttpResponse reconstructed = HttpTestUtils.make200Response();
 
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
 
         mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host), eqRequest(request));
         mockCache.flushInvalidatedCacheEntriesFor(
                 EasyMock.isA(HttpHost.class),
-                EasyMock.isA(RoutedHttpRequest.class),
+                EasyMock.isA(ClassicHttpRequest.class),
                 EasyMock.isA(ClassicHttpResponse.class));
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(cap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(validated).times(0, 1);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(validated).times(0, 1);
         EasyMock.expect(mockCache.getCacheEntry(
                 EasyMock.isA(HttpHost.class),
-                EasyMock.isA(RoutedHttpRequest.class))).andReturn(entry).times(0, 1);
+                EasyMock.isA(ClassicHttpRequest.class))).andReturn(entry).times(0, 1);
         EasyMock.expect(mockCache.cacheAndReturnResponse(
                 EasyMock.isA(HttpHost.class),
-                EasyMock.isA(RoutedHttpRequest.class),
+                EasyMock.isA(ClassicHttpRequest.class),
                 eqCloseableResponse(validated),
                 EasyMock.isA(Date.class),
                 EasyMock.isA(Date.class))).andReturn(reconstructed).times(0, 1);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         Assert.assertEquals(200, result.getCode());
@@ -2827,8 +2681,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         final Date inFiveSecond = new Date(now.getTime() + 5 * 1000L);
 
         // put an entry in the cache
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(inFiveSecond));
@@ -2837,8 +2690,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp1.setHeader("Content-Length", "128");
 
         // force another origin hit
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control", "no-cache");
 
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
@@ -2847,21 +2699,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp2.setHeader("Cache-Control", "max-age=3600");
         resp2.setHeader("Content-Length", "128");
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(req1),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp1);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp1);
 
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        final ClassicHttpResponse result = impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        final ClassicHttpResponse result = execute(req3);
         verifyMocks();
         Assert.assertEquals("\"etag1\"", result.getFirstHeader("ETag").getValue());
     }
@@ -2880,17 +2730,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * for validation, but we can't tell if we receive a conditional request
      * from upstream.
      */
-    private ClassicHttpResponse testRequestWithWeakETagValidatorIsNotAllowed(final String header)
-            throws Exception {
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
+    private ClassicHttpResponse testRequestWithWeakETagValidatorIsNotAllowed(final String header) throws Exception {
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(cap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse).times(0, 1);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse).times(0, 1);
 
         replayMocks();
-        final ClassicHttpResponse response = impl.execute(request, context, null);
+        final ClassicHttpResponse response = execute(request);
         verifyMocks();
 
         // it's probably ok to return a 400 (Bad Request) to this client
@@ -2907,7 +2755,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testSubrangeGETWithWeakETagIsNotAllowed() throws Exception {
-        request = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/"), route);
+        request = new BasicClassicHttpRequest("GET", "/");
         request.setHeader("Range", "bytes=0-500");
         request.setHeader("If-Range", "W/\"etag\"");
 
@@ -2921,7 +2769,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         put.setEntity(HttpTestUtils.makeBody(128));
         put.setHeader("Content-Length", "128");
         put.setHeader("If-Match", "W/\"etag\"");
-        request = RoutedHttpRequest.adapt(put, route);
+        request = put;
 
         testRequestWithWeakETagValidatorIsNotAllowed("If-Match");
     }
@@ -2932,15 +2780,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         put.setEntity(HttpTestUtils.makeBody(128));
         put.setHeader("Content-Length", "128");
         put.setHeader("If-None-Match", "W/\"etag\"");
-        request = RoutedHttpRequest.adapt(put, route);
+        request = put;
 
         testRequestWithWeakETagValidatorIsNotAllowed("If-None-Match");
     }
 
     @Test
     public void testDELETEWithIfMatchWeakETagIsNotAllowed() throws Exception {
-        request = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("DELETE", "/"), route);
+        request = new BasicClassicHttpRequest("DELETE", "/");
         request.setHeader("If-Match", "W/\"etag\"");
 
         testRequestWithWeakETagValidatorIsNotAllowed("If-Match");
@@ -2948,8 +2795,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testDELETEWithIfNoneMatchWeakETagIsNotAllowed() throws Exception {
-        request = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("DELETE", "/"), route);
+        request = new BasicClassicHttpRequest("DELETE", "/");
         request.setHeader("If-None-Match", "W/\"etag\"");
 
         testRequestWithWeakETagValidatorIsNotAllowed("If-None-Match");
@@ -2965,8 +2811,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testSubrangeGETMustUseStrongComparisonForCachedResponse() throws Exception {
         final Date now = new Date();
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
@@ -2977,20 +2822,18 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         // marked weak. Therefore, the If-Range must fail and we must
         // either get an error back or the full entity, but we better
         // not get the conditionally-requested Partial Content (206).
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Range", "bytes=0-50");
         req2.setHeader("If-Range", "W/\"etag\"");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp1).times(1, 2);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp1).times(1, 2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         Assert.assertFalse(HttpStatus.SC_PARTIAL_CONTENT == result.getCode());
@@ -3009,34 +2852,30 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "W/\"etag\"");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control", "max-age=0,max-stale=0");
 
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp1);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp1);
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(cap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp1);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp1);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
+        execute(req1);
+        execute(req2);
         verifyMocks();
 
         final ClassicHttpRequest validation = cap.getValue();
@@ -3081,69 +2920,61 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.3.4
      */
     @Test
-    public void testConditionalRequestWhereNotAllValidatorsMatchCannotBeServedFromCache()
-            throws Exception {
+    public void testConditionalRequestWhereNotAllValidatorsMatchCannotBeServedFromCache() throws Exception {
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         final Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "W/\"etag\"");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("If-None-Match", "W/\"etag\"");
         req2.setHeader("If-Modified-Since", DateUtils.formatDate(twentySecondsAgo));
 
         // must hit the origin again for the second request
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp1).times(2);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp1).times(2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         Assert.assertFalse(HttpStatus.SC_NOT_MODIFIED == result.getCode());
     }
 
     @Test
-    public void testConditionalRequestWhereAllValidatorsMatchMayBeServedFromCache()
-            throws Exception {
+    public void testConditionalRequestWhereAllValidatorsMatchMayBeServedFromCache() throws Exception {
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(now));
         resp1.setHeader("Cache-Control", "max-age=3600");
         resp1.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("ETag", "W/\"etag\"");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("If-None-Match", "W/\"etag\"");
         req2.setHeader("If-Modified-Since", DateUtils.formatDate(tenSecondsAgo));
 
         // may hit the origin again for the second request
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp1).times(1,2);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp1).times(1,2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
+        execute(req1);
+        execute(req2);
         verifyMocks();
     }
 
@@ -3155,14 +2986,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.4
      */
     @Test
-    public void testCacheWithoutSupportForRangeAndContentRangeHeadersDoesNotCacheA206Response()
-            throws Exception {
+    public void testCacheWithoutSupportForRangeAndContentRangeHeadersDoesNotCacheA206Response() throws Exception {
 
         if (!supportsRangeAndContentRangeHeaders(impl)) {
             emptyMockCacheExpectsNoPuts();
 
-            final RoutedHttpRequest req = RoutedHttpRequest.adapt(
-                    new BasicClassicHttpRequest("GET", "/"), route);
+            final ClassicHttpRequest req = new BasicClassicHttpRequest("GET", "/");
             req.setHeader("Range", "bytes=0-50");
 
             final ClassicHttpResponse resp = new BasicClassicHttpResponse(206, "Partial Content");
@@ -3170,13 +2999,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             resp.setHeader("ETag", "\"etag\"");
             resp.setHeader("Cache-Control", "max-age=3600");
 
-            EasyMock.expect(mockBackend.execute(
-                    EasyMock.isA(RoutedHttpRequest.class),
-                    EasyMock.isA(HttpClientContext.class),
-                    EasyMock.<HttpExecutionAware>isNull())).andReturn(resp);
+            EasyMock.expect(mockExecChain.proceed(
+                    EasyMock.isA(ClassicHttpRequest.class),
+                    EasyMock.isA(ExecChain.Scope.class))).andReturn(resp);
 
             replayMocks();
-            impl.execute(req, context, null);
+            execute(req);
             verifyMocks();
         }
     }
@@ -3202,8 +3030,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse).times(2);
 
         replayMocks();
-        impl.execute(request, context, null);
-        impl.execute(request, context, null);
+        execute(request);
+        execute(request);
         verifyMocks();
     }
 
@@ -3219,7 +3047,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         Assert.assertEquals(value, result.getFirstHeader(header).getValue());
@@ -3254,7 +3082,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         Assert.assertNull(result.getFirstHeader(header));
@@ -3280,13 +3108,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         testDoesNotAddHeaderToOriginResponse("Last-Modified");
     }
 
-    private void testDoesNotModifyHeaderFromOriginOnCacheHit(final String header, final String value)
-            throws Exception {
+    private void testDoesNotModifyHeaderFromOriginOnCacheHit(final String header, final String value) throws Exception {
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
         originResponse = HttpTestUtils.make200Response();
         originResponse.setHeader("Cache-Control", "max-age=3600");
@@ -3295,8 +3120,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         Assert.assertEquals(value, result.getFirstHeader(header).getValue());
@@ -3326,10 +3151,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     private void testDoesNotAddHeaderOnCacheHit(final String header) throws Exception {
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
         originResponse.addHeader("Cache-Control", "max-age=3600");
         originResponse.removeHeaders(header);
@@ -3337,8 +3160,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         Assert.assertNull(result.getFirstHeader(header));
@@ -3370,16 +3193,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         req.setHeader("Content-Length","128");
         req.setHeader(header,value);
 
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(cap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(RoutedHttpRequest.adapt(req, route), context, null);
+        execute(req);
         verifyMocks();
 
         final ClassicHttpRequest captured = cap.getValue();
@@ -3415,16 +3237,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         req.setHeader("Content-Length","128");
         req.removeHeaders(header);
 
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(cap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(RoutedHttpRequest.adapt(req, route), context, null);
+        execute(req);
         verifyMocks();
 
         final ClassicHttpRequest captured = cap.getValue();
@@ -3478,7 +3299,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         final Header expHdr = result.getFirstHeader("Expires");
@@ -3490,10 +3311,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testExpiresHeaderMatchesDateIfAddedToCacheHit() throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
         originResponse.setHeader("Cache-Control","max-age=3600");
         originResponse.removeHeaders("Expires");
@@ -3501,8 +3320,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         final Header expHdr = result.getFirstHeader("Expires");
@@ -3525,7 +3344,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         Assert.assertEquals(value, result.getFirstHeader(header).getValue());
@@ -3552,10 +3371,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     private void testDoesNotModifyHeaderOnCachedResponseWithNoTransform(final String header, final String value) throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
         originResponse.addHeader("Cache-Control","max-age=3600, no-transform");
         originResponse.setHeader(header, value);
@@ -3563,8 +3380,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         Assert.assertEquals(value, result.getFirstHeader(header).getValue());
@@ -3582,12 +3399,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testDoesNotModifyContentRangeHeaderOnCachedResponseWithNoTransform() throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("If-Range","\"etag\"");
         req1.setHeader("Range","bytes=0-49");
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("If-Range","\"etag\"");
         req2.setHeader("Range","bytes=0-49");
 
@@ -3597,8 +3412,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse).times(1,2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         Assert.assertEquals("bytes 0-49/128",
@@ -3685,14 +3500,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.3
      */
     public void testCachedEntityBodyIsUsedForResponseAfter304Validation() throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("ETag","\"etag\"");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control","max-age=0, max-stale=0");
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
 
@@ -3700,8 +3513,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         final InputStream i1 = resp1.getEntity().getContent();
@@ -3745,15 +3558,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
     @Test
     public void testResponseIncludesCacheEntryEndToEndHeadersForResponseAfter304Validation() throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("ETag","\"etag\"");
         decorateWithEndToEndHeaders(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("Date", DateUtils.formatDate(new Date()));
@@ -3763,8 +3574,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         final String[] endToEndHeaders = {
@@ -3782,15 +3593,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     @Test
     public void testUpdatedEndToEndHeadersFrom304ArePassedOnResponseAndUpdatedInCacheEntry() throws Exception {
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","max-age=3600");
         resp1.setHeader("ETag","\"etag\"");
         decorateWithEndToEndHeaders(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("Cache-Control", "max-age=1800");
@@ -3808,13 +3617,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp1);
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result1 = impl.execute(req2, context, null);
-        final ClassicHttpResponse result2 = impl.execute(req3, context, null);
+        execute(req1);
+        final ClassicHttpResponse result1 = execute(req2);
+        final ClassicHttpResponse result2 = execute(req3);
         verifyMocks();
 
         final String[] endToEndHeaders = {
@@ -3836,15 +3644,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testMultiHeadersAreSuccessfullyReplacedOn304Validation() throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.addHeader("Cache-Control","max-age=3600");
         resp1.addHeader("Cache-Control","public");
         resp1.setHeader("ETag","\"etag\"");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control", "max-age=0, max-stale=0");
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
         resp2.setHeader("Cache-Control", "max-age=1800");
@@ -3852,13 +3658,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp1);
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result1 = impl.execute(req2, context, null);
-        final ClassicHttpResponse result2 = impl.execute(req3, context, null);
+        execute(req1);
+        final ClassicHttpResponse result1 = execute(req2);
+        final ClassicHttpResponse result2 = execute(req3);
         verifyMocks();
 
         final String h = "Cache-Control";
@@ -3888,11 +3693,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.5.4
      */
     @Test
-    public void testCannotCombinePartialResponseIfIncomingResponseDoesNotHaveACacheValidator()
-        throws Exception {
+    public void testCannotCombinePartialResponseIfIncomingResponseDoesNotHaveACacheValidator() throws Exception {
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
 
         final Date now = new Date();
@@ -3909,8 +3712,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Range","bytes=50-127");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -3922,8 +3724,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
 
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
@@ -3933,22 +3734,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        execute(req3);
         verifyMocks();
     }
 
     @Test
-    public void testCannotCombinePartialResponseIfCacheEntryDoesNotHaveACacheValidator()
-        throws Exception {
+    public void testCannotCombinePartialResponseIfCacheEntryDoesNotHaveACacheValidator() throws Exception {
 
         final Date now = new Date();
         final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
 
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -3960,8 +3759,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Range","bytes=50-127");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -3974,8 +3772,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
 
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
@@ -3985,22 +3782,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        execute(req3);
         verifyMocks();
     }
 
     @Test
-    public void testCannotCombinePartialResponseIfCacheValidatorsDoNotStronglyMatch()
-        throws Exception {
+    public void testCannotCombinePartialResponseIfCacheValidatorsDoNotStronglyMatch() throws Exception {
 
         final Date now = new Date();
         final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
 
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -4013,8 +3808,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Range","bytes=50-127");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -4027,8 +3821,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
 
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp3.setEntity(HttpTestUtils.makeBody(128));
@@ -4038,22 +3831,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        execute(req3);
         verifyMocks();
     }
 
     @Test
-    public void testMustDiscardLeastRecentPartialResponseIfIncomingRequestDoesNotHaveCacheValidator()
-        throws Exception {
+    public void testMustDiscardLeastRecentPartialResponseIfIncomingRequestDoesNotHaveCacheValidator() throws Exception {
 
         final Date now = new Date();
         final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
 
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -4066,8 +3857,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Range","bytes=50-127");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -4079,8 +3869,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
         req3.setHeader("Range","bytes=0-49");
 
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
@@ -4092,22 +3881,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        execute(req3);
         verifyMocks();
     }
 
     @Test
-    public void testMustDiscardLeastRecentPartialResponseIfCachedResponseDoesNotHaveCacheValidator()
-        throws Exception {
+    public void testMustDiscardLeastRecentPartialResponseIfCachedResponseDoesNotHaveCacheValidator() throws Exception {
 
         final Date now = new Date();
         final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
 
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -4119,8 +3906,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Range","bytes=50-127");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -4133,8 +3919,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
         req3.setHeader("Range","bytes=0-49");
 
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
@@ -4146,22 +3931,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        execute(req3);
         verifyMocks();
     }
 
     @Test
-    public void testMustDiscardLeastRecentPartialResponseIfCacheValidatorsDoNotStronglyMatch()
-        throws Exception {
+    public void testMustDiscardLeastRecentPartialResponseIfCacheValidatorsDoNotStronglyMatch() throws Exception {
 
         final Date now = new Date();
         final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
 
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -4174,8 +3957,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Range","bytes=50-127");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -4188,8 +3970,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
         req3.setHeader("Range","bytes=0-49");
 
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
@@ -4201,22 +3982,20 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        execute(req3);
         verifyMocks();
     }
 
     @Test
-    public void testMustDiscardLeastRecentPartialResponseIfCacheValidatorsDoNotStronglyMatchEvenIfResponsesOutOfOrder()
-        throws Exception {
+    public void testMustDiscardLeastRecentPartialResponseIfCacheValidatorsDoNotStronglyMatchEvenIfResponsesOutOfOrder() throws Exception {
 
         final Date now = new Date();
         final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
         final Date twoSecondsAgo = new Date(now.getTime() - 2 * 1000L);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
 
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -4229,8 +4008,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Range","bytes=50-127");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -4243,8 +4021,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
         req3.setHeader("Range","bytes=50-127");
 
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
@@ -4256,21 +4033,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        execute(req3);
         verifyMocks();
     }
 
     @Test
-    public void testMustDiscardCachedPartialResponseIfCacheValidatorsDoNotStronglyMatchAndDateHeadersAreEqual()
-        throws Exception {
+    public void testMustDiscardCachedPartialResponseIfCacheValidatorsDoNotStronglyMatchAndDateHeadersAreEqual() throws Exception {
 
         final Date now = new Date();
         final Date oneSecondAgo = new Date(now.getTime() - 1 * 1000L);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Range","bytes=0-49");
 
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -4283,8 +4058,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Range","bytes=50-127");
 
         final ClassicHttpResponse resp2 = new BasicClassicHttpResponse(HttpStatus.SC_PARTIAL_CONTENT, "Partial Content");
@@ -4297,8 +4071,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
         req3.setHeader("Range","bytes=0-49");
 
         final ClassicHttpResponse resp3 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
@@ -4310,9 +4083,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
-        impl.execute(req3, context, null);
+        execute(req1);
+        execute(req2);
+        execute(req3);
         verifyMocks();
     }
 
@@ -4326,11 +4099,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
      */
     @Test
-    public void testCannotUseVariantCacheEntryIfNotAllSelectingRequestHeadersMatch()
-        throws Exception {
+    public void testCannotUseVariantCacheEntryIfNotAllSelectingRequestHeadersMatch() throws Exception {
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("Accept-Encoding","gzip");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -4340,8 +4111,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.removeHeaders("Accept-Encoding");
 
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
@@ -4352,8 +4122,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
+        execute(req1);
+        execute(req2);
         verifyMocks();
     }
 
@@ -4365,8 +4135,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testCannotServeFromCacheForVaryStar() throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag1\"");
@@ -4375,8 +4144,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag","\"etag1\"");
@@ -4386,8 +4154,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
+        execute(req1);
+        execute(req2);
         verifyMocks();
     }
 
@@ -4414,11 +4182,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.6
      */
     @Test
-    public void testNonmatchingVariantCannotBeServedFromCacheUnlessConditionallyValidated()
-        throws Exception {
+    public void testNonmatchingVariantCannotBeServedFromCacheUnlessConditionallyValidated() throws Exception {
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         req1.setHeader("User-Agent","MyBrowser/1.0");
 
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -4429,12 +4195,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("User-Agent","MyBrowser/1.5");
 
-        final RoutedHttpRequest conditional = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest conditional = new BasicClassicHttpRequest("GET", "/");
         conditional.setHeader("User-Agent","MyBrowser/1.5");
         conditional.setHeader("If-None-Match","\"etag1\"");
 
@@ -4446,23 +4210,21 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp304.setHeader("ETag","\"etag1\"");
         resp304.setHeader("Vary","User-Agent");
 
-        final Capture<RoutedHttpRequest> condCap = new Capture<>();
-        final Capture<RoutedHttpRequest> uncondCap = new Capture<>();
+        final Capture<ClassicHttpRequest> condCap = new Capture<>();
+        final Capture<ClassicHttpRequest> uncondCap = new Capture<>();
 
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.and(eqRequest(conditional), EasyMock.capture(condCap)),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp304).times(0,1);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp304).times(0,1);
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.and(eqRequest(req2), EasyMock.capture(uncondCap)),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp200).times(0,1);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp200).times(0,1);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         if (HttpStatus.SC_OK == result.getCode()) {
@@ -4494,7 +4256,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         final int status = result.getCode();
@@ -4517,9 +4279,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.9
      */
     protected void testUnsafeOperationInvalidatesCacheForThatUri(
-            final RoutedHttpRequest unsafeReq) throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+            final ClassicHttpRequest unsafeReq) throws Exception {
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
@@ -4529,8 +4290,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader("Cache-Control","public, max-age=3600");
 
@@ -4538,34 +4298,33 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(unsafeReq, context, null);
-        impl.execute(req3, context, null);
+        execute(req1);
+        execute(unsafeReq);
+        execute(req3);
         verifyMocks();
     }
 
     @Test
     public void testPutToUriInvalidatesCacheForThatUri() throws Exception {
         final ClassicHttpRequest req = makeRequestWithBody("PUT","/");
-        testUnsafeOperationInvalidatesCacheForThatUri(RoutedHttpRequest.adapt(req, route));
+        testUnsafeOperationInvalidatesCacheForThatUri(req);
     }
 
     @Test
     public void testDeleteToUriInvalidatesCacheForThatUri() throws Exception {
-        final RoutedHttpRequest req = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("DELETE","/"), route);
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("DELETE","/");
         testUnsafeOperationInvalidatesCacheForThatUri(req);
     }
 
     @Test
     public void testPostToUriInvalidatesCacheForThatUri() throws Exception {
-        final RoutedHttpRequest req = makeRequestWithBody("POST","/");
+        final ClassicHttpRequest req = makeRequestWithBody("POST","/");
         testUnsafeOperationInvalidatesCacheForThatUri(req);
     }
 
     protected void testUnsafeMethodInvalidatesCacheForHeaderUri(
-            final RoutedHttpRequest unsafeReq) throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/content"), route);
+            final ClassicHttpRequest unsafeReq) throws Exception {
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/content");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
@@ -4575,8 +4334,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/content"), route);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/content");
         final ClassicHttpResponse resp3 = HttpTestUtils.make200Response();
         resp3.setHeader("Cache-Control","public, max-age=3600");
 
@@ -4584,81 +4342,81 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp3);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(unsafeReq, context, null);
-        impl.execute(req3, context, null);
+        execute(req1);
+        execute(unsafeReq);
+        execute(req3);
         verifyMocks();
     }
 
     protected void testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(
-            final RoutedHttpRequest unsafeReq) throws Exception {
+            final ClassicHttpRequest unsafeReq) throws Exception {
         unsafeReq.setHeader("Content-Location","http://foo.example.com/content");
         testUnsafeMethodInvalidatesCacheForHeaderUri(unsafeReq);
     }
 
     protected void testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(
-            final RoutedHttpRequest unsafeReq) throws Exception {
+            final ClassicHttpRequest unsafeReq) throws Exception {
         unsafeReq.setHeader("Content-Location","/content");
         testUnsafeMethodInvalidatesCacheForHeaderUri(unsafeReq);
     }
 
     protected void testUnsafeMethodInvalidatesCacheForUriInLocationHeader(
-            final RoutedHttpRequest unsafeReq) throws Exception {
+            final ClassicHttpRequest unsafeReq) throws Exception {
         unsafeReq.setHeader("Location","http://foo.example.com/content");
         testUnsafeMethodInvalidatesCacheForHeaderUri(unsafeReq);
     }
 
     @Test
     public void testPutInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
-        final RoutedHttpRequest req2 = makeRequestWithBody("PUT","/");
+        final ClassicHttpRequest req2 = makeRequestWithBody("PUT","/");
         testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(req2);
     }
 
     @Test
     public void testPutInvalidatesCacheForThatUriInLocationHeader() throws Exception {
-        final RoutedHttpRequest req = makeRequestWithBody("PUT","/");
+        final ClassicHttpRequest req = makeRequestWithBody("PUT","/");
         testUnsafeMethodInvalidatesCacheForUriInLocationHeader(req);
     }
 
     @Test
     public void testPutInvalidatesCacheForThatUriInRelativeContentLocationHeader() throws Exception {
-        final RoutedHttpRequest req = makeRequestWithBody("PUT","/");
+        final ClassicHttpRequest req = makeRequestWithBody("PUT","/");
         testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(req);
     }
 
     @Test
     public void testDeleteInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
-        final RoutedHttpRequest req = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("DELETE", "/"), route);
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("DELETE", "/");
         testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(req);
     }
 
     @Test
     public void testDeleteInvalidatesCacheForThatUriInRelativeContentLocationHeader() throws Exception {
-        final RoutedHttpRequest req = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("DELETE", "/"), route);
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("DELETE", "/");
         testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(req);
     }
 
     @Test
     public void testDeleteInvalidatesCacheForThatUriInLocationHeader() throws Exception {
-        final RoutedHttpRequest req = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("DELETE", "/"), route);
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("DELETE", "/");
         testUnsafeMethodInvalidatesCacheForUriInLocationHeader(req);
     }
 
     @Test
     public void testPostInvalidatesCacheForThatUriInContentLocationHeader() throws Exception {
-        final RoutedHttpRequest req = makeRequestWithBody("POST","/");
+        final ClassicHttpRequest req = makeRequestWithBody("POST","/");
         testUnsafeMethodInvalidatesCacheForUriInContentLocationHeader(req);
     }
 
     @Test
     public void testPostInvalidatesCacheForThatUriInLocationHeader() throws Exception {
-        final RoutedHttpRequest req = makeRequestWithBody("POST","/");
+        final ClassicHttpRequest req = makeRequestWithBody("POST","/");
         testUnsafeMethodInvalidatesCacheForUriInLocationHeader(req);
     }
 
     @Test
     public void testPostInvalidatesCacheForRelativeUriInContentLocationHeader() throws Exception {
-        final RoutedHttpRequest req = makeRequestWithBody("POST","/");
+        final ClassicHttpRequest req = makeRequestWithBody("POST","/");
         testUnsafeMethodInvalidatesCacheForRelativeUriInContentLocationHeader(req);
     }
 
@@ -4669,12 +4427,11 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      *  http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.10
      */
     protected void testUnsafeMethodDoesNotInvalidateCacheForHeaderUri(
-            final RoutedHttpRequest unsafeReq) throws Exception {
+            final ClassicHttpRequest unsafeReq) throws Exception {
 
         final HttpHost otherHost = new HttpHost("bar.example.com", 80);
         final HttpRoute otherRoute = new HttpRoute(otherHost);
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/content"), otherRoute);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/content");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public, max-age=3600");
 
@@ -4684,72 +4441,69 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp2);
 
-        final RoutedHttpRequest req3 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/content"), otherRoute);
+        final ClassicHttpRequest req3 = new BasicClassicHttpRequest("GET", "/content");
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(unsafeReq, context, null);
-        impl.execute(req3, context, null);
+        execute(req1);
+        execute(unsafeReq);
+        execute(req3);
         verifyMocks();
     }
 
     protected void testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(
-            final RoutedHttpRequest unsafeReq) throws Exception {
+            final ClassicHttpRequest unsafeReq) throws Exception {
         unsafeReq.setHeader("Content-Location","http://bar.example.com/content");
         testUnsafeMethodDoesNotInvalidateCacheForHeaderUri(unsafeReq);
     }
 
     protected void testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(
-            final RoutedHttpRequest unsafeReq) throws Exception {
+            final ClassicHttpRequest unsafeReq) throws Exception {
         unsafeReq.setHeader("Location","http://bar.example.com/content");
         testUnsafeMethodDoesNotInvalidateCacheForHeaderUri(unsafeReq);
     }
 
-    protected RoutedHttpRequest makeRequestWithBody(final String method, final String requestUri) {
+    protected ClassicHttpRequest makeRequestWithBody(final String method, final String requestUri) {
         final ClassicHttpRequest req =
             new BasicClassicHttpRequest(method, requestUri);
         final int nbytes = 128;
         req.setEntity(HttpTestUtils.makeBody(nbytes));
         req.setHeader("Content-Length",""+nbytes);
-        return RoutedHttpRequest.adapt(req, route);
+        return req;
     }
 
     @Test
     public void testPutDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts() throws Exception {
-        final RoutedHttpRequest req = makeRequestWithBody("PUT","/");
+        final ClassicHttpRequest req = makeRequestWithBody("PUT","/");
         testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(req);
     }
 
     @Test
     public void testPutDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts() throws Exception {
-        final RoutedHttpRequest req = makeRequestWithBody("PUT","/");
+        final ClassicHttpRequest req = makeRequestWithBody("PUT","/");
         testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(req);
     }
 
     @Test
     public void testPostDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts() throws Exception {
-        final RoutedHttpRequest req = makeRequestWithBody("POST","/");
+        final ClassicHttpRequest req = makeRequestWithBody("POST","/");
         testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(req);
     }
 
     @Test
     public void testPostDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts() throws Exception {
-        final RoutedHttpRequest req = makeRequestWithBody("POST","/");
+        final ClassicHttpRequest req = makeRequestWithBody("POST","/");
         testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(req);
     }
 
     @Test
     public void testDeleteDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts() throws Exception {
-        final RoutedHttpRequest req = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("DELETE", "/"), route);
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("DELETE", "/");
         testUnsafeMethodDoesNotInvalidateCacheForUriInContentLocationHeadersFromOtherHosts(req);
     }
 
     @Test
     public void testDeleteDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts() throws Exception {
-        final RoutedHttpRequest req = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("DELETE", "/"), route);
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("DELETE", "/");
         testUnsafeMethodDoesNotInvalidateCacheForUriInLocationHeadersFromOtherHosts(req);
     }
 
@@ -4762,32 +4516,27 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html#sec13.11
      */
-    private void testRequestIsWrittenThroughToOrigin(final ClassicHttpRequest req)
-        throws Exception {
+    private void testRequestIsWrittenThroughToOrigin(final ClassicHttpRequest req) throws Exception {
         final ClassicHttpResponse resp = new BasicClassicHttpResponse(HttpStatus.SC_NO_CONTENT, "No Content");
-        final RoutedHttpRequest wrapper = RoutedHttpRequest.adapt(req, route);
+        final ClassicHttpRequest wrapper = req;
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         eqRequest(wrapper),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp);
 
         replayMocks();
-        impl.execute(wrapper, context, null);
+        execute(wrapper);
         verifyMocks();
     }
 
     @Test @Ignore
-    public void testOPTIONSRequestsAreWrittenThroughToOrigin()
-        throws Exception {
-        final ClassicHttpRequest req = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("OPTIONS","*"), route);
+    public void testOPTIONSRequestsAreWrittenThroughToOrigin() throws Exception {
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("OPTIONS","*");
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
-    public void testPOSTRequestsAreWrittenThroughToOrigin()
-        throws Exception {
+    public void testPOSTRequestsAreWrittenThroughToOrigin() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("POST","/");
         req.setEntity(HttpTestUtils.makeBody(128));
         req.setHeader("Content-Length","128");
@@ -4795,8 +4544,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testPUTRequestsAreWrittenThroughToOrigin()
-        throws Exception {
+    public void testPUTRequestsAreWrittenThroughToOrigin() throws Exception {
         final ClassicHttpRequest req = new BasicClassicHttpRequest("PUT","/");
         req.setEntity(HttpTestUtils.makeBody(128));
         req.setHeader("Content-Length","128");
@@ -4804,34 +4552,26 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testDELETERequestsAreWrittenThroughToOrigin()
-        throws Exception {
-        final ClassicHttpRequest req = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("DELETE", "/"), route);
+    public void testDELETERequestsAreWrittenThroughToOrigin() throws Exception {
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("DELETE", "/");
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
-    public void testTRACERequestsAreWrittenThroughToOrigin()
-        throws Exception {
-        final ClassicHttpRequest req = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("TRACE","/"), route);
+    public void testTRACERequestsAreWrittenThroughToOrigin() throws Exception {
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("TRACE","/");
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
-    public void testCONNECTRequestsAreWrittenThroughToOrigin()
-        throws Exception {
-        final ClassicHttpRequest req = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("CONNECT","/"), route);
+    public void testCONNECTRequestsAreWrittenThroughToOrigin() throws Exception {
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("CONNECT","/");
         testRequestIsWrittenThroughToOrigin(req);
     }
 
     @Test
-    public void testUnknownMethodRequestsAreWrittenThroughToOrigin()
-        throws Exception {
-        final ClassicHttpRequest req = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("UNKNOWN","/"), route);
+    public void testUnknownMethodRequestsAreWrittenThroughToOrigin() throws Exception {
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("UNKNOWN","/");
         testRequestIsWrittenThroughToOrigin(req);
     }
 
@@ -4843,15 +4583,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.6
      */
     @Test
-    public void testTransmitsAgeHeaderIfIncomingAgeHeaderTooBig()
-        throws Exception {
+    public void testTransmitsAgeHeaderIfIncomingAgeHeaderTooBig() throws Exception {
         final String reallyOldAge = "1" + Long.MAX_VALUE;
         originResponse.setHeader("Age",reallyOldAge);
 
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         Assert.assertEquals("2147483648",
@@ -4865,13 +4604,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.7
      */
     @Test
-    public void testDoesNotModifyAllowHeaderWithUnknownMethods()
-        throws Exception {
+    public void testDoesNotModifyAllowHeaderWithUnknownMethods() throws Exception {
         final String allowHeaderValue = "GET, HEAD, FOOBAR";
         originResponse.setHeader("Allow",allowHeaderValue);
         backendExpectsAnyRequest().andReturn(originResponse);
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
         Assert.assertEquals(HttpTestUtils.getCanonicalHeaderValue(originResponse,"Allow"),
                             HttpTestUtils.getCanonicalHeaderValue(result, "Allow"));
@@ -4906,14 +4644,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             final ClassicHttpResponse authorizedResponse, final int minTimes, final int maxTimes) throws Exception {
         if (config.isSharedCache()) {
             final String authorization = "Basic dXNlcjpwYXNzd2Q=";
-            final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                    new BasicClassicHttpRequest("GET", "/"), route);
+            final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
             req1.setHeader("Authorization",authorization);
 
             backendExpectsAnyRequestAndReturn(authorizedResponse);
 
-            final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                    new BasicClassicHttpRequest("GET", "/"), route);
+            final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
             final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
             resp2.setHeader("Cache-Control","max-age=3600");
 
@@ -4923,15 +4659,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             }
 
             replayMocks();
-            impl.execute(req1, context, null);
-            impl.execute(req2, context, null);
+            execute(req1);
+            execute(req2);
             verifyMocks();
         }
     }
 
     @Test
-    public void testSharedCacheMustNotNormallyCacheAuthorizedResponses()
-        throws Exception {
+    public void testSharedCacheMustNotNormallyCacheAuthorizedResponses() throws Exception {
         final ClassicHttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","max-age=3600");
         resp.setHeader("ETag","\"etag\"");
@@ -4939,8 +4674,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testSharedCacheMayCacheAuthorizedResponsesWithSMaxAgeHeader()
-        throws Exception {
+    public void testSharedCacheMayCacheAuthorizedResponsesWithSMaxAgeHeader() throws Exception {
         final ClassicHttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","s-maxage=3600");
         resp.setHeader("ETag","\"etag\"");
@@ -4948,8 +4682,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testSharedCacheMustRevalidateAuthorizedResponsesWhenSMaxAgeIsZero()
-        throws Exception {
+    public void testSharedCacheMustRevalidateAuthorizedResponsesWhenSMaxAgeIsZero() throws Exception {
         final ClassicHttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","s-maxage=0");
         resp.setHeader("ETag","\"etag\"");
@@ -4957,8 +4690,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testSharedCacheMayCacheAuthorizedResponsesWithMustRevalidate()
-        throws Exception {
+    public void testSharedCacheMayCacheAuthorizedResponsesWithMustRevalidate() throws Exception {
         final ClassicHttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","must-revalidate");
         resp.setHeader("ETag","\"etag\"");
@@ -4966,8 +4698,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testSharedCacheMayCacheAuthorizedResponsesWithCacheControlPublic()
-        throws Exception {
+    public void testSharedCacheMayCacheAuthorizedResponsesWithCacheControlPublic() throws Exception {
         final ClassicHttpResponse resp = HttpTestUtils.make200Response();
         resp.setHeader("Cache-Control","public");
         testSharedCacheRevalidatesAuthorizedResponse(resp, 0, 1);
@@ -4979,28 +4710,25 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
             final String authorization1 = "Basic dXNlcjpwYXNzd2Q=";
             final String authorization2 = "Basic dXNlcjpwYXNzd2Qy";
 
-            final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                    new BasicClassicHttpRequest("GET", "/"), route);
+            final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
             req1.setHeader("Authorization",authorization1);
 
             backendExpectsAnyRequestAndReturn(authorizedResponse);
 
-            final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                    new BasicClassicHttpRequest("GET", "/"), route);
+            final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
             req2.setHeader("Authorization",authorization2);
 
             final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
 
-            final Capture<RoutedHttpRequest> cap = new Capture<>();
+            final Capture<ClassicHttpRequest> cap = new Capture<>();
             EasyMock.expect(
-                    mockBackend.execute(
+                    mockExecChain.proceed(
                             EasyMock.capture(cap),
-                            EasyMock.isA(HttpClientContext.class),
-                            EasyMock.<HttpExecutionAware>isNull())).andReturn(resp2);
+                            EasyMock.isA(ExecChain.Scope.class))).andReturn(resp2);
 
             replayMocks();
-            impl.execute(req1, context, null);
-            impl.execute(req2, context, null);
+            execute(req1);
+            execute(req2);
             verifyMocks();
 
             final ClassicHttpRequest captured = cap.getValue();
@@ -5010,8 +4738,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithSMaxAge()
-    throws Exception {
+    public void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithSMaxAge() throws Exception {
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -5023,8 +4750,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithMustRevalidate()
-    throws Exception {
+    public void testSharedCacheMustUseNewRequestHeadersWhenRevalidatingAuthorizedResponsesWithMustRevalidate() throws Exception {
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
@@ -5049,12 +4775,10 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
      */
     @Test
-    public void testWarning110IsAddedToStaleResponses()
-        throws Exception {
+    public void testWarning110IsAddedToStaleResponses() throws Exception {
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
         resp1.setHeader("Cache-Control","max-age=5");
@@ -5062,21 +4786,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control","max-stale=60");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
 
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(cap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp2).times(0,1);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp2).times(0,1);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         if (!cap.hasCaptured()) {
@@ -5100,18 +4822,16 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
      */
     @Test
-    public void testDoesNotTransmitNoCacheDirectivesWithFieldsDownstream()
-        throws Exception {
+    public void testDoesNotTransmitNoCacheDirectivesWithFieldsDownstream() throws Exception {
         request.setHeader("Cache-Control","no-cache=\"X-Field\"");
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
-        EasyMock.expect(mockBackend.execute(
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        EasyMock.expect(mockExecChain.proceed(
                 EasyMock.capture(cap),
-                EasyMock.isA(HttpClientContext.class),
-                EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse).times(0,1);
+                EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse).times(0,1);
 
         replayMocks();
         try {
-            impl.execute(request, context, null);
+            execute(request);
         } catch (final ClientProtocolException acceptable) {
         }
         verifyMocks();
@@ -5134,10 +4854,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      *
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
      */
-    protected void testCacheIsNotUsedWhenRespondingToRequest(final RoutedHttpRequest req)
-        throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+    protected void testCacheIsNotUsedWhenRespondingToRequest(final ClassicHttpRequest req) throws Exception {
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Etag","\"etag\"");
         resp1.setHeader("Cache-Control","max-age=3600");
@@ -5148,15 +4866,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         resp2.setHeader("Etag","\"etag2\"");
         resp2.setHeader("Cache-Control","max-age=1200");
 
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
-        EasyMock.expect(mockBackend.execute(
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
+        EasyMock.expect(mockExecChain.proceed(
                 EasyMock.capture(cap),
-                EasyMock.isA(HttpClientContext.class),
-                EasyMock.<HttpExecutionAware>isNull())).andReturn(resp2);
+                EasyMock.isA(ExecChain.Scope.class))).andReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req);
         verifyMocks();
 
         Assert.assertTrue(HttpTestUtils.semanticallyTransparent(resp2, result));
@@ -5165,19 +4882,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testCacheIsNotUsedWhenRespondingToRequestWithCacheControlNoCache()
-        throws Exception {
-        final RoutedHttpRequest req = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+    public void testCacheIsNotUsedWhenRespondingToRequestWithCacheControlNoCache() throws Exception {
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("GET", "/");
         req.setHeader("Cache-Control","no-cache");
         testCacheIsNotUsedWhenRespondingToRequest(req);
     }
 
     @Test
-    public void testCacheIsNotUsedWhenRespondingToRequestWithPragmaNoCache()
-        throws Exception {
-        final RoutedHttpRequest req = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+    public void testCacheIsNotUsedWhenRespondingToRequestWithPragmaNoCache() throws Exception {
+        final ClassicHttpRequest req = new BasicClassicHttpRequest("GET", "/");
         req.setHeader("Pragma","no-cache");
         testCacheIsNotUsedWhenRespondingToRequest(req);
     }
@@ -5193,29 +4906,26 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     protected void testStaleCacheResponseMustBeRevalidatedWithOrigin(
             final ClassicHttpResponse staleResponse) throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
         backendExpectsAnyRequestAndReturn(staleResponse);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control","max-stale=3600");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag","\"etag2\"");
         resp2.setHeader("Cache-Control","max-age=5, must-revalidate");
 
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
         // this request MUST happen
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(cap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp2);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
+        execute(req1);
+        execute(req2);
         verifyMocks();
 
         final ClassicHttpRequest reval = cap.getValue();
@@ -5232,8 +4942,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testStaleEntryWithMustRevalidateIsNotUsedWithoutRevalidatingWithOrigin()
-        throws Exception {
+    public void testStaleEntryWithMustRevalidateIsNotUsedWithoutRevalidatingWithOrigin() throws Exception {
         final ClassicHttpResponse response = HttpTestUtils.make200Response();
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
@@ -5251,19 +4960,17 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     protected void testGenerates504IfCannotRevalidateStaleResponse(
             final ClassicHttpResponse staleResponse) throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
 
         backendExpectsAnyRequestAndReturn(staleResponse);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
         backendExpectsAnyRequest().andThrow(new SocketTimeoutException());
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         Assert.assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT,
@@ -5271,8 +4978,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testGenerates504IfCannotRevalidateAMustRevalidateEntry()
-        throws Exception {
+    public void testGenerates504IfCannotRevalidateAMustRevalidateEntry() throws Exception {
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
@@ -5290,8 +4996,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.4
      */
     @Test
-    public void testStaleEntryWithProxyRevalidateOnSharedCacheIsNotUsedWithoutRevalidatingWithOrigin()
-        throws Exception {
+    public void testStaleEntryWithProxyRevalidateOnSharedCacheIsNotUsedWithoutRevalidatingWithOrigin() throws Exception {
         if (config.isSharedCache()) {
             final ClassicHttpResponse response = HttpTestUtils.make200Response();
             final Date now = new Date();
@@ -5305,8 +5010,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testGenerates504IfSharedCacheCannotRevalidateAProxyRevalidateEntry()
-        throws Exception {
+    public void testGenerates504IfSharedCacheCannotRevalidateAProxyRevalidateEntry() throws Exception {
         if (config.isSharedCache()) {
             final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
             final Date now = new Date();
@@ -5326,51 +5030,45 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.1
      */
     @Test
-    public void testCacheControlPrivateIsNotCacheableBySharedCache()
-    throws Exception {
+    public void testCacheControlPrivateIsNotCacheableBySharedCache() throws Exception {
        if (config.isSharedCache()) {
-               final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                       new BasicClassicHttpRequest("GET", "/"), route);
+               final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
                final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
                resp1.setHeader("Cache-Control","private,max-age=3600");
 
                backendExpectsAnyRequestAndReturn(resp1);
 
-               final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                       new BasicClassicHttpRequest("GET", "/"), route);
+               final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
                final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
                // this backend request MUST happen
                backendExpectsAnyRequestAndReturn(resp2);
 
                replayMocks();
-               impl.execute(req1, context, null);
-               impl.execute(req2, context, null);
+               execute(req1);
+               execute(req2);
                verifyMocks();
        }
     }
 
     @Test
-    public void testCacheControlPrivateOnFieldIsNotReturnedBySharedCache()
-    throws Exception {
+    public void testCacheControlPrivateOnFieldIsNotReturnedBySharedCache() throws Exception {
        if (config.isSharedCache()) {
-               final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                       new BasicClassicHttpRequest("GET", "/"), route);
+               final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
                final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
                resp1.setHeader("X-Personal","stuff");
                resp1.setHeader("Cache-Control","private=\"X-Personal\",s-maxage=3600");
 
                backendExpectsAnyRequestAndReturn(resp1);
 
-               final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                       new BasicClassicHttpRequest("GET", "/"), route);
+               final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
                final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
 
                // this backend request MAY happen
                backendExpectsAnyRequestAndReturn(resp2).times(0,1);
 
                replayMocks();
-               impl.execute(req1, context, null);
-               final ClassicHttpResponse result = impl.execute(req2, context, null);
+               execute(req1);
+               final ClassicHttpResponse result = execute(req2);
                verifyMocks();
                Assert.assertNull(result.getFirstHeader("X-Personal"));
        }
@@ -5385,42 +5083,36 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.1
      */
     @Test
-    public void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidation()
-    throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+    public void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidation() throws Exception {
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Cache-Control","no-cache");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
 
         // this MUST happen
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
+        execute(req1);
+        execute(req2);
         verifyMocks();
     }
 
     @Test
-    public void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidationEvenWithContraryIndications()
-    throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+    public void testNoCacheCannotSatisfyASubsequentRequestWithoutRevalidationEvenWithContraryIndications() throws Exception {
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Cache-Control","no-cache,s-maxage=3600");
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         req2.setHeader("Cache-Control","max-stale=7200");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
 
@@ -5428,8 +5120,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
+        execute(req1);
+        execute(req2);
         verifyMocks();
     }
 
@@ -5440,10 +5132,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * without successful revalidation with the origin server."
      */
     @Test
-    public void testNoCacheOnFieldIsNotReturnedWithoutRevalidation()
-    throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+    public void testNoCacheOnFieldIsNotReturnedWithoutRevalidation() throws Exception {
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("X-Stuff","things");
@@ -5451,23 +5141,21 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         backendExpectsAnyRequestAndReturn(resp1);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("ETag","\"etag\"");
         resp2.setHeader("X-Stuff","things");
         resp2.setHeader("Cache-Control","no-cache=\"X-Stuff\",max-age=3600");
 
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(cap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(resp2).times(0,1);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(resp2).times(0,1);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         if (!cap.hasCaptured()) {
@@ -5491,51 +5179,47 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.2
      */
     @Test
-    public void testNoStoreOnRequestIsNotStoredInCache()
-    throws Exception {
+    public void testNoStoreOnRequestIsNotStoredInCache() throws Exception {
         emptyMockCacheExpectsNoPuts();
         request.setHeader("Cache-Control","no-store");
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(request, context, null);
+        execute(request);
         verifyMocks();
     }
 
     @Test
-    public void testNoStoreOnRequestIsNotStoredInCacheEvenIfResponseMarkedCacheable()
-    throws Exception {
+    public void testNoStoreOnRequestIsNotStoredInCacheEvenIfResponseMarkedCacheable() throws Exception {
         emptyMockCacheExpectsNoPuts();
         request.setHeader("Cache-Control","no-store");
         originResponse.setHeader("Cache-Control","max-age=3600");
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(request, context, null);
+        execute(request);
         verifyMocks();
     }
 
     @Test
-    public void testNoStoreOnResponseIsNotStoredInCache()
-    throws Exception {
+    public void testNoStoreOnResponseIsNotStoredInCache() throws Exception {
         emptyMockCacheExpectsNoPuts();
         originResponse.setHeader("Cache-Control","no-store");
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(request, context, null);
+        execute(request);
         verifyMocks();
     }
 
     @Test
-    public void testNoStoreOnResponseIsNotStoredInCacheEvenWithContraryIndicators()
-    throws Exception {
+    public void testNoStoreOnResponseIsNotStoredInCacheEvenWithContraryIndicators() throws Exception {
         emptyMockCacheExpectsNoPuts();
         originResponse.setHeader("Cache-Control","no-store,max-age=3600");
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        impl.execute(request, context, null);
+        execute(request);
         verifyMocks();
     }
 
@@ -5545,14 +5229,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11
      */
     @Test
-    public void testOrderOfMultipleContentEncodingHeaderValuesIsPreserved()
-        throws Exception {
+    public void testOrderOfMultipleContentEncodingHeaderValuesIsPreserved() throws Exception {
         originResponse.addHeader("Content-Encoding","gzip");
         originResponse.addHeader("Content-Encoding","deflate");
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
         int total_encodings = 0;
         final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.CONTENT_ENCODING);
@@ -5574,13 +5257,12 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testOrderOfMultipleParametersInContentEncodingHeaderIsPreserved()
-        throws Exception {
+    public void testOrderOfMultipleParametersInContentEncodingHeaderIsPreserved() throws Exception {
         originResponse.addHeader("Content-Encoding","gzip,deflate");
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
         int total_encodings = 0;
         final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.CONTENT_ENCODING);
@@ -5608,17 +5290,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.14
      */
     @Test
-    public void testCacheDoesNotAssumeContentLocationHeaderIndicatesAnotherCacheableResource()
-        throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/foo"), route);
+    public void testCacheDoesNotAssumeContentLocationHeaderIndicatesAnotherCacheableResource() throws Exception {
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/foo");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public,max-age=3600");
         resp1.setHeader("Etag","\"etag\"");
         resp1.setHeader("Content-Location","http://foo.example.com/bar");
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/bar"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/bar");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
         resp2.setHeader("Cache-Control","public,max-age=3600");
         resp2.setHeader("Etag","\"etag\"");
@@ -5627,8 +5306,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
+        execute(req1);
+        execute(req2);
         verifyMocks();
     }
 
@@ -5639,8 +5318,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
      */
     @Test
-    public void testCachedResponsesWithMissingDateHeadersShouldBeAssignedOne()
-        throws Exception {
+    public void testCachedResponsesWithMissingDateHeadersShouldBeAssignedOne() throws Exception {
         originResponse.removeHeaders("Date");
         originResponse.setHeader("Cache-Control","public");
         originResponse.setHeader("ETag","\"etag\"");
@@ -5648,7 +5326,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
         Assert.assertNotNull(result.getFirstHeader("Date"));
     }
@@ -5662,15 +5340,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     private void testInvalidExpiresHeaderIsTreatedAsStale(
             final String expiresHeader) throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public");
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Expires", expiresHeader);
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
 
         backendExpectsAnyRequestAndReturn(resp1);
@@ -5678,20 +5354,18 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
+        execute(req1);
+        execute(req2);
         verifyMocks();
     }
 
     @Test
-    public void testMalformedExpiresHeaderIsTreatedAsStale()
-        throws Exception {
+    public void testMalformedExpiresHeaderIsTreatedAsStale() throws Exception {
         testInvalidExpiresHeaderIsTreatedAsStale("garbage");
     }
 
     @Test
-    public void testExpiresZeroHeaderIsTreatedAsStale()
-        throws Exception {
+    public void testExpiresZeroHeaderIsTreatedAsStale() throws Exception {
         testInvalidExpiresHeaderIsTreatedAsStale("0");
     }
 
@@ -5701,17 +5375,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.21
      */
     @Test
-    public void testExpiresHeaderEqualToDateHeaderIsTreatedAsStale()
-        throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+    public void testExpiresHeaderEqualToDateHeaderIsTreatedAsStale() throws Exception {
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp1 = HttpTestUtils.make200Response();
         resp1.setHeader("Cache-Control","public");
         resp1.setHeader("ETag","\"etag\"");
         resp1.setHeader("Expires", resp1.getFirstHeader("Date").getValue());
 
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse resp2 = HttpTestUtils.make200Response();
 
         backendExpectsAnyRequestAndReturn(resp1);
@@ -5719,8 +5390,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        impl.execute(req2, context, null);
+        execute(req1);
+        execute(req2);
         verifyMocks();
     }
 
@@ -5730,15 +5401,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.38
      */
     @Test
-    public void testDoesNotModifyServerResponseHeader()
-        throws Exception {
+    public void testDoesNotModifyServerResponseHeader() throws Exception {
         final String server = "MockServer/1.0";
         originResponse.setHeader("Server", server);
 
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
         Assert.assertEquals(server, result.getFirstHeader("Server").getValue());
     }
@@ -5749,15 +5419,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.41
      */
     @Test
-    public void testOrderOfMultipleTransferEncodingHeadersIsPreserved()
-        throws Exception {
+    public void testOrderOfMultipleTransferEncodingHeadersIsPreserved() throws Exception {
         originResponse.addHeader("Transfer-Encoding","chunked");
         originResponse.addHeader("Transfer-Encoding","x-transfer");
 
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
         int transfer_encodings = 0;
         final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.TRANSFER_ENCODING);
@@ -5779,14 +5448,13 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testOrderOfMultipleTransferEncodingsInSingleHeadersIsPreserved()
-        throws Exception {
+    public void testOrderOfMultipleTransferEncodingsInSingleHeadersIsPreserved() throws Exception {
         originResponse.addHeader("Transfer-Encoding","chunked, x-transfer");
 
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
         int transfer_encodings = 0;
         final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.TRANSFER_ENCODING);
@@ -5816,8 +5484,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.44
      */
     @Test
-    public void testVaryStarIsNotGeneratedByProxy()
-        throws Exception {
+    public void testVaryStarIsNotGeneratedByProxy() throws Exception {
         request.setHeader("User-Agent","my-agent/1.0");
         originResponse.setHeader("Cache-Control","public, max-age=3600");
         originResponse.setHeader("Vary","User-Agent");
@@ -5826,7 +5493,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
         final Iterator<HeaderElement> it = MessageSupport.iterate(result, HttpHeaders.VARY);
         while (it.hasNext()) {
@@ -5844,16 +5511,15 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      */
     @Test
     public void testProperlyFormattedViaHeaderIsAddedToRequests() throws Exception {
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
         request.removeHeaders("Via");
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(cap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(request, context, null);
+        execute(request);
         verifyMocks();
 
         final ClassicHttpRequest captured = cap.getValue();
@@ -5866,7 +5532,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.removeHeaders("Via");
         backendExpectsAnyRequest().andReturn(originResponse);
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
         assertValidViaHeader(result.getFirstHeader("Via").getValue());
     }
@@ -5941,21 +5607,19 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.45
      */
     @Test
-    public void testViaHeaderOnRequestProperlyRecordsClientProtocol()
-    throws Exception {
+    public void testViaHeaderOnRequestProperlyRecordsClientProtocol() throws Exception {
         final ClassicHttpRequest originalRequest = new BasicClassicHttpRequest("GET", "/");
         originalRequest.setVersion(HttpVersion.HTTP_1_0);
-        request = RoutedHttpRequest.adapt(originalRequest, route);
+        request = originalRequest;
         request.removeHeaders("Via");
-        final Capture<RoutedHttpRequest> cap = new Capture<>();
+        final Capture<ClassicHttpRequest> cap = new Capture<>();
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(cap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
-        impl.execute(request, context, null);
+        execute(request);
         verifyMocks();
 
         final ClassicHttpRequest captured = cap.getValue();
@@ -5969,8 +5633,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testViaHeaderOnResponseProperlyRecordsOriginProtocol()
-    throws Exception {
+    public void testViaHeaderOnResponseProperlyRecordsOriginProtocol() throws Exception {
 
         originResponse = new BasicClassicHttpResponse(HttpStatus.SC_NO_CONTENT, "No Content");
         originResponse.setVersion(HttpVersion.HTTP_1_0);
@@ -5978,7 +5641,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         final String via = result.getFirstHeader("Via").getValue();
@@ -5998,15 +5661,14 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
      */
     @Test
-    public void testRetainsWarningHeadersReceivedFromUpstream()
-        throws Exception {
+    public void testRetainsWarningHeadersReceivedFromUpstream() throws Exception {
         originResponse.removeHeaders("Warning");
         final String warning = "199 fred \"misc\"";
         originResponse.addHeader("Warning", warning);
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
         Assert.assertEquals(warning,
                 result.getFirstHeader("Warning").getValue());
@@ -6020,12 +5682,9 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
      */
     @Test
-    public void testUpdatesWarningHeadersOnValidation()
-        throws Exception {
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
-        final RoutedHttpRequest req2 = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+    public void testUpdatesWarningHeadersOnValidation() throws Exception {
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET", "/");
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET", "/");
 
         final Date now = new Date();
         final Date twentySecondsAgo = new Date(now.getTime() - 20 * 1000L);
@@ -6047,8 +5706,8 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequestAndReturn(resp2);
 
         replayMocks();
-        impl.execute(req1, context, null);
-        final ClassicHttpResponse result = impl.execute(req2, context, null);
+        execute(req1);
+        final ClassicHttpResponse result = execute(req2);
         verifyMocks();
 
         boolean oldWarningFound = false;
@@ -6074,8 +5733,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
      */
     @Test
-    public void testWarnDatesAreAddedToWarningsOnLowerProtocolVersions()
-        throws Exception {
+    public void testWarnDatesAreAddedToWarningsOnLowerProtocolVersions() throws Exception {
         final String dateHdr = DateUtils.formatDate(new Date());
         final String origWarning = "110 fred \"stale\"";
         originResponse.setCode(HttpStatus.SC_OK);
@@ -6084,7 +5742,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         originResponse.setHeader("Date", dateHdr);
         backendExpectsAnyRequest().andReturn(originResponse);
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
         // note that currently the implementation acts as an HTTP/1.1 proxy,
         // which means that all the responses from the caching module should
@@ -6117,8 +5775,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
      * http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.46
      */
     @Test
-    public void testStripsBadlyDatedWarningsFromForwardedResponses()
-        throws Exception {
+    public void testStripsBadlyDatedWarningsFromForwardedResponses() throws Exception {
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         originResponse.setHeader("Date", DateUtils.formatDate(now));
@@ -6128,7 +5785,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         for(final Header h : result.getHeaders("Warning")) {
@@ -6137,8 +5794,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testStripsBadlyDatedWarningsFromStoredResponses()
-        throws Exception {
+    public void testStripsBadlyDatedWarningsFromStoredResponses() throws Exception {
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         originResponse.setHeader("Date", DateUtils.formatDate(now));
@@ -6148,7 +5804,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         for(final Header h : result.getHeaders("Warning")) {
@@ -6157,8 +5813,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
     }
 
     @Test
-    public void testRemovesWarningHeaderIfAllWarnValuesAreBadlyDated()
-    throws Exception {
+    public void testRemovesWarningHeaderIfAllWarnValuesAreBadlyDated() throws Exception {
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         originResponse.setHeader("Date", DateUtils.formatDate(now));
@@ -6167,7 +5822,7 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         backendExpectsAnyRequest().andReturn(originResponse);
 
         replayMocks();
-        final ClassicHttpResponse result = impl.execute(request, context, null);
+        final ClassicHttpResponse result = execute(request);
         verifyMocks();
 
         final Header[] warningHeaders = result.getHeaders("Warning");

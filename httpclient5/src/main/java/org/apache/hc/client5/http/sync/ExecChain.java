@@ -24,42 +24,38 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.cache;
+
+package org.apache.hc.client5.http.sync;
 
 import java.io.IOException;
 
-import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
+import org.apache.hc.core5.util.Args;
 
-public class DummyBackend implements ExecChain {
+public interface ExecChain {
 
-    private ClassicHttpRequest request;
-    private ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-    private int executions = 0;
+    final class Scope {
 
-    public void setResponse(final ClassicHttpResponse resp) {
-        response = resp;
+        public final HttpRoute route;
+        public final ClassicHttpRequest originalRequest;
+        public final ExecRuntime execRuntime;
+        public final HttpClientContext clientContext;
+
+        public Scope(final HttpRoute route, final ClassicHttpRequest originalRequest, final ExecRuntime execRuntime, final HttpClientContext clientContext) {
+            this.route = Args.notNull(route, "Route");
+            this.originalRequest = Args.notNull(originalRequest, "Original request");
+            this.execRuntime = Args.notNull(execRuntime, "Exec runtime");
+            this.clientContext = clientContext != null ? clientContext : HttpClientContext.create();
+        }
+
     }
 
-    public HttpRequest getCapturedRequest() {
-        return request;
-    }
+    ClassicHttpResponse proceed(
+            ClassicHttpRequest request,
+            Scope scope) throws IOException, HttpException;
 
-    @Override
-    public ClassicHttpResponse proceed(
-            final ClassicHttpRequest request,
-            final Scope scope) throws IOException, HttpException {
-        this.request = request;
-        executions++;
-        return response;
-    }
-
-    public int getExecutions() {
-        return executions;
-    }
 }

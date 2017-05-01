@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
 
+import org.apache.hc.client5.http.sync.ExecRuntime;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.EofSensorInputStream;
@@ -45,35 +46,38 @@ import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
  */
 class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher {
 
-    private final EndpointHolder endpointHolder;
+    private final ExecRuntime execRuntime;
 
-    public static void enchance(final ClassicHttpResponse response, final EndpointHolder connHolder) {
+    public static void enchance(final ClassicHttpResponse response, final ExecRuntime execRuntime) {
         final HttpEntity entity = response.getEntity();
-        if (entity != null && entity.isStreaming() && connHolder != null) {
-            response.setEntity(new ResponseEntityProxy(entity, connHolder));
+        if (entity != null && entity.isStreaming() && execRuntime != null) {
+            response.setEntity(new ResponseEntityProxy(entity, execRuntime));
         }
     }
 
-    ResponseEntityProxy(final HttpEntity entity, final EndpointHolder endpointHolder) {
+    ResponseEntityProxy(final HttpEntity entity, final ExecRuntime execRuntime) {
         super(entity);
-        this.endpointHolder = endpointHolder;
+        this.execRuntime = execRuntime;
     }
 
     private void cleanup() throws IOException {
-        if (this.endpointHolder != null) {
-            this.endpointHolder.close();
+        if (this.execRuntime != null) {
+            if (this.execRuntime.isConnected()) {
+                this.execRuntime.disconnect();
+            }
+            this.execRuntime.discardConnection();
         }
     }
 
-    private void abortConnection() {
-        if (this.endpointHolder != null) {
-            this.endpointHolder.abortConnection();
+    private void discardConnection() {
+        if (this.execRuntime != null) {
+            this.execRuntime.discardConnection();
         }
     }
 
     public void releaseConnection() {
-        if (this.endpointHolder != null) {
-            this.endpointHolder.releaseConnection();
+        if (this.execRuntime != null) {
+            this.execRuntime.releaseConnection();
         }
     }
 
@@ -95,7 +99,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
             }
             releaseConnection();
         } catch (IOException | RuntimeException ex) {
-            abortConnection();
+            discardConnection();
             throw ex;
         } finally {
             cleanup();
@@ -112,7 +116,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
             }
             releaseConnection();
         } catch (IOException | RuntimeException ex) {
-            abortConnection();
+            discardConnection();
             throw ex;
         } finally {
             cleanup();
@@ -123,7 +127,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
     @Override
     public boolean streamClosed(final InputStream wrapped) throws IOException {
         try {
-            final boolean open = endpointHolder != null && !endpointHolder.isReleased();
+            final boolean open = execRuntime != null && execRuntime.isConnectionAcquired();
             // this assumes that closing the stream will
             // consume the remainder of the response body:
             try {
@@ -137,7 +141,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
                 }
             }
         } catch (IOException | RuntimeException ex) {
-            abortConnection();
+            discardConnection();
             throw ex;
         } finally {
             cleanup();

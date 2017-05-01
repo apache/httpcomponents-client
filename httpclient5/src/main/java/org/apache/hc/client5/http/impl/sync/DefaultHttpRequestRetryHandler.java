@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.net.ssl.SSLException;
 
 import org.apache.hc.client5.http.sync.HttpRequestRetryHandler;
-import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
+import org.apache.hc.client5.http.sync.methods.HttpUriRequestBase;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpRequest;
@@ -153,7 +153,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
                 }
             }
         }
-        if (request instanceof HttpUriRequest && ((HttpUriRequest)request).isAborted()) {
+        if (request instanceof HttpUriRequestBase && ((HttpUriRequestBase)request).isAborted()) {
             return false;
         }
         if (handleAsIdempotent(request)) {

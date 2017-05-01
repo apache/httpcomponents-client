@@ -25,12 +25,11 @@
  *
  */
 
-package org.apache.hc.client5.http.impl.sync;
+package org.apache.hc.client5.http.sync;
 
 import java.io.IOException;
 
-import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 
@@ -47,25 +46,11 @@ import org.apache.hc.core5.http.HttpException;
  *
  * @since 4.3
  */
-public interface ClientExecChain {
+public interface ExecChainHandler {
 
-    /**
-     * Executes th request either by transmitting it to the target server or
-     * by passing it onto the next executor in the request execution chain.
-     *
-     * @param request current request.
-     * @param clientContext current HTTP context.
-     * @param execAware receiver of notifications of blocking I/O operations.
-     * @return HTTP response either received from the opposite endpoint
-     *   or generated locally.
-     * @throws IOException in case of a I/O error.
-     *   (this type of exceptions are potentially recoverable).
-     * @throws HttpException in case of an HTTP protocol error
-     *   (usually this type of exceptions are non-recoverable).
-     */
     ClassicHttpResponse execute(
-            RoutedHttpRequest request,
-            HttpClientContext clientContext,
-            HttpExecutionAware execAware) throws IOException, HttpException;
+            ClassicHttpRequest request,
+            ExecChain.Scope scope,
+            ExecChain chain) throws IOException, HttpException;
 
 }

@@ -31,8 +31,8 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
 import org.apache.hc.client5.http.sync.methods.RequestBuilder;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.junit.Assert;
@@ -60,7 +60,7 @@ public class TestRequestBuilder {
 
         final String uriExpected = String.format("https://somehost.com/stuff?parameter1=value1&parameter2=%s&parameter3=%s", encodedData1, encodedData2);
 
-        final HttpUriRequest request = requestBuilder.build();
+        final ClassicHttpRequest request = requestBuilder.build();
         Assert.assertEquals(uriExpected, request.getUri().toString());
     }
 

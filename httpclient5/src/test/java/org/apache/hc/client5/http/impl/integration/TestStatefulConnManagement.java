@@ -122,7 +122,7 @@ public class TestStatefulConnManagement extends LocalServerTestBase {
             final String state0 = (String) context.getAttribute("r0");
             Assert.assertNotNull(state0);
             for (int r = 1; r < requestCount; r++) {
-                Assert.assertEquals(state0, (String) context.getAttribute("r" + r));
+                Assert.assertEquals(state0, context.getAttribute("r" + r));
             }
         }
 

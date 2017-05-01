@@ -33,10 +33,10 @@ import java.util.List;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
-import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
@@ -66,20 +66,23 @@ class ResponseProtocolCompliance {
      * we attempt to see if it is HTTP 1.1 Compliant and if not, attempt to
      * make it so.
      *
+     * @param originalRequest The original {@link HttpRequest}
      * @param request The {@link HttpRequest} that generated an origin hit and response
      * @param response The {@link HttpResponse} from the origin server
      * @throws IOException Bad things happened
      */
-    public void ensureProtocolCompliance(final RoutedHttpRequest request, final ClassicHttpResponse response)
-            throws IOException {
+    public void ensureProtocolCompliance(
+            final ClassicHttpRequest originalRequest,
+            final ClassicHttpRequest request,
+            final ClassicHttpResponse response) throws IOException {
         if (backendResponseMustNotHaveBody(request, response)) {
             consumeBody(response);
             response.setEntity(null);
         }
 
-        requestDidNotExpect100ContinueButResponseIsOne(request, response);
+        requestDidNotExpect100ContinueButResponseIsOne(originalRequest, response);
 
-        transferEncodingIsNotReturnedTo1_0Client(request, response);
+        transferEncodingIsNotReturnedTo1_0Client(originalRequest, response);
 
         ensurePartialContentIsNotSentToAClientThatDidNotRequestIt(request, response);
 
@@ -221,13 +224,12 @@ class ResponseProtocolCompliance {
                 || backendResponse.getCode() == HttpStatus.SC_NOT_MODIFIED;
     }
 
-    private void requestDidNotExpect100ContinueButResponseIsOne(final RoutedHttpRequest request,
-            final ClassicHttpResponse response) throws IOException {
+    private void requestDidNotExpect100ContinueButResponseIsOne(
+            final ClassicHttpRequest originalRequest, final ClassicHttpResponse response) throws IOException {
         if (response.getCode() != HttpStatus.SC_CONTINUE) {
             return;
         }
 
-        final HttpRequest originalRequest = request.getOriginal();
         final Header header = originalRequest.getFirstHeader(HttpHeaders.EXPECT);
         if (header != null && header.getValue().equalsIgnoreCase(HeaderElements.CONTINUE)) {
             return;
@@ -236,9 +238,8 @@ class ResponseProtocolCompliance {
         throw new ClientProtocolException(UNEXPECTED_100_CONTINUE);
     }
 
-    private void transferEncodingIsNotReturnedTo1_0Client(final RoutedHttpRequest request,
-            final HttpResponse response) {
-        final HttpRequest originalRequest = request.getOriginal();
+    private void transferEncodingIsNotReturnedTo1_0Client(
+            final ClassicHttpRequest originalRequest, final HttpResponse response) {
         final ProtocolVersion version = originalRequest.getVersion() != null ? originalRequest.getVersion() : HttpVersion.DEFAULT;
         if (version.compareToVersion(HttpVersion.HTTP_1_1) >= 0) {
             return;

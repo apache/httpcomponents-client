@@ -30,7 +30,6 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.isNull;
 import static org.easymock.EasyMock.same;
 import static org.easymock.classextension.EasyMock.createMockBuilder;
 import static org.easymock.classextension.EasyMock.createNiceMock;
@@ -46,12 +45,10 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.impl.sync.ClientExecChain;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
+import org.apache.hc.client5.http.sync.ExecChain;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
-import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpHeaders;
@@ -83,6 +80,7 @@ public class TestCachingExec extends TestCachingExecChain {
     private CachingExec impl;
     private boolean mockedImpl;
 
+    private ExecChain.Scope scope;
     private ClassicHttpResponse mockBackendResponse;
 
     private Date requestDate;
@@ -93,6 +91,7 @@ public class TestCachingExec extends TestCachingExecChain {
     public void setUp() {
         super.setUp();
 
+        scope = new ExecChain.Scope(route, request, mockEndpoint, context);
         mockBackendResponse = createNiceMock(ClassicHttpResponse.class);
 
         requestDate = new Date(System.currentTimeMillis() - 1000);
@@ -100,7 +99,7 @@ public class TestCachingExec extends TestCachingExecChain {
     }
 
     @Override
-    public CachingExec createCachingExecChain(final ClientExecChain mockBackend,
+    public CachingExec createCachingExecChain(
             final HttpCache mockCache, final CacheValidityPolicy mockValidityPolicy,
             final ResponseCachingPolicy mockResponsePolicy,
             final CachedHttpResponseGenerator mockResponseGenerator,
@@ -111,7 +110,6 @@ public class TestCachingExec extends TestCachingExecChain {
             final RequestProtocolCompliance mockRequestProtocolCompliance,
             final CacheConfig config, final AsynchronousValidator asyncValidator) {
         return impl = new CachingExec(
-                mockBackend,
                 mockCache,
                 mockValidityPolicy,
                 mockResponsePolicy,
@@ -126,9 +124,8 @@ public class TestCachingExec extends TestCachingExecChain {
     }
 
     @Override
-    public CachingExec createCachingExecChain(final ClientExecChain backend,
-            final HttpCache cache, final CacheConfig config) {
-        return impl = new CachingExec(backend, cache, config);
+    public CachingExec createCachingExecChain(final HttpCache cache, final CacheConfig config) {
+        return impl = new CachingExec(cache, config);
     }
 
     @Override
@@ -160,7 +157,7 @@ public class TestCachingExec extends TestCachingExecChain {
         requestIsFatallyNonCompliant(null);
 
         replayMocks();
-        final HttpResponse result = impl.execute(request, context);
+        final HttpResponse result = impl.execute(request, scope, mockExecChain);
         verifyMocks();
 
         Assert.assertSame(mockBackendResponse, result);
@@ -179,7 +176,7 @@ public class TestCachingExec extends TestCachingExecChain {
         implExpectsAnyRequestAndReturn(mockBackendResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(request, context);
+        final HttpResponse result = impl.execute(request, scope, mockExecChain);
         verifyMocks();
 
         Assert.assertSame(mockBackendResponse, result);
@@ -205,7 +202,7 @@ public class TestCachingExec extends TestCachingExecChain {
         expect(mockBackendResponse.getCode()).andReturn(200);
 
         replayMocks();
-        final HttpResponse result = impl.execute(request, context);
+        final HttpResponse result = impl.execute(request, scope, mockExecChain);
         verifyMocks();
 
         Assert.assertSame(mockBackendResponse, result);
@@ -229,13 +226,14 @@ public class TestCachingExec extends TestCachingExecChain {
         mayReturnStaleWhileRevalidating(false);
 
         expect(impl.revalidateCacheEntry(
-                isA(RoutedHttpRequest.class),
-                isA(HttpClientContext.class),
-                (HttpExecutionAware) isNull(),
+                isA(HttpHost.class),
+                isA(ClassicHttpRequest.class),
+                isA(ExecChain.Scope.class),
+                isA(ExecChain.class),
                 isA(HttpCacheEntry.class))).andReturn(mockBackendResponse);
 
         replayMocks();
-        final HttpResponse result = impl.execute(request, context);
+        final HttpResponse result = impl.execute(request, scope, mockExecChain);
         verifyMocks();
 
         Assert.assertSame(mockBackendResponse, result);
@@ -248,8 +246,7 @@ public class TestCachingExec extends TestCachingExecChain {
     public void testRevalidationCallsHandleBackEndResponseWhenNot200Or304() throws Exception {
         mockImplMethods(GET_CURRENT_DATE, HANDLE_BACKEND_RESPONSE);
 
-        final RoutedHttpRequest validate = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest validate = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse originResponse = new BasicClassicHttpResponse(HttpStatus.SC_NOT_FOUND, "Not Found");
         final ClassicHttpResponse finalResponse =  HttpTestUtils.make200Response();
 
@@ -258,15 +255,16 @@ public class TestCachingExec extends TestCachingExecChain {
         backendExpectsRequestAndReturn(validate, originResponse);
         getCurrentDateReturns(responseDate);
         expect(impl.handleBackendResponse(
+                same(host),
                 same(validate),
-                same(context),
+                same(scope),
                 eq(requestDate),
                 eq(responseDate),
                 same(originResponse))).andReturn(finalResponse);
 
         replayMocks();
         final HttpResponse result =
-            impl.revalidateCacheEntry(request, context, null, entry);
+            impl.revalidateCacheEntry(host, request, scope, mockExecChain, entry);
         verifyMocks();
 
         Assert.assertSame(finalResponse, result);
@@ -278,8 +276,7 @@ public class TestCachingExec extends TestCachingExecChain {
 
         mockImplMethods(GET_CURRENT_DATE);
 
-        final RoutedHttpRequest validate = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/"), route);
+        final ClassicHttpRequest validate = new BasicClassicHttpRequest("GET", "/");
         final ClassicHttpResponse originResponse = HttpTestUtils.make304Response();
         final HttpCacheEntry updatedEntry = HttpTestUtils.makeCacheEntry();
 
@@ -299,7 +296,7 @@ public class TestCachingExec extends TestCachingExecChain {
         responseIsGeneratedFromCache();
 
         replayMocks();
-        impl.revalidateCacheEntry(request, context, null, entry);
+        impl.revalidateCacheEntry(host, request, scope, mockExecChain, entry);
         verifyMocks();
     }
 
@@ -309,32 +306,29 @@ public class TestCachingExec extends TestCachingExecChain {
         mockImplMethods(GET_CURRENT_DATE);
 
         // Fail on an unexpected request, rather than causing a later NPE
-        EasyMock.resetToStrict(mockBackend);
+        EasyMock.resetToStrict(mockExecChain);
 
-        final RoutedHttpRequest validate = RoutedHttpRequest.adapt(
-                new HttpGet("http://foo.example.com/resource"), route);
-        final RoutedHttpRequest relativeValidate = RoutedHttpRequest.adapt(
-                new BasicClassicHttpRequest("GET", "/resource"), route);
+        final ClassicHttpRequest validate = new HttpGet("http://foo.example.com/resource");
+        final ClassicHttpRequest relativeValidate = new BasicClassicHttpRequest("GET", "/resource");
         final ClassicHttpResponse originResponse = new BasicClassicHttpResponse(HttpStatus.SC_OK, "Okay");
 
         conditionalRequestBuilderReturns(validate);
         getCurrentDateReturns(requestDate);
 
-        final ClassicHttpResponse resp = mockBackend.execute(
-                eqRequest(relativeValidate), EasyMock.isA(HttpClientContext.class),
-                EasyMock.<HttpExecutionAware> isNull());
+        final ClassicHttpResponse resp = mockExecChain.proceed(
+                eqRequest(relativeValidate), isA(ExecChain.Scope.class));
         expect(resp).andReturn(originResponse);
 
         getCurrentDateReturns(responseDate);
 
         replayMocks();
-        impl.revalidateCacheEntry(request, context, null, entry);
+        impl.revalidateCacheEntry(host, request, scope, mockExecChain, entry);
         verifyMocks();
     }
 
     @Test
     public void testEndlessResponsesArePassedThrough() throws Exception {
-        impl = createCachingExecChain(mockBackend, new BasicHttpCache(), CacheConfig.DEFAULT);
+        impl = createCachingExecChain(new BasicHttpCache(), CacheConfig.DEFAULT);
 
         final ClassicHttpResponse resp1 = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         resp1.setHeader("Date", DateUtils.formatDate(new Date()));
@@ -366,16 +360,14 @@ public class TestCachingExec extends TestCachingExecChain {
             }
         }, -1));
 
-        final ClassicHttpResponse resp = mockBackend.execute(
-                EasyMock.isA(RoutedHttpRequest.class),
-                EasyMock.isA(HttpClientContext.class),
-                EasyMock.<HttpExecutionAware>isNull());
+        final ClassicHttpResponse resp = mockExecChain.proceed(
+                isA(ClassicHttpRequest.class), isA(ExecChain.Scope.class));
         EasyMock.expect(resp).andReturn(resp1);
 
-        final RoutedHttpRequest req1 = RoutedHttpRequest.adapt(HttpTestUtils.makeDefaultRequest(), route);
+        final ClassicHttpRequest req1 = HttpTestUtils.makeDefaultRequest();
 
         replayMocks();
-        final ClassicHttpResponse resp2 = impl.execute(req1, context, null);
+        final ClassicHttpResponse resp2 = impl.execute(req1, scope, mockExecChain);
         maxlength.set(size.get() * 2);
         verifyMocks();
         assertTrue(HttpTestUtils.semanticallyTransparent(resp1, resp2));
@@ -392,7 +384,7 @@ public class TestCachingExec extends TestCachingExecChain {
 
         replayMocks();
 
-        impl.callBackend(request, context, null);
+        impl.callBackend(host, request, scope, mockExecChain);
 
         verifyMocks();
     }
@@ -400,9 +392,10 @@ public class TestCachingExec extends TestCachingExecChain {
     private IExpectationSetters<ClassicHttpResponse> implExpectsAnyRequestAndReturn(
             final ClassicHttpResponse response) throws Exception {
         final ClassicHttpResponse resp = impl.callBackend(
-                EasyMock.isA(RoutedHttpRequest.class),
-                EasyMock.isA(HttpClientContext.class),
-                EasyMock.<HttpExecutionAware>isNull());
+                same(host),
+                isA(ClassicHttpRequest.class),
+                isA(ExecChain.Scope.class),
+                isA(ExecChain.class));
         return EasyMock.expect(resp).andReturn(response);
     }
 
@@ -420,12 +413,13 @@ public class TestCachingExec extends TestCachingExecChain {
         expect(impl.getCurrentDate()).andReturn(date);
     }
 
-    private void handleBackendResponseReturnsResponse(final RoutedHttpRequest request, final ClassicHttpResponse response)
+    private void handleBackendResponseReturnsResponse(final ClassicHttpRequest request, final ClassicHttpResponse response)
             throws IOException {
         expect(
                 impl.handleBackendResponse(
+                        same(host),
                         same(request),
-                        isA(HttpClientContext.class),
+                        same(scope),
                         isA(Date.class),
                         isA(Date.class),
                         isA(ClassicHttpResponse.class))).andReturn(response);
@@ -434,7 +428,6 @@ public class TestCachingExec extends TestCachingExecChain {
     private void mockImplMethods(final String... methods) {
         mockedImpl = true;
         impl = createMockBuilder(CachingExec.class).withConstructor(
-                mockBackend,
                 mockCache,
                 mockValidityPolicy,
                 mockResponsePolicy,

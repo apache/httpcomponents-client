@@ -28,19 +28,24 @@
 package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.CredentialsStore;
-import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.config.AuthSchemes;
+import org.apache.hc.client5.http.auth.util.CredentialSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecChainHandler;
+import org.apache.hc.client5.http.utils.URIUtils;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.net.URIAuthority;
@@ -61,47 +66,46 @@ import org.apache.hc.core5.util.Args;
  * @since 4.3
  */
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class ProtocolExec implements ClientExecChain {
+final class ProtocolExec implements ExecChainHandler {
 
-    private final ClientExecChain requestExecutor;
     private final HttpProcessor httpProcessor;
 
-    public ProtocolExec(final ClientExecChain requestExecutor, final HttpProcessor httpProcessor) {
-        Args.notNull(requestExecutor, "HTTP client request executor");
+    public ProtocolExec(final HttpProcessor httpProcessor) {
         Args.notNull(httpProcessor, "HTTP protocol processor");
-        this.requestExecutor = requestExecutor;
         this.httpProcessor = httpProcessor;
     }
 
     @Override
     public ClassicHttpResponse execute(
-            final RoutedHttpRequest request,
-            final HttpClientContext context,
-            final HttpExecutionAware execAware) throws IOException, HttpException {
+            final ClassicHttpRequest request,
+            final ExecChain.Scope scope,
+            final ExecChain chain) throws IOException, HttpException {
         Args.notNull(request, "HTTP request");
-        Args.notNull(context, "HTTP context");
+        Args.notNull(scope, "Scope");
 
-        final HttpRoute route = request.getRoute();
+        final HttpRoute route = scope.route;
+        final HttpClientContext context = scope.clientContext;
+
+        if (route.getProxyHost() != null && !route.isTunnelled()) {
+            try {
+                URI uri = request.getUri();
+                if (!uri.isAbsolute()) {
+                    final HttpHost target = route.getTargetHost();
+                    uri = URIUtils.rewriteURI(uri, target, true);
+                } else {
+                    uri = URIUtils.rewriteURI(uri);
+                }
+                request.setPath(uri.toASCIIString());
+            } catch (final URISyntaxException ex) {
+                throw new ProtocolException("Invalid URI: " + request.getRequestUri(), ex);
+            }
+        }
+
         final URIAuthority authority = request.getAuthority();
         if (authority != null) {
-            final String userinfo = authority.getUserInfo();
-            if (userinfo != null) {
-                final CredentialsProvider credsProvider = context.getCredentialsProvider();
-                if (credsProvider instanceof CredentialsStore) {
-                    final int atColon = userinfo.indexOf(':');
-                    final String userName;
-                    final char[] password;
-                    if (atColon >= 0) {
-                        userName = userinfo.substring(0, atColon);
-                        password = userinfo.substring(atColon + 1).toCharArray();
-                    } else {
-                        userName = userinfo.substring(0, atColon);
-                        password = null;
-                    }
-                    ((CredentialsStore) credsProvider).setCredentials(
-                            new AuthScope(authority.getHostName(), authority.getPort(), null, AuthSchemes.BASIC),
-                            new UsernamePasswordCredentials(userName, password));
-                }
+            final CredentialsProvider credsProvider = context.getCredentialsProvider();
+            if (credsProvider instanceof CredentialsStore) {
+                CredentialSupport.extractFromAuthority(authority, (CredentialsStore) credsProvider);
             }
         }
 
@@ -111,7 +115,7 @@ public class ProtocolExec implements ClientExecChain {
 
         this.httpProcessor.process(request, request.getEntity(), context);
 
-        final ClassicHttpResponse response = this.requestExecutor.execute(request, context, execAware);
+        final ClassicHttpResponse response = chain.proceed(request, scope);
         try {
             // Run response protocol interceptors
             context.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);

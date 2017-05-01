@@ -24,42 +24,47 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.cache;
+
+package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
 
 import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecChainHandler;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 
-public class DummyBackend implements ExecChain {
+class ExecChainElement {
 
-    private ClassicHttpRequest request;
-    private ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-    private int executions = 0;
+    private final ExecChainHandler handler;
+    private final ExecChainElement next;
 
-    public void setResponse(final ClassicHttpResponse resp) {
-        response = resp;
+    ExecChainElement(final ExecChainHandler handler, final ExecChainElement next) {
+        this.handler = handler;
+        this.next = next;
     }
 
-    public HttpRequest getCapturedRequest() {
-        return request;
+    public ClassicHttpResponse execute(
+            final ClassicHttpRequest request,
+            final ExecChain.Scope scope) throws IOException, HttpException {
+        return handler.execute(request, scope, new ExecChain() {
+
+            @Override
+            public ClassicHttpResponse proceed(
+                    final ClassicHttpRequest request,
+                    final Scope scope) throws IOException, HttpException {
+                return next.execute(request, scope);
+            }
+
+        });
     }
 
     @Override
-    public ClassicHttpResponse proceed(
-            final ClassicHttpRequest request,
-            final Scope scope) throws IOException, HttpException {
-        this.request = request;
-        executions++;
-        return response;
-    }
-
-    public int getExecutions() {
-        return executions;
+    public String toString() {
+        return "{" +
+                "handler=" + handler.getClass() +
+                ", next=" + (next != null ? next.handler.getClass() : "null") +
+                '}';
     }
 }

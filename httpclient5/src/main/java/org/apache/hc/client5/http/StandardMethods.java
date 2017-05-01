@@ -24,42 +24,59 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.impl.cache;
 
-import java.io.IOException;
+package org.apache.hc.client5.http;
 
-import org.apache.hc.client5.http.sync.ExecChain;
-import org.apache.hc.core5.http.ClassicHttpRequest;
-import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
+import java.util.Locale;
 
-public class DummyBackend implements ExecChain {
+public enum StandardMethods {
 
-    private ClassicHttpRequest request;
-    private ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
-    private int executions = 0;
+    GET(true, true),
+    HEAD(true, true),
+    POST(false, false),
+    PUT(false, true),
+    DELETE(false, true),
+    CONNECT(false, false),
+    TRACE(true, true),
+    OPTIONS(true, true),
+    PATCH(false, false);
 
-    public void setResponse(final ClassicHttpResponse resp) {
-        response = resp;
+    private final boolean safe;
+    private final boolean idempotent;
+
+    StandardMethods(final boolean safe, final boolean idempotent) {
+        this.safe = safe;
+        this.idempotent = idempotent;
     }
 
-    public HttpRequest getCapturedRequest() {
-        return request;
+    public boolean isSafe() {
+        return safe;
     }
 
-    @Override
-    public ClassicHttpResponse proceed(
-            final ClassicHttpRequest request,
-            final Scope scope) throws IOException, HttpException {
-        this.request = request;
-        executions++;
-        return response;
+    public boolean isIdempotent() {
+        return idempotent;
     }
 
-    public int getExecutions() {
-        return executions;
+    public static boolean isSafe(final String value) {
+        if (value == null) {
+            return false;
+        }
+        try {
+            return valueOf(value.toUpperCase(Locale.ROOT)).safe;
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
     }
+
+    public static boolean isIdempotent(final String value) {
+        if (value == null) {
+            return false;
+        }
+        try {
+            return valueOf(value.toUpperCase(Locale.ROOT)).idempotent;
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
+    }
+
 }

@@ -32,20 +32,13 @@ import java.util.List;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
-import org.apache.hc.client5.http.sync.methods.HttpHead;
 import org.apache.hc.client5.http.sync.methods.HttpPost;
-import org.apache.hc.client5.http.sync.methods.HttpTrace;
-import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
-import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
-import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.apache.hc.core5.http.protocol.BasicHttpContext;
-import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -276,44 +269,6 @@ public class TestDefaultRedirectStrategy {
             Assert.fail("IllegalArgumentException expected");
         } catch (final IllegalArgumentException expected) {
         }
-    }
-
-    @Test
-    public void testGetRedirectRequest() throws Exception {
-        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_SEE_OTHER, "Redirect");
-        response.addHeader("Location", "http://localhost/stuff");
-        final HttpContext context1 = new BasicHttpContext();
-        final HttpUriRequest redirect1 = redirectStrategy.getRedirect(
-                new HttpGet("http://localhost/"), response, context1);
-        Assert.assertEquals("GET", redirect1.getMethod());
-        final HttpContext context2 = new BasicHttpContext();
-        final HttpUriRequest redirect2 = redirectStrategy.getRedirect(
-                new HttpPost("http://localhost/"), response, context2);
-        Assert.assertEquals("GET", redirect2.getMethod());
-        final HttpContext context3 = new BasicHttpContext();
-        final HttpUriRequest redirect3 = redirectStrategy.getRedirect(
-                new HttpHead("http://localhost/"), response, context3);
-        Assert.assertEquals("HEAD", redirect3.getMethod());
-    }
-
-    @Test
-    public void testGetRedirectRequestForTemporaryRedirect() throws Exception {
-        final DefaultRedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
-        final HttpResponse response = new BasicHttpResponse(HttpStatus.SC_TEMPORARY_REDIRECT, "Temporary Redirect");
-        response.addHeader("Location", "http://localhost/stuff");
-        final HttpContext context1 = new BasicHttpContext();
-        final HttpUriRequest redirect1 = redirectStrategy.getRedirect(
-                new HttpTrace("http://localhost/"), response, context1);
-        Assert.assertEquals("TRACE", redirect1.getMethod());
-        final HttpContext context2 = new BasicHttpContext();
-        final HttpPost httppost = new HttpPost("http://localhost/");
-        final HttpEntity entity = new BasicHttpEntity();
-        httppost.setEntity(entity);
-        final HttpUriRequest redirect2 = redirectStrategy.getRedirect(
-                httppost, response, context2);
-        Assert.assertEquals("POST", redirect2.getMethod());
-        Assert.assertSame(entity, redirect2.getEntity());
     }
 
     @Test

@@ -32,10 +32,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.sync.HttpClient;
-import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.concurrent.FutureCallback;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.io.ResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
@@ -83,7 +83,7 @@ public class FutureRequestExecutionService implements Closeable {
      * @return HttpAsyncClientFutureTask for the scheduled request.
      */
     public <T> HttpRequestFutureTask<T> execute(
-            final HttpUriRequest request,
+            final ClassicHttpRequest request,
             final HttpContext context,
             final ResponseHandler<T> responseHandler) {
         return execute(request, context, responseHandler, null);
@@ -106,7 +106,7 @@ public class FutureRequestExecutionService implements Closeable {
      * @return HttpAsyncClientFutureTask for the scheduled request.
      */
     public <T> HttpRequestFutureTask<T> execute(
-            final HttpUriRequest request,
+            final ClassicHttpRequest request,
             final HttpContext context,
             final ResponseHandler<T> responseHandler,
             final FutureCallback<T> callback) {

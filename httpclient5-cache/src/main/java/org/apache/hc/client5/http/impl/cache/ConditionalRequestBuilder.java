@@ -31,9 +31,10 @@ import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
+import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.ProtocolException;
@@ -56,9 +57,9 @@ class ConditionalRequestBuilder {
      * @return the wrapped request
      * @throws ProtocolException when I am unable to build a new origin request.
      */
-    public RoutedHttpRequest buildConditionalRequest(final RoutedHttpRequest request, final HttpCacheEntry cacheEntry)
+    public ClassicHttpRequest buildConditionalRequest(final ClassicHttpRequest request, final HttpCacheEntry cacheEntry)
             throws ProtocolException {
-        final RoutedHttpRequest newRequest = RoutedHttpRequest.adapt(request.getOriginal(), request.getRoute());
+        final ClassicHttpRequest newRequest = ExecSupport.copy(request);
         newRequest.setHeaders(request.getAllHeaders());
         final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
         if (eTag != null) {
@@ -96,9 +97,9 @@ class ConditionalRequestBuilder {
      * @param variants
      * @return the wrapped request
      */
-    public RoutedHttpRequest buildConditionalRequestFromVariants(final RoutedHttpRequest request,
-                                                                 final Map<String, Variant> variants) {
-        final RoutedHttpRequest newRequest = RoutedHttpRequest.adapt(request.getOriginal(), request.getRoute());
+    public ClassicHttpRequest buildConditionalRequestFromVariants(final ClassicHttpRequest request,
+                                                              final Map<String, Variant> variants) {
+        final ClassicHttpRequest newRequest = ExecSupport.copy(request);
         newRequest.setHeaders(request.getAllHeaders());
 
         // we do not support partial content so all etags are used
@@ -126,9 +127,8 @@ class ConditionalRequestBuilder {
      * @param request client request we are trying to satisfy
      * @return an unconditional validation request
      */
-    public RoutedHttpRequest buildUnconditionalRequest(final RoutedHttpRequest request) {
-        final RoutedHttpRequest newRequest = RoutedHttpRequest.adapt(request.getOriginal(), request.getRoute());
-        newRequest.setHeaders(request.getAllHeaders());
+    public ClassicHttpRequest buildUnconditionalRequest(final ClassicHttpRequest request) {
+        final ClassicHttpRequest newRequest = ExecSupport.copy(request);
         newRequest.addHeader(HeaderConstants.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.addHeader(HeaderConstants.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.removeHeaders(HeaderConstants.IF_RANGE);

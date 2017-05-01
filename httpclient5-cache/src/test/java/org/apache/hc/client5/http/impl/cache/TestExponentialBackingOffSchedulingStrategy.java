@@ -34,9 +34,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.impl.sync.ClientExecChain;
+import org.apache.hc.client5.http.sync.ExecRuntime;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.junit.Before;
@@ -45,6 +46,7 @@ import org.junit.Test;
 public class TestExponentialBackingOffSchedulingStrategy {
 
     private ScheduledExecutorService mockExecutor;
+    private ExecRuntime mockEndpoint;
     private ExponentialBackOffSchedulingStrategy impl;
 
     @Before
@@ -156,15 +158,15 @@ public class TestExponentialBackingOffSchedulingStrategy {
     }
 
     private AsynchronousValidationRequest createAsynchronousValidationRequest(final int errorCount) {
-        final ClientExecChain clientExecChain = mock(ClientExecChain.class);
-        final CachingExec cachingHttpClient = new CachingExec(clientExecChain);
+        final CachingExec cachingHttpClient = new CachingExec();
         final AsynchronousValidator mockValidator = new AsynchronousValidator(impl);
         final HttpHost host = new HttpHost("foo.example.com", 80);
         final HttpRoute route = new HttpRoute(host);
-        final RoutedHttpRequest routedHttpRequest = RoutedHttpRequest.adapt(new BasicClassicHttpRequest("GET", "/"), route);
-        final HttpClientContext httpClientContext = new HttpClientContext();
-        return new AsynchronousValidationRequest(mockValidator, cachingHttpClient, routedHttpRequest,
-                httpClientContext, null, null, "identifier", errorCount);
+        final ClassicHttpRequest request = new BasicClassicHttpRequest("GET", "/");
+        final HttpClientContext context = new HttpClientContext();
+        final ExecChain.Scope scope = new ExecChain.Scope(route, request, mock(ExecRuntime.class), context);
+        return new AsynchronousValidationRequest(mockValidator, cachingHttpClient, host, request,
+                scope, mock(ExecChain.class), null, "identifier", errorCount);
     }
 
     private static int withErrorCount(final int errorCount) {

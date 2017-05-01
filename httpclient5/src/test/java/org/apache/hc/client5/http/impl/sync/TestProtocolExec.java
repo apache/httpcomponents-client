@@ -34,8 +34,10 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecRuntime;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
@@ -53,11 +55,11 @@ import org.mockito.MockitoAnnotations;
 public class TestProtocolExec {
 
     @Mock
-    private ClientExecChain requestExecutor;
-    @Mock
     private HttpProcessor httpProcessor;
     @Mock
-    private HttpExecutionAware execAware;
+    private ExecChain chain;
+    @Mock
+    private ExecRuntime endpoint;
 
     private ProtocolExec protocolExec;
     private HttpHost target;
@@ -65,27 +67,27 @@ public class TestProtocolExec {
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
-        protocolExec = new ProtocolExec(requestExecutor, httpProcessor);
+        protocolExec = new ProtocolExec(httpProcessor);
         target = new HttpHost("foo", 80);
     }
 
     @Test
     public void testFundamentals() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("/test"), route);
+        final ClassicHttpRequest request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
 
-        Mockito.when(requestExecutor.execute(
-                Mockito.<RoutedHttpRequest>any(),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response);
+        Mockito.when(chain.proceed(
+                Mockito.<ClassicHttpRequest>any(),
+                Mockito.<ExecChain.Scope>any())).thenReturn(response);
 
-        protocolExec.execute(request, context, execAware);
+        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        protocolExec.execute(request, scope, chain);
 
         Mockito.verify(httpProcessor).process(request, null, context);
-        Mockito.verify(requestExecutor).execute(request, context, execAware);
+        Mockito.verify(chain).proceed(request, scope);
         Mockito.verify(httpProcessor).process(response, null, context);
 
         Assert.assertEquals(route, context.getHttpRoute());
@@ -96,18 +98,17 @@ public class TestProtocolExec {
     @Test
     public void testUserInfoInRequestURI() throws Exception {
         final HttpRoute route = new HttpRoute(new HttpHost("somehost", 8080));
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(
-                new HttpGet("http://somefella:secret@bar/test"), route);
+        final ClassicHttpRequest request = new HttpGet("http://somefella:secret@bar/test");
         final HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(new BasicCredentialsProvider());
 
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
-        Mockito.when(requestExecutor.execute(
-                Mockito.<RoutedHttpRequest>any(),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response);
+        Mockito.when(chain.proceed(
+                Mockito.<ClassicHttpRequest>any(),
+                Mockito.<ExecChain.Scope>any())).thenReturn(response);
 
-        protocolExec.execute(request, context, execAware);
+        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        protocolExec.execute(request, scope, chain);
         Assert.assertEquals(new URI("http://bar/test"), request.getUri());
         final CredentialsProvider credentialsProvider = context.getCredentialsProvider();
         final Credentials creds = credentialsProvider.getCredentials(new AuthScope("bar", -1, null), null);
@@ -118,19 +119,19 @@ public class TestProtocolExec {
     @Test(expected = HttpException.class)
     public void testPostProcessHttpException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("/test"), route);
+        final ClassicHttpRequest request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
 
-        Mockito.when(requestExecutor.execute(
-                Mockito.<RoutedHttpRequest>any(),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response);
+        Mockito.when(chain.proceed(
+                Mockito.<ClassicHttpRequest>any(),
+                Mockito.<ExecChain.Scope>any())).thenReturn(response);
         Mockito.doThrow(new HttpException("Ooopsie")).when(httpProcessor).process(
                 Mockito.same(response), Mockito.isNull(EntityDetails.class), Mockito.<HttpContext>any());
+        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
         try {
-            protocolExec.execute(request, context, execAware);
+            protocolExec.execute(request, scope, chain);
         } catch (final Exception ex) {
             Mockito.verify(response).close();
             throw ex;
@@ -140,18 +141,18 @@ public class TestProtocolExec {
     @Test(expected = IOException.class)
     public void testPostProcessIOException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("/test"), route);
+        final ClassicHttpRequest request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
-        Mockito.when(requestExecutor.execute(
-                Mockito.<RoutedHttpRequest>any(),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response);
+        Mockito.when(chain.proceed(
+                Mockito.<ClassicHttpRequest>any(),
+                Mockito.<ExecChain.Scope>any())).thenReturn(response);
         Mockito.doThrow(new IOException("Ooopsie")).when(httpProcessor).process(
                 Mockito.same(response), Mockito.isNull(EntityDetails.class), Mockito.<HttpContext>any());
+        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
         try {
-            protocolExec.execute(request, context, execAware);
+            protocolExec.execute(request, scope, chain);
         } catch (final Exception ex) {
             Mockito.verify(response).close();
             throw ex;
@@ -161,18 +162,18 @@ public class TestProtocolExec {
     @Test(expected = RuntimeException.class)
     public void testPostProcessRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(new HttpGet("/test"), route);
+        final ClassicHttpRequest request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
         final ClassicHttpResponse response = Mockito.mock(ClassicHttpResponse.class);
-        Mockito.when(requestExecutor.execute(
-                Mockito.<RoutedHttpRequest>any(),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response);
+        Mockito.when(chain.proceed(
+                Mockito.<ClassicHttpRequest>any(),
+                Mockito.<ExecChain.Scope>any())).thenReturn(response);
         Mockito.doThrow(new RuntimeException("Ooopsie")).when(httpProcessor).process(
                 Mockito.same(response), Mockito.isNull(EntityDetails.class), Mockito.<HttpContext>any());
+        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
         try {
-            protocolExec.execute(request, context, execAware);
+            protocolExec.execute(request, scope, chain);
         } catch (final Exception ex) {
             Mockito.verify(response).close();
             throw ex;

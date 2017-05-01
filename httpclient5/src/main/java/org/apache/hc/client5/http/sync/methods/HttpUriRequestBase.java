@@ -30,13 +30,13 @@ import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.hc.client5.http.CancellableAware;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.core5.concurrent.Cancellable;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 
-public class HttpUriRequestBase extends BasicClassicHttpRequest
-        implements HttpUriRequest, HttpExecutionAware, Configurable {
+public class HttpUriRequestBase extends BasicClassicHttpRequest implements CancellableAware, Configurable {
 
     private static final long serialVersionUID = 1L;
 
@@ -50,7 +50,6 @@ public class HttpUriRequestBase extends BasicClassicHttpRequest
         this.cancellableRef = new AtomicReference<>(null);
     }
 
-    @Override
     public void abort() {
         if (this.aborted.compareAndSet(false, true)) {
             final Cancellable cancellable = this.cancellableRef.getAndSet(null);
@@ -61,6 +60,10 @@ public class HttpUriRequestBase extends BasicClassicHttpRequest
     }
 
     @Override
+    public boolean isCancelled() {
+        return isAborted();
+    }
+
     public boolean isAborted() {
         return this.aborted.get();
     }

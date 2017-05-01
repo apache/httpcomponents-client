@@ -33,8 +33,10 @@ import java.io.IOException;
 import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
-import org.apache.hc.client5.http.impl.sync.ClientExecChain;
+import org.apache.hc.client5.http.impl.NamedElementChain;
+import org.apache.hc.client5.http.impl.sync.ChainElements;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
+import org.apache.hc.client5.http.sync.ExecChainHandler;
 
 /**
  * Builder for {@link org.apache.hc.client5.http.impl.sync.CloseableHttpClient}
@@ -103,7 +105,7 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
     }
 
     @Override
-    protected ClientExecChain decorateMainExec(final ClientExecChain mainExec) {
+    protected void customizeExecChain(final NamedElementChain<ExecChainHandler> execChainDefinition) {
         final CacheConfig config = this.cacheConfig != null ? this.cacheConfig : CacheConfig.DEFAULT;
         // We copy the instance fields to avoid changing them, and rename to avoid accidental use of the wrong version
         ResourceFactory resourceFactoryCopy = this.resourceFactory;
@@ -135,35 +137,22 @@ public class CachingHttpClientBuilder extends HttpClientBuilder {
                 storageCopy = managedStorage;
             }
         }
-        final AsynchronousValidator revalidator = createAsynchronousRevalidator(config);
-        final CacheKeyGenerator uriExtractor = new CacheKeyGenerator();
-
-        HttpCacheInvalidator cacheInvalidator = this.httpCacheInvalidator;
-        if (cacheInvalidator == null) {
-            cacheInvalidator = new CacheInvalidator(uriExtractor, storageCopy);
-        }
-
-        return new CachingExec(mainExec,
-                new BasicHttpCache(
-                        resourceFactoryCopy,
-                        storageCopy, config,
-                        uriExtractor,
-                        cacheInvalidator), config, revalidator);
-    }
-
-    private AsynchronousValidator createAsynchronousRevalidator(final CacheConfig config) {
+        final AsynchronousValidator revalidator;
         if (config.getAsynchronousWorkersMax() > 0) {
-            final SchedulingStrategy configuredSchedulingStrategy = createSchedulingStrategy(config);
-            final AsynchronousValidator revalidator = new AsynchronousValidator(
-                    configuredSchedulingStrategy);
+            revalidator = new AsynchronousValidator(schedulingStrategy != null ? schedulingStrategy : new ImmediateSchedulingStrategy(config));
             addCloseable(revalidator);
-            return revalidator;
+        } else {
+            revalidator = null;
         }
-        return null;
-    }
+        final CacheKeyGenerator uriExtractor = new CacheKeyGenerator();
+        final HttpCache httpCache = new BasicHttpCache(
+                resourceFactoryCopy,
+                storageCopy, config,
+                uriExtractor,
+                this.httpCacheInvalidator != null ? this.httpCacheInvalidator : new CacheInvalidator(uriExtractor, storageCopy));
 
-    private SchedulingStrategy createSchedulingStrategy(final CacheConfig config) {
-        return schedulingStrategy != null ? schedulingStrategy : new ImmediateSchedulingStrategy(config);
+        final CachingExec cachingExec = new CachingExec(httpCache, config, revalidator);
+        execChainDefinition.addAfter(ChainElements.PROTOCOL.name(), cachingExec, "CACHING");
     }
 
 }

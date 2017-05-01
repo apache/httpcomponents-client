@@ -29,14 +29,17 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
 
+import org.apache.hc.client5.http.CancellableAware;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecRuntime;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -49,6 +52,8 @@ import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Internal class.
@@ -56,20 +61,21 @@ import org.apache.hc.core5.util.Args;
  * @since 4.3
  */
 @Contract(threading = ThreadingBehavior.SAFE)
-class MinimalHttpClient extends CloseableHttpClient {
+public class MinimalHttpClient extends CloseableHttpClient {
+
+    private final Logger log = LogManager.getLogger(getClass());
 
     private final HttpClientConnectionManager connManager;
-    private final MinimalClientExec requestExecutor;
+    private final MinimalClientExec execChain;
+    private final HttpRequestExecutor requestExecutor;
 
-    public MinimalHttpClient(
-            final HttpClientConnectionManager connManager) {
+    MinimalHttpClient(final HttpClientConnectionManager connManager) {
         super();
         this.connManager = Args.notNull(connManager, "HTTP connection manager");
-        this.requestExecutor = new MinimalClientExec(
-                new HttpRequestExecutor(),
-                connManager,
+        this.execChain = new MinimalClientExec(
                 DefaultConnectionReuseStrategy.INSTANCE,
                 DefaultConnectionKeepAliveStrategy.INSTANCE);
+        this.requestExecutor = new HttpRequestExecutor(DefaultConnectionReuseStrategy.INSTANCE);
     }
 
     @Override
@@ -79,10 +85,6 @@ class MinimalHttpClient extends CloseableHttpClient {
             final HttpContext context) throws IOException {
         Args.notNull(target, "Target host");
         Args.notNull(request, "HTTP request");
-        HttpExecutionAware execAware = null;
-        if (request instanceof HttpExecutionAware) {
-            execAware = (HttpExecutionAware) request;
-        }
         try {
             if (request.getScheme() == null) {
                 request.setScheme(target.getSchemeName());
@@ -99,9 +101,10 @@ class MinimalHttpClient extends CloseableHttpClient {
             if (config != null) {
                 localcontext.setRequestConfig(config);
             }
-            final HttpRoute route = new HttpRoute(target);
-            final ClassicHttpResponse response = this.requestExecutor.execute(
-                    RoutedHttpRequest.adapt(request, route), localcontext, execAware);
+            final ExecRuntime execRuntime = new ExecRuntimeImpl(log, connManager, requestExecutor,
+                    request instanceof CancellableAware ? (CancellableAware) request : null);
+            final ExecChain.Scope scope = new ExecChain.Scope(new HttpRoute(target), request, execRuntime, localcontext);
+            final ClassicHttpResponse response = this.execChain.execute(ExecSupport.copy(request), scope, null);
             return CloseableHttpResponse.adapt(response);
         } catch (final HttpException httpException) {
             throw new ClientProtocolException(httpException);

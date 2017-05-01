@@ -32,10 +32,12 @@ import java.io.IOException;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.entity.EntityBuilder;
+import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.NonRepeatableRequestException;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecRuntime;
 import org.apache.hc.client5.http.sync.HttpRequestRetryHandler;
-import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.client5.http.sync.methods.HttpPost;
 import org.apache.hc.core5.http.ClassicHttpRequest;
@@ -56,11 +58,11 @@ import org.mockito.stubbing.Answer;
 public class TestRetryExec {
 
     @Mock
-    private ClientExecChain requestExecutor;
-    @Mock
     private HttpRequestRetryHandler retryHandler;
     @Mock
-    private HttpExecutionAware execAware;
+    private ExecRuntime endpoint;
+    @Mock
+    private ExecChain chain;
 
     private RetryExec retryExec;
     private HttpHost target;
@@ -68,28 +70,26 @@ public class TestRetryExec {
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
-        retryExec = new RetryExec(requestExecutor, retryHandler);
+        retryExec = new RetryExec(retryHandler);
         target = new HttpHost("localhost", 80);
     }
 
     @Test(expected = IOException.class)
     public void testFundamentals() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpGet get = new HttpGet("/test");
-        get.addHeader("header", "this");
-        get.addHeader("header", "that");
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(get, route);
+        final HttpGet originalRequest = new HttpGet("/test");
+        originalRequest.addHeader("header", "this");
+        originalRequest.addHeader("header", "that");
         final HttpClientContext context = HttpClientContext.create();
 
-        Mockito.when(requestExecutor.execute(
-                Mockito.same(request),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenAnswer(new Answer<Object>() {
+        Mockito.when(chain.proceed(
+                Mockito.<ClassicHttpRequest>any(),
+                Mockito.<ExecChain.Scope>any())).thenAnswer(new Answer<Object>() {
 
             @Override
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
                 final Object[] args = invocationOnMock.getArguments();
-                final RoutedHttpRequest wrapper = (RoutedHttpRequest) args[0];
+                final ClassicHttpRequest wrapper = (ClassicHttpRequest) args[0];
                 final Header[] headers = wrapper.getAllHeaders();
                 Assert.assertEquals(2, headers.length);
                 Assert.assertEquals("this", headers[0].getValue());
@@ -104,13 +104,14 @@ public class TestRetryExec {
                 Mockito.<IOException>any(),
                 Mockito.eq(1),
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
+        final ExecChain.Scope scope = new ExecChain.Scope(route, originalRequest, endpoint, context);
+        final ClassicHttpRequest request = ExecSupport.copy(originalRequest);
         try {
-            retryExec.execute(request, context, execAware);
+            retryExec.execute(request, scope, chain);
         } catch (final IOException ex) {
-            Mockito.verify(requestExecutor, Mockito.times(2)).execute(
-                    Mockito.same(request),
-                    Mockito.same(context),
-                    Mockito.same(execAware));
+            Mockito.verify(chain, Mockito.times(2)).proceed(
+                    Mockito.<ClassicHttpRequest>any(),
+                    Mockito.same(scope));
             throw ex;
         }
     }
@@ -118,23 +119,22 @@ public class TestRetryExec {
     @Test(expected = IOException.class)
     public void testAbortedRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpGet get = new HttpGet("/test");
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(get, route);
+        final HttpGet originalRequest = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
-        Mockito.when(requestExecutor.execute(
-                Mockito.same(request),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenThrow(new IOException("Ka-boom"));
+        Mockito.when(chain.proceed(
+                Mockito.<ClassicHttpRequest>any(),
+                Mockito.<ExecChain.Scope>any())).thenThrow(new IOException("Ka-boom"));
+        Mockito.when(endpoint.isExecutionAborted()).thenReturn(true);
 
-        Mockito.when(execAware.isAborted()).thenReturn(Boolean.TRUE);
+        final ExecChain.Scope scope = new ExecChain.Scope(route, originalRequest, endpoint, context);
+        final ClassicHttpRequest request = ExecSupport.copy(originalRequest);
         try {
-            retryExec.execute(request, context, execAware);
+            retryExec.execute(request, scope, chain);
         } catch (final IOException ex) {
-            Mockito.verify(requestExecutor, Mockito.times(1)).execute(
+            Mockito.verify(chain, Mockito.times(1)).proceed(
                     Mockito.same(request),
-                    Mockito.same(context),
-                    Mockito.same(execAware));
+                    Mockito.same(scope));
             Mockito.verify(retryHandler, Mockito.never()).retryRequest(
                     Mockito.<HttpRequest>any(),
                     Mockito.<IOException>any(),
@@ -148,17 +148,15 @@ public class TestRetryExec {
     @Test(expected = NonRepeatableRequestException.class)
     public void testNonRepeatableRequest() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpPost post = new HttpPost("/test");
-        post.setEntity(EntityBuilder.create()
+        final HttpPost originalRequest = new HttpPost("/test");
+        originalRequest.setEntity(EntityBuilder.create()
                 .setStream(new ByteArrayInputStream(new byte[]{}))
                 .build());
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(post, route);
         final HttpClientContext context = HttpClientContext.create();
 
-        Mockito.when(requestExecutor.execute(
-                Mockito.same(request),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenAnswer(new Answer<Object>() {
+        Mockito.when(chain.proceed(
+                Mockito.<ClassicHttpRequest>any(),
+                Mockito.<ExecChain.Scope>any())).thenAnswer(new Answer<Object>() {
 
             @Override
             public Object answer(final InvocationOnMock invocationOnMock) throws Throwable {
@@ -174,13 +172,14 @@ public class TestRetryExec {
                 Mockito.<IOException>any(),
                 Mockito.eq(1),
                 Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE);
+        final ExecChain.Scope scope = new ExecChain.Scope(route, originalRequest, endpoint, context);
+        final ClassicHttpRequest request = ExecSupport.copy(originalRequest);
         try {
-            retryExec.execute(request, context, execAware);
+            retryExec.execute(request, scope, chain);
         } catch (final IOException ex) {
-            Mockito.verify(requestExecutor, Mockito.times(1)).execute(
+            Mockito.verify(chain, Mockito.times(1)).proceed(
                     Mockito.same(request),
-                    Mockito.same(context),
-                    Mockito.same(execAware));
+                    Mockito.same(scope));
 
             throw ex;
         }

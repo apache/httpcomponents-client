@@ -27,8 +27,8 @@
 
 package org.apache.hc.client5.http.protocol;
 
-import org.apache.hc.client5.http.sync.methods.HttpUriRequest;
-import org.apache.hc.core5.http.ClassicHttpRequest;
+import java.net.URI;
+
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -51,10 +51,9 @@ public interface RedirectStrategy {
      * Determines if a request should be redirected to a new location
      * given the response from the target server.
      *
-     * @param request the executed request
+     * @param request  the executed request
      * @param response the response received from the target server
-     * @param context the context for the request execution
-     *
+     * @param context  the context for the request execution
      * @return {@code true} if the request should be redirected, {@code false}
      * otherwise
      */
@@ -63,20 +62,9 @@ public interface RedirectStrategy {
             HttpResponse response,
             HttpContext context) throws HttpException;
 
-    /**
-     * Determines the redirect location given the response from the target
-     * server and the current request execution context and generates a new
-     * request to be sent to the location.
-     *
-     * @param request the executed request
-     * @param response the response received from the target server
-     * @param context the context for the request execution
-     *
-     * @return redirected request
-     */
-    HttpUriRequest getRedirect(
-            ClassicHttpRequest request,
-            HttpResponse response,
-            HttpContext context) throws HttpException;
+    URI getLocationURI(
+            final HttpRequest request,
+            final HttpResponse response,
+            final HttpContext context) throws HttpException;
 
 }

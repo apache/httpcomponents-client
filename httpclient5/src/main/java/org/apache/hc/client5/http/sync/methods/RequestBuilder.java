@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
@@ -55,7 +56,7 @@ import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
 
 /**
- * Builder for {@link HttpUriRequest} instances.
+ * Builder for {@link ClassicHttpRequest} instances.
  * <p>
  * Please note that this class treats parameters differently depending on composition
  * of the request: if the request has a content entity explicitly set with
@@ -83,10 +84,21 @@ public class RequestBuilder {
         this.method = method;
     }
 
+    RequestBuilder() {
+    }
+
+    RequestBuilder(final StandardMethods method) {
+        this(method.name());
+    }
+
     RequestBuilder(final String method, final URI uri) {
         super();
         this.method = method;
         this.uri = uri;
+    }
+
+    RequestBuilder(final StandardMethods method, final URI uri) {
+        this(method.name(), uri);
     }
 
     RequestBuilder(final String method, final String uri) {
@@ -95,8 +107,8 @@ public class RequestBuilder {
         this.uri = uri != null ? URI.create(uri) : null;
     }
 
-    RequestBuilder() {
-        this(null);
+    RequestBuilder(final StandardMethods method, final String uri) {
+        this(method.name(), uri);
     }
 
     public static RequestBuilder create(final String method) {
@@ -105,150 +117,150 @@ public class RequestBuilder {
     }
 
     public static RequestBuilder get() {
-        return new RequestBuilder(HttpGet.METHOD_NAME);
+        return new RequestBuilder(StandardMethods.GET.name());
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder get(final URI uri) {
-        return new RequestBuilder(HttpGet.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.GET, uri);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder get(final String uri) {
-        return new RequestBuilder(HttpGet.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.GET, uri);
     }
 
     public static RequestBuilder head() {
-        return new RequestBuilder(HttpHead.METHOD_NAME);
+        return new RequestBuilder(StandardMethods.HEAD);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder head(final URI uri) {
-        return new RequestBuilder(HttpHead.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.HEAD, uri);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder head(final String uri) {
-        return new RequestBuilder(HttpHead.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.HEAD, uri);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder patch() {
-        return new RequestBuilder(HttpPatch.METHOD_NAME);
+        return new RequestBuilder(StandardMethods.PATCH.name());
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder patch(final URI uri) {
-        return new RequestBuilder(HttpPatch.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.PATCH, uri);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder patch(final String uri) {
-        return new RequestBuilder(HttpPatch.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.PATCH, uri);
     }
 
     public static RequestBuilder post() {
-        return new RequestBuilder(HttpPost.METHOD_NAME);
+        return new RequestBuilder(StandardMethods.POST);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder post(final URI uri) {
-        return new RequestBuilder(HttpPost.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.POST, uri);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder post(final String uri) {
-        return new RequestBuilder(HttpPost.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.POST, uri);
     }
 
     public static RequestBuilder put() {
-        return new RequestBuilder(HttpPut.METHOD_NAME);
+        return new RequestBuilder(StandardMethods.PUT);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder put(final URI uri) {
-        return new RequestBuilder(HttpPut.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.PUT, uri);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder put(final String uri) {
-        return new RequestBuilder(HttpPut.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.PUT, uri);
     }
 
     public static RequestBuilder delete() {
-        return new RequestBuilder(HttpDelete.METHOD_NAME);
+        return new RequestBuilder(StandardMethods.DELETE);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder delete(final URI uri) {
-        return new RequestBuilder(HttpDelete.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.DELETE, uri);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder delete(final String uri) {
-        return new RequestBuilder(HttpDelete.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.DELETE, uri);
     }
 
     public static RequestBuilder trace() {
-        return new RequestBuilder(HttpTrace.METHOD_NAME);
+        return new RequestBuilder(StandardMethods.TRACE);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder trace(final URI uri) {
-        return new RequestBuilder(HttpTrace.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.TRACE, uri);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder trace(final String uri) {
-        return new RequestBuilder(HttpTrace.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.TRACE, uri);
     }
 
     public static RequestBuilder options() {
-        return new RequestBuilder(HttpOptions.METHOD_NAME);
+        return new RequestBuilder(StandardMethods.OPTIONS);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder options(final URI uri) {
-        return new RequestBuilder(HttpOptions.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.OPTIONS, uri);
     }
 
     /**
      * @since 4.4
      */
     public static RequestBuilder options(final String uri) {
-        return new RequestBuilder(HttpOptions.METHOD_NAME, uri);
+        return new RequestBuilder(StandardMethods.OPTIONS, uri);
     }
 
     public static RequestBuilder copy(final ClassicHttpRequest request) {
@@ -449,12 +461,12 @@ public class RequestBuilder {
         return this;
     }
 
-    public HttpUriRequest build() {
+    public ClassicHttpRequest build() {
         URI uriNotNull = this.uri != null ? this.uri : URI.create("/");
         HttpEntity entityCopy = this.entity;
         if (parameters != null && !parameters.isEmpty()) {
-            if (entityCopy == null && (HttpPost.METHOD_NAME.equalsIgnoreCase(method)
-                    || HttpPut.METHOD_NAME.equalsIgnoreCase(method))) {
+            if (entityCopy == null && (StandardMethods.POST.name().equalsIgnoreCase(method)
+                    || StandardMethods.PUT.name().equalsIgnoreCase(method))) {
                 entityCopy = new UrlEncodedFormEntity(parameters, charset != null ? charset : StandardCharsets.ISO_8859_1);
             } else {
                 try {

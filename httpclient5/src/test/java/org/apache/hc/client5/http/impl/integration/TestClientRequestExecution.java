@@ -139,7 +139,7 @@ public class TestClientRequestExecution extends LocalServerTestBase {
         };
 
         this.httpclient = this.clientBuilder
-            .addInterceptorFirst(interceptor)
+            .addRequestInterceptorFirst(interceptor)
             .setRequestExecutor(new FaultyHttpRequestExecutor("Oppsie"))
             .setRetryHandler(requestRetryHandler)
             .build();

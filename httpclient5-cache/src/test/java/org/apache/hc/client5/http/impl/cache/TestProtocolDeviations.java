@@ -26,20 +26,22 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.Random;
 
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
-import org.apache.hc.client5.http.impl.sync.ClientExecChain;
-import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
+import org.apache.hc.client5.http.impl.ExecSupport;
+import org.apache.hc.client5.http.sync.ExecRuntime;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecChainHandler;
 import org.apache.hc.client5.http.utils.DateUtils;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -82,13 +84,14 @@ public class TestProtocolDeviations {
     private HttpRoute route;
     private HttpEntity body;
     private HttpEntity mockEntity;
-    private ClientExecChain mockBackend;
+    private ExecRuntime mockEndpoint;
+    private ExecChain mockExecChain;
     private HttpCache mockCache;
     private ClassicHttpRequest request;
     private HttpCacheContext context;
     private ClassicHttpResponse originResponse;
 
-    private ClientExecChain impl;
+    private ExecChainHandler impl;
 
     @Before
     public void setUp() {
@@ -110,16 +113,20 @@ public class TestProtocolDeviations {
                 .build();
 
         final HttpCache cache = new BasicHttpCache(config);
-        mockBackend = EasyMock.createNiceMock(ClientExecChain.class);
+        mockEndpoint = EasyMock.createNiceMock(ExecRuntime.class);
+        mockExecChain = EasyMock.createNiceMock(ExecChain.class);
         mockEntity = EasyMock.createNiceMock(HttpEntity.class);
         mockCache = EasyMock.createNiceMock(HttpCache.class);
 
-        impl = createCachingExecChain(mockBackend, cache, config);
+        impl = createCachingExecChain(cache, config);
     }
 
-    protected ClientExecChain createCachingExecChain(
-            final ClientExecChain backend, final HttpCache cache, final CacheConfig config) {
-        return new CachingExec(backend, cache, config);
+    private ClassicHttpResponse execute(final ClassicHttpRequest request) throws IOException, HttpException {
+        return impl.execute(ExecSupport.copy(request), new ExecChain.Scope(route, request, mockEndpoint, context), mockExecChain);
+    }
+
+    protected ExecChainHandler createCachingExecChain(final HttpCache cache, final CacheConfig config) {
+        return new CachingExec(cache, config);
     }
 
     private ClassicHttpResponse make200Response() {
@@ -131,13 +138,13 @@ public class TestProtocolDeviations {
     }
 
     private void replayMocks() {
-        EasyMock.replay(mockBackend);
+        EasyMock.replay(mockExecChain);
         EasyMock.replay(mockCache);
         EasyMock.replay(mockEntity);
     }
 
     private void verifyMocks() {
-        EasyMock.verify(mockBackend);
+        EasyMock.verify(mockExecChain);
         EasyMock.verify(mockCache);
         EasyMock.verify(mockEntity);
     }
@@ -177,7 +184,7 @@ public class TestProtocolDeviations {
 
         replayMocks();
 
-        final HttpResponse response = impl.execute(RoutedHttpRequest.adapt(post, route), context, null);
+        final HttpResponse response = execute(post);
 
         verifyMocks();
 
@@ -220,18 +227,17 @@ public class TestProtocolDeviations {
         org.easymock.EasyMock.expect(mockBody.getContentLength()).andReturn(-1L).anyTimes();
         post.setEntity(mockBody);
 
-        final Capture<RoutedHttpRequest> reqCap = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(reqCap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(
                                 originResponse).times(0, 1);
 
         replayMocks();
         EasyMock.replay(mockBody);
 
-        final HttpResponse result = impl.execute(RoutedHttpRequest.adapt(post, route), context, null);
+        final HttpResponse result = execute(post);
 
         verifyMocks();
         EasyMock.verify(mockBody);
@@ -260,15 +266,14 @@ public class TestProtocolDeviations {
         options.setEntity(body);
         options.setHeader("Content-Length", "1");
 
-        final Capture<RoutedHttpRequest> reqCap = new Capture<>();
+        final Capture<ClassicHttpRequest> reqCap = new Capture<>();
         EasyMock.expect(
-                mockBackend.execute(
+                mockExecChain.proceed(
                         EasyMock.capture(reqCap),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
 
-        impl.execute(RoutedHttpRequest.adapt(options, route), context, null);
+        execute(options);
 
         verifyMocks();
 
@@ -298,14 +303,13 @@ public class TestProtocolDeviations {
         originResponse.setEntity(makeBody(500));
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
 
         replayMocks();
         try {
-            final HttpResponse result = impl.execute(RoutedHttpRequest.adapt(request, route), context, null);
+            final HttpResponse result = execute(request);
             Assert.assertTrue(HttpStatus.SC_PARTIAL_CONTENT != result.getCode());
         } catch (final ClientProtocolException acceptableBehavior) {
             // this is probably ok
@@ -325,12 +329,11 @@ public class TestProtocolDeviations {
         originResponse = new BasicClassicHttpResponse(401, "Unauthorized");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
-        final HttpResponse result = impl.execute(RoutedHttpRequest.adapt(request, route), context, null);
+        final HttpResponse result = execute(request);
         verifyMocks();
         Assert.assertSame(originResponse, result);
     }
@@ -346,12 +349,11 @@ public class TestProtocolDeviations {
         originResponse = new BasicClassicHttpResponse(405, "Method Not Allowed");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
-        final HttpResponse result = impl.execute(RoutedHttpRequest.adapt(request, route), context, null);
+        final HttpResponse result = execute(request);
         verifyMocks();
         Assert.assertSame(originResponse, result);
     }
@@ -368,12 +370,11 @@ public class TestProtocolDeviations {
         originResponse = new BasicClassicHttpResponse(407, "Proxy Authentication Required");
 
         EasyMock.expect(
-                mockBackend.execute(
-                        EasyMock.isA(RoutedHttpRequest.class),
-                        EasyMock.isA(HttpClientContext.class),
-                        EasyMock.<HttpExecutionAware>isNull())).andReturn(originResponse);
+                mockExecChain.proceed(
+                        EasyMock.isA(ClassicHttpRequest.class),
+                        EasyMock.isA(ExecChain.Scope.class))).andReturn(originResponse);
         replayMocks();
-        final HttpResponse result = impl.execute(RoutedHttpRequest.adapt(request, route), context, null);
+        final HttpResponse result = execute(request);
         verifyMocks();
         Assert.assertSame(originResponse, result);
     }

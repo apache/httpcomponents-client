@@ -38,12 +38,13 @@ import java.util.Date;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.ResourceFactory;
-import org.apache.hc.client5.http.impl.sync.ClientExecChain;
+import org.apache.hc.client5.http.sync.ExecRuntime;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecChainHandler;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
-import org.apache.hc.client5.http.impl.sync.RoutedHttpRequest;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
@@ -51,7 +52,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
 
 public class TestHttpCacheJiraNumber1147 {
 
@@ -92,10 +92,11 @@ public class TestHttpCacheJiraNumber1147 {
         final ResourceFactory resourceFactory = new FileResourceFactory(cacheDir);
         final HttpCacheStorage httpCacheStorage = new ManagedHttpCacheStorage(cacheConfig);
 
-        final ClientExecChain backend = mock(ClientExecChain.class);
+        final ExecChain mockExecChain = mock(ExecChain.class);
+        final ExecRuntime mockEndpoint = mock(ExecRuntime.class);
         final HttpHost target = new HttpHost("somehost", 80);
         final HttpRoute route = new HttpRoute(target);
-        final RoutedHttpRequest get = RoutedHttpRequest.adapt(new HttpGet("http://somehost/"), route);
+        final ClassicHttpRequest get = new HttpGet("http://somehost/");
         final HttpClientContext context = HttpClientContext.create();
 
         final Date now = new Date();
@@ -108,44 +109,36 @@ public class TestHttpCacheJiraNumber1147 {
         response.setHeader("Cache-Control", "public, max-age=3600");
         response.setHeader("Last-Modified", DateUtils.formatDate(tenSecondsAgo));
 
-        when(backend.execute(
-                isA(RoutedHttpRequest.class),
-                isA(HttpClientContext.class),
-                (HttpExecutionAware) Matchers.isNull())).thenReturn(response);
+        when(mockExecChain.proceed(
+                isA(ClassicHttpRequest.class),
+                isA(ExecChain.Scope.class))).thenReturn(response);
 
         final BasicHttpCache cache = new BasicHttpCache(resourceFactory, httpCacheStorage, cacheConfig);
-        final ClientExecChain t = createCachingExecChain(backend, cache, cacheConfig);
+        final ExecChainHandler t = createCachingExecChain(cache, cacheConfig);
 
-        final ClassicHttpResponse response1 = t.execute(get, context, null);
+        final ExecChain.Scope scope = new ExecChain.Scope(route, get, mockEndpoint, context);
+        final ClassicHttpResponse response1 = t.execute(get, scope, mockExecChain);
         Assert.assertEquals(200, response1.getCode());
         IOUtils.consume(response1.getEntity());
 
-        verify(backend).execute(
-                isA(RoutedHttpRequest.class),
-                isA(HttpClientContext.class),
-                (HttpExecutionAware) Matchers.isNull());
+        verify(mockExecChain).proceed(isA(ClassicHttpRequest.class), isA(ExecChain.Scope.class));
 
         removeCache();
 
-        reset(backend);
-        when(backend.execute(
-                isA(RoutedHttpRequest.class),
-                isA(HttpClientContext.class),
-                (HttpExecutionAware) Matchers.isNull())).thenReturn(response);
+        reset(mockExecChain);
+        when(mockExecChain.proceed(isA(ClassicHttpRequest.class), isA(ExecChain.Scope.class))).thenReturn(response);
 
-        final ClassicHttpResponse response2 = t.execute(get, context, null);
+        final ClassicHttpResponse response2 = t.execute(get, scope, mockExecChain);
         Assert.assertEquals(200, response2.getCode());
         IOUtils.consume(response2.getEntity());
 
-        verify(backend).execute(
-                isA(RoutedHttpRequest.class),
-                isA(HttpClientContext.class),
-                (HttpExecutionAware) Matchers.isNull());
+        verify(mockExecChain).proceed(
+                isA(ClassicHttpRequest.class),
+                isA(ExecChain.Scope.class));
     }
 
-    protected ClientExecChain createCachingExecChain(final ClientExecChain backend,
-            final BasicHttpCache cache, final CacheConfig config) {
-        return new CachingExec(backend, cache, config);
+    protected ExecChainHandler createCachingExecChain(final BasicHttpCache cache, final CacheConfig config) {
+        return new CachingExec(cache, config);
     }
 
 }

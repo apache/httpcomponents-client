@@ -28,6 +28,8 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import org.apache.hc.client5.http.HttpRoute;
@@ -40,8 +42,10 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectException;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
-import org.apache.hc.client5.http.sync.methods.HttpExecutionAware;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecRuntime;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
@@ -63,13 +67,13 @@ import org.mockito.MockitoAnnotations;
 public class TestRedirectExec {
 
     @Mock
-    private ClientExecChain requestExecutor;
-    @Mock
     private HttpRoutePlanner httpRoutePlanner;
     @Mock
     private RedirectStrategy redirectStrategy;
     @Mock
-    private HttpExecutionAware execAware;
+    private ExecChain chain;
+    @Mock
+    private ExecRuntime endpoint;
 
     private RedirectExec redirectExec;
     private HttpHost target;
@@ -77,15 +81,14 @@ public class TestRedirectExec {
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
-        redirectExec = new RedirectExec(requestExecutor, httpRoutePlanner, redirectStrategy);
+        redirectExec = new RedirectExec(httpRoutePlanner, redirectStrategy);
         target = new HttpHost("localhost", 80);
     }
 
     @Test
     public void testFundamentals() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpGet get = new HttpGet("/test");
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(get, route);
+        final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
         final ClassicHttpResponse response1 = Mockito.mock(ClassicHttpResponse.class);
@@ -100,38 +103,36 @@ public class TestRedirectExec {
                 .setStream(instream2)
                 .build();
         Mockito.when(response2.getEntity()).thenReturn(entity2);
-        final HttpGet redirect = new HttpGet("http://localhost:80/redirect");
+        final URI redirect = new URI("http://localhost:80/redirect");
 
-        Mockito.when(requestExecutor.execute(
+        Mockito.when(chain.proceed(
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response1);
-        Mockito.when(requestExecutor.execute(
-                HttpRequestWrapperMatcher.same(redirect),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response2);
+                Mockito.<ExecChain.Scope>any())).thenReturn(response1);
+        Mockito.when(chain.proceed(
+                HttpRequestMatcher.matchesRequestUri(redirect),
+                Mockito.<ExecChain.Scope>any())).thenReturn(response2);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.same(get),
+                Mockito.same(request),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
-        Mockito.when(redirectStrategy.getRedirect(
-                Mockito.same(get),
+        Mockito.when(redirectStrategy.getLocationURI(
+                Mockito.same(request),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
                 Mockito.eq(target),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
 
-        redirectExec.execute(request, context, execAware);
+        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        redirectExec.execute(request, scope, chain);
 
-        final ArgumentCaptor<RoutedHttpRequest> reqCaptor = ArgumentCaptor.forClass(
-                RoutedHttpRequest.class);
-        Mockito.verify(requestExecutor, Mockito.times(2)).execute(
+        final ArgumentCaptor<ClassicHttpRequest> reqCaptor = ArgumentCaptor.forClass(
+                ClassicHttpRequest.class);
+        Mockito.verify(chain, Mockito.times(2)).proceed(
                 reqCaptor.capture(),
-                Mockito.same(context),
-                Mockito.same(execAware));
+                Mockito.same(scope));
 
-        final List<RoutedHttpRequest> allValues = reqCaptor.getAllValues();
+        final List<ClassicHttpRequest> allValues = reqCaptor.getAllValues();
         Assert.assertNotNull(allValues);
         Assert.assertEquals(2, allValues.size());
         Assert.assertSame(request, allValues.get(0));
@@ -145,8 +146,7 @@ public class TestRedirectExec {
     @Test(expected = RedirectException.class)
     public void testMaxRedirect() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpGet get = new HttpGet("/test");
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(get, route);
+        final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
         final RequestConfig config = RequestConfig.custom()
                 .setRedirectsEnabled(true)
@@ -155,58 +155,56 @@ public class TestRedirectExec {
         context.setRequestConfig(config);
 
         final ClassicHttpResponse response1 = Mockito.mock(ClassicHttpResponse.class);
-        final HttpGet redirect = new HttpGet("http://localhost:80/redirect");
+        final URI redirect = new URI("http://localhost:80/redirect");
 
-        Mockito.when(requestExecutor.execute(
-                Mockito.<RoutedHttpRequest>any(),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response1);
+        Mockito.when(chain.proceed(
+                Mockito.<ClassicHttpRequest>any(),
+                Mockito.<ExecChain.Scope>any())).thenReturn(response1);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.<RoutedHttpRequest>any(),
+                Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
-        Mockito.when(redirectStrategy.getRedirect(
-                Mockito.<RoutedHttpRequest>any(),
+        Mockito.when(redirectStrategy.getLocationURI(
+                Mockito.<ClassicHttpRequest>any(),
                 Mockito.<HttpResponse>any(),
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
                 Mockito.eq(target),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
 
-        redirectExec.execute(request, context, execAware);
+        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        redirectExec.execute(request, scope, chain);
     }
 
     @Test(expected = HttpException.class)
     public void testRelativeRedirect() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpGet get = new HttpGet("/test");
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(get, route);
+        final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
         final ClassicHttpResponse response1 = Mockito.mock(ClassicHttpResponse.class);
         final ClassicHttpResponse response2 = Mockito.mock(ClassicHttpResponse.class);
-        final HttpGet redirect = new HttpGet("/redirect");
-        Mockito.when(requestExecutor.execute(
+        final URI redirect = new URI("/redirect");
+        Mockito.when(chain.proceed(
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response1);
-        Mockito.when(requestExecutor.execute(
-                HttpRequestWrapperMatcher.same(redirect),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response2);
+                Mockito.<ExecChain.Scope>any())).thenReturn(response1);
+        Mockito.when(chain.proceed(
+                HttpRequestMatcher.matchesRequestUri(redirect),
+                Mockito.<ExecChain.Scope>any())).thenReturn(response2);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.same(get),
+                Mockito.same(request),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
-        Mockito.when(redirectStrategy.getRedirect(
-                Mockito.same(get),
+        Mockito.when(redirectStrategy.getLocationURI(
+                Mockito.same(request),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
                 Mockito.eq(target),
                 Mockito.<HttpClientContext>any())).thenReturn(route);
 
-        redirectExec.execute(request, context, execAware);
+        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        redirectExec.execute(request, scope, chain);
     }
 
     @Test
@@ -214,8 +212,7 @@ public class TestRedirectExec {
 
         final HttpHost proxy = new HttpHost("proxy");
         final HttpRoute route = new HttpRoute(target, proxy);
-        final HttpGet get = new HttpGet("/test");
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(get, route);
+        final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
         final AuthExchange targetAuthExchange = new AuthExchange();
@@ -230,21 +227,19 @@ public class TestRedirectExec {
         final ClassicHttpResponse response1 = Mockito.mock(ClassicHttpResponse.class);
         final ClassicHttpResponse response2 = Mockito.mock(ClassicHttpResponse.class);
         final HttpHost otherHost = new HttpHost("otherhost", 8888);
-        final HttpGet redirect = new HttpGet("http://otherhost:8888/redirect");
-        Mockito.when(requestExecutor.execute(
+        final URI redirect = new URI("http://otherhost:8888/redirect");
+        Mockito.when(chain.proceed(
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response1);
-        Mockito.when(requestExecutor.execute(
-                HttpRequestWrapperMatcher.same(redirect),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response2);
+                Mockito.<ExecChain.Scope>any())).thenReturn(response1);
+        Mockito.when(chain.proceed(
+                HttpRequestMatcher.matchesRequestUri(redirect),
+                Mockito.<ExecChain.Scope>any())).thenReturn(response2);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.same(get),
+                Mockito.same(request),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
-        Mockito.when(redirectStrategy.getRedirect(
-                Mockito.same(get),
+        Mockito.when(redirectStrategy.getLocationURI(
+                Mockito.same(request),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(redirect);
         Mockito.when(httpRoutePlanner.determineRoute(
@@ -254,7 +249,8 @@ public class TestRedirectExec {
                 Mockito.eq(otherHost),
                 Mockito.<HttpClientContext>any())).thenReturn(new HttpRoute(otherHost));
 
-        redirectExec.execute(request, context, execAware);
+        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
+        redirectExec.execute(request, scope, chain);
 
         final AuthExchange authExchange1 = context.getAuthExchange(target);
         Assert.assertNotNull(authExchange1);
@@ -269,26 +265,25 @@ public class TestRedirectExec {
     @Test(expected = RuntimeException.class)
     public void testRedirectRuntimeException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpGet get = new HttpGet("/test");
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(get, route);
+        final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
         final ClassicHttpResponse response1 = Mockito.mock(ClassicHttpResponse.class);
-        Mockito.when(requestExecutor.execute(
+        Mockito.when(chain.proceed(
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response1);
+                Mockito.<ExecChain.Scope>any())).thenReturn(response1);
         Mockito.when(redirectStrategy.isRedirected(
                 Mockito.same(request),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
-        Mockito.doThrow(new RuntimeException("Oppsie")).when(redirectStrategy.getRedirect(
+        Mockito.doThrow(new RuntimeException("Oppsie")).when(redirectStrategy.getLocationURI(
                 Mockito.same(request),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any()));
 
+        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
         try {
-            redirectExec.execute(request, context, execAware);
+            redirectExec.execute(request, scope, chain);
         } catch (final Exception ex) {
             Mockito.verify(response1).close();
             throw ex;
@@ -298,8 +293,7 @@ public class TestRedirectExec {
     @Test(expected = ProtocolException.class)
     public void testRedirectProtocolException() throws Exception {
         final HttpRoute route = new HttpRoute(target);
-        final HttpGet get = new HttpGet("/test");
-        final RoutedHttpRequest request = RoutedHttpRequest.adapt(get, route);
+        final HttpGet request = new HttpGet("/test");
         final HttpClientContext context = HttpClientContext.create();
 
         final ClassicHttpResponse response1 = Mockito.mock(ClassicHttpResponse.class);
@@ -308,21 +302,21 @@ public class TestRedirectExec {
                 .setStream(instream1)
                 .build();
         Mockito.when(response1.getEntity()).thenReturn(entity1);
-        Mockito.when(requestExecutor.execute(
+        Mockito.when(chain.proceed(
                 Mockito.same(request),
-                Mockito.<HttpClientContext>any(),
-                Mockito.<HttpExecutionAware>any())).thenReturn(response1);
+                Mockito.<ExecChain.Scope>any())).thenReturn(response1);
         Mockito.when(redirectStrategy.isRedirected(
-                Mockito.same(get),
+                Mockito.same(request),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any())).thenReturn(Boolean.TRUE);
-        Mockito.doThrow(new ProtocolException("Oppsie")).when(redirectStrategy).getRedirect(
-                Mockito.same(get),
+        Mockito.doThrow(new ProtocolException("Oppsie")).when(redirectStrategy).getLocationURI(
+                Mockito.same(request),
                 Mockito.same(response1),
                 Mockito.<HttpClientContext>any());
 
+        final ExecChain.Scope scope = new ExecChain.Scope(route, request, endpoint, context);
         try {
-            redirectExec.execute(request, context, execAware);
+            redirectExec.execute(request, scope, chain);
         } catch (final Exception ex) {
             Mockito.verify(instream1).close();
             Mockito.verify(response1).close();
@@ -330,22 +324,30 @@ public class TestRedirectExec {
         }
     }
 
-    static class HttpRequestWrapperMatcher extends ArgumentMatcher<RoutedHttpRequest> {
+    private static class HttpRequestMatcher extends ArgumentMatcher<ClassicHttpRequest> {
 
-        private final HttpRequest original;
+        private final URI requestUri;
 
-        HttpRequestWrapperMatcher(final HttpRequest original) {
+        HttpRequestMatcher(final URI requestUri) {
             super();
-            this.original = original;
+            this.requestUri = requestUri;
         }
         @Override
         public boolean matches(final Object obj) {
-            final RoutedHttpRequest wrapper = (RoutedHttpRequest) obj;
-            return original == wrapper.getOriginal();
+            if (obj instanceof HttpRequest) {
+                final HttpRequest request = (HttpRequest) obj;
+                try {
+                    return requestUri.equals(request.getUri());
+                } catch (URISyntaxException e) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
         }
 
-        static RoutedHttpRequest same(final HttpRequest original) {
-            return Matchers.argThat(new HttpRequestWrapperMatcher(original));
+        static ClassicHttpRequest matchesRequestUri(final URI requestUri) {
+            return Matchers.argThat(new HttpRequestMatcher(requestUri));
         }
 
     }

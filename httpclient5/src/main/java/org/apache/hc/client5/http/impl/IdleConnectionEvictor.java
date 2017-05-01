@@ -62,7 +62,9 @@ public final class IdleConnectionEvictor {
                             connectionManager.closeIdle(maxIdleTime);
                         }
                     }
-                } catch (final Exception ignore) {
+                } catch (final InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                } catch (final Exception ex) {
                 }
 
             }

@@ -24,34 +24,29 @@
  * <http://www.apache.org/>.
  *
  */
-package org.apache.hc.client5.http.auth;
+
+package org.apache.hc.client5.http.impl.sync;
+
+import java.io.InterruptedIOException;
 
 /**
- * Abstract store of authentication credentials.
- * <p>
- * Implementations of this interface must be thread-safe. Access to shared
- * data must be synchronized as methods of this interface may be executed
- * from multiple threads.
+ * Signals that the request has been aborted or failed due to an expected condition.
  *
- * @since 4.0
+ * @since 5.0
  */
-public interface CredentialsStore extends CredentialsProvider {
+public class RequestFailedException extends InterruptedIOException {
 
-    /**
-     * Sets the {@link Credentials credentials} for the given authentication
-     * scope. Any previous credentials for the given scope will be overwritten.
-     *
-     * @param authscope the {@link AuthScope authentication scope}
-     * @param credentials the authentication {@link Credentials credentials}
-     * for the given scope.
-     *
-     * @see #getCredentials(AuthScope, org.apache.hc.core5.http.protocol.HttpContext)
-     */
-    void setCredentials(AuthScope authscope, Credentials credentials);
+    private static final long serialVersionUID = 4973849966012490112L;
 
-    /**
-     * Clears all credentials.
-     */
-    void clear();
+    public RequestFailedException(final String message) {
+        super(message);
+    }
+
+    public RequestFailedException(final String message, final Throwable cause) {
+        super(message);
+        if (cause != null) {
+            initCause(cause);
+        }
+    }
 
 }
