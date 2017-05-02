@@ -37,25 +37,46 @@ import java.util.List;
 
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
+import org.apache.hc.client5.http.SystemDefaultDnsResolver;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
+import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.cookie.BasicCookieStore;
+import org.apache.hc.client5.http.cookie.CookieSpecProvider;
+import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.DefaultConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.DefaultUserTokenHandler;
 import org.apache.hc.client5.http.impl.IdleConnectionEvictor;
 import org.apache.hc.client5.http.impl.NamedElementChain;
 import org.apache.hc.client5.http.impl.NoopUserTokenHandler;
+import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.CredSspSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.DigestSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.NTLMSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.SPNegoSchemeFactory;
+import org.apache.hc.client5.http.impl.auth.SystemDefaultCredentialsProvider;
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.impl.protocol.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.protocol.DefaultRedirectStrategy;
 import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.impl.routing.SystemDefaultRoutePlanner;
+import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.sync.ChainElements;
+import org.apache.hc.client5.http.impl.sync.CookieSpecRegistries;
 import org.apache.hc.client5.http.impl.sync.DefaultHttpRequestRetryHandler;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
+import org.apache.hc.client5.http.protocol.AuthenticationStrategy;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
+import org.apache.hc.client5.http.protocol.RequestAddCookies;
+import org.apache.hc.client5.http.protocol.RequestAuthCache;
 import org.apache.hc.client5.http.protocol.RequestDefaultHeaders;
 import org.apache.hc.client5.http.protocol.RequestExpectContinue;
+import org.apache.hc.client5.http.protocol.ResponseProcessCookies;
 import org.apache.hc.client5.http.protocol.UserTokenHandler;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.sync.HttpRequestRetryHandler;
@@ -72,11 +93,14 @@ import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpResponseInterceptor;
 import org.apache.hc.core5.http.config.CharCodingConfig;
 import org.apache.hc.core5.http.config.H1Config;
+import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.nio.AsyncPushConsumer;
 import org.apache.hc.core5.http.nio.HandlerFactory;
 import org.apache.hc.core5.http.nio.command.ShutdownCommand;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpProcessorBuilder;
 import org.apache.hc.core5.http.protocol.RequestUserAgent;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
@@ -179,6 +203,8 @@ public class HttpAsyncClientBuilder {
     private SchemePortResolver schemePortResolver;
     private ConnectionKeepAliveStrategy keepAliveStrategy;
     private UserTokenHandler userTokenHandler;
+    private AuthenticationStrategy targetAuthStrategy;
+    private AuthenticationStrategy proxyAuthStrategy;
 
     private LinkedList<RequestInterceptorEntry> requestInterceptors;
     private LinkedList<ResponseInterceptorEntry> responseInterceptors;
@@ -189,6 +215,11 @@ public class HttpAsyncClientBuilder {
     private HttpRequestRetryHandler retryHandler;
 
     private ConnectionReuseStrategy reuseStrategy;
+
+    private Lookup<AuthSchemeProvider> authSchemeRegistry;
+    private Lookup<CookieSpecProvider> cookieSpecRegistry;
+    private CookieStore cookieStore;
+    private CredentialsProvider credentialsProvider;
 
     private String userAgent;
     private HttpHost proxy;
@@ -201,6 +232,8 @@ public class HttpAsyncClientBuilder {
     private boolean systemProperties;
     private boolean automaticRetriesDisabled;
     private boolean redirectHandlingDisabled;
+    private boolean cookieManagementDisabled;
+    private boolean authCachingDisabled;
     private boolean connectionStateDisabled;
 
     private List<Closeable> closeables;
@@ -304,6 +337,26 @@ public class HttpAsyncClientBuilder {
      */
     public final HttpAsyncClientBuilder setUserTokenHandler(final UserTokenHandler userTokenHandler) {
         this.userTokenHandler = userTokenHandler;
+        return this;
+    }
+
+    /**
+     * Assigns {@link AuthenticationStrategy} instance for target
+     * host authentication.
+     */
+    public final HttpAsyncClientBuilder setTargetAuthenticationStrategy(
+            final AuthenticationStrategy targetAuthStrategy) {
+        this.targetAuthStrategy = targetAuthStrategy;
+        return this;
+    }
+
+    /**
+     * Assigns {@link AuthenticationStrategy} instance for proxy
+     * authentication.
+     */
+    public final HttpAsyncClientBuilder setProxyAuthenticationStrategy(
+            final AuthenticationStrategy proxyAuthStrategy) {
+        this.proxyAuthStrategy = proxyAuthStrategy;
         return this;
     }
 
@@ -463,6 +516,45 @@ public class HttpAsyncClientBuilder {
     }
 
     /**
+     * Assigns default {@link CredentialsProvider} instance which will be used
+     * for request execution if not explicitly set in the client execution
+     * context.
+     */
+    public final HttpAsyncClientBuilder setDefaultCredentialsProvider(final CredentialsProvider credentialsProvider) {
+        this.credentialsProvider = credentialsProvider;
+        return this;
+    }
+
+    /**
+     * Assigns default {@link org.apache.hc.client5.http.auth.AuthScheme} registry which will
+     * be used for request execution if not explicitly set in the client execution
+     * context.
+     */
+    public final HttpAsyncClientBuilder setDefaultAuthSchemeRegistry(final Lookup<AuthSchemeProvider> authSchemeRegistry) {
+        this.authSchemeRegistry = authSchemeRegistry;
+        return this;
+    }
+
+    /**
+     * Assigns default {@link org.apache.hc.client5.http.cookie.CookieSpec} registry
+     * which will be used for request execution if not explicitly set in the client
+     * execution context.
+     */
+    public final HttpAsyncClientBuilder setDefaultCookieSpecRegistry(final Lookup<CookieSpecProvider> cookieSpecRegistry) {
+        this.cookieSpecRegistry = cookieSpecRegistry;
+        return this;
+    }
+
+    /**
+     * Assigns default {@link CookieStore} instance which will be used for
+     * request execution if not explicitly set in the client execution context.
+     */
+    public final HttpAsyncClientBuilder setDefaultCookieStore(final CookieStore cookieStore) {
+        this.cookieStore = cookieStore;
+        return this;
+    }
+
+    /**
      * Assigns default {@link RequestConfig} instance which will be used
      * for request execution if not explicitly set in the client execution
      * context.
@@ -502,6 +594,22 @@ public class HttpAsyncClientBuilder {
      */
     public final HttpAsyncClientBuilder disableAutomaticRetries() {
         automaticRetriesDisabled = true;
+        return this;
+    }
+
+    /**
+     * Disables state (cookie) management.
+     */
+    public final HttpAsyncClientBuilder disableCookieManagement() {
+        this.cookieManagementDisabled = true;
+        return this;
+    }
+
+    /**
+     * Disables authentication scheme caching.
+     */
+    public final HttpAsyncClientBuilder disableAuthCaching() {
+        this.authCachingDisabled = true;
         return this;
     }
 
@@ -596,6 +704,15 @@ public class HttpAsyncClientBuilder {
                 new AsyncMainClientExec(keepAliveStrategyCopy, userTokenHandlerCopy),
                 ChainElements.MAIN_TRANSPORT.name());
 
+        AuthenticationStrategy targetAuthStrategyCopy = this.targetAuthStrategy;
+        if (targetAuthStrategyCopy == null) {
+            targetAuthStrategyCopy = DefaultAuthenticationStrategy.INSTANCE;
+        }
+        AuthenticationStrategy proxyAuthStrategyCopy = this.proxyAuthStrategy;
+        if (proxyAuthStrategyCopy == null) {
+            proxyAuthStrategyCopy = DefaultAuthenticationStrategy.INSTANCE;
+        }
+
         String userAgentCopy = this.userAgent;
         if (userAgentCopy == null) {
             if (systemProperties) {
@@ -629,6 +746,15 @@ public class HttpAsyncClientBuilder {
                 new H2RequestConnControl(),
                 new RequestUserAgent(userAgentCopy),
                 new RequestExpectContinue());
+        if (!cookieManagementDisabled) {
+            b.add(new RequestAddCookies());
+        }
+        if (!authCachingDisabled) {
+            b.add(new RequestAuthCache());
+        }
+        if (!cookieManagementDisabled) {
+            b.add(new ResponseProcessCookies());
+        }
         if (requestInterceptors != null) {
             for (final RequestInterceptorEntry entry: requestInterceptors) {
                 if (entry.postion == RequestInterceptorEntry.Postion.LAST) {
@@ -644,8 +770,9 @@ public class HttpAsyncClientBuilder {
             }
         }
 
+        final HttpProcessor httpProcessor = b.build();
         execChainDefinition.addFirst(
-                new AsyncProtocolExec(b.build()),
+                new AsyncProtocolExec(httpProcessor, targetAuthStrategyCopy, proxyAuthStrategyCopy),
                 ChainElements.PROTOCOL.name());
 
         // Add request retry executor, if not disabled
@@ -783,6 +910,36 @@ public class HttpAsyncClientBuilder {
             current = current.getPrevious();
         }
 
+        Lookup<AuthSchemeProvider> authSchemeRegistryCopy = this.authSchemeRegistry;
+        if (authSchemeRegistryCopy == null) {
+            authSchemeRegistryCopy = RegistryBuilder.<AuthSchemeProvider>create()
+                    .register(AuthSchemes.BASIC, new BasicSchemeFactory())
+                    .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
+                    .register(AuthSchemes.CREDSSP, new CredSspSchemeFactory())
+                    .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
+                    .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory(SystemDefaultDnsResolver.INSTANCE, true, true))
+                    .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory(SystemDefaultDnsResolver.INSTANCE, true, true))
+                    .build();
+        }
+        Lookup<CookieSpecProvider> cookieSpecRegistryCopy = this.cookieSpecRegistry;
+        if (cookieSpecRegistryCopy == null) {
+            cookieSpecRegistryCopy = CookieSpecRegistries.createDefault();
+        }
+
+        CookieStore cookieStoreCopy = this.cookieStore;
+        if (cookieStoreCopy == null) {
+            cookieStoreCopy = new BasicCookieStore();
+        }
+
+        CredentialsProvider credentialsProviderCopy = this.credentialsProvider;
+        if (credentialsProviderCopy == null) {
+            if (systemProperties) {
+                credentialsProviderCopy = new SystemDefaultCredentialsProvider();
+            } else {
+                credentialsProviderCopy = new BasicCredentialsProvider();
+            }
+        }
+
         return new InternalHttpAsyncClient(
                 ioReactor,
                 execChain,
@@ -791,6 +948,10 @@ public class HttpAsyncClientBuilder {
                 connManagerCopy,
                 routePlannerCopy,
                 versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE,
+                cookieSpecRegistryCopy,
+                authSchemeRegistryCopy,
+                cookieStoreCopy,
+                credentialsProviderCopy,
                 defaultRequestConfig,
                 closeablesCopy);
     }

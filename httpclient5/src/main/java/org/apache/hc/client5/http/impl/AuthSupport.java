@@ -25,19 +25,22 @@
  *
  */
 
-package org.apache.hc.client5.http.auth.util;
+package org.apache.hc.client5.http.impl;
 
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.CredentialsStore;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.AuthSchemes;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 
 /**
  * @since 5.0
  */
-public class CredentialSupport {
+public class AuthSupport {
 
     public static void extractFromAuthority(
             final URIAuthority authority,
@@ -63,6 +66,22 @@ public class CredentialSupport {
         credentialsStore.setCredentials(
                 new AuthScope(authority.getHostName(), authority.getPort(), null, AuthSchemes.BASIC),
                 new UsernamePasswordCredentials(userName, password));
+    }
+
+    public static HttpHost resolveAuthTarget(final HttpRequest request, final HttpRoute route) {
+        Args.notNull(request, "Request");
+        Args.notNull(route, "Route");
+        final URIAuthority authority = request.getAuthority();
+        final String scheme = request.getScheme();
+        final HttpHost target = authority != null ? new HttpHost(authority, scheme) : route.getTargetHost();;
+        if (target.getPort() < 0) {
+            return new HttpHost(
+                    target.getHostName(),
+                    route.getTargetHost().getPort(),
+                    target.getSchemeName());
+        } else {
+            return target;
+        }
     }
 
 }

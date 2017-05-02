@@ -27,31 +27,74 @@
 package org.apache.hc.client5.http.impl.async;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.StandardMethods;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecChainHandler;
+import org.apache.hc.client5.http.async.AsyncExecRuntime;
+import org.apache.hc.client5.http.auth.AuthExchange;
+import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.CredentialsStore;
-import org.apache.hc.client5.http.auth.util.CredentialSupport;
+import org.apache.hc.client5.http.impl.AuthSupport;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
+import org.apache.hc.client5.http.protocol.AuthenticationStrategy;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.utils.URIUtils;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.EntityDetails;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncEntityProducer;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
 import org.apache.hc.core5.net.URIAuthority;
+import org.apache.hc.core5.util.Args;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+/**
+ * Request executor in the request execution chain that is responsible
+ * for implementation of HTTP specification requirements.
+ * <p>
+ * Further responsibilities such as communication with the opposite
+ * endpoint is delegated to the next executor in the request execution
+ * chain.
+ *
+ * @since 5.0
+ */
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class AsyncProtocolExec implements AsyncExecChainHandler {
 
-    private final HttpProcessor httpProcessor;
+    private final Logger log = LogManager.getLogger(getClass());
 
-    AsyncProtocolExec(final HttpProcessor httpProcessor) {
-        this.httpProcessor = httpProcessor;
+    private final HttpProcessor httpProcessor;
+    private final AuthenticationStrategy targetAuthStrategy;
+    private final AuthenticationStrategy proxyAuthStrategy;
+    private final HttpAuthenticator authenticator;
+
+    AsyncProtocolExec(
+            final HttpProcessor httpProcessor,
+            final AuthenticationStrategy targetAuthStrategy,
+            final AuthenticationStrategy proxyAuthStrategy) {
+        this.httpProcessor = Args.notNull(httpProcessor, "HTTP protocol processor");
+        this.targetAuthStrategy = Args.notNull(targetAuthStrategy, "Target authentication strategy");
+        this.proxyAuthStrategy = Args.notNull(proxyAuthStrategy, "Proxy authentication strategy");
+        this.authenticator = new HttpAuthenticator();
     }
 
     @Override
@@ -63,32 +106,121 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
             final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
         final HttpRoute route = scope.route;
         final HttpClientContext clientContext = scope.clientContext;
+
+        if (route.getProxyHost() != null && !route.isTunnelled()) {
+            try {
+                URI uri = request.getUri();
+                if (!uri.isAbsolute()) {
+                    uri = URIUtils.rewriteURI(uri, route.getTargetHost(), true);
+                } else {
+                    uri = URIUtils.rewriteURI(uri);
+                }
+                request.setPath(uri.toASCIIString());
+            } catch (final URISyntaxException ex) {
+                throw new ProtocolException("Invalid request URI: " + request.getRequestUri(), ex);
+            }
+        }
+
         final URIAuthority authority = request.getAuthority();
         if (authority != null) {
             final CredentialsProvider credsProvider = clientContext.getCredentialsProvider();
             if (credsProvider instanceof CredentialsStore) {
-                CredentialSupport.extractFromAuthority(authority, (CredentialsStore) credsProvider);
+                AuthSupport.extractFromAuthority(authority, (CredentialsStore) credsProvider);
             }
         }
+
+        final AtomicBoolean challenged = new AtomicBoolean(false);
+        internalExecute(challenged, request, entityProducer, scope, chain, asyncExecCallback);
+    }
+
+    private void internalExecute(
+            final AtomicBoolean challenged,
+            final HttpRequest request,
+            final AsyncEntityProducer entityProducer,
+            final AsyncExecChain.Scope scope,
+            final AsyncExecChain chain,
+            final AsyncExecCallback asyncExecCallback) throws HttpException, IOException {
+        final HttpRoute route = scope.route;
+        final HttpClientContext clientContext = scope.clientContext;
+        final AsyncExecRuntime execRuntime = scope.execRuntime;
+
+        final HttpHost target = route.getTargetHost();
+        final HttpHost proxy = route.getProxyHost();
+
+        final AuthExchange targetAuthExchange = clientContext.getAuthExchange(target);
+        final AuthExchange proxyAuthExchange = proxy != null ? clientContext.getAuthExchange(proxy) : new AuthExchange();
 
         clientContext.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         clientContext.setAttribute(HttpCoreContext.HTTP_REQUEST, request);
         httpProcessor.process(request, entityProducer, clientContext);
+
+        if (!request.containsHeader(HttpHeaders.AUTHORIZATION)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Target auth state: " + targetAuthExchange.getState());
+            }
+            authenticator.addAuthResponse(target, ChallengeType.TARGET, request, targetAuthExchange, clientContext);
+        }
+        if (!request.containsHeader(HttpHeaders.PROXY_AUTHORIZATION) && !route.isTunnelled()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Proxy auth state: " + proxyAuthExchange.getState());
+            }
+            authenticator.addAuthResponse(proxy, ChallengeType.PROXY, request, proxyAuthExchange, clientContext);
+        }
 
         chain.proceed(request, entityProducer, scope, new AsyncExecCallback() {
 
             @Override
             public AsyncDataConsumer handleResponse(
                     final HttpResponse response, final EntityDetails entityDetails) throws HttpException, IOException {
+
                 clientContext.setAttribute(HttpCoreContext.HTTP_RESPONSE, response);
                 httpProcessor.process(response, entityDetails, clientContext);
 
-                return asyncExecCallback.handleResponse(response, entityDetails);
+                if (request.getMethod().equalsIgnoreCase(StandardMethods.TRACE.name())) {
+                    // Do not perform authentication for TRACE request
+                    return asyncExecCallback.handleResponse(response, entityDetails);
+                }
+                if (needAuthentication(targetAuthExchange, proxyAuthExchange, route, request, response, clientContext)) {
+                    challenged.set(true);
+                    return null;
+                } else {
+                    challenged.set(false);
+                    return asyncExecCallback.handleResponse(response, entityDetails);
+                }
             }
 
             @Override
             public void completed() {
-                asyncExecCallback.completed();
+                if (execRuntime.isConnected()) {
+                    if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
+                            && proxyAuthExchange.getAuthScheme() != null
+                            && proxyAuthExchange.getAuthScheme().isConnectionBased()) {
+                        log.debug("Resetting proxy auth state");
+                        proxyAuthExchange.reset();
+                    }
+                    if (targetAuthExchange.getState() == AuthExchange.State.SUCCESS
+                            && targetAuthExchange.getAuthScheme() != null
+                            && targetAuthExchange.getAuthScheme().isConnectionBased()) {
+                        log.debug("Resetting target auth state");
+                        targetAuthExchange.reset();
+                    }
+                }
+
+                if (challenged.get()) {
+                    // Reset request headers
+                    final HttpRequest original = scope.originalRequest;
+                    request.setHeaders();
+                    for (final Iterator<Header> it = original.headerIterator(); it.hasNext(); ) {
+                        request.addHeader(it.next());
+                    }
+                    try {
+                        internalExecute(challenged, request, entityProducer, scope, chain, asyncExecCallback);
+                    } catch (final HttpException | IOException ex) {
+                        asyncExecCallback.failed(ex);
+                    }
+                } else {
+                    asyncExecCallback.completed();
+                }
             }
 
             @Override
@@ -97,6 +229,39 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
             }
 
         });
+    }
+
+    private boolean needAuthentication(
+            final AuthExchange targetAuthExchange,
+            final AuthExchange proxyAuthExchange,
+            final HttpRoute route,
+            final HttpRequest request,
+            final HttpResponse response,
+            final HttpClientContext context) {
+        final RequestConfig config = context.getRequestConfig();
+        if (config.isAuthenticationEnabled()) {
+            final HttpHost target = AuthSupport.resolveAuthTarget(request, route);
+            final boolean targetAuthRequested = authenticator.isChallenged(
+                    target, ChallengeType.TARGET, response, targetAuthExchange, context);
+
+            HttpHost proxy = route.getProxyHost();
+            // if proxy is not set use target host instead
+            if (proxy == null) {
+                proxy = route.getTargetHost();
+            }
+            final boolean proxyAuthRequested = authenticator.isChallenged(
+                    proxy, ChallengeType.PROXY, response, proxyAuthExchange, context);
+
+            if (targetAuthRequested) {
+                return authenticator.prepareAuthResponse(target, ChallengeType.TARGET, response,
+                        targetAuthStrategy, targetAuthExchange, context);
+            }
+            if (proxyAuthRequested) {
+                return authenticator.prepareAuthResponse(proxy, ChallengeType.PROXY, response,
+                        proxyAuthStrategy, proxyAuthExchange, context);
+            }
+        }
+        return false;
     }
 
 }

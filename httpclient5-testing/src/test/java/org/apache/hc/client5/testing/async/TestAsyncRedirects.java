@@ -70,7 +70,6 @@ import org.apache.hc.core5.reactor.ListenerEndpoint;
 import org.apache.hc.core5.testing.nio.Http2TestServer;
 import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -641,7 +640,7 @@ public class TestAsyncRedirects extends IntegrationTestBase {
         }
     }
 
-    @Test @Ignore
+    @Test
     public void testRedirectWithCookie() throws Exception {
         server.register("*", new Supplier<AsyncServerExchangeHandler>() {
 

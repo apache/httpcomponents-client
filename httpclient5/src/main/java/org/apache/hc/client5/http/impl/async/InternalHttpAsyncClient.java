@@ -36,8 +36,12 @@ import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.async.AsyncExecCallback;
 import org.apache.hc.client5.http.async.AsyncExecChain;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
+import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.cookie.CookieSpecProvider;
+import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.nio.AsyncClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
@@ -49,6 +53,7 @@ import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.nio.AsyncClientExchangeHandler;
 import org.apache.hc.core5.http.nio.AsyncDataConsumer;
 import org.apache.hc.core5.http.nio.AsyncRequestProducer;
@@ -65,6 +70,10 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
     private final AsyncExecChainElement execChain;
     private final HttpRoutePlanner routePlanner;
     private final HttpVersionPolicy versionPolicy;
+    private final Lookup<CookieSpecProvider> cookieSpecRegistry;
+    private final Lookup<AuthSchemeProvider> authSchemeRegistry;
+    private final CookieStore cookieStore;
+    private final CredentialsProvider credentialsProvider;
     private final RequestConfig defaultConfig;
     private final List<Closeable> closeables;
 
@@ -76,6 +85,10 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
             final AsyncClientConnectionManager connmgr,
             final HttpRoutePlanner routePlanner,
             final HttpVersionPolicy versionPolicy,
+            final Lookup<CookieSpecProvider> cookieSpecRegistry,
+            final Lookup<AuthSchemeProvider> authSchemeRegistry,
+            final CookieStore cookieStore,
+            final CredentialsProvider credentialsProvider,
             final RequestConfig defaultConfig,
             final List<Closeable> closeables) {
         super(ioReactor, pushConsumerRegistry, threadFactory);
@@ -83,6 +96,10 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
         this.execChain = execChain;
         this.routePlanner = routePlanner;
         this.versionPolicy = versionPolicy;
+        this.cookieSpecRegistry = cookieSpecRegistry;
+        this.authSchemeRegistry = authSchemeRegistry;
+        this.cookieStore = cookieStore;
+        this.credentialsProvider = credentialsProvider;
         this.defaultConfig = defaultConfig;
         this.closeables = closeables;
     }
@@ -102,6 +119,18 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
     }
 
     private void setupContext(final HttpClientContext context) {
+        if (context.getAttribute(HttpClientContext.AUTHSCHEME_REGISTRY) == null) {
+            context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, authSchemeRegistry);
+        }
+        if (context.getAttribute(HttpClientContext.COOKIESPEC_REGISTRY) == null) {
+            context.setAttribute(HttpClientContext.COOKIESPEC_REGISTRY, cookieSpecRegistry);
+        }
+        if (context.getAttribute(HttpClientContext.COOKIE_STORE) == null) {
+            context.setAttribute(HttpClientContext.COOKIE_STORE, cookieStore);
+        }
+        if (context.getAttribute(HttpClientContext.CREDS_PROVIDER) == null) {
+            context.setAttribute(HttpClientContext.CREDS_PROVIDER, credentialsProvider);
+        }
         if (context.getAttribute(HttpClientContext.REQUEST_CONFIG) == null) {
             context.setAttribute(HttpClientContext.REQUEST_CONFIG, defaultConfig);
         }

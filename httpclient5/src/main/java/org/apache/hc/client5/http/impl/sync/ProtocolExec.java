@@ -38,7 +38,7 @@ import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.ChallengeType;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.CredentialsStore;
-import org.apache.hc.client5.http.auth.util.CredentialSupport;
+import org.apache.hc.client5.http.impl.AuthSupport;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.auth.HttpAuthenticator;
 import org.apache.hc.client5.http.protocol.AuthenticationStrategy;
@@ -131,7 +131,7 @@ final class ProtocolExec implements ExecChainHandler {
             if (authority != null) {
                 final CredentialsProvider credsProvider = context.getCredentialsProvider();
                 if (credsProvider instanceof CredentialsStore) {
-                    CredentialSupport.extractFromAuthority(authority, (CredentialsStore) credsProvider);
+                    AuthSupport.extractFromAuthority(authority, (CredentialsStore) credsProvider);
                 }
             }
 
@@ -222,15 +222,7 @@ final class ProtocolExec implements ExecChainHandler {
             final HttpClientContext context) {
         final RequestConfig config = context.getRequestConfig();
         if (config.isAuthenticationEnabled()) {
-            final URIAuthority authority = request.getAuthority();
-            final String scheme = request.getScheme();
-            HttpHost target = authority != null ? new HttpHost(authority, scheme) : route.getTargetHost();;
-            if (target.getPort() < 0) {
-                target = new HttpHost(
-                        target.getHostName(),
-                        route.getTargetHost().getPort(),
-                        target.getSchemeName());
-            }
+            final HttpHost target = AuthSupport.resolveAuthTarget(request, route);
             final boolean targetAuthRequested = authenticator.isChallenged(
                     target, ChallengeType.TARGET, response, targetAuthExchange, context);
 
