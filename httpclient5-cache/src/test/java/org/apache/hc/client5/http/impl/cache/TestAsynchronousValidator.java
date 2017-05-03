@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -40,9 +40,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.sync.ExecRuntime;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecRuntime;
 import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;

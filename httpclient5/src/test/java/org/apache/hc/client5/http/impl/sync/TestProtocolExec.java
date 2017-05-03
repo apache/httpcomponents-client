@@ -155,7 +155,7 @@ public class TestProtocolExec {
                 Mockito.<ClassicHttpRequest>any(),
                 Mockito.<ExecChain.Scope>any())).thenReturn(response);
         Mockito.doThrow(new HttpException("Ooopsie")).when(httpProcessor).process(
-                Mockito.same(response), Mockito.isNull(EntityDetails.class), Mockito.<HttpContext>any());
+                Mockito.same(response), Mockito.<EntityDetails>isNull(), Mockito.<HttpContext>any());
         final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, context);
         try {
             protocolExec.execute(request, scope, chain);
@@ -176,7 +176,7 @@ public class TestProtocolExec {
                 Mockito.<ClassicHttpRequest>any(),
                 Mockito.<ExecChain.Scope>any())).thenReturn(response);
         Mockito.doThrow(new IOException("Ooopsie")).when(httpProcessor).process(
-                Mockito.same(response), Mockito.isNull(EntityDetails.class), Mockito.<HttpContext>any());
+                Mockito.same(response), Mockito.<EntityDetails>isNull(), Mockito.<HttpContext>any());
         final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, context);
         try {
             protocolExec.execute(request, scope, chain);
@@ -197,7 +197,7 @@ public class TestProtocolExec {
                 Mockito.<ClassicHttpRequest>any(),
                 Mockito.<ExecChain.Scope>any())).thenReturn(response);
         Mockito.doThrow(new RuntimeException("Ooopsie")).when(httpProcessor).process(
-                Mockito.same(response), Mockito.isNull(EntityDetails.class), Mockito.<HttpContext>any());
+                Mockito.same(response), Mockito.<EntityDetails>isNull(), Mockito.<HttpContext>any());
         final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, context);
         try {
             protocolExec.execute(request, scope, chain);

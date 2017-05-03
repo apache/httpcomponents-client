@@ -126,10 +126,10 @@ public class TestSystemDefaultCredentialsProvider {
     private AuthenticatorDelegate installAuthenticator(final PasswordAuthentication returedAuthentication) {
         final AuthenticatorDelegate authenticatorDelegate = Mockito.mock(AuthenticatorDelegate.class);
         Mockito.when(authenticatorDelegate.getPasswordAuthentication(Mockito.anyString(),
-                                                                     Mockito.any(InetAddress.class), Mockito.anyInt(),
+                                                                     Mockito.<InetAddress>any(), Mockito.anyInt(),
                                                                      Mockito.anyString(), Mockito.anyString(),
-                                                                     Mockito.anyString(), Mockito.any(URL.class),
-                                                                     Mockito.any(RequestorType.class))).thenReturn(returedAuthentication);
+                                                                     Mockito.anyString(), Mockito.<URL>any(),
+                                                                     Mockito.<RequestorType>any())).thenReturn(returedAuthentication);
         Authenticator.setDefault(new DelegatedAuthenticator(authenticatorDelegate));
         return authenticatorDelegate;
     }

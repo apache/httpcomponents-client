@@ -57,7 +57,7 @@ import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 /**
@@ -96,14 +96,14 @@ public class TestSPNegoScheme extends LocalServerTestBase {
         NegotiateSchemeWithMockGssManager() throws Exception {
             super(true);
             Mockito.when(context.initSecContext(
-                    Matchers.any(byte[].class), Matchers.anyInt(), Matchers.anyInt()))
+                    ArgumentMatchers.<byte[]>any(), ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt()))
                     .thenReturn("12345678".getBytes());
             Mockito.when(manager.createName(
-                    Matchers.any(String.class), Matchers.any(Oid.class)))
+                    ArgumentMatchers.anyString(), ArgumentMatchers.<Oid>any()))
                     .thenReturn(name);
             Mockito.when(manager.createContext(
-                    Matchers.any(GSSName.class), Matchers.any(Oid.class),
-                    Matchers.any(GSSCredential.class), Matchers.anyInt()))
+                    ArgumentMatchers.<GSSName>any(), ArgumentMatchers.<Oid>any(),
+                    ArgumentMatchers.<GSSCredential>any(), ArgumentMatchers.anyInt()))
                     .thenReturn(context);
         }
 

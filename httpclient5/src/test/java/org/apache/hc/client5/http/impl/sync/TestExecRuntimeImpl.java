@@ -164,7 +164,7 @@ public class TestExecRuntimeImpl {
         Mockito.verify(connectionEndpoint, Mockito.times(1)).shutdown(ShutdownType.IMMEDIATE);
         Mockito.verify(mgr, Mockito.times(1)).release(
                 Mockito.<ConnectionEndpoint>any(),
-                Mockito.anyObject(),
+                Mockito.any(),
                 Mockito.<TimeValue>any());
     }
 
@@ -191,7 +191,7 @@ public class TestExecRuntimeImpl {
         Mockito.verify(connectionEndpoint, Mockito.times(1)).shutdown(ShutdownType.IMMEDIATE);
         Mockito.verify(mgr, Mockito.times(1)).release(
                 Mockito.<ConnectionEndpoint>any(),
-                Mockito.anyObject(),
+                Mockito.any(),
                 Mockito.<TimeValue>any());
     }
 
@@ -221,7 +221,7 @@ public class TestExecRuntimeImpl {
 
         Mockito.verify(mgr, Mockito.times(1)).release(
                 Mockito.<ConnectionEndpoint>any(),
-                Mockito.anyObject(),
+                Mockito.any(),
                 Mockito.<TimeValue>any());
     }
 
@@ -251,7 +251,7 @@ public class TestExecRuntimeImpl {
 
         Mockito.verify(mgr, Mockito.times(1)).release(
                 Mockito.<ConnectionEndpoint>any(),
-                Mockito.anyObject(),
+                Mockito.any(),
                 Mockito.<TimeValue>any());
     }
 

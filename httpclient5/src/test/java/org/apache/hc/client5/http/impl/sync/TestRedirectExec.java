@@ -50,7 +50,6 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.ProtocolException;
 import org.junit.Assert;
@@ -58,7 +57,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -324,7 +323,7 @@ public class TestRedirectExec {
         }
     }
 
-    private static class HttpRequestMatcher extends ArgumentMatcher<ClassicHttpRequest> {
+    private static class HttpRequestMatcher implements ArgumentMatcher<ClassicHttpRequest> {
 
         private final URI requestUri;
 
@@ -332,22 +331,18 @@ public class TestRedirectExec {
             super();
             this.requestUri = requestUri;
         }
+
         @Override
-        public boolean matches(final Object obj) {
-            if (obj instanceof HttpRequest) {
-                final HttpRequest request = (HttpRequest) obj;
-                try {
-                    return requestUri.equals(request.getUri());
-                } catch (URISyntaxException e) {
-                    return false;
-                }
-            } else {
+        public boolean matches(final ClassicHttpRequest argument) {
+            try {
+                return requestUri.equals(argument.getUri());
+            } catch (URISyntaxException e) {
                 return false;
             }
         }
 
         static ClassicHttpRequest matchesRequestUri(final URI requestUri) {
-            return Matchers.argThat(new HttpRequestMatcher(requestUri));
+            return ArgumentMatchers.argThat(new HttpRequestMatcher(requestUri));
         }
 
     }
