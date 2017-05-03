@@ -28,9 +28,6 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.util.Iterator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -38,6 +35,9 @@ import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Determines if an HttpRequest is allowed to be served from the cache.
@@ -47,7 +47,7 @@ import org.apache.hc.core5.http.ProtocolVersion;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheableRequestPolicy {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     /**
      * Determines if an HttpRequest can be served from the cache.

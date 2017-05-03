@@ -29,12 +29,9 @@ package org.apache.hc.client5.http.impl.cache;
 import java.util.Date;
 import java.util.Iterator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.http.message.MessageSupport;
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
@@ -42,6 +39,9 @@ import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Determines whether a given {@link HttpCacheEntry} is suitable to be
@@ -52,7 +52,7 @@ import org.apache.hc.core5.http.HttpStatus;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CachedResponseSuitabilityChecker {
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     private final boolean sharedCache;
     private final boolean useHeuristicCaching;

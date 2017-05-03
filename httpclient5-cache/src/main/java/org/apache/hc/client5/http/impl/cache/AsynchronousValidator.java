@@ -33,12 +33,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.RejectedExecutionException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.sync.ExecChain;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Class used for asynchronous revalidations to be used when the "stale-
@@ -50,7 +50,7 @@ class AsynchronousValidator implements Closeable {
     private final CacheKeyGenerator cacheKeyGenerator;
     private final FailureCache failureCache;
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     /**
      * Create AsynchronousValidator which will make revalidation requests

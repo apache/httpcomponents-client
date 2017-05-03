@@ -22,7 +22,7 @@
     </Console>
   </Appenders>
   <Loggers>
-    <Root level="WARN">
+    <Root level="fatal">
       <AppenderRef ref="STDOUT" />
     </Root>
   </Loggers>

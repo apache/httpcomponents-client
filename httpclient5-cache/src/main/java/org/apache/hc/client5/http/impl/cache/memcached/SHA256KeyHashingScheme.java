@@ -30,8 +30,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This is a {@link KeyHashingScheme} based on the
@@ -42,7 +42,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class SHA256KeyHashingScheme implements KeyHashingScheme {
 
-    private static final Log log = LogFactory.getLog(SHA256KeyHashingScheme.class);
+    private final Logger log = LogManager.getLogger(getClass());
 
     @Override
     public String hash(final String key) {

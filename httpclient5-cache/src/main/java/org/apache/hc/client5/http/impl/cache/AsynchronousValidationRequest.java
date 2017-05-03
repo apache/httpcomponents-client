@@ -28,8 +28,6 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.sync.ExecChain;
@@ -39,6 +37,8 @@ import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Class used to represent an asynchronous revalidation event, such as with
@@ -55,7 +55,7 @@ public class AsynchronousValidationRequest implements Runnable {
     private final String identifier;
     private final int consecutiveFailedAttempts;
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     /**
      * Used internally by {@link AsynchronousValidator} to schedule a
