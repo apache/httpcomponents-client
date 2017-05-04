@@ -32,7 +32,6 @@ import java.net.URI;
 import java.nio.charset.Charset;
 
 import org.apache.hc.client5.http.fluent.Content;
-import org.apache.hc.client5.http.fluent.Executor;
 import org.apache.hc.client5.http.fluent.Request;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.testing.sync.LocalServerTestBase;
@@ -47,7 +46,6 @@ import org.apache.hc.core5.http.io.ResponseHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -91,12 +89,6 @@ public class TestFluent extends LocalServerTestBase {
             }
 
         });
-    }
-
-    @After @Override
-    public void shutDown() throws Exception {
-        Executor.closeIdleConnections();
-        super.shutDown();
     }
 
     @Test

@@ -93,7 +93,7 @@ public abstract class LocalServerTestBase {
             this.httpclient.close();
         }
         if (this.server != null) {
-            this.server.shutdown(ShutdownType.GRACEFUL);
+            this.server.shutdown(ShutdownType.IMMEDIATE);
         }
     }
 

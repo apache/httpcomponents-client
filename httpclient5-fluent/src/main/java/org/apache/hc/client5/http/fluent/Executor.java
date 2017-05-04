@@ -28,10 +28,6 @@ package org.apache.hc.client5.http.fluent;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-
-import javax.net.ssl.SSLContext;
 
 import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthScope;
@@ -42,58 +38,35 @@ import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.cookie.CookieStore;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicScheme;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.client5.http.ssl.SSLInitializationException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.config.Registry;
-import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
  * An Executor for fluent requests.
  * <p>
- * A {@link PoolingHttpClientConnectionManager} with maximum 100 connections per route and
+ * A connection pool with maximum 100 connections per route and
  * a total maximum of 200 connections is used internally.
- * </p>
  */
 public class Executor {
 
-    final static PoolingHttpClientConnectionManager CONNMGR;
     final static CloseableHttpClient CLIENT;
 
     static {
-        LayeredConnectionSocketFactory ssl = null;
-        try {
-            ssl = SSLConnectionSocketFactory.getSystemSocketFactory();
-        } catch (final SSLInitializationException ex) {
-            final SSLContext sslcontext;
-            try {
-                sslcontext = SSLContext.getInstance(SSLConnectionSocketFactory.TLS);
-                sslcontext.init(null, null, null);
-                ssl = new SSLConnectionSocketFactory(sslcontext);
-            } catch (final SecurityException | NoSuchAlgorithmException | KeyManagementException ignore) {
-            }
-        }
-
-        final Registry<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create()
-            .register("http", PlainConnectionSocketFactory.getSocketFactory())
-            .register("https", ssl != null ? ssl : SSLConnectionSocketFactory.getSocketFactory())
-            .build();
-
-        CONNMGR = new PoolingHttpClientConnectionManager(sfr);
-        CONNMGR.setDefaultMaxPerRoute(100);
-        CONNMGR.setMaxTotal(200);
-        CONNMGR.setValidateAfterInactivity(TimeValue.ofSeconds(1));
         CLIENT = HttpClientBuilder.create()
-                .setConnectionManager(CONNMGR)
+                .setConnectionManager(PoolingHttpClientConnectionManagerBuilder.create()
+                        .useSystemProperties()
+                        .setMaxConnPerRoute(100)
+                        .setMaxConnTotal(200)
+                        .setValidateAfterInactivity(TimeValue.ofSeconds(10))
+                        .build())
+                .useSystemProperties()
+                .evictExpiredConnections()
+                .evictIdleConnections(TimeValue.ofMinutes(1))
                 .build();
     }
 
@@ -268,14 +241,6 @@ public class Executor {
             localContext.setAttribute(HttpClientContext.COOKIE_STORE, this.cookieStore);
         }
         return new Response(request.internalExecute(this.httpclient, localContext));
-    }
-
-    /**
-     * Closes all idle persistent connections used by the internal pool.
-     * @since 4.4
-     */
-    public static void closeIdleConnections() {
-        CONNMGR.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
     }
 
 }
