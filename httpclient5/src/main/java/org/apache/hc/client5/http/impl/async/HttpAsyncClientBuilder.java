@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ThreadFactory;
 
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.SchemePortResolver;
@@ -235,6 +236,8 @@ public class HttpAsyncClientBuilder {
     private boolean cookieManagementDisabled;
     private boolean authCachingDisabled;
     private boolean connectionStateDisabled;
+
+    private ThreadFactory threadFactory;
 
     private List<Closeable> closeables;
 
@@ -477,6 +480,14 @@ public class HttpAsyncClientBuilder {
      */
     public final HttpAsyncClientBuilder setSchemePortResolver(final SchemePortResolver schemePortResolver) {
         this.schemePortResolver = schemePortResolver;
+        return this;
+    }
+
+    /**
+     * Assigns {@link ThreadFactory} instance.
+     */
+    public final HttpAsyncClientBuilder setThreadFactory(final ThreadFactory threadFactory) {
+        this.threadFactory = threadFactory;
         return this;
     }
 
@@ -875,7 +886,7 @@ public class HttpAsyncClientBuilder {
             ioReactor = new DefaultConnectingIOReactor(
                     ioEventHandlerFactory,
                     ioReactorConfig != null ? ioReactorConfig : IOReactorConfig.DEFAULT,
-                    new DefaultThreadFactory("httpclient-dispatch", true),
+                    threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-dispatch", true),
                     new Callback<IOSession>() {
 
                         @Override
@@ -944,7 +955,7 @@ public class HttpAsyncClientBuilder {
                 ioReactor,
                 execChain,
                 pushConsumerRegistry,
-                new DefaultThreadFactory("httpclient-main", true),
+                threadFactory != null ? threadFactory : new DefaultThreadFactory("httpclient-main", true),
                 connManagerCopy,
                 routePlannerCopy,
                 versionPolicy != null ? versionPolicy : HttpVersionPolicy.NEGOTIATE,
