@@ -150,6 +150,11 @@ class InternalHttpAsyncClient extends AbstractHttpAsyncClientBase {
             log.debug(exchangeId + ": preparing request execution");
         }
 
+        //TODO remove when fixed in HttpCore
+        if (route.isTunnelled()) {
+            throw new HttpException("HTTP tunneling not supported");
+        }
+
         setupContext(clientContext);
 
         final AsyncExecChain.Scope scope = new AsyncExecChain.Scope(exchangeId, route, request, clientContext, execRuntime);
