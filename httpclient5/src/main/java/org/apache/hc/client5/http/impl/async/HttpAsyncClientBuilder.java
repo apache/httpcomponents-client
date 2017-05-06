@@ -760,9 +760,6 @@ public class HttpAsyncClientBuilder {
         }
         b.addAll(
                 new RequestDefaultHeaders(defaultHeaders),
-                new H2RequestContent(),
-                new H2RequestTargetHost(),
-                new H2RequestConnControl(),
                 new RequestUserAgent(userAgentCopy),
                 new RequestExpectContinue());
         if (!cookieManagementDisabled) {
@@ -875,7 +872,7 @@ public class HttpAsyncClientBuilder {
         }
         final AsyncPushConsumerRegistry pushConsumerRegistry = new AsyncPushConsumerRegistry();
         final IOEventHandlerFactory ioEventHandlerFactory = new HttpAsyncClientEventHandlerFactory(
-                NoopHttpProcessor.INSTANCE,
+                new DefaultHttpProcessor(new H2RequestContent(), new H2RequestTargetHost(), new H2RequestConnControl()),
                 new HandlerFactory<AsyncPushConsumer>() {
 
                     @Override

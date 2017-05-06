@@ -81,13 +81,13 @@ public class HttpAsyncClientCompatibilityTest {
                 new HttpAsyncClientCompatibilityTest(
                         HttpVersion.HTTP_1_1,
                         new HttpHost("test-httpd", 8443, "https"), new HttpHost("localhost", 8889),
-                        new UsernamePasswordCredentials("squid", "nopassword".toCharArray()))
-//                new HttpAsyncClientCompatibilityTest(
-//                        HttpVersion.HTTP_2_0,
-//                        new HttpHost("localhost", 8080, "http"), null, null),
-//                new HttpAsyncClientCompatibilityTest(
-//                        HttpVersion.HTTP_2_0,
-//                        new HttpHost("localhost", 8443, "https"), null, null)
+                        new UsernamePasswordCredentials("squid", "nopassword".toCharArray())),
+                new HttpAsyncClientCompatibilityTest(
+                        HttpVersion.HTTP_2_0,
+                        new HttpHost("localhost", 8080, "http"), null, null),
+                new HttpAsyncClientCompatibilityTest(
+                        HttpVersion.HTTP_2_0,
+                        new HttpHost("localhost", 8443, "https"), null, null)
         };
         for (final HttpAsyncClientCompatibilityTest test: tests) {
             try {
