@@ -191,7 +191,7 @@ class AsyncProtocolExec implements AsyncExecChainHandler {
 
             @Override
             public void completed() {
-                if (execRuntime.isConnected()) {
+                if (!execRuntime.isConnected()) {
                     if (proxyAuthExchange.getState() == AuthExchange.State.SUCCESS
                             && proxyAuthExchange.getAuthScheme() != null
                             && proxyAuthExchange.getAuthScheme().isConnectionBased()) {

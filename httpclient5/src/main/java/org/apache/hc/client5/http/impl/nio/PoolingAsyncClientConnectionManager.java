@@ -305,13 +305,14 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
     @Override
     public void upgrade(
             final AsyncConnectionEndpoint endpoint,
+            final Object attachment,
             final HttpContext context) {
         Args.notNull(endpoint, "Managed endpoint");
         final InternalConnectionEndpoint internalEndpoint = cast(endpoint);
         final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry = internalEndpoint.getValidatedPoolEntry();
         final HttpRoute route = poolEntry.getRoute();
         final ManagedAsyncClientConnection connection = poolEntry.getConnection();
-        connectionOperator.upgrade(poolEntry.getConnection(), route.getTargetHost());
+        connectionOperator.upgrade(poolEntry.getConnection(), route.getTargetHost(), attachment);
         if (log.isDebugEnabled()) {
             log.debug(ConnPoolSupport.getId(internalEndpoint) + ": upgraded " + ConnPoolSupport.getId(connection));
         }

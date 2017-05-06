@@ -115,10 +115,12 @@ public interface AsyncClientConnectionManager extends Closeable {
      * Upgrades the endpoint's underlying transport to Transport Layer Security.
      *
      * @param endpoint      the managed endpoint.
+     * @param attachment the attachment the upgrade attachment object.
      * @param context the actual HTTP context.
      */
     void upgrade(
             AsyncConnectionEndpoint endpoint,
+            Object attachment,
             HttpContext context);
 
 }

@@ -157,15 +157,15 @@ final class AsyncClientConnectionOperator {
         return future;
     }
 
-    public void upgrade(final ManagedAsyncClientConnection connection, final HttpHost host) {
-        final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getHostName()) : null;
+    public void upgrade(final ManagedAsyncClientConnection connection, final HttpHost host, final Object attachment) {
+        final TlsStrategy tlsStrategy = tlsStrategyLookup != null ? tlsStrategyLookup.lookup(host.getSchemeName()) : null;
         if (tlsStrategy != null) {
             tlsStrategy.upgrade(
                     connection,
                     host,
                     connection.getLocalAddress(),
                     connection.getRemoteAddress(),
-                    null);
+                    attachment);
         }
 
     }

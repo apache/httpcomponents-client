@@ -227,7 +227,7 @@ class AsyncExecRuntimeImpl implements AsyncExecRuntime {
     @Override
     public void upgradeTls(final HttpClientContext context) {
         final AsyncConnectionEndpoint endpoint = ensureValid();
-        manager.upgrade(endpoint, context);
+        manager.upgrade(endpoint, versionPolicy, context);
     }
 
     @Override

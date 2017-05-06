@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.impl.sync;
 
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 
 /**
@@ -39,15 +38,15 @@ public class TunnelRefusedException extends HttpException {
 
     private static final long serialVersionUID = -8646722842745617323L;
 
-    private final ClassicHttpResponse response;
+    private final String responseMesage;
 
-    public TunnelRefusedException(final String message, final ClassicHttpResponse response) {
+    public TunnelRefusedException(final String message, final String responseMesage) {
         super(message);
-        this.response = response;
+        this.responseMesage = responseMesage;
     }
 
-    public ClassicHttpResponse getResponse() {
-        return this.response;
+    public String getResponseMessage() {
+        return this.responseMesage;
     }
 
 }

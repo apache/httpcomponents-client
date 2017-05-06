@@ -40,7 +40,6 @@ import org.apache.hc.client5.http.async.AsyncExecChainHandler;
 import org.apache.hc.client5.http.async.AsyncExecRuntime;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.UserTokenHandler;
-import org.apache.hc.core5.concurrent.FutureCallback;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
@@ -80,45 +79,6 @@ class AsyncMainClientExec implements AsyncExecChainHandler {
         final HttpRoute route = scope.route;
         final HttpClientContext clientContext = scope.clientContext;
         final AsyncExecRuntime execRuntime = scope.execRuntime;
-        if (!execRuntime.isConnectionAcquired()) {
-            final Object userToken = clientContext.getUserToken();
-            if (log.isDebugEnabled()) {
-                log.debug(exchangeId + ": acquiring connection with route " + route);
-            }
-            execRuntime.acquireConnection(route, userToken, clientContext, new FutureCallback<AsyncExecRuntime>() {
-
-                @Override
-                public void completed(final AsyncExecRuntime execRuntime) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(exchangeId + ": connection acquired");
-                    }
-                    execute(exchangeId, route, execRuntime, request, entityProducer, clientContext, asyncExecCallback);
-                }
-
-                @Override
-                public void failed(final Exception ex) {
-                    asyncExecCallback.failed(ex);
-                }
-
-                @Override
-                public void cancelled() {
-                    asyncExecCallback.failed(new InterruptedIOException());
-                }
-
-            });
-        } else {
-            execute(exchangeId, route, execRuntime, request, entityProducer, clientContext, asyncExecCallback);
-        }
-    }
-
-    private void execute(
-            final String exchangeId,
-            final HttpRoute route,
-            final AsyncExecRuntime execRuntime,
-            final HttpRequest request,
-            final AsyncEntityProducer entityProducer,
-            final HttpClientContext clientContext,
-            final AsyncExecCallback asyncExecCallback) {
 
         if (log.isDebugEnabled()) {
             log.debug(exchangeId + ": executing " + new RequestLine(request));
@@ -186,6 +146,7 @@ class AsyncMainClientExec implements AsyncExecChainHandler {
                     } else {
                         execRuntime.validateConnection();
                     }
+                    asyncExecCallback.completed();
                 }
             }
 
@@ -227,6 +188,7 @@ class AsyncMainClientExec implements AsyncExecChainHandler {
             }
 
         };
+
         execRuntime.execute(
                 log.isDebugEnabled() ? new LoggingAsyncClientExchangeHandler(log, exchangeId, internalExchangeHandler) : internalExchangeHandler,
                 clientContext);

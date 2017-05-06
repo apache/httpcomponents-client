@@ -54,7 +54,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.io.entity.BufferedHttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.StatusLine;
@@ -237,13 +236,9 @@ public final class ConnectExec implements ExecChainHandler {
 
             // Buffer response content
             final HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                response.setEntity(new BufferedHttpEntity(entity));
-            }
-
+            final String responseMessage = entity != null ? EntityUtils.toString(entity) : null;
             execRuntime.disconnect();
-            throw new TunnelRefusedException("CONNECT refused by proxy: " +
-                    new StatusLine(response), response);
+            throw new TunnelRefusedException("CONNECT refused by proxy: " + new StatusLine(response), responseMessage);
         }
 
         // How to decide on security of the tunnelled connection?

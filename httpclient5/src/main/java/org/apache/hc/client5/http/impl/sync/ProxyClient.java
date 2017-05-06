@@ -67,9 +67,9 @@ import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.HttpConnectionFactory;
-import org.apache.hc.core5.http.io.entity.BufferedHttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
+import org.apache.hc.core5.http.message.StatusLine;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.DefaultHttpProcessor;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -207,12 +207,9 @@ public class ProxyClient {
 
             // Buffer response content
             final HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                response.setEntity(new BufferedHttpEntity(entity));
-            }
-
+            final String responseMessage = entity != null ? EntityUtils.toString(entity) : null;
             conn.close();
-            throw new TunnelRefusedException("CONNECT refused by proxy: " + response, response);
+            throw new TunnelRefusedException("CONNECT refused by proxy: " + new StatusLine(response), responseMessage);
         }
         return conn.getSocket();
     }

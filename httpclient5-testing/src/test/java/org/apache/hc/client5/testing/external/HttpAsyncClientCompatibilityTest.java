@@ -29,17 +29,15 @@ package org.apache.hc.client5.testing.external;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.net.ssl.SSLContext;
 
 import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
 import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
-import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
-import org.apache.hc.client5.http.async.methods.SimpleResponseConsumer;
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
 import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
@@ -48,6 +46,8 @@ import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBu
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.H2TlsStrategy;
+import org.apache.hc.core5.http.HeaderElements;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpStatus;
@@ -55,19 +55,39 @@ import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http2.HttpVersionPolicy;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.TextUtils;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 public class HttpAsyncClientCompatibilityTest {
 
     public static void main(final String... args) throws Exception {
         final HttpAsyncClientCompatibilityTest[] tests = new HttpAsyncClientCompatibilityTest[] {
                 new HttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_1_1, new HttpHost("localhost", 8080, "http"), null, null),
+                        HttpVersion.HTTP_1_1,
+                        new HttpHost("localhost", 8080, "http"), null, null),
                 new HttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_2_0, new HttpHost("localhost", 8080, "http"), null, null),
+                        HttpVersion.HTTP_1_1,
+                        new HttpHost("test-httpd", 8080, "http"), new HttpHost("localhost", 8888), null),
                 new HttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_1_1, new HttpHost("localhost", 8443, "https"), null, null),
+                        HttpVersion.HTTP_1_1,
+                        new HttpHost("test-httpd", 8080, "http"), new HttpHost("localhost", 8889),
+                        new UsernamePasswordCredentials("squid", "nopassword".toCharArray())),
                 new HttpAsyncClientCompatibilityTest(
-                        HttpVersion.HTTP_2_0, new HttpHost("localhost", 8443, "https"), null, null)
+                        HttpVersion.HTTP_1_1,
+                        new HttpHost("localhost", 8443, "https"), null, null),
+                new HttpAsyncClientCompatibilityTest(
+                        HttpVersion.HTTP_1_1,
+                        new HttpHost("test-httpd", 8443, "https"), new HttpHost("localhost", 8888), null),
+                new HttpAsyncClientCompatibilityTest(
+                        HttpVersion.HTTP_1_1,
+                        new HttpHost("test-httpd", 8443, "https"), new HttpHost("localhost", 8889),
+                        new UsernamePasswordCredentials("squid", "nopassword".toCharArray()))
+//                new HttpAsyncClientCompatibilityTest(
+//                        HttpVersion.HTTP_2_0,
+//                        new HttpHost("localhost", 8080, "http"), null, null),
+//                new HttpAsyncClientCompatibilityTest(
+//                        HttpVersion.HTTP_2_0,
+//                        new HttpHost("localhost", 8443, "https"), null, null)
         };
         for (final HttpAsyncClientCompatibilityTest test: tests) {
             try {
@@ -77,6 +97,8 @@ public class HttpAsyncClientCompatibilityTest {
             }
         }
     }
+
+    private static final Timeout TIMEOUT = Timeout.ofSeconds(5);
 
     private final HttpVersion protocolVersion;
     private final HttpHost target;
@@ -108,6 +130,7 @@ public class HttpAsyncClientCompatibilityTest {
         this.client = HttpAsyncClients.custom()
                 .setVersionPolicy(this.protocolVersion == HttpVersion.HTTP_2 ? HttpVersionPolicy.FORCE_HTTP_2 : HttpVersionPolicy.FORCE_HTTP_1)
                 .setConnectionManager(this.connManager)
+                .setProxy(this.proxy)
                 .setDefaultRequestConfig(requestConfig)
                 .build();
     }
@@ -144,10 +167,10 @@ public class HttpAsyncClientCompatibilityTest {
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
-            final SimpleHttpRequest options = new SimpleHttpRequest("OPTIONS", target, "*", null, null);
-            final Future<SimpleHttpResponse> future = client.execute(new SimpleRequestProducer(options), new SimpleResponseConsumer(), null);
+            final SimpleHttpRequest options = SimpleHttpRequest.options(target, "*");
+            final Future<SimpleHttpResponse> future = client.execute(options, context, null);
             try {
-                final SimpleHttpResponse response = future.get(5, TimeUnit.SECONDS);
+                final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
                 final int code = response.getCode();
                 if (code == HttpStatus.SC_OK) {
                     logResult(TestResult.OK, options, Objects.toString(response.getFirstHeader("server")));
@@ -163,15 +186,16 @@ public class HttpAsyncClientCompatibilityTest {
         }
         // Basic GET requests
         {
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
             final HttpClientContext context = HttpClientContext.create();
             context.setCredentialsProvider(credentialsProvider);
 
             final String[] requestUris = new String[] {"/", "/news.html", "/status.html"};
             for (String requestUri: requestUris) {
-                final SimpleHttpRequest httpGet = new SimpleHttpRequest("GET", target, requestUri, null, null);
-                final Future<SimpleHttpResponse> future = client.execute(new SimpleRequestProducer(httpGet), new SimpleResponseConsumer(), null);
+                final SimpleHttpRequest httpGet = SimpleHttpRequest.get(target, requestUri);
+                final Future<SimpleHttpResponse> future = client.execute(httpGet, context, null);
                 try {
-                    final SimpleHttpResponse response = future.get(5, TimeUnit.SECONDS);
+                    final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
                     final int code = response.getCode();
                     if (code == HttpStatus.SC_OK) {
                         logResult(TestResult.OK, httpGet, "200");
@@ -184,6 +208,112 @@ public class HttpAsyncClientCompatibilityTest {
                 } catch (TimeoutException ex) {
                     logResult(TestResult.NOK, httpGet, "(time out)");
                 }
+            }
+        }
+        // Wrong target auth scope
+        {
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
+            credentialsProvider.setCredentials(
+                    new AuthScope("otherhost", AuthScope.ANY_PORT, "Restricted Files"),
+                    new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
+            final HttpClientContext context = HttpClientContext.create();
+            context.setCredentialsProvider(credentialsProvider);
+
+            final SimpleHttpRequest httpGetSecret = SimpleHttpRequest.get(target, "/private/big-secret.txt");
+            final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
+            try {
+                final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+                final int code = response.getCode();
+                if (code == HttpStatus.SC_UNAUTHORIZED) {
+                    logResult(TestResult.OK, httpGetSecret, "401 (wrong target auth scope)");
+                } else {
+                    logResult(TestResult.NOK, httpGetSecret, "(status " + code + ")");
+                }
+            } catch (ExecutionException ex) {
+                final Throwable cause = ex.getCause();
+                logResult(TestResult.NOK, httpGetSecret, "(" + cause.getMessage() + ")");
+            } catch (TimeoutException ex) {
+                logResult(TestResult.NOK, httpGetSecret, "(time out)");
+            }
+        }
+        // Wrong target credentials
+        {
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
+            credentialsProvider.setCredentials(
+                    new AuthScope(target),
+                    new UsernamePasswordCredentials("testuser", "wrong password".toCharArray()));
+            final HttpClientContext context = HttpClientContext.create();
+            context.setCredentialsProvider(credentialsProvider);
+
+            final SimpleHttpRequest httpGetSecret = SimpleHttpRequest.get(target, "/private/big-secret.txt");
+            final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
+            try {
+                final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+                final int code = response.getCode();
+                if (code == HttpStatus.SC_UNAUTHORIZED) {
+                    logResult(TestResult.OK, httpGetSecret, "401 (wrong target creds)");
+                } else {
+                    logResult(TestResult.NOK, httpGetSecret, "(status " + code + ")");
+                }
+            } catch (ExecutionException ex) {
+                final Throwable cause = ex.getCause();
+                logResult(TestResult.NOK, httpGetSecret, "(" + cause.getMessage() + ")");
+            } catch (TimeoutException ex) {
+                logResult(TestResult.NOK, httpGetSecret, "(time out)");
+            }
+        }
+        // Correct target credentials
+        {
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
+            credentialsProvider.setCredentials(
+                    new AuthScope(target),
+                    new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
+            final HttpClientContext context = HttpClientContext.create();
+            context.setCredentialsProvider(credentialsProvider);
+
+            final SimpleHttpRequest httpGetSecret = SimpleHttpRequest.get(target, "/private/big-secret.txt");
+            final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
+            try {
+                final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+                final int code = response.getCode();
+                if (code == HttpStatus.SC_OK) {
+                    logResult(TestResult.OK, httpGetSecret, "200 (correct target creds)");
+                } else {
+                    logResult(TestResult.NOK, httpGetSecret, "(status " + code + ")");
+                }
+            } catch (ExecutionException ex) {
+                final Throwable cause = ex.getCause();
+                logResult(TestResult.NOK, httpGetSecret, "(" + cause.getMessage() + ")");
+            } catch (TimeoutException ex) {
+                logResult(TestResult.NOK, httpGetSecret, "(time out)");
+            }
+        }
+        // Correct target credentials (no keep-alive)
+        if (protocolVersion.lessEquals(HttpVersion.HTTP_1_1))
+        {
+            connManager.closeIdle(TimeValue.NEG_ONE_MILLISECONDS);
+            credentialsProvider.setCredentials(
+                    new AuthScope(target),
+                    new UsernamePasswordCredentials("testuser", "nopassword".toCharArray()));
+            final HttpClientContext context = HttpClientContext.create();
+            context.setCredentialsProvider(credentialsProvider);
+
+            final SimpleHttpRequest httpGetSecret = SimpleHttpRequest.get(target, "/private/big-secret.txt");
+            httpGetSecret.setHeader(HttpHeaders.CONNECTION, HeaderElements.CLOSE);
+            final Future<SimpleHttpResponse> future = client.execute(httpGetSecret, context, null);
+            try {
+                final SimpleHttpResponse response = future.get(TIMEOUT.getDuration(), TIMEOUT.getTimeUnit());
+                final int code = response.getCode();
+                if (code == HttpStatus.SC_OK) {
+                    logResult(TestResult.OK, httpGetSecret, "200 (correct target creds / no keep-alive)");
+                } else {
+                    logResult(TestResult.NOK, httpGetSecret, "(status " + code + ")");
+                }
+            } catch (ExecutionException ex) {
+                final Throwable cause = ex.getCause();
+                logResult(TestResult.NOK, httpGetSecret, "(" + cause.getMessage() + ")");
+            } catch (TimeoutException ex) {
+                logResult(TestResult.NOK, httpGetSecret, "(time out)");
             }
         }
     }

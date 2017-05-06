@@ -54,7 +54,6 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.protocol.HttpProcessor;
@@ -219,8 +218,7 @@ public class TestConnectExec {
         try {
             exec.execute(request, scope, execChain);
         } catch (final TunnelRefusedException ex) {
-            final ClassicHttpResponse r = ex.getResponse();
-            Assert.assertEquals("Ka-boom", EntityUtils.toString(r.getEntity()));
+            Assert.assertEquals("Ka-boom", ex.getResponseMessage());
             Mockito.verify(execRuntime).disconnect();
             Mockito.verify(execRuntime).discardConnection();
             throw ex;
