@@ -141,22 +141,26 @@ class ExecRuntimeImpl implements ExecRuntime, Cancellable {
         return endpoint != null && endpoint.isConnected();
     }
 
+    private void connectEndpoint(final ConnectionEndpoint endpoint, final HttpClientContext context) throws IOException {
+        if (cancellableAware != null) {
+            if (cancellableAware.isCancelled()) {
+                throw new RequestFailedException("Request aborted");
+            }
+        }
+        final RequestConfig requestConfig = context.getRequestConfig();
+        final TimeValue connectTimeout = requestConfig.getConnectTimeout();
+        manager.connect(endpoint, connectTimeout, context);
+        final TimeValue socketTimeout = requestConfig.getSocketTimeout();
+        if (socketTimeout.getDuration() >= 0) {
+            endpoint.setSocketTimeout(socketTimeout.toMillisIntBound());
+        }
+    }
+
     @Override
     public void connect(final HttpClientContext context) throws IOException {
         final ConnectionEndpoint endpoint = ensureValid();
         if (!endpoint.isConnected()) {
-            if (cancellableAware != null) {
-                if (cancellableAware.isCancelled()) {
-                    throw new RequestFailedException("Request aborted");
-                }
-            }
-            final RequestConfig requestConfig = context.getRequestConfig();
-            final TimeValue connectTimeout = requestConfig.getConnectTimeout();
-            manager.connect(endpoint, connectTimeout, context);
-            final TimeValue socketTimeout = requestConfig.getSocketTimeout();
-            if (socketTimeout.getDuration() >= 0) {
-                endpoint.setSocketTimeout(socketTimeout.toMillisIntBound());
-            }
+            connectEndpoint(endpoint, context);
         }
     }
 
@@ -178,6 +182,9 @@ class ExecRuntimeImpl implements ExecRuntime, Cancellable {
     @Override
     public ClassicHttpResponse execute(final ClassicHttpRequest request, final HttpClientContext context) throws IOException, HttpException {
         final ConnectionEndpoint endpoint = ensureValid();
+        if (!endpoint.isConnected()) {
+            connectEndpoint(endpoint, context);
+        }
         return endpoint.execute(request, requestExecutor, context);
     }
 

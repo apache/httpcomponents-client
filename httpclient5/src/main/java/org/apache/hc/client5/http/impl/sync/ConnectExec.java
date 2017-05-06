@@ -202,10 +202,6 @@ public final class ConnectExec implements ExecChainHandler {
         this.proxyHttpProcessor.process(connect, null, context);
 
         while (response == null) {
-            if (!execRuntime.isConnected()) {
-                execRuntime.connect(context);
-            }
-
             connect.removeHeaders(HttpHeaders.PROXY_AUTHORIZATION);
             this.authenticator.addAuthResponse(proxy, ChallengeType.PROXY, connect, proxyAuthExchange, context);
 
