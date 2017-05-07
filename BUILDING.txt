@@ -27,27 +27,17 @@ mvn install
 
 The JAR packages can be found in the target folders of their respective modules
 
-httpclient/target/httpclient5-<VERSION>.jar
-httpclient-cache/target/httpclient5-cache-<VERSION>.jar
-httpclient-fluent/target/httpclient5-fluent-<VERSION>.jar
-httpclient-win/target/httpclient5-win-<VERSION>.jar
-httpclient-osgi/target/org.apache.httpcomponents.httpclient_<VERSION>.jar
+httpclient5/target/httpclient5-<VERSION>.jar
+httpclient5-cache/target/httpclient5-cache-<VERSION>.jar
+httpclient5-fluent/target/httpclient5-fluent-<VERSION>.jar
+httpclient5-win/target/httpclient5-win-<VERSION>.jar
+httpclient5-osgi/target/org.apache.httpcomponents.httpclient_<VERSION>.jar
 
 where <VERSION> is the release version
 
 (4) Validating packages
 
-Check for binary compatibility with the previous version with:
-
-mvn clirr:check
-
 Check for proper license headers with:
 
 mvn apache-rat:check
-
-(5) Building documentation 
-
-Execute the following command in order to generate javadoc:
-
-mvn compile javadoc:aggregate
 

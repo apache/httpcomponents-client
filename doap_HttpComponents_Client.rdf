@@ -80,6 +80,18 @@ This is the successor to the widely used Jakarta Commons HttpClient 3.1.
       <asfext:url rdf:resource="http://tools.ietf.org/html/rfc7235"/>
     </asfext:Standard></asfext:implements>
     <asfext:implements><asfext:Standard>
+      <asfext:title>Hypertext Transfer Protocol Version 2 (HTTP/2)</asfext:title>
+      <asfext:body>IETF</asfext:body>
+      <asfext:id>RFC 7540</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc7540"/>
+    </asfext:Standard></asfext:implements>
+    <asfext:implements><asfext:Standard>
+      <asfext:title>HPACK: Header Compression for HTTP/2</asfext:title>
+      <asfext:body>IETF</asfext:body>
+      <asfext:id>RFC 7541</asfext:id>
+      <asfext:url rdf:resource="http://tools.ietf.org/html/rfc7541"/>
+    </asfext:Standard></asfext:implements>
+    <asfext:implements><asfext:Standard>
       <asfext:title>Hypertext Transfer Protocol -- HTTP/1.0</asfext:title>
       <asfext:body>IETF</asfext:body>
       <asfext:id>RFC 1945</asfext:id>
