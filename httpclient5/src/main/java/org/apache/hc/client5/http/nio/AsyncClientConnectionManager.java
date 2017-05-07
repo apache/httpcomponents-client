@@ -62,7 +62,7 @@ public interface AsyncClientConnectionManager extends Closeable {
      * the endpoint target by calling {@link #connect(AsyncConnectionEndpoint,
      * ConnectionInitiator, TimeValue, Object, HttpContext, FutureCallback)}
      * in order to connect directly to the target or to the first proxy hop,
-     * and optionally calling {@link #upgrade(AsyncConnectionEndpoint, HttpContext)}
+     * and optionally calling {@link #upgrade(AsyncConnectionEndpoint, Object, HttpContext)}
      * method to upgrade the underlying transport to Transport Layer Security
      * after having executed a {@code CONNECT} method to all intermediate
      * proxy hops.
