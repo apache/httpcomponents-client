@@ -1,48 +1,49 @@
 Release 5.0-ALPHA2
 -------------------
 
-This is a major release that introduces support for HTTP/2 protocol and event driven
+This is a major release that introduces support for the HTTP/2 protocol and event driven
 messaging APIs consistent for all supported HTTP protocol versions.
 
 HttpClient ships with two client implementations:
 
-* Classic: it is based on the classic (blocking) I/O model; largely compatible
+* HttpClient Classic is based on the classic (blocking) I/O model; largely compatible
   with the 4.x APIs; supports HTTP/1.1 only.
 
-* Async: based on NIO model; new event driven APIs consistent for all supported
+* HttpClient Async is based on NIO model; new event driven APIs consistent for all supported
   HTTP protocol versions; supports both HTTP/1.1 and HTTP/2.
 
 
 Notable changes and features included in the 5.0 series are:
 
-* Partial support for HTTP/2 protocol and conformance to requirements and
-  recommendations of the latest HTTP/2 protocol specification (RFC 7540, RFC 7541)
+* Partial support for the HTTP/2 protocol and conformance to requirements and
+  recommendations of the latest HTTP/2 protocol specification documents 
+  (RFC 7540, RFC 7541.)
 
   Supported features:
 
     ** HPACK header compression
-    ** stream multiplexing (client and server)
-    ** flow control
-    ** response push
-    ** message trailers
-    ** expect-continue handshake
-    ** connection validation (ping)
-    ** application-layer protocol negotiation (ALPN) on Java 1.9+
+    ** Stream multiplexing (client and server)
+    ** Flow control
+    ** Response push
+    ** Message trailers
+    ** Expect-continue handshake
+    ** Connection validation (ping)
+    ** Application-layer protocol negotiation (ALPN) on Java 1.9+
     ** TLS 1.2 security features
 
 * Improved conformance to requirements and recommendations of the latest HTTP/1.1 protocol
-  specification (RFC 7230, RFC 7231)
+  specification documents (RFC 7230, RFC 7231.)
 
 * Redesigned connection pool implementation with reduced pool lock contention.
 
-* Package name space changed to 'org.apache.hc.client5'
+* Package name space changed to 'org.apache.hc.client5'.
 
-* Maven group id changed to 'org.apache.httpcomponents.client5'
+* Maven group id changed to 'org.apache.httpcomponents.client5'.
 
-* Apache Log4j2 logging APIs used for internal logging instead of Commons Logging APIs
+* Apache Log4j2 logging APIs used for internal logging instead of Commons Logging APIs.
 
 
-Fetures presently that are presently NOT supported:
+Features that are presently NOT supported:
 
 * HTTP/2 transport (classic)
 
@@ -53,11 +54,12 @@ Fetures presently that are presently NOT supported:
 * Caching (async)
 
 
-HttpClient 5.0 releases can be co-located with earlier versions.
+HttpClient 5.0 releases can be co-located with earlier major versions on the same classpath
+due to the change in package names and Maven module coordinates.
 
-Please note that as of 5.0 HttpClient requires Java 1.7 or newer.
+Please note that as of 5.0, HttpClient requires Java 1.7 or newer.
 
-Please note that at this point 5.0 APIs are considered API experimental and unstable and are
+Please note that at this point 5.0 APIs are considered experimental and unstable and are
 expected to change in the coming releases without providing a migration path.
 
 
