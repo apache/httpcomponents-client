@@ -27,6 +27,9 @@ Changelog:
 * [HTTPCLIENT-1847] Update Ehcache from 2.6.9 to 2.6.11.
   Contributed by Gary Gregory <ggregory at apache.org>
 
+* [HTTPCLIENT-1848] Update spymemcached from 2.11.4 to 2.12.3.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 Release 4.5.3
 -------------------
 
