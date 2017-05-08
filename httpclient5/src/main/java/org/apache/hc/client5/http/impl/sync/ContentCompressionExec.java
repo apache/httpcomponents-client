@@ -28,15 +28,14 @@
 package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.entity.DecompressingEntity;
-import org.apache.hc.client5.http.entity.DeflateInputStream;
+import org.apache.hc.client5.http.entity.DeflateInputStreamFactory;
+import org.apache.hc.client5.http.entity.GZIPInputStreamFactory;
 import org.apache.hc.client5.http.entity.InputStreamFactory;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.sync.ExecChain;
@@ -68,23 +67,6 @@ import org.apache.hc.core5.util.Args;
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class ContentCompressionExec implements ExecChainHandler {
 
-    private final static InputStreamFactory GZIP = new InputStreamFactory() {
-
-        @Override
-        public InputStream create(final InputStream instream) throws IOException {
-            return new GZIPInputStream(instream);
-        }
-    };
-
-    private final static InputStreamFactory DEFLATE = new InputStreamFactory() {
-
-        @Override
-        public InputStream create(final InputStream instream) throws IOException {
-            return new DeflateInputStream(instream);
-        }
-
-    };
-
     private final List<String> acceptEncoding;
     private final Lookup<InputStreamFactory> decoderRegistry;
     private final boolean ignoreUnknown;
@@ -96,9 +78,9 @@ public final class ContentCompressionExec implements ExecChainHandler {
         this.acceptEncoding = acceptEncoding != null ? acceptEncoding : Arrays.asList("gzip", "x-gzip", "deflate");
         this.decoderRegistry = decoderRegistry != null ? decoderRegistry :
                 RegistryBuilder.<InputStreamFactory>create()
-                        .register("gzip", GZIP)
-                        .register("x-gzip", GZIP)
-                        .register("deflate", DEFLATE)
+                        .register("gzip", GZIPInputStreamFactory.getInstance())
+                        .register("x-gzip", GZIPInputStreamFactory.getInstance())
+                        .register("deflate", DeflateInputStreamFactory.getInstance())
                         .build();
         this.ignoreUnknown = ignoreUnknown;
     }
