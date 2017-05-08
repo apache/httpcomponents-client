@@ -26,10 +26,6 @@
  */
 package org.apache.http.client.entity;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.GZIPInputStream;
-
 import org.apache.http.HttpEntity;
 
 /**
@@ -48,14 +44,7 @@ public class GzipDecompressingEntity extends DecompressingEntity {
      *            the non-null {@link HttpEntity} to be wrapped
      */
     public GzipDecompressingEntity(final HttpEntity entity) {
-        super(entity, new InputStreamFactory() {
-
-            @Override
-            public InputStream create(final InputStream instream) throws IOException {
-                return new GZIPInputStream(instream);
-            }
-
-        });
+        super(entity, GZIPInputStreamFactory.getInstance());
     }
 
 }
