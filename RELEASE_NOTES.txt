@@ -39,6 +39,9 @@ Changelog:
 * [HTTPCLIENT-1849] Update JNA from 4.1.0 to 4.4.0.
   Contributed by Gary Gregory <ggregory at apache.org>
 
+* [HTTPCLIENT-1850] Update SLF4J from 1.7.6 to 1.7.25.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 
 Release 4.5.3
 -------------------
