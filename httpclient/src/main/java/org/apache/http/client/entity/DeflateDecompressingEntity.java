@@ -26,9 +26,6 @@
  */
 package org.apache.http.client.entity;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.apache.http.HttpEntity;
 
 /**
@@ -57,14 +54,7 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
      *            a non-null {@link HttpEntity} to be wrapped
      */
     public DeflateDecompressingEntity(final HttpEntity entity) {
-        super(entity, new InputStreamFactory() {
-
-            @Override
-            public InputStream create(final InputStream instream) throws IOException {
-                return new DeflateInputStream(instream);
-            }
-
-        });
+        super(entity, DeflateInputStreamFactory.getInstance());
     }
 
 }

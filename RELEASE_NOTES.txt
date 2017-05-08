@@ -25,6 +25,10 @@ Changelog:
 
 * [HTTPCLIENT-1836] DefaultHostnameVerifier#getSubjectAltNames(X509Certificate) throws java.lang.ClassCastException.
   Contributed by Gary Gregory <ggregory at apache.org>, Ilian Iliev <ilian_iliev at yahoo.com>
+  
+* [HTTPCLIENT-1845]: Extract InputStreamFactory classes out of GzipDecompressingEntity and 
+  DeflateDecompressingEntity for reuse and to create less garbage.
+  Contributed by Gary Gregory <ggregory at apache.org>
 
 
 Release 4.5.3
