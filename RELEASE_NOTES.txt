@@ -36,6 +36,9 @@ Changelog:
 * [HTTPCLIENT-1848] Update spymemcached from 2.11.4 to 2.12.3.
   Contributed by Gary Gregory <ggregory at apache.org>
 
+* [HTTPCLIENT-1849] Update JNA from 4.1.0 to 4.4.0.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 
 Release 4.5.3
 -------------------
