@@ -61,6 +61,7 @@ import org.apache.hc.core5.util.Args;
  * Further responsibilities such as communication with the opposite
  * endpoint is delegated to the next executor in the request execution
  * chain.
+ * </p>
  *
  * @since 5.0
  */
