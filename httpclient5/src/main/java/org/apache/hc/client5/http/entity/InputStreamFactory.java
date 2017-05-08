@@ -36,6 +36,6 @@ import java.io.InputStream;
  */
 public interface InputStreamFactory {
 
-    InputStream create(InputStream instream) throws IOException;
+    InputStream create(InputStream inputStream) throws IOException;
 
 }
