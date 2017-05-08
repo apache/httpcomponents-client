@@ -74,7 +74,7 @@
     <slf4j.version>1.7.25</slf4j.version>
     <junit.version>4.11</junit.version>
     <easymock.version>2.5.2</easymock.version>
-    <mockito.version>1.8.5</mockito.version>
+    <mockito.version>1.9.5</mockito.version>
     <jna.version>4.4.0</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <api.comparison.version>4.4</api.comparison.version>
