@@ -110,14 +110,17 @@ public class TestWindowsNegotiateScheme extends LocalServerTestBase {
         final CloseableHttpClient customClient = HttpClientBuilder.create()
                 .setDefaultCredentialsProvider(credsProvider)
                 .setDefaultAuthSchemeRegistry(authSchemeRegistry).build();
-
-        final HttpHost target = start();
-        final HttpGet httpGet = new HttpGet("/");
-        final CloseableHttpResponse response = customClient.execute(target, httpGet);
         try {
-            EntityUtils.consume(response.getEntity());
-        } finally {
-            response.close();
+            final HttpHost target = start();
+            final HttpGet httpGet = new HttpGet("/");
+            final CloseableHttpResponse response = customClient.execute(target, httpGet);
+            try {
+                EntityUtils.consume(response.getEntity());
+            } finally {
+                response.close();
+            }
+        }finally {
+            customClient.close();
         }
     }
 
