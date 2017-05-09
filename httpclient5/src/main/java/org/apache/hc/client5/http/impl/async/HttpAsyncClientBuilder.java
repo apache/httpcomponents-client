@@ -176,7 +176,7 @@ public class HttpAsyncClientBuilder {
 
     private static class ExecInterceptorEntry {
 
-        enum Postion { BEFORE, AFTER, REPLACE }
+        enum Postion { BEFORE, AFTER, REPLACE, FIRST, LAST }
 
         final ExecInterceptorEntry.Postion postion;
         final String name;
@@ -427,6 +427,26 @@ public class HttpAsyncClientBuilder {
             execInterceptors = new LinkedList<>();
         }
         execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.REPLACE, existing, interceptor, existing));
+        return this;
+    }
+
+    /**
+     * Add an interceptor to the head of the processing list.
+     */
+    public final HttpAsyncClientBuilder addExecInterceptorFirst(final String name, final AsyncExecChainHandler interceptor) {
+        Args.notNull(name, "Name");
+        Args.notNull(interceptor, "Interceptor");
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.FIRST, name, interceptor, null));
+        return this;
+    }
+
+    /**
+     * Add an interceptor to the tail of the processing list.
+     */
+    public final HttpAsyncClientBuilder addExecInterceptorLast(final String name, final AsyncExecChainHandler interceptor) {
+        Args.notNull(name, "Name");
+        Args.notNull(interceptor, "Interceptor");
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.LAST, name, interceptor, null));
         return this;
     }
 
@@ -912,6 +932,12 @@ public class HttpAsyncClientBuilder {
                         break;
                     case BEFORE:
                         execChainDefinition.addBefore(entry.existing, entry.interceptor, entry.name);
+                        break;
+                    case FIRST:
+                        execChainDefinition.addFirst(entry.interceptor, entry.name);
+                        break;
+                    case LAST:
+                        execChainDefinition.addLast(entry.interceptor, entry.name);
                         break;
                 }
             }
