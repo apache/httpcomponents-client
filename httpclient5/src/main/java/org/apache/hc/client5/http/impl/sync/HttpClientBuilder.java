@@ -163,7 +163,7 @@ public class HttpClientBuilder {
 
     private static class ExecInterceptorEntry {
 
-        enum Postion { BEFORE, AFTER, REPLACE }
+        enum Postion { BEFORE, AFTER, REPLACE, FIRST, LAST }
 
         final Postion postion;
         final String name;
@@ -440,6 +440,26 @@ public class HttpClientBuilder {
             execInterceptors = new LinkedList<>();
         }
         execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.REPLACE, existing, interceptor, existing));
+        return this;
+    }
+
+    /**
+     * Add an interceptor to the head of the processing list.
+     */
+    public final HttpClientBuilder addExecInterceptorFirst(final String name, final ExecChainHandler interceptor) {
+        Args.notNull(name, "Name");
+        Args.notNull(interceptor, "Interceptor");
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.FIRST, name, interceptor, null));
+        return this;
+    }
+
+    /**
+     * Add an interceptor to the tail of the processing list.
+     */
+    public final HttpClientBuilder addExecInterceptorLast(final String name, final ExecChainHandler interceptor) {
+        Args.notNull(name, "Name");
+        Args.notNull(interceptor, "Interceptor");
+        execInterceptors.add(new ExecInterceptorEntry(ExecInterceptorEntry.Postion.LAST, name, interceptor, null));
         return this;
     }
 
@@ -901,6 +921,12 @@ public class HttpClientBuilder {
                         break;
                     case REPLACE:
                         execChainDefinition.replace(entry.existing, entry.interceptor);
+                        break;
+                    case FIRST:
+                        execChainDefinition.addFirst(entry.interceptor, entry.name);
+                        break;
+                    case LAST:
+                        execChainDefinition.addLast(entry.interceptor, entry.name);
                         break;
                 }
             }
