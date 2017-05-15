@@ -1220,7 +1220,6 @@ public class HttpClientBuilder {
                             Thread.currentThread().interrupt();
                         }
                     }
-
                 });
                 connectionEvictor.start();
             }
