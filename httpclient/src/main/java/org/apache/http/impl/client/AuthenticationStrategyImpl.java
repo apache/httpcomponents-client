@@ -60,6 +60,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.Lookup;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.Args;
 import org.apache.http.util.CharArrayBuffer;
 
@@ -189,11 +190,20 @@ abstract class AuthenticationStrategyImpl implements AuthenticationStrategy {
                 final AuthScheme authScheme = authSchemeProvider.create(context);
                 authScheme.processChallenge(challenge);
 
+                final String targetHostUrl;
+                if (context != null) {
+                    final HttpHost httpTargetHost = ((HttpHost) context.getAttribute(HttpCoreContext.HTTP_TARGET_HOST));
+                    targetHostUrl = httpTargetHost != null ? httpTargetHost.toURI() : null;
+                } else {
+                    targetHostUrl = null;
+                }
+
                 final AuthScope authScope = new AuthScope(
                         authhost.getHostName(),
                         authhost.getPort(),
                         authScheme.getRealm(),
-                        authScheme.getSchemeName());
+                        authScheme.getSchemeName(),
+                        targetHostUrl);
 
                 final Credentials credentials = credsProvider.getCredentials(authScope);
                 if (credentials != null) {
