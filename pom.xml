@@ -59,9 +59,10 @@
   </issueManagement>
 
   <scm>
-    <connection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</developerConnection>
-    <url>https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</url>
+    <connection>scm:git:https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git</connection>
+    <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git</developerConnection>
+    <url>https://github.com/apache/httpcomponents-client/tree/${project.scm.tag}</url>
+    <tag>master</tag>
   </scm>
 
   <properties>
