@@ -58,9 +58,10 @@
   </issueManagement>
 
   <scm>
-    <connection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.5.x</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.5.x</developerConnection>
-    <url>https://svn.apache.org/repos/asf/httpcomponents/httpclient/branches/4.5.x</url>
+    <connection>scm:git:https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git</connection>
+    <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git</developerConnection>
+    <url>https://github.com/apache/httpcomponents-client/tree/${project.scm.tag}</url>
+    <tag>4.6.x</tag>
   </scm>
 
   <properties>
