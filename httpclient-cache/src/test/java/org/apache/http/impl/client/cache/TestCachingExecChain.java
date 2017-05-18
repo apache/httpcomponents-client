@@ -311,7 +311,6 @@ public abstract class TestCachingExecChain {
 
     @Test
     public void testSuitableCacheEntryDoesNotCauseBackendRequest() throws Exception {
-        cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(mockCacheEntry);
         cacheEntrySuitable(true);
@@ -352,7 +351,6 @@ public abstract class TestCachingExecChain {
     public void testResponseIsGeneratedWhenCacheEntryIsUsable() throws Exception {
 
         requestIsFatallyNonCompliant(null);
-        cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         cacheEntrySuitable(true);
         getCacheEntryReturns(mockCacheEntry);
@@ -1385,7 +1383,6 @@ public abstract class TestCachingExecChain {
             "must-revalidate") });
 
         requestIsFatallyNonCompliant(null);
-        cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(entry);
         cacheEntrySuitable(false);
@@ -1403,7 +1400,6 @@ public abstract class TestCachingExecChain {
         request.setHeader("Cache-Control", "only-if-cached");
 
         requestIsFatallyNonCompliant(null);
-        cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(entry);
         cacheEntrySuitable(true);
@@ -1731,11 +1727,6 @@ public abstract class TestCachingExecChain {
 
     protected void getCacheEntryReturns(final HttpCacheEntry result) throws IOException {
         expect(mockCache.getCacheEntry(eq(host), eqRequest(request))).andReturn(result);
-    }
-
-    private void cacheInvalidatorWasCalled() throws IOException {
-        mockCache
-            .flushInvalidatedCacheEntriesFor((HttpHost) anyObject(), (HttpRequest) anyObject());
     }
 
     protected void cacheEntryValidatable(final boolean b) {

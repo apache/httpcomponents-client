@@ -2504,8 +2504,6 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         notModified.setHeader("Date", DateUtils.formatDate(now));
         notModified.setHeader("ETag", "\"etag\"");
 
-        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host),
-                eqRequest(request));
         EasyMock.expect(
                 mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request)))
                 .andReturn(entry);
@@ -2551,7 +2549,6 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl = new CachingExec(mockBackend, mockCache, config);
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1));
 
-        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host), eqRequest(request));
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
 
         replayMocks();
@@ -2599,7 +2596,6 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl = new CachingExec(mockBackend, mockCache, config);
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1));
 
-        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host), eqRequest(request));
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
         EasyMock.expect(
                 mockBackend.execute(
@@ -2818,7 +2814,6 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
         impl = new CachingExec(mockBackend, mockCache, config);
         request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", "/thing", HttpVersion.HTTP_1_1));
 
-        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host), eqRequest(request));
         EasyMock.expect(mockCache.getCacheEntry(EasyMock.eq(host), eqRequest(request))).andReturn(entry);
 
         replayMocks();
@@ -2881,7 +2876,6 @@ public class TestProtocolRequirements extends AbstractProtocolTest {
 
         final Capture<HttpRequestWrapper> cap = new Capture<HttpRequestWrapper>();
 
-        mockCache.flushInvalidatedCacheEntriesFor(EasyMock.eq(host), eqRequest(request));
         mockCache.flushInvalidatedCacheEntriesFor(
                 EasyMock.isA(HttpHost.class),
                 EasyMock.isA(HttpRequestWrapper.class),
