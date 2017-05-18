@@ -402,6 +402,26 @@ public class TestCachingExec extends TestCachingExecChain {
         verifyMocks();
     }
 
+    @Test
+    public void testDoesNotFlushCachesOnCacheHit() throws Exception {
+        requestPolicyAllowsCaching(true);
+        requestIsFatallyNonCompliant(null);
+
+        getCacheEntryReturns(mockCacheEntry);
+        doesNotFlushCache();
+        cacheEntrySuitable(true);
+        cacheEntryValidatable(true);
+
+        expect(mockResponseGenerator.generateResponse(isA(HttpRequestWrapper.class), isA(HttpCacheEntry.class)))
+                .andReturn(mockBackendResponse);
+
+        replayMocks();
+        final HttpResponse result = impl.execute(route, request, context);
+        verifyMocks();
+
+        Assert.assertSame(mockBackendResponse, result);
+    }
+
     private IExpectationSetters<CloseableHttpResponse> implExpectsAnyRequestAndReturn(
             final CloseableHttpResponse response) throws Exception {
         final CloseableHttpResponse resp = impl.callBackend(
