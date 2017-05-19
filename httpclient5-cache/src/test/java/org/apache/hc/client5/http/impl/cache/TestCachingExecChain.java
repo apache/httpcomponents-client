@@ -1673,4 +1673,9 @@ public abstract class TestCachingExecChain {
             .andReturn(mockCachedResponse);
     }
 
+    protected void doesNotFlushCache() throws IOException {
+        mockCache.flushInvalidatedCacheEntriesFor(isA(HttpHost.class), isA(HttpRequest.class));
+        EasyMock.expectLastCall().andThrow(new AssertionError("flushInvalidatedCacheEntriesFor should not have been called")).anyTimes();
+    }
+
 }

@@ -246,10 +246,9 @@ public class CachingExec implements ExecChainHandler {
         requestCompliance.makeRequestCompliant(request);
         request.addHeader("Via",via);
 
-        flushEntriesInvalidatedByRequest(target, request);
-
         if (!cacheableRequestPolicy.isServableFromCache(request)) {
             log.debug("Request is not servable from cache");
+            flushEntriesInvalidatedByRequest(target, request);
             return callBackend(target, request, scope, chain);
         }
 
