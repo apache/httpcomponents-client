@@ -166,7 +166,6 @@ public class TestCachingExec extends TestCachingExecChain {
     @Test
     public void testCacheMissCausesBackendRequest() throws Exception {
         mockImplMethods(CALL_BACKEND);
-        cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(null);
         getVariantCacheEntriesReturns(new HashMap<String,Variant>());
@@ -188,7 +187,6 @@ public class TestCachingExec extends TestCachingExecChain {
     @Test
     public void testUnsuitableUnvalidatableCacheEntryCausesBackendRequest() throws Exception {
         mockImplMethods(CALL_BACKEND);
-        cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         requestIsFatallyNonCompliant(null);
 
@@ -214,7 +212,6 @@ public class TestCachingExec extends TestCachingExecChain {
     @Test
     public void testUnsuitableValidatableCacheEntryCausesRevalidation() throws Exception {
         mockImplMethods(REVALIDATE_CACHE_ENTRY);
-        cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         requestIsFatallyNonCompliant(null);
 

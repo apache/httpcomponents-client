@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import junit.framework.AssertionFailedError;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
@@ -83,8 +84,6 @@ import org.easymock.IExpectationSetters;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import junit.framework.AssertionFailedError;
 
 @SuppressWarnings("boxing") // test code
 public abstract class TestCachingExecChain {
@@ -310,7 +309,6 @@ public abstract class TestCachingExecChain {
 
     @Test
     public void testSuitableCacheEntryDoesNotCauseBackendRequest() throws Exception {
-        cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(mockCacheEntry);
         cacheEntrySuitable(true);
@@ -351,7 +349,6 @@ public abstract class TestCachingExecChain {
     public void testResponseIsGeneratedWhenCacheEntryIsUsable() throws Exception {
 
         requestIsFatallyNonCompliant(null);
-        cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         cacheEntrySuitable(true);
         getCacheEntryReturns(mockCacheEntry);
@@ -1313,7 +1310,6 @@ public abstract class TestCachingExecChain {
             "must-revalidate") });
 
         requestIsFatallyNonCompliant(null);
-        cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(entry);
         cacheEntrySuitable(false);
@@ -1331,7 +1327,6 @@ public abstract class TestCachingExecChain {
         request.setHeader("Cache-Control", "only-if-cached");
 
         requestIsFatallyNonCompliant(null);
-        cacheInvalidatorWasCalled();
         requestPolicyAllowsCaching(true);
         getCacheEntryReturns(entry);
         cacheEntrySuitable(true);
