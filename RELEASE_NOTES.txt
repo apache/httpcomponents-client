@@ -39,6 +39,9 @@ Change log:
 * [HTTPCLIENT-1828] HttpDelete, HttpGet, HttpHead do not extend HttpEntityEnclosingRequestBase.
   Contributed by Saravanakumar Selvaraj <saravanakumar dot java at gmail dot com> and Gary Gregory <ggregory at apache.org>
 
+* [HTTPCLIENT-1852] Add APIs URIBuilder.localhost() and setHost(InetAddress)
+  Contributed by Gary Gregory <ggregory at apache.org>
+
 
 Release 4.5.3
 -------------------

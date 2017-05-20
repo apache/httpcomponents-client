@@ -26,8 +26,10 @@
  */
 package org.apache.http.client.utils;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -45,6 +47,15 @@ import org.apache.http.util.TextUtils;
  * @since 4.2
  */
 public class URIBuilder {
+
+    /**
+     * Creates a new builder for the host {@link InetAddress#getLocalHost()}.
+     *
+     * @since 4.6
+     */
+    public static URIBuilder localhost() throws UnknownHostException {
+        return new URIBuilder().setHost(InetAddress.getLocalHost());
+    }
 
     private String scheme;
     private String encodedSchemeSpecificPart;
@@ -244,6 +255,18 @@ public class URIBuilder {
      */
     public URIBuilder setUserInfo(final String username, final String password) {
         return setUserInfo(username + ':' + password);
+    }
+
+    /**
+     * Sets URI host.
+     *
+     * @since 4.6
+     */
+    public URIBuilder setHost(final InetAddress host) {
+        this.host = host.getHostAddress();
+        this.encodedSchemeSpecificPart = null;
+        this.encodedAuthority = null;
+        return this;
     }
 
     /**
