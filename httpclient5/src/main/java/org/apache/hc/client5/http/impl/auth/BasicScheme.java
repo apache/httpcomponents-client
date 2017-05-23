@@ -32,6 +32,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
@@ -47,20 +48,17 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.util.ByteArrayBuilder;
-import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.CharsetUtils;
 
 /**
  * Basic authentication scheme as defined in RFC 2617.
  *
  * @since 4.0
  */
-@NotThreadSafe
 public class BasicScheme implements AuthScheme, Serializable {
 
     private static final long serialVersionUID = -1931571557597830536L;
@@ -184,8 +182,9 @@ public class BasicScheme implements AuthScheme, Serializable {
     @SuppressWarnings("unchecked")
     private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        this.charset = CharsetUtils.get(in.readUTF());
-        if (this.charset == null) {
+        try {
+            this.charset = Charset.forName(in.readUTF());
+        } catch (final UnsupportedCharsetException ex) {
             this.charset = StandardCharsets.US_ASCII;
         }
     }

@@ -45,12 +45,6 @@ import org.apache.hc.core5.http.io.HttpClientConnection;
 public interface ManagedHttpClientConnection extends HttpClientConnection {
 
     /**
-     * Returns connection ID which is expected to be unique
-     * for the life span of the connection manager.
-     */
-    String getId();
-
-    /**
      * Binds this connection to the given socket. The connection
      * is considered open if it is bound and the underlying socket
      * is connection to a remote host.

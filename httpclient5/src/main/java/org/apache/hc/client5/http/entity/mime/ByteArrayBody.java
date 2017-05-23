@@ -29,7 +29,7 @@ package org.apache.hc.client5.http.entity.mime;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.util.Args;
 
 /**

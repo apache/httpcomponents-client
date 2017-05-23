@@ -39,15 +39,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.StatusLine;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.BasicStatusLine;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -87,14 +84,12 @@ public class TestHttpCacheEntrySerializers {
         }
         final String body = "Lorem ipsum dolor sit amet";
 
-        final ProtocolVersion pvObj = new ProtocolVersion("HTTP", 1, 1);
-        final StatusLine slObj = new BasicStatusLine(pvObj, 200, "ok");
         final Map<String,String> variantMap = new HashMap<>();
         variantMap.put("test variant 1","true");
         variantMap.put("test variant 2","true");
         final HttpCacheEntry cacheEntry = new HttpCacheEntry(new Date(), new Date(),
-                slObj, headers, new HeapResource(Base64.decodeBase64(body
-                        .getBytes(UTF8))), variantMap, HeaderConstants.GET_METHOD);
+                HttpStatus.SC_OK, headers,
+                new HeapResource(Base64.decodeBase64(body.getBytes(UTF8))), variantMap);
 
         return cacheEntry;
     }
@@ -107,9 +102,6 @@ public class TestHttpCacheEntrySerializers {
         }
         if (!((one.getResponseDate().getTime() / 1000) == (two
                 .getResponseDate().getTime() / 1000))) {
-            return false;
-        }
-        if (!one.getProtocolVersion().equals(two.getProtocolVersion())) {
             return false;
         }
 

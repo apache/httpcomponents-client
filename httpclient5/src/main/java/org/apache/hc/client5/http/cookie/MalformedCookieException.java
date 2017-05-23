@@ -27,7 +27,6 @@
 
 package org.apache.hc.client5.http.cookie;
 
-import org.apache.hc.core5.annotation.Immutable;
 import org.apache.hc.core5.http.ProtocolException;
 
 /**
@@ -37,7 +36,6 @@ import org.apache.hc.core5.http.ProtocolException;
  *
  * @since 4.0
  */
-@Immutable
 public class MalformedCookieException extends ProtocolException {
 
     private static final long serialVersionUID = -6695462944287282185L;

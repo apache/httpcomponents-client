@@ -28,7 +28,8 @@ package org.apache.hc.client5.http.cookie;
 
 import java.util.Locale;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
 
@@ -38,7 +39,7 @@ import org.apache.hc.core5.util.TextUtils;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class CookieOrigin {
 
     private final String host;

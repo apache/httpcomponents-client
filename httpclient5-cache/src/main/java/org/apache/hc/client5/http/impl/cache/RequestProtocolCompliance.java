@@ -28,32 +28,34 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HeaderElements;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.entity.AbstractHttpEntity;
-import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.apache.hc.core5.http.message.BasicStatusLine;
+import org.apache.hc.core5.http.message.MessageSupport;
 
 /**
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class RequestProtocolCompliance {
     private final boolean weakETagOnPutDeleteAllowed;
 
@@ -107,7 +109,7 @@ class RequestProtocolCompliance {
      * @param request the request to check for compliance
      * @throws ClientProtocolException when we have trouble making the request compliant
      */
-    public void makeRequestCompliant(final HttpRequestWrapper request)
+    public void makeRequestCompliant(final ClassicHttpRequest request)
         throws ClientProtocolException {
 
         if (requestMustNotHaveEntity(request)) {
@@ -119,23 +121,22 @@ class RequestProtocolCompliance {
         decrementOPTIONSMaxForwardsIfGreaterThen0(request);
         stripOtherFreshnessDirectivesWithNoCache(request);
 
-        if (requestVersionIsTooLow(request)
-                || requestMinorVersionIsTooHighMajorVersionsMatch(request)) {
-            request.setProtocolVersion(HttpVersion.HTTP_1_1);
+        if (requestVersionIsTooLow(request) || requestMinorVersionIsTooHighMajorVersionsMatch(request)) {
+            request.setVersion(HttpVersion.HTTP_1_1);
         }
     }
 
     private void stripOtherFreshnessDirectivesWithNoCache(final HttpRequest request) {
         final List<HeaderElement> outElts = new ArrayList<>();
         boolean shouldStrip = false;
-        for(final Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for(final HeaderElement elt : h.getElements()) {
-                if (!disallowedWithNoCache.contains(elt.getName())) {
-                    outElts.add(elt);
-                }
-                if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equals(elt.getName())) {
-                    shouldStrip = true;
-                }
+        final Iterator<HeaderElement> it = MessageSupport.iterate(request, HeaderConstants.CACHE_CONTROL);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            if (!disallowedWithNoCache.contains(elt.getName())) {
+                outElts.add(elt);
+            }
+            if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equals(elt.getName())) {
+                shouldStrip = true;
             }
         }
         if (!shouldStrip) {
@@ -160,11 +161,11 @@ class RequestProtocolCompliance {
     }
 
     private boolean requestMustNotHaveEntity(final HttpRequest request) {
-        return HeaderConstants.TRACE_METHOD.equals(request.getRequestLine().getMethod());
+        return HeaderConstants.TRACE_METHOD.equals(request.getMethod());
     }
 
     private void decrementOPTIONSMaxForwardsIfGreaterThen0(final HttpRequest request) {
-        if (!HeaderConstants.OPTIONS_METHOD.equals(request.getRequestLine().getMethod())) {
+        if (!HeaderConstants.OPTIONS_METHOD.equals(request.getMethod())) {
             return;
         }
 
@@ -179,22 +180,30 @@ class RequestProtocolCompliance {
         request.setHeader(HeaderConstants.MAX_FORWARDS, Integer.toString(currentMaxForwards - 1));
     }
 
-    private void verifyOPTIONSRequestWithBodyHasContentType(final HttpRequest request) {
-        if (!HeaderConstants.OPTIONS_METHOD.equals(request.getRequestLine().getMethod())) {
+    private void verifyOPTIONSRequestWithBodyHasContentType(final ClassicHttpRequest request) {
+        if (!HeaderConstants.OPTIONS_METHOD.equals(request.getMethod())) {
             return;
         }
 
         addContentTypeHeaderIfMissing(request);
     }
 
-    private void addContentTypeHeaderIfMissing(final HttpRequest request) {
+    private void addContentTypeHeaderIfMissing(final ClassicHttpRequest request) {
         final HttpEntity entity = request.getEntity();
         if (entity != null && entity.getContentType() == null) {
-            ((AbstractHttpEntity) entity).setContentType(ContentType.APPLICATION_OCTET_STREAM.getMimeType());
+            final HttpEntityWrapper entityWrapper = new HttpEntityWrapper(entity) {
+
+                @Override
+                public String getContentType() {
+                    return ContentType.APPLICATION_OCTET_STREAM.getMimeType();
+                }
+
+            };
+            request.setEntity(entityWrapper);
         }
     }
 
-    private void verifyRequestWithExpectContinueFlagHas100continueHeader(final HttpRequest request) {
+    private void verifyRequestWithExpectContinueFlagHas100continueHeader(final ClassicHttpRequest request) {
         if (request.containsHeader(HttpHeaders.EXPECT) && request.getEntity() != null) {
             add100ContinueHeaderIfMissing(request);
         } else {
@@ -209,7 +218,7 @@ class RequestProtocolCompliance {
         List<HeaderElement> expectElementsThatAreNot100Continue = new ArrayList<>();
 
         for (final Header h : expectHeaders) {
-            for (final HeaderElement elt : h.getElements()) {
+            for (final HeaderElement elt : MessageSupport.parse(h)) {
                 if (!(HeaderElements.CONTINUE.equalsIgnoreCase(elt.getName()))) {
                     expectElementsThatAreNot100Continue.add(elt);
                 } else {
@@ -233,11 +242,11 @@ class RequestProtocolCompliance {
     private void add100ContinueHeaderIfMissing(final HttpRequest request) {
         boolean hasHeader = false;
 
-        for (final Header h : request.getHeaders(HttpHeaders.EXPECT)) {
-            for (final HeaderElement elt : h.getElements()) {
-                if (HeaderElements.CONTINUE.equalsIgnoreCase(elt.getName())) {
-                    hasHeader = true;
-                }
+        final Iterator<HeaderElement> it = MessageSupport.iterate(request, HttpHeaders.EXPECT);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            if (HeaderElements.CONTINUE.equalsIgnoreCase(elt.getName())) {
+                hasHeader = true;
             }
         }
 
@@ -247,7 +256,7 @@ class RequestProtocolCompliance {
     }
 
     protected boolean requestMinorVersionIsTooHighMajorVersionsMatch(final HttpRequest request) {
-        final ProtocolVersion requestProtocol = request.getProtocolVersion();
+        final ProtocolVersion requestProtocol = request.getVersion();
         if (requestProtocol.getMajor() != HttpVersion.HTTP_1_1.getMajor()) {
             return false;
         }
@@ -260,7 +269,7 @@ class RequestProtocolCompliance {
     }
 
     protected boolean requestVersionIsTooLow(final HttpRequest request) {
-        return request.getProtocolVersion().compareToVersion(HttpVersion.HTTP_1_1) < 0;
+        return request.getVersion().compareToVersion(HttpVersion.HTTP_1_1) < 0;
     }
 
     /**
@@ -268,27 +277,24 @@ class RequestProtocolCompliance {
      * that a problem occured.
      *
      * @param errorCheck What type of error should I get
-     * @return The {@link HttpResponse} that is the error generated
+     * @return The {@link ClassicHttpResponse} that is the error generated
      */
-    public HttpResponse getErrorForRequest(final RequestProtocolError errorCheck) {
+    public ClassicHttpResponse getErrorForRequest(final RequestProtocolError errorCheck) {
         switch (errorCheck) {
             case BODY_BUT_NO_LENGTH_ERROR:
-                return new BasicHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1,
-                        HttpStatus.SC_LENGTH_REQUIRED, ""));
+                return new BasicClassicHttpResponse(HttpStatus.SC_LENGTH_REQUIRED, "");
 
             case WEAK_ETAG_AND_RANGE_ERROR:
-                return new BasicHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1,
-                        HttpStatus.SC_BAD_REQUEST, "Weak eTag not compatible with byte range"));
+                return new BasicClassicHttpResponse(HttpStatus.SC_BAD_REQUEST,
+                        "Weak eTag not compatible with byte range");
 
             case WEAK_ETAG_ON_PUTDELETE_METHOD_ERROR:
-                return new BasicHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1,
-                        HttpStatus.SC_BAD_REQUEST,
-                        "Weak eTag not compatible with PUT or DELETE requests"));
+                return new BasicClassicHttpResponse(HttpStatus.SC_BAD_REQUEST,
+                        "Weak eTag not compatible with PUT or DELETE requests");
 
             case NO_CACHE_DIRECTIVE_WITH_FIELD_NAME:
-                return new BasicHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1,
-                        HttpStatus.SC_BAD_REQUEST,
-                        "No-Cache directive MUST NOT include a field name"));
+                return new BasicClassicHttpResponse(HttpStatus.SC_BAD_REQUEST,
+                        "No-Cache directive MUST NOT include a field name");
 
             default:
                 throw new IllegalStateException(
@@ -299,7 +305,7 @@ class RequestProtocolCompliance {
 
     private RequestProtocolError requestHasWeakETagAndRange(final HttpRequest request) {
         // TODO: Should these be looking at all the headers marked as Range?
-        final String method = request.getRequestLine().getMethod();
+        final String method = request.getMethod();
         if (!(HeaderConstants.GET_METHOD.equals(method))) {
             return null;
         }
@@ -325,9 +331,8 @@ class RequestProtocolCompliance {
     private RequestProtocolError requestHasWeekETagForPUTOrDELETEIfMatch(final HttpRequest request) {
         // TODO: Should these be looking at all the headers marked as If-Match/If-None-Match?
 
-        final String method = request.getRequestLine().getMethod();
-        if (!(HeaderConstants.PUT_METHOD.equals(method) || HeaderConstants.DELETE_METHOD
-                .equals(method))) {
+        final String method = request.getMethod();
+        if (!(HeaderConstants.PUT_METHOD.equals(method) || HeaderConstants.DELETE_METHOD.equals(method))) {
             return null;
         }
 
@@ -353,12 +358,11 @@ class RequestProtocolCompliance {
     }
 
     private RequestProtocolError requestContainsNoCacheDirectiveWithFieldName(final HttpRequest request) {
-        for(final Header h : request.getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for(final HeaderElement elt : h.getElements()) {
-                if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equalsIgnoreCase(elt.getName())
-                    && elt.getValue() != null) {
-                    return RequestProtocolError.NO_CACHE_DIRECTIVE_WITH_FIELD_NAME;
-                }
+        final Iterator<HeaderElement> it = MessageSupport.iterate(request, HeaderConstants.CACHE_CONTROL);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            if (HeaderConstants.CACHE_CONTROL_NO_CACHE.equalsIgnoreCase(elt.getName()) && elt.getValue() != null) {
+                return RequestProtocolError.NO_CACHE_DIRECTIVE_WITH_FIELD_NAME;
             }
         }
         return null;

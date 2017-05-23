@@ -27,20 +27,24 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.util.Date;
+import java.util.Iterator;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.MessageHeaders;
 
 /**
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheValidityPolicy {
 
     public static final long MAX_AGE = 2147483648L;
@@ -124,17 +128,17 @@ class CacheValidityPolicy {
     }
 
     public boolean mayReturnStaleWhileRevalidating(final HttpCacheEntry entry, final Date now) {
-        for (final Header h : entry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for(final HeaderElement elt : h.getElements()) {
-                if (HeaderConstants.STALE_WHILE_REVALIDATE.equalsIgnoreCase(elt.getName())) {
-                    try {
-                        final int allowedStalenessLifetime = Integer.parseInt(elt.getValue());
-                        if (getStalenessSecs(entry, now) <= allowedStalenessLifetime) {
-                            return true;
-                        }
-                    } catch (final NumberFormatException nfe) {
-                        // skip malformed directive
+        final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HeaderConstants.CACHE_CONTROL);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            if (HeaderConstants.STALE_WHILE_REVALIDATE.equalsIgnoreCase(elt.getName())) {
+                try {
+                    final int allowedStalenessLifetime = Integer.parseInt(elt.getValue());
+                    if (getStalenessSecs(entry, now) <= allowedStalenessLifetime) {
+                        return true;
                     }
+                } catch (final NumberFormatException nfe) {
+                    // skip malformed directive
                 }
             }
         }
@@ -142,29 +146,26 @@ class CacheValidityPolicy {
         return false;
     }
 
-    public boolean mayReturnStaleIfError(final HttpRequest request,
-            final HttpCacheEntry entry, final Date now) {
+    public boolean mayReturnStaleIfError(final HttpRequest request, final HttpCacheEntry entry, final Date now) {
         final long stalenessSecs = getStalenessSecs(entry, now);
-        return mayReturnStaleIfError(request.getHeaders(HeaderConstants.CACHE_CONTROL),
-                                     stalenessSecs)
-                || mayReturnStaleIfError(entry.getHeaders(HeaderConstants.CACHE_CONTROL),
-                                         stalenessSecs);
+        return mayReturnStaleIfError(request, HeaderConstants.CACHE_CONTROL, stalenessSecs)
+                || mayReturnStaleIfError(entry, HeaderConstants.CACHE_CONTROL, stalenessSecs);
     }
 
-    private boolean mayReturnStaleIfError(final Header[] headers, final long stalenessSecs) {
+    private boolean mayReturnStaleIfError(final MessageHeaders headers, final String name, final long stalenessSecs) {
         boolean result = false;
-        for(final Header h : headers) {
-            for(final HeaderElement elt : h.getElements()) {
-                if (HeaderConstants.STALE_IF_ERROR.equals(elt.getName())) {
-                    try {
-                        final int staleIfErrorSecs = Integer.parseInt(elt.getValue());
-                        if (stalenessSecs <= staleIfErrorSecs) {
-                            result = true;
-                            break;
-                        }
-                    } catch (final NumberFormatException nfe) {
-                        // skip malformed directive
+        final Iterator<HeaderElement> it = MessageSupport.iterate(headers, name);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            if (HeaderConstants.STALE_IF_ERROR.equals(elt.getName())) {
+                try {
+                    final int staleIfErrorSecs = Integer.parseInt(elt.getValue());
+                    if (stalenessSecs <= staleIfErrorSecs) {
+                        result = true;
+                        break;
                     }
+                } catch (final NumberFormatException nfe) {
+                    // skip malformed directive
                 }
             }
         }
@@ -259,19 +260,18 @@ class CacheValidityPolicy {
 
     protected long getMaxAge(final HttpCacheEntry entry) {
         long maxage = -1;
-        for (final Header hdr : entry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for (final HeaderElement elt : hdr.getElements()) {
-                if (HeaderConstants.CACHE_CONTROL_MAX_AGE.equals(elt.getName())
-                        || "s-maxage".equals(elt.getName())) {
-                    try {
-                        final long currMaxAge = Long.parseLong(elt.getValue());
-                        if (maxage == -1 || currMaxAge < maxage) {
-                            maxage = currMaxAge;
-                        }
-                    } catch (final NumberFormatException nfe) {
-                        // be conservative if can't parse
-                        maxage = 0;
+        final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HeaderConstants.CACHE_CONTROL);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            if (HeaderConstants.CACHE_CONTROL_MAX_AGE.equals(elt.getName()) || "s-maxage".equals(elt.getName())) {
+                try {
+                    final long currMaxAge = Long.parseLong(elt.getValue());
+                    if (maxage == -1 || currMaxAge < maxage) {
+                        maxage = currMaxAge;
                     }
+                } catch (final NumberFormatException nfe) {
+                    // be conservative if can't parse
+                    maxage = 0;
                 }
             }
         }
@@ -286,13 +286,12 @@ class CacheValidityPolicy {
         return DateUtils.parseDate(expiresHeader.getValue());
     }
 
-    public boolean hasCacheControlDirective(final HttpCacheEntry entry,
-            final String directive) {
-        for (final Header h : entry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for(final HeaderElement elt : h.getElements()) {
-                if (directive.equalsIgnoreCase(elt.getName())) {
-                    return true;
-                }
+    public boolean hasCacheControlDirective(final HttpCacheEntry entry, final String directive) {
+        final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HeaderConstants.CACHE_CONTROL);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            if (directive.equalsIgnoreCase(elt.getName())) {
+                return true;
             }
         }
         return false;

@@ -31,7 +31,7 @@ import org.apache.hc.client5.http.impl.cache.CacheConfig;
 import org.apache.hc.client5.http.impl.cache.CachingExec;
 import org.apache.hc.client5.http.impl.cache.HeapResourceFactory;
 import org.apache.hc.client5.http.impl.cache.TestProtocolRequirements;
-import org.apache.hc.client5.http.impl.sync.ClientExecChain;
+import org.apache.hc.client5.http.sync.ExecChain;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -70,9 +70,9 @@ public class TestEhcacheProtocolRequirements extends TestProtocolRequirements{
         }
         CACHE_MANAGER.addCache(TEST_EHCACHE_NAME);
         final HttpCacheStorage storage = new EhcacheHttpCacheStorage(CACHE_MANAGER.getCache(TEST_EHCACHE_NAME));
-        mockBackend = EasyMock.createNiceMock(ClientExecChain.class);
+        mockExecChain = EasyMock.createNiceMock(ExecChain.class);
 
-        impl = new CachingExec(mockBackend, new HeapResourceFactory(), storage, config);
+        impl = new CachingExec(new HeapResourceFactory(), storage, config);
     }
 
     @After

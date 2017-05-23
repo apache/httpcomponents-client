@@ -34,27 +34,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.client5.http.methods.HttpUriRequest;
-import org.apache.hc.client5.http.methods.RequestBuilder;
 import org.apache.hc.client5.http.protocol.CircularRedirectException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.RedirectLocations;
 import org.apache.hc.client5.http.protocol.RedirectStrategy;
-import org.apache.hc.client5.http.utils.URIBuilder;
 import org.apache.hc.client5.http.utils.URIUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URIBuilder;
 import org.apache.hc.core5.util.Args;
-import org.apache.hc.core5.util.Asserts;
 import org.apache.hc.core5.util.TextUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,7 +64,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class DefaultRedirectStrategy implements RedirectStrategy {
 
     private final Logger log = LogManager.getLogger(getClass());
@@ -80,7 +76,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
     public DefaultRedirectStrategy(final String... safeMethods) {
         super();
         this.safeMethods = new ConcurrentHashMap<>();
-        for (String safeMethod: safeMethods) {
+        for (final String safeMethod: safeMethods) {
             this.safeMethods.put(safeMethod.toUpperCase(Locale.ROOT), Boolean.TRUE);
         }
     }
@@ -100,7 +96,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         if (!response.containsHeader(HttpHeaders.LOCATION)) {
             return false;
         }
-        final int statusCode = response.getStatusLine().getStatusCode();
+        final int statusCode = response.getCode();
         switch (statusCode) {
             case HttpStatus.SC_MOVED_PERMANENTLY:
             case HttpStatus.SC_MOVED_TEMPORARILY:
@@ -112,6 +108,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         }
     }
 
+    @Override
     public URI getLocationURI(
             final HttpRequest request,
             final HttpResponse response,
@@ -138,11 +135,7 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
         try {
             if (!uri.isAbsolute()) {
                 // Resolve location URI
-                final HttpHost target = clientContext.getTargetHost();
-                Asserts.notNull(target, "Target host");
-                final URI requestURI = new URI(request.getRequestLine().getUri());
-                final URI absoluteRequestURI = URIUtils.rewriteURI(requestURI, target, false);
-                uri = URIUtils.resolve(absoluteRequestURI, uri);
+                uri = URIUtils.resolve(request.getUri(), uri);
             }
         } catch (final URISyntaxException ex) {
             throw new ProtocolException(ex.getMessage(), ex);
@@ -180,27 +173,6 @@ public class DefaultRedirectStrategy implements RedirectStrategy {
             return b.build();
         } catch (final URISyntaxException ex) {
             throw new ProtocolException("Invalid redirect URI: " + location, ex);
-        }
-    }
-
-    @Override
-    public HttpUriRequest getRedirect(
-            final HttpRequest request,
-            final HttpResponse response,
-            final HttpContext context) throws HttpException {
-        final URI uri = getLocationURI(request, response, context);
-        final int statusCode = response.getStatusLine().getStatusCode();
-        switch (statusCode) {
-            case HttpStatus.SC_MOVED_PERMANENTLY:
-            case HttpStatus.SC_MOVED_TEMPORARILY:
-            case HttpStatus.SC_SEE_OTHER:
-                final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
-                if (!this.safeMethods.containsKey(method)) {
-                    return new HttpGet(uri);
-                }
-            case HttpStatus.SC_TEMPORARY_REDIRECT:
-            default:
-                return RequestBuilder.copy(request).setUri(uri).build();
         }
     }
 

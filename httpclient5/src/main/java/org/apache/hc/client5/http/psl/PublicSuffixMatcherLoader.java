@@ -36,7 +36,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,7 +47,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.4
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public final class PublicSuffixMatcherLoader {
 
     private static PublicSuffixMatcher load(final InputStream in) throws IOException {

@@ -30,11 +30,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.apache.hc.client5.http.utils.URLEncodedUtils;
-import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.http.entity.ContentType;
-import org.apache.hc.core5.http.entity.StringEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.net.URLEncodedUtils;
 
 /**
  * An entity composed of a list of url-encoded pairs.
@@ -42,7 +41,6 @@ import org.apache.hc.core5.http.entity.StringEntity;
  *
  * @since 4.0
  */
-@NotThreadSafe // AbstractHttpEntity is not thread-safe
 public class UrlEncodedFormEntity extends StringEntity {
 
     /**

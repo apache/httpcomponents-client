@@ -32,50 +32,52 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
 
-import org.apache.hc.client5.http.io.EofSensorInputStream;
-import org.apache.hc.client5.http.io.EofSensorWatcher;
-import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.client5.http.sync.ExecRuntime;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.entity.HttpEntityWrapper;
+import org.apache.hc.core5.http.io.EofSensorInputStream;
+import org.apache.hc.core5.http.io.EofSensorWatcher;
+import org.apache.hc.core5.http.io.entity.HttpEntityWrapper;
 
 /**
  * A wrapper class for {@link HttpEntity} enclosed in a response message.
  *
  * @since 4.3
  */
-@NotThreadSafe
 class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher {
 
-    private final ConnectionHolder connHolder;
+    private final ExecRuntime execRuntime;
 
-    public static void enchance(final HttpResponse response, final ConnectionHolder connHolder) {
+    public static void enchance(final ClassicHttpResponse response, final ExecRuntime execRuntime) {
         final HttpEntity entity = response.getEntity();
-        if (entity != null && entity.isStreaming() && connHolder != null) {
-            response.setEntity(new ResponseEntityProxy(entity, connHolder));
+        if (entity != null && entity.isStreaming() && execRuntime != null) {
+            response.setEntity(new ResponseEntityProxy(entity, execRuntime));
         }
     }
 
-    ResponseEntityProxy(final HttpEntity entity, final ConnectionHolder connHolder) {
+    ResponseEntityProxy(final HttpEntity entity, final ExecRuntime execRuntime) {
         super(entity);
-        this.connHolder = connHolder;
+        this.execRuntime = execRuntime;
     }
 
     private void cleanup() throws IOException {
-        if (this.connHolder != null) {
-            this.connHolder.close();
+        if (this.execRuntime != null) {
+            if (this.execRuntime.isConnected()) {
+                this.execRuntime.disconnect();
+            }
+            this.execRuntime.discardConnection();
         }
     }
 
-    private void abortConnection() {
-        if (this.connHolder != null) {
-            this.connHolder.abortConnection();
+    private void discardConnection() {
+        if (this.execRuntime != null) {
+            this.execRuntime.discardConnection();
         }
     }
 
     public void releaseConnection() {
-        if (this.connHolder != null) {
-            this.connHolder.releaseConnection();
+        if (this.execRuntime != null) {
+            this.execRuntime.releaseConnection();
         }
     }
 
@@ -97,7 +99,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
             }
             releaseConnection();
         } catch (IOException | RuntimeException ex) {
-            abortConnection();
+            discardConnection();
             throw ex;
         } finally {
             cleanup();
@@ -114,7 +116,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
             }
             releaseConnection();
         } catch (IOException | RuntimeException ex) {
-            abortConnection();
+            discardConnection();
             throw ex;
         } finally {
             cleanup();
@@ -125,7 +127,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
     @Override
     public boolean streamClosed(final InputStream wrapped) throws IOException {
         try {
-            final boolean open = connHolder != null && !connHolder.isReleased();
+            final boolean open = execRuntime != null && execRuntime.isConnectionAcquired();
             // this assumes that closing the stream will
             // consume the remainder of the response body:
             try {
@@ -139,7 +141,7 @@ class ResponseEntityProxy extends HttpEntityWrapper implements EofSensorWatcher 
                 }
             }
         } catch (IOException | RuntimeException ex) {
-            abortConnection();
+            discardConnection();
             throw ex;
         } finally {
             cleanup();

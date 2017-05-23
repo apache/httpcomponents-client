@@ -33,7 +33,8 @@ import java.util.List;
 import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 
 /**
@@ -41,7 +42,7 @@ import org.apache.hc.core5.http.Header;
  *
  * @since 4.1
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class IgnoreSpec extends CookieSpecBase {
 
     @Override

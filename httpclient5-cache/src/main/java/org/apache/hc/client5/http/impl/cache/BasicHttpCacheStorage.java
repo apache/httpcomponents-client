@@ -31,7 +31,8 @@ import java.io.IOException;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Basic {@link HttpCacheStorage} implementation backed by an instance of
@@ -43,7 +44,7 @@ import org.apache.hc.core5.annotation.ThreadSafe;
  *
  * @since 4.1
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class BasicHttpCacheStorage implements HttpCacheStorage {
 
     private final CacheMap entries;

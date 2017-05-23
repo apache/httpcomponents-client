@@ -46,12 +46,15 @@ import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ConnectionClosedException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -62,7 +65,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class DefaultHttpClientConnectionOperator implements HttpClientConnectionOperator {
 
     static final String SOCKET_FACTORY_REGISTRY = "http.socket-factory-registry";
@@ -101,14 +104,17 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final ManagedHttpClientConnection conn,
             final HttpHost host,
             final InetSocketAddress localAddress,
-            final int connectTimeout,
+            final TimeValue connectTimeout,
             final SocketConfig socketConfig,
             final HttpContext context) throws IOException {
+        Args.notNull(conn, "Connection");
+        Args.notNull(host, "Host");
+        Args.notNull(socketConfig, "Socket config");
+        Args.notNull(context, "Context");
         final Lookup<ConnectionSocketFactory> registry = getSocketFactoryRegistry(context);
         final ConnectionSocketFactory sf = registry.lookup(host.getSchemeName());
         if (sf == null) {
-            throw new UnsupportedSchemeException(host.getSchemeName() +
-                    " protocol is not supported");
+            throw new UnsupportedSchemeException(host.getSchemeName() + " protocol is not supported");
         }
         final InetAddress[] addresses = host.getAddress() != null ?
                 new InetAddress[] { host.getAddress() } : this.dnsResolver.resolve(host.getHostName());
@@ -118,7 +124,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
             final boolean last = i == addresses.length - 1;
 
             Socket sock = sf.createSocket(context);
-            sock.setSoTimeout(socketConfig.getSoTimeout());
+            sock.setSoTimeout(socketConfig.getSoTimeout().toMillisIntBound());
             sock.setReuseAddress(socketConfig.isSoReuseAddress());
             sock.setTcpNoDelay(socketConfig.isTcpNoDelay());
             sock.setKeepAlive(socketConfig.isSoKeepAlive());
@@ -129,7 +135,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 sock.setSendBufferSize(socketConfig.getSndBufSize());
             }
 
-            final int linger = socketConfig.getSoLinger();
+            final int linger = socketConfig.getSoLinger().toMillisIntBound();
             if (linger >= 0) {
                 sock.setSoLinger(true, linger);
             }
@@ -140,8 +146,7 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
                 this.log.debug("Connecting to " + remoteAddress);
             }
             try {
-                sock = sf.connectSocket(
-                        connectTimeout, sock, host, remoteAddress, localAddress, context);
+                sock = sf.connectSocket(connectTimeout, sock, host, remoteAddress, localAddress, context);
                 conn.bind(sock);
                 if (this.log.isDebugEnabled()) {
                     this.log.debug("Connection established " + conn);
@@ -190,6 +195,9 @@ public class DefaultHttpClientConnectionOperator implements HttpClientConnection
         }
         final LayeredConnectionSocketFactory lsf = (LayeredConnectionSocketFactory) sf;
         Socket sock = conn.getSocket();
+        if (sock == null) {
+            throw new ConnectionClosedException("Connection is closed");
+        }
         final int port = this.schemePortResolver.resolve(host);
         sock = lsf.createLayeredSocket(sock, host.getHostName(), port, context);
         conn.bind(sock);

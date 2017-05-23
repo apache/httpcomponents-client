@@ -30,14 +30,17 @@ package org.apache.hc.client5.http.impl.sync;
 import java.io.IOException;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.protocol.NonRepeatableRequestException;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecChainHandler;
 import org.apache.hc.client5.http.sync.HttpRequestRetryHandler;
-import org.apache.hc.core5.annotation.Immutable;
-import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.NoHttpResponseException;
 import org.apache.hc.core5.util.Args;
@@ -56,40 +59,35 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.3
  */
-@Immutable
-public class RetryExec implements ClientExecChain {
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
+final class RetryExec implements ExecChainHandler {
 
     private final Logger log = LogManager.getLogger(getClass());
 
-    private final ClientExecChain requestExecutor;
     private final HttpRequestRetryHandler retryHandler;
 
     public RetryExec(
-            final ClientExecChain requestExecutor,
             final HttpRequestRetryHandler retryHandler) {
-        Args.notNull(requestExecutor, "HTTP request executor");
         Args.notNull(retryHandler, "HTTP request retry handler");
-        this.requestExecutor = requestExecutor;
         this.retryHandler = retryHandler;
     }
 
     @Override
-    public CloseableHttpResponse execute(
-            final HttpRoute route,
-            final HttpRequestWrapper request,
-            final HttpClientContext context,
-            final HttpExecutionAware execAware) throws IOException, HttpException {
-        Args.notNull(route, "HTTP route");
+    public ClassicHttpResponse execute(
+            final ClassicHttpRequest request,
+            final ExecChain.Scope scope,
+            final ExecChain chain) throws IOException, HttpException {
         Args.notNull(request, "HTTP request");
-        Args.notNull(context, "HTTP context");
-        final Header[] origheaders = request.getAllHeaders();
+        Args.notNull(scope, "Scope");
+        final HttpRoute route = scope.route;
+        final HttpClientContext context = scope.clientContext;
+        ClassicHttpRequest currentRequest = request;
         for (int execCount = 1;; execCount++) {
             try {
-                return this.requestExecutor.execute(route, request, context, execAware);
+                return chain.proceed(currentRequest, scope);
             } catch (final IOException ex) {
-                if (execAware != null && execAware.isAborted()) {
-                    this.log.debug("Request has been aborted");
-                    throw ex;
+                if (scope.execRuntime.isExecutionAborted()) {
+                    throw new RequestFailedException("Request aborted");
                 }
                 if (retryHandler.retryRequest(request, ex, execCount, context)) {
                     if (this.log.isInfoEnabled()) {
@@ -102,12 +100,13 @@ public class RetryExec implements ClientExecChain {
                     if (this.log.isDebugEnabled()) {
                         this.log.debug(ex.getMessage(), ex);
                     }
-                    if (!RequestEntityProxy.isRepeatable(request)) {
+                    final HttpEntity entity = request.getEntity();
+                    if (entity != null && !entity.isRepeatable()) {
                         this.log.debug("Cannot retry non-repeatable request");
                         throw new NonRepeatableRequestException("Cannot retry request " +
                                 "with a non-repeatable request entity", ex);
                     }
-                    request.setHeaders(origheaders);
+                    currentRequest = ExecSupport.copy(scope.originalRequest);
                     if (this.log.isInfoEnabled()) {
                         this.log.info("Retrying request to " + route);
                     }

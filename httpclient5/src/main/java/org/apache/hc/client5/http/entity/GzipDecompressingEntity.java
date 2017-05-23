@@ -26,36 +26,25 @@
  */
 package org.apache.hc.client5.http.entity;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.GZIPInputStream;
-
 import org.apache.hc.core5.http.HttpEntity;
 
 /**
- * {@link org.apache.hc.core5.http.entity.HttpEntityWrapper} for handling gzip
- * Content Coded responses.
+ * {@link org.apache.hc.core5.http.io.entity.HttpEntityWrapper} for handling
+ * gzip Content Coded responses.
  *
  * @since 4.1
  */
 public class GzipDecompressingEntity extends DecompressingEntity {
 
     /**
-     * Creates a new {@link GzipDecompressingEntity} which will wrap the specified
-     * {@link HttpEntity}.
+     * Creates a new {@link GzipDecompressingEntity} which will wrap the
+     * specified {@link HttpEntity}.
      *
      * @param entity
      *            the non-null {@link HttpEntity} to be wrapped
      */
     public GzipDecompressingEntity(final HttpEntity entity) {
-        super(entity, new InputStreamFactory() {
-
-            @Override
-            public InputStream create(final InputStream instream) throws IOException {
-                return new GZIPInputStream(instream);
-            }
-
-        });
+        super(entity, GZIPInputStreamFactory.getInstance());
     }
 
 }

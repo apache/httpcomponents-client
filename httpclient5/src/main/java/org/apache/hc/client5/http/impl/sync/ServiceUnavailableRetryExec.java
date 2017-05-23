@@ -30,14 +30,15 @@ package org.apache.hc.client5.http.impl.sync;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 
-import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecChainHandler;
 import org.apache.hc.client5.http.sync.ServiceUnavailableRetryStrategy;
-import org.apache.hc.core5.annotation.Immutable;
-import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.LogManager;
@@ -55,34 +56,31 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.3
  */
-@Immutable
-public class ServiceUnavailableRetryExec implements ClientExecChain {
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
+final class ServiceUnavailableRetryExec implements ExecChainHandler {
 
     private final Logger log = LogManager.getLogger(getClass());
 
-    private final ClientExecChain requestExecutor;
     private final ServiceUnavailableRetryStrategy retryStrategy;
 
     public ServiceUnavailableRetryExec(
-            final ClientExecChain requestExecutor,
             final ServiceUnavailableRetryStrategy retryStrategy) {
         super();
-        Args.notNull(requestExecutor, "HTTP request executor");
         Args.notNull(retryStrategy, "Retry strategy");
-        this.requestExecutor = requestExecutor;
         this.retryStrategy = retryStrategy;
     }
 
     @Override
-    public CloseableHttpResponse execute(
-            final HttpRoute route,
-            final HttpRequestWrapper request,
-            final HttpClientContext context,
-            final HttpExecutionAware execAware) throws IOException, HttpException {
-        final Header[] origheaders = request.getAllHeaders();
+    public ClassicHttpResponse execute(
+            final ClassicHttpRequest request,
+            final ExecChain.Scope scope,
+            final ExecChain chain) throws IOException, HttpException {
+        Args.notNull(request, "HTTP request");
+        Args.notNull(scope, "Scope");
+        final HttpClientContext context = scope.clientContext;
+        ClassicHttpRequest currentRequest = request;
         for (int c = 1;; c++) {
-            final CloseableHttpResponse response = this.requestExecutor.execute(
-                    route, request, context, execAware);
+            final ClassicHttpResponse response = chain.proceed(currentRequest, scope);
             try {
                 if (this.retryStrategy.retryRequest(response, c, context)) {
                     response.close();
@@ -98,7 +96,7 @@ public class ServiceUnavailableRetryExec implements ClientExecChain {
                             throw new InterruptedIOException();
                         }
                     }
-                    request.setHeaders(origheaders);
+                    currentRequest = ExecSupport.copy(scope.originalRequest);
                 } else {
                     return response;
                 }

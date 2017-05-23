@@ -32,14 +32,15 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.hc.client5.http.cache.Resource;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Cache resource backed by a file.
  *
  * @since 4.1
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class FileResource implements Resource {
 
     private static final long serialVersionUID = 4132244415919043397L;

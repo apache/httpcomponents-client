@@ -32,25 +32,27 @@ import static org.junit.Assert.assertNull;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.client5.http.cache.CacheResponseStatus;
 import org.apache.hc.client5.http.cache.HttpCacheContext;
 import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.sync.HttpClientBuilder;
-import org.apache.hc.client5.http.methods.HttpGet;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.MethodNotSupportedException;
-import org.apache.hc.core5.http.bootstrap.io.HttpServer;
-import org.apache.hc.core5.http.bootstrap.io.ServerBootstrap;
 import org.apache.hc.core5.http.config.SocketConfig;
-import org.apache.hc.core5.http.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
+import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
 import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.After;
@@ -77,7 +79,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
     public void start() throws Exception  {
         this.localServer = ServerBootstrap.bootstrap()
                 .setSocketConfig(SocketConfig.custom()
-                        .setSoTimeout(5000)
+                        .setSoTimeout(5, TimeUnit.SECONDS)
                         .build())
                 .registerHandler(url + "*", new EchoViaHeaderHandler())
                 .create();
@@ -95,20 +97,17 @@ public class TestStaleWhileRevalidationReleasesConnection {
                 .setSharedCache(true)
                 .build();
 
-        final HttpClientBuilder clientBuilder = CachingHttpClientBuilder.create().setCacheConfig(cacheConfig);
-        clientBuilder.setMaxConnTotal(1);
-        clientBuilder.setMaxConnPerRoute(1);
-
         final RequestConfig config = RequestConfig.custom()
-                .setSocketTimeout(10000)
-                .setConnectTimeout(10000)
-                .setConnectionRequestTimeout(1000)
+                .setSocketTimeout(10, TimeUnit.SECONDS)
+                .setConnectTimeout(10, TimeUnit.SECONDS)
+                .setConnectionRequestTimeout(1, TimeUnit.SECONDS)
                 .build();
 
-        clientBuilder.setDefaultRequestConfig(config);
-
-
-        client = clientBuilder.build();
+        client = CachingHttpClientBuilder.create()
+                .setCacheConfig(cacheConfig)
+                .setDefaultRequestConfig(config)
+                .setConnectionManager(new BasicHttpClientConnectionManager())
+                .build();
     }
 
     @After
@@ -195,7 +194,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
             httpget.setHeader(cacheHandler.getUserContentHeader(),content);
         }
 
-        HttpResponse response = null;
+        ClassicHttpResponse response = null;
         try {
             response = cachingClient.execute(httpget, localContext);
             return null;
@@ -256,12 +255,12 @@ public class TestStaleWhileRevalidationReleasesConnection {
          * @throws java.io.IOException      in case of an IO problem
          */
         @Override
-        public void handle(final HttpRequest request,
-                           final HttpResponse response,
+        public void handle(final ClassicHttpRequest request,
+                           final ClassicHttpResponse response,
                            final HttpContext context)
                 throws HttpException, IOException {
 
-            final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
+            final String method = request.getMethod().toUpperCase(Locale.ROOT);
             if (!"GET".equals(method) &&
                     !"POST".equals(method) &&
                     !"PUT".equals(method)
@@ -270,7 +269,7 @@ public class TestStaleWhileRevalidationReleasesConnection {
                         (method + " not supported by " + getClass().getName());
             }
 
-            response.setStatusCode(org.apache.hc.core5.http.HttpStatus.SC_OK);
+            response.setCode(org.apache.hc.core5.http.HttpStatus.SC_OK);
             response.addHeader("Cache-Control",getCacheContent(request));
             final byte[] content = getHeaderContent(request);
             final ByteArrayEntity bae = new ByteArrayEntity(content);

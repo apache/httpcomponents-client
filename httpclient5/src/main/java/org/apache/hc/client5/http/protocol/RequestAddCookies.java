@@ -28,8 +28,6 @@
 package org.apache.hc.client5.http.protocol;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -42,15 +40,16 @@ import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
-import org.apache.hc.client5.http.methods.HttpUriRequest;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
 import org.apache.logging.log4j.LogManager;
@@ -63,7 +62,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class RequestAddCookies implements HttpRequestInterceptor {
 
     private final Logger log = LogManager.getLogger(getClass());
@@ -73,12 +72,12 @@ public class RequestAddCookies implements HttpRequestInterceptor {
     }
 
     @Override
-    public void process(final HttpRequest request, final HttpContext context)
+    public void process(final HttpRequest request, final EntityDetails entity, final HttpContext context)
             throws HttpException, IOException {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
 
-        final String method = request.getRequestLine().getMethod();
+        final String method = request.getMethod();
         if (method.equalsIgnoreCase("CONNECT") || method.equalsIgnoreCase("TRACE")) {
             return;
         }
@@ -99,13 +98,6 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             return;
         }
 
-        // Obtain the target host, possibly virtual (required)
-        final HttpHost targetHost = clientContext.getTargetHost();
-        if (targetHost == null) {
-            this.log.debug("Target host not set in the context");
-            return;
-        }
-
         // Obtain the route (required)
         final RouteInfo route = clientContext.getHttpRoute();
         if (route == null) {
@@ -122,27 +114,20 @@ public class RequestAddCookies implements HttpRequestInterceptor {
             this.log.debug("CookieSpec selected: " + policy);
         }
 
-        URI requestURI = null;
-        if (request instanceof HttpUriRequest) {
-            requestURI = ((HttpUriRequest) request).getURI();
-        } else {
-            try {
-                requestURI = new URI(request.getRequestLine().getUri());
-            } catch (final URISyntaxException ignore) {
-            }
+        final URIAuthority authority = request.getAuthority();
+        String path = request.getPath();
+        if (TextUtils.isEmpty(path)) {
+            path = "/";
         }
-        final String path = requestURI != null ? requestURI.getPath() : null;
-        final String hostName = targetHost.getHostName();
-        int port = targetHost.getPort();
+        String hostName = authority != null ? authority.getHostName() : null;
+        if (hostName == null) {
+            hostName = route.getTargetHost().getHostName();
+        }
+        int port = authority != null ? authority.getPort() : -1;
         if (port < 0) {
             port = route.getTargetHost().getPort();
         }
-
-        final CookieOrigin cookieOrigin = new CookieOrigin(
-                hostName,
-                port >= 0 ? port : 0,
-                !TextUtils.isEmpty(path) ? path : "/",
-                route.isSecure());
+        final CookieOrigin cookieOrigin = new CookieOrigin(hostName, port, path, route.isSecure());
 
         // Get an instance of the selected cookie policy
         final CookieSpecProvider provider = registry.lookup(policy);

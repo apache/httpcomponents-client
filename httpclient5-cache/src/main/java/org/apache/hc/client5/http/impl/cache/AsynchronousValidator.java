@@ -33,13 +33,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.RejectedExecutionException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Class used for asynchronous revalidations to be used when the "stale-
@@ -51,7 +50,7 @@ class AsynchronousValidator implements Closeable {
     private final CacheKeyGenerator cacheKeyGenerator;
     private final FailureCache failureCache;
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     /**
      * Create AsynchronousValidator which will make revalidation requests
@@ -91,19 +90,19 @@ class AsynchronousValidator implements Closeable {
      */
     public synchronized void revalidateCacheEntry(
             final CachingExec cachingExec,
-            final HttpRoute route,
-            final HttpRequestWrapper request,
-            final HttpClientContext context,
-            final HttpExecutionAware execAware,
+            final HttpHost target,
+            final ClassicHttpRequest request,
+            final ExecChain.Scope scope,
+            final ExecChain chain,
             final HttpCacheEntry entry) {
         // getVariantURI will fall back on getURI if no variants exist
-        final String uri = cacheKeyGenerator.getVariantURI(context.getTargetHost(), request, entry);
+        final String uri = cacheKeyGenerator.generateVariantURI(target, request, entry);
 
         if (!queued.contains(uri)) {
             final int consecutiveFailedAttempts = failureCache.getErrorCount(uri);
             final AsynchronousValidationRequest revalidationRequest =
                 new AsynchronousValidationRequest(
-                        this, cachingExec, route, request, context, execAware, entry, uri, consecutiveFailedAttempts);
+                        this, cachingExec, target, request, scope, chain, entry, uri, consecutiveFailedAttempts);
 
             try {
                 schedulingStrategy.schedule(revalidationRequest);

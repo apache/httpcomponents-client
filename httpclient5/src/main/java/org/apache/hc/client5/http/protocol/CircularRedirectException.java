@@ -26,15 +26,12 @@
  */
 package org.apache.hc.client5.http.protocol;
 
-import org.apache.hc.core5.annotation.Immutable;
-
 /**
  * Signals a circular redirect
  *
  *
  * @since 4.0
  */
-@Immutable
 public class CircularRedirectException extends RedirectException {
 
     private static final long serialVersionUID = 6830063487001091803L;

@@ -31,19 +31,20 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheInvalidator;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Given a particular HttpRequest, flush any cache entries that this request
@@ -51,13 +52,13 @@ import org.apache.hc.core5.http.HttpResponse;
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheInvalidator implements HttpCacheInvalidator {
 
     private final HttpCacheStorage storage;
     private final CacheKeyGenerator cacheKeyGenerator;
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     /**
      * Create a new {@link CacheInvalidator} for a given {@link HttpCache} and
@@ -82,7 +83,7 @@ class CacheInvalidator implements HttpCacheInvalidator {
      */
     @Override
     public void flushInvalidatedCacheEntries(final HttpHost host, final HttpRequest req)  {
-        final String theUri = cacheKeyGenerator.getURI(host, req);
+        final String theUri = cacheKeyGenerator.generateKey(host, req);
         final HttpCacheEntry parent = getEntry(theUri);
 
         if (requestShouldNotBeCached(req) || shouldInvalidateHeadCacheEntry(req, parent)) {
@@ -117,7 +118,7 @@ class CacheInvalidator implements HttpCacheInvalidator {
     }
 
     private boolean requestIsGet(final HttpRequest req) {
-        return req.getRequestLine().getMethod().equals((HeaderConstants.GET_METHOD));
+        return req.getMethod().equals((HeaderConstants.GET_METHOD));
     }
 
     private boolean isAHeadCacheEntry(final HttpCacheEntry parentCacheEntry) {
@@ -142,7 +143,7 @@ class CacheInvalidator implements HttpCacheInvalidator {
     }
 
     protected void flushUriIfSameHost(final URL requestURL, final URL targetURL) {
-        final URL canonicalTarget = getAbsoluteURL(cacheKeyGenerator.canonicalizeUri(targetURL.toString()));
+        final URL canonicalTarget = getAbsoluteURL(cacheKeyGenerator.generateKey(targetURL));
         if (canonicalTarget == null) {
             return;
         }
@@ -190,7 +191,7 @@ class CacheInvalidator implements HttpCacheInvalidator {
     }
 
     protected boolean requestShouldNotBeCached(final HttpRequest req) {
-        final String method = req.getRequestLine().getMethod();
+        final String method = req.getMethod();
         return notGetOrHeadRequest(method);
     }
 
@@ -205,11 +206,11 @@ class CacheInvalidator implements HttpCacheInvalidator {
     @Override
     public void flushInvalidatedCacheEntries(final HttpHost host,
             final HttpRequest request, final HttpResponse response) {
-        final int status = response.getStatusLine().getStatusCode();
+        final int status = response.getCode();
         if (status < 200 || status > 299) {
             return;
         }
-        final URL reqURL = getAbsoluteURL(cacheKeyGenerator.getURI(host, request));
+        final URL reqURL = getAbsoluteURL(cacheKeyGenerator.generateKey(host, request));
         if (reqURL == null) {
             return;
         }
@@ -225,7 +226,7 @@ class CacheInvalidator implements HttpCacheInvalidator {
 
     private void flushLocationCacheEntry(final URL reqURL,
             final HttpResponse response, final URL location) {
-        final String cacheKey = cacheKeyGenerator.canonicalizeUri(location.toString());
+        final String cacheKey = cacheKeyGenerator.generateKey(location);
         final HttpCacheEntry entry = getEntry(cacheKey);
         if (entry == null) {
             return;

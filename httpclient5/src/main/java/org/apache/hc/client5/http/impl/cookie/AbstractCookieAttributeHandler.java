@@ -30,13 +30,14 @@ import org.apache.hc.client5.http.cookie.Cookie;
 import org.apache.hc.client5.http.cookie.CookieAttributeHandler;
 import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public abstract class AbstractCookieAttributeHandler implements CookieAttributeHandler {
 
     @Override

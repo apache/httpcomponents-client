@@ -35,7 +35,8 @@ import java.io.OutputStream;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializationException;
 import org.apache.hc.client5.http.cache.HttpCacheEntrySerializer;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * {@link HttpCacheEntrySerializer} implementation that uses the default (native)
@@ -45,7 +46,7 @@ import org.apache.hc.core5.annotation.Immutable;
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class DefaultHttpCacheEntrySerializer implements HttpCacheEntrySerializer {
 
     @Override

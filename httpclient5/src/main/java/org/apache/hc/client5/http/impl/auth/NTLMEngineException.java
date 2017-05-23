@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.auth.AuthenticationException;
-import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * Signals NTLM protocol failure.
@@ -35,7 +34,6 @@ import org.apache.hc.core5.annotation.Immutable;
  *
  * @since 4.0
  */
-@Immutable
 public class NTLMEngineException extends AuthenticationException {
 
     private static final long serialVersionUID = 6027981323731768824L;

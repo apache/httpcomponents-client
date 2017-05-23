@@ -27,7 +27,6 @@
 package org.apache.hc.client5.http.impl.auth;
 
 import org.apache.hc.client5.http.DnsResolver;
-import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
@@ -36,7 +35,6 @@ import org.ietf.jgss.Oid;
  *
  * @since 4.2
  */
-@NotThreadSafe
 public class KerberosScheme extends GGSSchemeBase {
 
     private static final String KERBEROS_OID = "1.2.840.113554.1.2.2";

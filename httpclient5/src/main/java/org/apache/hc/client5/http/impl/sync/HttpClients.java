@@ -29,13 +29,11 @@ package org.apache.hc.client5.http.impl.sync;
 
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.core5.annotation.Immutable;
 
 /**
  * Factory methods for {@link CloseableHttpClient} instances.
  * @since 4.3
  */
-@Immutable
 public class HttpClients {
 
     private HttpClients() {
@@ -70,7 +68,7 @@ public class HttpClients {
      * Creates {@link CloseableHttpClient} instance that implements
      * the most basic HTTP protocol support.
      */
-    public static CloseableHttpClient createMinimal() {
+    public static MinimalHttpClient createMinimal() {
         return new MinimalHttpClient(new PoolingHttpClientConnectionManager());
     }
 
@@ -78,7 +76,7 @@ public class HttpClients {
      * Creates {@link CloseableHttpClient} instance that implements
      * the most basic HTTP protocol support.
      */
-    public static CloseableHttpClient createMinimal(final HttpClientConnectionManager connManager) {
+    public static MinimalHttpClient createMinimal(final HttpClientConnectionManager connManager) {
         return new MinimalHttpClient(connManager);
     }
 

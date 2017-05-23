@@ -26,8 +26,8 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.mockito.Matchers.isA;
-import static org.mockito.Matchers.same;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,10 +36,9 @@ import java.util.Date;
 import java.util.HashMap;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,17 +47,15 @@ import org.junit.Test;
 @SuppressWarnings({"boxing","static-access"}) // test code
 public class TestCachedHttpResponseGenerator {
 
-    private HttpHost host;
     private HttpCacheEntry entry;
-    private HttpRequestWrapper request;
+    private ClassicHttpRequest request;
     private CacheValidityPolicy mockValidityPolicy;
     private CachedHttpResponseGenerator impl;
 
     @Before
     public void setUp() {
-        host = new HttpHost("foo.example.com", 80);
         entry = HttpTestUtils.makeCacheEntry(new HashMap<String, String>());
-        request = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultRequest(), host);
+        request = HttpTestUtils.makeDefaultRequest();
         mockValidityPolicy = mock(CacheValidityPolicy.class);
         impl = new CachedHttpResponseGenerator(mockValidityPolicy);
     }
@@ -68,7 +65,7 @@ public class TestCachedHttpResponseGenerator {
         final byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
         final HttpCacheEntry entry1 = HttpTestUtils.makeCacheEntry(buf);
 
-        final HttpResponse response = impl.generateResponse(request, entry1);
+        final ClassicHttpResponse response = impl.generateResponse(request, entry1);
 
         final Header length = response.getFirstHeader("Content-Length");
         Assert.assertNotNull("Content-Length Header is missing", length);
@@ -84,7 +81,7 @@ public class TestCachedHttpResponseGenerator {
         final byte[] buf = new byte[] { 1, 2, 3, 4, 5 };
         final HttpCacheEntry entry1 = HttpTestUtils.makeCacheEntry(hdrs, buf);
 
-        final HttpResponse response = impl.generateResponse(request, entry1);
+        final ClassicHttpResponse response = impl.generateResponse(request, entry1);
 
         final Header length = response.getFirstHeader("Content-Length");
 
@@ -93,27 +90,27 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testResponseMatchesCacheEntry() {
-        final HttpResponse response = impl.generateResponse(request, entry);
+        final ClassicHttpResponse response = impl.generateResponse(request, entry);
 
         Assert.assertTrue(response.containsHeader("Content-Length"));
 
-        Assert.assertSame("HTTP", response.getProtocolVersion().getProtocol());
-        Assert.assertEquals(1, response.getProtocolVersion().getMajor());
-        Assert.assertEquals(1, response.getProtocolVersion().getMinor());
+        Assert.assertSame("HTTP", response.getVersion().getProtocol());
+        Assert.assertEquals(1, response.getVersion().getMajor());
+        Assert.assertEquals(1, response.getVersion().getMinor());
     }
 
     @Test
     public void testResponseStatusCodeMatchesCacheEntry() {
-        final HttpResponse response = impl.generateResponse(request, entry);
+        final ClassicHttpResponse response = impl.generateResponse(request, entry);
 
-        Assert.assertEquals(entry.getStatusCode(), response.getStatusLine().getStatusCode());
+        Assert.assertEquals(entry.getStatus(), response.getCode());
     }
 
     @Test
     public void testAgeHeaderIsPopulatedWithCurrentAgeOfCacheEntryIfNonZero() {
         currentAge(10L);
 
-        final HttpResponse response = impl.generateResponse(request, entry);
+        final ClassicHttpResponse response = impl.generateResponse(request, entry);
 
         verify(mockValidityPolicy).getCurrentAgeSecs(same(entry), isA(Date.class));
 
@@ -126,7 +123,7 @@ public class TestCachedHttpResponseGenerator {
     public void testAgeHeaderIsNotPopulatedIfCurrentAgeOfCacheEntryIsZero() {
         currentAge(0L);
 
-        final HttpResponse response = impl.generateResponse(request, entry);
+        final ClassicHttpResponse response = impl.generateResponse(request, entry);
 
         verify(mockValidityPolicy).getCurrentAgeSecs(same(entry), isA(Date.class));
 
@@ -138,7 +135,7 @@ public class TestCachedHttpResponseGenerator {
     public void testAgeHeaderIsPopulatedWithMaxAgeIfCurrentAgeTooBig() {
         currentAge(CacheValidityPolicy.MAX_AGE + 1L);
 
-        final HttpResponse response = impl.generateResponse(request, entry);
+        final ClassicHttpResponse response = impl.generateResponse(request, entry);
 
         verify(mockValidityPolicy).getCurrentAgeSecs(same(entry), isA(Date.class));
 
@@ -155,15 +152,15 @@ public class TestCachedHttpResponseGenerator {
 
     @Test
     public void testResponseContainsEntityToServeGETRequestIfEntryContainsResource() throws Exception {
-        final HttpResponse response = impl.generateResponse(request, entry);
+        final ClassicHttpResponse response = impl.generateResponse(request, entry);
 
         Assert.assertNotNull(response.getEntity());
     }
 
     @Test
     public void testResponseDoesNotContainEntityToServeHEADRequestIfEntryContainsResource() throws Exception {
-        final HttpRequestWrapper headRequest = HttpRequestWrapper.wrap(HttpTestUtils.makeDefaultHEADRequest(), host);
-        final HttpResponse response = impl.generateResponse(headRequest, entry);
+        final ClassicHttpRequest headRequest = HttpTestUtils.makeDefaultHEADRequest();
+        final ClassicHttpResponse response = impl.generateResponse(headRequest, entry);
 
         Assert.assertNull(response.getEntity());
     }

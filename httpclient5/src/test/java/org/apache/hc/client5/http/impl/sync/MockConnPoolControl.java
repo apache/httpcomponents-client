@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.core5.pool.ConnPoolControl;
 import org.apache.hc.core5.pool.PoolStats;
+import org.apache.hc.core5.util.TimeValue;
 
 public final class MockConnPoolControl implements ConnPoolControl<HttpRoute> {
 
@@ -90,6 +91,14 @@ public final class MockConnPoolControl implements ConnPoolControl<HttpRoute> {
         } else {
             return this.defaultMax;
         }
+    }
+
+    @Override
+    public void closeIdle(final TimeValue idletime) {
+    }
+
+    @Override
+    public void closeExpired() {
     }
 
     public void setMaxForRoutes(final Map<HttpRoute, Integer> map) {

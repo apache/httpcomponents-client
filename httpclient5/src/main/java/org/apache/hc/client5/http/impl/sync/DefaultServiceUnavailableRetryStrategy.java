@@ -31,7 +31,8 @@ import java.util.Date;
 
 import org.apache.hc.client5.http.sync.ServiceUnavailableRetryStrategy;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpResponse;
@@ -46,7 +47,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.2
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class DefaultServiceUnavailableRetryStrategy implements ServiceUnavailableRetryStrategy {
 
     /**
@@ -75,8 +76,7 @@ public class DefaultServiceUnavailableRetryStrategy implements ServiceUnavailabl
 
     @Override
     public boolean retryRequest(final HttpResponse response, final int executionCount, final HttpContext context) {
-        return executionCount <= maxRetries &&
-            response.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE;
+        return executionCount <= maxRetries && response.getCode() == HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 
     @Override

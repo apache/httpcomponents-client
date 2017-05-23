@@ -29,8 +29,10 @@ package org.apache.hc.client5.http.config;
 
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,9 +47,9 @@ public class TestRequestConfig {
     @Test
     public void testDefaults() {
         final RequestConfig config = RequestConfig.DEFAULT;
-        Assert.assertEquals(-1, config.getSocketTimeout());
-        Assert.assertEquals(180000, config.getConnectTimeout());
-        Assert.assertEquals(180000, config.getConnectionRequestTimeout());
+        Assert.assertEquals(TimeValue.NEG_ONE_MILLISECONDS, config.getSocketTimeout());
+        Assert.assertEquals(TimeValue.ofMinutes(3), config.getConnectTimeout());
+        Assert.assertEquals(TimeValue.ofMinutes(3), config.getConnectionRequestTimeout());
         Assert.assertEquals(false, config.isExpectContinueEnabled());
         Assert.assertEquals(true, config.isAuthenticationEnabled());
         Assert.assertEquals(true, config.isRedirectsEnabled());
@@ -64,13 +66,12 @@ public class TestRequestConfig {
     @Test
     public void testBuildAndCopy() throws Exception {
         final RequestConfig config0 = RequestConfig.custom()
-                .setSocketTimeout(22)
-                .setConnectTimeout(33)
-                .setConnectionRequestTimeout(44)
+                .setSocketTimeout(22, TimeUnit.MILLISECONDS)
+                .setConnectTimeout(33, TimeUnit.MILLISECONDS)
+                .setConnectionRequestTimeout(44, TimeUnit.MILLISECONDS)
                 .setExpectContinueEnabled(true)
                 .setAuthenticationEnabled(false)
                 .setRedirectsEnabled(false)
-                .setRelativeRedirectsAllowed(false)
                 .setCircularRedirectsAllowed(true)
                 .setMaxRedirects(100)
                 .setCookieSpec(CookieSpecs.STANDARD)
@@ -81,9 +82,9 @@ public class TestRequestConfig {
                 .setContentCompressionEnabled(false)
                 .build();
         final RequestConfig config = RequestConfig.copy(config0).build();
-        Assert.assertEquals(22, config.getSocketTimeout());
-        Assert.assertEquals(33, config.getConnectTimeout());
-        Assert.assertEquals(44, config.getConnectionRequestTimeout());
+        Assert.assertEquals(TimeValue.ofMillis(22), config.getSocketTimeout());
+        Assert.assertEquals(TimeValue.ofMillis(33), config.getConnectTimeout());
+        Assert.assertEquals(TimeValue.ofMillis(44), config.getConnectionRequestTimeout());
         Assert.assertEquals(true, config.isExpectContinueEnabled());
         Assert.assertEquals(false, config.isAuthenticationEnabled());
         Assert.assertEquals(false, config.isRedirectsEnabled());

@@ -29,14 +29,11 @@ package org.apache.hc.client5.http;
 
 import java.io.IOException;
 
-import org.apache.hc.core5.annotation.Immutable;
-
 /**
  * Signals failure to establish connection using an unknown protocol scheme.
  *
  * @since 4.3
  */
-@Immutable
 public class UnsupportedSchemeException extends IOException {
 
     private static final long serialVersionUID = 3597127619218687636L;

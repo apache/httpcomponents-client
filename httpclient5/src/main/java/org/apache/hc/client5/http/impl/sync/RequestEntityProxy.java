@@ -29,22 +29,22 @@ package org.apache.hc.client5.http.impl.sync;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Set;
 
-import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.function.Supplier;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.TrailerSupplier;
 
 /**
  * A Proxy class for {@link org.apache.hc.core5.http.HttpEntity} enclosed in a request message.
  *
  * @since 4.3
  */
-@NotThreadSafe
 class RequestEntityProxy implements HttpEntity  {
 
-    static void enhance(final HttpRequest request) {
+    static void enhance(final ClassicHttpRequest request) {
         final HttpEntity entity = request.getEntity();
         if (entity != null && !entity.isRepeatable() && !isEnhanced(entity)) {
             request.setEntity(new RequestEntityProxy(entity));
@@ -53,20 +53,6 @@ class RequestEntityProxy implements HttpEntity  {
 
     static boolean isEnhanced(final HttpEntity entity) {
         return entity instanceof RequestEntityProxy;
-    }
-
-    static boolean isRepeatable(final HttpRequest request) {
-        final HttpEntity entity = request.getEntity();
-        if (entity != null) {
-            if (isEnhanced(entity)) {
-                final RequestEntityProxy proxy = (RequestEntityProxy) entity;
-                if (!proxy.isConsumed()) {
-                    return true;
-                }
-            }
-            return entity.isRepeatable();
-        }
-        return true;
     }
 
     private final HttpEntity original;
@@ -87,7 +73,11 @@ class RequestEntityProxy implements HttpEntity  {
 
     @Override
     public boolean isRepeatable() {
-        return original.isRepeatable();
+        if (!consumed) {
+            return true;
+        } else {
+            return original.isRepeatable();
+        }
     }
 
     @Override
@@ -127,13 +117,18 @@ class RequestEntityProxy implements HttpEntity  {
     }
 
     @Override
-    public TrailerSupplier getTrailers() {
+    public Supplier<List<? extends Header>> getTrailers() {
         return original.getTrailers();
     }
 
     @Override
     public Set<String> getTrailerNames() {
         return original.getTrailerNames();
+    }
+
+    @Override
+    public void close() throws IOException {
+        original.close();
     }
 
     @Override

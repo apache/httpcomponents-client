@@ -29,6 +29,8 @@ package org.apache.hc.client5.http.impl.auth;
 import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Locale;
 import java.util.Map;
@@ -41,11 +43,12 @@ import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -54,7 +57,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class SystemDefaultCredentialsProvider implements CredentialsStore {
 
     private static final Map<String, String> SCHEME_MAP;
@@ -68,7 +71,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
         SCHEME_MAP.put(AuthSchemes.KERBEROS.toUpperCase(Locale.ROOT), "Kerberos");
     }
 
-    private static String translateScheme(final String key) {
+    private static String translateAuthScheme(final String key) {
         if (key == null) {
             return null;
         }
@@ -94,14 +97,19 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
     private static PasswordAuthentication getSystemCreds(
             final AuthScope authscope,
             final Authenticator.RequestorType requestorType,
-            final HttpContext context) {
+            final HttpClientContext context) {
         final String hostname = authscope.getHost();
         final int port = authscope.getPort();
         final HttpHost origin = authscope.getOrigin();
-        final String protocol = origin != null ? origin.getSchemeName() :
-                (port == 443 ? "https" : "http");
-
-        final URL targetHostURL = getTargetHostURL(context);
+        final String protocol = origin != null ? origin.getSchemeName() : (port == 443 ? "https" : "http");
+        final HttpRequest request = context != null ? context.getRequest() : null;
+        URL targetHostURL;
+        try {
+            final URI uri = request != null ? request.getUri() : null;
+            targetHostURL = uri != null ? uri.toURL() : null;
+        } catch (URISyntaxException | MalformedURLException ignore) {
+            targetHostURL = null;
+        }
         // use null addr, because the authentication fails if it does not exactly match the expected realm's host
         return Authenticator.requestPasswordAuthentication(
                 hostname,
@@ -109,22 +117,9 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                 port,
                 protocol,
                 authscope.getRealm(),
-                translateScheme(authscope.getScheme()),
+                translateAuthScheme(authscope.getScheme()),
                 targetHostURL,
                 requestorType);
-    }
-
-    private static URL getTargetHostURL(final HttpContext context) {
-        if (context == null) {
-            return null;
-        }
-        final HttpRequest httpRequest = (HttpRequest)context.getAttribute(HttpCoreContext.HTTP_REQUEST);
-        final String uri = httpRequest.getRequestLine().getUri();
-        try {
-            return new URL(uri);
-        } catch (final MalformedURLException e) {
-            return null;
-        }
     }
 
     @Override
@@ -136,9 +131,12 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
         }
         final String host = authscope.getHost();
         if (host != null) {
-            PasswordAuthentication systemcreds = getSystemCreds(authscope, Authenticator.RequestorType.SERVER, context);
+            final HttpClientContext clientContext = context != null ? HttpClientContext.adapt(context) : null;
+            PasswordAuthentication systemcreds = getSystemCreds(
+                    authscope, Authenticator.RequestorType.SERVER, clientContext);
             if (systemcreds == null) {
-                systemcreds = getSystemCreds(authscope, Authenticator.RequestorType.PROXY, context);
+                systemcreds = getSystemCreds(
+                        authscope, Authenticator.RequestorType.PROXY, clientContext);
             }
             if (systemcreds == null) {
                 final String proxyHost = System.getProperty("http.proxyHost");
@@ -154,7 +152,7 @@ public class SystemDefaultCredentialsProvider implements CredentialsStore {
                                     systemcreds = new PasswordAuthentication(proxyUser, proxyPassword != null ? proxyPassword.toCharArray() : new char[] {});
                                 }
                             }
-                        } catch (NumberFormatException ex) {
+                        } catch (final NumberFormatException ex) {
                         }
                     }
                 }

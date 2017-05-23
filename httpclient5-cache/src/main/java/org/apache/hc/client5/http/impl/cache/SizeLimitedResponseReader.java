@@ -28,28 +28,24 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Proxy;
 
 import org.apache.hc.client5.http.cache.InputLimit;
 import org.apache.hc.client5.http.cache.Resource;
 import org.apache.hc.client5.http.cache.ResourceFactory;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 
 /**
  * @since 4.1
  */
-@NotThreadSafe
 class SizeLimitedResponseReader {
 
     private final ResourceFactory resourceFactory;
     private final long maxResponseSizeBytes;
     private final HttpRequest request;
-    private final CloseableHttpResponse response;
+    private final ClassicHttpResponse response;
 
     private InputStream instream;
     private InputLimit limit;
@@ -57,14 +53,14 @@ class SizeLimitedResponseReader {
     private boolean consumed;
 
     /**
-     * Create an {@link HttpResponse} that is limited in size, this allows for checking
+     * Create an {@link ClassicHttpResponse} that is limited in size, this allows for checking
      * the size of objects that will be stored in the cache.
      */
     public SizeLimitedResponseReader(
             final ResourceFactory resourceFactory,
             final long maxResponseSizeBytes,
             final HttpRequest request,
-            final CloseableHttpResponse response) {
+            final ClassicHttpResponse response) {
         super();
         this.resourceFactory = resourceFactory;
         this.maxResponseSizeBytes = maxResponseSizeBytes;
@@ -100,7 +96,7 @@ class SizeLimitedResponseReader {
         if (entity == null) {
             return;
         }
-        final String uri = request.getRequestLine().getUri();
+        final String uri = request.getRequestUri();
         instream = entity.getContent();
         try {
             resource = resourceFactory.generate(uri, instream, limit);
@@ -121,9 +117,19 @@ class SizeLimitedResponseReader {
         return resource;
     }
 
-    CloseableHttpResponse getReconstructedResponse() throws IOException {
+    ClassicHttpResponse getReconstructedResponse() throws IOException {
         ensureConsumed();
-        final HttpResponse reconstructed = new BasicHttpResponse(response.getStatusLine());
+        final ClassicHttpResponse reconstructed = new BasicClassicHttpResponse(response.getCode()) {
+
+            @Override
+            public void close() throws IOException {
+                try {
+                    super.close();
+                } finally {
+                    response.close();
+                }
+            }
+        };
         reconstructed.setHeaders(response.getAllHeaders());
 
         final CombinedEntity combinedEntity = new CombinedEntity(resource, instream);
@@ -134,17 +140,7 @@ class SizeLimitedResponseReader {
             combinedEntity.setChunked(entity.isChunked());
         }
         reconstructed.setEntity(combinedEntity);
-        return (CloseableHttpResponse) Proxy.newProxyInstance(
-                ResponseProxyHandler.class.getClassLoader(),
-                new Class<?>[] { CloseableHttpResponse.class },
-                new ResponseProxyHandler(reconstructed) {
-
-                    @Override
-                    public void close() throws IOException {
-                        response.close();
-                    }
-
-                });
+        return reconstructed;
     }
 
 }

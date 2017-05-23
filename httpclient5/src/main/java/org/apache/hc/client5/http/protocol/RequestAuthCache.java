@@ -34,12 +34,15 @@ import org.apache.hc.client5.http.auth.AuthCache;
 import org.apache.hc.client5.http.auth.AuthExchange;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpRequestInterceptor;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -51,7 +54,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class RequestAuthCache implements HttpRequestInterceptor {
 
     private final Logger log = LogManager.getLogger(getClass());
@@ -61,7 +64,7 @@ public class RequestAuthCache implements HttpRequestInterceptor {
     }
 
     @Override
-    public void process(final HttpRequest request, final HttpContext context)
+    public void process(final HttpRequest request, final EntityDetails entity, final HttpContext context)
             throws HttpException, IOException {
         Args.notNull(request, "HTTP request");
         Args.notNull(context, "HTTP context");
@@ -86,19 +89,16 @@ public class RequestAuthCache implements HttpRequestInterceptor {
             return;
         }
 
-        HttpHost target = clientContext.getTargetHost();
-        if (target == null) {
-            this.log.debug("Target host not set in the context");
-            return;
-        }
-
-        if (target.getPort() < 0) {
+        final URIAuthority authority = request.getAuthority();
+        final HttpHost target;
+        if (authority != null) {
             target = new HttpHost(
-                    target.getHostName(),
-                    route.getTargetHost().getPort(),
-                    target.getSchemeName());
+                    authority.getHostName(),
+                    authority.getPort() >= 0 ? authority.getPort() : route.getTargetHost().getPort(),
+                    request.getScheme());
+        } else {
+            target = route.getTargetHost();
         }
-
         final AuthExchange targetAuthExchange = clientContext.getAuthExchange(target);
         if (targetAuthExchange.getState() == AuthExchange.State.UNCHALLENGED) {
             final AuthScheme authScheme = authCache.get(target);

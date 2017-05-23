@@ -29,14 +29,13 @@ package org.apache.hc.client5.http.impl.sync;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.client5.http.protocol.ClientProtocolException;
-import org.apache.hc.client5.http.sync.ResponseHandler;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.core5.http.io.ResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,7 +53,7 @@ public class TestCloseableHttpClient {
         @Override
         protected CloseableHttpResponse doExecute(
                 final HttpHost target,
-                final HttpRequest request,
+                final ClassicHttpRequest request,
                 final HttpContext context) throws IOException {
             return null;
         }
@@ -64,13 +63,15 @@ public class TestCloseableHttpClient {
     private NoopCloseableHttpClient client;
     private InputStream content;
     private HttpEntity entity;
+    private ClassicHttpResponse originResponse;
     private CloseableHttpResponse response;
 
     @Before
     public void setup() throws Exception {
         content = Mockito.mock(InputStream.class);
         entity = Mockito.mock(HttpEntity.class);
-        response = Mockito.mock(CloseableHttpResponse.class);
+        originResponse = Mockito.mock(ClassicHttpResponse.class);
+        response = CloseableHttpResponse.adapt(originResponse);
         Mockito.when(entity.getContent()).thenReturn(content);
         Mockito.when(entity.isStreaming()).thenReturn(Boolean.TRUE);
         Mockito.when(response.getEntity()).thenReturn(entity);
@@ -97,23 +98,6 @@ public class TestCloseableHttpClient {
                 (HttpHost) Mockito.isNull(),
                 Mockito.same(httpget),
                 (HttpContext) Mockito.isNull());
-    }
-
-    @Test
-    public void testExecuteRequestInvalidHost() throws Exception {
-        final HttpGet httpget = new HttpGet("http://_/stuff");
-        client.execute(httpget);
-
-        Mockito.verify(client).doExecute(
-                Mockito.eq(new HttpHost("_", -1, "http")),
-                Mockito.same(httpget),
-                (HttpContext) Mockito.isNull());
-    }
-
-    @Test(expected=ClientProtocolException.class)
-    public void testExecuteRequestInvalidHost2() throws Exception {
-        final HttpGet httpget = new HttpGet("http://@/stuff");
-        client.execute(httpget);
     }
 
     @Test
@@ -166,7 +150,7 @@ public class TestCloseableHttpClient {
                     Mockito.eq(new HttpHost("somehost", 444, "https")),
                     Mockito.same(httpget),
                     (HttpContext) Mockito.isNull());
-            Mockito.verify(response).close();
+            Mockito.verify(originResponse).close();
             throw ex;
         }
     }

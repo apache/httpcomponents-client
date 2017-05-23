@@ -30,7 +30,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -56,7 +57,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class ExponentialBackOffSchedulingStrategy implements SchedulingStrategy {
 
     public static final long DEFAULT_BACK_OFF_RATE = 10;

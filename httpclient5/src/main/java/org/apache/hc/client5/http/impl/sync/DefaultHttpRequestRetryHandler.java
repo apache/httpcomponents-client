@@ -41,9 +41,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.net.ssl.SSLException;
 
-import org.apache.hc.client5.http.methods.HttpUriRequest;
 import org.apache.hc.client5.http.sync.HttpRequestRetryHandler;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.client5.http.sync.methods.HttpUriRequestBase;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
@@ -53,7 +54,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
 
     public static final DefaultHttpRequestRetryHandler INSTANCE = new DefaultHttpRequestRetryHandler();
@@ -152,7 +153,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
                 }
             }
         }
-        if (request instanceof HttpUriRequest && ((HttpUriRequest)request).isAborted()) {
+        if (request instanceof HttpUriRequestBase && ((HttpUriRequestBase)request).isAborted()) {
             return false;
         }
         if (handleAsIdempotent(request)) {
@@ -174,7 +175,7 @@ public class DefaultHttpRequestRetryHandler implements HttpRequestRetryHandler {
      * @since 4.2
      */
     protected boolean handleAsIdempotent(final HttpRequest request) {
-        final String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
+        final String method = request.getMethod().toUpperCase(Locale.ROOT);
         final Boolean b = this.idempotentMethods.get(method);
         return b != null && b.booleanValue();
     }

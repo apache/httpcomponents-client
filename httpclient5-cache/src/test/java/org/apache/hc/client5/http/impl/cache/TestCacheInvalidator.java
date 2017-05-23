@@ -32,6 +32,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,16 +40,15 @@ import java.util.Map;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -61,8 +61,8 @@ public class TestCacheInvalidator {
     private HttpHost host;
     private CacheKeyGenerator cacheKeyGenerator;
     private HttpCacheEntry mockEntry;
-    private HttpRequest request;
-    private HttpResponse response;
+    private ClassicHttpRequest request;
+    private ClassicHttpResponse response;
 
     private Date now;
     private Date tenSecondsAgo;
@@ -85,7 +85,7 @@ public class TestCacheInvalidator {
     // Tests
     @Test
     public void testInvalidatesRequestsThatArentGETorHEAD() throws Exception {
-        request = new BasicHttpRequest("POST","/path", HTTP_1_1);
+        request = new BasicClassicHttpRequest("POST","/path");
         final String theUri = "http://foo.example.com:80/path";
         final Map<String,String> variantMap = new HashMap<>();
         cacheEntryHasVariantMap(variantMap);
@@ -101,7 +101,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesUrisInContentLocationHeadersOnPUTs() throws Exception {
-        final HttpRequest putRequest = new BasicHttpRequest("PUT","/",HTTP_1_1);
+        final ClassicHttpRequest putRequest = new BasicClassicHttpRequest("PUT","/");
         putRequest.setEntity(HttpTestUtils.makeBody(128));
         putRequest.setHeader("Content-Length","128");
 
@@ -123,7 +123,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testInvalidatesUrisInLocationHeadersOnPUTs() throws Exception {
-        final HttpRequest putRequest = new BasicHttpRequest("PUT","/",HTTP_1_1);
+        final ClassicHttpRequest putRequest = new BasicClassicHttpRequest("PUT","/");
         putRequest.setEntity(HttpTestUtils.makeBody(128));
         putRequest.setHeader("Content-Length","128");
 
@@ -140,12 +140,12 @@ public class TestCacheInvalidator {
         verify(mockEntry).getVariantMap();
         verify(mockStorage).getEntry(theUri);
         verify(mockStorage).removeEntry(theUri);
-        verify(mockStorage).removeEntry(cacheKeyGenerator.canonicalizeUri(contentLocation));
+        verify(mockStorage).removeEntry(cacheKeyGenerator.generateKey(new URL(contentLocation)));
     }
 
     @Test
     public void testInvalidatesRelativeUrisInContentLocationHeadersOnPUTs() throws Exception {
-        final HttpRequest putRequest = new BasicHttpRequest("PUT","/",HTTP_1_1);
+        final ClassicHttpRequest putRequest = new BasicClassicHttpRequest("PUT","/");
         putRequest.setEntity(HttpTestUtils.makeBody(128));
         putRequest.setHeader("Content-Length","128");
 
@@ -167,7 +167,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateUrisInContentLocationHeadersOnPUTsToDifferentHosts() throws Exception {
-        final HttpRequest putRequest = new BasicHttpRequest("PUT","/",HTTP_1_1);
+        final ClassicHttpRequest putRequest = new BasicClassicHttpRequest("PUT","/");
         putRequest.setEntity(HttpTestUtils.makeBody(128));
         putRequest.setHeader("Content-Length","128");
 
@@ -188,7 +188,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateGETRequest() throws Exception {
-        request = new BasicHttpRequest("GET","/",HTTP_1_1);
+        request = new BasicClassicHttpRequest("GET","/");
         impl.flushInvalidatedCacheEntries(host, request);
 
         verify(mockStorage).getEntry("http://foo.example.com:80/");
@@ -197,7 +197,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateHEADRequest() throws Exception {
-        request = new BasicHttpRequest("HEAD","/",HTTP_1_1);
+        request = new BasicClassicHttpRequest("HEAD","/");
         impl.flushInvalidatedCacheEntries(host, request);
 
         verify(mockStorage).getEntry("http://foo.example.com:80/");
@@ -208,7 +208,7 @@ public class TestCacheInvalidator {
     public void testInvalidatesHEADCacheEntryIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
         impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
         final String theURI = "http://foo.example.com:80/";
-        request = new BasicHttpRequest("GET", theURI,HTTP_1_1);
+        request = new BasicClassicHttpRequest("GET", theURI);
 
         cacheEntryisForMethod("HEAD");
         cacheEntryHasVariantMap(new HashMap<String, String>());
@@ -226,7 +226,7 @@ public class TestCacheInvalidator {
     public void testInvalidatesVariantHEADCacheEntriesIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
         impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
         final String theURI = "http://foo.example.com:80/";
-        request = new BasicHttpRequest("GET", theURI,HTTP_1_1);
+        request = new BasicClassicHttpRequest("GET", theURI);
         final String theVariantKey = "{Accept-Encoding=gzip%2Cdeflate&User-Agent=Apache-HttpClient}";
         final String theVariantURI = "{Accept-Encoding=gzip%2Cdeflate&User-Agent=Apache-HttpClient}http://foo.example.com:80/";
         final Map<String, String> variants = HttpTestUtils.makeDefaultVariantMap(theVariantKey, theVariantURI);
@@ -247,7 +247,7 @@ public class TestCacheInvalidator {
     @Test
     public void testDoesNotInvalidateHEADCacheEntry() throws Exception {
         final String theURI = "http://foo.example.com:80/";
-        request = new BasicHttpRequest("HEAD", theURI,HTTP_1_1);
+        request = new BasicClassicHttpRequest("HEAD", theURI);
 
         cacheReturnsEntryForUri(theURI);
 
@@ -261,7 +261,7 @@ public class TestCacheInvalidator {
     public void testDoesNotInvalidateHEADCacheEntryIfSubsequentHEADRequestsAreMadeToTheSameURI() throws Exception {
         impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
         final String theURI = "http://foo.example.com:80/";
-        request = new BasicHttpRequest("HEAD", theURI,HTTP_1_1);
+        request = new BasicClassicHttpRequest("HEAD", theURI);
 
         cacheReturnsEntryForUri(theURI);
 
@@ -275,7 +275,7 @@ public class TestCacheInvalidator {
     public void testDoesNotInvalidateGETCacheEntryIfSubsequentGETRequestsAreMadeToTheSameURI() throws Exception {
         impl = new CacheInvalidator(cacheKeyGenerator, mockStorage);
         final String theURI = "http://foo.example.com:80/";
-        request = new BasicHttpRequest("GET", theURI,HTTP_1_1);
+        request = new BasicClassicHttpRequest("GET", theURI);
 
         cacheEntryisForMethod("GET");
         cacheReturnsEntryForUri(theURI);
@@ -289,7 +289,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateRequestsWithClientCacheControlHeaders() throws Exception {
-        request = new BasicHttpRequest("GET","/",HTTP_1_1);
+        request = new BasicClassicHttpRequest("GET","/");
         request.setHeader("Cache-Control","no-cache");
 
         impl.flushInvalidatedCacheEntries(host, request);
@@ -300,7 +300,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testDoesNotInvalidateRequestsWithClientPragmaHeaders() throws Exception {
-        request = new BasicHttpRequest("GET","/",HTTP_1_1);
+        request = new BasicClassicHttpRequest("GET","/");
         request.setHeader("Pragma","no-cache");
 
         impl.flushInvalidatedCacheEntries(host, request);
@@ -311,7 +311,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testVariantURIsAreFlushedAlso() throws Exception {
-        request = new BasicHttpRequest("POST","/",HTTP_1_1);
+        request = new BasicClassicHttpRequest("POST","/");
         final String theUri = "http://foo.example.com:80/";
         final String variantUri = "theVariantURI";
         final Map<String,String> mapOfURIs = HttpTestUtils.makeDefaultVariantMap(variantUri, variantUri);
@@ -329,7 +329,7 @@ public class TestCacheInvalidator {
 
     @Test
     public void testCacheFlushException() throws Exception {
-        request = new BasicHttpRequest("POST","/",HTTP_1_1);
+        request = new BasicClassicHttpRequest("POST","/");
         final String theURI = "http://foo.example.com:80/";
 
         cacheReturnsExceptionForUri(theURI);
@@ -372,7 +372,7 @@ public class TestCacheInvalidator {
     @Test
     public void flushesEntryIfFresherAndSpecifiedByLocation()
             throws Exception {
-        response.setStatusCode(201);
+        response.setCode(201);
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", DateUtils.formatDate(now));
         final String theURI = "http://foo.example.com:80/bar";
@@ -394,7 +394,7 @@ public class TestCacheInvalidator {
     @Test
     public void doesNotFlushEntryForUnsuccessfulResponse()
             throws Exception {
-        response = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_BAD_REQUEST, "Bad Request");
+        response = new BasicClassicHttpResponse(HttpStatus.SC_BAD_REQUEST, "Bad Request");
         response.setHeader("ETag","\"new-etag\"");
         response.setHeader("Date", DateUtils.formatDate(now));
         final String theURI = "http://foo.example.com:80/bar";

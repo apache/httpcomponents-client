@@ -27,29 +27,26 @@
 
 package org.apache.hc.client5.http.impl.sync;
 
-import org.apache.hc.core5.annotation.Immutable;
 import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.HttpResponse;
 
 /**
  * Signals that the tunnel request was rejected by the proxy host.
  *
  * @since 4.0
  */
-@Immutable
 public class TunnelRefusedException extends HttpException {
 
     private static final long serialVersionUID = -8646722842745617323L;
 
-    private final HttpResponse response;
+    private final String responseMesage;
 
-    public TunnelRefusedException(final String message, final HttpResponse response) {
+    public TunnelRefusedException(final String message, final String responseMesage) {
         super(message);
-        this.response = response;
+        this.responseMesage = responseMesage;
     }
 
-    public HttpResponse getResponse() {
-        return this.response;
+    public String getResponseMessage() {
+        return this.responseMesage;
     }
 
 }

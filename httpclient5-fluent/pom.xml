@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.apache.httpcomponents.client5</groupId>
     <artifactId>httpclient5-parent</artifactId>
-    <version>5.0-alpha2-SNAPSHOT</version>
+    <version>5.0-alpha3-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient5-fluent</artifactId>
   <name>Apache HttpClient Fluent</name>
@@ -55,7 +55,6 @@
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
-      <version>${log4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
@@ -121,7 +120,7 @@
           <quiet>true</quiet>
           <source>${maven.compiler.source}</source>
           <links>
-            <link>http://docs.oracle.com/javase/6/docs/api/</link>
+            <link>http://docs.oracle.com/javase/7/docs/api/</link>
             <link>http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
             <link>http://hc.apache.org/httpcomponents-client-ga/httpclient/apidocs/</link>
           </links>

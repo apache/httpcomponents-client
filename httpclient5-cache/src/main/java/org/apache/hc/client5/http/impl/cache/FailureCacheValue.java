@@ -26,14 +26,15 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * The error count with a creation timestamp and its associated key.
  *
  * @since 4.3
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class FailureCacheValue {
 
     private final long creationTimeInNanos;

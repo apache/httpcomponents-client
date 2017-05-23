@@ -30,12 +30,13 @@ package org.apache.hc.client5.http.impl.sync;
 import java.io.IOException;
 
 import org.apache.hc.client5.http.protocol.HttpResponseException;
-import org.apache.hc.client5.http.sync.ResponseHandler;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.StatusLine;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * A generic {@link ResponseHandler} that works with the response entity
@@ -43,14 +44,14 @@ import org.apache.hc.core5.http.entity.EntityUtils;
  * body is consumed and an {@link HttpResponseException} is thrown.
  * <p>
  * If this is used with
- * {@link org.apache.hc.client5.http.sync.HttpClient#execute(
- *  org.apache.hc.client5.http.methods.HttpUriRequest, ResponseHandler)},
+ * {@link org.apache.hc.client5.http.sync.HttpClient#execute(org.apache.hc.core5.http.ClassicHttpRequest,
+ * ResponseHandler)},
  * HttpClient may handle redirects (3xx responses) internally.
  * </p>
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public abstract class AbstractResponseHandler<T> implements ResponseHandler<T> {
 
     /**
@@ -60,14 +61,11 @@ public abstract class AbstractResponseHandler<T> implements ResponseHandler<T> {
      * status code), throws an {@link HttpResponseException}.
      */
     @Override
-    public T handleResponse(final HttpResponse response)
-            throws IOException {
-        final StatusLine statusLine = response.getStatusLine();
+    public T handleResponse(final ClassicHttpResponse response) throws IOException {
         final HttpEntity entity = response.getEntity();
-        if (statusLine.getStatusCode() >= 300) {
+        if (response.getCode() >= HttpStatus.SC_REDIRECTION) {
             EntityUtils.consume(entity);
-            throw new HttpResponseException(statusLine.getStatusCode(),
-                    statusLine.getReasonPhrase());
+            throw new HttpResponseException(response.getCode(), response.getReasonPhrase());
         }
         return entity == null ? null : handleEntity(entity);
     }

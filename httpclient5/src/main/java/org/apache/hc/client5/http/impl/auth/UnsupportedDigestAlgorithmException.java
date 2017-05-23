@@ -26,8 +26,6 @@
  */
 package org.apache.hc.client5.http.impl.auth;
 
-import org.apache.hc.core5.annotation.Immutable;
-
 /**
  * Authentication credentials required to respond to a authentication
  * challenge are invalid
@@ -35,7 +33,6 @@ import org.apache.hc.core5.annotation.Immutable;
  *
  * @since 4.0
  */
-@Immutable
 public class UnsupportedDigestAlgorithmException extends RuntimeException {
 
     private static final long serialVersionUID = 319558534317118022L;

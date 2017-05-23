@@ -29,15 +29,12 @@ package org.apache.hc.client5.http.impl.auth;
 import java.net.Authenticator;
 import java.net.Authenticator.RequestorType;
 import java.net.InetAddress;
-import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
-import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
-import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.http.protocol.HttpCoreContext;
 import org.junit.Assert;
 import org.junit.Test;
@@ -88,15 +85,13 @@ public class TestSystemDefaultCredentialsProvider {
     }
 
     @Test
-    public void testSystemCredentialsProviderCredentials() throws MalformedURLException,
-        URISyntaxException {
+    public void testSystemCredentialsProviderCredentials() throws Exception {
 
         final AuthenticatorDelegate authenticatorDelegate = installAuthenticator(AUTH1);
 
-        final URL httpRequestUrl = new URL(TARGET_SCHEME1, TARGET_HOST1, TARGET_PORT1, "");
+        final URL httpRequestUrl = new URL(TARGET_SCHEME1, TARGET_HOST1, TARGET_PORT1, "/");
         final AuthScope authScope = new AuthScope(PROXY_HOST1, PROXY_PORT1, PROMPT1, "BASIC");
         final HttpCoreContext coreContext = new HttpCoreContext();
-        coreContext.setTargetHost(new HttpHost(TARGET_HOST1, TARGET_PORT1, TARGET_SCHEME1));
         coreContext.setAttribute(HttpCoreContext.HTTP_REQUEST, new HttpGet(httpRequestUrl.toURI()));
 
         final Credentials receivedCredentials =
@@ -111,8 +106,7 @@ public class TestSystemDefaultCredentialsProvider {
     }
 
     @Test
-    public void testSystemCredentialsProviderNoContext() throws MalformedURLException,
-        URISyntaxException {
+    public void testSystemCredentialsProviderNoContext() throws Exception {
 
         final AuthenticatorDelegate authenticatorDelegate = installAuthenticator(AUTH1);
 
@@ -132,10 +126,10 @@ public class TestSystemDefaultCredentialsProvider {
     private AuthenticatorDelegate installAuthenticator(final PasswordAuthentication returedAuthentication) {
         final AuthenticatorDelegate authenticatorDelegate = Mockito.mock(AuthenticatorDelegate.class);
         Mockito.when(authenticatorDelegate.getPasswordAuthentication(Mockito.anyString(),
-                                                                     Mockito.any(InetAddress.class), Mockito.anyInt(),
+                                                                     Mockito.<InetAddress>any(), Mockito.anyInt(),
                                                                      Mockito.anyString(), Mockito.anyString(),
-                                                                     Mockito.anyString(), Mockito.any(URL.class),
-                                                                     Mockito.any(RequestorType.class))).thenReturn(returedAuthentication);
+                                                                     Mockito.anyString(), Mockito.<URL>any(),
+                                                                     Mockito.<RequestorType>any())).thenReturn(returedAuthentication);
         Authenticator.setDefault(new DelegatedAuthenticator(authenticatorDelegate));
         return authenticatorDelegate;
     }

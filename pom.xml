@@ -27,14 +27,14 @@
   <parent>
     <artifactId>project</artifactId>
     <groupId>org.apache.httpcomponents</groupId>
-    <version>7</version>
+    <version>8</version>
     <relativePath>../project/pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.httpcomponents.client5</groupId>
   <artifactId>httpclient5-parent</artifactId>
   <name>Apache HttpComponents Client Parent</name>
-  <version>5.0-alpha2-SNAPSHOT</version>
+  <version>5.0-alpha3-SNAPSHOT</version>
   <description>Apache HttpComponents Client is a library of components for building client side HTTP services</description>
   <url>http://hc.apache.org/httpcomponents-client</url>
   <inceptionYear>1999</inceptionYear>
@@ -59,23 +59,24 @@
   </issueManagement>
 
   <scm>
-    <connection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</connection>
-    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</developerConnection>
-    <url>https://svn.apache.org/repos/asf/httpcomponents/httpclient/trunk</url>
+    <connection>scm:git:https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git</connection>
+    <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/httpcomponents-client.git</developerConnection>
+    <url>https://github.com/apache/httpcomponents-client/tree/${project.scm.tag}</url>
+    <tag>master</tag>
   </scm>
 
   <properties>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
-    <httpcore.version>5.0-alpha1</httpcore.version>
-    <log4j.version>2.7</log4j.version>
+    <httpcore.version>5.0-alpha3</httpcore.version>
+    <log4j.version>2.8</log4j.version>
     <commons-codec.version>1.10</commons-codec.version>
     <ehcache.version>2.6.11</ehcache.version>
     <memcached.version>2.12.0</memcached.version>
     <slf4j.version>1.7.13</slf4j.version>
     <junit.version>4.12</junit.version>
     <easymock.version>2.5.2</easymock.version>
-    <mockito.version>1.8.5</mockito.version>
+    <mockito.version>2.7.22</mockito.version>
     <jna.version>4.2.1</jna.version>
     <hc.stylecheck.version>1</hc.stylecheck.version>
     <hc.rat.version>0.12</hc.rat.version>
@@ -86,6 +87,16 @@
       <dependency>
         <groupId>org.apache.httpcomponents.core5</groupId>
         <artifactId>httpcore5</artifactId>
+        <version>${httpcore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-h2</artifactId>
+        <version>${httpcore.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.core5</groupId>
+        <artifactId>httpcore5-testing</artifactId>
         <version>${httpcore.version}</version>
       </dependency>
       <dependency>
@@ -100,6 +111,12 @@
         <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
+        <version>${log4j.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
         <version>${commons-codec.version}</version>
@@ -108,11 +125,6 @@
         <groupId>net.sf.ehcache</groupId>
         <artifactId>ehcache-core</artifactId>
         <version>${ehcache.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-jcl</artifactId>
-        <version>${slf4j.version}</version>
       </dependency>
       <dependency>
         <groupId>net.spy</groupId>
@@ -161,6 +173,7 @@
     <module>httpclient5-fluent</module>
     <module>httpclient5-cache</module>
     <module>httpclient5-win</module>
+    <module>httpclient5-testing</module>
     <module>httpclient5-osgi</module>
   </modules>
 
@@ -385,6 +398,8 @@
             <exclude>.checkstyle</exclude>
             <exclude>.externalToolBuilders/**</exclude>			
             <exclude>maven-eclipse.xml</exclude>
+            <exclude>**/serial</exclude>
+            <exclude>**/index.txt</exclude>
           </excludes>
         </configuration>
       </plugin>

@@ -35,14 +35,15 @@ import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Builder class for sequences of bytes.
  *
  * @since 5.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class ByteArrayBuilder {
 
     private CharsetEncoder charsetEncoder;

@@ -31,7 +31,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.NameValuePair;
 import org.apache.hc.core5.util.Args;
 
@@ -41,23 +42,28 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 5.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class AuthChallenge {
 
+    private final ChallengeType challengeType;
     private final String scheme;
     private final String value;
     private final List<NameValuePair> params;
 
-    public AuthChallenge(final String scheme, final String value, final List<? extends NameValuePair> params) {
+    public AuthChallenge(final ChallengeType challengeType, final String scheme, final String value, final List<? extends NameValuePair> params) {
         super();
-        Args.notNull(scheme, "Auth scheme");
-        this.scheme = scheme;
+        this.challengeType = Args.notNull(challengeType, "Challenge type");
+        this.scheme = Args.notNull(scheme, "Auth scheme");
         this.value = value;
         this.params = params != null ? Collections.unmodifiableList(new ArrayList<>(params)) : null;
     }
 
-    public AuthChallenge(final String scheme, final NameValuePair... params) {
-        this(scheme, null, Arrays.asList(params));
+    public AuthChallenge(final ChallengeType challengeType, final String scheme, final NameValuePair... params) {
+        this(challengeType, scheme, null, Arrays.asList(params));
+    }
+
+    public ChallengeType getChallengeType() {
+        return challengeType;
     }
 
     public String getScheme() {

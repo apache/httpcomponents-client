@@ -31,27 +31,33 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.hc.client5.http.CancellableAware;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.cookie.CookieSpecProvider;
 import org.apache.hc.client5.http.cookie.CookieStore;
+import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.Configurable;
-import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecRuntime;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.protocol.BasicHttpContext;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URIAuthority;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,13 +67,14 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 class InternalHttpClient extends CloseableHttpClient implements Configurable {
 
     private final Logger log = LogManager.getLogger(getClass());
 
-    private final ClientExecChain execChain;
     private final HttpClientConnectionManager connManager;
+    private final HttpRequestExecutor requestExecutor;
+    private final ExecChainElement execChain;
     private final HttpRoutePlanner routePlanner;
     private final Lookup<CookieSpecProvider> cookieSpecRegistry;
     private final Lookup<AuthSchemeProvider> authSchemeRegistry;
@@ -77,8 +84,9 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     private final List<Closeable> closeables;
 
     public InternalHttpClient(
-            final ClientExecChain execChain,
             final HttpClientConnectionManager connManager,
+            final HttpRequestExecutor requestExecutor,
+            final ExecChainElement execChain,
             final HttpRoutePlanner routePlanner,
             final Lookup<CookieSpecProvider> cookieSpecRegistry,
             final Lookup<AuthSchemeProvider> authSchemeRegistry,
@@ -87,12 +95,10 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
             final RequestConfig defaultConfig,
             final List<Closeable> closeables) {
         super();
-        Args.notNull(execChain, "HTTP client exec chain");
-        Args.notNull(connManager, "HTTP connection manager");
-        Args.notNull(routePlanner, "HTTP route planner");
-        this.execChain = execChain;
-        this.connManager = connManager;
-        this.routePlanner = routePlanner;
+        this.connManager = Args.notNull(connManager, "Connection manager");
+        this.requestExecutor = Args.notNull(requestExecutor, "Request executor");
+        this.execChain = Args.notNull(execChain, "Execution chain");
+        this.routePlanner = Args.notNull(routePlanner, "Route planner");
         this.cookieSpecRegistry = cookieSpecRegistry;
         this.authSchemeRegistry = authSchemeRegistry;
         this.cookieStore = cookieStore;
@@ -102,10 +108,11 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     }
 
     private HttpRoute determineRoute(
-            final HttpHost target,
+            final HttpHost host,
             final HttpRequest request,
             final HttpContext context) throws HttpException {
-        return this.routePlanner.determineRoute(target, request, context);
+        final HttpHost target = host != null ? host : this.routePlanner.determineTargetHost(request, context);
+        return this.routePlanner.determineRoute(target, context);
     }
 
     private void setupContext(final HttpClientContext context) {
@@ -129,15 +136,16 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
     @Override
     protected CloseableHttpResponse doExecute(
             final HttpHost target,
-            final HttpRequest request,
+            final ClassicHttpRequest request,
             final HttpContext context) throws IOException {
         Args.notNull(request, "HTTP request");
-        HttpExecutionAware execAware = null;
-        if (request instanceof HttpExecutionAware) {
-            execAware = (HttpExecutionAware) request;
-        }
         try {
-            final HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request, target);
+            if (request.getScheme() == null && target != null) {
+                request.setScheme(target.getSchemeName());
+            }
+            if (request.getAuthority() == null && target != null) {
+                request.setAuthority(new URIAuthority(target));
+            }
             final HttpClientContext localcontext = HttpClientContext.adapt(
                     context != null ? context : new BasicHttpContext());
             RequestConfig config = null;
@@ -148,10 +156,14 @@ class InternalHttpClient extends CloseableHttpClient implements Configurable {
                 localcontext.setRequestConfig(config);
             }
             setupContext(localcontext);
-            final HttpRoute route = determineRoute(target, wrapper, localcontext);
-            return this.execChain.execute(route, wrapper, localcontext, execAware);
+            final HttpRoute route = determineRoute(target, request, localcontext);
+            final ExecRuntime execRuntime = new ExecRuntimeImpl(log, connManager, requestExecutor,
+                    request instanceof CancellableAware ? (CancellableAware) request : null);
+            final ExecChain.Scope scope = new ExecChain.Scope(route, request, execRuntime, localcontext);
+            final ClassicHttpResponse response = this.execChain.execute(ExecSupport.copy(request), scope);
+            return CloseableHttpResponse.adapt(response);
         } catch (final HttpException httpException) {
-            throw new ClientProtocolException(httpException);
+            throw new ClientProtocolException(httpException.getMessage(), httpException);
         }
     }
 

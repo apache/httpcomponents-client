@@ -26,20 +26,24 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.client5.http.impl.ExecSupport;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.message.MessageSupport;
 
 /**
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class ConditionalRequestBuilder {
 
     /**
@@ -53,9 +57,9 @@ class ConditionalRequestBuilder {
      * @return the wrapped request
      * @throws ProtocolException when I am unable to build a new origin request.
      */
-    public HttpRequestWrapper buildConditionalRequest(final HttpRequestWrapper request, final HttpCacheEntry cacheEntry)
+    public ClassicHttpRequest buildConditionalRequest(final ClassicHttpRequest request, final HttpCacheEntry cacheEntry)
             throws ProtocolException {
-        final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal(), request.getTarget());
+        final ClassicHttpRequest newRequest = ExecSupport.copy(request);
         newRequest.setHeaders(request.getAllHeaders());
         final Header eTag = cacheEntry.getFirstHeader(HeaderConstants.ETAG);
         if (eTag != null) {
@@ -66,13 +70,13 @@ class ConditionalRequestBuilder {
             newRequest.setHeader(HeaderConstants.IF_MODIFIED_SINCE, lastModified.getValue());
         }
         boolean mustRevalidate = false;
-        for(final Header h : cacheEntry.getHeaders(HeaderConstants.CACHE_CONTROL)) {
-            for(final HeaderElement elt : h.getElements()) {
-                if (HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE.equalsIgnoreCase(elt.getName())
+        final Iterator<HeaderElement> it = MessageSupport.iterate(cacheEntry, HeaderConstants.CACHE_CONTROL);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            if (HeaderConstants.CACHE_CONTROL_MUST_REVALIDATE.equalsIgnoreCase(elt.getName())
                     || HeaderConstants.CACHE_CONTROL_PROXY_REVALIDATE.equalsIgnoreCase(elt.getName())) {
-                    mustRevalidate = true;
-                    break;
-                }
+                mustRevalidate = true;
+                break;
             }
         }
         if (mustRevalidate) {
@@ -93,9 +97,9 @@ class ConditionalRequestBuilder {
      * @param variants
      * @return the wrapped request
      */
-    public HttpRequestWrapper buildConditionalRequestFromVariants(final HttpRequestWrapper request,
-            final Map<String, Variant> variants) {
-        final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal(), request.getTarget());
+    public ClassicHttpRequest buildConditionalRequestFromVariants(final ClassicHttpRequest request,
+                                                              final Map<String, Variant> variants) {
+        final ClassicHttpRequest newRequest = ExecSupport.copy(request);
         newRequest.setHeaders(request.getAllHeaders());
 
         // we do not support partial content so all etags are used
@@ -121,12 +125,10 @@ class ConditionalRequestBuilder {
      * our current cache entry. In this case, the protocol recommendation
      * is to retry the validation and force syncup with the origin.
      * @param request client request we are trying to satisfy
-     * @param entry existing cache entry we are trying to validate
      * @return an unconditional validation request
      */
-    public HttpRequestWrapper buildUnconditionalRequest(final HttpRequestWrapper request, final HttpCacheEntry entry) {
-        final HttpRequestWrapper newRequest = HttpRequestWrapper.wrap(request.getOriginal(), request.getTarget());
-        newRequest.setHeaders(request.getAllHeaders());
+    public ClassicHttpRequest buildUnconditionalRequest(final ClassicHttpRequest request) {
+        final ClassicHttpRequest newRequest = ExecSupport.copy(request);
         newRequest.addHeader(HeaderConstants.CACHE_CONTROL,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.addHeader(HeaderConstants.PRAGMA,HeaderConstants.CACHE_CONTROL_NO_CACHE);
         newRequest.removeHeaders(HeaderConstants.IF_RANGE);

@@ -30,18 +30,19 @@ package org.apache.hc.client5.http.impl.sync;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpUriRequest;
 import org.apache.hc.client5.http.protocol.ClientProtocolException;
 import org.apache.hc.client5.http.sync.HttpClient;
-import org.apache.hc.client5.http.sync.ResponseHandler;
 import org.apache.hc.client5.http.utils.URIUtils;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.ResponseHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.LogManager;
@@ -52,13 +53,13 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public abstract class CloseableHttpClient implements HttpClient, Closeable {
 
     private final Logger log = LogManager.getLogger(getClass());
 
-    protected abstract CloseableHttpResponse doExecute(HttpHost target, HttpRequest request,
-            HttpContext context) throws IOException;
+    protected abstract CloseableHttpResponse doExecute(HttpHost target, ClassicHttpRequest request,
+                                                     HttpContext context) throws IOException;
 
     /**
      * {@inheritDoc}
@@ -66,7 +67,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     @Override
     public CloseableHttpResponse execute(
             final HttpHost target,
-            final HttpRequest request,
+            final ClassicHttpRequest request,
             final HttpContext context) throws IOException {
         return doExecute(target, request, context);
     }
@@ -76,19 +77,22 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
      */
     @Override
     public CloseableHttpResponse execute(
-            final HttpUriRequest request,
+            final ClassicHttpRequest request,
             final HttpContext context) throws IOException {
         Args.notNull(request, "HTTP request");
         return doExecute(determineTarget(request), request, context);
     }
 
-    private static HttpHost determineTarget(final HttpUriRequest request) throws ClientProtocolException {
+    private static HttpHost determineTarget(final ClassicHttpRequest request) throws ClientProtocolException {
         // A null target may be acceptable if there is a default target.
         // Otherwise, the null target is detected in the director.
         HttpHost target = null;
-
-        final URI requestURI = request.getURI();
-        if (requestURI.isAbsolute()) {
+        URI requestURI = null;
+        try {
+            requestURI = request.getUri();
+        } catch (final URISyntaxException ignore) {
+        }
+        if (requestURI != null && requestURI.isAbsolute()) {
             target = URIUtils.extractHost(requestURI);
             if (target == null) {
                 throw new ClientProtocolException("URI does not specify a valid host name: "
@@ -103,7 +107,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
      */
     @Override
     public CloseableHttpResponse execute(
-            final HttpUriRequest request) throws IOException {
+            final ClassicHttpRequest request) throws IOException {
         return execute(request, (HttpContext) null);
     }
 
@@ -113,7 +117,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
     @Override
     public CloseableHttpResponse execute(
             final HttpHost target,
-            final HttpRequest request) throws IOException {
+            final ClassicHttpRequest request) throws IOException {
         return doExecute(target, request, null);
     }
 
@@ -133,7 +137,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
      * @throws ClientProtocolException in case of an http protocol error
      */
     @Override
-    public <T> T execute(final HttpUriRequest request,
+    public <T> T execute(final ClassicHttpRequest request,
             final ResponseHandler<? extends T> responseHandler) throws IOException {
         return execute(request, responseHandler, null);
     }
@@ -156,7 +160,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
      * @throws ClientProtocolException in case of an http protocol error
      */
     @Override
-    public <T> T execute(final HttpUriRequest request,
+    public <T> T execute(final ClassicHttpRequest request,
             final ResponseHandler<? extends T> responseHandler, final HttpContext context)
             throws IOException {
         final HttpHost target = determineTarget(request);
@@ -183,7 +187,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
      * @throws ClientProtocolException in case of an http protocol error
      */
     @Override
-    public <T> T execute(final HttpHost target, final HttpRequest request,
+    public <T> T execute(final HttpHost target, final ClassicHttpRequest request,
             final ResponseHandler<? extends T> responseHandler) throws IOException {
         return execute(target, request, responseHandler, null);
     }
@@ -210,7 +214,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
      * @throws ClientProtocolException in case of an http protocol error
      */
     @Override
-    public <T> T execute(final HttpHost target, final HttpRequest request,
+    public <T> T execute(final HttpHost target, final ClassicHttpRequest request,
             final ResponseHandler<? extends T> responseHandler, final HttpContext context) throws IOException {
         Args.notNull(responseHandler, "Response handler");
 
@@ -220,7 +224,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
                 final HttpEntity entity = response.getEntity();
                 EntityUtils.consume(entity);
                 return result;
-            } catch (final ClientProtocolException t) {
+            } catch (final HttpException t) {
                 // Try to salvage the underlying connection in case of a protocol exception
                 final HttpEntity entity = response.getEntity();
                 try {
@@ -230,7 +234,7 @@ public abstract class CloseableHttpClient implements HttpClient, Closeable {
                     // important and will be thrown to the caller.
                     this.log.warn("Error consuming content after an exception.", t2);
                 }
-                throw t;
+                throw new ClientProtocolException(t);
             }
         }
     }

@@ -30,7 +30,8 @@ package org.apache.hc.client5.http.impl.win;
 import org.apache.hc.client5.http.auth.AuthScheme;
 import org.apache.hc.client5.http.auth.AuthSchemeProvider;
 import org.apache.hc.client5.http.config.AuthSchemes;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.protocol.HttpContext;
 
 /**
@@ -42,7 +43,7 @@ import org.apache.hc.core5.http.protocol.HttpContext;
  *
  *  @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class WindowsNegotiateSchemeFactory implements AuthSchemeProvider {
 
     private final String servicePrincipalName;

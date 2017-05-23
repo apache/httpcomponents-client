@@ -44,7 +44,8 @@ import org.apache.hc.client5.http.cookie.CookieOrigin;
 import org.apache.hc.client5.http.cookie.CookiePriorityComparator;
 import org.apache.hc.client5.http.cookie.CookieSpec;
 import org.apache.hc.client5.http.cookie.MalformedCookieException;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.FormattedHeader;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.ParseException;
@@ -59,7 +60,7 @@ import org.apache.hc.core5.util.CharArrayBuffer;
  *
  * @since 4.5
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE_CONDITIONAL)
 public class RFC6265CookieSpec implements CookieSpec {
 
     private final static char PARAM_DELIMITER  = ';';

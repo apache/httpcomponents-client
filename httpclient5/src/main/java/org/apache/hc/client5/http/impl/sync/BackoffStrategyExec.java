@@ -28,78 +28,62 @@
 package org.apache.hc.client5.http.impl.sync;
 
 import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
 
 import org.apache.hc.client5.http.HttpRoute;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.sync.BackoffManager;
 import org.apache.hc.client5.http.sync.ConnectionBackoffStrategy;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecChainHandler;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.util.Args;
 
 /**
  * @since 4.3
  */
-@Immutable
-public class BackoffStrategyExec implements ClientExecChain {
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
+final class BackoffStrategyExec implements ExecChainHandler {
 
-    private final ClientExecChain requestExecutor;
     private final ConnectionBackoffStrategy connectionBackoffStrategy;
     private final BackoffManager backoffManager;
 
     public BackoffStrategyExec(
-            final ClientExecChain requestExecutor,
             final ConnectionBackoffStrategy connectionBackoffStrategy,
             final BackoffManager backoffManager) {
         super();
-        Args.notNull(requestExecutor, "HTTP client request executor");
         Args.notNull(connectionBackoffStrategy, "Connection backoff strategy");
         Args.notNull(backoffManager, "Backoff manager");
-        this.requestExecutor = requestExecutor;
         this.connectionBackoffStrategy = connectionBackoffStrategy;
         this.backoffManager = backoffManager;
     }
 
     @Override
-    public CloseableHttpResponse execute(
-            final HttpRoute route,
-            final HttpRequestWrapper request,
-            final HttpClientContext context,
-            final HttpExecutionAware execAware) throws IOException, HttpException {
-        Args.notNull(route, "HTTP route");
+    public ClassicHttpResponse execute(
+            final ClassicHttpRequest request,
+            final ExecChain.Scope scope,
+            final ExecChain chain) throws IOException, HttpException {
         Args.notNull(request, "HTTP request");
-        Args.notNull(context, "HTTP context");
-        CloseableHttpResponse out = null;
+        Args.notNull(scope, "Scope");
+        final HttpRoute route = scope.route;
+
+        final ClassicHttpResponse response;
         try {
-            out = this.requestExecutor.execute(route, request, context, execAware);
-        } catch (final Exception ex) {
-            if (out != null) {
-                out.close();
-            }
+            response = chain.proceed(request, scope);
+        } catch (final IOException | HttpException ex) {
             if (this.connectionBackoffStrategy.shouldBackoff(ex)) {
                 this.backoffManager.backOff(route);
             }
-            if (ex instanceof RuntimeException) {
-                throw (RuntimeException) ex;
-            }
-            if (ex instanceof HttpException) {
-                throw (HttpException) ex;
-            }
-            if (ex instanceof IOException) {
-                throw (IOException) ex;
-            }
-            throw new UndeclaredThrowableException(ex);
+            throw ex;
         }
-        if (this.connectionBackoffStrategy.shouldBackoff(out)) {
+        if (this.connectionBackoffStrategy.shouldBackoff(response)) {
             this.backoffManager.backOff(route);
         } else {
             this.backoffManager.probe(route);
         }
-        return out;
+        return response;
     }
 
 }

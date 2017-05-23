@@ -26,7 +26,7 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -40,14 +40,15 @@ import java.util.concurrent.TimeUnit;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.client5.http.sync.ExecRuntime;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.message.BasicHeaderIterator;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,9 +62,11 @@ public class TestAsynchronousValidator {
     private CachingExec mockClient;
     private HttpHost host;
     private HttpRoute route;
-    private HttpRequestWrapper request;
+    private ClassicHttpRequest request;
     private HttpClientContext context;
-    private HttpExecutionAware mockExecAware;
+    private ExecChain.Scope scope;
+    private ExecChain mockExecChain;
+    private ExecRuntime mockEndpoint;
     private HttpCacheEntry mockCacheEntry;
 
     private SchedulingStrategy mockSchedulingStrategy;
@@ -73,12 +76,13 @@ public class TestAsynchronousValidator {
         mockClient = mock(CachingExec.class);
         host = new HttpHost("foo.example.com", 80);
         route = new HttpRoute(host);
-        request = HttpRequestWrapper.wrap(new HttpGet("/"), host);
+        request = new HttpGet("/");
         context = HttpClientContext.create();
-        context.setTargetHost(new HttpHost("foo.example.com"));
-        mockExecAware = mock(HttpExecutionAware.class);
+        mockExecChain = mock(ExecChain.class);
+        mockEndpoint = mock(ExecRuntime.class);
         mockCacheEntry = mock(HttpCacheEntry.class);
         mockSchedulingStrategy = mock(SchedulingStrategy.class);
+        scope = new ExecChain.Scope(route, request, mockEndpoint, context);
     }
 
     @Test
@@ -87,7 +91,7 @@ public class TestAsynchronousValidator {
 
         when(mockCacheEntry.hasVariants()).thenReturn(false);
 
-        impl.revalidateCacheEntry(mockClient, route, request, context, mockExecAware, mockCacheEntry);
+        impl.revalidateCacheEntry(mockClient, host, request, scope, mockExecChain, mockCacheEntry);
 
         verify(mockCacheEntry).hasVariants();
         verify(mockSchedulingStrategy).schedule(isA(AsynchronousValidationRequest.class));
@@ -101,7 +105,7 @@ public class TestAsynchronousValidator {
 
         when(mockCacheEntry.hasVariants()).thenReturn(false);
 
-        impl.revalidateCacheEntry(mockClient, route, request, context, mockExecAware, mockCacheEntry);
+        impl.revalidateCacheEntry(mockClient, host, request, scope, mockExecChain, mockCacheEntry);
 
         final ArgumentCaptor<AsynchronousValidationRequest> cap = ArgumentCaptor.forClass(AsynchronousValidationRequest.class);
         verify(mockCacheEntry).hasVariants();
@@ -121,7 +125,7 @@ public class TestAsynchronousValidator {
         when(mockCacheEntry.hasVariants()).thenReturn(false);
         doThrow(new RejectedExecutionException()).when(mockSchedulingStrategy).schedule(isA(AsynchronousValidationRequest.class));
 
-        impl.revalidateCacheEntry(mockClient, route, request, context, mockExecAware, mockCacheEntry);
+        impl.revalidateCacheEntry(mockClient, host, request, scope, mockExecChain, mockCacheEntry);
 
         verify(mockCacheEntry).hasVariants();
 
@@ -135,8 +139,8 @@ public class TestAsynchronousValidator {
 
         when(mockCacheEntry.hasVariants()).thenReturn(false);
 
-        impl.revalidateCacheEntry(mockClient, route, request, context, mockExecAware, mockCacheEntry);
-        impl.revalidateCacheEntry(mockClient, route, request, context, mockExecAware, mockCacheEntry);
+        impl.revalidateCacheEntry(mockClient, host, request, scope, mockExecChain, mockCacheEntry);
+        impl.revalidateCacheEntry(mockClient, host, request, scope, mockExecChain, mockCacheEntry);
 
         verify(mockCacheEntry, times(2)).hasVariants();
         verify(mockSchedulingStrategy).schedule(isA(AsynchronousValidationRequest.class));
@@ -148,10 +152,10 @@ public class TestAsynchronousValidator {
     public void testVariantsBothRevalidated() {
         impl = new AsynchronousValidator(mockSchedulingStrategy);
 
-        final HttpRequest req1 = new HttpGet("/");
+        final ClassicHttpRequest req1 = new HttpGet("/");
         req1.addHeader(new BasicHeader("Accept-Encoding", "identity"));
 
-        final HttpRequest req2 = new HttpGet("/");
+        final ClassicHttpRequest req2 = new HttpGet("/");
         req2.addHeader(new BasicHeader("Accept-Encoding", "gzip"));
 
         final Header[] variantHeaders = new Header[] {
@@ -159,14 +163,17 @@ public class TestAsynchronousValidator {
         };
 
         when(mockCacheEntry.hasVariants()).thenReturn(true);
-        when(mockCacheEntry.getHeaders(HeaderConstants.VARY)).thenReturn(variantHeaders);
+        when(mockCacheEntry.headerIterator(HeaderConstants.VARY)).thenReturn(
+                new BasicHeaderIterator(variantHeaders, HeaderConstants.VARY));
         mockSchedulingStrategy.schedule(isA(AsynchronousValidationRequest.class));
 
-        impl.revalidateCacheEntry(mockClient, route, HttpRequestWrapper.wrap(req1, host), context, mockExecAware, mockCacheEntry);
-        impl.revalidateCacheEntry(mockClient, route, HttpRequestWrapper.wrap(req2, host), context, mockExecAware, mockCacheEntry);
+        impl.revalidateCacheEntry(mockClient, host, req1, new ExecChain.Scope(route, req1, mockEndpoint, context),
+                mockExecChain, mockCacheEntry);
+        impl.revalidateCacheEntry(mockClient, host, req2, new ExecChain.Scope(route, req2, mockEndpoint, context),
+                mockExecChain, mockCacheEntry);
 
         verify(mockCacheEntry, times(2)).hasVariants();
-        verify(mockCacheEntry, times(2)).getHeaders(HeaderConstants.VARY);
+        verify(mockCacheEntry, times(2)).headerIterator(HeaderConstants.VARY);
         verify(mockSchedulingStrategy, times(2)).schedule(isA(AsynchronousValidationRequest.class));
 
         Assert.assertEquals(2, impl.getScheduledIdentifiers().size());
@@ -183,9 +190,9 @@ public class TestAsynchronousValidator {
 
         when(mockCacheEntry.hasVariants()).thenReturn(false);
         when(mockClient.revalidateCacheEntry(
-                route, request, context, mockExecAware, mockCacheEntry)).thenReturn(null);
+                host, request, scope, mockExecChain, mockCacheEntry)).thenReturn(null);
 
-        impl.revalidateCacheEntry(mockClient, route, request, context, mockExecAware, mockCacheEntry);
+        impl.revalidateCacheEntry(mockClient, host, request, scope, mockExecChain, mockCacheEntry);
 
         try {
             // shut down backend executor and make sure all finishes properly, 1 second should be sufficient
@@ -195,7 +202,7 @@ public class TestAsynchronousValidator {
 
         } finally {
             verify(mockCacheEntry).hasVariants();
-            verify(mockClient).revalidateCacheEntry(route, request, context, mockExecAware, mockCacheEntry);
+            verify(mockClient).revalidateCacheEntry(host, request, scope, mockExecChain, mockCacheEntry);
 
             Assert.assertEquals(0, impl.getScheduledIdentifiers().size());
         }

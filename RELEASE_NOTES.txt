@@ -1,5 +1,75 @@
+Release 5.0-ALPHA3
+-------------------
+
+* [HTTPCLIENT-1845]: Extract InputStreamFactory classes out of GzipDecompressingEntity and 
+  DeflateDecompressingEntity for reuse and to create less garbage.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+
 Release 5.0-ALPHA2
 -------------------
+
+This is a major release that introduces support for the HTTP/2 protocol and event driven
+messaging APIs consistent for all supported HTTP protocol versions.
+
+HttpClient ships with two client implementations:
+
+* HttpClient Classic is based on the classic (blocking) I/O model; largely compatible
+  with the 4.x APIs; supports HTTP/1.1 only.
+
+* HttpClient Async is based on NIO model; new event driven APIs consistent for all supported
+  HTTP protocol versions; supports both HTTP/1.1 and HTTP/2.
+
+
+Notable changes and features included in the 5.0 series are:
+
+* Partial support for the HTTP/2 protocol and conformance to requirements and
+  recommendations of the latest HTTP/2 protocol specification documents 
+  (RFC 7540, RFC 7541.)
+
+  Supported features:
+
+    ** HPACK header compression
+    ** Stream multiplexing (client and server)
+    ** Flow control
+    ** Response push
+    ** Message trailers
+    ** Expect-continue handshake
+    ** Connection validation (ping)
+    ** Application-layer protocol negotiation (ALPN) on Java 1.9+
+    ** TLS 1.2 security features
+
+* Improved conformance to requirements and recommendations of the latest HTTP/1.1 protocol
+  specification documents (RFC 7230, RFC 7231.)
+
+* Redesigned connection pool implementation with reduced pool lock contention.
+
+* Package name space changed to 'org.apache.hc.client5'.
+
+* Maven group id changed to 'org.apache.httpcomponents.client5'.
+
+* Apache Log4j2 logging APIs used for internal logging instead of Commons Logging APIs.
+
+
+Features that are presently NOT supported:
+
+* HTTP/2 transport (classic)
+
+* HTTP tunneling (async)
+
+* Automatic response content decompression (async)
+
+* Caching (async)
+
+
+HttpClient 5.0 releases can be co-located with earlier major versions on the same classpath
+due to the change in package names and Maven module coordinates.
+
+Please note that as of 5.0, HttpClient requires Java 1.7 or newer.
+
+Please note that at this point 5.0 APIs are considered experimental and unstable and are
+expected to change in the coming releases without providing a migration path.
+
 
 Changelog:
 -------------------
@@ -10,11 +80,36 @@ Changelog:
 * [HTTPCLIENT-1715] NTLMEngineImpl.Type1Message not thread safe but declared as a constant.
   Contributed by Olivier Lafontaine <olafontaine at gmail.com>, Gary Gregory <ggregory at apache.org>
 
+* [HTTPCLIENT-1716] redirect handling of unsafe methods defined by RFC 7231.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
 * [HTTPCLIENT-1717] Make fluent API .Content.Content(byte[], ContentType) public.
   Contributed by Cash Costello <cash.costello at gmail.com>
 
+* [HTTPCLIENT-1730] added #setValidateAfterInactivity to HttpClientBuilder.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+* [HTTPCLIENT-1752] Allow to configure the OSGI clients with relaxed SSL checks.
+  Contributed by Simone Tripodi <simonetripodi at apache.org>
+
+* [HTTPCLIENT-1748] Improved compatibility with system authentication API in applets.
+  Contributed by Sebastien Caille <sebastien.caille at gmail.com>
+
 * [HTTPCLIENT-1786] Port from Apache Commons Logging to Apache Log4j 2.
   Contributed by Gary Gregory <ggregory at apache.org>
+
+* [HTTPCLIENT-1817] Add a "Trust All" TrustStrategy implementation.
+  Contributed by Gary Gregory <ggregory at apache.org>
+
+* [HTTPCLIENT-1836] DefaultHostnameVerifier#getSubjectAltNames(X509Certificate) throws
+  java.lang.ClassCastException.
+  Contributed by Gary Gregory <ggregory at apache.org>, Ilian Iliev <ilian_iliev at yahoo.com>
+
+* [HTTPCLIENT-1691] HttpClient instance used internally by HC Fluent to take system properties into
+  account by default.
+  Contributed by Oleg Kalnichevski <olegk at apache.org>
+
+
 
 Release 5.0-ALPHA1
 -------------------

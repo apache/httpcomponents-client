@@ -49,12 +49,14 @@ import javax.security.auth.x500.X500Principal;
 
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.ssl.SSLContexts;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.TextUtils;
+import org.apache.hc.core5.util.TimeValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -133,7 +135,7 @@ import org.apache.logging.log4j.Logger;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactory {
 
     public static final String TLS   = "TLS";
@@ -253,7 +255,7 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
 
     @Override
     public Socket connectSocket(
-            final int connectTimeout,
+            final TimeValue connectTimeout,
             final Socket socket,
             final HttpHost host,
             final InetSocketAddress remoteAddress,
@@ -266,13 +268,13 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
             sock.bind(localAddress);
         }
         try {
-            if (connectTimeout > 0 && sock.getSoTimeout() == 0) {
-                sock.setSoTimeout(connectTimeout);
+            if (TimeValue.isPositive(connectTimeout) && sock.getSoTimeout() == 0) {
+                sock.setSoTimeout(connectTimeout.toMillisIntBound());
             }
             if (this.log.isDebugEnabled()) {
                 this.log.debug("Connecting socket to " + remoteAddress + " with timeout " + connectTimeout);
             }
-            sock.connect(remoteAddress, connectTimeout);
+            sock.connect(remoteAddress, connectTimeout != null ? connectTimeout.toMillisIntBound() : 0);
         } catch (final IOException ex) {
             try {
                 sock.close();
@@ -396,12 +398,16 @@ public class SSLConnectionSocketFactory implements LayeredConnectionSocketFactor
                 }
             }
 
-            if (!this.hostnameVerifier.verify(hostname, session)) {
+            if (this.hostnameVerifier instanceof HttpClientHostnameVerifier) {
                 final Certificate[] certs = session.getPeerCertificates();
                 final X509Certificate x509 = (X509Certificate) certs[0];
-                final X500Principal x500Principal = x509.getSubjectX500Principal();
-                throw new SSLPeerUnverifiedException("Host name '" + hostname + "' does not match " +
-                        "the certificate subject provided by the peer (" + x500Principal.toString() + ")");
+                ((HttpClientHostnameVerifier) this.hostnameVerifier).verify(hostname, x509);
+            } else if (!this.hostnameVerifier.verify(hostname, session)) {
+                final Certificate[] certs = session.getPeerCertificates();
+                final X509Certificate x509 = (X509Certificate) certs[0];
+                final List<SubjectName> subjectAlts = DefaultHostnameVerifier.getSubjectAltNames(x509);
+                throw new SSLPeerUnverifiedException("Certificate for <" + hostname + "> doesn't match any " +
+                        "of the subject alternative names: " + subjectAlts);
             }
             // verifyHostName() didn't blowup - good!
         } catch (final IOException iox) {

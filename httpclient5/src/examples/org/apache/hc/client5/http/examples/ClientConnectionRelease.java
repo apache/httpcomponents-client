@@ -31,9 +31,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.http.HttpEntity;
 
 /**
@@ -42,17 +42,17 @@ import org.apache.hc.core5.http.HttpEntity;
  */
 public class ClientConnectionRelease {
 
-    public final static void main(String[] args) throws Exception {
+    public final static void main(final String[] args) throws Exception {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
-            HttpGet httpget = new HttpGet("http://httpbin.org/get");
+            final HttpGet httpget = new HttpGet("http://httpbin.org/get");
 
-            System.out.println("Executing request " + httpget.getRequestLine());
+            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             try (CloseableHttpResponse response = httpclient.execute(httpget)) {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response.getCode() + " " + response.getReasonPhrase());
 
                 // Get hold of the response entity
-                HttpEntity entity = response.getEntity();
+                final HttpEntity entity = response.getEntity();
 
                 // If the response does not enclose an entity, there is no need
                 // to bother about connection release
@@ -60,7 +60,7 @@ public class ClientConnectionRelease {
                     try (InputStream instream = entity.getContent()) {
                         instream.read();
                         // do something useful with the response
-                    } catch (IOException ex) {
+                    } catch (final IOException ex) {
                         // In case of an IOException the connection will be released
                         // back to the connection manager automatically
                         throw ex;

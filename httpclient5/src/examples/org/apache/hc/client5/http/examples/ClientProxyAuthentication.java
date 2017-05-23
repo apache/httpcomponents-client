@@ -31,11 +31,11 @@ import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpGet;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * A simple example that uses HttpClient to execute an HTTP request
@@ -43,8 +43,8 @@ import org.apache.hc.core5.http.entity.EntityUtils;
  */
 public class ClientProxyAuthentication {
 
-    public static void main(String[] args) throws Exception {
-        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+    public static void main(final String[] args) throws Exception {
+        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
                 new AuthScope("localhost", 8888),
                 new UsernamePasswordCredentials("squid", "squid".toCharArray()));
@@ -53,20 +53,21 @@ public class ClientProxyAuthentication {
                 new UsernamePasswordCredentials("user", "passwd".toCharArray()));
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider).build()) {
-            HttpHost target = new HttpHost("httpbin.org", 80, "http");
-            HttpHost proxy = new HttpHost("localhost", 8888);
+            final HttpHost target = new HttpHost("httpbin.org", 80, "http");
+            final HttpHost proxy = new HttpHost("localhost", 8888);
 
-            RequestConfig config = RequestConfig.custom()
+            final RequestConfig config = RequestConfig.custom()
                 .setProxy(proxy)
                 .build();
-            HttpGet httpget = new HttpGet("/basic-auth/user/passwd");
+            final HttpGet httpget = new HttpGet("/basic-auth/user/passwd");
             httpget.setConfig(config);
 
-            System.out.println("Executing request " + httpget.getRequestLine() + " to " + target + " via " + proxy);
+            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri() +
+                    " via " + proxy);
 
             try (CloseableHttpResponse response = httpclient.execute(target, httpget)) {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response.getCode() + " " + response.getReasonPhrase());
                 System.out.println(EntityUtils.toString(response.getEntity()));
             }
         }

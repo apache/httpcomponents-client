@@ -29,7 +29,6 @@ package org.apache.hc.client5.http;
 
 import java.net.InetAddress;
 
-import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.Asserts;
@@ -40,7 +39,6 @@ import org.apache.hc.core5.util.LangUtils;
  *
  * @since 4.0
  */
-@NotThreadSafe
 public final class RouteTracker implements RouteInfo, Cloneable {
 
     /** The target host to connect to. */

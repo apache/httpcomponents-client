@@ -34,10 +34,11 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpEntity;
 
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class IOUtils {
 
     static void consume(final HttpEntity entity) throws IOException {

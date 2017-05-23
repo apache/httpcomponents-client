@@ -29,7 +29,8 @@ package org.apache.hc.client5.http.auth;
 import java.io.Serializable;
 import java.security.Principal;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.ietf.jgss.GSSCredential;
 
 /**
@@ -37,7 +38,7 @@ import org.ietf.jgss.GSSCredential;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class KerberosCredentials implements Credentials, Serializable {
 
     private static final long serialVersionUID = 487421613855550713L;

@@ -7,3 +7,5 @@ bin
 target
 .idea
 *.iml
+**/log4j2-debug.xml
+*.bak

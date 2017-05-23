@@ -28,7 +28,8 @@ package org.apache.hc.client5.http.impl.sync;
 
 import java.util.concurrent.FutureTask;
 
-import org.apache.hc.client5.http.methods.HttpUriRequest;
+import org.apache.hc.core5.concurrent.Cancellable;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 
 /**
  * FutureTask implementation that wraps a HttpAsyncClientCallable and exposes various task
@@ -38,11 +39,11 @@ import org.apache.hc.client5.http.methods.HttpUriRequest;
  */
 public class HttpRequestFutureTask<V> extends FutureTask<V> {
 
-    private final HttpUriRequest request;
+    private final ClassicHttpRequest request;
     private final HttpRequestTaskCallable<V> callable;
 
     public HttpRequestFutureTask(
-            final HttpUriRequest request,
+            final ClassicHttpRequest request,
             final HttpRequestTaskCallable<V> httpCallable) {
         super(httpCallable);
         this.request = request;
@@ -56,8 +57,8 @@ public class HttpRequestFutureTask<V> extends FutureTask<V> {
     @Override
     public boolean cancel(final boolean mayInterruptIfRunning) {
         callable.cancel();
-        if (mayInterruptIfRunning) {
-            request.abort();
+        if (mayInterruptIfRunning && request instanceof Cancellable) {
+            ((Cancellable) request).cancel();
         }
         return super.cancel(mayInterruptIfRunning);
     }
@@ -112,7 +113,7 @@ public class HttpRequestFutureTask<V> extends FutureTask<V> {
 
     @Override
     public String toString() {
-        return request.getRequestLine().getUri();
+        return request.toString();
     }
 
 }

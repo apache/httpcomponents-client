@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -40,27 +41,32 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.apache.hc.client5.http.config.Configurable;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
-import org.apache.hc.client5.http.methods.Configurable;
-import org.apache.hc.client5.http.methods.HttpDelete;
-import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.client5.http.methods.HttpHead;
-import org.apache.hc.client5.http.methods.HttpOptions;
-import org.apache.hc.client5.http.methods.HttpPatch;
-import org.apache.hc.client5.http.methods.HttpPost;
-import org.apache.hc.client5.http.methods.HttpPut;
-import org.apache.hc.client5.http.methods.HttpTrace;
-import org.apache.hc.client5.http.utils.URLEncodedUtils;
+import org.apache.hc.client5.http.sync.methods.HttpDelete;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
+import org.apache.hc.client5.http.sync.methods.HttpHead;
+import org.apache.hc.client5.http.sync.methods.HttpOptions;
+import org.apache.hc.client5.http.sync.methods.HttpPatch;
+import org.apache.hc.client5.http.sync.methods.HttpPost;
+import org.apache.hc.client5.http.sync.methods.HttpPut;
+import org.apache.hc.client5.http.sync.methods.HttpTrace;
+import org.apache.hc.client5.http.sync.methods.HttpUriRequestBase;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.http.entity.ContentType;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.FileEntity;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URLEncodedUtils;
+import org.apache.hc.core5.util.TimeValue;
 
 public class Request {
 
@@ -68,92 +74,92 @@ public class Request {
     public static final Locale DATE_LOCALE = Locale.US;
     public static final TimeZone TIME_ZONE = TimeZone.getTimeZone("GMT");
 
-    private final InternalHttpRequest request;
+    private final HttpUriRequestBase request;
     private Boolean useExpectContinue;
-    private Integer socketTmeout;
-    private Integer connectTimeout;
+    private TimeValue socketTmeout;
+    private TimeValue connectTimeout;
     private HttpHost proxy;
 
     private SimpleDateFormat dateFormatter;
 
     public static Request create(final String methodName, final String uri) {
-        return new Request(new InternalHttpRequest(methodName, URI.create(uri)));
+        return new Request(new HttpUriRequestBase(methodName, URI.create(uri)));
     }
 
     public static Request create(final String methodName, final URI uri) {
-        return new Request(new InternalHttpRequest(methodName, uri));
+        return new Request(new HttpUriRequestBase(methodName, uri));
     }
 
     public static Request Get(final URI uri) {
-        return new Request(new InternalHttpRequest(HttpGet.METHOD_NAME, uri));
+        return new Request(new HttpUriRequestBase(HttpGet.METHOD_NAME, uri));
     }
 
     public static Request Get(final String uri) {
-        return new Request(new InternalHttpRequest(HttpGet.METHOD_NAME, URI.create(uri)));
+        return new Request(new HttpUriRequestBase(HttpGet.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Head(final URI uri) {
-        return new Request(new InternalHttpRequest(HttpHead.METHOD_NAME, uri));
+        return new Request(new HttpUriRequestBase(HttpHead.METHOD_NAME, uri));
     }
 
     public static Request Head(final String uri) {
-        return new Request(new InternalHttpRequest(HttpHead.METHOD_NAME, URI.create(uri)));
+        return new Request(new HttpUriRequestBase(HttpHead.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Post(final URI uri) {
-        return new Request(new InternalHttpRequest(HttpPost.METHOD_NAME, uri));
+        return new Request(new HttpUriRequestBase(HttpPost.METHOD_NAME, uri));
     }
 
     public static Request Post(final String uri) {
-        return new Request(new InternalHttpRequest(HttpPost.METHOD_NAME, URI.create(uri)));
+        return new Request(new HttpUriRequestBase(HttpPost.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Patch(final URI uri) {
-        return new Request(new InternalHttpRequest(HttpPatch.METHOD_NAME, uri));
+        return new Request(new HttpUriRequestBase(HttpPatch.METHOD_NAME, uri));
     }
 
     public static Request Patch(final String uri) {
-        return new Request(new InternalHttpRequest(HttpPatch.METHOD_NAME, URI.create(uri)));
+        return new Request(new HttpUriRequestBase(HttpPatch.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Put(final URI uri) {
-        return new Request(new InternalHttpRequest(HttpPut.METHOD_NAME, uri));
+        return new Request(new HttpUriRequestBase(HttpPut.METHOD_NAME, uri));
     }
 
     public static Request Put(final String uri) {
-        return new Request(new InternalHttpRequest(HttpPut.METHOD_NAME, URI.create(uri)));
+        return new Request(new HttpUriRequestBase(HttpPut.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Trace(final URI uri) {
-        return new Request(new InternalHttpRequest(HttpTrace.METHOD_NAME, uri));
+        return new Request(new HttpUriRequestBase(HttpTrace.METHOD_NAME, uri));
     }
 
     public static Request Trace(final String uri) {
-        return new Request(new InternalHttpRequest(HttpTrace.METHOD_NAME, URI.create(uri)));
+        return new Request(new HttpUriRequestBase(HttpTrace.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Delete(final URI uri) {
-        return new Request(new InternalHttpRequest(HttpDelete.METHOD_NAME, uri));
+        return new Request(new HttpUriRequestBase(HttpDelete.METHOD_NAME, uri));
     }
 
     public static Request Delete(final String uri) {
-        return new Request(new InternalHttpRequest(HttpDelete.METHOD_NAME, URI.create(uri)));
+        return new Request(new HttpUriRequestBase(HttpDelete.METHOD_NAME, URI.create(uri)));
     }
 
     public static Request Options(final URI uri) {
-        return new Request(new InternalHttpRequest(HttpOptions.METHOD_NAME, uri));
+        return new Request(new HttpUriRequestBase(HttpOptions.METHOD_NAME, uri));
     }
 
     public static Request Options(final String uri) {
-        return new Request(new InternalHttpRequest(HttpOptions.METHOD_NAME, URI.create(uri)));
+        return new Request(new HttpUriRequestBase(HttpOptions.METHOD_NAME, URI.create(uri)));
     }
 
-    Request(final InternalHttpRequest request) {
+    Request(final HttpUriRequestBase request) {
         super();
         this.request = request;
     }
 
-    HttpResponse internalExecute(
+    ClassicHttpResponse internalExecute(
             final CloseableHttpClient client,
             final HttpContext localContext) throws IOException {
         final RequestConfig.Builder builder;
@@ -261,7 +267,7 @@ public class Request {
     //// HTTP protocol parameter operations
 
     public Request version(final HttpVersion version) {
-        this.request.setProtocolVersion(version);
+        this.request.setVersion(version);
         return this;
     }
 
@@ -277,12 +283,12 @@ public class Request {
 
     //// HTTP connection parameter operations
 
-    public Request socketTimeout(final int timeout) {
+    public Request socketTimeout(final TimeValue timeout) {
         this.socketTmeout = timeout;
         return this;
     }
 
-    public Request connectTimeout(final int timeout) {
+    public Request connectTimeout(final TimeValue timeout) {
         this.connectTimeout = timeout;
         return this;
     }
@@ -298,7 +304,11 @@ public class Request {
      * @since 4.4
      */
     public Request viaProxy(final String proxy) {
-        this.proxy = HttpHost.create(proxy);
+        try {
+            this.proxy = HttpHost.create(proxy);
+        } catch (final URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid host");
+        }
         return this;
     }
 
@@ -330,46 +340,46 @@ public class Request {
     public Request bodyString(final String s, final ContentType contentType) {
         final Charset charset = contentType != null ? contentType.getCharset() : null;
         final byte[] raw = charset != null ? s.getBytes(charset) : s.getBytes();
-        return body(new InternalByteArrayEntity(raw, contentType));
+        return body(new ByteArrayEntity(raw, contentType));
     }
 
     public Request bodyFile(final File file, final ContentType contentType) {
-        return body(new InternalFileEntity(file, contentType));
+        return body(new FileEntity(file, contentType));
     }
 
     public Request bodyByteArray(final byte[] b) {
-        return body(new InternalByteArrayEntity(b));
+        return body(new ByteArrayEntity(b));
     }
 
     /**
      * @since 4.4
      */
     public Request bodyByteArray(final byte[] b, final ContentType contentType) {
-        return body(new InternalByteArrayEntity(b, contentType));
+        return body(new ByteArrayEntity(b, contentType));
     }
 
     public Request bodyByteArray(final byte[] b, final int off, final int len) {
-        return body(new InternalByteArrayEntity(b, off, len));
+        return body(new ByteArrayEntity(b, off, len));
     }
 
     /**
      * @since 4.4
      */
     public Request bodyByteArray(final byte[] b, final int off, final int len, final ContentType contentType) {
-        return body(new InternalByteArrayEntity(b, off, len, contentType));
+        return body(new ByteArrayEntity(b, off, len, contentType));
     }
 
     public Request bodyStream(final InputStream instream) {
-        return body(new InternalInputStreamEntity(instream, -1, null));
+        return body(new InputStreamEntity(instream, -1, null));
     }
 
     public Request bodyStream(final InputStream instream, final ContentType contentType) {
-        return body(new InternalInputStreamEntity(instream, -1, contentType));
+        return body(new InputStreamEntity(instream, -1, contentType));
     }
 
     @Override
     public String toString() {
-        return this.request.getRequestLine().toString();
+        return this.request.toString();
     }
 
 }

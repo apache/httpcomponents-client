@@ -30,10 +30,10 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.impl.sync.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.sync.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.sync.HttpClients;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpGet;
-import org.apache.hc.core5.http.entity.EntityUtils;
+import org.apache.hc.client5.http.sync.methods.HttpGet;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
  * A simple example that uses HttpClient to execute an HTTP request against
@@ -41,20 +41,20 @@ import org.apache.hc.core5.http.entity.EntityUtils;
  */
 public class ClientAuthentication {
 
-    public static void main(String[] args) throws Exception {
-        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
+    public static void main(final String[] args) throws Exception {
+        final BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
                 new AuthScope("httpbin.org", 80),
                 new UsernamePasswordCredentials("user", "passwd".toCharArray()));
         try (CloseableHttpClient httpclient = HttpClients.custom()
                 .setDefaultCredentialsProvider(credsProvider)
                 .build()) {
-            HttpGet httpget = new HttpGet("http://httpbin.org/basic-auth/user/passwd");
+            final HttpGet httpget = new HttpGet("http://httpbin.org/basic-auth/user/passwd");
 
-            System.out.println("Executing request " + httpget.getRequestLine());
+            System.out.println("Executing request " + httpget.getMethod() + " " + httpget.getUri());
             try (CloseableHttpResponse response = httpclient.execute(httpget)) {
                 System.out.println("----------------------------------------");
-                System.out.println(response.getStatusLine());
+                System.out.println(response.getCode() + " " + response.getReasonPhrase());
                 System.out.println(EntityUtils.toString(response.getEntity()));
             }
         }

@@ -298,22 +298,6 @@ public class TestBasicCookieAttribHandlers {
     }
 
     @Test
-    public void testBasicPathValidate() throws Exception {
-        final BasicClientCookie cookie = new BasicClientCookie("name", "value");
-        final CookieOrigin origin = new CookieOrigin("somehost", 80, "/stuff", false);
-        final CookieAttributeHandler h = new BasicPathHandler();
-        cookie.setPath("/stuff");
-        h.validate(cookie, origin);
-        cookie.setPath("/stuffed");
-        try {
-            h.validate(cookie, origin);
-            Assert.fail("MalformedCookieException must have been thrown");
-        } catch (final MalformedCookieException ex) {
-            // expected
-        }
-    }
-
-    @Test
     public void testBasicPathInvalidInput() throws Exception {
         final CookieAttributeHandler h = new BasicPathHandler();
         try {

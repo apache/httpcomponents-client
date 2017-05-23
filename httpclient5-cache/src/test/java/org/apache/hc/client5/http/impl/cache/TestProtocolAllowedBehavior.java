@@ -29,27 +29,24 @@ package org.apache.hc.client5.http.impl.cache;
 import java.net.SocketTimeoutException;
 import java.util.Date;
 
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * This class tests behavior that is allowed (MAY) by the HTTP/1.1 protocol
- * specification and for which we have implemented the behavior in the
- * {@link CachingHttpClient}.
+ * specification and for which we have implemented the behavior in HTTP cache.
  */
 public class TestProtocolAllowedBehavior extends AbstractProtocolTest {
 
     @Test
     public void testNonSharedCacheReturnsStaleResponseWhenRevalidationFailsForProxyRevalidate()
         throws Exception {
-        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET","/", HttpVersion.HTTP_1_1), host);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET","/");
         final Date now = new Date();
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
         originResponse.setHeader("Date", DateUtils.formatDate(tenSecondsAgo));
@@ -58,38 +55,35 @@ public class TestProtocolAllowedBehavior extends AbstractProtocolTest {
 
         backendExpectsAnyRequest().andReturn(originResponse);
 
-        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET","/", HttpVersion.HTTP_1_1), host);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET","/");
 
         backendExpectsAnyRequest().andThrow(new SocketTimeoutException());
 
         replayMocks();
         behaveAsNonSharedCache();
-        impl.execute(route, req1, context, null);
-        final HttpResponse result = impl.execute(route, req2, context, null);
+        execute(req1);
+        final HttpResponse result = execute(req2);
         verifyMocks();
 
-        Assert.assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, result.getCode());
     }
 
     @Test
     public void testNonSharedCacheMayCacheResponsesWithCacheControlPrivate()
         throws Exception {
-        final HttpRequestWrapper req1 = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET","/", HttpVersion.HTTP_1_1), host);
+        final ClassicHttpRequest req1 = new BasicClassicHttpRequest("GET","/");
         originResponse.setHeader("Cache-Control","private,max-age=3600");
 
         backendExpectsAnyRequest().andReturn(originResponse);
 
-        final HttpRequestWrapper req2 = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET","/", HttpVersion.HTTP_1_1), host);
+        final ClassicHttpRequest req2 = new BasicClassicHttpRequest("GET","/");
 
         replayMocks();
         behaveAsNonSharedCache();
-        impl.execute(route, req1, context, null);
-        final HttpResponse result = impl.execute(route, req2, context, null);
+        execute(req1);
+        final HttpResponse result = execute(req2);
         verifyMocks();
 
-        Assert.assertEquals(HttpStatus.SC_OK, result.getStatusLine().getStatusCode());
+        Assert.assertEquals(HttpStatus.SC_OK, result.getCode());
     }
 }

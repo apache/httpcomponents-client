@@ -30,7 +30,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.hc.core5.annotation.ThreadSafe;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * Implements a bounded failure cache. The oldest entries are discarded when
@@ -38,7 +39,7 @@ import org.apache.hc.core5.annotation.ThreadSafe;
  *
  * @since 4.3
  */
-@ThreadSafe
+@Contract(threading = ThreadingBehavior.SAFE)
 public class DefaultFailureCache implements FailureCache {
 
     static final int DEFAULT_MAX_SIZE = 1000;

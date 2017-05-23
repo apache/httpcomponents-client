@@ -30,25 +30,26 @@ import java.util.Date;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
 import org.apache.hc.client5.http.utils.DateUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
 
 /**
  * Rebuilds an {@link HttpResponse} from a {@link net.sf.ehcache.CacheEntry}
  *
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CachedHttpResponseGenerator {
 
     private final CacheValidityPolicy validityStrategy;
@@ -63,16 +64,16 @@ class CachedHttpResponseGenerator {
     }
 
     /**
-     * If I was able to use a {@link CacheEntity} to response to the {@link org.apache.hc.core5.http.HttpRequest} then
+     * If I was able to use a {@link CacheEntity} to response to the {@link HttpRequest} then
      * generate an {@link HttpResponse} based on the cache entry.
-     * @param request {@link HttpRequestWrapper} to generate the response for
+     * @param request {@link HttpRequest} to generate the response for
      * @param entry {@link CacheEntity} to transform into an {@link HttpResponse}
      * @return {@link HttpResponse} that was constructed
      */
-    CloseableHttpResponse generateResponse(final HttpRequestWrapper request, final HttpCacheEntry entry) {
+    ClassicHttpResponse generateResponse(final HttpRequest request, final HttpCacheEntry entry) {
         final Date now = new Date();
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, entry
-                .getStatusCode(), entry.getReasonPhrase());
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(entry.getStatus());
+        response.setVersion(HttpVersion.DEFAULT);
 
         response.setHeaders(entry.getAllHeaders());
 
@@ -91,17 +92,16 @@ class CachedHttpResponseGenerator {
             }
         }
 
-        return Proxies.enhanceResponse(response);
+        return response;
     }
 
     /**
      * Generate a 304 - Not Modified response from a {@link CacheEntity}.  This should be
      * used to respond to conditional requests, when the entry exists or has been re-validated.
      */
-    CloseableHttpResponse generateNotModifiedResponse(final HttpCacheEntry entry) {
+    ClassicHttpResponse generateNotModifiedResponse(final HttpCacheEntry entry) {
 
-        final HttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1,
-                HttpStatus.SC_NOT_MODIFIED, "Not Modified");
+        final ClassicHttpResponse response = new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not Modified");
 
         // The response MUST include the following headers
         //  (http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
@@ -143,7 +143,7 @@ class CachedHttpResponseGenerator {
             response.addHeader(varyHeader);
         }
 
-        return Proxies.enhanceResponse(response);
+        return response;
     }
 
     private void addMissingContentLengthHeader(final HttpResponse response, final HttpEntity entity) {
@@ -164,9 +164,8 @@ class CachedHttpResponseGenerator {
         return hdr != null;
     }
 
-    private boolean responseShouldContainEntity(final HttpRequestWrapper request, final HttpCacheEntry cacheEntry) {
-        return request.getRequestLine().getMethod().equals(HeaderConstants.GET_METHOD) &&
-               cacheEntry.getResource() != null;
+    private boolean responseShouldContainEntity(final HttpRequest request, final HttpCacheEntry cacheEntry) {
+        return request.getMethod().equals(HeaderConstants.GET_METHOD) && cacheEntry.getResource() != null;
     }
 
 }

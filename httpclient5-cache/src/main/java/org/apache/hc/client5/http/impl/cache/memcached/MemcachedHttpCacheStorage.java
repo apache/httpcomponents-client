@@ -29,13 +29,13 @@ package org.apache.hc.client5.http.impl.cache.memcached;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.cache.HttpCacheStorage;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateCallback;
 import org.apache.hc.client5.http.cache.HttpCacheUpdateException;
 import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import net.spy.memcached.CASResponse;
 import net.spy.memcached.CASValue;
@@ -92,7 +92,7 @@ import net.spy.memcached.OperationTimeoutException;
  */
 public class MemcachedHttpCacheStorage implements HttpCacheStorage {
 
-    private static final Log log = LogFactory.getLog(MemcachedHttpCacheStorage.class);
+    private final Logger log = LogManager.getLogger(getClass());
 
     private final MemcachedClientIF client;
     private final KeyHashingScheme keyHashingScheme;

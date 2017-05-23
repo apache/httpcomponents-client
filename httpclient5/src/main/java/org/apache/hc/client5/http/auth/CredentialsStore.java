@@ -45,7 +45,7 @@ public interface CredentialsStore extends CredentialsProvider {
      * @param credentials the authentication {@link Credentials credentials}
      * for the given scope.
      *
-     * @see #getCredentials(AuthScope, HttpContext)
+     * @see #getCredentials(AuthScope, org.apache.hc.core5.http.protocol.HttpContext)
      */
     void setCredentials(AuthScope authscope, Credentials credentials);
 

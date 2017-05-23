@@ -29,27 +29,30 @@ package org.apache.hc.client5.http.impl.cache;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 
-import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpMessage;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.RequestLine;
-import org.apache.hc.core5.http.StatusLine;
-import org.apache.hc.core5.http.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.ProtocolVersion;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
-import org.apache.hc.core5.http.message.BasicStatusLine;
+import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.util.LangUtils;
 import org.junit.Assert;
 
 public class HttpTestUtils {
@@ -72,7 +75,7 @@ public class HttpTestUtils {
     private static final String[] MULTI_HEADERS = { "Accept", "Accept-Charset", "Accept-Encoding",
         "Accept-Language", "Allow", "Cache-Control", "Connection", "Content-Encoding",
         "Content-Language", "Expect", "Pragma", "Proxy-Authenticate", "TE", "Trailer",
-        "Transfer-Encoding", "Upgrade", "Via", "Warning", "WWW-Authenticate" };
+        "Transfer-Encoding", "Upgrade", "Via", HttpHeaders.WARNING, "WWW-Authenticate" };
     private static final String[] SINGLE_HEADERS = { "Accept-Ranges", "Age", "Authorization",
         "Content-Length", "Content-Location", "Content-MD5", "Content-Range", "Content-Type",
         "Date", "ETag", "Expires", "From", "Host", "If-Match", "If-Modified-Since",
@@ -151,32 +154,6 @@ public class HttpTestUtils {
     }
 
     /*
-     * Assert.asserts that the components of two status lines match in a way
-     * that differs only by hop-by-hop information. "2.1 Proxy Behavior ...We
-     * remind the reader that HTTP version numbers are hop-by-hop components of
-     * HTTP meesages, and are not end-to-end."
-     *
-     * @see http://www.ietf.org/rfc/rfc2145.txt
-     */
-    public static boolean semanticallyTransparent(final StatusLine l1, final StatusLine l2) {
-        return (l1.getReasonPhrase().equals(l2.getReasonPhrase()) && l1.getStatusCode() == l2
-                .getStatusCode());
-    }
-
-    /* Assert.asserts that the components of two status lines match. */
-    public static boolean equivalent(final StatusLine l1, final StatusLine l2) {
-        return (l1.getProtocolVersion().equals(l2.getProtocolVersion()) && semanticallyTransparent(
-                l1, l2));
-    }
-
-    /* Assert.asserts that the components of two request lines match. */
-    public static boolean equivalent(final RequestLine l1, final RequestLine l2) {
-        return (l1.getMethod().equals(l2.getMethod())
-                && l1.getProtocolVersion().equals(l2.getProtocolVersion()) && l1.getUri().equals(
-                        l2.getUri()));
-    }
-
-    /*
      * Retrieves the full header value by combining multiple headers and
      * separating with commas, canonicalizing whitespace along the way.
      *
@@ -225,31 +202,39 @@ public class HttpTestUtils {
      *
      * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec1.html#sec1.3
      */
-    public static boolean semanticallyTransparent(final HttpResponse r1, final HttpResponse r2)
-    throws Exception {
+    public static boolean semanticallyTransparent(
+            final ClassicHttpResponse r1, final ClassicHttpResponse r2) throws Exception {
         final boolean entitiesEquivalent = equivalent(r1.getEntity(), r2.getEntity());
         if (!entitiesEquivalent) {
             return false;
         }
-        final boolean statusLinesEquivalent = semanticallyTransparent(r1.getStatusLine(), r2.getStatusLine());
+        final boolean statusLinesEquivalent = LangUtils.equals(r1.getReasonPhrase(), r2.getReasonPhrase())
+                && r1.getCode() == r2.getCode();
         if (!statusLinesEquivalent) {
             return false;
         }
-        final boolean e2eHeadersEquivalentSubset = isEndToEndHeaderSubset(
-                r1, r2);
-        return e2eHeadersEquivalentSubset;
+        return isEndToEndHeaderSubset(r1, r2);
+    }
+
+    /* Assert.asserts that protocol versions equivalent. */
+    public static boolean equivalent(final ProtocolVersion v1, final ProtocolVersion v2) {
+        return LangUtils.equals(v1 != null ? v1 : HttpVersion.DEFAULT, v2 != null ? v2 : HttpVersion.DEFAULT );
     }
 
     /* Assert.asserts that two requests are morally equivalent. */
     public static boolean equivalent(final HttpRequest r1, final HttpRequest r2) {
-        return (equivalent(r1.getRequestLine(), r2.getRequestLine()) && isEndToEndHeaderSubset(r1,
-                r2));
+        return equivalent(r1.getVersion(), r2.getVersion()) &&
+                LangUtils.equals(r1.getMethod(), r2.getMethod()) &&
+                LangUtils.equals(r1.getRequestUri(), r2.getRequestUri()) &&
+                isEndToEndHeaderSubset(r1, r2);
     }
 
     /* Assert.asserts that two requests are morally equivalent. */
     public static boolean equivalent(final HttpResponse r1, final HttpResponse r2) {
-        return (equivalent(r1.getStatusLine(), r2.getStatusLine()) && isEndToEndHeaderSubset(r1,
-                r2));
+        return equivalent(r1.getVersion(), r2.getVersion()) &&
+                r1.getCode() == r2.getCode() &&
+                LangUtils.equals(r1.getReasonPhrase(), r2.getReasonPhrase()) &&
+                isEndToEndHeaderSubset(r1, r2);
     }
 
     public static byte[] getRandomBytes(final int nbytes) {
@@ -301,7 +286,7 @@ public class HttpTestUtils {
     public static HttpCacheEntry makeCacheEntry(final Date requestDate,
             final Date responseDate, final Header[] headers, final byte[] bytes,
             final Map<String,String> variantMap) {
-        return new HttpCacheEntry(requestDate, responseDate, makeStatusLine(), headers, new HeapResource(bytes), variantMap, HeaderConstants.GET_METHOD);
+        return new HttpCacheEntry(requestDate, responseDate, HttpStatus.SC_OK, headers, new HeapResource(bytes), variantMap);
     }
 
     public static HttpCacheEntry makeCacheEntry(final Header[] headers, final byte[] bytes) {
@@ -324,39 +309,31 @@ public class HttpTestUtils {
 
     public static HttpCacheEntry makeCacheEntryWithNoRequestMethodOrEntity(final Header[] headers) {
         final Date now = new Date();
-        return new HttpCacheEntry(now, now, makeStatusLine(), headers, null, null, null);
+        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
     }
 
     public static HttpCacheEntry makeCacheEntryWithNoRequestMethod(final Header[] headers) {
         final Date now = new Date();
-        return new HttpCacheEntry(now, now, makeStatusLine(), headers, new HeapResource(getRandomBytes(128)), null, null);
+        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, new HeapResource(getRandomBytes(128)), null);
     }
 
     public static HttpCacheEntry make204CacheEntryWithNoRequestMethod(final Header[] headers) {
         final Date now = new Date();
-        return new HttpCacheEntry(now, now, make204StatusLine(), headers, null, null, HeaderConstants.HEAD_METHOD);
+        return new HttpCacheEntry(now, now, HttpStatus.SC_NO_CONTENT, headers, null, null);
     }
 
     public static HttpCacheEntry makeHeadCacheEntry(final Header[] headers) {
         final Date now = new Date();
-        return new HttpCacheEntry(now, now, makeStatusLine(), headers, null, null, HeaderConstants.HEAD_METHOD);
+        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
     }
 
     public static HttpCacheEntry makeHeadCacheEntryWithNoRequestMethod(final Header[] headers) {
         final Date now = new Date();
-        return new HttpCacheEntry(now, now, makeStatusLine(), headers, null, null, null);
+        return new HttpCacheEntry(now, now, HttpStatus.SC_OK, headers, null, null);
     }
 
-    public static StatusLine makeStatusLine() {
-        return new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
-    }
-
-    public static StatusLine make204StatusLine() {
-        return new BasicStatusLine(HttpVersion.HTTP_1_1, HttpStatus.SC_NO_CONTENT, "OK");
-    }
-
-    public static HttpResponse make200Response() {
-        final HttpResponse out = new BasicHttpResponse(HttpVersion.HTTP_1_1, HttpStatus.SC_OK, "OK");
+    public static ClassicHttpResponse make200Response() {
+        final ClassicHttpResponse out = new BasicClassicHttpResponse(HttpStatus.SC_OK, "OK");
         out.setHeader("Date", DateUtils.formatDate(new Date()));
         out.setHeader("Server", "MockOrigin/1.0");
         out.setHeader("Content-Length", "128");
@@ -364,39 +341,42 @@ public class HttpTestUtils {
         return out;
     }
 
-    public static final HttpResponse make200Response(final Date date, final String cacheControl) {
-        final HttpResponse response = HttpTestUtils.make200Response();
+    public static final ClassicHttpResponse make200Response(final Date date, final String cacheControl) {
+        final ClassicHttpResponse response = HttpTestUtils.make200Response();
         response.setHeader("Date", DateUtils.formatDate(date));
         response.setHeader("Cache-Control",cacheControl);
         response.setHeader("Etag","\"etag\"");
         return response;
     }
 
+    public static ClassicHttpResponse make304Response() {
+        return new BasicClassicHttpResponse(HttpStatus.SC_NOT_MODIFIED, "Not modified");
+    }
+
     public static final void assert110WarningFound(final HttpResponse response) {
         boolean found110Warning = false;
-        for(final Header h : response.getHeaders("Warning")) {
-            for(final HeaderElement elt : h.getElements()) {
-                final String[] parts = elt.getName().split("\\s");
-                if ("110".equals(parts[0])) {
-                    found110Warning = true;
-                    break;
-                }
+        final Iterator<HeaderElement> it = MessageSupport.iterate(response, HttpHeaders.WARNING);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            final String[] parts = elt.getName().split("\\s");
+            if ("110".equals(parts[0])) {
+                found110Warning = true;
+                break;
             }
         }
         Assert.assertTrue(found110Warning);
     }
 
-    public static HttpRequest makeDefaultRequest() {
-        return new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
+    public static ClassicHttpRequest makeDefaultRequest() {
+        return new BasicClassicHttpRequest("GET", "/");
     }
 
-    public static HttpRequest makeDefaultHEADRequest() {
-        return new BasicHttpRequest("HEAD","/",HttpVersion.HTTP_1_1);
+    public static ClassicHttpRequest makeDefaultHEADRequest() {
+        return new BasicClassicHttpRequest("HEAD", "/");
     }
 
-    public static HttpResponse make500Response() {
-        return new BasicHttpResponse(HttpVersion.HTTP_1_1,
-                HttpStatus.SC_INTERNAL_SERVER_ERROR, "Internal Server Error");
+    public static ClassicHttpResponse make500Response() {
+        return new BasicClassicHttpResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Internal Server Error");
     }
 
     public static Map<String, String> makeDefaultVariantMap(final String key, final String value) {

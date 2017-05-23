@@ -28,10 +28,10 @@
 package org.apache.hc.client5.http.impl.routing;
 
 import org.apache.hc.client5.http.SchemePortResolver;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 
@@ -41,7 +41,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.3
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class DefaultProxyRoutePlanner extends DefaultRoutePlanner {
 
     private final HttpHost proxy;
@@ -58,7 +58,6 @@ public class DefaultProxyRoutePlanner extends DefaultRoutePlanner {
     @Override
     protected HttpHost determineProxy(
         final HttpHost target,
-        final HttpRequest request,
         final HttpContext context) throws HttpException {
         return proxy;
     }

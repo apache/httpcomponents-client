@@ -30,17 +30,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.TrailerSupplier;
 import org.apache.hc.core5.util.Args;
 
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheEntity implements HttpEntity, Serializable {
 
     private static final long serialVersionUID = -3467082284120936233L;
@@ -98,13 +100,17 @@ class CacheEntity implements HttpEntity, Serializable {
     }
 
     @Override
-    public TrailerSupplier getTrailers() {
+    public Supplier<List<? extends Header>> getTrailers() {
         return null;
     }
 
     @Override
     public Set<String> getTrailerNames() {
         return null;
+    }
+
+    @Override
+    public void close() throws IOException {
     }
 
 }

@@ -28,7 +28,6 @@ package org.apache.hc.client5.http.auth;
 
 import java.util.Queue;
 
-import org.apache.hc.core5.annotation.NotThreadSafe;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -37,7 +36,6 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.5
  */
-@NotThreadSafe
 public class AuthExchange {
 
     public enum State {

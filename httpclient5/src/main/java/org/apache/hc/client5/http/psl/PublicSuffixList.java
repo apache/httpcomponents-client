@@ -29,7 +29,8 @@ package org.apache.hc.client5.http.psl;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.util.Args;
 
 /**
@@ -41,7 +42,7 @@ import org.apache.hc.core5.util.Args;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public final class PublicSuffixList {
 
     private final DomainType type;

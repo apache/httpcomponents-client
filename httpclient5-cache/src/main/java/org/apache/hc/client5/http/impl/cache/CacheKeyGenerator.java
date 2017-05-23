@@ -27,31 +27,55 @@
 package org.apache.hc.client5.http.impl.cache;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
 import org.apache.hc.client5.http.utils.URIUtils;
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
+import org.apache.hc.core5.http.message.MessageSupport;
+import org.apache.hc.core5.net.URIBuilder;
 
 /**
  * @since 4.1
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 class CacheKeyGenerator {
 
     private static final URI BASE_URI = URI.create("http://example.com/");
+
+    private URI normalize(final URI uri) throws URISyntaxException {
+        final URIBuilder builder = new URIBuilder(URIUtils.resolve(BASE_URI, uri)) ;
+        if (builder.getHost() != null) {
+            if (builder.getScheme() == null) {
+                builder.setScheme("http");
+            }
+            if (builder.getPort() == -1) {
+                if ("http".equalsIgnoreCase(builder.getScheme())) {
+                    builder.setPort(80);
+                } else if ("https".equalsIgnoreCase(builder.getScheme())) {
+                    builder.setPort(443);
+                }
+            }
+        }
+        if (builder.getPath() == null) {
+            builder.setPath("/");
+        }
+        return builder.build();
+    }
 
     /**
      * For a given {@link HttpHost} and {@link HttpRequest} get a URI from the
@@ -61,60 +85,40 @@ class CacheKeyGenerator {
      * @param req the {@link HttpRequest}
      * @return String the extracted URI
      */
-    public String getURI(final HttpHost host, final HttpRequest req) {
-        if (isRelativeRequest(req)) {
-            return canonicalizeUri(String.format("%s%s", host.toString(), req.getRequestLine().getUri()));
-        }
-        return canonicalizeUri(req.getRequestLine().getUri());
-    }
-
-    public String canonicalizeUri(final String uri) {
+    public String generateKey(final HttpHost host, final HttpRequest req) {
         try {
-            final URI normalized = URIUtils.resolve(BASE_URI, uri);
-            final URL u = new URL(normalized.toASCIIString());
-            final String protocol = u.getProtocol();
-            final String hostname = u.getHost();
-            final int port = canonicalizePort(u.getPort(), protocol);
-            final String path = u.getPath();
-            final String query = u.getQuery();
-            final String file = (query != null) ? (path + "?" + query) : path;
-            final URL out = new URL(protocol, hostname, port, file);
-            return out.toString();
-        } catch (final IllegalArgumentException e) {
-            return uri;
-        } catch (final MalformedURLException e) {
-            return uri;
+            URI uri = req.getUri();
+            if (!uri.isAbsolute()) {
+                uri = URIUtils.rewriteURI(uri, host);
+            }
+            return normalize(uri).toASCIIString();
+        } catch (final URISyntaxException ex) {
+            return req.getRequestUri();
         }
     }
 
-    private int canonicalizePort(final int port, final String protocol) {
-        if (port == -1 && "http".equalsIgnoreCase(protocol)) {
-            return 80;
-        } else if (port == -1 && "https".equalsIgnoreCase(protocol)) {
-            return 443;
+    public String generateKey(final URL url) {
+        if (url == null) {
+            return null;
         }
-        return port;
-    }
-
-    private boolean isRelativeRequest(final HttpRequest req) {
-        final String requestUri = req.getRequestLine().getUri();
-        return ("*".equals(requestUri) || requestUri.startsWith("/"));
+        try {
+            return normalize(url.toURI()).toASCIIString();
+        } catch (final URISyntaxException ex) {
+            return url.toString();
+        }
     }
 
     protected String getFullHeaderValue(final Header[] headers) {
         if (headers == null) {
             return "";
         }
-
         final StringBuilder buf = new StringBuilder("");
-        boolean first = true;
-        for (final Header hdr : headers) {
-            if (!first) {
+        for (int i = 0; i < headers.length; i++) {
+            final Header hdr = headers[i];
+            if (i > 0) {
                 buf.append(", ");
             }
             buf.append(hdr.getValue().trim());
-            first = false;
-
         }
         return buf.toString();
     }
@@ -129,11 +133,11 @@ class CacheKeyGenerator {
      * @param entry the parent entry used to track the variants
      * @return String the extracted variant URI
      */
-    public String getVariantURI(final HttpHost host, final HttpRequest req, final HttpCacheEntry entry) {
+    public String generateVariantURI(final HttpHost host, final HttpRequest req, final HttpCacheEntry entry) {
         if (!entry.hasVariants()) {
-            return getURI(host, req);
+            return generateKey(host, req);
         }
-        return getVariantKey(req, entry) + getURI(host, req);
+        return generateVariantKey(req, entry) + generateKey(host, req);
     }
 
     /**
@@ -145,12 +149,12 @@ class CacheKeyGenerator {
      * @param entry cache entry in question that has variants
      * @return a {@code String} variant key
      */
-    public String getVariantKey(final HttpRequest req, final HttpCacheEntry entry) {
+    public String generateVariantKey(final HttpRequest req, final HttpCacheEntry entry) {
         final List<String> variantHeaderNames = new ArrayList<>();
-        for (final Header varyHdr : entry.getHeaders(HeaderConstants.VARY)) {
-            for (final HeaderElement elt : varyHdr.getElements()) {
-                variantHeaderNames.add(elt.getName());
-            }
+        final Iterator<HeaderElement> it = MessageSupport.iterate(entry, HeaderConstants.VARY);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            variantHeaderNames.add(elt.getName());
         }
         Collections.sort(variantHeaderNames);
 

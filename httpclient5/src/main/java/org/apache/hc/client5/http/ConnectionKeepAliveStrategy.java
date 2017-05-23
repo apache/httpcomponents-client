@@ -28,6 +28,7 @@ package org.apache.hc.client5.http;
 
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Interface for deciding how long a connection can remain
@@ -61,6 +62,6 @@ public interface ConnectionKeepAliveStrategy {
      * @return the duration in ms for which it is safe to keep the connection
      *         idle, or &lt;=0 if no suggested duration.
      */
-    long getKeepAliveDuration(HttpResponse response, HttpContext context);
+    TimeValue getKeepAliveDuration(HttpResponse response, HttpContext context);
 
 }

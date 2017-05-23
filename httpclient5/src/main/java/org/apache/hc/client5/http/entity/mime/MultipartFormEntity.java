@@ -32,12 +32,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Set;
 
+import org.apache.hc.core5.function.Supplier;
 import org.apache.hc.core5.http.ContentTooLongException;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.TrailerSupplier;
-import org.apache.hc.core5.http.entity.ContentType;
 
 class MultipartFormEntity implements HttpEntity {
 
@@ -108,13 +110,17 @@ class MultipartFormEntity implements HttpEntity {
     }
 
     @Override
-    public TrailerSupplier getTrailers() {
+    public Supplier<List<? extends Header>> getTrailers() {
         return null;
     }
 
     @Override
     public Set<String> getTrailerNames() {
         return null;
+    }
+
+    @Override
+    public void close() throws IOException {
     }
 
 }

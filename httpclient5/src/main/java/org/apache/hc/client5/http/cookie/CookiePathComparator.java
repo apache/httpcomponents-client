@@ -30,7 +30,8 @@ package org.apache.hc.client5.http.cookie;
 import java.io.Serializable;
 import java.util.Comparator;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * This cookie comparator ensures that multiple cookies satisfying
@@ -47,7 +48,7 @@ import org.apache.hc.core5.annotation.Immutable;
  *
  * @since 4.0
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class CookiePathComparator implements Serializable, Comparator<Cookie> {
 
     public static final CookiePathComparator INSTANCE = new CookiePathComparator();

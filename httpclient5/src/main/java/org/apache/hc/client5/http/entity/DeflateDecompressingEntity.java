@@ -26,13 +26,10 @@
  */
 package org.apache.hc.client5.http.entity;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.apache.hc.core5.http.HttpEntity;
 
 /**
- * {@link org.apache.hc.core5.http.entity.HttpEntityWrapper} responsible for
+ * {@link org.apache.hc.core5.http.io.entity.HttpEntityWrapper} responsible for
  * handling deflate Content Coded responses. In RFC2616 terms, {@code deflate}
  * means a {@code zlib} stream as defined in RFC1950. Some server
  * implementations have misinterpreted RFC2616 to mean that a
@@ -57,14 +54,7 @@ public class DeflateDecompressingEntity extends DecompressingEntity {
      *            a non-null {@link HttpEntity} to be wrapped
      */
     public DeflateDecompressingEntity(final HttpEntity entity) {
-        super(entity, new InputStreamFactory() {
-
-            @Override
-            public InputStream create(final InputStream instream) throws IOException {
-                return new DeflateInputStream(instream);
-            }
-
-        });
+        super(entity, DeflateInputStreamFactory.getInstance());
     }
 
 }

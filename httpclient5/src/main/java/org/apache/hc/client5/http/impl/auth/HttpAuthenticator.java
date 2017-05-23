@@ -99,7 +99,7 @@ public class HttpAuthenticator {
 
         final HttpClientContext clientContext = HttpClientContext.adapt(context);
 
-        if (response.getStatusLine().getStatusCode() == challengeCode) {
+        if (response.getCode() == challengeCode) {
             this.log.debug("Authentication required");
             if (authExchange.getState() == AuthExchange.State.SUCCESS) {
                 clearCache(host, clientContext);
@@ -156,7 +156,7 @@ public class HttpAuthenticator {
             final ParserCursor cursor = new ParserCursor(pos, buffer.length());
             final List<AuthChallenge> authChallenges;
             try {
-                authChallenges = parser.parse(buffer, cursor);
+                authChallenges = parser.parse(challengeType, buffer, cursor);
             } catch (final ParseException ex) {
                 if (this.log.isWarnEnabled()) {
                     this.log.warn("Malformed challenge: " + header.getValue());

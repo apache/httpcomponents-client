@@ -30,7 +30,8 @@ package org.apache.hc.client5.http.cookie;
 import java.util.Comparator;
 import java.util.Date;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
 
 /**
  * This cookie comparator ensures that cookies with longer paths take precedence over
@@ -39,7 +40,7 @@ import org.apache.hc.core5.annotation.Immutable;
  *
  * @since 4.4
  */
-@Immutable
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
 public class CookiePriorityComparator implements Comparator<Cookie> {
 
     public static final CookiePriorityComparator INSTANCE = new CookiePriorityComparator();

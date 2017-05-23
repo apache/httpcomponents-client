@@ -31,7 +31,7 @@ import java.util.Date;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
@@ -99,24 +99,9 @@ interface HttpCache {
      * @return the {@link HttpResponse}
      * @throws IOException
      */
-    HttpResponse cacheAndReturnResponse(
-            HttpHost host, HttpRequest request, HttpResponse originResponse,
-            Date requestSent, Date responseReceived)
-        throws IOException;
-
-    /**
-     * Store a {@link HttpResponse} in the cache if possible, and return
-     * @param host
-     * @param request
-     * @param originResponse
-     * @param requestSent
-     * @param responseReceived
-     * @return the {@link HttpResponse}
-     * @throws IOException
-     */
-    CloseableHttpResponse cacheAndReturnResponse(HttpHost host,
-            HttpRequest request, CloseableHttpResponse originResponse,
-            Date requestSent, Date responseReceived)
+    ClassicHttpResponse cacheAndReturnResponse(HttpHost host,
+                                               HttpRequest request, ClassicHttpResponse originResponse,
+                                               Date requestSent, Date responseReceived)
         throws IOException;
 
     /**

@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
 import java.security.MessageDigest;
 import java.security.Principal;
 import java.security.SecureRandom;
@@ -51,7 +52,7 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.MalformedChallengeException;
 import org.apache.hc.client5.http.auth.util.ByteArrayBuilder;
-import org.apache.hc.core5.annotation.NotThreadSafe;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
@@ -61,7 +62,6 @@ import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.Args;
 import org.apache.hc.core5.util.CharArrayBuffer;
-import org.apache.hc.core5.util.CharsetUtils;
 
 /**
  * Digest authentication scheme as defined in RFC 2617.
@@ -77,7 +77,6 @@ import org.apache.hc.core5.util.CharsetUtils;
  *
  * @since 4.0
  */
-@NotThreadSafe
 public class DigestScheme implements AuthScheme, Serializable {
 
     private static final long serialVersionUID = 3883908186234566916L;
@@ -160,7 +159,7 @@ public class DigestScheme implements AuthScheme, Serializable {
     @Override
     public boolean isChallengeComplete() {
         final String s = this.paramMap.get("stale");
-        return "true".equalsIgnoreCase(s) ? false : this.complete;
+        return !"true".equalsIgnoreCase(s) && this.complete;
     }
 
     @Override
@@ -218,8 +217,8 @@ public class DigestScheme implements AuthScheme, Serializable {
 
     private String createDigestResponse(final HttpRequest request) throws AuthenticationException {
 
-        final String uri = request.getRequestLine().getUri();
-        final String method = request.getRequestLine().getMethod();
+        final String uri = request.getPath();
+        final String method = request.getMethod();
         final String realm = this.paramMap.get("realm");
         final String nonce = this.paramMap.get("nonce");
         final String opaque = this.paramMap.get("opaque");
@@ -238,7 +237,8 @@ public class DigestScheme implements AuthScheme, Serializable {
                 final String variant = tok.nextToken().trim();
                 qopset.add(variant.toLowerCase(Locale.ROOT));
             }
-            if (request.getEntity() != null && qopset.contains("auth-int")) {
+            final HttpEntity entity = request instanceof ClassicHttpRequest ? ((ClassicHttpRequest) request).getEntity() : null;
+            if (entity != null && qopset.contains("auth-int")) {
                 qop = QOP_AUTH_INT;
             } else if (qopset.contains("auth")) {
                 qop = QOP_AUTH;
@@ -254,8 +254,10 @@ public class DigestScheme implements AuthScheme, Serializable {
         }
 
         final String charsetName = this.paramMap.get("charset");
-        Charset charset = charsetName != null ? CharsetUtils.lookup(charsetName) : null;
-        if (charset == null) {
+        Charset charset;
+        try {
+            charset = charsetName != null ? Charset.forName(charsetName) : StandardCharsets.ISO_8859_1;
+        } catch (final UnsupportedCharsetException ex) {
             charset = StandardCharsets.ISO_8859_1;
         }
 
@@ -324,7 +326,7 @@ public class DigestScheme implements AuthScheme, Serializable {
             a2 = buffer.append(method).append(":").append(uri).toByteArray();
         } else if (qop == QOP_AUTH_INT) {
             // Method ":" digest-uri-value ":" H(entity-body)
-            final HttpEntity entity = request.getEntity();
+            final HttpEntity entity = request instanceof ClassicHttpRequest ? ((ClassicHttpRequest) request).getEntity() : null;
             if (entity != null && !entity.isRepeatable()) {
                 // If the entity is not repeatable, try falling back onto QOP_AUTH
                 if (qopset.contains("auth")) {

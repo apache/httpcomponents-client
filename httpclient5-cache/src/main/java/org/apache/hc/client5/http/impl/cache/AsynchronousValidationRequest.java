@@ -28,18 +28,17 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.methods.CloseableHttpResponse;
-import org.apache.hc.client5.http.methods.HttpExecutionAware;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.sync.ExecChain;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Class used to represent an asynchronous revalidation event, such as with
@@ -48,41 +47,35 @@ import org.apache.hc.core5.http.HttpResponse;
 public class AsynchronousValidationRequest implements Runnable {
     private final AsynchronousValidator parent;
     private final CachingExec cachingExec;
-    private final HttpRoute route;
-    private final HttpRequestWrapper request;
-    private final HttpClientContext context;
-    private final HttpExecutionAware execAware;
+    private final HttpHost target;
+    private final ClassicHttpRequest request;
+    private final ExecChain.Scope scope;
+    private final ExecChain chain;
     private final HttpCacheEntry cacheEntry;
     private final String identifier;
     private final int consecutiveFailedAttempts;
 
-    private final Log log = LogFactory.getLog(getClass());
+    private final Logger log = LogManager.getLogger(getClass());
 
     /**
      * Used internally by {@link AsynchronousValidator} to schedule a
-     * revalidation.
-     * @param request
-     * @param context
-     * @param cacheEntry
-     * @param identifier
-     * @param consecutiveFailedAttempts
      */
     AsynchronousValidationRequest(
             final AsynchronousValidator parent,
             final CachingExec cachingExec,
-            final HttpRoute route,
-            final HttpRequestWrapper request,
-            final HttpClientContext context,
-            final HttpExecutionAware execAware,
+            final HttpHost target,
+            final ClassicHttpRequest request,
+            final ExecChain.Scope scope,
+            final ExecChain chain,
             final HttpCacheEntry cacheEntry,
             final String identifier,
             final int consecutiveFailedAttempts) {
         this.parent = parent;
         this.cachingExec = cachingExec;
-        this.route = route;
+        this.target = target;
         this.request = request;
-        this.context = context;
-        this.execAware = execAware;
+        this.scope = scope;
+        this.chain = chain;
         this.cacheEntry = cacheEntry;
         this.identifier = identifier;
         this.consecutiveFailedAttempts = consecutiveFailedAttempts;
@@ -110,8 +103,8 @@ public class AsynchronousValidationRequest implements Runnable {
      */
     private boolean revalidateCacheEntry() {
         try {
-            try (CloseableHttpResponse httpResponse = cachingExec.revalidateCacheEntry(route, request, context, execAware, cacheEntry)) {
-                final int statusCode = httpResponse.getStatusLine().getStatusCode();
+            try (ClassicHttpResponse httpResponse = cachingExec.revalidateCacheEntry(target, request, scope, chain, cacheEntry)) {
+                final int statusCode = httpResponse.getCode();
                 return isNotServerError(statusCode) && isNotStale(httpResponse);
             }
         } catch (final IOException ioe) {

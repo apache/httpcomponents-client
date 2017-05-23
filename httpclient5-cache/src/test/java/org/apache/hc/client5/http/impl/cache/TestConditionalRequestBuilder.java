@@ -28,20 +28,23 @@ package org.apache.hc.client5.http.impl.cache;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.cache.HeaderConstants;
 import org.apache.hc.client5.http.cache.HttpCacheEntry;
-import org.apache.hc.client5.http.methods.HttpRequestWrapper;
+import org.apache.hc.client5.http.impl.ExecSupport;
 import org.apache.hc.client5.http.utils.DateUtils;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HeaderElement;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpVersion;
 import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.message.BasicClassicHttpRequest;
 import org.apache.hc.core5.http.message.BasicHeader;
-import org.apache.hc.core5.http.message.BasicHttpRequest;
+import org.apache.hc.core5.http.message.MessageSupport;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,16 +53,15 @@ public class TestConditionalRequestBuilder {
 
     private ConditionalRequestBuilder impl;
     private HttpHost host;
-    private HttpRequestWrapper request;
-    private HttpCacheEntry entry;
+    private HttpRoute route;
+    private ClassicHttpRequest request;
 
     @Before
     public void setUp() throws Exception {
         impl = new ConditionalRequestBuilder();
         host = new HttpHost("foo.example.com", 80);
-        request = HttpRequestWrapper.wrap(
-                new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1), host);
-        entry = HttpTestUtils.makeCacheEntry();
+        route = new HttpRoute(host);
+        request = new BasicClassicHttpRequest("GET", "/");
     }
 
     @Test
@@ -68,23 +70,21 @@ public class TestConditionalRequestBuilder {
         final String theUri = "/theuri";
         final String lastModified = "this is my last modified date";
 
-        final HttpRequest basicRequest = new BasicHttpRequest(theMethod, theUri);
+        final ClassicHttpRequest basicRequest = new BasicClassicHttpRequest(theMethod, theUri);
         basicRequest.addHeader("Accept-Encoding", "gzip");
-        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(basicRequest, host);
+        final ClassicHttpRequest requestWrapper = ExecSupport.copy(basicRequest);
 
         final Header[] headers = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(new Date())),
                 new BasicHeader("Last-Modified", lastModified) };
 
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
-        final HttpRequestWrapper newRequest = impl.buildConditionalRequest(requestWrapper, cacheEntry);
+        final ClassicHttpRequest newRequest = impl.buildConditionalRequest(requestWrapper, cacheEntry);
 
         Assert.assertNotSame(basicRequest, newRequest);
 
-        Assert.assertEquals(theMethod, newRequest.getRequestLine().getMethod());
-        Assert.assertEquals(theUri, newRequest.getRequestLine().getUri());
-        Assert.assertEquals(basicRequest.getRequestLine().getProtocolVersion(), newRequest
-                .getRequestLine().getProtocolVersion());
+        Assert.assertEquals(theMethod, newRequest.getMethod());
+        Assert.assertEquals(theUri, newRequest.getRequestUri());
         Assert.assertEquals(2, newRequest.getAllHeaders().length);
 
         Assert.assertEquals("Accept-Encoding", newRequest.getAllHeaders()[0].getName());
@@ -107,10 +107,10 @@ public class TestConditionalRequestBuilder {
             new BasicHeader("Last-Modified", lmDate),
             new BasicHeader("ETag", etag)
         };
-        final HttpRequest basicRequest = new BasicHttpRequest("GET", "/", HttpVersion.HTTP_1_1);
-        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(basicRequest, host);
+        final ClassicHttpRequest basicRequest = new BasicClassicHttpRequest("GET", "/");
+        final ClassicHttpRequest requestWrapper = ExecSupport.copy(basicRequest);
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
-        final HttpRequest result = impl.buildConditionalRequest(requestWrapper, cacheEntry);
+        final ClassicHttpRequest result = impl.buildConditionalRequest(requestWrapper, cacheEntry);
         Assert.assertEquals(lmDate,
                 result.getFirstHeader("If-Modified-Since").getValue());
         Assert.assertEquals(etag,
@@ -123,9 +123,9 @@ public class TestConditionalRequestBuilder {
         final String theUri = "/theuri";
         final String theETag = "this is my eTag";
 
-        final HttpRequest basicRequest = new BasicHttpRequest(theMethod, theUri);
+        final ClassicHttpRequest basicRequest = new BasicClassicHttpRequest(theMethod, theUri);
         basicRequest.addHeader("Accept-Encoding", "gzip");
-        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(basicRequest, host);
+        final ClassicHttpRequest requestWrapper = ExecSupport.copy(basicRequest);
 
         final Header[] headers = new Header[] {
                 new BasicHeader("Date", DateUtils.formatDate(new Date())),
@@ -134,14 +134,12 @@ public class TestConditionalRequestBuilder {
 
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(headers);
 
-        final HttpRequest newRequest = impl.buildConditionalRequest(requestWrapper, cacheEntry);
+        final ClassicHttpRequest newRequest = impl.buildConditionalRequest(requestWrapper, cacheEntry);
 
         Assert.assertNotSame(basicRequest, newRequest);
 
-        Assert.assertEquals(theMethod, newRequest.getRequestLine().getMethod());
-        Assert.assertEquals(theUri, newRequest.getRequestLine().getUri());
-        Assert.assertEquals(basicRequest.getRequestLine().getProtocolVersion(), newRequest
-                .getRequestLine().getProtocolVersion());
+        Assert.assertEquals(theMethod, newRequest.getMethod());
+        Assert.assertEquals(theUri, newRequest.getRequestUri());
 
         Assert.assertEquals(3, newRequest.getAllHeaders().length);
 
@@ -154,8 +152,8 @@ public class TestConditionalRequestBuilder {
 
     @Test
     public void testCacheEntryWithMustRevalidateDoesEndToEndRevalidation() throws Exception {
-        final HttpRequest basicRequest = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
-        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(basicRequest, host);
+        final ClassicHttpRequest basicRequest = new BasicClassicHttpRequest("GET","/");
+        final ClassicHttpRequest requestWrapper = ExecSupport.copy(basicRequest);
         final Date now = new Date();
         final Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
@@ -167,15 +165,15 @@ public class TestConditionalRequestBuilder {
                 new BasicHeader("Cache-Control","max-age=5, must-revalidate") };
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, cacheEntryHeaders);
 
-        final HttpRequest result = impl.buildConditionalRequest(requestWrapper, cacheEntry);
+        final ClassicHttpRequest result = impl.buildConditionalRequest(requestWrapper, cacheEntry);
 
         boolean foundMaxAge0 = false;
-        for(final Header h : result.getHeaders("Cache-Control")) {
-            for(final HeaderElement elt : h.getElements()) {
-                if ("max-age".equalsIgnoreCase(elt.getName())
-                    && "0".equals(elt.getValue())) {
-                    foundMaxAge0 = true;
-                }
+
+        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HeaderConstants.CACHE_CONTROL);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            if ("max-age".equalsIgnoreCase(elt.getName()) && "0".equals(elt.getValue())) {
+                foundMaxAge0 = true;
             }
         }
         Assert.assertTrue(foundMaxAge0);
@@ -183,8 +181,8 @@ public class TestConditionalRequestBuilder {
 
     @Test
     public void testCacheEntryWithProxyRevalidateDoesEndToEndRevalidation() throws Exception {
-        final HttpRequest basicRequest = new BasicHttpRequest("GET","/",HttpVersion.HTTP_1_1);
-        final HttpRequestWrapper requestWrapper = HttpRequestWrapper.wrap(basicRequest, host);
+        final ClassicHttpRequest basicRequest = new BasicClassicHttpRequest("GET", "/");
+        final ClassicHttpRequest requestWrapper = ExecSupport.copy(basicRequest);
         final Date now = new Date();
         final Date elevenSecondsAgo = new Date(now.getTime() - 11 * 1000L);
         final Date tenSecondsAgo = new Date(now.getTime() - 10 * 1000L);
@@ -196,15 +194,14 @@ public class TestConditionalRequestBuilder {
                 new BasicHeader("Cache-Control","max-age=5, proxy-revalidate") };
         final HttpCacheEntry cacheEntry = HttpTestUtils.makeCacheEntry(elevenSecondsAgo, nineSecondsAgo, cacheEntryHeaders);
 
-        final HttpRequest result = impl.buildConditionalRequest(requestWrapper, cacheEntry);
+        final ClassicHttpRequest result = impl.buildConditionalRequest(requestWrapper, cacheEntry);
 
         boolean foundMaxAge0 = false;
-        for(final Header h : result.getHeaders("Cache-Control")) {
-            for(final HeaderElement elt : h.getElements()) {
-                if ("max-age".equalsIgnoreCase(elt.getName())
-                    && "0".equals(elt.getValue())) {
-                    foundMaxAge0 = true;
-                }
+        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HeaderConstants.CACHE_CONTROL);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            if ("max-age".equalsIgnoreCase(elt.getName()) && "0".equals(elt.getValue())) {
+                foundMaxAge0 = true;
             }
         }
         Assert.assertTrue(foundMaxAge0);
@@ -213,36 +210,36 @@ public class TestConditionalRequestBuilder {
     @Test
     public void testBuildUnconditionalRequestUsesGETMethod()
         throws Exception {
-        final HttpRequest result = impl.buildUnconditionalRequest(request, entry);
-        Assert.assertEquals("GET", result.getRequestLine().getMethod());
+        final ClassicHttpRequest result = impl.buildUnconditionalRequest(request);
+        Assert.assertEquals("GET", result.getMethod());
     }
 
     @Test
     public void testBuildUnconditionalRequestUsesRequestUri()
         throws Exception {
         final String uri = "/theURI";
-        request = HttpRequestWrapper.wrap(new BasicHttpRequest("GET", uri, HttpVersion.HTTP_1_1), host);
-        final HttpRequest result = impl.buildUnconditionalRequest(request, entry);
-        Assert.assertEquals(uri, result.getRequestLine().getUri());
+        request = new BasicClassicHttpRequest("GET", uri);
+        final ClassicHttpRequest result = impl.buildUnconditionalRequest(request);
+        Assert.assertEquals(uri, result.getRequestUri());
     }
 
     @Test
     public void testBuildUnconditionalRequestUsesHTTP_1_1()
         throws Exception {
-        final HttpRequest result = impl.buildUnconditionalRequest(request, entry);
-        Assert.assertEquals(HttpVersion.HTTP_1_1, result.getProtocolVersion());
+        final ClassicHttpRequest result = impl.buildUnconditionalRequest(request);
+        Assert.assertEquals(HttpVersion.HTTP_1_1, result.getVersion());
     }
 
     @Test
     public void testBuildUnconditionalRequestAddsCacheControlNoCache()
         throws Exception {
-        final HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        final ClassicHttpRequest result = impl.buildUnconditionalRequest(request);
         boolean ccNoCacheFound = false;
-        for(final Header h : result.getHeaders("Cache-Control")) {
-            for(final HeaderElement elt : h.getElements()) {
-                if ("no-cache".equals(elt.getName())) {
-                    ccNoCacheFound = true;
-                }
+        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HeaderConstants.CACHE_CONTROL);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            if ("no-cache".equals(elt.getName())) {
+                ccNoCacheFound = true;
             }
         }
         Assert.assertTrue(ccNoCacheFound);
@@ -251,13 +248,13 @@ public class TestConditionalRequestBuilder {
     @Test
     public void testBuildUnconditionalRequestAddsPragmaNoCache()
         throws Exception {
-        final HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        final ClassicHttpRequest result = impl.buildUnconditionalRequest(request);
         boolean ccNoCacheFound = false;
-        for(final Header h : result.getHeaders("Pragma")) {
-            for(final HeaderElement elt : h.getElements()) {
-                if ("no-cache".equals(elt.getName())) {
-                    ccNoCacheFound = true;
-                }
+        final Iterator<HeaderElement> it = MessageSupport.iterate(result, HeaderConstants.PRAGMA);
+        while (it.hasNext()) {
+            final HeaderElement elt = it.next();
+            if ("no-cache".equals(elt.getName())) {
+                ccNoCacheFound = true;
             }
         }
         Assert.assertTrue(ccNoCacheFound);
@@ -267,7 +264,7 @@ public class TestConditionalRequestBuilder {
     public void testBuildUnconditionalRequestDoesNotUseIfRange()
         throws Exception {
         request.addHeader("If-Range","\"etag\"");
-        final HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        final ClassicHttpRequest result = impl.buildUnconditionalRequest(request);
         Assert.assertNull(result.getFirstHeader("If-Range"));
     }
 
@@ -275,7 +272,7 @@ public class TestConditionalRequestBuilder {
     public void testBuildUnconditionalRequestDoesNotUseIfMatch()
         throws Exception {
         request.addHeader("If-Match","\"etag\"");
-        final HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        final ClassicHttpRequest result = impl.buildUnconditionalRequest(request);
         Assert.assertNull(result.getFirstHeader("If-Match"));
     }
 
@@ -283,7 +280,7 @@ public class TestConditionalRequestBuilder {
     public void testBuildUnconditionalRequestDoesNotUseIfNoneMatch()
         throws Exception {
         request.addHeader("If-None-Match","\"etag\"");
-        final HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        final ClassicHttpRequest result = impl.buildUnconditionalRequest(request);
         Assert.assertNull(result.getFirstHeader("If-None-Match"));
     }
 
@@ -291,7 +288,7 @@ public class TestConditionalRequestBuilder {
     public void testBuildUnconditionalRequestDoesNotUseIfUnmodifiedSince()
         throws Exception {
         request.addHeader("If-Unmodified-Since", DateUtils.formatDate(new Date()));
-        final HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        final ClassicHttpRequest result = impl.buildUnconditionalRequest(request);
         Assert.assertNull(result.getFirstHeader("If-Unmodified-Since"));
     }
 
@@ -299,7 +296,7 @@ public class TestConditionalRequestBuilder {
     public void testBuildUnconditionalRequestDoesNotUseIfModifiedSince()
         throws Exception {
         request.addHeader("If-Modified-Since", DateUtils.formatDate(new Date()));
-        final HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        final ClassicHttpRequest result = impl.buildUnconditionalRequest(request);
         Assert.assertNull(result.getFirstHeader("If-Modified-Since"));
     }
 
@@ -307,7 +304,7 @@ public class TestConditionalRequestBuilder {
     public void testBuildUnconditionalRequestCarriesOtherRequestHeaders()
         throws Exception {
         request.addHeader("User-Agent","MyBrowser/1.0");
-        final HttpRequest result = impl.buildUnconditionalRequest(request, entry);
+        final ClassicHttpRequest result = impl.buildUnconditionalRequest(request);
         Assert.assertEquals("MyBrowser/1.0",
                 result.getFirstHeader("User-Agent").getValue());
     }
@@ -323,7 +320,7 @@ public class TestConditionalRequestBuilder {
         variantEntries.put(etag2, new Variant("C","D",HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag2) })));
         variantEntries.put(etag3, new Variant("E","F",HttpTestUtils.makeCacheEntry(new Header[] { new BasicHeader("ETag", etag3) })));
 
-        final HttpRequest conditional = impl.buildConditionalRequestFromVariants(request, variantEntries);
+        final ClassicHttpRequest conditional = impl.buildConditionalRequestFromVariants(request, variantEntries);
 
         // seems like a lot of work, but necessary, check for existence and exclusiveness
         String ifNoneMatch = conditional.getFirstHeader(HeaderConstants.IF_NONE_MATCH).getValue();

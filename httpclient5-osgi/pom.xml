@@ -28,7 +28,7 @@
   <parent>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5-parent</artifactId>
-      <version>5.0-alpha2-SNAPSHOT</version>
+      <version>5.0-alpha3-SNAPSHOT</version>
   </parent>
   <artifactId>httpclient5-osgi</artifactId>
   <name>Apache HttpClient OSGi bundle</name>
@@ -40,12 +40,9 @@
   <packaging>bundle</packaging>
 
   <properties>
-    <httpcore.osgi.import.version>"5.0-alpha1"</httpcore.osgi.import.version>
-    <log4j.osgi.import.version>"2.7"</log4j.osgi.import.version>
-    <pax.url.version>2.4.1</pax.url.version>
-    <pax.exam.version>4.5.0</pax.exam.version>
+    <httpcore.osgi.import.version>"5.0-alpha2"</httpcore.osgi.import.version>
+    <log4j.osgi.import.version>"2.8"</log4j.osgi.import.version>
     <osgi.framework.version>5.0.0</osgi.framework.version>
-    <slf4j.version>1.7.5</slf4j.version>
   </properties>
 
   <dependencies>
@@ -94,48 +91,11 @@
       <version>${osgi.framework.version}</version>
       <scope>provided</scope>
     </dependency>
-    <!-- test dependencies, mainly OSGi runtime environment -->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>org.ops4j.pax.exam</groupId>
-          <artifactId>pax-exam-container-native</artifactId>
-          <version>${pax.exam.version}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.apache.felix</groupId>
-          <artifactId>org.apache.felix.framework</artifactId>
-          <version>5.0.1</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.ops4j.pax.exam</groupId>
-          <artifactId>pax-exam-junit4</artifactId>
-          <scope>test</scope>
-          <version>${pax.exam.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.ops4j.pax.exam</groupId>
-          <artifactId>pax-exam-link-mvn</artifactId>
-          <scope>test</scope>
-          <version>${pax.exam.version}</version>
-      </dependency>
-      <dependency>
-          <groupId>org.ops4j.pax.url</groupId>
-          <artifactId>pax-url-aether</artifactId>
-          <version>${pax.url.version}</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-          <version>${slf4j.version}</version>
-          <scope>test</scope>
-      </dependency>
       <dependency>
           <groupId>org.mockito</groupId>
           <artifactId>mockito-core</artifactId>
@@ -150,29 +110,6 @@
       </resource>
     </resources>
     <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <executions>
-                <execution>
-                    <id>copy-bundles</id>
-                    <phase>generate-test-resources</phase>
-                    <goals>
-                        <goal>copy-dependencies</goal>
-                    </goals>
-                    <configuration>
-                        <outputDirectory>${project.build.directory}/bundles</outputDirectory>
-                        <!--
-                          Exclude the ones that are not OSGi
-                          components, plus OSGi itself.
-                      -->
-                        <excludeGroupIds>org.slf4j</excludeGroupIds>
-                        <excludeArtifactIds>httpclient,httpmime,httpclient-cache,fluent-hc,httpcore,org.osgi.core</excludeArtifactIds>
-                        <includeScope>compile</includeScope>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
@@ -198,17 +135,7 @@
                 org.osgi.framework,
                 org.osgi.service.cm,
                 org.apache.logging.log4j;version=${log4j.osgi.import.version},
-                org.apache.hc.core5.concurrent;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.pool;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.ssl;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.util;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http.config;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http.entity;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http.message;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http.io;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http.protocol;version=${httpcore.osgi.import.version},
-                org.apache.hc.core5.http.impl.io;version=${httpcore.osgi.import.version},
+                org.apache.hc.core5.*;version=${httpcore.osgi.import.version},
                 net.sf.ehcache.*;resolution:=optional,
                 net.spy.memcached.*;resolution:=optional
             </Import-Package>

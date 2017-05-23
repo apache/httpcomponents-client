@@ -26,73 +26,60 @@
  */
 package org.apache.hc.client5.http.impl.cache;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Locale;
 
-import org.apache.hc.core5.annotation.Immutable;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.ProtocolException;
 import org.apache.hc.core5.http.ProtocolVersion;
-import org.apache.hc.core5.http.StatusLine;
-import org.apache.hc.core5.http.message.AbstractHttpMessage;
-import org.apache.hc.core5.http.message.BasicStatusLine;
 
 /**
  * @since 4.1
  */
-@Immutable
-final class OptionsHttp11Response extends AbstractHttpMessage implements HttpResponse {
+@Contract(threading = ThreadingBehavior.IMMUTABLE)
+final class OptionsHttp11Response implements ClassicHttpResponse, Serializable {
 
     private static final long serialVersionUID = 1L;
-    private final StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1,
-            HttpStatus.SC_NOT_IMPLEMENTED, "");
-    private final ProtocolVersion version = HttpVersion.HTTP_1_1;
-
-    @Override
-    public StatusLine getStatusLine() {
-        return statusLine;
-    }
 
     @Override
     public int getCode() {
-        return statusLine.getStatusCode();
+        return HttpStatus.SC_NOT_IMPLEMENTED;
     }
 
     @Override
-    public void setStatusLine(final StatusLine statusline) {
-        // No-op on purpose, this class is not going to be doing any work.
+    public void setCode(final int code) {
     }
 
     @Override
-    public void setStatusLine(final ProtocolVersion ver, final int code) {
-        // No-op on purpose, this class is not going to be doing any work.
-    }
-
-    @Override
-    public void setStatusLine(final ProtocolVersion ver, final int code, final String reason) {
-        // No-op on purpose, this class is not going to be doing any work.
-    }
-
-    @Override
-    public void setStatusCode(final int code) throws IllegalStateException {
-        // No-op on purpose, this class is not going to be doing any work.
-    }
-
-    @Override
-    public void setReasonPhrase(final String reason) throws IllegalStateException {
-        // No-op on purpose, this class is not going to be doing any work.
-    }
-
-    @Override
-    public HttpEntity getEntity() {
+    public String getReasonPhrase() {
         return null;
     }
 
     @Override
-    public void setEntity(final HttpEntity entity) {
+    public void setVersion(final ProtocolVersion version) {
+    }
+
+    @Override
+    public int containsHeaders(final String name) {
+        return 0;
+    }
+
+    @Override
+    public Header getSingleHeader(final String name) throws ProtocolException {
+        return null;
+    }
+
+    @Override
+    public void setReasonPhrase(final String reason) throws IllegalStateException {
         // No-op on purpose, this class is not going to be doing any work.
     }
 
@@ -107,33 +94,33 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
     }
 
     @Override
-    public ProtocolVersion getProtocolVersion() {
-        return version;
+    public ProtocolVersion getVersion() {
+        return HttpVersion.HTTP_1_1;
     }
 
     @Override
     public boolean containsHeader(final String name) {
-        return super.containsHeader(name);
+        return false;
     }
 
     @Override
     public Header[] getHeaders(final String name) {
-        return super.getHeaders(name);
+        return null;
     }
 
     @Override
     public Header getFirstHeader(final String name) {
-        return super.getFirstHeader(name);
+        return null;
     }
 
     @Override
     public Header getLastHeader(final String name) {
-        return super.getLastHeader(name);
+        return null;
     }
 
     @Override
     public Header[] getAllHeaders() {
-        return super.getAllHeaders();
+        return null;
     }
 
     @Override
@@ -173,13 +160,25 @@ final class OptionsHttp11Response extends AbstractHttpMessage implements HttpRes
 
     @Override
     public Iterator<Header> headerIterator() {
-        return super.headerIterator();
+        return Collections.emptyIterator();
     }
 
     @Override
     public Iterator<Header> headerIterator(final String name) {
-        return super.headerIterator(name);
+        return Collections.emptyIterator();
     }
 
+    @Override
+    public HttpEntity getEntity() {
+        return null;
+    }
+
+    @Override
+    public void setEntity(final HttpEntity entity) {
+    }
+
+    @Override
+    public void close() throws IOException {
+    }
 
 }
