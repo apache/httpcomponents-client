@@ -61,6 +61,7 @@ import org.apache.http.auth.Credentials;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.NTCredentials;
+import org.apache.http.conn.ssl.SSLInitializationException;
 import org.apache.http.message.BufferedHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContexts;
@@ -178,11 +179,11 @@ public class CredSspScheme extends AuthSchemeBase
         }
         catch ( NoSuchAlgorithmException e )
         {
-            throw new RuntimeException( "Error creating SSL Context: " + e.getMessage(), e );
+            throw new SSLInitializationException( "Error creating SSL Context: " + e.getMessage(), e );
         }
         catch ( KeyManagementException e )
         {
-            throw new RuntimeException( "Error creating SSL Context: " + e.getMessage(), e );
+            throw new SSLInitializationException( "Error creating SSL Context: " + e.getMessage(), e );
         }
 
         final X509TrustManager tm = new X509TrustManager()
@@ -220,7 +221,7 @@ public class CredSspScheme extends AuthSchemeBase
         }
         catch ( KeyManagementException e )
         {
-            throw new RuntimeException( "SSL Context initialization error: " + e.getMessage(), e );
+            throw new SSLInitializationException( "SSL Context initialization error: " + e.getMessage(), e );
         }
         final SSLEngine sslEngine = sslContext.createSSLEngine();
         sslEngine.setUseClientMode( true );
