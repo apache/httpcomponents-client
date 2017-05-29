@@ -64,6 +64,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -173,7 +174,7 @@ public class CredSspScheme implements AuthScheme
         }
         catch ( NoSuchAlgorithmException | KeyManagementException e )
         {
-            throw new RuntimeException( "Error creating SSL Context: " + e.getMessage(), e );
+            throw new SSLInitializationException( "Error creating SSL Context: " + e.getMessage(), e );
         }
 
         final X509TrustManager tm = new X509TrustManager()
@@ -211,7 +212,7 @@ public class CredSspScheme implements AuthScheme
         }
         catch ( final KeyManagementException e )
         {
-            throw new RuntimeException( "SSL Context initialization error: " + e.getMessage(), e );
+            throw new SSLInitializationException( "SSL Context initialization error: " + e.getMessage(), e );
         }
         final SSLEngine sslEngine = sslContext.createSSLEngine();
         sslEngine.setUseClientMode( true );
