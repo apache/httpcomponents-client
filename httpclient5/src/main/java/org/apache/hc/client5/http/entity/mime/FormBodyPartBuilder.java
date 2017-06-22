@@ -101,11 +101,11 @@ public class FormBodyPartBuilder {
         if (headerCopy.getField(MIME.CONTENT_DISPOSITION) == null) {
             final StringBuilder buffer = new StringBuilder();
             buffer.append("form-data; name=\"");
-            buffer.append(this.name);
+            buffer.append(encodeForHeader(this.name));
             buffer.append("\"");
             if (this.body.getFilename() != null) {
                 buffer.append("; filename=\"");
-                buffer.append(this.body.getFilename());
+                buffer.append(encodeForHeader(this.body.getFilename()));
                 buffer.append("\"");
             }
             headerCopy.addField(new MinimalField(MIME.CONTENT_DISPOSITION, buffer.toString()));
@@ -134,6 +134,21 @@ public class FormBodyPartBuilder {
             headerCopy.addField(new MinimalField(MIME.CONTENT_TRANSFER_ENC, body.getTransferEncoding()));
         }
         return new FormBodyPart(this.name, this.body, headerCopy);
+    }
+
+    private static String encodeForHeader(final String headerName) {
+        if (headerName == null) {
+            return null;
+        }
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < headerName.length(); i++) {
+            final char x = headerName.charAt(i);
+            if (x == '"' || x == '\\' || x == '\r') {
+                sb.append("\\");
+            }
+            sb.append(x);
+        }
+        return sb.toString();
     }
 
 }
