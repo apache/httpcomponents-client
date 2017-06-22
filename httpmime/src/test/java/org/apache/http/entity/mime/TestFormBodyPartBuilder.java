@@ -27,12 +27,14 @@
 
 package org.apache.http.entity.mime;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.junit.Assert;
 import org.junit.Test;
@@ -56,6 +58,29 @@ public class TestFormBodyPartBuilder {
                         new MinimalField("Content-Type", "text/plain; charset=ISO-8859-1"),
                         new MinimalField("Content-Transfer-Encoding", "8bit")),
                 header.getFields());
+    }
+
+    @Test
+    public void testCharacterStuffing() throws Exception {
+        final FormBodyPartBuilder builder = FormBodyPartBuilder.create();
+        final InputStreamBody fileBody = new InputStreamBody(new ByteArrayInputStream(
+                "hello world".getBytes("UTF-8")), "stuff_with \"quotes\" and \\slashes\\.bin");
+        final FormBodyPart bodyPart2 = builder
+                .setName("yada_with \"quotes\" and \\slashes\\")
+                .setBody(fileBody)
+                .build();
+
+        Assert.assertNotNull(bodyPart2);
+        Assert.assertEquals("yada_with \"quotes\" and \\slashes\\", bodyPart2.getName());
+        Assert.assertEquals(fileBody, bodyPart2.getBody());
+        final Header header2 = bodyPart2.getHeader();
+        Assert.assertNotNull(header2);
+        assertFields(Arrays.asList(
+                        new MinimalField("Content-Disposition", "form-data; name=\"yada_with \\\"quotes\\\" " +
+                                "and \\\\slashes\\\\\"; filename=\"stuff_with \\\"quotes\\\" and \\\\slashes\\\\.bin\""),
+                        new MinimalField("Content-Type", "application/octet-stream"),
+                        new MinimalField("Content-Transfer-Encoding", "binary")),
+                header2.getFields());
     }
 
     @Test
