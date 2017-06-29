@@ -420,4 +420,38 @@
     </plugins>
   </reporting>
 
+  <!-- temporary location; will be moved to parent pom -->
+  <profiles>
+    <profile>
+     <id>toolchain</id>
+      <activation>
+        <file>
+          <exists>${user.home}/.m2/toolchains.xml</exists>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-toolchains-plugin</artifactId>
+            <version>1.1</version>
+            <configuration>
+              <toolchains>
+                <jdk>
+                  <version>${maven.compiler.source}</version>
+                </jdk>
+              </toolchains>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>toolchain</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>  
+  </profiles>
 </project>
