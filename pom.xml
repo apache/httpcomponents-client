@@ -40,6 +40,18 @@
   <inceptionYear>1999</inceptionYear>
   <packaging>pom</packaging>
 
+  <!-- Temp change to give access to SNAPSHOTS without needing parent pom chain -->
+  <repositories>
+    <repository>
+      <id>apache.snapshots</id>
+      <name>Apache Snapshot Repository</name>
+      <url>https://repository.apache.org/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
+  </repositories>
+
   <organization>
     <name>The Apache Software Foundation</name>
     <url>http://www.apache.org/</url>
