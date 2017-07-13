@@ -821,7 +821,7 @@ final class NTLMEngineImpl implements NTLMEngine {
 
         private Cipher initCipher() throws NTLMEngineException
         {
-            Cipher cipher;
+            final Cipher cipher;
             try
             {
                 cipher = Cipher.getInstance( "RC4" );
@@ -834,7 +834,7 @@ final class NTLMEngineImpl implements NTLMEngine {
                     cipher.init( Cipher.DECRYPT_MODE, new SecretKeySpec( sealingKey, "RC4" ) );
                 }
             }
-            catch ( Exception e )
+            catch ( final Exception e )
             {
                 throw new NTLMEngineException( e.getMessage(), e );
             }
@@ -1779,7 +1779,7 @@ final class NTLMEngineImpl implements NTLMEngine {
             writeUShort( newTargetInfo, MSV_AV_CHANNEL_BINDINGS, appendLength + 8 );
             writeUShort( newTargetInfo, 16, appendLength + 10 );
 
-            byte[] channelBindingsHash;
+            final byte[] channelBindingsHash;
             try
             {
                 final byte[] certBytes = peerServerCertificate.getEncoded();
@@ -1795,11 +1795,11 @@ final class NTLMEngineImpl implements NTLMEngine {
                 final MessageDigest md5 = getMD5();
                 channelBindingsHash = md5.digest( channelBindingStruct );
             }
-            catch ( CertificateEncodingException e )
+            catch ( final CertificateEncodingException e )
             {
                 throw new NTLMEngineException( e.getMessage(), e );
             }
-            catch ( NoSuchAlgorithmException e )
+            catch ( final NoSuchAlgorithmException e )
             {
                 throw new NTLMEngineException( e.getMessage(), e );
             }
@@ -1841,7 +1841,7 @@ final class NTLMEngineImpl implements NTLMEngine {
     static MessageDigest getMD5() {
         try {
             return MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (final NoSuchAlgorithmException ex) {
             throw new RuntimeException("MD5 message digest doesn't seem to exist - fatal error: "+ex.getMessage(), ex);
         }
     }

@@ -316,7 +316,7 @@ public class TestHostnameVerifier {
 
     @Test
     public void testHTTPCLIENT_1097() {
-        String cns[];
+        final String cns[];
         final String alt[] = {};
         final X509HostnameVerifier bhv = new BrowserCompatHostnameVerifier();
         final X509HostnameVerifier shv = new StrictHostnameVerifier();

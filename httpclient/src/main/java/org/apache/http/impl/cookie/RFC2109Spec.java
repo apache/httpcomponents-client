@@ -135,7 +135,7 @@ public class RFC2109Spec extends CookieSpecBase {
     @Override
     public List<Header> formatCookies(final List<Cookie> cookies) {
         Args.notEmpty(cookies, "List of cookies");
-        List<Cookie> cookieList;
+        final List<Cookie> cookieList;
         if (cookies.size() > 1) {
             // Create a mutable copy and sort the copy.
             cookieList = new ArrayList<Cookie>(cookies);

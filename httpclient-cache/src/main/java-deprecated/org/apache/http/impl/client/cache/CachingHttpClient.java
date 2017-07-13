@@ -387,7 +387,7 @@ public class CachingHttpClient implements HttpClient {
     private <T> T handleAndConsume(
             final ResponseHandler<? extends T> responseHandler,
             final HttpResponse response) throws Error, IOException {
-        T result;
+        final T result;
         try {
             result = responseHandler.handleResponse(response);
         } catch (final Exception t) {
@@ -429,7 +429,7 @@ public class CachingHttpClient implements HttpClient {
     public HttpResponse execute(final HttpHost target, final HttpRequest originalRequest, final HttpContext context)
             throws IOException {
 
-        HttpRequestWrapper request;
+        final HttpRequestWrapper request;
         if (originalRequest instanceof HttpRequestWrapper) {
             request = ((HttpRequestWrapper) originalRequest);
         } else {
@@ -693,7 +693,7 @@ public class CachingHttpClient implements HttpClient {
         final VersionInfo vi = VersionInfo.loadVersionInfo("org.apache.http.client", getClass().getClassLoader());
         final String release = (vi != null) ? vi.getRelease() : VersionInfo.UNAVAILABLE;
 
-        String value;
+        final String value;
         if ("http".equalsIgnoreCase(pv.getProtocol())) {
             value = String.format("%d.%d localhost (Apache-HttpClient/%s (cache))", pv.getMajor(), pv.getMinor(),
                     release);
