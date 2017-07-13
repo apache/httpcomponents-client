@@ -770,7 +770,7 @@ final class NTLMEngineImpl implements NTLMEngine {
         final private byte[] exportedSessionKey;
         private byte[] signingKey;
         private byte[] sealingKey;
-        private Cipher rc4;
+        private final Cipher rc4;
         final Mode mode;
         final private boolean isConnection;
         int sequenceNumber = 0;
