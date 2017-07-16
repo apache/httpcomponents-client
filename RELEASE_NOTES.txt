@@ -1,9 +1,11 @@
-Release 5.0-ALPHA3
+﻿Release 5.0-ALPHA3
 -------------------
 
 * [HTTPCLIENT-1845]: Extract InputStreamFactory classes out of GzipDecompressingEntity and 
   DeflateDecompressingEntity for reuse and to create less garbage.
   Contributed by Gary Gregory <ggregory at apache.org>
+
+* [HTTPCLIENT-1858] Alleviate GC pressure due to wire logging.
 
 
 Release 5.0-ALPHA2

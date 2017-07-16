@@ -34,6 +34,42 @@ import org.apache.logging.log4j.Logger;
 
 class Wire {
 
+    private static final int MAX_STRING_BUILDER_SIZE = 2048;
+
+    private static final ThreadLocal<StringBuilder> threadLocal = new ThreadLocal<>();
+
+    /**
+     * Returns a {@code StringBuilder} that this Layout implementation can use to write the formatted log event to.
+     *
+     * @return a {@code StringBuilder}
+     */
+    private static StringBuilder getStringBuilder() {
+        StringBuilder result = threadLocal.get();
+        if (result == null) {
+            result = new StringBuilder(MAX_STRING_BUILDER_SIZE);
+            threadLocal.set(result);
+        }
+        // TODO Delegate to Log4j's 2.9 StringBuilds.trimToMaxSize() when it is released.
+        trimToMaxSize(result, MAX_STRING_BUILDER_SIZE);
+        result.setLength(0);
+        return result;
+    }
+
+    /**
+     * Ensures that the char[] array of the specified StringBuilder does not exceed the specified number of characters.
+     * This method is useful to ensure that excessively long char[] arrays are not kept in memory forever.
+     *
+     * @param stringBuilder the StringBuilder to check
+     * @param maxSize the maximum number of characters the StringBuilder is allowed to have
+     */
+    // TODO Delete wheb Log4j's 2.9 (see #trimToMaxSize(StringBuild))
+    private static void trimToMaxSize(final StringBuilder stringBuilder, final int maxSize) {
+        if (stringBuilder != null && stringBuilder.length() > maxSize) {
+            stringBuilder.setLength(maxSize);
+            stringBuilder.trimToSize();
+        }
+    }
+
     private final Logger log;
     private final String id;
 
@@ -44,7 +80,7 @@ class Wire {
     }
 
     private void wire(final String header, final byte[] b, final int pos, final int off) {
-        final StringBuilder buffer = new StringBuilder();
+        final StringBuilder buffer = getStringBuilder();
         for (int i = 0; i < off; i++) {
             final int ch = b[pos + i];
             if (ch == 13) {
