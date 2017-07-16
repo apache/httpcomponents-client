@@ -33,7 +33,7 @@ import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 /**
- * {@link org.apache.hc.client5.http.sync.ResponseHandler} implementation that converts
+ * {@link org.apache.hc.core5.http.io.ResponseHandler} implementation that converts
  * {@link org.apache.hc.core5.http.HttpResponse} messages to {@link Content}
  * instances.
  *

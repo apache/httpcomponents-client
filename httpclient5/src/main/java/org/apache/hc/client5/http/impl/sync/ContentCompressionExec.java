@@ -94,8 +94,8 @@ public final class ContentCompressionExec implements ExecChainHandler {
      * Handles {@code gzip} and {@code deflate} compressed entities by using the following
      * decoders:
      * <ul>
-     * <li>gzip - see {@link GZIPInputStream}</li>
-     * <li>deflate - see {@link DeflateInputStream}</li>
+     * <li>gzip - see {@link java.util.zip.GZIPInputStream}</li>
+     * <li>deflate - see {@link org.apache.hc.client5.http.entity.DeflateInputStream}</li>
      * </ul>
      */
     public ContentCompressionExec() {
