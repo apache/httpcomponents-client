@@ -37,6 +37,9 @@ import org.apache.hc.core5.pool.ConnPoolListener;
 import org.apache.hc.core5.pool.ConnPoolPolicy;
 import org.apache.hc.core5.util.TimeValue;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
 /**
  * Builder for {@link PoolingAsyncClientConnectionManager} instances.
  * <p>
@@ -176,10 +179,7 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         @SuppressWarnings("resource")
         final PoolingAsyncClientConnectionManager poolingmgr = new PoolingAsyncClientConnectionManager(
                 RegistryBuilder.<TlsStrategy>create()
-                        .register("https", tlsStrategy != null ? tlsStrategy :
-                                (systemProperties ?
-                                        H2TlsStrategy.getSystemDefault() :
-                                        H2TlsStrategy.getDefault()))
+                        .register("https", getTlsStrategy())
                         .build(),
                 schemePortResolver,
                 dnsResolver,
@@ -196,4 +196,18 @@ public class PoolingAsyncClientConnectionManagerBuilder {
         return poolingmgr;
     }
 
+    private TlsStrategy getTlsStrategy() {
+        if (tlsStrategy != null) {
+            return tlsStrategy;
+        } else if (systemProperties) {
+            return AccessController.doPrivileged(new PrivilegedAction<TlsStrategy>() {
+                @Override
+                public TlsStrategy run() {
+                    return H2TlsStrategy.getSystemDefault();
+                }
+            });
+        } else {
+            return H2TlsStrategy.getDefault();
+        }
+    }
 }

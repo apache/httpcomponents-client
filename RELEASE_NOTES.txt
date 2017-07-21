@@ -6,7 +6,10 @@
   Contributed by Gary Gregory <ggregory at apache.org>
 
 * [HTTPCLIENT-1858] Alleviate GC pressure due to wire logging.
+  Contributed by Gary Gregory <ggregory at apache.org>
 
+* [HTTPASYNC-124] Add doPrivileged blocks to async client and connection manager builders
+  Contributed by Jay Modi <jay at elastic dot co>
 
 Release 5.0-ALPHA2
 -------------------

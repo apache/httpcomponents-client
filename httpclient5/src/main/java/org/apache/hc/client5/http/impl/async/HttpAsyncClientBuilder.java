@@ -30,6 +30,8 @@ package org.apache.hc.client5.http.impl.async;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.ProxySelector;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -749,7 +751,7 @@ public class HttpAsyncClientBuilder {
         String userAgentCopy = this.userAgent;
         if (userAgentCopy == null) {
             if (systemProperties) {
-                userAgentCopy = System.getProperty("http.agent");
+                userAgentCopy = getProperty("http.agent", null);
             }
             if (userAgentCopy == null) {
                 userAgentCopy = VersionInfo.getSoftwareInfo("Apache-HttpAsyncClient",
@@ -831,8 +833,14 @@ public class HttpAsyncClientBuilder {
             if (proxy != null) {
                 routePlannerCopy = new DefaultProxyRoutePlanner(proxy, schemePortResolverCopy);
             } else if (systemProperties) {
+                final ProxySelector defaultProxySelector = AccessController.doPrivileged(new PrivilegedAction<ProxySelector>() {
+                    @Override
+                    public ProxySelector run() {
+                        return ProxySelector.getDefault();
+                    }
+                });
                 routePlannerCopy = new SystemDefaultRoutePlanner(
-                        schemePortResolverCopy, ProxySelector.getDefault());
+                        schemePortResolverCopy, defaultProxySelector);
             } else {
                 routePlannerCopy = new DefaultRoutePlanner(schemePortResolverCopy);
             }
@@ -874,7 +882,7 @@ public class HttpAsyncClientBuilder {
         ConnectionReuseStrategy reuseStrategyCopy = this.reuseStrategy;
         if (reuseStrategyCopy == null) {
             if (systemProperties) {
-                final String s = System.getProperty("http.keepAlive", "true");
+                final String s = getProperty("http.keepAlive", "true");
                 if ("true".equalsIgnoreCase(s)) {
                     reuseStrategyCopy = DefaultConnectionReuseStrategy.INSTANCE;
                 } else {
@@ -996,6 +1004,15 @@ public class HttpAsyncClientBuilder {
                 credentialsProviderCopy,
                 defaultRequestConfig,
                 closeablesCopy);
+    }
+
+    private String getProperty(final String key, final String defaultValue) {
+        return AccessController.doPrivileged(new PrivilegedAction<String>() {
+            @Override
+            public String run() {
+                return System.getProperty(key, defaultValue);
+            }
+        });
     }
 
 }
