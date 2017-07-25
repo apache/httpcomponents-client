@@ -64,7 +64,7 @@ class Wire {
      */
     // TODO Delete wheb Log4j's 2.9 (see #trimToMaxSize(StringBuild))
     private static void trimToMaxSize(final StringBuilder stringBuilder, final int maxSize) {
-        if (stringBuilder != null && stringBuilder.length() > maxSize) {
+        if (stringBuilder != null && stringBuilder.capacity() > maxSize) {
             stringBuilder.setLength(maxSize);
             stringBuilder.trimToSize();
         }
