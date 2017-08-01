@@ -85,7 +85,8 @@ public class ServiceUnavailableRetryExec implements ClientExecChain {
             final CloseableHttpResponse response = this.requestExecutor.execute(
                     route, request, context, execAware);
             try {
-                if (this.retryStrategy.retryRequest(response, c, context)) {
+                if (this.retryStrategy.retryRequest(response, c, context)
+                        && RequestEntityProxy.isRepeatable(request)) {
                     response.close();
                     final long nextInterval = this.retryStrategy.getRetryInterval();
                     if (nextInterval > 0) {

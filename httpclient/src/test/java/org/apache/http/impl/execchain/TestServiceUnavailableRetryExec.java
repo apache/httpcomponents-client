@@ -26,12 +26,14 @@
  */
 package org.apache.http.impl.execchain;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ServiceUnavailableRetryStrategy;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpExecutionAware;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestWrapper;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.routing.HttpRoute;
@@ -114,5 +116,35 @@ public class TestServiceUnavailableRetryExec {
             Mockito.verify(response).close();
             throw ex;
         }
+    }
+
+    @Test
+    public void testNonRepeatableEntityResponseReturnedImmediately() throws Exception {
+        final HttpRoute route = new HttpRoute(target);
+
+        final HttpEntity entity = Mockito.mock(HttpEntity.class);
+        Mockito.when(entity.isRepeatable()).thenReturn(Boolean.FALSE);
+
+        final HttpPut put = new HttpPut("/test");
+        put.setEntity(entity);
+
+        final HttpRequestWrapper request = HttpRequestWrapper.wrap(put);
+        final HttpClientContext context = HttpClientContext.create();
+        final CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
+
+        Mockito.when(requestExecutor.execute(
+                Mockito.eq(route),
+                Mockito.<HttpRequestWrapper>any(),
+                Mockito.<HttpClientContext>any(),
+                Mockito.<HttpExecutionAware>any())).thenReturn(response);
+
+        Mockito.when(retryStrategy.retryRequest(
+                Mockito.<HttpResponse>any(),
+                Mockito.anyInt(),
+                Mockito.<HttpContext>any())).thenReturn(Boolean.TRUE, Boolean.FALSE);
+
+        retryExec.execute(route, request, context, execAware);
+
+        Mockito.verify(response, Mockito.times(0)).close();
     }
 }
