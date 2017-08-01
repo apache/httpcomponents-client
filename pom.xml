@@ -25,8 +25,8 @@
    <http://www.apache.org />.
  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
-    <artifactId>project</artifactId>
     <groupId>org.apache.httpcomponents</groupId>
+    <artifactId>project</artifactId>
     <version>8</version>
     <relativePath>../project/pom.xml</relativePath>
   </parent>
@@ -216,7 +216,6 @@
         <configuration>
           <!-- reduce console output. Can override with -Dquiet=false -->
           <quiet>true</quiet>
-          <source>${maven.compiler.source}</source>
           <links>
             <link>http://docs.oracle.com/javase/6/docs/api/</link>
             <link>http://hc.apache.org/httpcomponents-core-ga/httpcore/apidocs/</link>
