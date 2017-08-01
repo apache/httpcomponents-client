@@ -39,6 +39,7 @@ import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.util.Args;
 import org.apache.logging.log4j.LogManager;
@@ -82,6 +83,10 @@ final class ServiceUnavailableRetryExec implements ExecChainHandler {
         for (int c = 1;; c++) {
             final ClassicHttpResponse response = chain.proceed(currentRequest, scope);
             try {
+                final HttpEntity entity = request.getEntity();
+                if (entity != null && !entity.isRepeatable()) {
+                    return response;
+                }
                 if (this.retryStrategy.retryRequest(response, c, context)) {
                     response.close();
                     final long nextInterval = this.retryStrategy.getRetryInterval(response, context);
