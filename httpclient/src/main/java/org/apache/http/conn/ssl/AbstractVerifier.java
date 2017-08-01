@@ -203,7 +203,7 @@ public abstract class AbstractVerifier implements X509HostnameVerifier {
         final boolean doWildcard = parts.length >= 3 && parts[0].endsWith("*") &&
                 (!strict || validCountryWildcard(parts));
         if (doWildcard) {
-            boolean match;
+            final boolean match;
             final String firstpart = parts[0];
             if (firstpart.length() > 1) { // e.g. server*
                 final String prefix = firstpart.substring(0, firstpart.length() - 1); // e.g. server

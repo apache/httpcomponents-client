@@ -76,7 +76,7 @@ public class TestNTLMEngineImpl {
 
     /* Test suite MD4 helper */
     static void checkMD4(final String input, final String hexOutput) throws Exception {
-        NTLMEngineImpl.MD4 md4;
+        final NTLMEngineImpl.MD4 md4;
         md4 = new NTLMEngineImpl.MD4();
         md4.update(input.getBytes(Consts.ASCII));
         final byte[] answer = md4.getOutput();

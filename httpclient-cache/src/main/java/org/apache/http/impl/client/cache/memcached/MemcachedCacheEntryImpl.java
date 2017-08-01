@@ -58,7 +58,7 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
     @Override
     synchronized public byte[] toByteArray() {
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos;
+        final ObjectOutputStream oos;
         try {
             oos = new ObjectOutputStream(bos);
             oos.writeObject(this.key);
@@ -92,9 +92,9 @@ public class MemcachedCacheEntryImpl implements MemcachedCacheEntry {
     @Override
     synchronized public void set(final byte[] bytes) {
         final ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-        ObjectInputStream ois;
-        String s;
-        HttpCacheEntry entry;
+        final ObjectInputStream ois;
+        final String s;
+        final HttpCacheEntry entry;
         try {
             ois = new ObjectInputStream(bis);
             s = (String)ois.readObject();

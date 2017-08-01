@@ -155,7 +155,7 @@ class CacheKeyGenerator {
         }
         Collections.sort(variantHeaderNames);
 
-        StringBuilder buf;
+        final StringBuilder buf;
         try {
             buf = new StringBuilder("{");
             boolean first = true;
