@@ -32,6 +32,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.hc.core5.annotation.Contract;
 import org.apache.hc.core5.annotation.ThreadingBehavior;
@@ -48,10 +50,12 @@ public class BasicCookieStore implements CookieStore, Serializable {
     private static final long serialVersionUID = -7581093305228232025L;
 
     private final TreeSet<Cookie> cookies;
+    private final ReadWriteLock lock;
 
     public BasicCookieStore() {
         super();
         this.cookies = new TreeSet<>(new CookieIdentityComparator());
+        this.lock = new ReentrantReadWriteLock();
     }
 
     /**
@@ -65,12 +69,17 @@ public class BasicCookieStore implements CookieStore, Serializable {
      *
      */
     @Override
-    public synchronized void addCookie(final Cookie cookie) {
+    public void addCookie(final Cookie cookie) {
         if (cookie != null) {
-            // first remove any old cookie that is equivalent
-            cookies.remove(cookie);
-            if (!cookie.isExpired(new Date())) {
-                cookies.add(cookie);
+            lock.writeLock().lock();
+            try {
+                // first remove any old cookie that is equivalent
+                cookies.remove(cookie);
+                if (!cookie.isExpired(new Date())) {
+                    cookies.add(cookie);
+                }
+            } finally {
+                lock.writeLock().unlock();
             }
         }
     }
@@ -85,10 +94,10 @@ public class BasicCookieStore implements CookieStore, Serializable {
      * @see #addCookie(Cookie)
      *
      */
-    public synchronized void addCookies(final Cookie[] cookies) {
+    public void addCookies(final Cookie[] cookies) {
         if (cookies != null) {
-            for (final Cookie cooky : cookies) {
-                this.addCookie(cooky);
+            for (final Cookie cookie : cookies) {
+                this.addCookie(cookie);
             }
         }
     }
@@ -100,9 +109,14 @@ public class BasicCookieStore implements CookieStore, Serializable {
      * @return an array of {@link Cookie cookies}.
      */
     @Override
-    public synchronized List<Cookie> getCookies() {
-        //create defensive copy so it won't be concurrently modified
-        return new ArrayList<>(cookies);
+    public List<Cookie> getCookies() {
+        lock.readLock().lock();
+        try {
+            //create defensive copy so it won't be concurrently modified
+            return new ArrayList<>(cookies);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**
@@ -114,31 +128,46 @@ public class BasicCookieStore implements CookieStore, Serializable {
      * @see Cookie#isExpired(Date)
      */
     @Override
-    public synchronized boolean clearExpired(final Date date) {
+    public boolean clearExpired(final Date date) {
         if (date == null) {
             return false;
         }
-        boolean removed = false;
-        for (final Iterator<Cookie> it = cookies.iterator(); it.hasNext();) {
-            if (it.next().isExpired(date)) {
-                it.remove();
-                removed = true;
+        lock.writeLock().lock();
+        try {
+            boolean removed = false;
+            for (final Iterator<Cookie> it = cookies.iterator(); it.hasNext(); ) {
+                if (it.next().isExpired(date)) {
+                    it.remove();
+                    removed = true;
+                }
             }
+            return removed;
+        } finally {
+            lock.writeLock().unlock();
         }
-        return removed;
     }
 
     /**
      * Clears all cookies.
      */
     @Override
-    public synchronized void clear() {
-        cookies.clear();
+    public void clear() {
+        lock.writeLock().lock();
+        try {
+            cookies.clear();
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     @Override
-    public synchronized String toString() {
-        return cookies.toString();
+    public String toString() {
+        lock.readLock().lock();
+        try {
+            return cookies.toString();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
 }
