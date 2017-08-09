@@ -164,8 +164,9 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
                     @Override
                     public void completed(final PoolEntry<HttpRoute, ManagedAsyncClientConnection> poolEntry) {
-                        if (TimeValue.isPositive(validateAfterInactivity)) {
-                            final ManagedAsyncClientConnection connection = poolEntry.getConnection();
+                        final ManagedAsyncClientConnection connection = poolEntry.getConnection();
+                        if (TimeValue.isPositive(validateAfterInactivity) && connection != null &&
+                                poolEntry.getUpdated() + validateAfterInactivity.toMillis() <= System.currentTimeMillis()) {
                             final ProtocolVersion protocolVersion = connection.getProtocolVersion();
                             if (HttpVersion.HTTP_2_0.greaterEquals(protocolVersion)) {
                                 connection.submitPriorityCommand(new PingCommand(new BasicPingHandler(new Callback<Boolean>() {
@@ -183,6 +184,12 @@ public class PoolingAsyncClientConnectionManager implements AsyncClientConnectio
 
                                 })));
                             } else {
+                                if (!connection.isOpen()) {
+                                    if (log.isDebugEnabled()) {
+                                        log.debug("Connection " + ConnPoolSupport.getId(connection) + " is closed");
+                                    }
+                                    poolEntry.discardConnection(ShutdownType.IMMEDIATE);
+                                }
                                 leaseCompleted(poolEntry);
                             }
                         } else {
